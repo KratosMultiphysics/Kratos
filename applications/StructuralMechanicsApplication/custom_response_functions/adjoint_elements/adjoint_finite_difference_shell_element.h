@@ -79,17 +79,6 @@ public:
 
     // Basic
 
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
-    {
-        Vector dummy;
-        mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrix, dummy, rCurrentProcessInfo);
-        // TODO HACK necessary because shell does not implement LHS...!!
-        // mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
-        //                                       rCurrentProcessInfo);
-    }
-
     void Calculate(const Variable<Vector >& rVariable, Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;
 
