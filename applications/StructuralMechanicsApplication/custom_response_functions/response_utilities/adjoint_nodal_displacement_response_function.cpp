@@ -74,14 +74,14 @@ namespace Kratos
 
         ModelPart& r_model_part = this->GetModelPart();
 
-        for (auto& elem_i : r_model_part.Elements())
+        for (auto elem_it = r_model_part.Elements().ptr_begin(); elem_it != r_model_part.Elements().ptr_end(); ++elem_it)
         {
-            const SizeType number_of_nodes = elem_i.GetGeometry().PointsNumber();
+            const SizeType number_of_nodes = (*elem_it)->GetGeometry().PointsNumber();
             for(IndexType i = 0; i < number_of_nodes; ++i)
             {
-                if(elem_i.GetGeometry()[i].Id() == mpTracedNode->Id())
+                if((*elem_it)->GetGeometry()[i].Id() == mpTracedNode->Id())
                 {
-                    mpNeighboringElement = r_model_part.pGetElement(elem_i.Id());
+                    mpNeighboringElement = (*elem_it);
                     return;
                 }
             }
