@@ -110,23 +110,16 @@ public:
         // We iterate over the nodes
         NodesArrayType& nodes_array = rThisModelPart.Nodes();
 
-        // Creating a buffer for parallel vector fill
-        const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<double> max_vector(num_threads, 0.0);
-        double nodal_h;
-        #pragma omp parallel for private(nodal_h)
+        // Creating the max auxiliar value
+        double max_value = 0.0;
+        #pragma omp parallel for reduction(max:max_value)
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-            nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-
-            const int id = OpenMPUtils::ThisThread();
-
-            if (nodal_h > max_vector[id])
-                max_vector[id] = nodal_h;
+            max_value = std::max(max_value, it_node->FastGetSolutionStepValue(NODAL_H));
         }
 
-        return *std::max_element(max_vector.begin(), max_vector.end());
+        return max_value;
     }
 
     /**
@@ -160,23 +153,16 @@ public:
         // We iterate over the nodes
         NodesArrayType& nodes_array = rThisModelPart.Nodes();
 
-        // Creating a buffer for parallel vector fill
-        const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<double> min_vector(num_threads, 0.0);
-        double nodal_h;
-        #pragma omp parallel for private(nodal_h)
+        // Creating the min auxiliar value
+        double min_value = 0.0;
+        #pragma omp parallel for reduction(min:min_value)
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-            nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-
-            const int id = OpenMPUtils::ThisThread();
-
-            if (nodal_h > min_vector[id])
-                min_vector[id] = nodal_h;
+            min_value = std::min(min_value, it_node->FastGetSolutionStepValue(NODAL_H));
         }
 
-        return *std::min_element(min_vector.begin(), min_vector.end());
+        return min_value;
     }
 
     /**
