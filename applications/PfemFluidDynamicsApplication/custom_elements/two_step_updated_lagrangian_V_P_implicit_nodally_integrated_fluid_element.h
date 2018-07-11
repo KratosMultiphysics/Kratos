@@ -199,21 +199,21 @@ namespace Kratos
 
       /* void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override; */
 
-      void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				 ProcessInfo& rCurrentProcessInfo) override
-      {
-	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement::CalculateLeftHandSide not implemented","");
-	KRATOS_CATCH("");
-      }
+      /* void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, */
+      /* 				 ProcessInfo& rCurrentProcessInfo) override */
+      /* { */
+      /* 	KRATOS_TRY; */
+      /* 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement::CalculateLeftHandSide not implemented",""); */
+      /* 	KRATOS_CATCH(""); */
+      /* } */
 
-      void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				  ProcessInfo& rCurrentProcessInfo) override
-      {
-	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement::CalculateRightHandSide not implemented","");
-	KRATOS_CATCH("");
-      }
+      /* void CalculateRightHandSide(VectorType& rRightHandSideVector, */
+      /* 				  ProcessInfo& rCurrentProcessInfo) override */
+      /* { */
+      /* 	KRATOS_TRY; */
+      /* 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement::CalculateRightHandSide not implemented",""); */
+      /* 	KRATOS_CATCH(""); */
+      /* } */
 
       // The following methods have different implementations depending on TDim
       /// Provides the global indices for each one of this element's local rows
@@ -303,13 +303,6 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
-      void ComputeMaterialParameters (double& Density,
-				      double& DeviatoricCoeff,
-				      double& VolumetricCoeff,
-				      ProcessInfo& rCurrentProcessInfo,
-				      ElementalVariables& rElementalVariables) override;
-
-   
 
       /**
        * A constistent mass matrix is used.
@@ -317,117 +310,7 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
-   
-      void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
-						 double& MeanValue,
-						 const ShapeFunctionDerivativesType& rShapeDeriv,
-						 const double secondLame,
-						 double& bulkModulus,
-						 const double Weight,
-						 double& MeanValueMass,
-						 const double TimeStep);   
-	
-      void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
-					   MatrixType StiffnessMatrix,
-					   double& meanValueStiff,
-					   double& bulkCoefficient,
-					   double timeStep) override;
-      
-      double ComputeNonLinearViscosity(double & equivalentStrainRate);
-
-      void ComputeMaterialParametersGranularGas(double& Density,
-						double& DeviatoricCoeff,
-						double& VolumetricCoeff,
-						ProcessInfo& rCurrentProcessInfo,
-						ElementalVariables& rElementalVariables) override;
-
-      double ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables);
-
-      double ComputeBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
-
-      double ComputePapanastasiouMuIrheologyViscosity(ElementalVariables & rElementalVariables);
-
-      double ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables);
-
-      double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
-   
-      void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
-				 const double Weight) override;
-      
-      void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
-				       const double Weight) override;
-       
-      void ComputeBulkMatrix(MatrixType& BulkMatrix,
-			     const ShapeFunctionsType& rN,
-			     const double Weight) override;
-      
-      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
-				 const ShapeFunctionsType& rN,
-				 const double Weight) override;
-
-      void ComputeBoundRHSVector(VectorType& BoundRHSVector,
-				 const ShapeFunctionsType& rN,
-				 const double TimeStep,
-				 const double BoundRHSCoeffAcc,
-				 const double BoundRHSCoeffDev) override;
-
-      void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
-				      const ShapeFunctionDerivativesType& rShapeDeriv,
-				      const double Weight) override;
-
-      /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
-      /* 				const ProcessInfo& rCurrentProcessInfo, */
-      /* 				const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 				unsigned int g); */
-
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override;
-	
-      void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
-					    double TimeStep,
-					    unsigned int g) override;
-
-      void CalculateTauFIC(double& TauOne,
-			   double ElemSize,
-			   const double Density,
-			   const double Viscosity,
-			   const ProcessInfo& rCurrentProcessInfo) override;
-
-      void AddStabilizationMatrixLHS(MatrixType& rLeftHandSideMatrix,
-				     Matrix& BulkAccMatrix,
-				     const ShapeFunctionsType& rN,
-				     const double Weight) override;
-
-      void AddStabilizationNodalTermsLHS(MatrixType& rLeftHandSideMatrix,
-					 const double Tau,
-					 const double Weight,
-					 const ShapeFunctionDerivativesType& rDN_DX,
-					 const SizeType i);
-
-      void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
-					 const double Tau,
-					 const double Density,
-					 const double Weight,
-					 const ShapeFunctionDerivativesType& rDN_DX,
-					 const SizeType i);
-
-      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
-						 VectorType& rRightHandSideVector,
-						 ProcessInfo& rCurrentProcessInfo) override; 
-
-      void GetPressureVelocityValues(Vector& rValues,
-				     const int Step);
-
-
-      void GetPressureAccelerationValues(Vector& rValues,
-					 const int Step);
-
-      double GetThetaMomentum () override{return 0.5;};
-
-      double GetThetaContinuity () override{return 1.0;};
-      
-
+ 
 
       ///@}
       ///@name Protected  Access

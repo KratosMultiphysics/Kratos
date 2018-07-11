@@ -416,14 +416,14 @@ namespace Kratos {
 	      }else{
 		std::cout<<"THIS node does not have NODAL_SPATIAL_DEF_RATE... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
-	      if(itNode->SolutionStepsDataHas(NODAL_SPATIAL_DEF_RATE_BIS)){
-		Vector& rSpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS);
-		if(rSpatialDefRate.size() != sizeStrains)
-		  rSpatialDefRate.resize(sizeStrains,false);
-		noalias(rSpatialDefRate)=ZeroVector(sizeStrains);
-	      }else{
-		std::cout<<"THIS node does not have NODAL_SPATIAL_DEF_RATE_BIS... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
-	      }
+	      /* if(itNode->SolutionStepsDataHas(NODAL_SPATIAL_DEF_RATE_BIS)){ */
+	      /* 	Vector& rSpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS); */
+	      /* 	if(rSpatialDefRate.size() != sizeStrains) */
+	      /* 	  rSpatialDefRate.resize(sizeStrains,false); */
+	      /* 	noalias(rSpatialDefRate)=ZeroVector(sizeStrains); */
+	      /* }else{ */
+	      /* 	std::cout<<"THIS node does not have NODAL_SPATIAL_DEF_RATE_BIS... "<<itNode->X()<<" "<<itNode->Y()<<std::endl; */
+	      /* } */
 	      if(itNode->SolutionStepsDataHas(NODAL_DEFORMATION_GRAD)){
 		Matrix& rFgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
 		if(rFgrad.size1() != dimension)
@@ -629,14 +629,14 @@ namespace Kratos {
 	      }else{
 		std::cout<<"THIS node does not have NODAL_VOLUMETRIC_DEF_RATE... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
-	      if(itNode->SolutionStepsDataHas(NODAL_SPATIAL_DEF_RATE_BIS)){
-		Vector& rSpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS);
-		if(rSpatialDefRate.size() != sizeStrains)
-		  rSpatialDefRate.resize(sizeStrains,false);
-		noalias(rSpatialDefRate)=ZeroVector(sizeStrains);
-	      }else{
-		std::cout<<"THIS node does not have NODAL_SPATIAL_DEF_RATE_BIS... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
-	      }
+	      /* if(itNode->SolutionStepsDataHas(NODAL_SPATIAL_DEF_RATE_BIS)){ */
+	      /* 	Vector& rSpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS); */
+	      /* 	if(rSpatialDefRate.size() != sizeStrains) */
+	      /* 	  rSpatialDefRate.resize(sizeStrains,false); */
+	      /* 	noalias(rSpatialDefRate)=ZeroVector(sizeStrains); */
+	      /* }else{ */
+	      /* 	std::cout<<"THIS node does not have NODAL_SPATIAL_DEF_RATE_BIS... "<<itNode->X()<<" "<<itNode->Y()<<std::endl; */
+	      /* } */
 	      if(itNode->SolutionStepsDataHas(NODAL_DEFORMATION_GRAD)){
 		Matrix& rFgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
 		if(rFgrad.size1() != dimension)
@@ -724,14 +724,14 @@ namespace Kratos {
 	}else{
 	  std::cout<<"THIS node does not have NODAL_VOLUMETRIC_DEF_RATE... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
 	}
-	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_SPATIAL_DEF_RATE_BIS)){
-	  Vector& rSpatialDefRate=rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS);
-	  if(rSpatialDefRate.size() != sizeStrains)
-	    rSpatialDefRate.resize(sizeStrains,false);
-	  noalias(rSpatialDefRate)=ZeroVector(sizeStrains);
-	}else{
-	  std::cout<<"THIS node does not have NODAL_SPATIAL_DEF_RATE_BIS... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
-	}
+	/* if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_SPATIAL_DEF_RATE_BIS)){ */
+	/*   Vector& rSpatialDefRate=rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS); */
+	/*   if(rSpatialDefRate.size() != sizeStrains) */
+	/*     rSpatialDefRate.resize(sizeStrains,false); */
+	/*   noalias(rSpatialDefRate)=ZeroVector(sizeStrains); */
+	/* }else{ */
+	/*   std::cout<<"THIS node does not have NODAL_SPATIAL_DEF_RATE_BIS... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl; */
+	/* } */
 	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_DEFORMATION_GRAD)){
 	  Matrix& rFgrad=rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
 	  if(rFgrad.size1() != dimension)
@@ -857,13 +857,13 @@ namespace Kratos {
 		itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
 		itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
 	 
-		double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[0];
-		double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[1];
-		double DefXY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[2];
+		/* double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[0]; */
+		/* double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[1]; */
+		/* double DefXY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[2]; */
 
-		DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
-		DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
-		DefXY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
+		double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
+		double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+		double DefXY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
 
 		double DefVol=DefX+DefY;
 	      
@@ -1020,11 +1020,11 @@ namespace Kratos {
 	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
 	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
 	 
-	      double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[0];
-	      double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[1];
+	      /* double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[0]; */
+	      /* double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[1]; */
 
-	      DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
-	      DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+	      double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
+	      double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
 
 	      double DefVol=DefX+DefY;
 	      
@@ -1070,8 +1070,8 @@ namespace Kratos {
     const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     unsigned int idThisNode=nodalSFDneighboursId[0];
     const unsigned int neighSize = nodalSFDneighboursId.size();
-    Matrix newFgrad=ZeroMatrix(dimension,dimension);
-    Matrix newFgradVel=ZeroMatrix(dimension,dimension);
+    Matrix Fgrad=ZeroMatrix(dimension,dimension);
+    Matrix FgradVel=ZeroMatrix(dimension,dimension);
 
     if(dimension==2){
       unsigned int firstRow=0;
@@ -1087,15 +1087,15 @@ namespace Kratos {
 	  double VelocityY = rModelPart.Nodes()[idNode].FastGetSolutionStepValue(VELOCITY_Y,0)*theta +
 	    rModelPart.Nodes()[idNode].FastGetSolutionStepValue(VELOCITY_Y,1)*(1-theta);
 		  
-	  newFgrad(0,0)+=dNdXi*rModelPart.Nodes()[idNode].X();
-	  newFgrad(0,1)+=dNdYi*rModelPart.Nodes()[idNode].X();
-	  newFgrad(1,0)+=dNdXi*rModelPart.Nodes()[idNode].Y();
-	  newFgrad(1,1)+=dNdYi*rModelPart.Nodes()[idNode].Y();
+	  Fgrad(0,0)+=dNdXi*rModelPart.Nodes()[idNode].X();
+	  Fgrad(0,1)+=dNdYi*rModelPart.Nodes()[idNode].X();
+	  Fgrad(1,0)+=dNdXi*rModelPart.Nodes()[idNode].Y();
+	  Fgrad(1,1)+=dNdYi*rModelPart.Nodes()[idNode].Y();
 		    
-	  newFgradVel(0,0)+=dNdXi*VelocityX;
-	  newFgradVel(0,1)+=dNdYi*VelocityX;
-	  newFgradVel(1,0)+=dNdXi*VelocityY;
-	  newFgradVel(1,1)+=dNdYi*VelocityY;
+	  FgradVel(0,0)+=dNdXi*VelocityX;
+	  FgradVel(0,1)+=dNdYi*VelocityX;
+	  FgradVel(1,0)+=dNdXi*VelocityY;
+	  FgradVel(1,1)+=dNdYi*VelocityY;
 		  
 	  firstRow+=2;
 		  
@@ -1123,30 +1123,30 @@ namespace Kratos {
 	  double VelocityZ = rModelPart.Nodes()[idNode].FastGetSolutionStepValue(VELOCITY_Z,0)*theta +
 	    rModelPart.Nodes()[idNode].FastGetSolutionStepValue(VELOCITY_Z,1)*(1-theta);
 		    
-	  newFgrad(0,0)+=dNdXi*rModelPart.Nodes()[idNode].X();
-	  newFgrad(0,1)+=dNdYi*rModelPart.Nodes()[idNode].X();
-	  newFgrad(0,2)+=dNdZi*rModelPart.Nodes()[idNode].X();
+	  Fgrad(0,0)+=dNdXi*rModelPart.Nodes()[idNode].X();
+	  Fgrad(0,1)+=dNdYi*rModelPart.Nodes()[idNode].X();
+	  Fgrad(0,2)+=dNdZi*rModelPart.Nodes()[idNode].X();
 		  
-	  newFgrad(1,0)+=dNdXi*rModelPart.Nodes()[idNode].Y();
-	  newFgrad(1,1)+=dNdYi*rModelPart.Nodes()[idNode].Y();
-	  newFgrad(1,2)+=dNdZi*rModelPart.Nodes()[idNode].Y();
+	  Fgrad(1,0)+=dNdXi*rModelPart.Nodes()[idNode].Y();
+	  Fgrad(1,1)+=dNdYi*rModelPart.Nodes()[idNode].Y();
+	  Fgrad(1,2)+=dNdZi*rModelPart.Nodes()[idNode].Y();
 		  
-	  newFgrad(2,0)+=dNdXi*rModelPart.Nodes()[idNode].Z();
-	  newFgrad(2,1)+=dNdYi*rModelPart.Nodes()[idNode].Z();
-	  newFgrad(2,2)+=dNdZi*rModelPart.Nodes()[idNode].Z();
+	  Fgrad(2,0)+=dNdXi*rModelPart.Nodes()[idNode].Z();
+	  Fgrad(2,1)+=dNdYi*rModelPart.Nodes()[idNode].Z();
+	  Fgrad(2,2)+=dNdZi*rModelPart.Nodes()[idNode].Z();
 
 		    
-	  newFgradVel(0,0)+=dNdXi*VelocityX;
-	  newFgradVel(0,1)+=dNdYi*VelocityX;
-	  newFgradVel(0,2)+=dNdZi*VelocityX;
+	  FgradVel(0,0)+=dNdXi*VelocityX;
+	  FgradVel(0,1)+=dNdYi*VelocityX;
+	  FgradVel(0,2)+=dNdZi*VelocityX;
+	  
+	  FgradVel(1,0)+=dNdXi*VelocityY;
+	  FgradVel(1,1)+=dNdYi*VelocityY;
+	  FgradVel(1,2)+=dNdZi*VelocityY;
 		  
-	  newFgradVel(1,0)+=dNdXi*VelocityY;
-	  newFgradVel(1,1)+=dNdYi*VelocityY;
-	  newFgradVel(1,2)+=dNdZi*VelocityY;
-		  
-	  newFgradVel(2,0)+=dNdXi*VelocityZ;
-	  newFgradVel(2,1)+=dNdYi*VelocityZ;
-	  newFgradVel(2,2)+=dNdZi*VelocityZ;
+	  FgradVel(2,0)+=dNdXi*VelocityZ;
+	  FgradVel(2,1)+=dNdYi*VelocityZ;
+	  FgradVel(2,2)+=dNdZi*VelocityZ;
 		  
 	  firstRow+=3;
 		  
@@ -1155,8 +1155,8 @@ namespace Kratos {
 
     }
 
-    rModelPart.Nodes()[idThisNode].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)=newFgrad;
-    rModelPart.Nodes()[idThisNode].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)=newFgradVel;
+    rModelPart.Nodes()[idThisNode].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)=Fgrad;
+    rModelPart.Nodes()[idThisNode].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)=FgradVel;
     KRATOS_CATCH("");
   }
 

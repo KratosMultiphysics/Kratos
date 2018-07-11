@@ -417,6 +417,13 @@ namespace Kratos
 		  double sigmaXY=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[2];
 		  if(itNode->IsNot(SOLID)){
 		    double pressure=itNode->FastGetSolutionStepValue(PRESSURE,0)*theta+itNode->FastGetSolutionStepValue(PRESSURE,1)*(1-theta);
+		    if(itNode->Is(FREE_SURFACE) && neighSize==3){
+		      unsigned int idNodeA=nodalSFDneighboursId[1];
+		      unsigned int idNodeB=nodalSFDneighboursId[2];
+		      if(rModelPart.Nodes()[idNodeA].Is(FREE_SURFACE) && rModelPart.Nodes()[idNodeB].Is(FREE_SURFACE)){
+			pressure=0;
+		      }		      
+		    }
 		    sigmaXX=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[0] + pressure;
 		    sigmaYY=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[1] + pressure;
 		  }

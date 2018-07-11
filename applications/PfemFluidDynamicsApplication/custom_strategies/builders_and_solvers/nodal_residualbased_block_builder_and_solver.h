@@ -352,13 +352,13 @@ namespace Kratos
 				       itNode->FastGetSolutionStepValue(VELOCITY_Z)*itNode->FastGetSolutionStepValue(VELOCITY_Z));
 		  }
 		  
-		  double tauStab= 10.0 * (characteristicLength * characteristicLength * timeInterval) / ( density * nodalVelocity * timeInterval * characteristicLength + density * characteristicLength * characteristicLength +  8.0 * deviatoricCoeff * timeInterval );
+		  double tauStab= 1.0 * (characteristicLength * characteristicLength * timeInterval) / ( density * nodalVelocity * timeInterval * characteristicLength + density * characteristicLength * characteristicLength +  8.0 * deviatoricCoeff * timeInterval );
 		    
 		  if(itNode->Is(FREE_SURFACE)){
 		    
 		    /* LHS_Contribution(0,0) += + 2.0 * tauStab * nodalFreesurfaceArea / meanMeshSize; */
 		    LHS_Contribution(0,0) += + 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize);
-		    RHS_Contribution[0] += - (4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize)) * itNode->FastGetSolutionStepValue(PRESSURE,0);
+		    RHS_Contribution[0]   += - 4.0 * tauStab * nodalVolume /(meanMeshSize*meanMeshSize) * itNode->FastGetSolutionStepValue(PRESSURE,0);
 
 		    const array_1d<double, 3> &Normal    = itNode->FastGetSolutionStepValue(NORMAL);
 		    Vector& SpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
@@ -368,12 +368,21 @@ namespace Kratos
 		    double nodalNormalProjDefRate=0;
 		    if(dimension==2){
 		      nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + 2*Normal[0]*SpatialDefRate[2]*Normal[1];
-		      nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y);
+		      nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X,0) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y,0);
+		      /* nodalNormalAcceleration=(itNode->FastGetSolutionStepValue(VELOCITY_X,0)-itNode->FastGetSolutionStepValue(VELOCITY_X,1))*Normal[0]/timeInterval + */
+		      /* 	(itNode->FastGetSolutionStepValue(VELOCITY_Y,0)-itNode->FastGetSolutionStepValue(VELOCITY_Y,1))*Normal[1]/timeInterval; */
 		      /* nodalNormalAcceleration=Normal[0]*nodalAcceleration[0] + Normal[1]*nodalAcceleration[1]; */
+		      /* if(neighSize==3){ */
+		      /* 	unsigned int idNodeA=nodalSFDneighboursId[1]; */
+		      /* 	unsigned int idNodeB=nodalSFDneighboursId[2]; */
+		      /* 	if(rModelPart.Nodes()[idNodeA].Is(FREE_SURFACE) && rModelPart.Nodes()[idNodeB].Is(FREE_SURFACE)){ */
+		      /* 	  itNode->FastGetSolutionStepValue(PRESSURE)=0;			   */
+		      /* 	}		       */
+		      /* } */
 		    }else if(dimension==3){
 		      nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + Normal[2]*SpatialDefRate[2]*Normal[2] +
 			2*Normal[0]*SpatialDefRate[3]*Normal[1] + 2*Normal[0]*SpatialDefRate[4]*Normal[2] + 2*Normal[1]*SpatialDefRate[5]*Normal[2];
-		      nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y);
+		      nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y) + Normal[2]*itNode->FastGetSolutionStepValue(ACCELERATION_Z);
 		      /* nodalNormalAcceleration=Normal[0]*nodalAcceleration[0] + Normal[1]*nodalAcceleration[1] + Normal[2]*nodalAcceleration[2]; */
 		    }
 		    
@@ -403,7 +412,7 @@ namespace Kratos
 			    double dNdXj=rNodalSFDneigh[firstRow];
 			    double dNdYj=rNodalSFDneigh[firstRow+1];
 
-			    LHS_Contribution(i,j) += tauStab*(dNdXi*dNdXj + dNdYi*dNdYj) * nodalVolume;
+			    LHS_Contribution(i,j)+=   tauStab * (dNdXi*dNdXj + dNdYi*dNdYj) * nodalVolume;
 			    RHS_Contribution[i]  += - tauStab * (dNdXi*dNdXj + dNdYi*dNdYj) * rModelPart.Nodes()[idNodeJ].FastGetSolutionStepValue(PRESSURE,0) * nodalVolume;
 			    /* std::cout << "dNdXi= " <<dNdXi<< "dNdYi= " <<dNdYi<< "dNdYj= " <<dNdYj<< "dNdXj= " <<dNdXj<< std::endl; */
 

@@ -31,50 +31,6 @@ namespace Kratos {
 
   }
 
-
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-											    VectorType& rRightHandSideVector,
-											    ProcessInfo& rCurrentProcessInfo)
-  { 
-    KRATOS_TRY;
-
-    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
-      {
-      case 1:
-	{
-	  this->CalculateLocalMomentumEquations(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-	  break;
-	}
-      case 5:
-      	{
-      	  this->CalculateLocalContinuityEqForPressure(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-      	  break;
-      	}
-
-      default:
-	{
-	  KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for TWO_STEP_UPDATED_LAGRANGIAN_V_P_ELEMENT index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
-	}
-      }
-
-    KRATOS_CATCH("");
-  }
-
-  
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-											    ProcessInfo& rCurrentProcessInfo)
-  { 
-    KRATOS_TRY;
-
-
-
-
-    
-    KRATOS_CATCH("");
-  }
-
     template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
     {
@@ -91,13 +47,14 @@ namespace Kratos {
       ElementalVariables rElementalVariables;
       this->InitializeElementalVariables(rElementalVariables);
       // Loop on integration points
-      const unsigned int NumGauss = GaussWeights.size();
-      const ShapeFunctionDerivativesType& rDN_DX = DN_DX[0]; 
-      if(NumGauss==1){
-	this->CalcElementalStrains(rElementalVariables,rCurrentProcessInfo,rDN_DX);
-      }else{
-	std::cout<<"a different structure is required for more gauss points"<<std::endl;
-      }
+      const ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
+      
+      // const unsigned int NumGauss = GaussWeights.size();
+      // if(NumGauss==1){
+      // 	this->CalcElementalStrains(rElementalVariables,rCurrentProcessInfo,rDN_DX);
+      // }else{
+      // 	std::cout<<"a different structure is required for more gauss points"<<std::endl;
+      // }
  
       double elementVolume=0;
       if(TDim==3){
@@ -121,14 +78,13 @@ namespace Kratos {
 	    if(rGeom[i].Is(FREE_SURFACE)){
 	      this->NodalFreeSurfaceLength(i);
 	    }
-
-	    // std::cout<<"meshSize "<<meshSize<<"  numberOfNeighElems="<<numberOfNeighElems<<std::endl;
 	  
 	    const double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
-	  
-	    rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)+=rElementalVariables.Fgrad*elementVolume/nodalVolume;
-	    rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)+=rElementalVariables.FgradVel*elementVolume/nodalVolume;
-	    rGeom[i].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)+=rElementalVariables.SpatialDefRate*elementVolume/nodalVolume;
+
+	    // the nodal strain measure could be also be computed as follows (now they are computed in the strategy)
+	    // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)+=rElementalVariables.Fgrad*elementVolume/nodalVolume;
+	    // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)+=rElementalVariables.FgradVel*elementVolume/nodalVolume;
+	    // rGeom[i].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)+=rElementalVariables.SpatialDefRate*elementVolume/nodalVolume;
 	   
 	    for (unsigned int j = 0; j< NumNodes; j++)
 	      {
@@ -136,8 +92,7 @@ namespace Kratos {
 	      
 		double dnDX=rDN_DX(j,0)*elementVolume/nodalVolume;
 		double dnDY=rDN_DX(j,1)*elementVolume/nodalVolume;
-		double dnDZ=rDN_DX(j,2)*elementVolume/nodalVolume;
-	   
+		double dnDZ=rDN_DX(j,2)*elementVolume/nodalVolume;	   
 
 		unsigned int SFDposition=0;
 		for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
@@ -163,7 +118,8 @@ namespace Kratos {
 	      
 
 	      }
-	  }else{
+	  }
+	  else{
 	    std::cout<<rGeom[i].Id()<<"  this node is isolated!!! "<<std::endl;
 	    for (unsigned int k = 0; k< TDim; k++)
 	      {
@@ -204,7 +160,7 @@ namespace Kratos {
   {
 
     GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
+    // const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double,2> Edge(3,0.0);
 
 
@@ -255,33 +211,61 @@ namespace Kratos {
 
   }
 
-  
-    template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+
+  template<>
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2>::GetNodesPosition(Vector& rValues,const ProcessInfo& rCurrentProcessInfo, double theta)
   {
-    KRATOS_TRY; 
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 2*NumNodes;
 
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
 
-    KRATOS_CATCH( "" );
- 
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	rValues[Index++] = rGeom[i].X();
+	rValues[Index++] = rGeom[i].Y();
+      }
   }
 
+  template<>
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3>::GetNodesPosition(Vector& rValues,const ProcessInfo& rCurrentProcessInfo, double theta)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
 
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
+
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+ 	rValues[Index++] = rGeom[i].X();
+        rValues[Index++] = rGeom[i].Y();
+        rValues[Index++] = rGeom[i].Z();
+      }
+  }
 
   template < > 
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2>::CalcElementalStrains(ElementalVariables & rElementalVariables,
 											 const ProcessInfo &rCurrentProcessInfo,
 											 const ShapeFunctionDerivativesType& rDN_DX)
   {
-    const double theta=this->GetThetaMomentum();
     unsigned int dimension=this->GetGeometry().WorkingSpaceDimension();
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = dimension*NumNodes;
-    VectorType  NodePosition= ZeroVector(LocalSize);
+    VectorType  NodesPosition= ZeroVector(LocalSize);
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType RHSVelocities = ZeroVector(LocalSize);
-    this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
+    double theta=0.5;
+    if(rGeom[0].Is(SOLID) && rGeom[1].Is(SOLID) && rGeom[2].Is(SOLID)){
+      theta=1.0;
+    }
+    this->GetNodesPosition(NodesPosition,rCurrentProcessInfo,theta);
     this->GetVelocityValues(RHSVelocities,0); 
     RHSVelocities*=theta;
     this->GetVelocityValues(VelocityValues,1);
@@ -294,7 +278,7 @@ namespace Kratos {
 	  {
 	    for (SizeType k = 0; k < NumNodes; k++)
 	      {
-		rElementalVariables.Fgrad(i,j)+= NodePosition[dimension*k+i]*rDN_DX(k,j);
+		rElementalVariables.Fgrad(i,j)+=NodesPosition[dimension*k+i]*rDN_DX(k,j);
 		rElementalVariables.FgradVel(i,j)+= RHSVelocities[dimension*k+i]*rDN_DX(k,j);
 	      }
 
@@ -348,15 +332,18 @@ namespace Kratos {
 											 const ProcessInfo &rCurrentProcessInfo,
 											 const ShapeFunctionDerivativesType& rDN_DX)
   {
-    const double theta=this->GetThetaMomentum();
     unsigned int dimension=this->GetGeometry().WorkingSpaceDimension();
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = dimension*NumNodes;
-    VectorType  NodePosition= ZeroVector(LocalSize);
+    VectorType  NodesPosition= ZeroVector(LocalSize);
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType RHSVelocities = ZeroVector(LocalSize);
-    this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
+    double theta=0.5;
+    if(rGeom[0].Is(SOLID) && rGeom[1].Is(SOLID) && rGeom[2].Is(SOLID) && rGeom[3].Is(SOLID)){
+      theta=1.0;
+    }
+    this->GetNodesPosition(NodesPosition,rCurrentProcessInfo,theta);
     this->GetVelocityValues(RHSVelocities,0); 
     RHSVelocities*=theta;
     this->GetVelocityValues(VelocityValues,1);
@@ -370,7 +357,7 @@ namespace Kratos {
 	  {
 	    for (SizeType k = 0; k < NumNodes; k++)
 	      {
-		rElementalVariables.Fgrad(i,j)+= NodePosition[dimension*k+i]*rDN_DX(k,j);
+		rElementalVariables.Fgrad(i,j)+=NodesPosition[dimension*k+i]*rDN_DX(k,j);
 		rElementalVariables.FgradVel(i,j)+= RHSVelocities[dimension*k+i]*rDN_DX(k,j);
 	      }
 	  }
@@ -429,8 +416,9 @@ namespace Kratos {
 
 
   }
-  
 
+
+  
   
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
@@ -467,32 +455,6 @@ namespace Kratos {
       {
 	rValues[0]=this->GetValue(FLOW_INDEX);
       }	
-  }
-
-
-  template<>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
-											       MatrixType& rDampingMatrix,
-											       const ShapeFunctionDerivativesType& rDN_DX,
-											       const double secondLame,
-											       const double bulkModulus,
-											       const double theta,
-											       const double Weight)
-  {
-  
-  }
- 
-
-  template<>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
-											       MatrixType& rDampingMatrix,
-											       const ShapeFunctionDerivativesType& rDN_DX,
-											       const double secondLame,
-											       const double bulkModulus,
-											       const double theta,
-											       const double Weight){
-    
-   
   }
 
 
@@ -558,43 +520,6 @@ namespace Kratos {
 
     KRATOS_CATCH("");
   }
-
-  template< >
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2>::ComputeInternalForces(Vector& rRHSVector,
-											  const ShapeFunctionDerivativesType& rDN_DX,
-											  ElementalVariables& rElementalVariables,
-											  const double Weight)
-  {
-
-  }
-
-  template< >
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3>::ComputeInternalForces(Vector& rRHSVector,
-											  const ShapeFunctionDerivativesType& rDN_DX,
-											  ElementalVariables& rElementalVariables,
-											  const double Weight)
-  {
-   
-  }
-
-
-  
-
-  
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::ComputeExternalForces(Vector& rRHSVector,
-											 const double Density,
-											 const double Weight)
-  {
-   
-  }
-
-
-
-
-  /*
-   * Template class definition (this should allow us to compile the desired template instantiations)
-   */
 
   template class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2>;
   template class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3>;

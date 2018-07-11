@@ -223,7 +223,7 @@ namespace Kratos
        */
 
 
-      void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo) override;
+      /* void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo) override; */
 
       void InitializeElementalVariables(ElementalVariables & rElementalVariables) override;
 
@@ -304,11 +304,11 @@ namespace Kratos
       ///@{
 
 
-      void ComputeMaterialParameters (double& Density,
-				      double& DeviatoricCoeff,
-				      double& VolumetricCoeff,
-				      ProcessInfo &rCurrentProcessInfo,
-				      ElementalVariables& rElementalVariables) override;
+      /* void ComputeMaterialParameters (double& Density, */
+      /* 				      double& DeviatoricCoeff, */
+      /* 				      double& VolumetricCoeff, */
+      /* 				      ProcessInfo &rCurrentProcessInfo, */
+      /* 				      ElementalVariables& rElementalVariables) override; */
 
 
       /// Add integration point contribution to the mass matrix.
@@ -324,59 +324,59 @@ namespace Kratos
       /* 				   const double Weight, */
       /* 				   double& MeanValue); */
 
-      void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
-						 double& MeanValue,
-						 const ShapeFunctionDerivativesType& rShapeDeriv,
-						 const double secondLame,
-						 double& bulkModulus,
-						 const double Weight,
-						 double& MeanValueMass,
-						 const double TimeStep){};
+      /* void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables, */
+      /* 						 double& MeanValue, */
+      /* 						 const ShapeFunctionDerivativesType& rShapeDeriv, */
+      /* 						 const double secondLame, */
+      /* 						 double& bulkModulus, */
+      /* 						 const double Weight, */
+      /* 						 double& MeanValueMass, */
+      /* 						 const double TimeStep){}; */
       
-      void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
-					   MatrixType StiffnessMatrix,
-					   double& meanValueStiff,
-					   double& bulkCoefficient,
-					   double timeStep) override{};
+      /* void ComputeBulkReductionCoefficient(MatrixType MassMatrix, */
+      /* 					   MatrixType StiffnessMatrix, */
+      /* 					   double& meanValueStiff, */
+      /* 					   double& bulkCoefficient, */
+      /* 					   double timeStep) override{}; */
       
-      void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-					       const double Weight);
+      /* void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
+      /* 					       const double Weight); */
 
 
-      void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
-					   const ShapeFunctionsType& rN,
-					   const double Weight);
+      /* void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix, */
+      /* 					   const ShapeFunctionsType& rN, */
+      /* 					   const double Weight); */
 
-      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
-				 const ShapeFunctionsType& rN,
-				 const double Weight) override{};
+      /* void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix, */
+      /* 				 const ShapeFunctionsType& rN, */
+      /* 				 const double Weight) override{}; */
 
-      void ComputeBoundRHSVector(VectorType& BoundRHSVector,
-				 const ShapeFunctionsType& rN,
-				 const double TimeStep,
-				 const double BoundRHSCoeffAcc,
-				 const double BoundRHSCoeffDev) override{};
+      /* void ComputeBoundRHSVector(VectorType& BoundRHSVector, */
+      /* 				 const ShapeFunctionsType& rN, */
+      /* 				 const double TimeStep, */
+      /* 				 const double BoundRHSCoeffAcc, */
+      /* 				 const double BoundRHSCoeffDev) override{}; */
 
       /* virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
       /* 					const ProcessInfo& rCurrentProcessInfo, */
       /* 					const ShapeFunctionDerivativesType& rDN_DX, */
       /* 					unsigned int g); */
 	
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override;
+      /* void GetPositions(Vector& rValues, */
+      /* 			const ProcessInfo& rCurrentProcessInfo, */
+      /* 			const double theta) override; */
 	
-      void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
-					    double TimeStep,
-					    unsigned int g) override;
+      /* void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, */
+      /* 					    double TimeStep, */
+      /* 					    unsigned int g) override; */
       	      
-      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
-						 VectorType& rRightHandSideVector,
-						 ProcessInfo& rCurrentProcessInfo) override;
+      /* void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, */
+      /* 						 VectorType& rRightHandSideVector, */
+      /* 						 ProcessInfo& rCurrentProcessInfo) override; */
  
-      double GetThetaMomentum () override{return 1.0;};
+      /* double GetThetaMomentum () override{return 1.0;}; */
 
-      double GetThetaContinuity () override{return 1.0;};
+      /* double GetThetaContinuity () override{return 1.0;}; */
 
       ///@}
       ///@name Protected  Access

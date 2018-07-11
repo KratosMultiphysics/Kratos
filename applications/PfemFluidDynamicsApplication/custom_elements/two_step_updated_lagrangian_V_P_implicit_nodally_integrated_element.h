@@ -220,78 +220,25 @@ namespace Kratos
 
       void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override;
 
-      /// Calculate the element's local contribution to the system for the current step.
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-				VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo) override;
-
-
-      void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				 ProcessInfo& rCurrentProcessInfo) override;
-
-      void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				  ProcessInfo& rCurrentProcessInfo) override
-      {
-	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement::CalculateRightHandSide not implemented","");
-	KRATOS_CATCH("");
-      }
-
- 
-      /* // The following methods have different implementations depending on TDim */
-      /* /// Provides the global indices for each one of this element's local rows */
-      /* /\** */
-      /*  * this determines the elemental equation ID vector for all elemental */
-      /*  * DOFs */
-      /*  * @param rResult A vector containing the global Id of each row */
-      /*  * @param rCurrentProcessInfo the current process info object (unused) */
-      /*  *\/ */
-      /* virtual void EquationIdVector(EquationIdVectorType& rResult, */
-      /* 				    ProcessInfo& rCurrentProcessInfo); */
-
-      /* /// Returns a list of the element's Dofs */
-      /* /\** */
-      /*  * @param ElementalDofList the list of DOFs */
-      /*  * @param rCurrentProcessInfo the current process info instance */
-      /*  *\/ */
-      /* virtual void GetDofList(DofsVectorType& rElementalDofList, */
-      /* 			      ProcessInfo& rCurrentProcessInfo); */
-
-    
-      /* virtual GeometryData::IntegrationMethod GetIntegrationMethod() const; */
-
       void CalcElementalStrains(ElementalVariables & rElementalVariables,
 				const ProcessInfo &rCurrentProcessInfo,
 				const ShapeFunctionDerivativesType& rDN_DX);
+
+      void GetNodesPosition(Vector& rValues,
+			    const ProcessInfo& rCurrentProcessInfo,
+			    double theta);
             
       void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
 				 Matrix& rNContainer,
 				 Vector& rGaussWeights);
       
-      void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo) override{};
-
       void InitializeElementalVariables(ElementalVariables & rElementalVariables) override{
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"InitializeElementalVariables","");
 	KRATOS_CATCH("");
       };
 
-      void ComputeExternalForces(Vector& rRHSVector,const double Density,const double Weight);
 
-      void ComputeInternalForces(Vector& rRHSVector,
-				 const ShapeFunctionDerivativesType& rDN_DX,
-				 ElementalVariables& rElementalVariables,
-				 const double Weight);
-
-      /* void CalculateDeltaPosition (Matrix & rDeltaPosition); */
-
-      ///@}
-      ///@name Access
-      ///@{
-
-      ///@}
-      ///@name Elemental Data
-      ///@{
 
       /// Checks the input and that all required Kratos variables have been registered.
       /**
@@ -327,197 +274,16 @@ namespace Kratos
 	rOStream << "TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement" << TDim << "D";
       }
 
-      //        /// Print object's data.
-      //        virtual void PrintData(std::ostream& rOStream) const;
-
-      ///@}
-      ///@name Friends
-      ///@{
-
-      ///@}
     protected:
-
-      /* double mMaterialDeviatoricCoefficient=0; */
-      /* double mMaterialVolumetricCoefficient=0; */
-      /* double mMaterialDensity=0; */
-
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
 
       void NodalFreeSurfaceLength(unsigned int nodeIndex);
 
       void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 					std::vector<double>& rValues,
 					const ProcessInfo& rCurrentProcessInfo ) override;
-      
-      void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
-					   VectorType& rRightHandSideVector,
-					   ProcessInfo& rCurrentProcessInfo) override;
-
-      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
-						 VectorType& rRightHandSideVector,
-						 ProcessInfo& rCurrentProcessInfo) override{};
-
-      void ComputeMaterialParameters (double& Density,
-				      double& DeviatoricCoeff,
-				      double& VolumetricCoeff,
-				      ProcessInfo& rCurrentProcessInfo,
-				      ElementalVariables& rElementalVariables) override{};
-
-      void ComputeMaterialParametersGranularGas (double& Density,
-						 double& DeviatoricCoeff,
-						 double& VolumetricCoeff,
-						 ProcessInfo& rCurrentProcessInfo,
-						 ElementalVariables& rElementalVariables) override{};
-
-      double GetThetaMomentum () override{
-	std::cout<<"I SHOULD NOT ENTER HERE!"<<std::endl;
-	return 1.0;
-      };
-
-      double GetThetaContinuity () override{
-	std::cout<<"I SHOULD NOT ENTER HERE!"<<std::endl;
-	return 1.0;
-      };
-      
-  
-
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override{};
-
-      void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
-						 double& MeanValue,
-						 const ShapeFunctionDerivativesType& rShapeDeriv,
-						 const double secondLame,
-						 double& bulkModulus,
-						 const double Weight,
-						 double& MeanValueMass,
-						 const double TimeStep){};
-
-      virtual void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
-						   MatrixType StiffnessMatrix,
-						   double& meanValueStiff,
-						   double& bulkCoefficient,
-						   double timeStep){};
-
-      void ComputeCompleteTangentTerm(ElementalVariables& rElementalVariables,
-				      MatrixType& rDampingMatrix,
-				      const ShapeFunctionDerivativesType& rShapeDeriv,
-				      const double secondLame,
-				      const double bulkModulus,
-				      const double theta,
-				      const double Weight);
-
-      virtual void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
-					 const double Weight){};
-      
-      virtual void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
-					       const double Weight){};
-      
-      virtual void ComputeBulkMatrix(MatrixType& BulkMatrix,
-				     const ShapeFunctionsType& rN,
-				     const double Weight){};
-	
-      /* virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
-      /* 						   const double Weight){}; */
-      
-      /* virtual void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix, */
-      /* 						   const double Weight){}; */
-
-      /* virtual void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix, */
-      /* 						   const ShapeFunctionsType& rN, */
-      /* 						   const double Weight){}; */
-      
-      /* virtual void ComputeBulkMatrixForPressureAcc(MatrixType& BulkAccMatrix, */
-      /* 						   const ShapeFunctionsType& rN, */
-      /* 						   const double Weight){}; */
-
-      virtual void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
-					 const ShapeFunctionsType& rN,
-					 const double Weight){};
-
-      virtual void ComputeBoundRHSVector(VectorType& BoundRHSVector,
-					 const ShapeFunctionsType& rN,
-					 const double TimeStep,
-					 const double BoundRHSCoeffAcc,
-					 const double BoundRHSCoeffDev){};
-
-      virtual void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
-					      const ShapeFunctionDerivativesType& rShapeDeriv,
-					      const double Weight){};
-  
-      void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
-					    double TimeStep,
-					    unsigned int g) override{};
-
-      virtual void CalculateTauFIC(double& TauOne,
-				   double ElemSize,
-				   const double Density,
-				   const double Viscosity,
-				   const ProcessInfo& rCurrentProcessInfo){};
-
-      virtual void AddStabilizationMatrixLHS(MatrixType& rLeftHandSideMatrix,
-					     Matrix& BulkAccMatrix,
-					     const ShapeFunctionsType& rN,
-					     const double Weight){};
-
-      virtual void AddStabilizationNodallyTermsLHS(MatrixType& rLeftHandSideMatrix,
-						 const double Tau,
-						 const double Weight,
-						 const ShapeFunctionDerivativesType& rDN_DX,
-						 const SizeType i){};
-
-      virtual void AddStabilizationNodallyTermsRHS(VectorType& rRightHandSideVector,
-						 const double Tau,
-						 const double Density,
-						 const double Weight,
-						 const ShapeFunctionDerivativesType& rDN_DX,
-						 const SizeType i){};
-
    
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-
-      ///@}
-
     private:
-      ///@name Static Member Variables
-      ///@{
 
-      ///@}
-      ///@name Member Variables
-      ///@{
-
-      ///@}
-      ///@name Serialization
-      ///@{
 
       friend class Serializer;
 
