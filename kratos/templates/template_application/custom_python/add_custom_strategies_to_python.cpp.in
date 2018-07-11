@@ -32,34 +32,30 @@
 #include "linear_solvers/linear_solver.h"
 
 
+namespace Kratos {
+namespace Python {
 
-namespace Kratos
+namespace py = pybind11;
+
+void  AddCustomStrategiesToPython(py::module& m)
 {
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-	namespace Python
-	{
-		namespace py = pybind11;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
-		void  AddCustomStrategiesToPython(py::module& m)
-		{
-			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    //********************************************************************
+    //********************************************************************
+    //  class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>,
+    //  		TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
+    //          BaseSolvingStrategyType>(m, "TestStrategy")
+    //  	.def(py::init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
+    //  	.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
+    //  	;
 
-			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+}
 
-			//********************************************************************
-			//********************************************************************
-// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>,
-// 					TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
-//                  BaseSolvingStrategyType>(m, "TestStrategy")
-// 				.def(py::init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-// 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-// 				;
-
-		}
-
-	}  // namespace Python.
-
+}  // namespace Python.
 } // Namespace Kratos

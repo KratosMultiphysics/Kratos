@@ -30,27 +30,25 @@
 namespace Kratos {
 namespace Python {
 
-  namespace py = pybind11;
+namespace py = pybind11;
 
-  PYBIND11_MODULE(Kratos@{APP_NAME_CAMEL}Application,m)
-  {
+PYBIND11_MODULE(Kratos@{APP_NAME_CAMEL}Application,m)
+{
 
-	  class_<Kratos@{APP_NAME_CAMEL}Application,
-			  Kratos@{APP_NAME_CAMEL}Application::Pointer,
-			  KratosApplication>(m, "Kratos@{APP_NAME_CAMEL}Application")
-			  .def(py::init<>())
-			;
+    class_<Kratos@{APP_NAME_CAMEL}Application,
+        Kratos@{APP_NAME_CAMEL}Application::Pointer,
+        KratosApplication>(m, "Kratos@{APP_NAME_CAMEL}Application")
+        .def(py::init<>())
+        ;
 
-	AddCustomStrategiesToPython(m);
-	AddCustomUtilitiesToPython(m);
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
-	//registering variables in python
-@{KRATOS_APP_REGISTER_PYTHON_VARIABLE_LIST}
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
+    //registering variables in python
+    @{KRATOS_APP_REGISTER_PYTHON_VARIABLE_LIST}
+    //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
-
-  }
-
+}
 
 } // namespace Python.
 } // namespace Kratos.
