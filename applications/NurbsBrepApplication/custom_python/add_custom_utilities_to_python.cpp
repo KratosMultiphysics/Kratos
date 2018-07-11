@@ -23,12 +23,13 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+namespace py = pybind11;
+
 namespace Kratos {
 namespace Python {
 
-void  AddCustomUtilitiesToPython(pybind11::module& m)
+void  AddCustomUtilitiesToPython(py::module& m)
 {
-    using namespace pybind11;
 }
 
 } // namespace Python.

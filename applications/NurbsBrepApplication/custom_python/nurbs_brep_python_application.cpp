@@ -22,18 +22,16 @@
 #include "nurbs_brep_application_variables.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
+namespace py = pybind11;
 
 namespace Kratos {
 namespace Python {
 
-using namespace pybind11;
-
 PYBIND11_MODULE(KratosNurbsBrepApplication,m)
 {
-
-    class_<KratosNurbsBrepApplication, KratosNurbsBrepApplication::Pointer, 
+    py::class_<KratosNurbsBrepApplication, KratosNurbsBrepApplication::Pointer, 
         KratosApplication>(m, "KratosNurbsBrepApplication")
-        .def(init<>())
+        .def(py::init<>())
     ;
 
     AddCustomUtilitiesToPython(m);
