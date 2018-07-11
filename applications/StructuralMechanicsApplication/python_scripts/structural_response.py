@@ -241,12 +241,14 @@ class AdjointResponseFunction(ResponseFunctionBase):
             model.AddModelPart(model_part)
 
         # Create the primal solver
-        ProjectParametersPrimal = Parameters( open(project_parameters["primal_settings"].GetString(),'r').read() )
+        with open(project_parameters["primal_settings"].GetString(),'r') as parameter_file:
+            ProjectParametersPrimal = Parameters( parameter_file.read() )
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part_name = ProjectParametersPrimal["problem_data"]["model_part_name"].GetString()
 
         # Create the adjoint solver
-        ProjectParametersAdjoint = Parameters( open(project_parameters["adjoint_settings"].GetString(),'r').read() )
+        with open(project_parameters["adjoint_settings"].GetString(),'r') as parameter_file:
+            ProjectParametersAdjoint = Parameters( parameter_file.read() )
         ProjectParametersAdjoint["solver_settings"].AddValue("response_function_settings", project_parameters)
 
         adjoint_model = Model()
@@ -269,14 +271,13 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
         print("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
-        for node in self.adjoint_model_part.Nodes:
-            ref_node = self.primal_model_part.Nodes[node.Id]
-            node.X0 = ref_node.X0
-            node.Y0 = ref_node.Y0
-            node.Z0 = ref_node.Z0
-            node.X = ref_node.X
-            node.Y = ref_node.Y
-            node.Z = ref_node.Z
+        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+            adjoint_node.X0 = primal_node.X0
+            adjoint_node.Y0 = primal_node.Y0
+            adjoint_node.Z0 = primal_node.Z0
+            adjoint_node.X = primal_node.X
+            adjoint_node.Y = primal_node.Y
+            adjoint_node.Z = primal_node.Z
 
 
         # Run the primal analysis.
@@ -360,7 +361,8 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         self.primal_model_part = model_part
 
         # Create the primal solver
-        self.ProjectParametersPrimal = Parameters( open(project_parameters["primal_settings"].GetString(),'r').read() )
+        with open(project_parameters["primal_settings"].GetString()) as parameters_file:
+            self.ProjectParametersPrimal = Parameters(parameters_file.read())
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, self.ProjectParametersPrimal)
 
         self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
