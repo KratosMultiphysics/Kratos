@@ -130,7 +130,7 @@ namespace Kratos
 		KRATOS_TRY
 		// definition of problem size
 		const unsigned int number_of_control_points = GetGeometry().size();
-		unsigned int mat_size = number_of_control_points * 3;
+		unsigned int number_of_dofs = number_of_control_points * 3;
 
 		//set up properties for Constitutive Law
 		ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -142,23 +142,22 @@ namespace Kratos
 		//resizing as needed the LHS
 		if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 		{
-			if (rLeftHandSideMatrix.size1() != mat_size)
-				rLeftHandSideMatrix.resize(mat_size, mat_size);
-			noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+			if (rLeftHandSideMatrix.size1() != number_of_dofs)
+				rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
+			noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_dofs, number_of_dofs); //resetting LHS
 		}
 		//resizing as needed the RHS
 		if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
 		{
-			if (rRightHandSideVector.size() != mat_size)
-				rRightHandSideVector.resize(mat_size);
-			rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+			if (rRightHandSideVector.size() != number_of_dofs)
+				rRightHandSideVector.resize(number_of_dofs);
+			rRightHandSideVector = ZeroVector(number_of_dofs); //resetting RHS
 		}
 
 		//reading in of integration weight, shape function values and shape function derivatives
 		const double& integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 		const Vector&   N     = this->GetValue(SHAPE_FUNCTION_VALUES);
 		const Matrix&  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-		//Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
 		//Bending stabilization
 		double E = GetProperties()[YOUNG_MODULUS];
@@ -171,34 +170,27 @@ namespace Kratos
 		double a0 = norm_2(mBaseVector0);
 		double a = norm_2(base_vector);
 
-		//KRATOS_WATCH(mBaseVector0)
-		//KRATOS_WATCH(base_vector)
-
 		//stresses
 		double E11_membrane = 0.5 * (pow(a, 2) - pow(a0,2));   //Green Lagrange formulation (strain)
 		//cfloat E11_b = (c_b - c_B);   //Green Lagrange formulation (strain)
 		//cfloat E11_n = (c_n - c_N);   //Green Lagrange formulation (strain)
 
 		double S11_membrane = prestress * area + E11_membrane * area*E / pow(a0,2);//normal force
-		//cfloat S11_b = E11_b * _emod*I_y / Apow2;															 //bending force (hypothetical) wrong cross section props
-		//cfloat S11_n = E11_n * _emod*I_y / Apow2;															 //bending force (hypothetical) wrong cross section props
 
 		// 1st variation
 		// variation of the axial strain 
-		Vector epsilon_var_dof = ZeroVector(mat_size);
+		Vector epsilon_var_dof = ZeroVector(number_of_dofs);
 		Get1stVariationsAxialStrain(epsilon_var_dof, base_vector, 3, DN_De);
 		epsilon_var_dof = epsilon_var_dof / pow(a0, 2);
-		//KRATOS_WATCH(epsilon_var_dof)
 
 		// 2nd variation
 		// variation of the axial strain 
-		Matrix epsilon_var_2_dof = ZeroMatrix(mat_size, mat_size);
+		Matrix epsilon_var_2_dof = ZeroMatrix(number_of_dofs, number_of_dofs);
 		Get2ndVariationsAxialStrain(epsilon_var_2_dof, 3, DN_De);
 		epsilon_var_2_dof = epsilon_var_2_dof / pow(a0, 2);
-		//KRATOS_WATCH(epsilon_var_2_dof)
 
-		for (int r = 0; r<mat_size; r++)
-			for (int s = 0; s<mat_size; s++)
+		for (int r = 0; r<number_of_dofs; r++)
+			for (int s = 0; s<number_of_dofs; s++)
 			{
 				rLeftHandSideMatrix(r, s) = E * area * epsilon_var_dof[r] * epsilon_var_dof[s] + S11_membrane * epsilon_var_2_dof(r, s);
 			}
