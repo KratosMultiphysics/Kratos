@@ -100,6 +100,10 @@ public:
 		const ProcessInfo& rCurrentProcessInfo
 	) override;
 
+
+	void CalculateDampingMatrix(
+		MatrixType& rDampingMatrix,
+		ProcessInfo& rCurrentProcessInfo) override;
 	/**
 	* This is called during the assembling process in order to calculate the elemental mass matrix
 	* @param rMassMatrix: the elemental mass matrix

@@ -50,10 +50,10 @@ public:
 	virtual ~MeshlessMembraneElement() override
 	{};
 
-	//Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
-	//{
-	//	return boost::make_shared< MeshlessMembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
-	//};
+	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+	{
+		return Kratos::make_shared< MeshlessMembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+	};
 
     ///@}
     ///@name Operations
@@ -100,6 +100,19 @@ public:
 		const ProcessInfo& rCurrentProcessInfo
 	) override;
 
+
+	void CalculateDampingMatrix(
+		MatrixType& rDampingMatrix,
+		ProcessInfo& rCurrentProcessInfo) override;
+	/**
+	* This is called during the assembling process in order to calculate the elemental mass matrix
+	* @param rMassMatrix: the elemental mass matrix
+	* @param rCurrentProcessInfo: the current process info instance
+	*/
+	void CalculateMassMatrix(
+		MatrixType& rMassMatrix,
+		ProcessInfo& rCurrentProcessInfo
+	) override;
 
 	/**
 	* Sets on rResult the ID's of the element degrees of freedom

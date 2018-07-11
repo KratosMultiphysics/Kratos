@@ -255,6 +255,40 @@ array_1d<double, 3> MeshlessBaseElement::CrossProduct(
 
 //************************************************************************************
 //************************************************************************************
+void MeshlessBaseElement::GetFirstDerivativesVector(Vector& values, int Step)
+{
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = 3;
+    const unsigned int mat_size = number_of_nodes * dimension;
+    if (values.size() != mat_size)
+        values.resize(mat_size, false);
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const array_1d<double, 3 >& velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+        const unsigned int index = i * dimension;
+        for (unsigned int k = 0; k < dimension; ++k)
+            values[index + k] = velocity[k];
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+void MeshlessBaseElement::GetSecondDerivativesVector(Vector& values, int Step)
+{
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = 3;
+    const unsigned int mat_size = number_of_nodes * dimension;
+    if (values.size() != mat_size)
+        values.resize(mat_size, false);
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const array_1d<double, 3 >& acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        const unsigned int index = i * dimension;
+        for (unsigned int k = 0; k < dimension; ++k)
+            values[index + k] = acceleration[k];
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
 void MeshlessBaseElement::CalculateAll(
 	MatrixType& rLeftHandSideMatrix,
 	VectorType& rRightHandSideVector,

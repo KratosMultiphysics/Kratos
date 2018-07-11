@@ -95,8 +95,8 @@ namespace Kratos
 			{
 				//get shape functions for evaluation of stresses inside the constitutive law
 				const Vector&  N = this->GetValue(SHAPE_FUNCTION_VALUES);
-				const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-				const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+				//const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+				//const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 
 				mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
 				ProcessInfo emptyProcessInfo = ProcessInfo();
@@ -124,10 +124,11 @@ namespace Kratos
 		const unsigned int number_of_nodes = GetGeometry().size();
 		unsigned int mat_size = number_of_nodes * 3;
 
+
 		//set up properties for Constitutive Law
 		ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-		Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+		Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 		Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 		Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
@@ -150,17 +151,17 @@ namespace Kratos
 		double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 		Vector   N     = this->GetValue(SHAPE_FUNCTION_VALUES);
 		Matrix  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-		Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
 		MetricVariables actual_metric(3);
 		CalculateMetric(actual_metric);
 		ConstitutiveVariables constitutive_variables(3);
 		CalculateConstitutiveVariables(actual_metric, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
 
-		double prestress = 1.0;
+
+		double prestress = -1000000.0;
 		constitutive_variables.StressVector[0] += prestress;
 		constitutive_variables.StressVector[1] += prestress;
-		constitutive_variables.StressVector[2] += prestress;
+		constitutive_variables.StressVector[2] = 0.0;
 
 		// calculate B MATRICES
 		Matrix BMembrane = ZeroMatrix(3, mat_size);
@@ -176,7 +177,6 @@ namespace Kratos
 		//CalculateSecondVariationStrainCurvature(
 		//	Strain_ca_11, Strain_ca_22, Strain_ca_12,
 		//	Curvature_ca_11, Curvature_ca_22, Curvature_ca_12, actual_metric);
-
 
 		integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.detJ * GetProperties()[THICKNESS];
 
@@ -335,6 +335,73 @@ namespace Kratos
 		}
 	}
 
+	void MeshlessMembraneElement::CalculateDampingMatrix(
+		MatrixType& rDampingMatrix,
+		ProcessInfo& rCurrentProcessInfo)
+
+	{
+		unsigned int dimension = 3;
+		unsigned int number_of_control_points = GetGeometry().size();
+		unsigned int number_of_dofs = dimension * number_of_control_points;
+
+		if (rDampingMatrix.size1() != number_of_dofs)
+			rDampingMatrix.resize(number_of_dofs, number_of_dofs, false);
+		rDampingMatrix = ZeroMatrix(number_of_dofs, number_of_dofs);
+		//KRATOS_WATCH(rDampingMatrix)
+	}
+
+	void MeshlessMembraneElement::CalculateMassMatrix(
+		MatrixType& rMassMatrix,
+		ProcessInfo& rCurrentProcessInfo
+	)
+	{
+		KRATOS_TRY;
+		double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+		Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
+		Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+
+		double density = this->GetProperties().GetValue(DENSITY);
+
+
+		Vector g1 = ZeroVector(3);
+		Vector g2 = ZeroVector(3);
+		Vector g3 = ZeroVector(3);
+
+		Matrix J;
+		Jacobian(DN_De, J);
+		g1[0] = J(0, 0);
+		g2[0] = J(0, 1);
+		g1[1] = J(1, 0);
+		g2[1] = J(1, 1);
+		g1[2] = J(2, 0);
+		g2[2] = J(2, 1);
+
+		MathUtils<double>::CrossProduct(g3, g1, g2);
+		//differential area dA
+		double dA = norm_2(g3);
+
+		unsigned int dimension = 3;
+		unsigned int number_of_nodes = ShapeFunctionsN.size();
+		unsigned int mat_size = dimension * number_of_nodes;
+
+		if (rMassMatrix.size1() != mat_size)
+		{
+			rMassMatrix.resize(mat_size, mat_size, false);
+		}
+		rMassMatrix = ZeroMatrix(mat_size, mat_size);
+
+		for (int r = 0; r<number_of_nodes; r++)
+		{
+			for (int s = 0; s<number_of_nodes; s++)
+			{
+				rMassMatrix(3 * s,     3 * r)     = ShapeFunctionsN(s)*ShapeFunctionsN(r) * density * dA * integration_weight;
+				rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
+				rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
+			}
+		}
+		//KRATOS_WATCH(rMassMatrix)
+		KRATOS_CATCH("")
+	}
 	//************************************************************************************
 	//************************************************************************************
 	void MeshlessMembraneElement::CalculateMetric(
@@ -431,10 +498,8 @@ namespace Kratos
 	)
 	{
 		Vector strain_vector = ZeroVector(3);
-		Vector curvature_vector = ZeroVector(3);
 
 		CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
-
 		rThisConstitutiveVariables.StrainVector = prod(mInitialMetric.Q, strain_vector);
 
 		//Constitive Matrices DMembrane and DCurvature
@@ -442,9 +507,10 @@ namespace Kratos
 		rValues.SetStressVector(rThisConstitutiveVariables.StressVector);    //this is an ouput parameter
 		rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.DMembrane); //this is an ouput parameter
 
+		double thickness = this->GetProperties().GetValue(THICKNESS);
+
 		mConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
-		double thickness = this->GetProperties().GetValue(THICKNESS);
 
 		//Local Cartesian Forces and Moments
 		rThisConstitutiveVariables.StressVector = prod(

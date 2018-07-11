@@ -122,6 +122,26 @@ protected:
     ///@}
 
 	/**
+	* @brief Sets on rValues the nodal velocities
+	* @param rValues The values of velocities
+	* @param Step The step to be computed
+	*/
+	void GetFirstDerivativesVector(
+		Vector& rValues,
+		int Step = 0
+	) override;
+
+	/**
+	* @brief Sets on rValues the nodal accelerations
+	* @param rValues The values of accelerations
+	* @param Step The step to be computed
+	*/
+	void GetSecondDerivativesVector(
+		Vector& rValues,
+		int Step = 0
+	) override;
+
+	/**
 	* This functions calculates both the RHS and the LHS
 	* @param rLeftHandSideMatrix: The LHS
 	* @param rRightHandSideVector: The RHS
