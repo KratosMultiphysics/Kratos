@@ -189,6 +189,7 @@ namespace Kratos
 			ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 		}
 	}
+
 	/***********************************************************************************/
 	/***********************************************************************************/
 	void MeshlessForceInterfaceCondition::GetValueOnIntegrationPoints(
@@ -203,10 +204,10 @@ namespace Kratos
 			rValues.resize(1);
 
 		if (rVariable == COORDINATES) {
-			const int& number_of_nodes = GetGeometry().size();
+			const int& number_of_control_points = GetGeometry().size();
 			Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
 			Vector condition_coords = ZeroVector(3);
-			for (SizeType i = 0; i < number_of_nodes; i++)
+			for (SizeType i = 0; i < number_of_control_points; i++)
 			{
 				const NodeType & iNode = GetGeometry()[i];
 				const array_1d<double, 3>& coords = iNode.Coordinates();
@@ -221,47 +222,80 @@ namespace Kratos
 			CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 		}
 	}
-	//************************************************************************************
-	//************************************************************************************
-	void MeshlessForceInterfaceCondition::GetValuesVector(Vector& values, int Step)
-	{
-		if (values.size() != 3)
-			values.resize(3, false);
+    /***********************************************************************************/
+    /***********************************************************************************/
+    void MeshlessForceInterfaceCondition::GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        if (rValues.size() != 1)
+            rValues.resize(1);
 
-		const int& number_of_nodes = GetGeometry().size();
-		Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+        if (rVariable == VELOCITY) {
+            const int& number_of_control_points = GetGeometry().size();
+            Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
-		for (SizeType i = 0; i < number_of_nodes; i++)
-		{
-			const NodeType & iNode = GetGeometry()[i];
-			const array_1d<double, 3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
+            array_1d<double,3> velocity = ZeroVector(3);
+            for (SizeType i = 0; i < number_of_control_points; i++)
+            {
+                const NodeType & iNode = GetGeometry()[i];
+                const array_1d<double, 3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, 0);
 
-			values[0] += N[i] * disp[0];
-			values[1] += N[i] * disp[1];
-			values[2] += N[i] * disp[2];
-		}
-	}
+                velocity[0] += N[i] * vel[0];
+                velocity[1] += N[i] * vel[1];
+                velocity[2] += N[i] * vel[2];
+            }
+            rValues[0] = velocity;
+        }
+        else {
+            CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        }
+    }
 
-	//************************************************************************************
-	//************************************************************************************
-	void MeshlessForceInterfaceCondition::GetFirstDerivativesVector(Vector& values, int Step)
-	{
-		if (values.size() != 3)
-			values.resize(3, false);
+	////************************************************************************************
+	////************************************************************************************
+	//void MeshlessForceInterfaceCondition::GetValuesVector(Vector& values, int Step)
+	//{
+	//	if (values.size() != 3)
+	//		values.resize(3, false);
 
-		const int& number_of_nodes = GetGeometry().size();
-		Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+	//	const int& number_of_nodes = GetGeometry().size();
+	//	Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
-		for (SizeType i = 0; i < number_of_nodes; i++)
-		{
-			const NodeType & iNode = GetGeometry()[i];
-			const array_1d<double, 3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, Step);
+	//	for (SizeType i = 0; i < number_of_nodes; i++)
+	//	{
+	//		const NodeType & iNode = GetGeometry()[i];
+	//		const array_1d<double, 3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
 
-			values[0] += N[i] * vel[0];
-			values[1] += N[i] * vel[1];
-			values[2] += N[i] * vel[2];
-		}
-	}
+	//		values[0] += N[i] * disp[0];
+	//		values[1] += N[i] * disp[1];
+	//		values[2] += N[i] * disp[2];
+	//	}
+	//}
+
+	////************************************************************************************
+	////************************************************************************************
+	//void MeshlessForceInterfaceCondition::GetFirstDerivativesVector(Vector& values, int Step)
+	//{
+	//	if (values.size() != 3)
+	//		values.resize(3, false);
+
+
+	//	const int& number_of_nodes = GetGeometry().size();
+	//	Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+
+	//	for (SizeType i = 0; i < number_of_nodes; i++)
+	//	{
+	//		const NodeType & iNode = GetGeometry()[i];
+	//		const array_1d<double, 3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, Step);
+
+	//		values[0] += N[i] * vel[0];
+	//		values[1] += N[i] * vel[1];
+	//		values[2] += N[i] * vel[2];
+	//	}
+	//}
 
 	
 

@@ -165,6 +165,46 @@ protected:
 		const array_1d<double, 3>& a,
 		const array_1d<double, 3>& b);
 
+
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+    * @param rMassMatrix The elemental mass matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @param rDampingMatrix The elemental damping matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    /**
+    * @brief Sets on rValues the nodal velocities
+    * @param rValues The values of velocities
+    * @param Step The step to be computed
+    */
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0
+    ) override;
+
+    /**
+    * @brief Sets on rValues the nodal accelerations
+    * @param rValues The values of accelerations
+    * @param Step The step to be computed
+    */
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0
+    ) override;
     ///@}
     ///@name Protected  Access
     ///@{

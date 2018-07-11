@@ -479,8 +479,13 @@ namespace Kratos
 
 	void NurbsBrepModeler::GetInterfaceConditions(ModelPart& rParticleModelPart, ModelPart& rConditionModelPart, ModelPart& rSearchModelPart)
 	{
+		//std::cout << "Number of elements: " << rParticleModelPart.Elements().size() << std::endl;
 		for (auto element = rParticleModelPart.ElementsBegin(); element != rParticleModelPart.ElementsEnd(); element++)
 		{
+			//std::cout << "Check here for more information: X: " << element->GetGeometry()[0].X() << ", Y: " << element->GetGeometry()[0].Y() << ", Z: " << element->GetGeometry()[0].Z() << std::endl;
+			std::vector<Condition*> new_conditions;
+			std::vector<array_1d<double, 3>> new_elastic_forces;
+			std::vector<array_1d<double, 3>> new_total_forces;
 			bool check = true;
 			if (check)
 			{
@@ -490,67 +495,48 @@ namespace Kratos
 				Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0,0,0,0); // ::Pointer(new Node<3>(0));
 				Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0,0,0,0));
 
-				for (auto condition = element->GetValue(WALL_POINT_CONDITION_POINTERS).begin(); condition != element->GetValue(WALL_POINT_CONDITION_POINTERS).end(); condition++)
+				std::vector<Node<3>::Pointer> list_of_nodes;
+				list_of_nodes.reserve(rSearchModelPart.NumberOfNodes());
+				for (ModelPart::NodesContainerType::iterator i_node = rSearchModelPart.NodesBegin(); i_node != rSearchModelPart.NodesEnd(); i_node++)
 				{
-					//int id = (*condition)->Id();
-					//rConditionModelPart.RemoveConditionFromAllLevels(id);
+					(list_of_nodes).push_back(*(i_node.base()));
 				}
-				//	Condition closestElement = point_conditions[0];
-				//	//friction = closestElement->GetValue(FRICTION);
-				//	Vector location;
-				//	closestElement.GetValuesVector(location);
-				//	//noalias(node->Coordinates()) = location;
-				//	node->X() = location[0];
-				//	node->Y() = location[1];
-				//	node->Z() = location[2];
-				//	node_on_geometry->SetValue(LOCAL_PARAMETERS, closestElement.GetValue(LOCAL_PARAMETERS));
-				//	node_on_geometry->SetValue(FACE_BREP_ID, closestElement.GetValue(FACE_BREP_ID));
-				//	//point_conditions.pop_back();
-				//	rConditionModelPart.RemoveConditionFromAllLevels(point_conditions[0]);
+				const int bucket_size = 20;
+				tree search_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
+				*node = element->GetGeometry()[0];
+				node_on_geometry = search_tree.SearchNearestPoint(*node);
 				//}
-				//else
-				//{
-					std::vector<Node<3>::Pointer> list_of_nodes;
-					list_of_nodes.reserve(rSearchModelPart.NumberOfNodes());
-					for (ModelPart::NodesContainerType::iterator i_node = rSearchModelPart.NodesBegin(); i_node != rSearchModelPart.NodesEnd(); i_node++)
-					{
-						(list_of_nodes).push_back(*(i_node.base()));
-					}
-					const int bucket_size = 20;
-					tree search_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-					*node = element->GetGeometry()[0];
-					node_on_geometry = search_tree.SearchNearestPoint(*node);
-				//}
+				//std::cout << "Closest point: X: " << node_on_geometry->X() << ", Y: " << node_on_geometry->Y() << ", Z: " << node_on_geometry->Z() << std::endl;
 				double distance_to_closest_element = sqrt(pow(node->X() - node_on_geometry->X(), 2) + pow(node->Y() - node_on_geometry->Y(), 2) + pow(node->Z() - node_on_geometry->Z(), 2));
-				KRATOS_WATCH(distance_to_closest_element)
+				//KRATOS_WATCH(distance_to_closest_element)
 				double radius = element->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 				double search_radius = radius*4;
 				if (distance_to_closest_element < search_radius)
 				{
-					//Vector local_parameters_of_nearest_point = node_on_geometry->GetValue(LOCAL_PARAMETERS);
-					//unsigned int face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
-					//std::cout << "face_id_of_nearest_point: " << face_id_of_nearest_point << std::endl;
-					//std::cout << "local_parameters_of_nearest_point: " << local_parameters_of_nearest_point << std::endl;
 					unsigned int face_id_of_nearest_point = node_on_geometry->GetValue(FACE_BREP_ID);
 
 					BrepFace& face = GetFace(face_id_of_nearest_point);
 
+					//std::cout << "Closest point: X: " << node_on_geometry->X() << ", Y: " << node_on_geometry->Y() << ", Z: " << node_on_geometry->Z() << std::endl;
+
 					face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
 
-					KRATOS_WATCH("CLOSEST NODE FOUND")
-					KRATOS_WATCH(radius)
-					std::cout << "Here first node: " << node_on_geometry->X() << ", " << node_on_geometry->Y() << ", " << node_on_geometry->Z() << std::endl;
-					std::cout << "Here second node: " << node->X() << ", " << node->Y() << ", " << node->Z() << std::endl;
-					KRATOS_WATCH(node)
+					//KRATOS_WATCH("CLOSEST NODE FOUND")
+					//KRATOS_WATCH(radius)
+					std::cout << "Projected Point: " << node_on_geometry->X() << ", " << node_on_geometry->Y() << ", " << node_on_geometry->Z() << std::endl;
+					std::cout << "External Point: " << node->X() << ", " << node->Y() << ", " << node->Z() << std::endl;
+					//KRATOS_WATCH(node)
 					//KRATOS_ERROR << "Here ends the game" << std::endl;
 
 					double distance_radius = std::sqrt(std::pow(node->X() - node_on_geometry->X(), 2) +
 					std::pow(node->Y() - node_on_geometry->Y(), 2) +
 					std::pow(node->Z() - node_on_geometry->Z(), 2));
 
-					if (distance_radius <= radius)
+					//KRATOS_WATCH(distance_radius)
+					//std::cout << "Projected point: X: " << node_on_geometry->X() << ", Y: " << node_on_geometry->Y() << ", Z: " << node_on_geometry->Z() << std::endl;
+					if (distance_radius <= radius + 1e-7)
 					{
-						std::cout << "output here!" << std::endl;
+						//std::cout << "output here!" << std::endl;
 						Vector node_ids = node_on_geometry->GetValue(CONTROL_POINT_IDS);
 						std::vector<std::size_t> node_ids_int(node_ids.size());
 						for (int i = 0; i < node_ids.size(); i++)
@@ -562,30 +548,69 @@ namespace Kratos
 						}
 						std::string condition_name = "MeshlessForceInterfaceCondition";
 						int id = 1;
-						std::cout << "number of conditions: " << rConditionModelPart.Conditions().size() << std::endl;
+						//std::cout << "number of conditions: " << rConditionModelPart.Conditions().size() << std::endl;
 						if (rConditionModelPart.Conditions().size()>0)
 							id = rConditionModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 						rConditionModelPart.AddProperties(element->pGetProperties());
 
+						//std::cout << "check create new conditions" << std::endl;
 						Condition::Pointer cond = rConditionModelPart.CreateNewCondition(condition_name, id, node_ids_int, element->pGetProperties());
 						Vector external_force_vector = ZeroVector(3);
 						cond->SetValue(LOCAL_PARAMETERS, node_on_geometry->GetValue(LOCAL_PARAMETERS));
 						cond->SetValue(FACE_BREP_ID, node_on_geometry->GetValue(FACE_BREP_ID));
 						cond->SetValue(SHAPE_FUNCTION_VALUES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
 						cond->SetValue(EXTERNAL_FORCES_VECTOR, external_force_vector);
-						
-						KRATOS_WATCH(cond->pGetProperties())
 
-						//element->GetValue(WALL_POINT_CONDITION_POINTERS).clear();
-						//element->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES).clear();
-						//element->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES).clear();
+						new_conditions.push_back(&*cond);
 
-						element->GetValue(WALL_POINT_CONDITION_POINTERS).push_back(&*cond);
-						element->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES).push_back(ZeroVector(3));
-						element->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES).push_back(ZeroVector(3));
+						//std::cout << "check change of old conditions" << std::endl;
+						int condition_length = element->GetValue(WALL_POINT_CONDITION_POINTERS).size();
+						std::vector<Vector> coords;
+						ProcessInfo emptyProcessInfo = ProcessInfo();
+						bool success = false;
+						for (int i = 0; i < condition_length; ++i)
+						{
+							//std::cout << "coordinates" << std::endl;
+							element->GetValue(WALL_POINT_CONDITION_POINTERS)[i]->GetValueOnIntegrationPoints(COORDINATES, coords, emptyProcessInfo);
+							//std::cout << "new condition on same place" << std::endl;
+							//KRATOS_WATCH(coords[0])
+							double distance_radius = std::sqrt(std::pow(coords[0][0] - node_on_geometry->X(), 2) +
+								std::pow(coords[0][1] - node_on_geometry->Y(), 2) +
+								std::pow(coords[0][2] - node_on_geometry->Z(), 2));
+							if (distance_radius < radius / 3)
+							{
+								//std::cout << "new condition on same place" << std::endl;
+								//KRATOS_WATCH(element->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES)[i])
+								//KRATOS_WATCH(element->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES)[i])
+								new_elastic_forces.push_back(element->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES)[i]);
+								new_total_forces.push_back(element->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES)[i]);
+								success = true;
+							}
+						}
+
+						if (!success)
+						{
+							new_elastic_forces.push_back(ZeroVector(3));
+							new_total_forces.push_back(ZeroVector(3));
+						}
 					}
 				}
 			}
+
+			int condition_length = element->GetValue(WALL_POINT_CONDITION_POINTERS).size();
+			std::vector<Vector> coords;
+			ProcessInfo emptyProcessInfo = ProcessInfo();
+			for (int i = 0; i < condition_length; ++i)
+			{
+				rConditionModelPart.RemoveConditionFromAllLevels(*(element->GetValue(WALL_POINT_CONDITION_POINTERS)[i]));
+			}
+			//std::cout << "check 1" << std::endl;
+			element->SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, new_elastic_forces);
+			element->SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, new_total_forces);
+			element->SetValue(WALL_POINT_CONDITION_POINTERS, new_conditions);
+
+			//std::cout << "check 2" << std::endl;
+
 		}
 	}
 

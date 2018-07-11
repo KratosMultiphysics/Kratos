@@ -53,6 +53,8 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
         self.integration_point_results = self.__generate_variable_list_from_input(self.params["integration_point_results"])
         self.frequency = self.params["time_frequency"].GetDouble()
 
+        self.step = 0
+
         with open(self.output_file_name, 'w') as file:
             file.write("Rhino Post Results File 1.0\n") 
             for i in range(self.params["nodal_results"].size()):
@@ -99,17 +101,19 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
+        self.step = self.step + 1
         step = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME_STEPS)
         self.time_counter += dt
-        if self.time_counter > self.frequency:
-            self.time_counter = 0.0
+        
+        if True:#self.time_counter + 0.00001 >= self.frequency:
+            #self.time_counter = 0.0
 
             with open(self.output_file_name, 'a') as file:
                 for i in range(self.params["nodal_results"].size()):
                     out = self.params["nodal_results"][i]
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
 
-                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(step) + " Vector OnNodes\n")
+                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " Vector OnNodes\n")
                     file.write("Values\n")
                     for node in self.sub_model_part.Nodes:
                         value = node.GetSolutionStepValue(variable, 0)
@@ -124,7 +128,7 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                     out = self.params["integration_point_results"][i]
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
 
-                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(step) + " Scalar OnGaussPoints\n")
+                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " Scalar OnGaussPoints\n")
                     file.write("Values\n")
                     for element in self.sub_model_part.Elements:
                         value = element.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)

@@ -983,7 +983,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     for (unsigned int i=0; i<list_of_point_condition_pointers.size(); i++) {
         Condition* wall = list_of_point_condition_pointers[i];
         /*Node<3>& cond_node = wall->GetGeometry()[0];*/
-		KRATOS_WATCH(wall->pGetProperties()->GetValue(FRICTION))
+		//KRATOS_WATCH(wall->pGetProperties()->GetValue(FRICTION))
         double RelVel[3]                         = {0.0};
         double LocalElasticContactForce[3]       = {0.0};
         double GlobalElasticContactForce[3]      = {0.0};
@@ -995,11 +995,11 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
 		Vector wall_delta_disp_at_contact_point = ZeroVector(3);
 		//wall->GetValuesVector(wall_delta_disp_at_contact_point);
-		Vector wall_velocity_at_contact_point = ZeroVector(3);
-		wall->GetFirstDerivativesVector(wall_velocity_at_contact_point);
-		wall_delta_disp_at_contact_point = wall_velocity_at_contact_point * data_buffer.mDt;
-		KRATOS_WATCH(wall_delta_disp_at_contact_point)
-		KRATOS_WATCH(wall_velocity_at_contact_point)
+        std::vector<array_1d<double, 3>> wall_velocity_at_contact_point(1);
+		wall->GetValueOnIntegrationPoints(VELOCITY, wall_velocity_at_contact_point, r_process_info);
+		wall_delta_disp_at_contact_point = wall_velocity_at_contact_point[0] * data_buffer.mDt;
+		//KRATOS_WATCH(wall_delta_disp_at_contact_point)
+		//KRATOS_WATCH(wall_velocity_at_contact_point[0])
         bool sliding = false;
         double ini_delta = 0.0;
 
@@ -1008,14 +1008,14 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 		wall->GetValueOnIntegrationPoints(COORDINATES, coordinates, r_process_info);
         noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - coordinates[0];
         double DistPToB = DEM_MODULUS_3(cond_to_me_vect);;
-		KRATOS_WATCH(coordinates)
+		//KRATOS_WATCH(coordinates)
         double indentation = -(DistPToB - GetInteractionRadius()) - ini_delta;
         double DeltDisp[3] = {0.0};
         double DeltVel [3] = {0.0};
 
-        DeltVel[0] = velocity[0] - wall_velocity_at_contact_point[0];
-        DeltVel[1] = velocity[1] - wall_velocity_at_contact_point[1];
-        DeltVel[2] = velocity[2] - wall_velocity_at_contact_point[2];
+        DeltVel[0] = velocity[0] - wall_velocity_at_contact_point[0][0];
+        DeltVel[1] = velocity[1] - wall_velocity_at_contact_point[0][1];
+        DeltVel[2] = velocity[2] - wall_velocity_at_contact_point[0][2];
 
         // For translation movement delta displacement
         const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -1054,8 +1054,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
         double OldLocalElasticContactForce[3] = {0.0};
 
-		KRATOS_WATCH(data_buffer.mLocalCoordSystem)
-		KRATOS_WATCH(OldLocalElasticContactForce)
+		//KRATOS_WATCH(data_buffer.mLocalCoordSystem)
+		//KRATOS_WATCH(OldLocalElasticContactForce)
 
         GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, neighbour_point_faces_elastic_contact_force[i], OldLocalElasticContactForce);
         const double previous_indentation = indentation + LocalDeltDisp[2];
@@ -1096,7 +1096,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
 		Vector GlobalContactForceVector(3);
 		DEM_COPY_SECOND_TO_FIRST_3(GlobalContactForceVector, GlobalContactForce)
-		KRATOS_WATCH(GlobalContactForceVector)
+		//KRATOS_WATCH(GlobalContactForceVector)
 		wall->SetValue(EXTERNAL_FORCES_VECTOR, GlobalContactForceVector);
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {

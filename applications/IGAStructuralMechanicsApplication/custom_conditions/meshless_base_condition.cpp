@@ -299,6 +299,75 @@ array_1d<double, 3> MeshlessBaseCondition::CrossProduct(
 	cross[2] = a[0] * b[1] - a[1] * b[0];
 	return cross;
 }
+
+//************************************************************************************
+//************************************************************************************
+void MeshlessBaseCondition::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo)
+
+{
+    unsigned int dimension = 3;
+    unsigned int number_of_control_points = GetGeometry().size();
+    unsigned int number_of_dofs = dimension * number_of_control_points;
+
+    if (rDampingMatrix.size1() != number_of_dofs)
+        rDampingMatrix.resize(number_of_dofs, number_of_dofs, false);
+    rDampingMatrix = ZeroMatrix(number_of_dofs, number_of_dofs);
+}
+
+//************************************************************************************
+//************************************************************************************
+void MeshlessBaseCondition::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY;
+    unsigned int dimension = 3;
+    unsigned int number_of_control_points = GetGeometry().size();
+    unsigned int number_of_dofs = dimension * number_of_control_points;
+
+    if (rMassMatrix.size1() != number_of_dofs)
+        rMassMatrix.resize(number_of_dofs, number_of_dofs, false);
+    rMassMatrix = ZeroMatrix(number_of_dofs, number_of_dofs);
+
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+void MeshlessBaseCondition::GetFirstDerivativesVector(Vector& values, int Step)
+{
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = 3;
+    const unsigned int mat_size = number_of_nodes * dimension;
+    if (values.size() != mat_size)
+        values.resize(mat_size, false);
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const array_1d<double, 3 >& velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+        const unsigned int index = i * dimension;
+        for (unsigned int k = 0; k < dimension; ++k)
+            values[index + k] = velocity[k];
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+void MeshlessBaseCondition::GetSecondDerivativesVector(Vector& values, int Step)
+{
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = 3;
+    const unsigned int mat_size = number_of_nodes * dimension;
+    if (values.size() != mat_size)
+        values.resize(mat_size, false);
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const array_1d<double, 3 >& acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        const unsigned int index = i * dimension;
+        for (unsigned int k = 0; k < dimension; ++k)
+            values[index + k] = acceleration[k];
+    }
+}
 //***********************************************************************************
 //***********************************************************************************
 } // Namespace Kratos

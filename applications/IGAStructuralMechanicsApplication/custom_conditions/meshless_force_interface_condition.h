@@ -95,23 +95,18 @@ namespace Kratos
 			std::vector<Vector>& rValues,
 			const ProcessInfo& rCurrentProcessInfo
 		) override;
-		/**
-		* @brief Sets on rValues the nodal displacements
-		* @param rValues The values of displacements
-		* @param Step The step to be computed
-		*/
-		void GetValuesVector(
-			Vector& rValues,
-			int Step = 0
-		) override;
-		/** Sets on rValues the nodal velocities
-		*   @param rValues: The values of velocities
-		*   @param Step: The step to be computed
-		*/
-		void GetFirstDerivativesVector(
-			Vector& rValues,
-			int Step = 0
-		) override;
+
+        /**
+        * @brief Get on rVariable a Vector Value from the Element Constitutive Law
+        * @param rVariable The variable we want to get
+        * @param rValues The results in the integration points
+        * @param rCurrentProcessInfo the current process info instance
+        */
+        void GetValueOnIntegrationPoints(
+            const Variable<array_1d<double,3>>& rVariable,
+            std::vector<array_1d<double, 3>>& rValues,
+            const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
 		///@}
 	protected:
