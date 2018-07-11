@@ -294,15 +294,12 @@ namespace Kratos
         if(rResponseGradient.size() != num_of_derivatives_per_stress)
             rResponseGradient.resize(num_of_derivatives_per_stress, false);
 
-        for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
-        {
-            if(num_of_stress_positions >= mIdOfLocation)
-                rResponseGradient[deriv_it] = rStressDerivativesMatrix(deriv_it, (mIdOfLocation-1));
-            else
-                KRATOS_ERROR << "Chosen node is not available. The element has only " <<
+        KRATOS_ERROR_IF_NOT(num_of_stress_positions >= mIdOfLocation ) << "Chosen node is not available. The element has only " <<
                             num_of_stress_positions << " nodes."<< std::endl;
-        }
 
+        for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
+            rResponseGradient[deriv_it] = rStressDerivativesMatrix(deriv_it, (mIdOfLocation-1));
+          
         KRATOS_CATCH("");
     }
 
@@ -316,15 +313,13 @@ namespace Kratos
         if(rResponseGradient.size() != num_of_derivatives_per_stress)
             rResponseGradient.resize(num_of_derivatives_per_stress, false);
 
-        for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
-        {
-            if(num_of_stress_positions >= mIdOfLocation)
-                rResponseGradient[deriv_it] = rStressDerivativesMatrix(deriv_it, (mIdOfLocation-1));
-            else
-                KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
+        KRATOS_ERROR_IF_NOT(num_of_stress_positions >= mIdOfLocation ) << 
+                "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                 num_of_stress_positions  << "!"<< std::endl;
-        }
 
+        for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
+            rResponseGradient[deriv_it] = rStressDerivativesMatrix(deriv_it, (mIdOfLocation-1));
+    
         KRATOS_CATCH("");
     }
 
