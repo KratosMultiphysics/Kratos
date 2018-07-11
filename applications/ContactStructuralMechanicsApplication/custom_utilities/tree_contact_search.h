@@ -318,16 +318,6 @@ private:
         );
     
     /**
-     * @brief This method computes the maximal nodal H
-     */
-    inline double GetMaxNodalH();
-       
-    /**
-     * @brief This method computes the mean nodal H
-     */
-    inline double GetMeanNodalH();
-    
-    /**
      * @brief It check the conditions if they are correctly detected
      * @param pIndexesPairs Set containing the ids to the conditions
      * @param pCond1 The pointer to the condition in the destination model part
