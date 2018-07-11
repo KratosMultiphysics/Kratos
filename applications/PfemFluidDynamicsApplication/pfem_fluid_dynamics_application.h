@@ -91,7 +91,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosPfemFluidDynamicsApplication : public KratosApplication
+  class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) KratosPfemFluidDynamicsApplication : public KratosApplication
   {
   public:
 
