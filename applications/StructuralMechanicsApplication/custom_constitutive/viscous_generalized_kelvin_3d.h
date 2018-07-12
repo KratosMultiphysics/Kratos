@@ -267,6 +267,12 @@ private:
         const Properties &rMaterialProperties
         );
 
+
+    Matrix& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue
+        );
     ///@}
     ///@name Private  Access
     ///@{
