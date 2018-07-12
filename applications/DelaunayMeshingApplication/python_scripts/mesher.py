@@ -10,10 +10,10 @@ def CreateMesher(main_model_part, meshing_parameters):
     return Mesher(main_model_part, meshing_parameters)
 
 class Mesher(object):
-    
+
     #
-    def __init__(self, main_model_part, meshing_parameters): 
-        
+    def __init__(self, main_model_part, meshing_parameters):
+
         self.echo_level             = 1
         self.main_model_part        = main_model_part
         self.MeshingParameters      = meshing_parameters
@@ -22,11 +22,11 @@ class Mesher(object):
         if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
 
-        print("::[Mesher]::")
-        
+        print(self._class_prefix()+" Ready")
+
     #
     def Initialize(self, dimension):
-        
+
         self.dimension   =  dimension
 
         # set mesher
@@ -39,14 +39,14 @@ class Mesher(object):
         self.mesher.SetMeshingParameters(self.MeshingParameters)
 
         self.SetPreMeshingProcesses()
-        self.SetPostMeshingProcesses()    
+        self.SetPostMeshingProcesses()
 
         self.mesher.Initialize()
 
 
     #
     def InitializeMeshing(self):
-        
+
         self.MeshingParameters.InitializeMeshing()
 
         # set execution flags: to set the options to be executed in methods and processes
@@ -64,7 +64,7 @@ class Mesher(object):
         execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
-        
+
         # set mesher flags: to set options for the mesher (triangle 2D, tetgen 3D)
         if( self.dimension == 2 ):
             pass
@@ -73,47 +73,47 @@ class Mesher(object):
             #to add_nodes automatically and refine the mesh ("q"-quality mesh and "a"-area constraint switches)
             # "YYJaqrn" "YJq1.4arn" "Jq1.4arn"
             #refine
-            #mesher_flags = "YJq1.4arnQ" 
+            #mesher_flags = "YJq1.4arnQ"
             #refine constrained
             #mesher_flags = "pYJq1.4arnCQ"
-            
+
             #INSERT NODES
             #to insert a set of given points and refine the mesh
             # "rinYYJQ" "rinYYJQ" "rinJQ" "rinQ"
             #refine
-            #mesher_flags = "rinJQ" 
+            #mesher_flags = "rinJQ"
             #refine constrained
             #mesher_flags = "rinYYJQ"
-            
+
             #refine without adding nodes
-            #mesher_flags = "YJrnQ" 
-            
+            #mesher_flags = "YJrnQ"
+
             #RECONNECT
             #to reconnect a set of points only
             #mesher_flags = "nQP"
             #constrained
             #mesher_flags = "pnBYYQ"
-            
+
             #BOUNDARY SEARCH
             #to get conectivities, boundaries and neighbours only
-            #mesher_flags = "ncEBQ" 
-            
+            #mesher_flags = "ncEBQ"
+
         if( self.dimension == 3 ):
             #other flags
             pass
-            
+
     #
     def SetPreMeshingProcesses(self):
-        
+
         # The order set is the order of execution:
 
 
         # process to refine elements / refine boundary
         refine_mesh_elements  = KratosDelaunay.RefineElementsOnThreshold(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_elements)
-        
-        # process to refine boundary / contact boundary  
-        refine_mesh_boundary = RefineConditions(self.model_part, self.RefiningParameters, self.echo_level)            
+
+        # process to refine boundary / contact boundary
+        refine_mesh_boundary = RefineConditions(self.model_part, self.RefiningParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
 
 
@@ -121,7 +121,7 @@ class Mesher(object):
         remove_mesh_nodes = KratosDelaunay.RemoveNodes(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
 
-        
+
     #
     def SetPostMeshingProcesses(self):
 
@@ -145,10 +145,10 @@ class Mesher(object):
 
     #
     def FinalizeMeshing(self):
-        
+
         # reset execution flags: to unset the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
-        
+
         # all flags
         execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, False)
         execution_options.Set(KratosDelaunay.MesherUtilities.FINALIZE_MESHER_INPUT, False)
@@ -168,15 +168,17 @@ class Mesher(object):
     #
     def ExecuteMeshing(self):
 
-
-    
         self.InitializeMeshing()  #set execution flags and mesher flags
 
         self.mesher.ExecuteMeshing(self.model_part)
-        
+
         self.FinalizeMeshing()    #set execution flags and mesher flags
 
     #
     def SetEchoLevel(self, echo_level):
         self.echo_level = echo_level
 
+    #
+    def _class_prefix(self):
+        header = "::[-------Mesher------]::"
+        return header

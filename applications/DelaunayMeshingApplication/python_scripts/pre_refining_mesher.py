@@ -13,24 +13,22 @@ def CreateMesher(main_model_part, meshing_parameters):
     return PreRefiningMesher(main_model_part, meshing_parameters)
 
 class PreRefiningMesher(mesher.Mesher):
-    
-    #
-    def __init__(self, main_model_part, meshing_parameters): 
-        
-        mesher.Mesher.__init__(self, main_model_part, meshing_parameters)        
 
-        print("::[PreRefining_Mesher]:: -BUILT-")
-           
+    #
+    def __init__(self, main_model_part, meshing_parameters):
+
+        mesher.Mesher.__init__(self, main_model_part, meshing_parameters)
+
     #
     def InitializeMeshing(self):
-        
+
         self.MeshingParameters.InitializeMeshing()
 
         # set execution flags: to set the options to be executed in methods and processes
         meshing_options = self.MeshingParameters.GetOptions()
 
         execution_options = KratosMultiphysics.Flags()
-    
+
         execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, True)
         execution_options.Set(KratosDelaunay.MesherUtilities.FINALIZE_MESHER_INPUT,  False)
 
@@ -46,20 +44,20 @@ class PreRefiningMesher(mesher.Mesher):
 
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
-        
+
         # set mesher flags: to set options for the mesher (triangle 2D, tetgen 3D)
         # RECONNECT
-            
+
         mesher_flags = ""
         mesher_info  = "Prepare domain for refinement"
         if( self.dimension == 2 ):
-           
+
             if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
-                mesher_flags = "pnBYYQ"  
+                mesher_flags = "pnBYYQ"
             else:
                 mesher_flags = "nQP"
 
-            
+
         elif( self.dimension == 3 ):
 
             if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
@@ -73,7 +71,7 @@ class PreRefiningMesher(mesher.Mesher):
 
     #
     def SetPreMeshingProcesses(self):
-        
+
 
         # process to refine elements /refine boundary
         refine_mesh_elements = KratosDelaunay.RefineElementsOnThreshold(self.model_part, self.MeshingParameters, self.echo_level)
@@ -82,15 +80,15 @@ class PreRefiningMesher(mesher.Mesher):
 
         refine_edge_elements = KratosDelaunay.RefineElementsInEdges(self.model_part,self.MeshingParameters,self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_edge_elements)
-        
 
-        refine_mesh_boundary = KratosDelaunay.RefineConditions(self.model_part, self.MeshingParameters, self.echo_level)            
+
+        refine_mesh_boundary = KratosDelaunay.RefineConditions(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_boundary)
 
         # process to remove nodes / remove boundary
         remove_mesh_nodes = KratosDelaunay.RemoveNodes(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
-     
+
 
     #
     def SetPostMeshingProcesses(self):
@@ -118,7 +116,7 @@ class PreRefiningMesher(mesher.Mesher):
 
     #
     def FinalizeMeshing(self):
-        
+
         # reset execution flags: to unset the options to be executed in methods and processes
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
@@ -132,7 +130,7 @@ class PreRefiningMesher(mesher.Mesher):
             meshing_options = self.MeshingParameters.GetOptions()
             if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
                 execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
-                 
+
 
         if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES) ):
             execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, False)
@@ -143,5 +141,10 @@ class PreRefiningMesher(mesher.Mesher):
         execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
-        
+
         self.MeshingParameters.InitializeMeshing() # select tessellation elements is going to be performed again
+
+    #
+    def _class_prefix(self):
+        header = "::[----Pre Refining---]::"
+        return header

@@ -13,17 +13,15 @@ def CreateMesher(main_model_part, meshing_parameters):
     return TransferMesher(main_model_part, meshing_parameters)
 
 class TransferMesher(mesher.Mesher):
-    
+
     #
-    def __init__(self, main_model_part, meshing_parameters): 
-        
+    def __init__(self, main_model_part, meshing_parameters):
+
         mesher.Mesher.__init__(self, main_model_part, meshing_parameters)
 
-        print("::[Transfer_Mesher]:: -BUILT-")
-  
     #
     def InitializeMeshing(self):
-       
+
         self.MeshingParameters.InitializeMeshing()
 
         # set execution flags: to set the options to be executed in methods and processes
@@ -35,12 +33,12 @@ class TransferMesher(mesher.Mesher):
         execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
         execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, True)
         execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, True)
-                              
+
         execution_options.Set(KratosDelaunay.MesherUtilities.SELECT_TESSELLATION_ELEMENTS, True)
         execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
-        
+
 
     #
     def SetPreMeshingProcesses(self):
@@ -50,7 +48,7 @@ class TransferMesher(mesher.Mesher):
 
    #
     def SetPostMeshingProcesses(self):
-        
+
         #nothing to do: only reconnection
         #select mesh elements
         #select_mesh_elements  = KratosDelaunay.SelectElements(self.main_model_part, self.MeshingParameters, self.echo_level)
@@ -64,3 +62,7 @@ class TransferMesher(mesher.Mesher):
         rebuild_mesh_boundary = KratosDelaunay.GenerateNewConditions(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
+    #
+    def _class_prefix(self):
+        header = "::[--Transfer Mesher--]::"
+        return header
