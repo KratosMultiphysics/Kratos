@@ -9,7 +9,6 @@ KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-
 # Convergence criteria class
 class convergence_criterion:
     def __init__(self, convergence_criterion_parameters):
@@ -22,7 +21,7 @@ class convergence_criterion:
         
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         convergence_crit = convergence_criterion_parameters["convergence_criterion"].GetString()
-        
+
         if(echo_level >= 1):
             KratosMultiphysics.Logger.PrintInfo("::[Mechanical Solver]:: ", "CONVERGENCE CRITERION : " + 
                   convergence_criterion_parameters["convergence_criterion"].GetString())
@@ -33,7 +32,7 @@ class convergence_criterion:
                 rotation_dofs = True
         
         # Convergence criteria if there are rotation DOFs in the problem
-        if(rotation_dofs == True):
+        if(rotation_dofs is True):
             if(convergence_crit == "displacement_criterion"):
                 self.mechanical_convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
@@ -85,7 +84,5 @@ class convergence_criterion:
                 self.mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
             else:
                 err_msg =  "The requested convergence criterion \"" + convergence_crit + "\" is not available!\n"
-                err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
+                err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\, \"adaptative_remesh_criteria\""
                 raise Exception(err_msg)
-        
-
