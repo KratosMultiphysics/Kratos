@@ -3,8 +3,17 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 
 def CreateSolverByParameters(main_model_part, solver_settings, parallelism):
-    solver_type = solver_settings["solver_type"].GetString()
     
+    
+    if (type(main_model_part) != KratosMultiphysics.Model):
+        raise Exception("input is expected to be provided as a Kratos Model object")
+    
+    if (type(solver_settings) != KratosMultiphysics.Parameters):
+        raise Exception("input is expected to be provided as a Kratos Parameters object")
+
+    solver_type = solver_settings["solver_type"].GetString()
+
+
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "transient" or solver_type == "Transient"):
