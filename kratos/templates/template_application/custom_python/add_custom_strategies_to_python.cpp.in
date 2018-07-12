@@ -37,7 +37,7 @@ namespace Python {
 
 namespace py = pybind11;
 
-void  AddCustomStrategiesToPython(py::module& m)
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -48,7 +48,7 @@ void  AddCustomStrategiesToPython(py::module& m)
 
     //********************************************************************
     //********************************************************************
-    //  class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>,
+    //  py::class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>,
     //  		TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
     //          BaseSolvingStrategyType>(m, "TestStrategy")
     //  	.def(py::init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
@@ -57,5 +57,5 @@ void  AddCustomStrategiesToPython(py::module& m)
 
 }
 
-}  // namespace Python.
+} // namespace Python.
 } // Namespace Kratos
