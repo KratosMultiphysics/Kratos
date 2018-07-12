@@ -9,8 +9,8 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#ifndef ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H
-#define ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_LINEAR_STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#define ADJOINT_LINEAR_STRAIN_ENERGY_RESPONSE_FUNCTION_H
 
 // System includes
 
@@ -41,12 +41,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointStrainEnergyResponseFunction
+/** \brief AdjointLinearStrainEnergyResponseFunction
 *
 * This is a response function which traces the linear strain energy as response.
 * It is designed to be used in adjoint sensitivity analysis.
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointStrainEnergyResponseFunction : public AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLinearStrainEnergyResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -56,18 +56,18 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of AdjointStrainEnergyResponseFunction
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointStrainEnergyResponseFunction);
+    /// Pointer definition of AdjointLinearStrainEnergyResponseFunction
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointLinearStrainEnergyResponseFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AdjointStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    AdjointLinearStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
-    ~AdjointStrainEnergyResponseFunction();
+    ~AdjointLinearStrainEnergyResponseFunction();
 
     ///@}
     ///@name Operators
@@ -187,7 +187,7 @@ private:
 
     ///@}
 
-}; // Class AdjointStrainEnergyResponseFunction
+}; // Class AdjointLinearStrainEnergyResponseFunction
 
 ///@}
 
@@ -202,4 +202,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H_INCLUDED
+#endif // ADJOINT_LINEAR_STRAIN_ENERGY_RESPONSE_FUNCTION_H_INCLUDED

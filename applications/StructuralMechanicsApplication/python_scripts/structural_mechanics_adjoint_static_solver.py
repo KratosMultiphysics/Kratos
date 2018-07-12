@@ -69,8 +69,8 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.response_function_settings)
         elif self.response_function_settings["response_type"].GetString() == "adjoint_nodal_displacement":
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.response_function_settings)
-        elif self.response_function_settings["response_type"].GetString() == "adjoint_strain_energy":
-            self.response_function = StructuralMechanicsApplication.AdjointStrainEnergyResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
+            self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
@@ -79,18 +79,18 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
 
     def Solve(self):
-        if self.response_function_settings["response_type"].GetString() == "adjoint_strain_energy":
-            self._SolveSolutionStepSpecialStrainEnergy()
+        if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
+            self._SolveSolutionStepSpecialLinearStrainEnergy()
         else:
             super(StructuralMechanicsAdjointStaticSolver, self).Solve()
 
     def SolveSolutionStep(self):
-        if self.response_function_settings["response_type"].GetString() == "adjoint_strain_energy":
-            self._SolveSolutionStepSpecialStrainEnergy()
+        if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
+            self._SolveSolutionStepSpecialLinearStrainEnergy()
         else:
             super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
 
-    def _SolveSolutionStepSpecialStrainEnergy(self):
+    def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         self.response_function.Initialize()
         for node in self.main_model_part.Nodes:
             adjoint_displacement = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)

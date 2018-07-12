@@ -95,7 +95,7 @@ There are currently three different types of response functions available which 
     * ```traced_node_id```: ID of the traced node
     * ```traced_dof```: Define the traced DOF (e.g. ```DISPLACEMENT_Z``` or ```ROTATION_X```)
 
-- ```adjoint_strain_energy```: The response is the linear strain energy. No additional settings are necessary.
+- ```adjoint_linear_strain_energy```: The response is the linear strain energy. No additional settings are necessary.
 
 - ```adjoint_local_stress```: The response is the stress or stress-resultant of a single element. Necessary additional settings are:
     * ```traced_element_id```: ID of the element which should be traced

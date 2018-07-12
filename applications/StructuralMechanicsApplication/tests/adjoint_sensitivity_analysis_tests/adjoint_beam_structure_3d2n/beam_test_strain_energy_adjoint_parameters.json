@@ -18,7 +18,7 @@
             "scheme_type"              : "adjoint_structural"
             },
         "response_function_settings" : {
-                "response_type"     : "adjoint_strain_energy",
+                "response_type"     : "adjoint_linear_strain_energy",
                 "use_kratos"        : true,
                 "gradient_mode"     : "semi_analytic",
                 "sensitivity_model_part_name" : "Parts_Beam",

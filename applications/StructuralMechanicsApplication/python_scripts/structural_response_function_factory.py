@@ -19,12 +19,12 @@ def CreateResponseFunction(response_id, response_settings, model_part):
     elif response_type == "adjoint_nodal_displacement":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model_part)
 
-    elif response_type == "adjoint_strain_energy":
-        return structural_response.AdjointStrainEnergyResponse(response_id, response_settings, model_part)
+    elif response_type == "adjoint_linear_strain_energy":
+        return structural_response.AdjointLinearStrainEnergyResponse(response_id, response_settings, model_part)
 
     elif response_type == "adjoint_local_stress":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model_part)
 
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +
-                        ".\nAvailable types are: 'mass', 'strain_energy', 'eigenfrequency', 'adjoint_nodal_displacement', 'adjoint_strain_energy', 'adjoint_local_stress'." )
+                        ".\nAvailable types are: 'mass', 'strain_energy', 'eigenfrequency', 'adjoint_nodal_displacement', 'adjoint_linear_strain_energy', 'adjoint_local_stress'." )

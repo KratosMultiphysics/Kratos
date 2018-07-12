@@ -10,7 +10,7 @@
         "echo_level"      : 0
     },
     "kratos_response_settings":{
-        "response_type"    : "adjoint_strain_energy",
+        "response_type"    : "adjoint_linear_strain_energy",
         "gradient_mode"     : "semi_analytic",
         "sensitivity_model_part_name" :"Parts_AREAS",
         "nodal_sensitivity_variables"  : ["SHAPE"],
