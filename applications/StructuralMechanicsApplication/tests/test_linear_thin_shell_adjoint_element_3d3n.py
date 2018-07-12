@@ -3,7 +3,6 @@ import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import random
 import math
 
 def zero_vector(size):
