@@ -653,11 +653,6 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, INTEGRATION_COORDINATES )
 
 
-    //for ULF (surface_tension) application:
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TRIPLE_POINT)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONTACT_ANGLE)
-
-
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer >	(m,"ConvectionDiffusionSettings")
     .def(init<	>() )
     .def("SetDensityVariable",&ConvectionDiffusionSettings::SetDensityVariable)
