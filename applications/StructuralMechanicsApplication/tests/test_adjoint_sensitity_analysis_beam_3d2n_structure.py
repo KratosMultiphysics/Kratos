@@ -4,10 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_mechanics_analysis
-
-def remove_file(file_path):
-    if os.path.isfile(file_path):
-        os.remove(file_path)
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 def solve_primal_problem():
     with open("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_parameters.json",'r') as parameter_file:
@@ -19,7 +16,7 @@ def solve_primal_problem():
 def remove_h5_files(model_part_name):
     for name in os.listdir():
         if name.find(model_part_name) == 0:
-            remove_file(name)
+            kratos_utilities.DeleteFileIfExisting(name)
 
 class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
 
@@ -98,8 +95,8 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
 
 
         # Delete *.h5 only after last test case because primal solution is used in each test case
+        kratos_utilities.DeleteFileIfExisting("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/Beam_structure.time")
         remove_h5_files("Structure")
-        remove_file("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/Beam_structure.time")
 
     def tearDown(self):
         pass
