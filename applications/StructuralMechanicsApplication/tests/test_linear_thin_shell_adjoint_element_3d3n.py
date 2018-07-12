@@ -6,17 +6,55 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import random
 import math
 
+def zero_vector(size):
+    v = KratosMultiphysics.Vector(size)
+    for i in range(size):
+        v[i] = 0.0
+    return v
+
+def add_variables(mp):
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+
+def apply_material_properties(mp,dim):
+    #define properties
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,100e3)
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.THICKNESS,1.0)
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,1.0)
+    g = [0,0,0]
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
+    cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+
+def copy_solution_step_data_of_node(node, mp_old, node_id, step=0):
+    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,
+    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0))
+    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,
+    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0))
+    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,
+    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0))
+    node.SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,
+    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_X,0))
+    node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,
+    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_Y,0))
+    node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,
+    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0))
+
 class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
     def setUp(self):
         # create test model part
         dim=3
         self.model_part = KratosMultiphysics.ModelPart("test")
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim)
-        self._add_variables(self.model_part)
+        add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(2, 3.0, 0.0, 0.0)
         self.model_part.CreateNewNode(3, 0.0, 4.0, 0.0)
-        self._apply_material_properties(self.model_part,dim)
+        apply_material_properties(self.model_part,dim)
         prop = self.model_part.GetProperties()[0]
 
         self.model_part.CreateNewElement("ShellThinElement3D3N", 1, [1, 2, 3], prop)
@@ -35,7 +73,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
     def _create_shape_perturbed_elements(self,mp,delta):
         dim=3
         self.model_part_1 = KratosMultiphysics.ModelPart("Shape_Perturbed_Elements")
-        self._add_variables(self.model_part_1)
+        add_variables(self.model_part_1)
 
         x1 = mp.Nodes[1].X
         y1 = mp.Nodes[1].Y
@@ -59,7 +97,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.model_part_1.CreateNewNode(11, x3, y3+delta, z3)
         self.model_part_1.CreateNewNode(12, x3, y3, z3+delta)
 
-        self._apply_material_properties(self.model_part_1,dim)
+        apply_material_properties(self.model_part_1,dim)
         prop = self.model_part_1.GetProperties()[0]
 
         self.model_part_1.CreateNewElement("ShellThinElement3D3N", 1, [2, 5, 9], prop)
@@ -77,18 +115,18 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
         index = 1
         for i in range(3):
-            for j in range(4):
-                self._copy_solution_step_data_of_node(self.model_part_1.Nodes[index], self.model_part, i + 1, 0)
+            for _ in range(4):
+                copy_solution_step_data_of_node(self.model_part_1.Nodes[index], self.model_part, i + 1, 0)
                 index += 1
 
     def _create_property_perturbed_elements(self,mp,delta):
         dim = 3
         self.model_part_2 = KratosMultiphysics.ModelPart("Property_Perturbed_Elements")
-        self._add_variables(self.model_part_2)
+        add_variables(self.model_part_2)
         self.model_part_2.CreateNewNode(1, mp.Nodes[1].X, mp.Nodes[1].Y, mp.Nodes[1].Z)
         self.model_part_2.CreateNewNode(2, mp.Nodes[2].X, mp.Nodes[2].Y, mp.Nodes[2].Z)
         self.model_part_2.CreateNewNode(3, mp.Nodes[3].X, mp.Nodes[3].Y, mp.Nodes[3].Z)
-        self._apply_material_properties(self.model_part_2,dim)
+        apply_material_properties(self.model_part_2,dim)
 
         THICKNESS_initial = mp.GetProperties()[0][KratosMultiphysics.THICKNESS]
         self.model_part_2.GetProperties()[0].SetValue(KratosMultiphysics.THICKNESS, THICKNESS_initial + delta)
@@ -98,30 +136,9 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.property_perturbed_shell_element = self.model_part_2.GetElement(1)
 
         for i in range(3):
-            self._copy_solution_step_data_of_node(self.model_part_2.Nodes[i+1], self.model_part, i+1, 0)
+            copy_solution_step_data_of_node(self.model_part_2.Nodes[i+1], self.model_part, i+1, 0)
 
         self.property_perturbed_shell_element.Initialize()
-
-    def _add_variables(self,mp):
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-
-    def _apply_material_properties(self,mp,dim):
-        #define properties
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,100e3)
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.THICKNESS,1.0)
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,1.0)
-
-        g = [0,0,0]
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
-
-        cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
-
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _assign_solution_step_data(self, step=0):
         # generate nodal solution step test data
@@ -145,33 +162,6 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.model_part.Nodes[3].SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,0.035892)
         self.model_part.Nodes[3].SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,-0.784905)
         self.model_part.Nodes[3].SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,0.4568742)
-
-    def _copy_solution_step_data_of_node(self, node, mp_old, node_id, step=0):
-
-        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,
-        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0))
-
-        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,
-        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0))
-
-        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,
-        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0))
-
-        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,
-        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_X,0))
-
-        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,
-        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_Y,0))
-
-        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,
-        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0))
-
-
-    def _zero_vector(self,size):
-        v = KratosMultiphysics.Vector(size)
-        for i in range(size):
-            v[i] = 0.0
-        return v
 
     def _shape_perturbation_correction_factor(self):
         dx = self.model_part.Nodes[1].X - self.model_part.Nodes[2].X
@@ -199,7 +189,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
     def test_CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
-        RHSUnperturbed = self._zero_vector(18)
+        RHSUnperturbed = zero_vector(18)
 
         self.shell_element.CalculateLocalSystem(dummy_LHS, RHSUnperturbed, self.model_part.ProcessInfo)
 
@@ -210,7 +200,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(9,18)
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
-        RHSPerturbed = self._zero_vector(18)
+        RHSPerturbed = zero_vector(18)
 
         self._create_shape_perturbed_elements(self.model_part,alpha)
         row_index = 0
@@ -229,14 +219,14 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
     def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
-        RHSUnperturbed = self._zero_vector(18)
+        RHSUnperturbed = zero_vector(18)
 
         self.shell_element.CalculateLocalSystem(dummy_LHS, RHSUnperturbed, self.model_part.ProcessInfo)
 
         # pseudo-load by finite difference approximation
         h = 0.00001
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(1,18)
-        RHSPerturbed = self._zero_vector(18)
+        RHSPerturbed = zero_vector(18)
 
         inital_property_value = self.model_part.GetProperties()[0][KratosMultiphysics.THICKNESS]
         delta = h * inital_property_value

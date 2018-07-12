@@ -5,35 +5,31 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_mechanics_analysis
 
+def remove_file(file_path):
+    if os.path.isfile(file_path):
+        os.remove(file_path)
+
+def solve_primal_problem():
+    with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_parameters.json",'r') as parameter_file:
+        ProjectParametersPrimal = Parameters( parameter_file.read())
+    model_primal = Model()
+    primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
+    primal_analysis.Run()
+
 class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
 
-    def _remove_file(self, file_path):
-        if os.path.isfile(file_path):
-            os.remove(file_path)
-
     def _remove_h5_files(self, model_part_name):
         for name in os.listdir():
             if name.find(model_part_name) == 0:
-                self._remove_file(name)
-
-    def _solve_primal_problem(self):
-        with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_parameters.json",'r') as parameter_file:
-            ProjectParametersPrimal = Parameters( parameter_file.read())
-
-        model_primal = Model()
-
-        primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
-
-        primal_analysis.Run()
+                remove_file(name)
 
     def test_local_stress_response(self):
         # Solve primal problem (only here necessary. The other tests corresponding to the same primal problem.)
-        self._solve_primal_problem()
+        solve_primal_problem()
         # Create the adjoint solver
-        self._solve_primal_problem()
         with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
 
@@ -100,7 +96,7 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
 
         # Delete *.h5 only after last test case because primal solution is used in each test case
         self._remove_h5_files("Structure")
-        self._remove_file("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate.time")
+        remove_file("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate.time")
 
     def tearDown(self):
         pass
