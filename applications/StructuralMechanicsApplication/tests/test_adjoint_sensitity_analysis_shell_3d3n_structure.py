@@ -8,7 +8,8 @@ import structural_mechanics_analysis
 class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
 
     def setUp(self):
-        pass
+        # Solve primal problem (only here necessary. The other tests corresponding to the same primal problem.)
+        self._solve_primal_problem()
 
     def _remove_file(self, file_path):
         if os.path.isfile(file_path):
@@ -30,10 +31,7 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         primal_analysis.Run()
 
     def test_local_stress_response(self):
-        # Solve primal problem (only here necessary. The other tests corresponding to the same primal problem.)
-        self._solve_primal_problem()
         # Create the adjoint solver
-        self._solve_primal_problem()
         with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
 
