@@ -19,6 +19,7 @@
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
 
@@ -810,6 +811,9 @@ template class FluidElement< FICData<3,8> >;
 
 template class FluidElement< TimeIntegratedFICData<2,3> >;
 template class FluidElement< TimeIntegratedFICData<3,4> >;
+
+template class FluidElement< TwoFluidNavierStokesData<2, 3> >;
+template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -30,9 +30,7 @@ class WorkFolderScope:
 @KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(KratosUnittest.TestCase):
     def testManufacturedSolution(self):
-        self.setUp()
         self.runTest()
-        self.tearDown()
 
     def setUp(self):
         self.print_output = False
@@ -130,8 +128,8 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                 plt.savefig('l2_norm_convergence.png')
 
             # Check obtained solution
-            expected_velocity_errors = [0.020910246816825257, 0.0062279017039999045, 0.0014846307453335115, 0.0003540805601027302, 8.621417044815537e-05]
-            expected_pressure_errors = [46.48407227368183, 4.678777003089299, 0.8570316463968392, 0.2160365355817885, 0.06642008924417026]
+            expected_velocity_errors = [0.01708951546622635, 0.005366727106714455, 0.0013142808355902074, 0.00032206907919625683, 8.037719698951708e-05]
+            expected_pressure_errors = [44.03061907965929, 4.8775536490608316, 0.8950814197625788, 0.2200468445178847, 0.0666813658821848]
 
             for i in range(len(self.meshes_list)):
                 self.assertAlmostEqual(err_v[i], expected_velocity_errors[i])
@@ -146,6 +144,7 @@ class ManufacturedSolutionProblem:
         self.input_file_name = input_file_name
         self.ProjectParameters = ProjectParameters
         self.analytical_solution_type = analytical_solution_type
+        self.model = KratosMultiphysics.Model()
 
 
     def SetFluidProblem(self):
@@ -157,21 +156,17 @@ class ManufacturedSolutionProblem:
             self.ProjectParameters["problem_data"]["problem_name"].SetString(self.input_file_name)
         self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file_name)
 
-        ## Fluid model part definition
-        self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-        ###TODO replace this "model" for real one once available
-        Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
-
         ## Solver construction
         import python_solvers_wrapper_fluid
-        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
+        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
         self.solver.AddVariables()
 
         ## Read the model - note that SetBufferSize is done here
         self.solver.ImportModelPart()
+        self.solver.PrepareModelPart()
+
+        self.main_model_part = self.model.GetModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
 
         ## Add AddDofs
         self.solver.AddDofs()
@@ -184,14 +179,6 @@ class ManufacturedSolutionProblem:
                                                self.ProjectParameters["output_configuration"])
 
             self.gid_output.ExecuteInitialize()
-
-        ## Get the list of the skin submodel parts in the object Model
-        for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
-            skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-            Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
-        for i in range(self.ProjectParameters["solver_settings"]["no_skin_parts"].size()):
-            no_skin_part_name = self.ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
-            Model.update({no_skin_part_name: self.main_model_part.GetSubModelPart(no_skin_part_name)})
 
         ## Solver initialization
         self.solver.Initialize()
@@ -216,19 +203,13 @@ class ManufacturedSolutionProblem:
         end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
         time = 0.0
-        step = 0
-        out = 0.0
 
         if (self.print_output):
             self.gid_output.ExecuteBeforeSolutionLoop()
 
         while(time <= end_time):
 
-            Dt = self.solver.ComputeDeltaTime()
-            step += 1
-            time += Dt
-            self.main_model_part.CloneTimeStep(time)
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+            time = self.solver.AdvanceInTime(time)
 
             if (self.print_output):
                 self.gid_output.ExecuteInitializeSolutionStep()
@@ -241,19 +222,20 @@ class ManufacturedSolutionProblem:
                 self.SetManufacturedSolutionValues(fix=True, set_only_boundaries=True)
                 self.SetManufacturedSolutionSourceValues()
 
-            if (step < 3):
+            if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] < 3):
                 self.SetManufacturedSolutionValues(False) # Set the analytical solution in the two first steps
             else:
                 if (self.problem_type != "analytical_solution"):
-                    self.solver.Solve()
+                    self.solver.InitializeSolutionStep()
+                    self.solver.Predict()
+                    self.solver.SolveSolutionStep()
+                    self.solver.FinalizeSolutionStep()
 
             if (self.print_output):
                 self.gid_output.ExecuteFinalizeSolutionStep()
 
                 if self.gid_output.IsOutputStep():
                     self.gid_output.PrintOutput()
-
-            out = out + Dt
 
         if (self.print_output):
             self.gid_output.ExecuteFinalize()
