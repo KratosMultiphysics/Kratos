@@ -122,7 +122,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         domain_utils.SearchNodeNeighbours(self.main_model_part, self.echo_level)
             
         # find element neighbours
-        domain_utils.SearchElementNeighbours(self.main_model_part, self.echo_level)
+        self.SearchElementNeighbours(self.main_model_part, self.echo_level)
             
         # set neighbour search performed
         self.neighbour_search_performed = True
@@ -149,6 +149,24 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
         if(self.echo_level>1):
             print(self.main_model_part)
+
+
+    #
+    def SearchElementNeighbours(self, model_part, echo_level):
+
+        dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
+        # set search options:
+        number_of_avg_elems = 10
+
+        # define search utility
+        elemental_neighbour_search = KratosPfemFluid.FluidElementalNeighboursSearch(model_part, dimension, echo_level, number_of_avg_elems)
+
+        # execute search:
+        elemental_neighbour_search.Execute()
+
+        if( echo_level > 0 ):
+            print("::[--Domain Utilities-]:: Elemental Search executed ")
+            
             
     def BuildMeshBoundaryForFluids(self):
 
