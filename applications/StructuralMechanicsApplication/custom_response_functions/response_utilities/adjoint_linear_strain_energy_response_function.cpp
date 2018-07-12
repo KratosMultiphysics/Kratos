@@ -130,11 +130,17 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        Vector adjoint_variables;
+        if (rDerivativesMatrix.size2() == 0)
+        {
+            if (rResponseGradient.size() != 0)
+                rResponseGradient.resize(0, false);
+            return;
+        }
 
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the conditions don't have K, the remaining content of rDerivativesMatrix \frac{\partial F}{\partial s}
 
+        Vector adjoint_variables;
         rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
         KRATOS_ERROR_IF(adjoint_variables.size() != rDerivativesMatrix.size2())
@@ -156,11 +162,17 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        Vector adjoint_variables;
+        if (rDerivativesMatrix.size2() == 0)
+        {
+            if (rResponseGradient.size() != 0)
+                rResponseGradient.resize(0, false);
+            return;
+        }
 
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the conditions don't have K, the remaining content of rDerivativesMatrix \frac{\partial F}{\partial s}
 
+        Vector adjoint_variables;
         rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
         KRATOS_ERROR_IF(adjoint_variables.size() != rDerivativesMatrix.size2())
