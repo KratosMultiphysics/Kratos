@@ -59,12 +59,12 @@ public:
     Pole(
         const int Index) const override
     {
-        auto node = Node(Index);
+        auto& node = *Node(Index);
  
         VectorType pole;
-        pole[0] = node->X();
-        pole[1] = node->Y();
-        pole[2] = node->Z();
+        pole[0] = node[0];
+        pole[1] = node[1];
+        pole[2] = node[2];
  
         return pole;
     }
@@ -74,11 +74,11 @@ public:
         const int Index,
         const VectorType& Value) override
     {
-        auto node = Node(Index);
+        auto& node = *Node(Index);
  
-        node->X() = Value[0];
-        node->Y() = Value[1];
-        node->Z() = Value[2];
+        node[0] = Value[0];
+        node[1] = Value[1];
+        node[2] = Value[2];
     }
  
     bool
