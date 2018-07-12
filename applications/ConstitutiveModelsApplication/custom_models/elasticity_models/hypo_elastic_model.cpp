@@ -73,10 +73,10 @@ namespace Kratos
   void HypoElasticModel::FinalizeModel(ModelDataType& rValues)
   {
     KRATOS_TRY
-
+        
+        
     //update total stress measure
     ConstitutiveModelUtilities::SymmetricTensorToVector(rValues.StressMatrix, this->mHistoryVector);
-
       
     KRATOS_CATCH(" ")
   }
@@ -152,8 +152,9 @@ namespace Kratos
     MatrixType W = 0.5 * rDeltaTime * (rSpatialVelocityGradient - trans(rSpatialVelocityGradient));
 
     // Exponential map using quaternions
-    //Quaternion<double> QuaternionValue = Quaternion<double>::FromRotationMatrix( W );
-    //QuaternionValue.ToRotationMatrix(W);
+    Quaternion<double> QuaternionValue = Quaternion<double>::FromRotationMatrix( W );
+    QuaternionValue.ToRotationMatrix(W);
+
     
     MatrixType PreviousStressMatrix;
     PreviousStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector, PreviousStressMatrix);
@@ -161,6 +162,8 @@ namespace Kratos
     PreviousStressMatrix = prod( W, PreviousStressMatrix );
     PreviousStressMatrix = prod( PreviousStressMatrix, trans(W) );
 
+    //std::cout<<" Add Stress "<<PreviousStressMatrix<<" HistoryVector "<<this->mHistoryVector<<std::endl;
+    
     rStressMatrix += PreviousStressMatrix;
 
     // To store when FinalizeModel (can be the total or the isochoric stress)

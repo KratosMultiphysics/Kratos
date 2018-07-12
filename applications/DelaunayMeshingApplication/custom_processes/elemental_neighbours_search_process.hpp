@@ -503,6 +503,7 @@ namespace Kratos
 		unsigned int iface=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
+                    std::cout<<" El "<<ie->Id()<<" ne ["<<iface<<"]"<<ne->Id()<<std::endl;
 		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
 		      {
 

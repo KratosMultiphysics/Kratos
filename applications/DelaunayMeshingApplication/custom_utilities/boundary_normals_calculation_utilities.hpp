@@ -143,7 +143,7 @@ namespace Kratos
     /// Calculates the area normal (unitary vector oriented as the normal) and weight the normal to shrink
     void CalculateWeightedBoundaryNormals(ModelPart& rModelPart, int EchoLevel = 0)
     {
-
+      
       mEchoLevel = EchoLevel;
       
       if( !rModelPart.IsSubModelPart() ){
@@ -167,7 +167,6 @@ namespace Kratos
         this->ResetBodyNormals(rModelPart); //clear boundary normals
         
 	//if( rModelPart.IsNot(ACTIVE) && rModelPart.IsNot(BOUNDARY) && rModelPart.IsNot(CONTACT) ){
-        
         CalculateBoundaryNormals(rModelPart);
         
         //assignation for solid boundaries: Unity Normals on nodes and Shrink_Factor on nodes
@@ -793,7 +792,7 @@ namespace Kratos
     {
 
       KRATOS_TRY
-
+          
       const unsigned int dimension = (rModelPart.pGetMesh())->WorkingSpaceDimension();
 
       ModelPart::NodesContainerType& rNodes = rModelPart.Nodes();
@@ -847,7 +846,7 @@ namespace Kratos
 		      
 	    }
 	  }
-
+        
 
 	//**********Set Boundary Nodes Only
 	if( id > 1 ){
@@ -856,11 +855,13 @@ namespace Kratos
 	  
 	  for(unsigned int i = 0; i<rNodes.size(); i++)
 	    {
-	      if((nodes_begin + i)->Is(BOUNDARY)){
+	      if((nodes_begin + i)->Is(BOUNDARY) && Ids[(nodes_begin+i)->Id()]!=0){
 		BoundaryNodes.push_back( *((nodes_begin+i).base()) ); 
 	      }
 	    }
 
+          std::cout<<"  Shrinkage ["<<rModelPart.Name()<<"] (C) "<<std::endl;
+          
 	  ComputeBoundaryShrinkage<Condition>( BoundaryNodes, Neighbours, Ids, dimension);
 	}
 	
@@ -915,11 +916,13 @@ namespace Kratos
 	  
 	  for(unsigned int i = 0; i<rNodes.size(); i++)
 	    {
-	      if((nodes_begin + i)->Is(BOUNDARY)){
+	      if((nodes_begin + i)->Is(BOUNDARY) && Ids[(nodes_begin+i)->Id()]!=0 ){
 		BoundaryNodes.push_back( *((nodes_begin+i).base()) ); 
 	      }
 	    }
 
+          std::cout<<"  Shrinkage ["<<rModelPart.Name()<<"] (E) "<<std::endl;
+	
 	  ComputeBoundaryShrinkage<Element>( BoundaryNodes, Neighbours, Ids, dimension );
 	}
        	
@@ -969,8 +972,14 @@ namespace Kratos
             shrink_factor=0;
           }            
           
-	  if( mEchoLevel > 1 )
+	  if( mEchoLevel > 1 ){
 	    std::cout<<" Id "<<rIds[(boundary_nodes_begin + pn)->Id()]<<" normals size "<<normals_size<<" normal "<<Normal<<" shrink "<<shrink_factor<<std::endl;
+            for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+	    {
+              std::cout<<" normal ["<<esnod<<"]["<<(boundary_nodes_begin + pn)->Id()<<"]: "<<rNeighbours[rIds[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL)<<std::endl;
+            }
+          }
+          
 
 	  storenorm.resize(normals_size);
 	  std::fill(storenorm.begin(), storenorm.end(), 0 );
