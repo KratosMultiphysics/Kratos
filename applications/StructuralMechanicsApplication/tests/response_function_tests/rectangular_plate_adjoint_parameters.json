@@ -19,7 +19,6 @@
             "scheme_type"              : "adjoint_structural"
         },
         "echo_level"                         : 0,
-        "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "rectangular_plate_structure",
