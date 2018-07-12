@@ -22,6 +22,7 @@
 
 #include "nurbs_brep_application_variables.h"
 #include "custom_utilities/NodeCurveGeometry3D.h"
+#include "custom_utilities/NodeSurfaceGeometry3D.h"
 
 namespace py = pybind11;
 
@@ -101,6 +102,88 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "Variable"_a,
                 "T"_a,
                 "Order"_a)
+        ;
+    }
+
+    // register NodeSurfaceGeometry
+    {
+        using Type = NodeSurfaceGeometry3D;
+        using Pointer = std::shared_ptr<Type>;
+
+        using ComponentVariable = Kratos::VariableComponent<
+            Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
+
+        pybind11::class_<Type, Pointer>(m, "NodeSurfaceGeometry3D")
+            .def(pybind11::init<int, int, int, int>(),
+                "DegreeU"_a,
+                "DegreeV"_a,
+                "NumberOfNodesU"_a,
+                "NumberOfNodesV"_a)
+            .def("SetKnotU", &Type::SetKnotU,
+                "Index"_a,
+                "Value"_a)
+            .def("SetKnotV", &Type::SetKnotV,
+                "Index"_a,
+                "Value"_a)
+            .def("Node", &Type::Node,
+                "IndexU"_a,
+                "IndexV"_a)
+            .def("SetNode", &Type::SetNode,
+                "IndexU"_a,
+                "IndexV"_a,
+                "Value"_a)
+            .def("Pole", &Type::Pole,
+                "IndexU"_a,
+                "IndexV"_a)
+            .def("SetPole", &Type::SetPole,
+                "IndexU"_a,
+                "IndexV"_a,
+                "Value"_a)
+            .def("Weight", &Type::Weight,
+                "IndexU"_a,
+                "IndexV"_a)
+            .def("SetWeight", &Type::SetWeight,
+                "IndexU"_a,
+                "IndexV"_a,
+                "Value"_a)
+            .def("PointAt", &Type::PointAt,
+                "U"_a,
+                "V"_a)
+            .def("DerivativesAt", &Type::DerivativesAt,
+                "U"_a,
+                "V"_a,
+                "Order"_a)
+            .def("ValueAt", (double (Type::*)(const Variable<double>&,
+                const double, const double)) &Type::ValueAt<double>,
+                "Variable"_a,
+                "U"_a,
+                "V"_a)
+            .def("ValueAt", (std::vector<double> (Type::*)(
+                const Variable<double>&, const double, const double, const int))
+                &Type::ValueAt<double>,
+                "Variable"_a,
+                "U"_a,
+                "V"_a,
+                "Order"_a)
+            .def("ValueAt", (Vector3D (Type::*)(const Variable<Vector3D>&,
+                const double, const double)) &Type::ValueAt<Vector3D>,
+                "Variable"_a,
+                "U"_a,
+                "V"_a)
+            .def("ValueAt", (std::vector<Vector3D> (Type::*)(
+                const Variable<Vector3D>&, const double, const double,
+                const int)) &Type::ValueAt<Vector3D>,
+                "Variable"_a,
+                "U"_a,
+                "V"_a,
+                "Order"_a)
+            .def("ValueAt", (double (Type::*)(const ComponentVariable&,
+                const double, const double)) &Type::ValueAt<double,
+                ComponentVariable>,
+                "Variable"_a,
+                "U"_a,
+                "V"_a)
+
         ;
     }
 }
