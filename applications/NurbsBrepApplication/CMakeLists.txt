@@ -2,7 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosNurbsBrepApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories(
+    ${CMAKE_SOURCE_DIR}/kratos
+    ${ANURBS_ROOT}/include
+)
 
 # generate variables with the sources
 set( KRATOS_NURBS_BREP_APPLICATION_SOURCES
