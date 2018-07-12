@@ -265,14 +265,15 @@ private:
     void CalculateElasticMatrix(
         Matrix &rElasticityTensor,
         const Properties &rMaterialProperties
-        );
+        ) override;
 
 
     Matrix& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
-        );
+        ) override;
+
     ///@}
     ///@name Private  Access
     ///@{
