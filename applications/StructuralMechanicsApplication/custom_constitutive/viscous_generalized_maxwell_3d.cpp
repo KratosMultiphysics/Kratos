@@ -49,7 +49,6 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLa
 {
     // Integrate Stress Damage
     const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-    const int VoigtSize = this->GetStrainSize();
     Vector& IntegratedStressVector = rValues.GetStressVector(); // To be updated
     const Vector& StrainVector = rValues.GetStrainVector();
     Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration

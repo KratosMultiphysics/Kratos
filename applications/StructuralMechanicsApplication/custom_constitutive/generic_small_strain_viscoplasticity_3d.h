@@ -267,25 +267,25 @@ private:
     ///@name Private Operations
     ///@{
 
-	ConstitutiveLaw::Pointer GetPlasticityConstitutiveLaw()
-	{
-		return mpPlasticityConstitutiveLaw;
-	}
+     ConstitutiveLaw::Pointer GetPlasticityConstitutiveLaw()
+     {
+          return mpPlasticityConstitutiveLaw;
+     }
 
-	void SetPlasticityConstitutiveLaw(ConstitutiveLaw::Pointer pPlasticityConstitutiveLaw) 
-	{
-		mpPlasticityConstitutiveLaw = pPlasticityConstitutiveLaw;
-	}
+     void SetPlasticityConstitutiveLaw(ConstitutiveLaw::Pointer pPlasticityConstitutiveLaw)
+     {
+          mpPlasticityConstitutiveLaw = pPlasticityConstitutiveLaw;
+     }
 
-	ConstitutiveLaw::Pointer GetViscousConstitutiveLaw()
-	{
-		return mpViscousConstitutiveLaw;
-	}
+     ConstitutiveLaw::Pointer GetViscousConstitutiveLaw()
+     {
+          return mpViscousConstitutiveLaw;
+     }
 
-	void SetViscousConstitutiveLaw(ConstitutiveLaw::Pointer pViscousConstitutiveLaw)
-	{
-		mpViscousConstitutiveLaw = pViscousConstitutiveLaw;
-	}
+     void SetViscousConstitutiveLaw(ConstitutiveLaw::Pointer pViscousConstitutiveLaw)
+     {
+          mpViscousConstitutiveLaw = pViscousConstitutiveLaw;
+     }
 
     /**
      * @brief This method computes the elastic tensor

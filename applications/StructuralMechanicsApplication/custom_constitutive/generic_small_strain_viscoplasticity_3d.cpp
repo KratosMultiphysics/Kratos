@@ -26,9 +26,9 @@ namespace Kratos
 ConstitutiveLaw::Pointer GenericSmallStrainViscoplasticity3D::Create(Kratos::Parameters NewParameters) const
 {
     ConstitutiveLaw::Pointer p_plasticity_cl = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
-    ConstitutiveLaw::Pointer p_viscous_cl    = ViscousGeneralizedMaxwell3D().Create(NewParameters);
+    ConstitutiveLaw::Pointer p_viscous_cl    = Kratos::make_shared<ViscousGeneralizedMaxwell3D>();
 
-    return GenericSmallStrainViscoplasticity3D(p_plasticity_cl, p_viscous_cl).Clone();
+    return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(p_plasticity_cl, p_viscous_cl);
 }
 
 /***********************************************************************************/
