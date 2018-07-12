@@ -30,6 +30,16 @@ namespace Python {
 
 void  AddCustomUtilitiesToPython(py::module& m)
 {
+    // register Interval
+    {
+        using Type = ANurbs::Interval<double>;
+
+        py::class_<Type>(m, "Interval")
+            .def(py::init<double, double>())
+            .def_property_readonly("T0", &Type::T0)
+            .def_property_readonly("T1", &Type::T1)
+        ;
+    }
 }
 
 } // namespace Python.
