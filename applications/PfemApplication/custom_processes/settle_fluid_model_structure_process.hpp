@@ -409,27 +409,33 @@ namespace Kratos
 
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
 	{
-	  // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ 
 	  if( ((i_mp->IsNot(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID))) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) ){ 
 
-            //std::cout<<" ModelPart Name "<<i_mp->Name()<<std::endl;
 	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
-	      {
-		rComputingModelPart.Nodes().push_back(*(i_node.base()));
-		// rComputingModelPart.AddNode(*(i_node.base())); // very slow!
-	      }
+            {
+              rComputingModelPart.Nodes().push_back(*(i_node.base()));
+            }
 
 	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
-	      {
-		rComputingModelPart.AddCondition(*(i_cond.base()));
-	      }
-
+            {
+              rComputingModelPart.AddCondition(*(i_cond.base()));
+            }
 	    
 	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; ++i_elem)
-	      {
-		rComputingModelPart.AddElement(*(i_elem.base()));
-	      }
+            {
+              rComputingModelPart.AddElement(*(i_elem.base()));
+            }
 	  }
+          // in order to draw rigid wall elements in output de-comment -> GiD IO performs slowly if added (why?)            
+          // else if( (i_mp->IsNot(SOLID) && i_mp->IsNot(FLUID)) && i_mp->Is(RIGID) ){
+          //   unsigned int MaxElementId = MesherUtilities::GetMaxElementId(rModelPart);      
+          //   for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; ++i_elem)
+          //   {
+          //     i_elem->SetId(++MaxElementId);
+          //     rComputingModelPart.AddElement(*(i_elem.base()));
+          //   }
+          // }
+            
 	}
 
       //Sort
