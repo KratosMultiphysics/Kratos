@@ -14,20 +14,20 @@
 // External includes
 
 // Project includes
-#include "adjoint_strain_energy_response_function.h"
+#include "adjoint_linear_strain_energy_response_function.h"
 
 namespace Kratos
 {
-    AdjointStrainEnergyResponseFunction::AdjointStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
+    AdjointLinearStrainEnergyResponseFunction::AdjointLinearStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
     }
 
-    AdjointStrainEnergyResponseFunction::~AdjointStrainEnergyResponseFunction()
+    AdjointLinearStrainEnergyResponseFunction::~AdjointLinearStrainEnergyResponseFunction()
     {
     }
 
-    void AdjointStrainEnergyResponseFunction::Initialize()
+    void AdjointLinearStrainEnergyResponseFunction::Initialize()
     {
         KRATOS_TRY;
 
@@ -52,7 +52,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    double AdjointStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
+    double AdjointLinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -84,7 +84,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
+    void AdjointLinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -104,7 +104,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
+    void AdjointLinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -124,7 +124,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStrainEnergyResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
+    void AdjointLinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -150,7 +150,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStrainEnergyResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
+    void AdjointLinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -176,7 +176,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStrainEnergyResponseFunction::CheckForBodyForces(Element& rAdjointElem)
+    void AdjointLinearStrainEnergyResponseFunction::CheckForBodyForces(Element& rAdjointElem)
     {
         const double numerical_limit = std::numeric_limits<double>::epsilon();
 

@@ -133,7 +133,7 @@ namespace Kratos
         KRATOS_TRY;
 
         if (rResponseGradient.size() != rDerivativesMatrix.size1())
-                  rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+            rResponseGradient.resize(rDerivativesMatrix.size1(), false);
         rResponseGradient.clear();
 
         KRATOS_CATCH("");
@@ -155,7 +155,7 @@ namespace Kratos
         else
         {
             if (rResponseGradient.size() != rDerivativesMatrix.size1())
-                      rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+                rResponseGradient.resize(rDerivativesMatrix.size1(), false);
             rResponseGradient.clear();
         }
 
@@ -171,7 +171,7 @@ namespace Kratos
         KRATOS_TRY;
 
         if(rResponseGradient.size() != rDerivativesMatrix.size1())
-              rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+            rResponseGradient.resize(rDerivativesMatrix.size1(), false);
         rResponseGradient.clear();
 
         KRATOS_CATCH("");

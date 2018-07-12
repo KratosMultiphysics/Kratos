@@ -10,7 +10,7 @@
         "echo_level"      : 1
     },
         "solver_settings"                  : {
-        "solver_type"                  : "adjoint",
+        "solver_type"                  : "adjoint_static",
         "analysis_type"                : "linear",
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
@@ -18,7 +18,7 @@
             "scheme_type"              : "adjoint_structural"
         },
         "response_function_settings" : {
-            "response_type"     : "adjoint_strain_energy",
+            "response_type"     : "adjoint_linear_strain_energy",
             "use_kratos"        : true,
             "gradient_mode"     : "semi_analytic",
             "sensitivity_model_part_name" :"Parts_AREAS",

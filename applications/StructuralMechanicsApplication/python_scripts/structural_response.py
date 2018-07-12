@@ -333,7 +333,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
         return self.adjoint_analysis._GetSolver().response_function
 
 # ==============================================================================
-class AdjointStrainEnergyResponse(ResponseFunctionBase):
+class AdjointLinearStrainEnergyResponse(ResponseFunctionBase):
     """Linear static adjoint response function.
     - runs the primal analysis (writes the primal results to an .h5 file)
     - reads the primal results from the .h5 file into the adjoint model part
@@ -352,7 +352,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
     """
     def __init__(self, identifier, project_parameters, model_part):
         self.identifier = identifier
-        self.response_function_utility = StructuralMechanicsApplication.AdjointStrainEnergyResponseFunction( model_part, project_parameters )
+        self.response_function_utility = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction( model_part, project_parameters )
 
         model = Model()
         model.AddModelPart(model_part)

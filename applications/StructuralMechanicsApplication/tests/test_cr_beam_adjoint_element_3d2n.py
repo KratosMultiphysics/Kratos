@@ -3,8 +3,54 @@ import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import random
 import math
+
+def get_displacement_vector(mp,disp):
+    index=0
+    for node in mp.Nodes:
+        disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
+        index = index + 1
+        disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
+        index = index + 1
+        disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
+        index = index + 1
+        disp[index] = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_X,0)
+        index = index + 1
+        disp[index] = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Y,0)
+        index = index + 1
+        disp[index] = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0)
+        index = index + 1
+
+def add_variables(mp):
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
+
+def apply_material_properties(mp,dim):
+    #define properties
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
+    mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,0.01)
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
+    mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TORSIONAL_INERTIA,0.00001)
+    mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I22,0.00001)
+    mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I33,0.00001)
+    g = [0,0,0]
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
+    cl = StructuralMechanicsApplication.LinearElastic3DLaw()
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+
+def zero_vector(size):
+    v = KratosMultiphysics.Vector(size)
+    for i in range(size):
+        v[i] = 0.0
+    return v
 
 class TestCrBeamAdjointElement(KratosUnittest.TestCase):
 
@@ -13,10 +59,10 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         dim=3
         self.model_part = KratosMultiphysics.ModelPart("test")
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim)
-        self._add_variables(self.model_part)
+        add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(2, 1.0, 0.1, 0.3)
-        self._apply_material_properties(self.model_part,dim)
+        apply_material_properties(self.model_part,dim)
         prop = self.model_part.GetProperties()[0]
 
         self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 1, [1, 2], prop)
@@ -32,7 +78,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
     def _create_shape_perturbed_elements(self,mp,delta):
         dim=3
         self.model_part_1 = KratosMultiphysics.ModelPart("Shape_Perturbed_Elements")
-        self._add_variables(self.model_part_1)
+        add_variables(self.model_part_1)
 
         x1 = mp.Nodes[1].X
         y1 = mp.Nodes[1].Y
@@ -49,7 +95,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         self.model_part_1.CreateNewNode(7, x2, y2+delta, z2)
         self.model_part_1.CreateNewNode(8, x2, y2, z2+delta)
 
-        self._apply_material_properties(self.model_part_1,dim)
+        apply_material_properties(self.model_part_1,dim)
         prop = self.model_part_1.GetProperties()[0]
 
         self.model_part_1.CreateNewElement("CrLinearBeamElement3D2N", 1, [2, 5], prop)
@@ -62,10 +108,10 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
     def _create_property_perturbed_elements(self,mp,delta):
         dim = 3
         self.model_part_2 = KratosMultiphysics.ModelPart("Property_Perturbed_Elements")
-        self._add_variables(self.model_part_2)
+        add_variables(self.model_part_2)
         self.model_part_2.CreateNewNode(1, mp.Nodes[1].X, mp.Nodes[1].Y, mp.Nodes[1].Z)
         self.model_part_2.CreateNewNode(2, mp.Nodes[2].X, mp.Nodes[2].Y, mp.Nodes[2].Z)
-        self._apply_material_properties(self.model_part_2,dim)
+        apply_material_properties(self.model_part_2,dim)
 
         I22_initial = mp.GetProperties()[0][StructuralMechanicsApplication.I22]
         self.model_part_2.GetProperties()[0].SetValue(StructuralMechanicsApplication.I22, I22_initial + delta)
@@ -74,65 +120,21 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         self.model_part_2.CreateNewElement("CrLinearBeamElement3D2N", 1, [1, 2], prop)
         self.property_perturbed_beam_element = self.model_part_2.GetElement(1)
 
-    def _get_displacement_vector(self,mp,disp):
-        index=0
-        for node in mp.Nodes:
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
-            index = index + 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
-            index = index + 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
-            index = index + 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_X,0)
-            index = index + 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Y,0)
-            index = index + 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0)
-            index = index + 1
-
-    def _add_variables(self,mp):
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
-
-    def _apply_material_properties(self,mp,dim):
-        #define properties
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,0.01)
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TORSIONAL_INERTIA,0.00001)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I22,0.00001)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I33,0.00001)
-
-        g = [0,0,0]
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
-
-        cl = StructuralMechanicsApplication.LinearElastic3DLaw()
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
-
     def _assign_solution_step_data(self, step=0):
         # generate nodal solution step test data
-        random.seed(1.0)
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,random.random())
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,0.014725)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,step,0.001200)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,step,0.0725715)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,0.00125)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,-0.114905)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,0.258032)
 
-    def _zero_vector(self,size):
-        v = KratosMultiphysics.Vector(size)
-        for i in range(size):
-            v[i] = 0.0
-        return v
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,0.019735)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,step,0.002400)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,step,0.377976)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,-0.00155)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,-0.217714)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,0.2544032)
 
     def _shape_perturbation_correction_factor(self):
         dx = self.model_part.Nodes[1].X - self.model_part.Nodes[2].X
@@ -152,9 +154,9 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         # unperturbed residual
         LHSUnperturbed = KratosMultiphysics.Matrix(12,12)
         RHSUnperturbed = KratosMultiphysics.Matrix(12,12)
-        dummy_RHS = self._zero_vector(12)
-        PrimalDisplacement = self._zero_vector(12)
-        self._get_displacement_vector(self.model_part,PrimalDisplacement)
+        dummy_RHS = zero_vector(12)
+        PrimalDisplacement = zero_vector(12)
+        get_displacement_vector(self.model_part,PrimalDisplacement)
 
         self.beam_element.CalculateLocalSystem(LHSUnperturbed,dummy_RHS,self.model_part.ProcessInfo)
         RHSUnperturbed = LHSUnperturbed * PrimalDisplacement
@@ -187,11 +189,11 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
     def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
         LHSUnperturbed = KratosMultiphysics.Matrix(12,12)
-        RHSUnperturbed = self._zero_vector(12)
-        dummy_RHS = self._zero_vector(12)
+        RHSUnperturbed = zero_vector(12)
+        dummy_RHS = zero_vector(12)
 
-        PrimalDisplacement = self._zero_vector(12)
-        self._get_displacement_vector(self.model_part,PrimalDisplacement)
+        PrimalDisplacement = zero_vector(12)
+        get_displacement_vector(self.model_part,PrimalDisplacement)
 
         self.beam_element.CalculateLocalSystem(LHSUnperturbed, dummy_RHS, self.model_part.ProcessInfo)
         RHSUnperturbed = LHSUnperturbed * PrimalDisplacement
@@ -200,7 +202,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         h = 0.00001
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(1,12)
         LHSPerturbed = KratosMultiphysics.Matrix(12,12)
-        RHSPerturbed = self._zero_vector(12)
+        RHSPerturbed = zero_vector(12)
 
         inital_property_value = self.model_part.GetProperties()[0][StructuralMechanicsApplication.I22]
         delta = h * inital_property_value
