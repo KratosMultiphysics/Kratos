@@ -13,19 +13,12 @@ def solve_primal_problem():
     primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
     primal_analysis.Run()
 
-def remove_h5_files(model_part_name):
-    for name in os.listdir():
-        if name.find(model_part_name) == 0:
-            kratos_utilities.DeleteFileIfExisting(name)
-
 class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
-    primal_solved = False
 
-    def setUp(self):
-        # Solve primal problem (only in one test case necessary)
-        if not self.primal_solved:
-            solve_primal_problem()
-            self.primal_solved = True
+    # called only once for this class, opposed of setUp()
+    @classmethod
+    def setUpClass(cls):
+        solve_primal_problem()
 
     def test_local_stress_response(self):
         #Create the adjoint solver
@@ -95,14 +88,13 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
 
-
-        # Delete *.h5 only after last test case because primal solution is used in each test case
+    # called only once for this class, opposed of tearDown()
+    @classmethod
+    def tearDownClass(cls):
         kratos_utilities.DeleteFileIfExisting("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/Beam_structure.time")
-        remove_h5_files("Structure")
-
-    def tearDown(self):
-        pass
-    #TODO: add this test in test_StructualMechanicsApllication.py
+        for file_name in os.listdir():
+            if file_name.endswith(".h5"):
+                kratos_utilities.DeleteFileIfExisting(file_name)
 
 if __name__ == '__main__':
     KratosUnittest.main()
