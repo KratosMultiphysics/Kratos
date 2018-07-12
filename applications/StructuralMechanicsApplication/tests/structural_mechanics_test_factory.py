@@ -143,6 +143,9 @@ class SprismMembranePatchTests(StructuralMechanicsTestFactory):
 class SprismBendingPatchTests(StructuralMechanicsTestFactory):
     file_name = "sprism_test/patch_bending_test"
 
+class SprismEASPatchTests(StructuralMechanicsTestFactory):
+    file_name = "sprism_test/EAS_patch_test"
+
 class EigenQ4Thick2x2PlateTests(StructuralMechanicsTestFactory):
     file_name = "eigen_test/Eigen_Q4_Thick_2x2_Plate_test"
 

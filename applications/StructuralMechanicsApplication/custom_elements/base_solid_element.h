@@ -80,9 +80,9 @@ protected:
          * @param NumberOfNodes The size of the strain vector in Voigt notation
          */
         KinematicVariables( 
-            const unsigned int& StrainSize, 
-            const unsigned int& Dimension, 
-            const unsigned int& NumberOfNodes 
+            const SizeType StrainSize,
+            const SizeType Dimension,
+            const SizeType NumberOfNodes
             )
         {
             detF = 1.0;
@@ -110,7 +110,7 @@ protected:
          * The default constructor
          * @param StrainSize The size of the strain vector in Voigt notation
          */
-        ConstitutiveVariables(const unsigned int& StrainSize)
+        ConstitutiveVariables(const SizeType StrainSize)
         {
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);

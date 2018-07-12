@@ -94,11 +94,17 @@ public:
     /// The definition of the index type
     typedef std::size_t IndexType;
 
-    /// The definition of the sizetype
+    /// The definition of the size type
     typedef std::size_t SizeType;
 
     // The vector containing the weak pointers to the nodes
     typedef WeakPointerVector<NodeType> WeakPointerVectorNodesType;
+
+    /// Definition of SolutionStepsDataContainerType
+    typedef VariablesListDataValueContainer SolutionStepsDataContainerType;
+
+    /// Definition of Doftype
+    typedef Dof<double> DofType;
 
     /// Counted pointer of SolidShellElementSprism3D6N
     KRATOS_CLASS_POINTER_DEFINITION(SolidShellElementSprism3D6N);
@@ -717,18 +723,11 @@ protected:
     /* Parameters to be used in the Element as they are. Direct interface to Parameters Struct */
     struct GeneralVariables
     {
-    private:
-        // Variables including all integration points
-        const Matrix* pNcontainer;
-        const GeometryType::ShapeFunctionsGradientsType* pDN_De;
-
     public:
-        StressMeasureType StressMeasure;
+        // Constitutive variables
+        ConstitutiveVariables ConstitutiveComponents = ConstitutiveVariables(6);
 
-        // General variables for large displacement use
-        Matrix ConstitutiveMatrix; /// Constitutive matrix
-        Vector StrainVector;       /// Strain tensor
-        Vector StressVector;       /// Stress tensor
+        // Kinematic variables for large displacement use
         Matrix B;                  /// Deformation matrix
         Matrix F;                  /// Deformation gradient (F) from the reference to the current configuration ( Delta F )
         Matrix F0;                 /// Deformation gradient (F) in the reference configuration, ( historical F )
@@ -741,37 +740,10 @@ protected:
 
         // Standard prism shape functions
         Vector  N;
-        Matrix  DN_DX;
 
         // Variables including all integration points
         GeometryType::JacobiansType J;
         GeometryType::JacobiansType j;
-
-        /**
-        * Sets the value of a specified pointer variable
-        */
-        void SetShapeFunctions(const Matrix& rNcontainer)
-        {
-            pNcontainer=&rNcontainer;
-        }
-
-        void SetShapeFunctionsGradients(const GeometryType::ShapeFunctionsGradientsType &rDN_De)
-        {
-            pDN_De=&rDN_De;
-        }
-
-        /**
-        * Returns the value of a specified pointer variable
-        */
-        const Matrix& GetShapeFunctions()
-        {
-            return *pNcontainer;
-        }
-
-        const GeometryType::ShapeFunctionsGradientsType& GetShapeFunctionsGradients()
-        {
-            return *pDN_De;
-        }
     };
 
     /**
@@ -841,6 +813,9 @@ protected:
     std::vector< Matrix > mAuxContainer; /// Container for historical total Jacobians for Total Lagrangian
                                          /// Container for historical total elastic deformation measure F0 = dx/dX  for Updated Lagrangian
 
+    SolutionStepsDataContainerType mSolutionStepsDataContainer; /// An historical dababase
+    DofType::Pointer mpDofAlpha = nullptr; /// The degree of freedom of the alpha EAS
+
     /* Elemental flags */
     Flags  mELementalFlags;
 
@@ -873,6 +848,11 @@ protected:
     ///@{
 
     /**
+     * @brief Gives the StressMeasure used
+     */
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const override;
+
+    /**
      * @brief Check if the node has a neighbour:
      * @param Index The index of the node
      * @param NeighbourNode The neighbours nodes
@@ -889,6 +869,12 @@ protected:
      * @return An integer with the number of neighbours of the node
      */
     std::size_t NumberOfActiveNeighbours(WeakPointerVector< NodeType >& pNeighbourNodes);
+
+    /**
+     * @brief This method reduces the residual of the EAS stabilization
+     * @param rCurrentProcessInfo The current process
+     */
+    void MinimizeAlphaResidual(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief  It gets the nodal coordinates, according to the configutaion
@@ -925,8 +911,10 @@ protected:
 
     /**
      * @brief Calculate the vector of the element Ids
+     * @param rIdVector The vector containing the ids of the neighbour dofs
+     * @return The last index (used for pure implicit)
      */
-    void CalculateIdVector(array_1d<IndexType, 18 >& rIdVector);
+    IndexType CalculateIdVector(array_1d<IndexType, 18 >& rIdVector);
 
     /**
      * @brief Calculate the local derivatives of the element for a given coordinates
