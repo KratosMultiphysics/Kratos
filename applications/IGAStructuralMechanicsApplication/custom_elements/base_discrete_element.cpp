@@ -46,15 +46,15 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-                mConstitutiveLawVector[0] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-                mConstitutiveLawVector[0]->InitializeMaterial(GetProperties(),
-                    GetGeometry(),
-                    GetValue(SHAPE_FUNCTION_VALUES)
-                );
-            }
-            else
-                KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+        if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
+            mConstitutiveLawVector[0] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[0]->InitializeMaterial(GetProperties(),
+                GetGeometry(),
+                GetValue(SHAPE_FUNCTION_VALUES)
+            );
+        }
+        else
+            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -66,10 +66,10 @@ namespace Kratos
         KRATOS_TRY
 
         if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-                mConstitutiveLawVector[0]->ResetMaterial(GetProperties(),
-                    GetGeometry(),
-                    GetValue(SHAPE_FUNCTION_VALUES)
-                );
+            mConstitutiveLawVector[0]->ResetMaterial(GetProperties(),
+                GetGeometry(),
+                GetValue(SHAPE_FUNCTION_VALUES)
+            );
         }
 
         KRATOS_CATCH("")
@@ -84,7 +84,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const unsigned int number_of_control_points = GetGeometry().size();
+        const int number_of_control_points = GetGeometry().size();
 
         if (rResult.size() != 3 * number_of_control_points)
             rResult.resize(3 * number_of_control_points, false);
@@ -110,7 +110,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const unsigned int number_of_control_points = GetGeometry().size();
+        const int number_of_control_points = GetGeometry().size();
 
         rElementalDofList.resize(0);
         rElementalDofList.reserve(3 * number_of_control_points);
@@ -185,10 +185,10 @@ namespace Kratos
     )
     {
         KRATOS_TRY;
-        unsigned int number_of_control_points = GetGeometry().size();
+        const int number_of_control_points = GetGeometry().size();
 
         // Resizing as needed the LHS
-        unsigned int mat_size = number_of_control_points * 3;
+        const int mat_size = number_of_control_points * 3;
 
         if (rDampingMatrix.size1() != mat_size)
             rDampingMatrix.resize(mat_size, mat_size, false);
@@ -237,8 +237,7 @@ namespace Kratos
     void BaseDiscreteElement::Calculate(
         const Variable<double>& rVariable,
         double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo)
     {
         mConstitutiveLawVector[0]->GetValue(rVariable, rOutput);
     }
@@ -248,15 +247,14 @@ namespace Kratos
     void BaseDiscreteElement::Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo)
     {
         if (rOutput.size() != 1)
             rOutput.resize(1);
 
         if (rVariable == VELOCITY) {
             const int& number_of_control_points = GetGeometry().size();
-            Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+            const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
             array_1d<double, 3> velocity = ZeroVector(3);
             for (SizeType i = 0; i < number_of_control_points; i++)
@@ -281,8 +279,7 @@ namespace Kratos
     void BaseDiscreteElement::Calculate(
         const Variable<Vector>& rVariable,
         Vector& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo)
     {
         if (rVariable == COORDINATES) {
             const int& number_of_control_points = GetGeometry().size();
@@ -336,8 +333,7 @@ namespace Kratos
     void BaseDiscreteElement::SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo)
     {
         mConstitutiveLawVector[0]->SetValue(rVariable,
             rValues[0],
@@ -350,10 +346,9 @@ namespace Kratos
     void BaseDiscreteElement::SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo)
     {
-        const unsigned int number_of_control_points = GetGeometry().size();
+        const int number_of_control_points = GetGeometry().size();
         const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
         if (rVariable == EXTERNAL_FORCES_VECTOR) {
@@ -379,8 +374,7 @@ namespace Kratos
     void BaseDiscreteElement::SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo)
     {
         mConstitutiveLawVector[0]->SetValue(rVariable,
             rValues[0],
@@ -393,8 +387,7 @@ namespace Kratos
     void BaseDiscreteElement::SetValuesOnIntegrationPoints(
         const Variable<ConstitutiveLaw::Pointer>& rVariable,
         std::vector<ConstitutiveLaw::Pointer>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo)
     {
         if (rVariable == CONSTITUTIVE_LAW)
             mConstitutiveLawVector[0] = rValues[0];
@@ -404,11 +397,10 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::GetValuesVector(
         Vector& rValues,
-        int Step
-    )
+        int Step)
     {
-        const unsigned int number_of_control_points = GetGeometry().size();
-        const unsigned int mat_size = number_of_control_points * 3;
+        const int number_of_control_points = GetGeometry().size();
+        const int mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -416,7 +408,7 @@ namespace Kratos
         for (unsigned int i = 0; i < number_of_control_points; ++i)
         {
             const array_1d<double, 3 >& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            const unsigned int index = i * 3;
+            const int index = i * 3;
 
             rValues[index]     = displacement[0];
             rValues[index + 1] = displacement[1];
@@ -428,11 +420,10 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::GetFirstDerivativesVector(
         Vector& rValues,
-        int Step
-    )
+        int Step)
     {
-        const unsigned int number_of_control_points = GetGeometry().size();
-        const unsigned int mat_size = number_of_control_points * 3;
+        const int number_of_control_points = GetGeometry().size();
+        const int mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -451,11 +442,10 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::GetSecondDerivativesVector(
         Vector& rValues,
-        int Step
-    )
+        int Step)
     {
-        const unsigned int number_of_control_points = GetGeometry().size();
-        const unsigned int mat_size = number_of_control_points * 3;
+        const int number_of_control_points = GetGeometry().size();
+        const int mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -477,8 +467,7 @@ namespace Kratos
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-    )
+        const bool CalculateResidualVectorFlag)
     {
         KRATOS_ERROR << "You have called to the CalculateAll() from the base class BaseDiscreteElement" << std::endl;
     }
@@ -490,7 +479,7 @@ namespace Kratos
         const int rWorkingSpaceDimension,
         const int rLocalSpaceDimension)
     {
-        const unsigned int number_of_control_points = GetGeometry().size();
+        const int number_of_control_points = GetGeometry().size();
 
         Jacobian.resize(rWorkingSpaceDimension, rLocalSpaceDimension);
 
