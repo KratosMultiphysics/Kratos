@@ -221,7 +221,7 @@ class MassResponseFunction(ResponseFunctionBase):
 
 # ==============================================================================
 class AdjointResponseFunction(ResponseFunctionBase):
-    """Linear static adjoint response function.
+    """Linear static adjoint strain energy response function.
     - runs the primal analysis (writes the primal results to an .h5 file)
     - reads the primal results from the .h5 file into the adjoint model part
     - uses primal results to calculate value
