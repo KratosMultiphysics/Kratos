@@ -280,6 +280,8 @@ class SolutionScheme:
                 variables = variables + ['WATER_PRESSURE','WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATION',dof]
             elif(dof == 'PRESSURE'):
                 variables = variables + ['PRESSURE','PRESSURE_VELOCITY','PRESSURE_ACCELERATION',dof]
+            elif(dof == 'FLUID_PRESSURE'):
+                variables = variables + ['FLUID_PRESSURE','FLUID_PRESSURE_VELOCITY','FLUID_PRESSURE_ACCELERATION',dof]
             else:
                 variables = variables + [dof]
         else:
@@ -331,6 +333,15 @@ class SolutionScheme:
 
             self.dof_derivatives = self.dof_derivatives + ['PRESSURE_VELOCITY','PRESSURE_ACCELERATION']
 
+        # Add fluid pressure variables
+        if self._check_input_dof("FLUID_PRESSURE"):
+            # Add specific variables for the problem (pressure dofs)
+            self.dof_variables = self.dof_variables + ['FLUID_PRESSURE']
+            self.dof_reactions = self.dof_reactions + ['FLUID_PRESSURE_REACTION']
+
+            self.dof_derivatives = self.dof_derivatives + ['FLUID_PRESSURE_VELOCITY','FLUID_PRESSURE_ACCELERATION']
+
+            
         # Add contat variables
         if self._check_input_dof("LAGRANGE_MULTIPLIER"):
             # Add specific variables for the problem (contact dofs)
