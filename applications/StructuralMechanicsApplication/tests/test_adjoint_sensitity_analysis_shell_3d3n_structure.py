@@ -16,15 +16,15 @@ def solve_primal_problem():
     primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
     primal_analysis.Run()
 
+def remove_h5_files(model_part_name):
+    for name in os.listdir():
+        if name.find(model_part_name) == 0:
+            remove_file(name)
+
 class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
-
-    def _remove_h5_files(self, model_part_name):
-        for name in os.listdir():
-            if name.find(model_part_name) == 0:
-                remove_file(name)
 
     def test_local_stress_response(self):
         # Solve primal problem (only here necessary. The other tests corresponding to the same primal problem.)
@@ -95,7 +95,7 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
 
         # Delete *.h5 only after last test case because primal solution is used in each test case
-        self._remove_h5_files("Structure")
+        remove_h5_files("Structure")
         remove_file("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate.time")
 
     def tearDown(self):
