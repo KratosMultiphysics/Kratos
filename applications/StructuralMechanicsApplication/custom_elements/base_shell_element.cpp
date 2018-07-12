@@ -273,6 +273,19 @@ void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
+
+void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo)
+{
+    // Calculation flags
+    const bool calculate_stiffness_matrix_flag = true;
+    const bool calculate_residual_vector_flag = true; // TODO check is this can be false => see solids
+
+	Vector dummy;
+	CalculateAll(rLeftHandSideMatrix, dummy, rCurrentProcessInfo,
+                 calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
+}
+
 void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 	ProcessInfo& rCurrentProcessInfo)
 {
