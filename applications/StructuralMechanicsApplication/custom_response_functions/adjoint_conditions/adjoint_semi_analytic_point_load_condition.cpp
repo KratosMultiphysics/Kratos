@@ -133,20 +133,22 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-        const SizeType mat_size = number_of_nodes * dimension;
-
-        if ((rOutput.size1() != mat_size) || (rOutput.size2() != mat_size))
-	        rOutput.resize(mat_size, mat_size, false);
-
-        noalias(rOutput) = ZeroMatrix(mat_size,mat_size);
-
         if( rDesignVariable == POINT_LOAD )
         {
+            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType mat_size = number_of_nodes * dimension;
+
+            if ((rOutput.size1() != mat_size) || (rOutput.size2() != mat_size))
+                rOutput.resize(mat_size, mat_size, false);
+
+            noalias(rOutput) = ZeroMatrix(mat_size,mat_size);
             for(IndexType i = 0; i < mat_size; ++i)
                 rOutput(i,i) = 1.0;
         }
+        else
+            if ((rOutput.size1() != 0) || (rOutput.size2() != 0))
+                rOutput.resize(0, 0, false);
 
         KRATOS_CATCH( "" )
     }
@@ -155,7 +157,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF_NOT(mpPrimalCondition) << "Primal element pointer is nullptr!" << std::endl;
+        KRATOS_ERROR_IF_NOT(mpPrimalCondition) << "Primal condition pointer is nullptr!" << std::endl;
 
         // verify that the variables are correctly initialized
         KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
