@@ -92,21 +92,6 @@ public:
     }
 
     /**
-    * Clone.
-    */
-    ConstitutiveLaw::Pointer Clone() const override
-    {
-        return Kratos::make_shared<SmallStrainIsotropicPlasticityFactory3D>(*this);
-    }
-
-    /**
-    * Copy constructor.
-    */
-    SmallStrainIsotropicPlasticityFactory3D (const SmallStrainIsotropicPlasticityFactory3D& rOther)
-    : ConstitutiveLaw(rOther)
-    {
-    }
-    /**
     * Destructor.
     */
     ~SmallStrainIsotropicPlasticityFactory3D() override
@@ -137,60 +122,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
-
-    /**
-     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
-
-    /**
-     * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
-
-    /**
-     * Computes the material response in terms of Cauchy stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
-    {
-        KRATOS_ERROR << "The base factory class has been called, define a correct constitutive law " << std::endl;
-    } 
-
-    /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        KRATOS_ERROR << "The base dummy class has been called, define a correct constitutive law " << std::endl;
-    }
 
     ///@}
     ///@name Access
@@ -266,18 +197,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-    
-    void save(Serializer& rSerializer) const override
-    {
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-    }
 
     ///@}
 

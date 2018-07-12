@@ -152,13 +152,12 @@ public:
     )
     {
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double E  = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            AParameter = 1.00 / (Gf*n*n / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+            AParameter = 1.0 / (Gf*n*n / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
             KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
             AParameter = - std::pow(sigma_c, 2) / (2.0*Gf*n*n / CharacteristicLength);
