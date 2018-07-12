@@ -14,7 +14,7 @@ set( KRATOS_NURBS_BREP_APPLICATION_SOURCES
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosNurbsBrepApplication MODULE THIN_LTO ${KRATOS_NURBS_BREP_APPLICATION_SOURCES})
-target_link_libraries(KratosNurbsBrepApplication KratosCore )
+target_link_libraries(KratosNurbsBrepApplication PRIVATE KratosCore)
 set_target_properties(KratosNurbsBrepApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
