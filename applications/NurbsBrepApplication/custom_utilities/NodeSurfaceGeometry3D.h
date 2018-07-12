@@ -63,12 +63,12 @@ public:
         const int IndexU,
         const int IndexV) const override
     {
-        auto node = Node(IndexU, IndexV);
+        auto& node = *Node(IndexU, IndexV);
  
         VectorType pole;
-        pole[0] = node->X();
-        pole[1] = node->X();
-        pole[2] = node->X();
+        pole[0] = node[0];
+        pole[1] = node[1];
+        pole[2] = node[2];
  
         return pole;
     }
