@@ -271,7 +271,7 @@ public:
 		      Alpha*=0;
 		    }
 		  }else{
-                    std::cout << "ATTENTION!!! CHECKED NODES= " <<checkedNodes<<" and the nodes are "<<nds<<std::endl;
+                    KRATOS_INFO( "ATTENTION!!! CHECKED NODES= " ) <<checkedNodes<<" and the nodes are "<<nds<<std::endl;
 		    Alpha*=0;
 		  }
 		}
