@@ -106,10 +106,10 @@ public:
         node->SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
     }
     
-    template <typename TDataType>
+    template <typename TDataType, typename TVariableType = Variable<TDataType>>
     TDataType
     ValueAt(
-        const Variable<TDataType>& Variable,
+        const TVariableType& Variable,
         const double T)
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
@@ -117,10 +117,10 @@ public:
         }, T);
     }
     
-    template <typename TDataType>
+    template <typename TDataType, typename TVariableType = Variable<TDataType>>
     std::vector<TDataType>
     ValueAt(
-        const Variable<TDataType>& Variable,
+        const TVariableType& Variable,
         const double T,
         const int Order)
     {

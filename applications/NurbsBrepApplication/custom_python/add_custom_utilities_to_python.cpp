@@ -51,6 +51,9 @@ void AddCustomUtilitiesToPython(py::module& m)
         using Type = NodeCurveGeometry3D;
         using Pointer = std::shared_ptr<Type>;
 
+        using ComponentVariable = Kratos::VariableComponent<
+            Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
+
         pybind11::class_<Type, Pointer>(m, "NodeCurveGeometry3D")
             .def(pybind11::init<int, int>(),
                 "Degree"_a,
@@ -99,6 +102,16 @@ void AddCustomUtilitiesToPython(py::module& m)
             .def("ValueAt", (std::vector<Vector3D> (Type::*)(
                 const Variable<Vector3D>&, const double, const int))
                 &Type::ValueAt<Vector3D>,
+                "Variable"_a,
+                "T"_a,
+                "Order"_a)
+            .def("ValueAt", (double (Type::*)(const ComponentVariable&,
+                const double)) &Type::ValueAt<double, ComponentVariable>,
+                "Variable"_a,
+                "T"_a)
+            .def("ValueAt", (std::vector<double> (Type::*)(
+                const ComponentVariable&, const double,
+                const int)) &Type::ValueAt<double, ComponentVariable>,
                 "Variable"_a,
                 "T"_a,
                 "Order"_a)
