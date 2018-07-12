@@ -17,10 +17,13 @@ def solve_primal_problem():
     primal_analysis.Run()
 
 class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
+    primal_solved = False
 
     def setUp(self):
         # Solve primal problem (only in one test case necessary)
-        self._solve_primal_problem()
+        if not self.primal_solved:
+            solve_primal_problem()
+            self.primal_solved = True
 
     def _remove_h5_files(self, model_part_name):
         for name in os.listdir():
