@@ -473,6 +473,8 @@ namespace Kratos
     ///@}
     ///@name Private Operators
     ///@{
+    
+    using ConstitutiveLaw::CalculateValue;
 
     ///@}
     ///@name Private Operations
