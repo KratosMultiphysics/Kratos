@@ -119,14 +119,19 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
 
     def _assign_solution_step_data(self, step=0):
         # generate nodal solution step test data
-        random.seed(1.0)
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,random.random())
-            node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,random.random())
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,0.014725)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,step,0.001200)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,step,0.0725715)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,0.00125)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,-0.114905)
+        self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,0.258032)
+
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,0.019735)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,step,0.002400)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,step,0.377976)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,-0.00155)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,-0.217714)
+        self.model_part.Nodes[2].SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,0.2544032)
 
     def _zero_vector(self,size):
         v = KratosMultiphysics.Vector(size)
