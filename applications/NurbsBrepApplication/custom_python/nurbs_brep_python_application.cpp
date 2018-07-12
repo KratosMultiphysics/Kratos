@@ -35,6 +35,8 @@ PYBIND11_MODULE(KratosNurbsBrepApplication,m)
     ;
 
     AddCustomUtilitiesToPython(m);
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NURBS_CONTROLPOINT_WEIGHT)
 }
 
 } // namespace Python
