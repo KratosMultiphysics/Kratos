@@ -91,7 +91,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
 
     def _SolveSolutionStepSpecialStrainEnergy(self):
-        self.response_function.Initialize()
         for node in self.main_model_part.Nodes:
             adjoint_displacement = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement )
