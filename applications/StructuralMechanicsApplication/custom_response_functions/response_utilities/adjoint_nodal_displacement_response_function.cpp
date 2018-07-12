@@ -141,13 +141,10 @@ namespace Kratos
                                       Vector& rResponseGradient,
                                       ProcessInfo& rProcessInfo)
     {
-          KRATOS_TRY
+        KRATOS_TRY
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-            rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-
-        rResponseGradient.clear();
-
+        if (rResponseGradient.size() != 0)
+            rResponseGradient.resize(0, false);
 
         KRATOS_CATCH("")
     }
@@ -160,10 +157,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-            rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-
-        rResponseGradient.clear();
+        if (rResponseGradient.size() != 0)
+            rResponseGradient.resize(0, false);
 
         KRATOS_CATCH("");
     }
@@ -174,14 +169,12 @@ namespace Kratos
                                       Vector& rResponseGradient,
                                       ProcessInfo& rProcessInfo)
     {
-          KRATOS_TRY
+        KRATOS_TRY
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-            rResponseGradient.resize(rDerivativesMatrix.size1(), false);
+        if (rResponseGradient.size() != 0)
+            rResponseGradient.resize(0, false);
 
-        rResponseGradient.clear();
-
-          KRATOS_CATCH("")
+        KRATOS_CATCH("")
     }
 
     void AdjointNodalDisplacementResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
@@ -192,10 +185,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-            rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-
-        rResponseGradient.clear();
+        if (rResponseGradient.size() != 0)
+            rResponseGradient.resize(0, false);
 
         KRATOS_CATCH("");
     }

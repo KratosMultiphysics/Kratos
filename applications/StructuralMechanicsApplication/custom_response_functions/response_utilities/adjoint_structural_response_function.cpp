@@ -337,37 +337,55 @@ namespace Kratos
             Element::GeometryType& r_geom = elem_i.GetGeometry();
             bool update_sensitivities = false;
             for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
-                if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
+                if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES))
                 {
                     update_sensitivities = true;
                     break;
                 }
 
-            if (update_sensitivities == false) // true for most elements
+            if (!update_sensitivities) // true for most elements
                 continue;
 
             // Compute the pseudo load
             elem_i.CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
+            // This part of the sensitivity is computed from the objective
+            // with primal variables treated as constant.
+            this->CalculateSensitivityGradient(
+                elem_i, rSensitivityVariable, sensitivity_matrix[k],
+                response_gradient[k], r_process_info);
+
+            if( (response_gradient[k].size() > 0) && (sensitivity_matrix[k].size1() > 0) )
+            {
+                KRATOS_ERROR_IF_NOT( response_gradient[k].size() ==
+                    sensitivity_matrix[k].size1() ) << "Sizes of sensitivity" <<
+                        "matrix and response gradient do not match!" << std::endl;
+            }
+
             if(sensitivity_matrix[k].size1() > 0)
             {
-                // This part of the sensitivity is computed from the objective
-                // with primal variables treated as constant.
-                this->CalculateSensitivityGradient(
-                    elem_i, rSensitivityVariable, sensitivity_matrix[k],
-                    response_gradient[k], r_process_info);
+                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
                 // Get the adjoint displacement field
                 elem_i.GetValuesVector(adjoint_vector[k]);
 
-                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+                // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
+                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
+            }
 
-                // Compute the whole sensitivity
-                noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                response_gradient[k]);
+            if(response_gradient[k].size() > 0)
+            {
+                if (sensitivity_vector[k].size() != response_gradient[k].size())
+                    sensitivity_vector[k].resize(response_gradient[k].size(), false);
 
+                // Add the partial response gradient
+                noalias(sensitivity_vector[k]) += response_gradient[k];
+            }
+
+            if( (response_gradient[k].size() > 0) || (sensitivity_matrix[k].size1() > 0) )
+            {
                 this->AssembleNodalSensitivityContribution(
                     rOutputVariable, sensitivity_vector[k], r_geom);
             }
@@ -393,25 +411,42 @@ namespace Kratos
             cond_i.CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
+            // This part of the sensitivity is computed from the objective
+            // with primal variables treated as constant.
+            this->CalculateSensitivityGradient(
+                cond_i, rSensitivityVariable, sensitivity_matrix[k],
+                response_gradient[k], r_process_info);
+
+            if( (response_gradient[k].size() > 0) && (sensitivity_matrix[k].size1() > 0) )
+            {
+                KRATOS_ERROR_IF_NOT( response_gradient[k].size() ==
+                    sensitivity_matrix[k].size1() ) << "Sizes of sensitivity" <<
+                        "matrix and response gradient do not match!" << std::endl;
+            }
+
             if(sensitivity_matrix[k].size1() > 0)
             {
-                // This part of the sensitivity is computed from the objective
-                // with primal variables treated as constant.
-                this->CalculateSensitivityGradient(
-                    cond_i, rSensitivityVariable, sensitivity_matrix[k],
-                    response_gradient[k], r_process_info);
+                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
                 // Get the adjoint displacement field
                 cond_i.GetValuesVector(adjoint_vector[k]);
 
-                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
-
-                // Compute the whole sensitivity
-                noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) + response_gradient[k]);
-
-                this->AssembleNodalSensitivityContribution(rOutputVariable, sensitivity_vector[k], r_geom);
+                // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
+                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
             }
+
+            if(response_gradient[k].size() > 0)
+            {
+                if (sensitivity_vector[k].size() != response_gradient[k].size())
+                    sensitivity_vector[k].resize(response_gradient[k].size(), false);
+
+                // Add the partial response gradient
+                noalias(sensitivity_vector[k]) += response_gradient[k];
+            }
+
+            if( (response_gradient[k].size() > 0) || (sensitivity_matrix[k].size1() > 0) )
+                this->AssembleNodalSensitivityContribution(rOutputVariable, sensitivity_vector[k], r_geom);
         }
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
@@ -438,36 +473,52 @@ namespace Kratos
             const unsigned int k = OpenMPUtils::ThisThread();
             auto it = r_model_part.ElementsBegin() + i;
 
-            if (it->GetValue(UPDATE_SENSITIVITIES) == true)
+            if (!(it->GetValue(UPDATE_SENSITIVITIES)))
+                continue;
+
+            // Compute the pseudo load
+            it->CalculateSensitivityMatrix(
+                rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+
+            // This part of the sensitivity is computed from the objective
+            // with primal variables treated as constant.
+            this->CalculateSensitivityGradient(
+                *it, rSensitivityVariable, sensitivity_matrix[k],
+                    response_gradient[k], r_process_info);
+
+            if( (response_gradient[k].size() > 0) && (sensitivity_matrix[k].size1() > 0) )
             {
-                // Compute the pseudo load
-                it->CalculateSensitivityMatrix(
-                    rSensitivityVariable, sensitivity_matrix[k], r_process_info);
-
-                if(sensitivity_matrix[k].size1() > 0)
-                {
-                    // This part of the sensitivity is computed from the objective
-                    // with primal variables treated as constant.
-                    this->CalculateSensitivityGradient(
-                        *it, rSensitivityVariable, sensitivity_matrix[k],
-                            response_gradient[k], r_process_info);
-
-
-                    // Get the adjoint displacement field
-                    it->GetValuesVector(adjoint_vector[k]);
-
-                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
-
-                    // Compute the whole sensitivity
-                    noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                    response_gradient[k]);
-
-                    this->AssembleElementSensitivityContribution(
-                                rOutputVariable, sensitivity_vector[k], *it);
-                }
+                KRATOS_ERROR_IF_NOT( response_gradient[k].size() ==
+                    sensitivity_matrix[k].size1() ) << "Sizes of sensitivity" <<
+                        "matrix and response gradient do not match!" << std::endl;
             }
 
+            if(sensitivity_matrix[k].size1() > 0)
+            {
+                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+
+                // Get the adjoint displacement field
+                it->GetValuesVector(adjoint_vector[k]);
+
+                // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
+                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]) ;
+            }
+
+            if(response_gradient[k].size() > 0)
+            {
+                if (sensitivity_vector[k].size() != response_gradient[k].size())
+                    sensitivity_vector[k].resize(response_gradient[k].size(), false);
+
+                // Add the partial response gradient
+                noalias(sensitivity_vector[k]) += response_gradient[k];
+            }
+
+            if( (response_gradient[k].size() > 0) || (sensitivity_matrix[k].size1() > 0) )
+            {
+                this->AssembleElementSensitivityContribution(
+                            rOutputVariable, sensitivity_vector[k], *it);
+            }
         }
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
@@ -495,34 +546,52 @@ namespace Kratos
             const unsigned int k = OpenMPUtils::ThisThread();
             auto it = r_model_part.ConditionsBegin() + i;
 
-            if (it->GetValue(UPDATE_SENSITIVITIES) == true)
+            if (!(it->GetValue(UPDATE_SENSITIVITIES)))
+                continue;
+
+            // Compute the pseudo load
+            it->CalculateSensitivityMatrix(
+                rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+
+            // This part of the sensitivity is computed from the objective
+            // with primal variables treated as constant.
+            this->CalculateSensitivityGradient(
+                *it, rSensitivityVariable, sensitivity_matrix[k],
+                response_gradient[k], r_process_info);
+
+            if( (response_gradient[k].size() > 0) && (sensitivity_matrix[k].size1() > 0) )
             {
-                // Compute the pseudo load
-                it->CalculateSensitivityMatrix(
-                    rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+                KRATOS_ERROR_IF_NOT( response_gradient[k].size() ==
+                    sensitivity_matrix[k].size1() ) << "Sizes of sensitivity" <<
+                        "matrix and response gradient do not match!" << std::endl;
+            }
 
-                if(sensitivity_matrix[k].size1() > 0)
-                {
-                    // This part of the sensitivity is computed from the objective
-                    // with primal variables treated as constant.
-                    this->CalculateSensitivityGradient(
-                        *it, rSensitivityVariable, sensitivity_matrix[k],
-                        response_gradient[k], r_process_info);
+            if(sensitivity_matrix[k].size1() > 0)
+            {
+                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-                    // Get the adjoint displacement field
-                    it->GetValuesVector(adjoint_vector[k]);
+                // Get the adjoint displacement field
+                it->GetValuesVector(adjoint_vector[k]);
 
-                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+                // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
+                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
+            }
 
-                    // Compute the whole sensitivity
-                    noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                    response_gradient[k]);
+            if(response_gradient[k].size() > 0)
+            {
+                if (sensitivity_vector[k].size() != response_gradient[k].size())
+                    sensitivity_vector[k].resize(response_gradient[k].size(), false);
 
-                    Condition::GeometryType& r_geom = it->GetGeometry();
-                    this->AssembleConditionSensitivityContribution(
-                                rOutputVariable, sensitivity_vector[k], r_geom);
-                }
+                // Add the partial response gradient
+                noalias(sensitivity_vector[k]) += response_gradient[k];
+            }
+
+            if( (response_gradient[k].size() > 0) || (sensitivity_matrix[k].size1() > 0) )
+            {
+                Condition::GeometryType& r_geom = it->GetGeometry();
+                this->AssembleConditionSensitivityContribution(
+                            rOutputVariable, sensitivity_vector[k], r_geom);
             }
         }
 

@@ -95,12 +95,11 @@ namespace Kratos
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the elements don't have F, they do not contribute here.
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-              rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-        rResponseGradient.clear();
+        if (rResponseGradient.size() != 0)
+            rResponseGradient.resize(0, false);
 
         this->CheckForBodyForces(rAdjointElem);
-            
+
         KRATOS_CATCH("");
     }
 
@@ -115,9 +114,8 @@ namespace Kratos
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the elements don't have F, they do not contribute here.
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-              rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-        rResponseGradient.clear();
+        if (rResponseGradient.size() != 0)
+            rResponseGradient.resize(0, false);
 
         this->CheckForBodyForces(rAdjointElem);
 
@@ -183,10 +181,10 @@ namespace Kratos
         Vector acc = ZeroVector(3);
         if (rAdjointElem.GetProperties().Has( VOLUME_ACCELERATION ))
             acc+= rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
-          
-        if( rAdjointElem.GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) 
+
+        if( rAdjointElem.GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION))
             acc += rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    
+
         KRATOS_ERROR_IF( norm_2(acc)>numerical_limit )
                 << "linear strain energy response is not able to treat structures with self-weight correctly!" << std::endl;
     }

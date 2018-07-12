@@ -265,7 +265,10 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
         // Compute RHS before perturbion
         mpPrimalElement->CalculateRightHandSide(RHS_unperturbed, copy_process_info);
-        rOutput.resize(1,RHS_unperturbed.size());
+
+        if ( (rOutput.size1() != 1) || (rOutput.size2() != RHS_unperturbed.size() ) )
+            rOutput.resize(1, RHS_unperturbed.size());
+
         // Save property pointer
         Properties::Pointer p_global_properties = mpPrimalElement->pGetProperties();
 
@@ -291,7 +294,8 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         mpPrimalElement->CalculateRightHandSide(RHS_perturbed, copy_process_info);
     }
     else
-        rOutput.clear();
+        if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
+            rOutput.resize(0,0,false);
 
     KRATOS_CATCH("")
 
@@ -322,7 +326,8 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
         const SizeType local_size = number_of_nodes * dimension * 2;
 
-        rOutput.resize(dimension * number_of_nodes, local_size);
+        if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
+            rOutput.resize(dimension * number_of_nodes, local_size);
 
         // compute RHS before perturbion
         mpPrimalElement->CalculateRightHandSide(RHS_unperturbed, copy_process_info);
@@ -360,7 +365,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
     }
     else
-        KRATOS_ERROR << "Unsupported design variable!" << std::endl;
+    {
+        KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+        if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
+            rOutput.resize(0,0,false);
+    }
 
     KRATOS_CATCH("")
 }

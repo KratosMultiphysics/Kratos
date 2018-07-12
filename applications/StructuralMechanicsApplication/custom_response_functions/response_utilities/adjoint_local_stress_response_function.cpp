@@ -116,9 +116,8 @@ namespace Kratos
         }
         else
         {
-            if (rResponseGradient.size() != rDerivativesMatrix.size1())
-                      rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-            rResponseGradient.clear();
+            if (rResponseGradient.size() != 0)
+                rResponseGradient.resize(0, false);
         }
 
         KRATOS_CATCH("")
@@ -132,9 +131,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size1())
-            rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-        rResponseGradient.clear();
+        if (rResponseGradient.size() != 0)
+            rResponseGradient.resize(0, false);
 
         KRATOS_CATCH("");
     }
@@ -154,9 +152,8 @@ namespace Kratos
         }
         else
         {
-            if (rResponseGradient.size() != rDerivativesMatrix.size1())
-                rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-            rResponseGradient.clear();
+            if (rResponseGradient.size() != 0)
+                rResponseGradient.resize(0, false);
         }
 
         KRATOS_CATCH("");
@@ -170,9 +167,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if(rResponseGradient.size() != rDerivativesMatrix.size1())
-            rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-        rResponseGradient.clear();
+        if (rResponseGradient.size() != 0)
+            rResponseGradient.resize(0, false);
 
         KRATOS_CATCH("");
     }
@@ -299,7 +295,7 @@ namespace Kratos
 
         for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
             rResponseGradient[deriv_it] = rStressDerivativesMatrix(deriv_it, (mIdOfLocation-1));
-          
+
         KRATOS_CATCH("");
     }
 
@@ -313,13 +309,13 @@ namespace Kratos
         if(rResponseGradient.size() != num_of_derivatives_per_stress)
             rResponseGradient.resize(num_of_derivatives_per_stress, false);
 
-        KRATOS_ERROR_IF_NOT(num_of_stress_positions >= mIdOfLocation ) << 
+        KRATOS_ERROR_IF_NOT(num_of_stress_positions >= mIdOfLocation ) <<
                 "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                 num_of_stress_positions  << "!"<< std::endl;
 
         for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
             rResponseGradient[deriv_it] = rStressDerivativesMatrix(deriv_it, (mIdOfLocation-1));
-    
+
         KRATOS_CATCH("");
     }
 
