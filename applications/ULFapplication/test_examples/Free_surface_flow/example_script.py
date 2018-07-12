@@ -19,7 +19,7 @@ domain_size = 2
 #importing applications
 from KratosMultiphysics import *
 from KratosMultiphysics.MeshingApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
+#from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ULFApplication import *
 						                  
 
@@ -80,8 +80,15 @@ for node in Qcomp_model_part.Nodes:
         node.Fix(PRESSURE)
         node.SetSolutionStepValue(PRESSURE,0,0.0)
 
+
+box_corner1 = Vector(3); 
+box_corner1[0]=fluid_ulf_var.bounding_box_corner1_x; box_corner1[1]=fluid_ulf_var.bounding_box_corner1_y; box_corner1[2]=fluid_ulf_var.bounding_box_corner1_z;
+box_corner2 = Vector(3); 
+box_corner2[0]=fluid_ulf_var.bounding_box_corner2_x; box_corner2[1]=fluid_ulf_var.bounding_box_corner2_y; box_corner2[2]=fluid_ulf_var.bounding_box_corner2_z;
+
+
 dynamic_tau=0.0
-fluid_solver = runge_kutta_frac_step_solver.RungeKuttaFracStepSolver(Qcomp_model_part,domain_size)
+fluid_solver = runge_kutta_frac_step_solver.RungeKuttaFracStepSolver(Qcomp_model_part,domain_size, box_corner1, box_corner2)
 fluid_solver.ReformDofAtEachIteration = False
 pILUPrecond = ILU0Preconditioner()
 fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000,pILUPrecond)
@@ -140,7 +147,7 @@ while(time < final_time):
     
     if(time > next_output_time):
         
-        res_name3 = str("POLIMERO")
+        res_name3 = str("free_surface_flow")
         gid_io.ChangeOutputName(res_name3)
         gid_io.InitializeMesh( time );
         gid_io.WriteNodeMesh((Qcomp_model_part).GetMesh());

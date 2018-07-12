@@ -12,7 +12,6 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(PRESSURE)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
-
     model_part.AddNodalSolutionStepVariable(IS_FLUID)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
@@ -41,11 +40,12 @@ def AddDofs(model_part):
 class RungeKuttaFracStepSolver:
     #
 
-    def __init__(self, model_part, domain_size):
+    def __init__(self, model_part, domain_size, box_corner1, box_corner2):
 
         self.model_part = model_part
 
-
+        self.box_corner1=box_corner1
+        self.box_corner2=box_corner2
         #neighbour search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
@@ -70,25 +70,25 @@ class RungeKuttaFracStepSolver:
         # self.MoveMeshFlag = True
 
         if (self.domain_size == 2):
-            self.neigh_finder = FindNodalNeighboursProcess(model_part, 9, 18)
+            self.neigh_finder = FindNodalNeighboursProcess(self.model_part, 9, 18)
         if (self.domain_size == 3):
-            self.neigh_finder = FindNodalNeighboursProcess(model_part, 20, 30)
+            self.neigh_finder = FindNodalNeighboursProcess(self.model_part, 20, 30)
         # calculate normals
         self.normal_tools = NormalCalculationUtils()
 
 
-        self.node_erase_process = NodeEraseProcess(model_part);
-        self.ulf_apply_bc_process = UlfApplyBCProcess(model_part);
+        self.node_erase_process = NodeEraseProcess(self.model_part);
+        self.mark_free_surface_process = MarkFreeSurfaceProcess(self.model_part);
 
-        self.mark_outer_nodes_process = MarkOuterNodesProcess(model_part);
+        self.mark_outer_nodes_process = MarkOuterNodesProcess(self.model_part);
 
         if(domain_size == 2):
             self.Mesher = TriGenPFEMModeler()
-            self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
-            self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
-            self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 2, 10)            
+            self.fluid_neigh_finder = FindNodalNeighboursProcess(self.model_part,9,18)
+            self.condition_neigh_finder = FindConditionsNeighboursProcess(self.model_part,2, 10)
+            self.elem_neighbor_finder = FindElementalNeighboursProcess(self.model_part, 2, 10)            
      
-        self.mark_fluid_process = MarkFluidProcess(model_part);
+        self.mark_fluid_process = MarkFluidProcess(self.model_part);
         self.UlfUtils = UlfUtils()
 
     #
@@ -108,43 +108,35 @@ class RungeKuttaFracStepSolver:
                 self.model_part, self.linear_solver, self.CalculateReactionFlag,
                 self.ReformDofSetAtEachStep, self.CalculateNormDxFlag)
         if (self.domain_size == 3):
-            self.solver = RungeKuttaFracStepStrategy3D(
-                self.model_part, self.linear_solver, self.CalculateReactionFlag,
-                self.ReformDofSetAtEachStep, self.CalculateNormDxFlag)
+            msg = """Fluid solver error: Your domain size is 3D, but this model is implemented in 2D only to date."""
+            raise Exception(msg)
 
         (self.solver).SetEchoLevel(self.echo_level)
         
         (self.neigh_finder).Execute()
         (self.fluid_neigh_finder).Execute();
-        (self.ulf_apply_bc_process).Execute();
+        (self.mark_free_surface_process).Execute();
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
-
-        self.RemeshAux(); 
+        
+        Hfinder  = FindNodalHProcess(self.model_part);
+        Hfinder.Execute();
+        self.Remesh(); 
 
     def Solve(self):
 
         (self.solver).SolveStep1()
-
-        self.RemeshAux();
+        #re-meshing is performed after the explicit step and prior to the implicit one (pressure)
+        self.Remesh();
 
         (self.neigh_finder).Execute()
-        
+        #setting pressure to zero at free-surface to solve the Poisson's equation        
         for node in (self.model_part).Nodes:
             node.Free(PRESSURE)
-            node.Free(VELOCITY_X)
-            node.Free(VELOCITY_Y)
-            node.Free(VELOCITY_Z)
             if(node.GetSolutionStepValue(IS_FREE_SURFACE)== 1.0):
                 node.SetSolutionStepValue(PRESSURE,0,0.0)
                 node.Fix(PRESSURE)
-            if node.GetSolutionStepValue(IS_STRUCTURE)==1.0:
-                node.Fix(VELOCITY_X)
-                node.Fix(VELOCITY_Y)
-                node.Fix(VELOCITY_Z)
-                node.SetSolutionStepValue(VELOCITY_X,0,0.0)
-                node.SetSolutionStepValue(VELOCITY_Y,0,0.0)
-                node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
+
 
         (self.solver).SolveStep2()
 
@@ -154,35 +146,17 @@ class RungeKuttaFracStepSolver:
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
 
-    def RemeshAux(self):	
+    def Remesh(self):	
 
         alpha_shape=1.4;
         h_factor=0.2
 
-        #if(self.domain_size == 2):
-        #    for node in (self.model_part).Nodes: 
-        #        node.SetSolutionStepValue(NODAL_H,0,0.002) 
+        if(self.domain_size == 2):
+            for node in (self.model_part).Nodes: 
+                node.SetSolutionStepValue(NODAL_H,0,0.002) 
 
 
         self.node_erase_process = NodeEraseProcess(self.model_part);
-        box_corner1 = Vector(3); 
-        box_corner2 = Vector(3); 
-
-
-        if(self.domain_size == 2):
-            box_corner1[0]=-0.0001
-            box_corner1[1]=-0.100001
-            box_corner1[2]=-10.0
-
- 
-            box_corner2[0]=0.10001
-            box_corner2[1]=0.0180001
-            box_corner2[2]=10.0
-
-        self.box_corner1 = box_corner1
-        self.box_corner2 = box_corner2
-
-
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)
 
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
@@ -191,7 +165,6 @@ class RungeKuttaFracStepSolver:
         self.node_erase_process.Execute()
 
         ((self.model_part).Elements).clear();
-
         ((self.model_part).Conditions).clear();
 
         if (self.domain_size == 2):
@@ -204,7 +177,7 @@ class RungeKuttaFracStepSolver:
         (self.elem_neighbor_finder).Execute()
         (self.condition_neigh_finder).Execute();
 
-        (self.ulf_apply_bc_process).Execute(); 
+        (self.mark_free_surface_process).Execute(); 
 
  
 
