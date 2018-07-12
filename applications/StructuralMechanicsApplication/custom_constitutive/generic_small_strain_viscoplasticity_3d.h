@@ -86,10 +86,10 @@ public:
     {
         auto p_law = Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(*this);
 
-		p_law->SetPlasticityConstitutiveLaw(mpPlasticityConstitutiveLaw->Clone());
-		p_law->SetViscousConstitutiveLaw(mpViscousConstitutiveLaw->Clone());
+        p_law->SetPlasticityConstitutiveLaw(mpPlasticityConstitutiveLaw->Clone());
+        p_law->SetViscousConstitutiveLaw(mpViscousConstitutiveLaw->Clone());
 
-		return p_law;
+        return p_law;
     }
 
     // Copy constructor

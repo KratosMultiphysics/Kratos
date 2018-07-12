@@ -25,10 +25,10 @@ namespace Kratos
 {
 ConstitutiveLaw::Pointer GenericSmallStrainViscoplasticity3D::Create(Kratos::Parameters NewParameters) const
 {
-    ConstitutiveLaw::Pointer pPlasticityCL = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
-    ConstitutiveLaw::Pointer pViscousCL    = ViscousGeneralizedMaxwell3D().Create(NewParameters);
+    ConstitutiveLaw::Pointer p_plasticity_cl = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
+    ConstitutiveLaw::Pointer p_viscous_cl    = ViscousGeneralizedMaxwell3D().Create(NewParameters);
 
-    return GenericSmallStrainViscoplasticity3D(pPlasticityCL, pViscousCL).Clone();
+    return GenericSmallStrainViscoplasticity3D(p_plasticity_cl, p_viscous_cl).Clone();
 }
 
 /***********************************************************************************/

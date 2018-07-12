@@ -41,7 +41,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GenericConstitutiveLawIntegrator
+ * @class ViscousGeneralizedMaxwell3D
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
@@ -82,6 +82,10 @@ public:
     */
     ViscousGeneralizedMaxwell3D (const ViscousGeneralizedMaxwell3D& rOther)
         : ConstitutiveLaw(rOther)
+        , mPrevStressVector(rOther.mPrevStressVector)
+        , mPrevStrainVector(rOther.mPrevStrainVector)
+        , mNonConvPrevStressVector(rOther.mNonConvPrevStressVector)
+        , mNonConvPrevStrainVector(rOther.mNonConvPrevStrainVector)
     {
     }
 
