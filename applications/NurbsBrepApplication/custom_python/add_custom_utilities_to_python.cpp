@@ -196,7 +196,13 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "Variable"_a,
                 "U"_a,
                 "V"_a)
-
+            .def("ValueAt", (std::vector<double> (Type::*)(
+                const ComponentVariable&, const double, const double, const int)
+                ) &Type::ValueAt<double, ComponentVariable>,
+                "Variable"_a,
+                "U"_a,
+                "V"_a,
+                "Order"_a)
         ;
     }
 }
