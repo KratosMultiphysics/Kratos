@@ -231,7 +231,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
     ----------
     primal_analysis : Primal analysis object of the response function
     adjoint_analysis : Adjoint analysis object of the response function
-    response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
     def __init__(self, identifier, project_parameters, model_part = None):
         self.identifier = identifier
@@ -264,10 +263,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.primal_model_part = self.primal_analysis.model.GetModelPart(self.primal_model_part_name)
         self.adjoint_model_part = self.adjoint_analysis.model.GetModelPart(self.adjoint_model_part_name)
 
-        # TODO should be created here, not in solver!
-        self.response_function_utility = self.adjoint_analysis._GetSolver().response_function
-
-
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
         print("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
@@ -299,7 +294,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
     def CalculateValue(self):
         startTime = timer.time()
-        value = self.response_function_utility.CalculateValue(self.adjoint_model_part)
+        value = self._GetResponseFunctionUtility().CalculateValue(self.adjoint_model_part)
         print("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
@@ -335,6 +330,9 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.primal_analysis.Finalize()
         self.adjoint_analysis.Finalize()
 
+    def _GetResponseFunctionUtility(self):
+        return self.adjoint_analysis._GetSolver().response_function
+
 # ==============================================================================
 class AdjointStrainEnergyResponse(ResponseFunctionBase):
     """Linear static adjoint response function.
@@ -344,8 +342,9 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
     - uses primal results to calculate gradient
 
     Note: because of the special property of the adjoint strain energy response,
-    no adjoint solution is necessary. except from that it works the same as
-    'AdjointResponseFunction'.
+    NO adjoint solution is necessary. This is why there is no adjoint solver and
+    the response function utility is owned by this class. Except from that it
+    works the same as 'AdjointResponseFunction'.
 
     Attributes
     ----------
@@ -432,4 +431,5 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
             self.primal_model_part).Execute()
 
-
+    def _GetResponseFunctionUtility(self):
+        return self.response_function_utility
