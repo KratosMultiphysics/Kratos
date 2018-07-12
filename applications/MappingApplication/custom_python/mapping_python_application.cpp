@@ -25,27 +25,23 @@
 #include "custom_python/add_custom_mappers_to_python.h"
 
 
-namespace Kratos
-{
+namespace Kratos {
+namespace Python {
 
-namespace Python
-{
-
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosMappingApplication, m)
 {
-    class_<KratosMappingApplication,
-            KratosMappingApplication::Pointer,
-            KratosApplication >(m,"KratosMappingApplication")
-            .def(init<>())
-            ;
+    py::class_<KratosMappingApplication,
+        KratosMappingApplication::Pointer,
+        KratosApplication >(m,"KratosMappingApplication")
+        .def(py::init<>())
+        ;
 
     AddCustomMappersToPython(m);
 }
 
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined
