@@ -60,7 +60,7 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
     response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
 
-    def __init__(self, identifier, response_settings, model_part = None):
+    def __init__(self, identifier, response_settings, model_part):
         self.identifier = identifier
 
         self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(model_part, response_settings)
@@ -232,12 +232,11 @@ class AdjointResponseFunction(ResponseFunctionBase):
     primal_analysis : Primal analysis object of the response function
     adjoint_analysis : Adjoint analysis object of the response function
     """
-    def __init__(self, identifier, project_parameters, model_part = None):
+    def __init__(self, identifier, project_parameters, model_part):
         self.identifier = identifier
 
         model = Model()
-        if model_part is not None:
-            model.AddModelPart(model_part)
+        model.AddModelPart(model_part)
 
         # Create the primal solver
         with open(project_parameters["primal_settings"].GetString(),'r') as parameter_file:
@@ -351,7 +350,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
     primal_analysis : Primal analysis object of the response function
     response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
-    def __init__(self, identifier, project_parameters, model_part = None):
+    def __init__(self, identifier, project_parameters, model_part):
         self.identifier = identifier
         self.response_function_utility = StructuralMechanicsApplication.AdjointStrainEnergyResponseFunction( model_part, project_parameters )
 
