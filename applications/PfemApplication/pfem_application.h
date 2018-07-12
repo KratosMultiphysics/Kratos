@@ -68,7 +68,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosPfemApplication : public KratosApplication
+  class KRATOS_API(PFEM_APPLICATION) KratosPfemApplication : public KratosApplication
   {
   public:
 
@@ -101,7 +101,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -120,20 +120,20 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const  override
       {
 	return "KratosPfemApplication    ";
       }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << Info();
       PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const  override
     {
       KRATOS_WATCH( "in KratosPfemApplication" ) 
       KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )

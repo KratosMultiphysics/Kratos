@@ -14,7 +14,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareModelProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckAndPrepareModelProcess(KM.Process):
     """Prepare the computing model part.
 

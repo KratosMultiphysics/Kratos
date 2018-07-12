@@ -156,7 +156,10 @@ void SetDataBuffer(TVariableType const& rVariable,
 
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
-        rData[i] = rElements[i]->GetValue(rVariable);
+    {
+        const ElementType& r_elem = *rElements[i];
+        rData[i] = r_elem.GetValue(rVariable);
+    }
 
     KRATOS_CATCH("");
 }

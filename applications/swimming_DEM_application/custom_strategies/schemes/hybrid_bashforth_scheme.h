@@ -29,7 +29,11 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(HybridBashforthScheme);
 
         /// Default constructor.
-        HybridBashforthScheme() {}
+        HybridBashforthScheme() {
+            mOldVelocity[0] = 0.0;
+            mOldVelocity[1] = 0.0;
+            mOldVelocity[2] = 0.0;
+        }
 
         /// Destructor.
         virtual ~HybridBashforthScheme() {}
@@ -94,6 +98,8 @@ namespace Kratos {
         HybridBashforthScheme(HybridBashforthScheme const& rOther) {
             *this = rOther;
         }
+
+        array_1d<double, 3 > mOldVelocity;
 
         ///@}
 
