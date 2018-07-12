@@ -53,7 +53,7 @@ CXX_COMPILER=g++-6
 #    - Example:
 #        BUILD_TYPE="RelWithDebInfo"
 # --------------------------------------------------------------------------------------------------------------
-BUILD_TYPE="Custom"
+BUILD_TYPE="FullDebug"
 
 # Flags for performance
 #    Indicate the compiler performance related flags. Please notice that OX flags are added by cmake
