@@ -265,14 +265,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
         print("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
-        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
-            adjoint_node.X0 = primal_node.X0
-            adjoint_node.Y0 = primal_node.Y0
-            adjoint_node.Z0 = primal_node.Z0
-            adjoint_node.X = primal_node.X
-            adjoint_node.Y = primal_node.Y
-            adjoint_node.Z = primal_node.Z
 
+        self._SynchronizeAdjointFromPrimal()
 
         # Run the primal analysis.
         # TODO if primal_analysis.status==solved: return
@@ -290,6 +284,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
         # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
         self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
         self.adjoint_analysis.InitializeSolutionStep()
+
 
     def CalculateValue(self):
         startTime = timer.time()
@@ -329,8 +324,22 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.primal_analysis.Finalize()
         self.adjoint_analysis.Finalize()
 
+
     def _GetResponseFunctionUtility(self):
         return self.adjoint_analysis._GetSolver().response_function
+
+
+    def _SynchronizeAdjointFromPrimal(self):
+        if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
+            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+
+        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+            adjoint_node.X0 = primal_node.X0
+            adjoint_node.Y0 = primal_node.Y0
+            adjoint_node.Z0 = primal_node.Z0
+            adjoint_node.X = primal_node.X
+            adjoint_node.Y = primal_node.Y
+            adjoint_node.Z = primal_node.Z
 
 # ==============================================================================
 class AdjointLinearStrainEnergyResponse(ResponseFunctionBase):
