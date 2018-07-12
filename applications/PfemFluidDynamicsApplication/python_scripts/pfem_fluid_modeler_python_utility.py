@@ -90,7 +90,7 @@ class ModelerUtility:
         number_of_avg_elems = 10
          
         # define search utility
-        elemental_neighbour_search = KratosPfemFluid.FluidElementalNeighboursSearch(self.model_part, self.dimension, self.echo_level, number_of_avg_elems)
+        elemental_neighbour_search = KratosDelaunay.ElementalNeighboursSearch(self.model_part, self.dimension, self.echo_level, number_of_avg_elems)
 
         # execute search:
         elemental_neighbour_search.Execute()

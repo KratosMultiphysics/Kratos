@@ -24,7 +24,6 @@
 #include "custom_processes/remove_mesh_nodes_for_fluids_process.hpp"
 
 //PostMeshing processes
-#include "custom_processes/elemental_neighbours_search_fluid_process.hpp"
 #include "custom_processes/recover_volume_losses_process.hpp"
 #include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
 #include "custom_processes/generate_new_nodes_before_meshing_process.hpp"
@@ -109,13 +108,7 @@ namespace Kratos
         .def("Execute", &TransferModelPartElementsProcess::Execute)
       	;
 
-      //***************NEIGHBOURS**************//
-      
-      class_<ElementalNeighboursSearchFluidProcess, ElementalNeighboursSearchFluidProcess::Pointer, MesherProcess>
-          (m,"FluidElementalNeighboursSearch")
-          .def(init<ModelPart&, int, int, int>())
-          .def("CleanNeighbours", &ElementalNeighboursSearchFluidProcess::ClearNeighbours)
-          ;
+
     }
 
 
