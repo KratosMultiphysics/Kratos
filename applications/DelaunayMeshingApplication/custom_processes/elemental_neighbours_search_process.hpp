@@ -500,7 +500,7 @@ namespace Kratos
 		// neighbour element over edge 0-1 of element ic;
 		neighb_elems(2) = CheckForNeighbourElems2D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
-		unsigned int counter=0;
+		unsigned int iface=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
 		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
@@ -513,12 +513,12 @@ namespace Kratos
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
 			  {
-                            rGeometry[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
+                            rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
 			  }
 			
 		      }
                    
-		    counter++;
+		    iface++;
 		  }
 
 	      }
@@ -537,7 +537,7 @@ namespace Kratos
 		// neighbour element over edge 1 of element ic;
 		neighb_elems(1) = CheckForNeighbourElems1D(rGeometry[1].Id(), rGeometry[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
-		unsigned int counter=0;
+		unsigned int iface=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
 		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
@@ -550,12 +550,12 @@ namespace Kratos
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
 			  {
-                            rGeometry[lpofa(i,counter)].Set(BOUNDARY);  //set boundary particles
+                            rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
 			  }
 			
 		      }
 		    
-		    counter++;
+		    iface++;
 		  }
 	      }
             }
@@ -590,7 +590,7 @@ namespace Kratos
 		neighb_elems(3) = CheckForNeighbourElems3D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
 		
-		unsigned int counter=0;
+		unsigned int iface=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
 		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
@@ -603,12 +603,12 @@ namespace Kratos
 			
                       for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
                       {
-                        rGeometry[lpofa(i,counter)].Set(BOUNDARY);  //set boundary particles
+                        rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
                         //std::cout<<" SetBoundary ("<<rGeometry[lpofa(i,0)].Id()<<")"<<std::endl;
                       }
 
                     }
-		    counter++;
+		    iface++;
 		  }
 
 	      }
@@ -629,7 +629,7 @@ namespace Kratos
 		// neighbour element over edge 0-1 of element ic;
 		neighb_elems(2) = CheckForNeighbourElems2D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
-		unsigned int counter=0;
+		unsigned int iface=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
 		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
@@ -644,13 +644,12 @@ namespace Kratos
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
 			  {
-			    if(i!=counter)
-			      rGeometry[lpofa(i,counter)].Set(BOUNDARY);  //set boundary particles
+                            rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
 			  }
 			
 		      }
 		    
-		    counter++;
+		    iface++;
 		  }
 
 
