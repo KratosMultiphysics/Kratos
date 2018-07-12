@@ -65,7 +65,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/pressure_calculate_process.h"
 #include "custom_processes/pressure_calculate_process_axisym.h"
 #include "custom_processes/mass_calculate_process.h"
-#include "custom_processes/ulf_apply_bc_process.h"
 #include "custom_processes/ulf_time_step_dec_process.h"
 #include "custom_processes/mark_fluid_process.h"
 #include "custom_processes/mark_close_nodes_process.h"
@@ -83,6 +82,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_processes/calculate_nodal_length.h"
 #include "custom_processes/find_nodal_neighbours_surface_process.h"
+#include "custom_processes/mark_free_surface_process.h"
 
 #include "includes/node.h"
 
@@ -149,8 +149,7 @@ void  AddProcessesToPython(pybind11::module& m)
     class_<MassCalculateProcess, MassCalculateProcess::Pointer, Process > (m,"MassCalculateProcess")
     .def(init<ModelPart&>())
     ;
-
-    class_<UlfApplyBCProcess, UlfApplyBCProcess::Pointer, Process > (m,"UlfApplyBCProcess")
+    class_<MarkFreeSurfaceProcess, MarkFreeSurfaceProcess::Pointer, Process > (m,"MarkFreeSurfaceProcess")
     .def(init<ModelPart&>())
     ;
     class_<UlfTimeStepDecProcess,UlfTimeStepDecProcess::Pointer, Process > (m,"UlfTimeStepDecProcess")

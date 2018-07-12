@@ -162,7 +162,7 @@ class STMonolithicSolver:
             self.node_erase_process = NodeEraseProcess(model_part);
             self.add_nodes=True
             self.alpha_shape = 3.5;
-            self.ulf_apply_bc_process = UlfApplyBCProcess(model_part);
+            self.mark_free_surface_process = MarkFreeSurfaceProcess(model_part);
             #self.mark_fluid_process = MarkFluidProcess(model_part);
 
 	  #saving the limits of the box (all the nodes external to this will be erased)
@@ -240,7 +240,7 @@ class STMonolithicSolver:
         if(self.eul_model_part == 0):
 	    #marking the fluid
             (self.fluid_neigh_finder).Execute();
-            (self.ulf_apply_bc_process).Execute();
+            (self.mark_free_surface_process).Execute();
             if (self.domain_size == 2):
                 FindTriplePoint().FindTriplePoint2D(self.model_part)
             self.Remesh()
@@ -308,7 +308,7 @@ class STMonolithicSolver:
         (self.condition_neigh_finder).Execute();
 
         #print "marking fluid" and applying fluid boundary conditions
-        (self.ulf_apply_bc_process).Execute();
+        (self.mark_free_surface_process).Execute();
         #(self.mark_fluid_process).Execute();
         (self.UlfUtils).CalculateNodalArea(self.model_part,self.domain_size);
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)

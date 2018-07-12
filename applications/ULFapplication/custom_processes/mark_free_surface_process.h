@@ -48,8 +48,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //  this process save structural elements in a separate list
 
-#if !defined(KRATOS_ULF_APPLY_BC_PROCESS_INCLUDED )
-#define  KRATOS_ULF_APPLY_BC_PROCESS_INCLUDED
+#if !defined(KRATOS_MARK_FS_PROCESS_INCLUDED )
+#define  KRATOS_MARK_FS_PROCESS_INCLUDED
 
 
 
@@ -101,7 +101,7 @@ namespace Kratos
 
 */
 
-class UlfApplyBCProcess
+class MarkFreeSurfaceProcess
     : public Process
 {
 public:
@@ -109,20 +109,20 @@ public:
     ///@{
 
     /// Pointer definition of PushStructureProcess
-    KRATOS_CLASS_POINTER_DEFINITION(UlfApplyBCProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(MarkFreeSurfaceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    UlfApplyBCProcess(ModelPart& model_part)
+    MarkFreeSurfaceProcess(ModelPart& model_part)
         : mr_model_part(model_part)
     {
     }
 
     /// Destructor.
-    ~UlfApplyBCProcess() override
+    ~MarkFreeSurfaceProcess() override
     {
     }
 
@@ -195,13 +195,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "UlfApplyBCProcess";
+        return "MarkFreeSurfaceProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "UlfApplyBCProcess";
+        rOStream << "MarkFreeSurfaceProcess";
     }
 
     /// Print object's data.
@@ -289,15 +289,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//		UlfApplyBCProcess& operator=(UlfApplyBCProcess const& rOther);
+//		MarkFreeSurfaceProcess& operator=(MarkFreeSurfaceProcess const& rOther);
 
     /// Copy constructor.
-//		UlfApplyBCProcess(UlfApplyBCProcess const& rOther);
+//		MarkFreeSurfaceProcess(MarkFreeSurfaceProcess const& rOther);
 
 
     ///@}
 
-}; // Class UlfApplyBCProcess
+}; // Class MarkFreeSurfaceProcess
 
 ///@}
 
@@ -312,11 +312,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  UlfApplyBCProcess& rThis);
+                                  MarkFreeSurfaceProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const UlfApplyBCProcess& rThis)
+                                  const MarkFreeSurfaceProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -329,6 +329,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ULF_APPLY_BC_PROCESS_INCLUDED  defined 
+#endif // KRATOS_ULF_MARK_FS_PROCESS_INCLUDED  defined 
 
 
