@@ -161,8 +161,6 @@ namespace Kratos
 
     PreviousStressMatrix = prod( W, PreviousStressMatrix );
     PreviousStressMatrix = prod( PreviousStressMatrix, trans(W) );
-
-    //std::cout<<" Add Stress "<<PreviousStressMatrix<<" HistoryVector "<<this->mHistoryVector<<std::endl;
     
     rStressMatrix += PreviousStressMatrix;
 

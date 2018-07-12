@@ -28,8 +28,8 @@
 
 ///VARIABLES used:
 //Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
-//StepData: MEAN_ERROR, CONTACT_FORCE
-//Flags:    (checked) TO_ERASE, BOUNDARY, STRUCTURE, TO_SPLIT, CONTACT, NEW_ENTITY, BLOCKED
+//StepData: MEAN_ERROR
+//Flags:    (checked) TO_ERASE, BOUNDARY, STRUCTURE, TO_SPLIT, NEW_ENTITY, BLOCKED
 //          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)->locally, VISITED(nodes)(set)
 //          (modified)  
 //          (reset)   BLOCKED->locally
@@ -384,8 +384,6 @@ private:
     //   size_for_distance_boundary     = 0.5 * initialMeanRadius; //compared to element radius
     //   size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
     // }
- 
-    bool derefine_wall_tip_contact = false;
 
     bool any_node_removed = false;
 
@@ -422,17 +420,6 @@ private:
 	if(in->Is(TO_ERASE)){
 	  any_node_removed = true;
 	}
-	bool on_contact_tip = false;
-	bool contact_active = false;
-	   
-	if( in->SolutionStepsDataHas(CONTACT_FORCE) ){
-	  array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
-	  if(norm_2(ContactForceNormal)>0)
-	    contact_active = true;
-	}
-
-	if(contact_active || in->Is(TO_SPLIT) || in->Is(CONTACT) )
-	  on_contact_tip = true;				  
 
 	if( in->IsNot(NEW_ENTITY) &&  in->IsNot(INLET) )
 	// if( in->IsNot(NEW_ENTITY) )
@@ -483,36 +470,35 @@ private:
 		if (  in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) )
 		  {
 		    if( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) ){
-		      
-		      // if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && (freeSurfaceNeighNodes==dimension || rigidNeighNodes==dimension)){
+
+                      // if the node is close to the surface, do not erase it, move to a mean (laplacian) position
 		       if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && freeSurfaceNeighNodes==dimension){
+                         
 		      	WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 		      	array_1d<double,3> sumOfCoordinates=in->Coordinates();
+                        array_1d<double,3> sumOfCurrentDisplacements=in->FastGetSolutionStepValue(DISPLACEMENT,0);
 		      	array_1d<double,3> sumOfCurrentVelocities=in->FastGetSolutionStepValue(VELOCITY,0);
 		      	array_1d<double,3> sumOfPreviousVelocities=in->FastGetSolutionStepValue(VELOCITY,1);
 		      	double sumOfPressures=in->FastGetSolutionStepValue(PRESSURE,0);
 		      	double counter=1.0;
-		      	// std::cout<<"I WAS GOING TO ERASE THIS NODE: "<<std::endl;
-		      	// std::cout<<"sumOfCoordinates: "<< sumOfCoordinates<<std::endl;
-		      	// std::cout<<"sumOfCurrentVelocities: "<< sumOfCurrentVelocities<<std::endl;
-		      	// std::cout<<"sumOfPressures: "<< sumOfPressures<<std::endl;
-		      	// std::cout<<"freeSurfaceNeighNodes "<<freeSurfaceNeighNodes<<"   rigidNeighNodes "<<rigidNeighNodes<<std::endl;
+
 		      	for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
 		      	  {
 		      	    counter+=1.0;
 		      	    noalias(sumOfCoordinates)+=nn->Coordinates();
+                            noalias(sumOfCurrentDisplacements)+=nn->FastGetSolutionStepValue(DISPLACEMENT,0);
 		      	    noalias(sumOfCurrentVelocities)+=nn->FastGetSolutionStepValue(VELOCITY,0);
 		      	    noalias(sumOfPreviousVelocities)+=nn->FastGetSolutionStepValue(VELOCITY,1);
 		      	    sumOfPressures+=nn->FastGetSolutionStepValue(PRESSURE,0);
 		      	  }
-		      	in->X() =sumOfCoordinates[0]/counter;
-		      	in->Y() =sumOfCoordinates[1]/counter;
-		      	in->X0() =sumOfCoordinates[0]/counter;
-		      	in->Y0() =sumOfCoordinates[1]/counter;
-		      	in->FastGetSolutionStepValue(DISPLACEMENT_X,0)=0;
-		      	in->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0;
-		      	in->FastGetSolutionStepValue(DISPLACEMENT_X,1)=0;
-		      	in->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0;
+		      	in->X()  = sumOfCoordinates[0]/counter;
+		      	in->Y()  = sumOfCoordinates[1]/counter;
+		      	in->X0() = in->X()-sumOfCurrentDisplacements[0]/counter;
+		      	in->Y0() = in->Y()-sumOfCurrentDisplacements[1]/counter;
+		      	in->FastGetSolutionStepValue(DISPLACEMENT_X,0)=sumOfCurrentDisplacements[0]/counter;
+		      	in->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=sumOfCurrentDisplacements[1]/counter;
+		      	in->FastGetSolutionStepValue(DISPLACEMENT_X,1)=sumOfCurrentDisplacements[0]/counter;
+		      	in->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=sumOfCurrentDisplacements[1]/counter;
 		      	in->FastGetSolutionStepValue(VELOCITY_X,0)=sumOfCurrentVelocities[0]/counter;
 		      	in->FastGetSolutionStepValue(VELOCITY_Y,0)=sumOfCurrentVelocities[1]/counter;
 		      	in->FastGetSolutionStepValue(VELOCITY_X,1)=sumOfPreviousVelocities[0]/counter;
@@ -520,30 +506,23 @@ private:
 		      	in->FastGetSolutionStepValue(PRESSURE,0)=sumOfPressures/counter;
 		      	if(dimension==3){
 		      	  in->Z() =sumOfCoordinates[2]/counter;
-		      	  in->Z0() =sumOfCoordinates[2]/counter;
-		      	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0;
-		      	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0;
+		      	  in->Z0() =in->Z()-sumOfCurrentDisplacements[2]/counter;
+		      	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=sumOfCurrentDisplacements[2]/counter;
+		      	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=sumOfCurrentDisplacements[2]/counter;
 		      	  in->FastGetSolutionStepValue(VELOCITY_Z,0)=sumOfCurrentVelocities[2]/counter;
 		      	  in->FastGetSolutionStepValue(VELOCITY_Z,1)=sumOfPreviousVelocities[2]/counter;
 		      	}
-		      	// std::cout<<"NOW ITS VARIABLES ARE: "<<std::endl;
-		      	// std::cout<<"Coordinates: "<< in->X()<<" " << in->Y()<<" " << in->Z()<<std::endl;
-		      	// std::cout<<"CurrentVelocities: "<<in->FastGetSolutionStepValue(VELOCITY_X,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Y,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Z,0)  <<std::endl;
-		      	// std::cout<<"Pressures: "<<in->FastGetSolutionStepValue(PRESSURE,0) <<std::endl;
+
 		      } else{
 			//look if we are already erasing any of the other nodes
-			unsigned int contact_nodes = 0;
 			unsigned int erased_nodes = 0;
 			for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
 			  {
-			    if( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) )
-			      contact_nodes += 1;
-
 			    if( (*nn)->Is(TO_ERASE) )
 			      erased_nodes += 1;
 			  }
 
-			if( erased_nodes < 1 && contact_nodes < 1){ //we release the node if no other nodes neighbours are being erased
+			if( erased_nodes < 1 ){ //we release the node if no other nodes neighbours are being erased
 			  in->Set(TO_ERASE);
 			  any_node_removed = true;
 			  inside_nodes_removed++;
@@ -554,46 +533,33 @@ private:
 
 		  }
 
-		else 	if (  in->IsNot(INLET)   )  {
-		// else 	 {
-
+		else if ( in->IsNot(INLET) )  {
+                  
 		  // std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
 		  //here we loop over the neighbouring nodes and if there are nodes
 		  //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
 		  unsigned int k = 0;
 		  unsigned int counter = 0;
 		  for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
-		    {
-		      bool nn_on_contact_tip = false;
-		      bool contact_active = false;
-	   
-		      if( (*nn)->SolutionStepsDataHas(CONTACT_FORCE) ){
-			array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
-			if(norm_2(ContactForceNormal)>0)
-			  contact_active = true;
-		      }
-			   
-		      if(contact_active || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
-			nn_on_contact_tip = true;				  
+                  {	   			  
 
-       		      if ( (*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
-			{
-			  //KRATOS_WATCH( neighbours_distances[k] )
-			  if((*nn)->IsNot(TO_ERASE)){
-			    counter += 1;
-			  }
-			}
+                    if ( (*nn)->Is(BOUNDARY) &&  neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
+                    {
+                      if((*nn)->IsNot(TO_ERASE)){
+                        counter += 1;
+                      }
+                    }
 
-		      if ( (*nn)->Is(BOUNDARY) && nn_on_contact_tip && neighbour_distances[k] < size_for_wall_tip_contact_side ) {
-			if ( (*nn)->IsNot(TO_ERASE)) { 
-			  counter += 1;
-			}
-		      }
+                    if ( (*nn)->Is(BOUNDARY) && neighbour_distances[k] < size_for_wall_tip_contact_side ) {
+                      if ( (*nn)->IsNot(TO_ERASE)) { 
+                        counter += 1;
+                      }
+                    }
 
-		      k++;
-		    }
+                    k++;
+                  }
 
-		  if(counter > 1 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
+		  if(counter > 1 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY)){ //Can be inserted in the boundary refine
 		    in->Set(TO_ERASE);
 		    if( mEchoLevel > 1 )
 		      std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
@@ -601,7 +567,7 @@ private:
 		    boundary_nodes_removed++;
 		    //distance_remove ++;
 		  }
-		  else if ( counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact) {
+		  else if ( counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) ) {
 		    in->Set(TO_ERASE);
 		    if( mEchoLevel > 1 )
 		      std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
@@ -613,89 +579,33 @@ private:
 
 
 	      }
-	      // else {
-	      // if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && freeSurfaceNeighNodes>0 && freeSurfaceNeighNodes<=dimension){
-	      // 	WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
-	      // 	array_1d<double,3> sumOfCoordinates=in->Coordinates();
-	      // 	array_1d<double,3> sumOfCurrentVelocities=in->FastGetSolutionStepValue(VELOCITY,0);
-	      // 	array_1d<double,3> sumOfPreviousVelocities=in->FastGetSolutionStepValue(VELOCITY,1);
-	      // 	double sumOfPressures=in->FastGetSolutionStepValue(PRESSURE,0);
-	      // 	double counter=1.0;
-	      // 	// std::cout<<"I WAS GOING TO ERASE THIS NODE: "<<std::endl;
-	      // 	// std::cout<<"sumOfCoordinates: "<< sumOfCoordinates<<std::endl;
-	      // 	// std::cout<<"sumOfCurrentVelocities: "<< sumOfCurrentVelocities<<std::endl;
-	      // 	// std::cout<<"sumOfPressures: "<< sumOfPressures<<std::endl;
-	      // 	// std::cout<<"freeSurfaceNeighNodes "<<freeSurfaceNeighNodes<<"   rigidNeighNodes "<<rigidNeighNodes<<std::endl;
-	      // 	for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
-	      // 	  {
-	      // 	    counter+=1.0;
-	      // 	    noalias(sumOfCoordinates)+=nn->Coordinates();
-	      // 	    noalias(sumOfCurrentVelocities)+=nn->FastGetSolutionStepValue(VELOCITY,0);
-	      // 	    noalias(sumOfPreviousVelocities)+=nn->FastGetSolutionStepValue(VELOCITY,1);
-	      // 	    sumOfPressures+=nn->FastGetSolutionStepValue(PRESSURE,0);
-	      // 	  }
-	      // 	in->X() =sumOfCoordinates[0]/counter;
-	      // 	in->Y() =sumOfCoordinates[1]/counter;
-	      // 	in->X0() =sumOfCoordinates[0]/counter;
-	      // 	in->Y0() =sumOfCoordinates[1]/counter;
-	      // 	in->FastGetSolutionStepValue(DISPLACEMENT_X,0)=0;
-	      // 	in->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0;
-	      // 	in->FastGetSolutionStepValue(DISPLACEMENT_X,1)=0;
-	      // 	in->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0;
-	      // 	in->FastGetSolutionStepValue(VELOCITY_X,0)=sumOfCurrentVelocities[0]/counter;
-	      // 	in->FastGetSolutionStepValue(VELOCITY_Y,0)=sumOfCurrentVelocities[1]/counter;
-	      // 	in->FastGetSolutionStepValue(VELOCITY_X,1)=sumOfPreviousVelocities[0]/counter;
-	      // 	in->FastGetSolutionStepValue(VELOCITY_Y,1)=sumOfPreviousVelocities[1]/counter;
-	      // 	in->FastGetSolutionStepValue(PRESSURE,0)=sumOfPressures/counter;
-	      // 	if(dimension==3){
-	      // 	  in->Z() =sumOfCoordinates[2]/counter;
-	      // 	  in->Z0() =sumOfCoordinates[2]/counter;
-	      // 	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0;
-	      // 	  in->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0;
-	      // 	  in->FastGetSolutionStepValue(VELOCITY_Z,0)=sumOfCurrentVelocities[2]/counter;
-	      // 	  in->FastGetSolutionStepValue(VELOCITY_Z,1)=sumOfPreviousVelocities[2]/counter;
-	      // 	}
-	      // 	// std::cout<<"NOW ITS VARIABLES ARE: "<<std::endl;
-	      // 	// std::cout<<"Coordinates: "<< in->X()<<" " << in->Y()<<" " << in->Z()<<std::endl;
-	      // 	// std::cout<<"CurrentVelocities: "<<in->FastGetSolutionStepValue(VELOCITY_X,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Y,0)<<" "<<in->FastGetSolutionStepValue(VELOCITY_Z,0)  <<std::endl;
-	      // 	// std::cout<<"Pressures: "<<in->FastGetSolutionStepValue(PRESSURE,0) <<std::endl;
-	      // }
-	      // }
-
 	  }	
       }
 
     unsigned int erased_nodes=0;
     for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin();
 	ie != mrModelPart.ElementsEnd(); ie++)
-      {
-	unsigned int rigidNodes=0;
-	//coordinates
-	for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
-	  {	
-	    if((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID)){
-	    // if(ie->GetGeometry()[i].Is(RIGID)  || ie->GetGeometry()[i].Is(SOLID)){
-	      rigidNodes++;
-	    }
-	  }
-	
-	// if(rigidNodes>1){    
-	//   if(dimension==2){
-	//     EraseCriticalNodes2D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-	//   }else if(dimension==3){
-	//     EraseCriticalNodes3D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-	//   }
-	// }
-	if(dimension==2){
-	  if(rigidNodes==2)
-	    EraseCriticalNodes2D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-	}else if(dimension==3){
-	  if(rigidNodes>1)
-	    EraseCriticalNodes3D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-	}
-
-
+    {
+      unsigned int rigidNodes=0;
+      //coordinates
+      for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
+      {	
+        if((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID)){
+          rigidNodes++;
+        }
       }
+	
+
+      if(dimension==2){
+        if(rigidNodes==2)
+          EraseCriticalNodes2D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
+      }else if(dimension==3){
+        if(rigidNodes>1)
+          EraseCriticalNodes3D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
+      }
+
+
+    }
  
 
     if(erased_nodes>0){

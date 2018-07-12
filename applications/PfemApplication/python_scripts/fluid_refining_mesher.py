@@ -11,9 +11,9 @@ KratosMultiphysics.CheckForPreviousImport()
 import mesher
 
 def CreateMesher(main_model_part, meshing_parameters):
-    return FluidPreRefiningMesher(main_model_part, meshing_parameters)
+    return FluidRefiningMesher(main_model_part, meshing_parameters)
 
-class FluidPreRefiningMesher(mesher.Mesher):
+class FluidRefiningMesher(mesher.Mesher):
 
     #
     def __init__(self, main_model_part, meshing_parameters):
@@ -76,7 +76,7 @@ class FluidPreRefiningMesher(mesher.Mesher):
     def SetPreMeshingProcesses(self):
 
         if(self.echo_level>0):
-            print("::[fluid_pre_refining_mesher]:: -START SetPreMeshingProcesses-")
+            print(self._class_prefix()+" Set pre meshing processes")
 
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
@@ -105,7 +105,7 @@ class FluidPreRefiningMesher(mesher.Mesher):
 
         # The order set is the order of execution:
         if(self.echo_level>0):
-            print("::[fluid_pre_refining_mesher]:: -START SetPostMeshingProcesses-")
+            print(self._class_prefix()+" Set post meshing processes")
 
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
@@ -116,14 +116,6 @@ class FluidPreRefiningMesher(mesher.Mesher):
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         #rebuild elements
-        #rebuild_mesh_elements = KratosDelaunay.GenerateNewElements(self.main_model_part, self.MeshingParameters, self.echo_level)
-        #self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
-
-        if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES) ):
-            select_refine_elements = KratosDelaunay.RefineElementsOnSize(self.model_part, self.MeshingParameters, self.echo_level)
-            self.mesher.SetPostMeshingProcess(select_refine_elements)
-
-        #rebuild elements
         rebuild_mesh_elements = KratosDelaunay.GenerateNewElements(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
@@ -131,38 +123,6 @@ class FluidPreRefiningMesher(mesher.Mesher):
         rebuild_mesh_boundary = KratosDelaunay.GenerateNewConditions(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
-
-    #
-    def FinalizeMeshing(self):
-
-        if(self.echo_level>0):
-            print("::[fluid_pre_refining_mesher]:: -START FinalizeMeshing-")
-
-        # reset execution flags: to unset the options to be executed in methods and processes
-        refining_parameters = self.MeshingParameters.GetRefiningParameters()
-        refining_options = refining_parameters.GetRefiningOptions()
-
-        execution_options = KratosMultiphysics.Flags()
-
-        # set for the post_refining process
-        if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_INSERT_NODES) ):
-            execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, False)
-            execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, True)
-            meshing_options = self.MeshingParameters.GetOptions()
-
-            if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
-                execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
-
-
-        if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES) ):
-            execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, False)
-
-        execution_options.Set(KratosDelaunay.MesherUtilities.FINALIZE_MESHER_INPUT,  True)
-
-        execution_options.Set(KratosDelaunay.MesherUtilities.SELECT_TESSELLATION_ELEMENTS, True)
-        execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, True)
-
-        self.MeshingParameters.SetExecutionOptions(execution_options)
 
     #
     def _class_prefix(self):

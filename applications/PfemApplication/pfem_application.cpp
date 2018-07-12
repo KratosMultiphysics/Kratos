@@ -46,6 +46,9 @@ namespace Kratos
     std::cout << "Initializing KratosPfemApplication    ...      " << std::endl;
 
     //Register Variables (variables created in pfem_application_variables.cpp)
+    KRATOS_REGISTER_VARIABLE( FLUID_PRESSURE )
+    KRATOS_REGISTER_VARIABLE( FLUID_PRESSURE_VELOCITY )
+    KRATOS_REGISTER_VARIABLE( FLUID_PRESSURE_ACCELERATION )
     KRATOS_REGISTER_VARIABLE( PROPERTIES_VECTOR )
     KRATOS_REGISTER_VARIABLE( MATERIAL_PERCENTAGE )
 

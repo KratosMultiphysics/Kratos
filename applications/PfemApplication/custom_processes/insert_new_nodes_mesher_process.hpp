@@ -227,6 +227,7 @@ class InsertNewNodesMesherProcess
   ///@}
   ///@name Static Member Variables
   ///@{
+  
   ModelPart& mrModelPart;
  
   MesherUtilities::MeshingParameters& mrRemesh;
@@ -441,7 +442,7 @@ class InsertNewNodesMesherProcess
 
 
 
-        const unsigned int nds = Element.size();
+    const unsigned int nds = Element.size();
 
     unsigned int rigidNodes=0;
     unsigned int freesurfaceNodes=0;
@@ -630,7 +631,7 @@ class InsertNewNodesMesherProcess
 
     KRATOS_CATCH( "" )
 
-        }
+  }
 
 
   void CreateAndAddNewNodes(std::vector<array_1d<double,3> >& NewPositions,
@@ -640,7 +641,7 @@ class InsertNewNodesMesherProcess
   { 
     KRATOS_TRY
 
-        const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     std::vector<Node<3>::Pointer > list_of_new_nodes;
     double NodeIdParent = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
@@ -667,40 +668,48 @@ class InsertNewNodesMesherProcess
       if(dimension==3)
         z=NewPositions[nn][2];
 
-	
+      //create a new node
       Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id,x,y,z);
+      
       pnode->Set(NEW_ENTITY); //not boundary
       list_of_new_nodes.push_back( pnode );
+
       if(mrRemesh.InputInitializedFlag){
         mrRemesh.NodalPreIds.push_back( pnode->Id() );
         pnode->SetId(id);
       }
 
-      // //giving model part variables list to the node
+      //giving model part variables list to the node
       pnode->SetSolutionStepVariablesList(&VariablesList);
 	      
-      // //set buffer size
+      //set buffer size
       pnode->SetBufferSize(mrModelPart.GetBufferSize());
 
-      // Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
-      Node<3>::DofsContainerType& reference_dofs = NewDofs[nn];
-
-      for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+      Node<3>::DofsContainerType& Reference_dofs = NewDofs[nn];
+      
+       //generating the dofs
+      for(Node<3>::DofsContainerType::iterator iii = Reference_dofs.begin(); iii != Reference_dofs.end(); iii++)
       {
         Node<3>::DofType& rDof = *iii;
         Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
-        // (p_new_dof)->FreeDof();
+        
+        //(p_new_dof)->FreeDof();
       }
 
-      Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][0]);
-      Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][1]);	
-      InterpolateFromTwoNodes(pnode,SlaveNode1,SlaveNode2,VariablesList);
-      if(SlaveNode1->Is(RIGID) || SlaveNode1->Is(SOLID)){
-        TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode2);
-      }
-      if(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)){
-        TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
-      }      
+      PointsArrayType  PointsArray;
+      PointsArray.push_back( mrModelPart.pGetNode(NodesIDToInterpolate[nn][0]) ); 
+      PointsArray.push_back( mrModelPart.pGetNode(NodesIDToInterpolate[nn][1]) ); 
+
+      Geometry<Node<3> > LineGeometry( PointsArray );
+
+      std::vector<double> ShapeFunctionsN(2);
+      std::fill( ShapeFunctionsN.begin(), ShapeFunctionsN.end(), 0.0 );
+      ShapeFunctionsN[0] = 0.5;
+      ShapeFunctionsN[1] = 0.5;
+      
+      MeshDataTransferUtilities DataTransferUtilities;
+      DataTransferUtilities.Interpolate2Nodes( LineGeometry, ShapeFunctionsN, VariablesList, *pnode);
+      
     }
 
 
@@ -715,18 +724,7 @@ class InsertNewNodesMesherProcess
 
       (*it)->Set(FLUID);
       (*it)->Set(ACTIVE);
-      // std::cout<<"velocity_x "<<(*it)->FastGetSolutionStepValue(VELOCITY_X,0)<<std::endl;
-      // std::cout<<"velocity_x "<<(*it)->FastGetSolutionStepValue(VELOCITY_X,1)<<std::endl;
-      // std::cout<<"velocity_x "<<(*it)->FastGetSolutionStepValue(VELOCITY_X,2)<<std::endl;
-      // std::cout<<"pressure "<<(*it)->FastGetSolutionStepValue(PRESSURE,0)<<std::endl;
-      // std::cout<<"pressure "<<(*it)->FastGetSolutionStepValue(PRESSURE,1)<<std::endl;
-      // std::cout<<"pressure "<<(*it)->FastGetSolutionStepValue(PRESSURE,2)<<std::endl;
-      // std::cout<<"acc "<<(*it)->FastGetSolutionStepValue(ACCELERATION_X,0)<<std::endl;
-      // std::cout<<"acc "<<(*it)->FastGetSolutionStepValue(ACCELERATION_X,1)<<std::endl;
-      // std::cout<<"acc "<<(*it)->FastGetSolutionStepValue(ACCELERATION_X,2)<<std::endl;
-      // std::cout<<"bulkModulus "<<(*it)->FastGetSolutionStepValue(BULK_MODULUS)<<std::endl;
-      // std::cout<<"density "<<(*it)->FastGetSolutionStepValue(DENSITY)<<std::endl;
-      // std::cout<<"viscosity "<<(*it)->FastGetSolutionStepValue(VISCOSITY)<<std::endl;
+
       //correct contact_normal interpolation
       if( (*it)->SolutionStepsDataHas(CONTACT_FORCE) )
         noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
@@ -734,146 +732,9 @@ class InsertNewNodesMesherProcess
     }
 
 
-
     KRATOS_CATCH( "" )
 
-        }
-
-
-
-
-
-
-  void InterpolateFromTwoNodes( Node<3>::Pointer MasterNode,Node<3>::Pointer SlaveNode1,Node<3>::Pointer SlaveNode2,VariablesList& rVariablesList)
-  { 
-	  
-    KRATOS_TRY
-
-        unsigned int buffer_size = MasterNode->GetBufferSize();
-
-     
-    for(VariablesList::const_iterator i_variable =  rVariablesList.begin();  i_variable != rVariablesList.end() ; i_variable++)
-    {
-      std::string variable_name = i_variable->Name();
-      if(KratosComponents<Variable<double> >::Has(variable_name))
-      {
-        Variable<double> variable = KratosComponents<Variable<double> >::Get(variable_name);
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
-          //getting the data of the solution step
-          double& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-		  
-          double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-          double node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-		  
-          node_data = (0.5*node0_data + 0.5*node1_data);
-		  
-        }
-      }
-      else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
-      {
-        Variable<array_1d<double, 3> > variable = KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name);
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
-          //getting the data of the solution step
-          array_1d<double, 3>& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-		  
-          const array_1d<double, 3>& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-          const array_1d<double, 3>& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-		  
-          noalias(node_data) = (0.5*node0_data + 0.5*node1_data);		  
-          // node_data = (0.5*node0_data + 0.5*node1_data);		  
-        }
-
-      }
-      else if(KratosComponents<Variable<int > >::Has(variable_name))
-      {
-        //std::cout<<"int"<<std::endl;
-        //NO INTERPOLATION
-      }
-      else if(KratosComponents<Variable<bool > >::Has(variable_name))
-      {
-        //std::cout<<"bool"<<std::endl;
-        //NO INTERPOLATION
-      }
-      else if(KratosComponents<Variable<Matrix > >::Has(variable_name))
-      {
-        //std::cout<<"Matrix"<<std::endl;
-        Variable<Matrix > variable = KratosComponents<Variable<Matrix > >::Get(variable_name);
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
-          //getting the data of the solution step
-          Matrix& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-		  
-          Matrix& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-          Matrix& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-		  
-          if( node_data.size1() > 0 && node_data.size2() ){
-            if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
-                node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() ) {
-		      
-              noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
-              // node_data = (0.5*node0_data + 0.5*node1_data);	       
-            }
-          }
-        }
-
-      }
-      else if(KratosComponents<Variable<Vector > >::Has(variable_name))
-      {
-        //std::cout<<"Vector"<<std::endl;
-        Variable<Vector >variable = KratosComponents<Variable<Vector > >::Get(variable_name);
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
-          //getting the data of the solution step
-          Vector& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-		  
-          Vector& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-          Vector& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-		  
-          if( node_data.size() > 0 ){
-            if( node_data.size() == node0_data.size() &&
-                node_data.size() == node1_data.size()) {
-		      
-              noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
-              // node_data = (0.5*node0_data + 0.5*node1_data);	       
-            }
-          }
-        }
-      }
-
-    }
-
-    KRATOS_CATCH( "" )
-
-        }
-
-
-  void TakeMaterialPropertiesFromNotRigidNode( Node<3>::Pointer MasterNode,Node<3>::Pointer SlaveNode)
-  { 
-	  
-    KRATOS_TRY
-
-    // JMC commented May 28 2018
-    // double bulkModulus=SlaveNode->FastGetSolutionStepValue(BULK_MODULUS);
-    // double density=SlaveNode->FastGetSolutionStepValue(DENSITY);
-    // double viscosity=SlaveNode->FastGetSolutionStepValue(VISCOSITY);
-    // double yieldShear=SlaveNode->FastGetSolutionStepValue(YIELD_SHEAR);
-    // double flowIndex=SlaveNode->FastGetSolutionStepValue(FLOW_INDEX);
-    // double adaptiveExponent=SlaveNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-
-
-    // MasterNode->FastGetSolutionStepValue(BULK_MODULUS)=bulkModulus;
-    // MasterNode->FastGetSolutionStepValue(DENSITY)=density;
-    // MasterNode->FastGetSolutionStepValue(VISCOSITY)=viscosity;
-    // MasterNode->FastGetSolutionStepValue(YIELD_SHEAR)=yieldShear;
-    // MasterNode->FastGetSolutionStepValue(FLOW_INDEX)=flowIndex;
-    // MasterNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=adaptiveExponent;
-
-    KRATOS_CATCH( "" )
-
-  }
-
+ }
 
 
   ///@}

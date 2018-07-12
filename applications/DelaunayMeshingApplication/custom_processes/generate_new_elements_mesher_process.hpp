@@ -267,10 +267,11 @@ namespace Kratos
 	mrRemesh.Info->CheckGeometricalSmoothing();
       else
 	mrRemesh.Info->GeometricalSmoothingRequired = true;
-      
-      //if(mrRemesh.smoothing && mrRemesh.remesh && mrRemesh.Info->GeometricalSmoothingRequired ){
+
+      //if( mrRemesh.Options.Is(MesherUtilities::MESH_SMOOTHING) ){
+      //if( mrRemesh.smoothing && mrRemesh.remesh && mrRemesh.Info->GeometricalSmoothingRequired ){
       if( mrRemesh.Options.Is(MesherUtilities::MESH_SMOOTHING) && mrRemesh.Info->GeometricalSmoothingRequired ){
-	int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
+      	int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
 	LaplacianSmoothing  MeshGeometricSmoothing(mrModelPart);
 	MeshGeometricSmoothing.SetEchoLevel(mEchoLevel);
 	MeshGeometricSmoothing.ApplyMeshSmoothing(mrModelPart,mrRemesh.PreservedElements,OutElementList,OutNumberOfPoints);

@@ -30,10 +30,12 @@ class PfemSolution(MainSolid.Solution):
             
         if(processes_parameters.Has("loads_process_list")):
             loads_processes = processes_parameters["loads_process_list"]
-            print(" LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
+            if(self.echo_level>0):
+                print(" LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
             extended_loads_processes = self._set_volume_acceleration_process(loads_processes)
             processes_parameters.AddValue("loads_process_list", extended_loads_processes)
-            print(" EXTENDED_LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
+            if(self.echo_level>0):
+                print(" EXTENDED_LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
 
         return processes_parameters
 

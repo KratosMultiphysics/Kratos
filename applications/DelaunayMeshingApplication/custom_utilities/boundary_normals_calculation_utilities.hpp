@@ -860,7 +860,6 @@ namespace Kratos
 	      }
 	    }
 
-          std::cout<<"  Shrinkage ["<<rModelPart.Name()<<"] (C) "<<std::endl;
           
 	  ComputeBoundaryShrinkage<Condition>( BoundaryNodes, Neighbours, Ids, dimension);
 	}
@@ -920,8 +919,6 @@ namespace Kratos
 		BoundaryNodes.push_back( *((nodes_begin+i).base()) ); 
 	      }
 	    }
-
-          std::cout<<"  Shrinkage ["<<rModelPart.Name()<<"] (E) "<<std::endl;
 	
 	  ComputeBoundaryShrinkage<Element>( BoundaryNodes, Neighbours, Ids, dimension );
 	}

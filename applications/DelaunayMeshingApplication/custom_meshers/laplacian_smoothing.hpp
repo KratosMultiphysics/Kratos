@@ -189,7 +189,7 @@ namespace Kratos
 
 	    unsigned int NumberOfNeighbours = NeighborNodesList[in+1].size();
 	    
-	    if(rNodes[in+1].IsNot(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && NumberOfNeighbours>1)
+	    if(rNodes[in+1].IsNot(BOUNDARY) && rNodes[in+1].IsNot(RIGID) && rNodes[in+1].IsNot(TO_ERASE) && NumberOfNeighbours>1)
 	      {
 
 		TotalDistance.clear();
@@ -659,7 +659,7 @@ namespace Kratos
 	  {
 	    unsigned int NumberOfNeighbours = NeighborNodesList[in+1].size();
 
-	    if(rNodes[in+1].Is(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && 
+	    if(rNodes[in+1].Is(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && rNodes[in+1].IsNot(BOUNDARY) &&
 	       rNodes[in+1].Is(VISITED) && NumberOfNeighbours>1 )
 	      {	    	      
 		TotalDistance.clear();
