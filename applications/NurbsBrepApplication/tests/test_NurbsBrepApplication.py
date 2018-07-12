@@ -6,7 +6,8 @@ from KratosMultiphysics.NurbsBrepApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from generalTests import KratosNurbsBrepGeneralTests
+from NodeCurveGeometry3DTests import NodeCurveGeometry3DTests
+from NodeSurfaceGeometry3DTests import NodeSurfaceGeometry3DTests
 
 
 def AssambleTestSuites():
@@ -24,28 +25,17 @@ def AssambleTestSuites():
 
     suites = KratosUnittest.KratosSuites
 
-    # Create a test suit with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(KratosNurbsBrepGeneralTests('testSmallExample'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        NodeCurveGeometry3DTests,
+        NodeSurfaceGeometry3DTests,
+    ]))
 
-    # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
     nightSuite = suites['nightly']
-    nightSuite.addTests(KratosNurbsBrepGeneralTests)
+    nightSuite.addTests(smallSuite)
 
-    # Create a test suit that contains all the tests from every testCase
-    # in the list:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosNurbsBrepGeneralTests
-        ])
-    )
+    allSuite.addTests(nightSuite)
 
     return suites
 
