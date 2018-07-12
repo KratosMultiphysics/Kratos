@@ -51,7 +51,7 @@ void AddCustomUtilitiesToPython(py::module& m)
         using Type = NodeCurveGeometry3D;
         using Pointer = std::shared_ptr<Type>;
 
-        using ComponentVariable = Kratos::VariableComponent<
+        using VariableComponent = Kratos::VariableComponent<
             Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
 
         pybind11::class_<Type, Pointer>(m, "NodeCurveGeometry3D")
@@ -105,13 +105,13 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "Variable"_a,
                 "T"_a,
                 "Order"_a)
-            .def("ValueAt", (double (Type::*)(const ComponentVariable&,
-                const double)) &Type::ValueAt<double, ComponentVariable>,
+            .def("ValueAt", (double (Type::*)(const VariableComponent&,
+                const double)) &Type::ValueAt<double, VariableComponent>,
                 "Variable"_a,
                 "T"_a)
             .def("ValueAt", (std::vector<double> (Type::*)(
-                const ComponentVariable&, const double,
-                const int)) &Type::ValueAt<double, ComponentVariable>,
+                const VariableComponent&, const double,
+                const int)) &Type::ValueAt<double, VariableComponent>,
                 "Variable"_a,
                 "T"_a,
                 "Order"_a)
@@ -123,7 +123,7 @@ void AddCustomUtilitiesToPython(py::module& m)
         using Type = NodeSurfaceGeometry3D;
         using Pointer = std::shared_ptr<Type>;
 
-        using ComponentVariable = Kratos::VariableComponent<
+        using VariableComponent = Kratos::VariableComponent<
             Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
 
         pybind11::class_<Type, Pointer>(m, "NodeSurfaceGeometry3D")
@@ -190,15 +190,15 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "U"_a,
                 "V"_a,
                 "Order"_a)
-            .def("ValueAt", (double (Type::*)(const ComponentVariable&,
+            .def("ValueAt", (double (Type::*)(const VariableComponent&,
                 const double, const double)) &Type::ValueAt<double,
-                ComponentVariable>,
+                VariableComponent>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a)
             .def("ValueAt", (std::vector<double> (Type::*)(
-                const ComponentVariable&, const double, const double, const int)
-                ) &Type::ValueAt<double, ComponentVariable>,
+                const VariableComponent&, const double, const double, const int)
+                ) &Type::ValueAt<double, VariableComponent>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a,
