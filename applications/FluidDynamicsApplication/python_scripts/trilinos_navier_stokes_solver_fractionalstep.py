@@ -26,8 +26,8 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "FractionalStep",
-            "model_part_name": "FluidModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
@@ -118,7 +118,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         ## Construct the Trilinos import model part utility
         self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ExecutePartitioningAndReading()
+        self.trilinos_model_part_importer.ImportModelPart()
 
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED

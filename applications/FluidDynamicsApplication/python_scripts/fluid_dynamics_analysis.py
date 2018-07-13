@@ -15,22 +15,23 @@ class FluidDynamicsAnalysis(AnalysisStage):
     def __init__(self,model,parameters):
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
-        if not solver_settings.Has("domain_size"):
+        if not solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
 
-        if not solver_settings.Has("model_part_name"):
+        if not solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
 
-        super(FluidDynamicsAnalysis,self).__init__(model,parameters)
-
-        ## Import parallel modules if needed
-        if (self.parallel_type == "MPI"):
+        # Import parallel modules if needed
+        # has to be done before the base-class constuctor is called (in which the solver is constructed)
+        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+
+        super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
     def _CreateSolver(self):
         import python_solvers_wrapper_fluid

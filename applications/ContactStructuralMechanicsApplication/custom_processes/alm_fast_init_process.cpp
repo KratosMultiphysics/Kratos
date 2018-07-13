@@ -23,6 +23,15 @@ void ALMFastInit::Execute()
 {
     KRATOS_TRY;
     
+    // First we reorder the conditions ids (may methods and utilities assume that conditions are ordered)
+    ConditionsArrayType& root_conditions_array = mrThisModelPart.GetRootModelPart().Conditions();
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(root_conditions_array.size()); ++i) {
+        auto it_cond = root_conditions_array.begin() + i;
+        it_cond->SetId(i + 1);
+    }
+
     // We differentiate between frictional or frictionless
     const bool is_frictional = mrThisModelPart.Is(SLIP);
     
@@ -58,8 +67,10 @@ void ALMFastInit::Execute()
     ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
     
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-        (conditions_array.begin() + i)->SetValue(NORMAL, ZeroVector(3)); // The normal and tangents vectors
+    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
+        auto it_cond = conditions_array.begin() + i;
+        it_cond->SetValue(NORMAL, zero_array); // The normal and tangents vectors
+    }
 
     if (is_frictional) {
         // We initialize the frictional coefficient. The evolution of the frictional coefficient it is supposed to be controled by a law
