@@ -58,6 +58,11 @@ public:
         const int IndexU,
         const int IndexV) const
     {
+        KRATOS_DEBUG_ERROR_IF(IndexU < 0 || NbPolesU() <= IndexU) <<
+            "IndexU out of range" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(IndexV < 0 || NbPolesV() <= IndexV) <<
+            "IndexV out of range" << std::endl;
+
         return mNodes(IndexU, IndexV);
     }
 
@@ -67,6 +72,11 @@ public:
         const int IndexV,
         NodePointer Value)
     {
+        KRATOS_DEBUG_ERROR_IF(IndexU < 0 || NbPolesU() <= IndexU) <<
+            "IndexU out of range" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(IndexV < 0 || NbPolesV() <= IndexV) <<
+            "IndexV out of range" << std::endl;
+
         mNodes.SetValue(IndexU, IndexV, Value);
     }
 

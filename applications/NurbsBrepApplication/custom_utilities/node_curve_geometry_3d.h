@@ -55,6 +55,9 @@ public:
         const int Index
     ) const
     {
+        KRATOS_DEBUG_ERROR_IF(Index < 0 || NbPoles() <= Index) <<
+            "Index out of range" << std::endl;
+
         return mNodes[Index];
     }
 
@@ -64,6 +67,9 @@ public:
         NodePointer Value
     )
     {
+        KRATOS_DEBUG_ERROR_IF(Index < 0 || NbPoles() <= Index) <<
+            "Index out of range" << std::endl;
+
         mNodes[Index] = Value;
     }
 
