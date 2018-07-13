@@ -70,11 +70,11 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.cpp;
-
 )
 
 ## Kratos python interface code
 set( KRATOS_PYTHON_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/python_object_cpp_wrapper_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_conditions_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_part_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp

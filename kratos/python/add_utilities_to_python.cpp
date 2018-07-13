@@ -53,6 +53,7 @@
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/python_object_cpp_wrapper_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
 
 namespace Kratos
@@ -459,6 +460,17 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<Parameters, Model&>())
     ;
 
+    // Python Object To C++ Wrapper Utility
+    class_<PythonObjectCppWrapperUtility, typename PythonObjectCppWrapperUtility::Pointer>(m, "PythonObjectCppWrapperUtility")
+    .def(init< >())
+    .def(init<  pybind11::list&>())
+    .def(init<  pybind11::object&>())
+    .def("AddObject",&PythonObjectCppWrapperUtility::AddObject)
+    .def("AddObjects",&PythonObjectCppWrapperUtility::AddObjects)
+    .def("Execute",&PythonObjectCppWrapperUtility::Execute)
+    .def("RunStructuralAnalysisStage",&PythonObjectCppWrapperUtility::RunStructuralAnalysisStage)
+    ;
+  
     // SubModelParts List Utility
     class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
     .def(init<ModelPart&>())
