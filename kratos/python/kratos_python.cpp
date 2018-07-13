@@ -143,6 +143,13 @@ PYBIND11_MODULE(Kratos, m)
 
 
     m.def("Hello", greet);
+
+    #define INTERNAL_KRATOS_MAKE_STRING(arg) #arg
+    #define KRATOS_MAKE_STRING(arg) INTERNAL_KRATOS_MAKE_STRING(arg)
+    const object build_type = cast(KRATOS_MAKE_STRING(KRATOS_BUILD_TYPE));
+    #undef KRATOS_MAKE_STRING
+    #undef INTERNAL_KRATOS_MAKE_STRING
+    m.attr("KRATOS_BUILD_TYPE") = build_type;
 }
 
 
