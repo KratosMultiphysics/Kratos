@@ -146,13 +146,13 @@ namespace Testing
         TestSJ = cl_parameters.GetStressVector();
 
         //Check the results
-        for (int comp = 0; comp < 6; comp++) {
-            KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 1.0e-3);
-            KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 1.0e-3);
-            KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
-            KRATOS_CHECK_NEAR(Tres[comp],  TestT[comp],  1.0e-3);
-            KRATOS_CHECK_NEAR(Rres[comp],  TestR[comp],  1.0e-3);
-            KRATOS_CHECK_NEAR(SJres[comp], TestSJ[comp], 1.0e-3);
+        for (int comp = 0; comp < 3; comp++) {
+            KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.0001e+06);
+            KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 0.0001e+06);
+            KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 0.001e+06);
+            KRATOS_CHECK_NEAR(Tres[comp],  TestT[comp], 0.0001e+06);
+            KRATOS_CHECK_NEAR(Rres[comp],  TestR[comp], 0.001e+06);
+            KRATOS_CHECK_NEAR(SJres[comp], TestSJ[comp], 0.0001e+06);
         }
     }
 
@@ -252,12 +252,12 @@ namespace Testing
 
         //Check the results
         for (int comp = 0; comp < 6; comp++) {
-            KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 1.0e-3);
-            KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 1.0e-3);
-            KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
-            KRATOS_CHECK_NEAR(Tres[comp],  TestT[comp],  1.0e-3);
-            KRATOS_CHECK_NEAR(Rres[comp],  TestR[comp],  1.0e-3);
-            KRATOS_CHECK_NEAR(SJres[comp], TestSJ[comp], 1.0e-3);
+            KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.00001e+06);
+            KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 0.00001e+06);
+            KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 0.00001e+06);
+            KRATOS_CHECK_NEAR(Tres[comp],  TestT[comp], 0.00001e+06);
+            KRATOS_CHECK_NEAR(Rres[comp],  TestR[comp], 0.00001e+06);
+            KRATOS_CHECK_NEAR(SJres[comp], TestSJ[comp], 0.00001e+06);
         }
     }
 }
