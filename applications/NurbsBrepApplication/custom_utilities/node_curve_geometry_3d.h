@@ -71,7 +71,7 @@ public:
     Pole(
         const int Index) const override
     {
-        auto& node = *Node(Index);
+        const auto& node = *Node(Index);
  
         VectorType pole;
         pole[0] = node[0];
