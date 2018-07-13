@@ -43,6 +43,16 @@ void AddCustomUtilitiesToPython(py::module& m)
             .def(py::init<double, double>())
             .def_property_readonly("T0", &Type::T0)
             .def_property_readonly("T1", &Type::T1)
+            .def_property_readonly("Min", &Type::Min)
+            .def_property_readonly("Max", &Type::Max)
+            .def_property_readonly("Delta", &Type::Delta)
+            .def_property_readonly("Length", &Type::Length)
+            .def("NormalizedAt", &Type::NormalizedAt,
+                "T"_a)
+            .def("ParameterAtNormalized", &Type::ParameterAtNormalized,
+                "T"_a)
+            .def("Clamp", (double (Type::*)(const double) const)  &Type::Clamp,
+                "T"_a)
         ;
     }
 
