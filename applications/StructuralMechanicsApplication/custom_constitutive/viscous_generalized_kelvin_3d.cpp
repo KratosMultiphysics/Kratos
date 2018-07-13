@@ -51,8 +51,6 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponseCauchy(ConstitutiveLaw
     Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const ProcessInfo& ProcessInfo = rValues.GetProcessInfo();
     const double time_step = ProcessInfo[DELTA_TIME];
-
-    const double Kvisco    = rMaterialProperties[VISCOUS_PARAMETER]; // C1/Cinf
     const double delay_time = rMaterialProperties[DELAY_TIME];
 
     // Elastic Matrix

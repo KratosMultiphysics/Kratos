@@ -183,6 +183,12 @@ public:
      */
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
+    Matrix& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue
+        ) override;
+        
     ///@}
     ///@name Access
     ///@{

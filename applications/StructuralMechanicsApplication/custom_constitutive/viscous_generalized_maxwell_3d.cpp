@@ -153,4 +153,17 @@ void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw
 {
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+Matrix& ViscousGeneralizedMaxwell3D::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Matrix>& rThisVariable, Matrix& rValue)
+{
+    if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
+		rValue = MathUtils<double>::StressVectorToTensor(this->GetPreviousStressVector());
+		return rValue;
+    }
+}
+
+
 } // namespace kratos
