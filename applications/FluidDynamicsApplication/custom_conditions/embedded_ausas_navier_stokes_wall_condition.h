@@ -238,80 +238,66 @@ public:
         // Set a reference to the current condition geometry
         GeometryType &r_geometry = this->GetGeometry();
 
-        // Check if the condition is split
-        unsigned int n_pos = 0, n_neg = 0;
+        // Get all the possible element candidates
+        WeakPointerVector<Element> element_candidates;
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            const double aux_dist = r_geometry[i_node].FastGetSolutionStepValue(DISTANCE);
-            if (aux_dist < 0) {
-                n_neg++;
-            } else {
-                n_pos++;
+            WeakPointerVector<Element> &r_node_element_candidates = r_geometry[i_node].GetValue(NEIGHBOUR_ELEMENTS);
+            for (unsigned int j = 0; j < r_node_element_candidates.size(); j++) {
+                element_candidates.push_back(r_node_element_candidates(j));
             }
         }
 
-        // If the condition is split, save a pointer to its parent element
-        if (n_pos != 0 && n_neg != 0){
+        // Check that the condition has candidate parent elements
+        KRATOS_ERROR_IF(element_candidates.size() == 0) <<
+            "Condition " << this->Id() << " has no candidate parent elements.\n" <<
+            "Check that the FindNodalNeighboursProcess has been executed.";
 
-            // Get all the possible element candidates
-            WeakPointerVector<Element> element_candidates;
-            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-                WeakPointerVector<Element> &r_node_element_candidates = r_geometry[i_node].GetValue(NEIGHBOUR_ELEMENTS);
-                for (unsigned int j = 0; j < r_node_element_candidates.size(); j++) {
-                    element_candidates.push_back(r_node_element_candidates(j));
-                }
+        // Get a sorted array with the current condition nodal ids
+        std::vector<unsigned int> node_ids(TNumNodes), element_nodes_ids;
+
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            node_ids[i_node] = r_geometry[i_node].Id();
+        }
+        std::sort(node_ids.begin(), node_ids.end());
+
+        // Iterate the candidate elements
+        for (unsigned int i_candidate = 0; i_candidate < element_candidates.size(); ++i_candidate) {
+            GeometryType &r_elem_geom = element_candidates[i_candidate].GetGeometry();
+            const unsigned int n_elem_nodes = r_elem_geom.PointsNumber();
+
+            // Get a sort array with the iterated candidate element nodal ids
+            element_nodes_ids.resize(n_elem_nodes);
+            for (unsigned int j = 0; j < n_elem_nodes; ++j) {
+                element_nodes_ids[j] = r_elem_geom[j].Id();
             }
+            std::sort(element_nodes_ids.begin(), element_nodes_ids.end());
 
-            // Check that the condition has candidate parent elements
-            KRATOS_ERROR_IF(element_candidates.size() == 0) <<
-                "Condition " << this->Id() << " has no candidate parent elements.\n" <<
-                "Check that the FindNodalNeighboursProcess has been executed.";
+            // Check if the current condition ids are included in the iterated candidate element nodal ids
+            if (std::includes(element_nodes_ids.begin(), element_nodes_ids.end(), node_ids.begin(), node_ids.end())) {
+                // Save a pointer to the parent element
+                mpParentElement = element_candidates(i_candidate);
 
-            // Get a sort array with the current condition nodal ids
-            std::vector<unsigned int> node_ids(TNumNodes), element_nodes_ids;
+                // Save the parent element local ids. corresponding to the condition nodes
+                mParentElementIds.resize(TNumNodes);
 
-            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-                node_ids[i_node] = r_geometry[i_node].Id();
-            }
-            std::sort(node_ids.begin(), node_ids.end());
-
-            // Iterate the candidate elements
-            for (unsigned int i_candidate = 0; i_candidate < element_candidates.size(); ++i_candidate) {
-                GeometryType &r_elem_geom = element_candidates[i_candidate].GetGeometry();
-                const unsigned int n_elem_nodes = r_elem_geom.PointsNumber();
-
-                // Get a sort array with the iterated candidate element nodal ids
-                element_nodes_ids.resize(n_elem_nodes);
+                std::vector<unsigned int > aux_elem_ids(n_elem_nodes);
                 for (unsigned int j = 0; j < n_elem_nodes; ++j) {
-                    element_nodes_ids[j] = r_elem_geom[j].Id();
+                    aux_elem_ids[j] = r_elem_geom[j].Id();
                 }
-                std::sort(element_nodes_ids.begin(), element_nodes_ids.end());
 
-                // Check if the current condition ids are included in the iterated candidate element nodal ids
-                if (std::includes(element_nodes_ids.begin(), element_nodes_ids.end(), node_ids.begin(), node_ids.end())) {
-                    // Save a pointer to the parent element
-                    mpParentElement = element_candidates(i_candidate);
-
-                    // Save the parent element local ids. corresponding to the condition nodes
-                    mParentElementIds.resize(TNumNodes);
-
-                    std::vector<unsigned int > aux_elem_ids(n_elem_nodes);
-                    for (unsigned int j = 0; j < n_elem_nodes; ++j) {
-                        aux_elem_ids[j] = r_elem_geom[j].Id();
-                    }
-
-                    for (unsigned int i = 0; i < TNumNodes; ++i) {
-                        const unsigned int aux_id = r_geometry[i].Id();
-                        const std::vector<unsigned int >::iterator aux_it = std::find(aux_elem_ids.begin(), aux_elem_ids.end(), aux_id);
-                        mParentElementIds[i] = std::distance(aux_elem_ids.begin(), aux_it);
-                    }
-
-                    // Leave the parent element search
-                    return;
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    const unsigned int aux_id = r_geometry[i].Id();
+                    const std::vector<unsigned int >::iterator aux_it = std::find(aux_elem_ids.begin(), aux_elem_ids.end(), aux_id);
+                    mParentElementIds[i] = std::distance(aux_elem_ids.begin(), aux_it);
                 }
+
+                // Leave the parent element search
+                return;
             }
-
-            KRATOS_ERROR << "Condition " << this->Id() << " cannot find parent element.";
         }
+
+        KRATOS_ERROR << "Condition " << this->Id() << " cannot find parent element.";
+        // }
 
         KRATOS_CATCH("Error in EmbeddedAusasNavierStokesWallCondition InitializeSolutionStep() method.");
     }
@@ -724,36 +710,26 @@ protected:
     {
         const GeometryType& r_geometry = this->GetGeometry();
 
-        // Check if the condition is split
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            const double aux_dist = r_geometry[i_node].FastGetSolutionStepValue(DISTANCE);
-            if (aux_dist < 0) {
-                rData.n_neg++;
+        // Get the parent element nodal distances
+        Element::Pointer p_parent_element = this->pGetElement();
+        const Vector distances = p_parent_element->GetValue(ELEMENTAL_DISTANCES);
+
+        // First of all check if the parent is split
+        GeometryPointerType p_parent_geometry = p_parent_element->pGetGeometry();
+        const unsigned int n_parent_nodes = p_parent_geometry->PointsNumber();
+        unsigned int n_neg_par(0), n_pos_par(0);
+        for (unsigned int i_node = 0; i_node < n_parent_nodes; ++i_node){
+            if (distances[i_node] < 0.0) {
+                n_neg_par++;
             } else {
-                rData.n_pos++;
+                n_pos_par++;
             }
         }
 
-        // If the element is split, take the values from the parent element modified shape functions utility
+        // If the parent is split, check if the condition is split as well and take 
+        // the values from the parent element modified shape functions utility
         // Otherwise, take the values from the current condition geometry
-        if (rData.n_pos != 0 && rData.n_neg != 0){
-            // Get the parent element nodal distances
-            Element::Pointer p_parent_element = this->pGetElement();
-            GeometryPointerType p_parent_geometry = p_parent_element->pGetGeometry();
-            const Vector &distances = p_parent_element->GetValue(ELEMENTAL_DISTANCES);
-            const unsigned int n_parent_nodes = p_parent_geometry->PointsNumber();
-
-            // Construct the modified shape functions utility with the parent element pointer
-            ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
-            if (n_parent_nodes == 4) {
-                p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_parent_geometry, distances);
-            }
-            else if (n_parent_nodes == 3) {
-                p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_parent_geometry, distances);
-            } else {
-                KRATOS_ERROR << "Asking for a non-implemented geometry modified shape functions utility.";
-            }
-
+        if (n_neg_par != 0 && n_pos_par != 0){
             // Get the current condition global ids
             std::vector<unsigned int> cond_ids(TNumNodes);
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -798,53 +774,60 @@ protected:
             KRATOS_ERROR_IF(face_id == n_elem_faces + 1) <<
                 "No parent element face found for condition " << this->Id() << " and parent element " << p_parent_element->Id();
 
-            // Call the positive and negative sides modified shape functions face utilities
-            p_ausas_modified_sh_func->ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
-                rData.N_pos_face,
-                rData.DN_DX_pos_face,
-                rData.w_gauss_pos_face,
-                face_id,
-                GeometryData::GI_GAUSS_2);
+            // Check if the condition is split
+            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node){
+                // Get the element face local nodal ids
+                // Note that the first index represent the node out of the face
+                // (check this in case quads or tetras are used).
+                unsigned int face_node_loc_id = elem_face_loc_ids(i_node + 1, face_id);
+                if (distances(face_node_loc_id) < 0.0){
+                    rData.n_neg++;
+                } else {
+                    rData.n_pos++;
+                }
+            }
 
-            p_ausas_modified_sh_func->ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
-                rData.N_neg_face,
-                rData.DN_DX_neg_face,
-                rData.w_gauss_neg_face,
-                face_id,
-                GeometryData::GI_GAUSS_2);
+            if (rData.n_neg != 0 && rData.n_pos != 0){
+                // Construct the modified shape functions utility with the parent element pointer
+                ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
+                if (n_parent_nodes == 4) {
+                    p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_parent_geometry, distances);
+                }
+                else if (n_parent_nodes == 3) {
+                    p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_parent_geometry, distances);
+                } else {
+                    KRATOS_ERROR << "Asking for a non-implemented geometry modified shape functions utility.";
+                }
 
-            p_ausas_modified_sh_func->ComputePositiveExteriorFaceAreaNormals(
-                rData.pos_face_area_normals,
-                face_id,
-                GeometryData::GI_GAUSS_2);
+                // Call the positive and negative sides modified shape functions face utilities
+                p_ausas_modified_sh_func->ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+                    rData.N_pos_face,
+                    rData.DN_DX_pos_face,
+                    rData.w_gauss_pos_face,
+                    face_id,
+                    GeometryData::GI_GAUSS_2);
 
-            p_ausas_modified_sh_func->ComputeNegativeExteriorFaceAreaNormals(
-                rData.neg_face_area_normals,
-                face_id,
-                GeometryData::GI_GAUSS_2);
+                p_ausas_modified_sh_func->ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+                    rData.N_neg_face,
+                    rData.DN_DX_neg_face,
+                    rData.w_gauss_neg_face,
+                    face_id,
+                    GeometryData::GI_GAUSS_2);
 
+                p_ausas_modified_sh_func->ComputePositiveExteriorFaceAreaNormals(
+                    rData.pos_face_area_normals,
+                    face_id,
+                    GeometryData::GI_GAUSS_2);
+
+                p_ausas_modified_sh_func->ComputeNegativeExteriorFaceAreaNormals(
+                    rData.neg_face_area_normals,
+                    face_id,
+                    GeometryData::GI_GAUSS_2);
+            } else {
+                FillDataWithNoSplitGeometry(rData);
+            }
         } else {
-            // If the condition is not split, take the geometry shape function values
-            GeometryType::IntegrationPointsArrayType integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
-            const unsigned int n_gauss = integration_points.size();
-
-            // Get the condition geometry shape functions values
-            rData.N_container = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-            // Compute each Gauss pt. weight
-            Vector gauss_pts_J_det(n_gauss);
-            r_geometry.DeterminantOfJacobian(gauss_pts_J_det, GeometryData::GI_GAUSS_2);
-            (rData.w_gauss_container).resize(n_gauss);
-            for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-                rData.w_gauss_container(i_gauss) = integration_points[i_gauss].Weight() * gauss_pts_J_det(i_gauss);
-            }
-
-            // Compute each Gauss pt. area normal
-            (rData.area_normals_container).clear();
-            for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-                const CoordinatesArrayType& gauss_pt_loc_coords = integration_points[i_gauss].Coordinates();
-                (rData.area_normals_container).push_back(r_geometry.AreaNormal(gauss_pt_loc_coords));
-            }
+            FillDataWithNoSplitGeometry(rData);
         }
 
         // Fill the nodal velocity array
@@ -854,6 +837,33 @@ protected:
             for (unsigned int k = 0; k < TDim; k++) {
                 rData.v(i, k) = vel[k];
             }
+        }
+    }
+
+    void FillDataWithNoSplitGeometry(ConditionDataStruct &rData)
+    {
+        const GeometryType& r_geometry = this->GetGeometry();
+
+        // If the condition is not split, take the geometry shape function values
+        GeometryType::IntegrationPointsArrayType integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const unsigned int n_gauss = integration_points.size();
+
+        // Get the condition geometry shape functions values
+        rData.N_container = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+        // Compute each Gauss pt. weight
+        Vector gauss_pts_J_det(n_gauss);
+        r_geometry.DeterminantOfJacobian(gauss_pts_J_det, GeometryData::GI_GAUSS_2);
+        (rData.w_gauss_container).resize(n_gauss);
+        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            rData.w_gauss_container(i_gauss) = integration_points[i_gauss].Weight() * gauss_pts_J_det(i_gauss);
+        }
+
+        // Compute each Gauss pt. area normal
+        (rData.area_normals_container).clear();
+        for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            const CoordinatesArrayType& gauss_pt_loc_coords = integration_points[i_gauss].Coordinates();
+            (rData.area_normals_container).push_back(r_geometry.AreaNormal(gauss_pt_loc_coords));
         }
     }
 
