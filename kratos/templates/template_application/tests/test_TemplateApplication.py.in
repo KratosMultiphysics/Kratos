@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from generalTests import Kratos@{APP_NAME_CAMEL}GeneralTests
 
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
