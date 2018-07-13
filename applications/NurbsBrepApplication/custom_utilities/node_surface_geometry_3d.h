@@ -140,7 +140,7 @@ public:
     ValueAt(
         const TVariableType& Variable,
         const double U,
-        const double V)
+        const double V) const
     {
         return EvaluateAt<TDataType>([&](int i, int j) -> TDataType {
             return Node(i, j)->GetValue(Variable);
@@ -153,7 +153,7 @@ public:
         const TVariableType& Variable,
         const double U,
         const double V,
-        const int Order)
+        const int Order) const
     {
         return EvaluateAt<TDataType>([&](int i, int j) -> TDataType {
             return Node(i, j)->GetValue(Variable);

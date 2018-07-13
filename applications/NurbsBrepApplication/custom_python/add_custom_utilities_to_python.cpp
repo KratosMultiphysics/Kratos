@@ -96,32 +96,32 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "T"_a,
                 "Order"_a)
             .def("ValueAt", (double (Type::*)(const Variable<double>&,
-                const double)) &Type::ValueAt<double>,
+                const double) const) &Type::ValueAt<double>,
                 "Variable"_a,
                 "T"_a)
             .def("ValueAt", (std::vector<double> (Type::*)(
-                const Variable<double>&, const double, const int))
+                const Variable<double>&, const double, const int) const)
                 &Type::ValueAt<double>,
                 "Variable"_a,
                 "T"_a,
                 "Order"_a)
             .def("ValueAt", (Array3D (Type::*)(const Variable<Array3D>&,
-                const double)) &Type::ValueAt<Array3D>,
+                const double) const) &Type::ValueAt<Array3D>,
                 "Variable"_a,
                 "T"_a)
             .def("ValueAt", (std::vector<Array3D> (Type::*)(
-                const Variable<Array3D>&, const double, const int))
+                const Variable<Array3D>&, const double, const int) const)
                 &Type::ValueAt<Array3D>,
                 "Variable"_a,
                 "T"_a,
                 "Order"_a)
             .def("ValueAt", (double (Type::*)(const VariableComponent&,
-                const double)) &Type::ValueAt<double, VariableComponent>,
+                const double) const) &Type::ValueAt<double, VariableComponent>,
                 "Variable"_a,
                 "T"_a)
             .def("ValueAt", (std::vector<double> (Type::*)(
                 const VariableComponent&, const double,
-                const int)) &Type::ValueAt<double, VariableComponent>,
+                const int) const) &Type::ValueAt<double, VariableComponent>,
                 "Variable"_a,
                 "T"_a,
                 "Order"_a)
@@ -177,38 +177,39 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "V"_a,
                 "Order"_a)
             .def("ValueAt", (double (Type::*)(const Variable<double>&,
-                const double, const double)) &Type::ValueAt<double>,
+                const double, const double) const) &Type::ValueAt<double>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a)
             .def("ValueAt", (std::vector<double> (Type::*)(
-                const Variable<double>&, const double, const double, const int))
+                const Variable<double>&, const double, const double, const int)
+                const)
                 &Type::ValueAt<double>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a,
                 "Order"_a)
             .def("ValueAt", (Array3D (Type::*)(const Variable<Array3D>&,
-                const double, const double)) &Type::ValueAt<Array3D>,
+                const double, const double) const) &Type::ValueAt<Array3D>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a)
             .def("ValueAt", (std::vector<Array3D> (Type::*)(
                 const Variable<Array3D>&, const double, const double,
-                const int)) &Type::ValueAt<Array3D>,
+                const int) const) &Type::ValueAt<Array3D>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a,
                 "Order"_a)
             .def("ValueAt", (double (Type::*)(const VariableComponent&,
-                const double, const double)) &Type::ValueAt<double,
+                const double, const double) const) &Type::ValueAt<double,
                 VariableComponent>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a)
             .def("ValueAt", (std::vector<double> (Type::*)(
                 const VariableComponent&, const double, const double, const int)
-                ) &Type::ValueAt<double, VariableComponent>,
+                const) &Type::ValueAt<double, VariableComponent>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a,
