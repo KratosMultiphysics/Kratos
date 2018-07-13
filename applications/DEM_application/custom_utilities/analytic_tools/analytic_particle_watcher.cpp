@@ -94,9 +94,6 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
     mInterParticleImpactDataOfAllParticles.push_back(time_step_database);
     mFaceParticleImpactDataOfAllParticles.push_back(face_time_step_database);
 
-    auto d1 = GetParticleDataBase(1, inter_particle_impact_data_of_all_time_steps_by_threads[0]);
-    auto dumb1 = GetParticleDataBase(1, mInterParticleImpactDataOfAllTimeSteps);
-    auto dumb2 = GetParticleDataBase(2, mInterParticleImpactDataOfAllTimeSteps);
 
 }
 

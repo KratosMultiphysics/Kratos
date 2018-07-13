@@ -83,8 +83,8 @@ class Procedures(DEM_procedures.Procedures):
 
     def KRATOSprint(self, message):
         if (mpi.rank == 0):
-            print(message)
-            self.Flush(sys.stdout)
+            Logger.Print(*args, label="DEM")
+            Logger.Flush()
 
 
 class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):

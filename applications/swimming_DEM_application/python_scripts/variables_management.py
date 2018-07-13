@@ -355,7 +355,7 @@ def ConstructListsOfVariablesForCoupling(pp):
             pp.coupling_fluid_vars += [TIME_AVERAGED_ARRAY_3]
             pp.coupling_fluid_vars += [PHASE_FRACTION]
 
-    if pp.CFD_DEM["fluid_model_type"].GetInt() > 1:
+    if pp.CFD_DEM["fluid_model_type"].GetInt() >= 1:
         pp.coupling_fluid_vars += [FLUID_FRACTION_GRADIENT]
         pp.coupling_fluid_vars += [FLUID_FRACTION_RATE]
 
@@ -375,6 +375,9 @@ def ConstructListsOfVariablesForCoupling(pp):
 
     if pp.viscosity_modification_type:
         pp.coupling_fluid_vars += [VISCOSITY]
+
+    if pp.CFD_DEM["embedded_option"].GetBool():
+        pp.coupling_fluid_vars += [DISTANCE]
 
     # dem coupling variables
     pp.coupling_dem_vars = []

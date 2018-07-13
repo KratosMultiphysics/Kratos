@@ -68,6 +68,7 @@ class ALMContactProcess(KM.Process):
             "integration_order"           : 2,
             "search_parameters" : {
                 "type_search"                 : "in_radius",
+                "adapt_search"                : false,
                 "search_factor"               : 3.5,
                 "active_check_factor"         : 0.01,
                 "max_number_results"          : 1000,
@@ -177,6 +178,15 @@ class ALMContactProcess(KM.Process):
         self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
         self.find_nodal_h.Execute()
 
+        ## We recompute the serach factor and the check in function of the relative size of the mesh
+        if (self.settings["search_parameters"]["adapt_search"].GetBool() is True):
+            factor = CSMA.ContactUtilities.CalculateRelativeSizeMesh(self.computing_model_part)
+            KM.Logger.PrintWarning("SEARCH ADAPT FACTOR: ", "{:.2e}".format(factor))
+            search_factor = self.settings["search_parameters"]["search_factor"].GetDouble() * factor
+            self.settings["search_parameters"]["search_factor"].SetDouble(search_factor)
+            active_check_factor = self.settings["search_parameters"]["active_check_factor"].GetDouble() * factor
+            self.settings["search_parameters"]["active_check_factor"].SetDouble(active_check_factor)
+
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
 
@@ -240,12 +250,11 @@ class ALMContactProcess(KM.Process):
         current_time = self.main_model_part.ProcessInfo[KM.TIME]
         if(self.interval.IsInInterval(current_time)):
             self.database_step += 1
-            self.global_step = self.main_model_part.ProcessInfo[KM.STEP]
+            global_step = self.main_model_part.ProcessInfo[KM.STEP]
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (self.database_step >= database_step_update or self.global_step == 1):
+            if (self.database_step >= database_step_update or global_step == 1):
                 # We unset the flag MARKER (used in the nodes to not deactivate it)
                 KM.VariableUtils().SetFlag(KM.MARKER, False, self.contact_model_part.Nodes)
-
                 # We solve one linear step with a linear strategy if needed
                 for key in self.settings["contact_model_part"].keys():
                     if (self.settings["contact_model_part"][key].size() > 0):
@@ -260,7 +269,7 @@ class ALMContactProcess(KM.Process):
 
                 # Debug
                 if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
-                    self._debug_output(self.global_step, "")
+                    self._debug_output(global_step, "")
                     # We compute the total integrated area, for debugging
                     total_area = 0.0
                     if (self.dimension == 2):
@@ -308,14 +317,16 @@ class ALMContactProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.main_model_part.ProcessInfo[KM.TIME]
+        global_step = self.main_model_part.ProcessInfo[KM.STEP]
         if(self.interval.IsInInterval(current_time)):
             modified = self.main_model_part.Is(KM.MODIFIED)
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (modified is False and (self.database_step >= database_step_update or self.global_step == 1)):
+            if (modified is False and (self.database_step >= database_step_update or global_step == 1)):
                 for key in self.settings["contact_model_part"].keys():
                     if (self.settings["contact_model_part"][key].size() > 0):
                         self.contact_search[key].ClearMortarConditions()
                 self.database_step = 0
+
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -608,6 +619,10 @@ class ALMContactProcess(KM.Process):
             # We transfer the list of submodelparts to the contact model part
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
+
+                if (self.computing_model_part.Is(KM.MODIFIED)):
+                    KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
+                    partial_model_part.RemoveConditions(KM.TO_ERASE)
 
                 # We generate the conditions
                 self._interface_preprocess(partial_model_part)

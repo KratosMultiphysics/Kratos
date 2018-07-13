@@ -118,7 +118,7 @@ void TrussPlasticityConstitutiveLaw::SetValue(
     )
 {
     if(rThisVariable == PLASTIC_STRAIN) this->mAccumulatedPlasticStrainVector[0] = rValue;
-    if(rThisVariable == PLASTIC_ALPHA) this->mPlasticAlphaVector[0] = rValue;
+    else if(rThisVariable == PLASTIC_ALPHA) this->mPlasticAlphaVector[0] = rValue;
     else KRATOS_ERROR << "Can't set the specified value" << std::endl;
 }
 

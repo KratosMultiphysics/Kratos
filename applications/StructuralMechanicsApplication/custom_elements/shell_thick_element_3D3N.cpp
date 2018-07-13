@@ -146,53 +146,12 @@ void ShellThickElement3D3N::Initialize()
 {
     KRATOS_TRY
 
-    const GeometryType & geom = GetGeometry();
-    const PropertiesType & props = GetProperties();
+    const int points_number = GetGeometry().PointsNumber();
 
-    if (geom.PointsNumber() != 3)
-        KRATOS_THROW_ERROR(std::logic_error,
-            "ShellThickElement3D3N Element - Wrong number of nodes",
-            geom.PointsNumber());
+    KRATOS_ERROR_IF_NOT(points_number == 3) <<"ShellThickElement3D3N - Wrong number of nodes"
+        << points_number << std::endl;
 
-    const SizeType num_gps = GetNumberOfGPs();
-
-    if (mSections.size() != num_gps)
-    {
-        const Matrix & shapeFunctionsValues =
-            geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-        ShellCrossSection::Pointer theSection;
-        if (props.Has(SHELL_CROSS_SECTION))
-        {
-            theSection = props[SHELL_CROSS_SECTION];
-        }
-        else if (ShellCrossSection::CheckIsOrthotropic(props))
-        {
-            // make new instance of shell cross section
-            theSection = ShellCrossSection::Pointer(new ShellCrossSection());
-
-            // Parse material properties for each layer
-            theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());
-        }
-        else
-        {
-            theSection = ShellCrossSection::Pointer(new ShellCrossSection());
-            theSection->BeginStack();
-            theSection->
-                AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
-            theSection->EndStack();
-        }
-
-        mSections.clear();
-        for (SizeType i = 0; i < num_gps; ++i)
-        {
-            ShellCrossSection::Pointer sectionClone = theSection->Clone();
-            sectionClone->SetSectionBehavior(GetSectionBehavior());
-            sectionClone->InitializeCrossSection(props, geom,
-                row(shapeFunctionsValues, i));
-            mSections.push_back(sectionClone);
-        }
-    }
+    BaseShellElement::Initialize();
 
     mpCoordinateTransformation->Initialize();
 
@@ -246,7 +205,7 @@ void ShellThickElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, Process
     const SizeType num_gps = GetNumberOfGPs();
 
     for (SizeType i = 0; i < num_gps; i++)
-        av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
+        av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea(GetProperties());
     av_mass_per_unit_area /= double(num_gps);
 
     // Flag for consistent or lumped mass matrix
@@ -263,7 +222,7 @@ void ShellThickElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, Process
         // Average thickness over the whole element
         double thickness = 0.0;
         for (SizeType i = 0; i < num_gps; i++)
-            thickness += mSections[i]->GetThickness();
+            thickness += mSections[i]->GetThickness(GetProperties());
         thickness /= double(num_gps);
 
         // Populate mass matrix with integation results
@@ -393,7 +352,7 @@ void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& 
 
             // recover stresses
             CalculateStressesFromForceResultants(data.generalizedStresses,
-                section->GetThickness());
+                section->GetThickness(GetProperties()));
 
             // account for orientation
             if (section->GetOrientationAngle() != 0.0)
@@ -461,7 +420,7 @@ void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& 
 
         // Retrieve ply orientations
         Vector ply_orientation(section->NumberOfPlies());
-        section->GetLaminaeOrientation(ply_orientation);
+        section->GetLaminaeOrientation(props, ply_orientation);
         double total_rotation = 0.0;
 
         //Calculate lamina stresses
@@ -507,7 +466,7 @@ void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& 
     else
     {
         for (SizeType i = 0; i < num_gps; i++)
-            mSections[i]->GetValue(rVariable, rValues[i]);
+            mSections[i]->GetValue(rVariable, GetProperties(), rValues[i]);
     }
 
     OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
@@ -682,7 +641,7 @@ void ShellThickElement3D3N::CalculateLaminaStrains(CalculationData& data)
     ShellCrossSection::Pointer& section = mSections[data.gpIndex];
 
     // Get laminate properties
-    double thickness = section->GetThickness();
+    double thickness = section->GetThickness(GetProperties());
     double z_current = thickness / -2.0; // start from the top of the 1st layer
 
     // Establish current strains at the midplane
@@ -698,7 +657,7 @@ void ShellThickElement3D3N::CalculateLaminaStrains(CalculationData& data)
 
     // Get ply thicknesses
     Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
-    section->GetPlyThicknesses(ply_thicknesses);
+    section->GetPlyThicknesses(GetProperties(), ply_thicknesses);
 
     // Resize output vector. 2 Surfaces for each ply
     data.rlaminateStrains.resize(2 * section->NumberOfPlies());
@@ -1156,6 +1115,7 @@ void ShellThickElement3D3N::CalculateSectionResponse(CalculationData& data)
 
     ShellCrossSection::Pointer& section = mSections[0];
     data.SectionParameters.SetShapeFunctionsValues(data.N);
+    data.SectionParameters.SetMaterialProperties(GetProperties());
 
     if (data.ignore_shear_stabilization || data.basicTriCST)
     {
@@ -1196,7 +1156,7 @@ void ShellThickElement3D3N::InitializeCalculationData(CalculationData& data)
 
     double h = 0.0;
     for (unsigned int i = 0; i < mSections.size(); i++)
-        h += mSections[i]->GetThickness();
+        h += mSections[i]->GetThickness(GetProperties());
     h /= (double)mSections.size();
 
     data.hMean = h;
@@ -1865,7 +1825,7 @@ void ShellThickElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRi
     for (unsigned int igauss = 0; igauss < 1; igauss++)
     {
         // get mass per unit area
-        double mass_per_unit_area = mSections[igauss]->CalculateMassPerUnitArea();
+        double mass_per_unit_area = mSections[igauss]->CalculateMassPerUnitArea(GetProperties());
 
         // interpolate nodal volume accelerations to this gauss point
         // and obtain the body force vector
@@ -2094,7 +2054,7 @@ bool ShellThickElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
             {
                 // Compute stresses for isotropic materials
                 CalculateStressesFromForceResultants(data.generalizedStresses,
-                    section->GetThickness());
+                    section->GetThickness(GetProperties()));
             }
         }
         DecimalCorrection(data.generalizedStresses);
@@ -2272,7 +2232,7 @@ bool ShellThickElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
                 const PropertiesType & props = GetProperties();
                 section->GetLaminaeStrengths(Laminae_Strengths, props);
                 Vector ply_orientation(section->NumberOfPlies());
-                section->GetLaminaeOrientation(ply_orientation);
+                section->GetLaminaeOrientation(props, ply_orientation);
 
                 CalculateLaminaStrains(data);
                 CalculateLaminaStresses(data);

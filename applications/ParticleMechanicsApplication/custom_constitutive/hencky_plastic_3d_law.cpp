@@ -100,7 +100,6 @@ double& HenckyElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariab
 
     if (rThisVariable==MIU)
     {
-
         rValue=mPlasticRegion;
     }
     return( rValue );
@@ -203,7 +202,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
 
     const Matrix&   DeformationGradientF   = rValues.GetDeformationGradientF();
-    const double&   DeterminantF           = rValues.GetDeterminantF();
+    double DeterminantF                    = rValues.GetDeterminantF();
 
     const GeometryType&  DomainGeometry    = rValues.GetElementGeometry ();
     const Vector&        ShapeFunctions    = rValues.GetShapeFunctionsValues ();
@@ -220,7 +219,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
     ElasticVariables.SetElementGeometry(DomainGeometry);
     ElasticVariables.SetShapeFunctionsValues(ShapeFunctions);
-
+        
     MPMFlowRule::RadialReturnVariables ReturnMappingVariables;
     // ReturnMappingVariables.initialize(); //it has to be called at the start
     ReturnMappingVariables.clear();
@@ -279,6 +278,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
             If and only if GetElasticLeftCachyGreen is a protected member of the flow rule that I am using.
             Otherwise a public member of the flow rule base class has to be added as in this case.*/
         mpMPMFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, StressMatrix, NewElasticLeftCauchyGreen);
+
         mPlasticRegion = 0;
         if( ReturnMappingVariables.Options.Is(MPMFlowRule::PLASTIC_REGION) )
         {
@@ -297,6 +297,10 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         double alfa = 0.0;
         this->CalculateElastoPlasticTangentMatrix( ReturnMappingVariables, ElasticVariables.CauchyGreenMatrix, alfa, AuxConstitutiveMatrix, ElasticVariables);
         ConstitutiveMatrix = this->SetConstitutiveMatrixToAppropiateDimension(ConstitutiveMatrix, AuxConstitutiveMatrix);
+
+        // Update Determinant of Deformation Gradient F
+        DeterminantF        = std::sqrt(MathUtils<double>::Det(mpMPMFlowRule->GetElasticLeftCauchyGreen(ReturnMappingVariables)));
+        rValues.SetDeterminantF(DeterminantF);
     }
 
     if( Options.Is( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ) )
@@ -304,7 +308,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         mpMPMFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
         
         mElasticLeftCauchyGreen = mpMPMFlowRule->GetElasticLeftCauchyGreen(ReturnMappingVariables);
-        
+
         ElasticVariables.DeformationGradientF = DeformationGradientF;
         ElasticVariables.DeformationGradientF = Transform2DTo3D(ElasticVariables.DeformationGradientF);
         MathUtils<double>::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
