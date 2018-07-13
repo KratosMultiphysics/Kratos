@@ -643,14 +643,14 @@ protected:
                 noalias(rRightHandSideVector) += w_gauss * rhs_local;
             }
 
-            // Add the intersection boundary fluxes contribution comping from the integration by parts
+            // Add the intersection boundary fluxes contribution coming from the integration by parts
             this->AddSystemBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
 
             // Add the normal component penalty contribution
-            this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
+            // this->AddSystemNormalVelocityPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
 
             // Add the "wall law" shear contribution
-            this->AddSystemWallLawShearContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
+            // this->AddSystemWallLawShearContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
 
             // Use the pressure as a Lagrange multiplier to enforce the no penetration condition
             // this->AddSystemNormalVelocityLagrangeMultiplierContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
@@ -1126,17 +1126,17 @@ protected:
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
                 for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
                     const double mu = rData.mu(j_node);
-                    const double rho = rData.rho(j_node);
-                    // const double d = r_elem_dist(j_node);
-                    const double d = 1e-6;
-                    // const double aux_const = mu/(rho*std::abs(d));
+                    const double d = r_elem_dist(j_node);
+                    // const double d = 1e-12;
                     const double aux_const = mu/(std::abs(d));
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i_node*BlockSize + m;
                         for (unsigned int n = 0; n < TDim; ++n) {
                             const unsigned int col = j_node*BlockSize + n;
-                            rLeftHandSideMatrix(row,col) += w_gauss*aux_N[i_node]*aux_const*aux_N[j_node];
-                            rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(col);
+                            rLeftHandSideMatrix(row,row) += w_gauss*aux_N[i_node]*aux_const*aux_N[j_node];
+                            rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(row);
+                            // rLeftHandSideMatrix(row,col) += w_gauss*aux_N[i_node]*aux_const*aux_N[j_node];
+                            // rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(col);
                         }
                     }
                 }
@@ -1155,17 +1155,17 @@ protected:
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
                 for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
                     const double mu = rData.mu[j_node];
-                    const double rho = rData.rho[j_node];
-                    // const double d = r_elem_dist(j_node);
-                    const double d = 1e-6;
-                    // const double aux_const = mu/(rho*std::abs(d));
+                    const double d = r_elem_dist(j_node);
+                    // const double d = 1e-12;
                     const double aux_const = mu/(std::abs(d));
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i_node*BlockSize + m;
                         for (unsigned int n = 0; n < TDim; ++n) {
                             const unsigned int col = j_node*BlockSize + n;
-                            rLeftHandSideMatrix(row,col) += w_gauss*aux_N[i_node]*aux_const*aux_N[j_node];
-                            rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(col);
+                            rLeftHandSideMatrix(row,row) += w_gauss*aux_N[i_node]*aux_const*aux_N[j_node];
+                            rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(row);
+                            // rLeftHandSideMatrix(row,col) += w_gauss*aux_N[i_node]*aux_const*aux_N[j_node];
+                            // rRightHandSideVector(row) -= w_gauss*aux_N[i_node]*aux_const*aux_N[j_node]*prev_sol(col);
                         }
                     }
                 }
@@ -1203,10 +1203,8 @@ protected:
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
                 for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
                     const double mu = rData.mu[j_node];
-                    const double rho = rData.rho[j_node];
-                    // const double d = r_elem_dist(j_node);
-                    const double d = 1e-6;
-                    // const double aux_const = mu/(rho*std::abs(d));
+                    const double d = r_elem_dist(j_node);
+                    // const double d = 1e-12;
                     const double aux_const = mu/(std::abs(d));
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i_node*BlockSize + m;
@@ -1231,10 +1229,8 @@ protected:
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
                 for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
                     const double mu = rData.mu[j_node];
-                    const double rho = rData.rho[j_node];
-                    // const double d = r_elem_dist(j_node);
-                    const double d = 1e-6;
-                    // const double aux_const = mu/(rho*std::abs(d));
+                    const double d = r_elem_dist(j_node);
+                    // const double d = 1e-12;
                     const double aux_const = mu/(std::abs(d));
                     for (unsigned int m = 0; m < TDim; ++m) {
                         const unsigned int row = i_node*BlockSize + m;
@@ -1417,8 +1413,8 @@ protected:
                                 avg_rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
-        const double K = 10000.0;
-        const double pen_coef = K * pen_cons / intersection_area;
+        const double K = 1.0e+04;
+        const double pen_coef = K * pen_cons / std::pow(rData.h,TDim-1);
 
         return pen_coef;
     }
