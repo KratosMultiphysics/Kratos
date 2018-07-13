@@ -21,8 +21,8 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 #include "nurbs_brep_application_variables.h"
-#include "custom_utilities/NodeCurveGeometry3D.h"
-#include "custom_utilities/NodeSurfaceGeometry3D.h"
+#include "custom_utilities/node_curve_geometry_3d.h"
+#include "custom_utilities/node_surface_geometry_3d.h"
 
 namespace py = pybind11;
 
