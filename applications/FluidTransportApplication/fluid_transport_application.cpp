@@ -46,6 +46,7 @@ void KratosFluidTransportApplication::Register()
  	std::cout << "Initializing KratosFluidTransportApplication... " << std::endl;
 
     KRATOS_REGISTER_VARIABLE(PECLET);
+    KRATOS_REGISTER_VARIABLE(DT_PHI);
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PHI_GRADIENT);
 
     KRATOS_REGISTER_ELEMENT( "SteadyConvectionDiffusionFICElement2D3N", mSteadyConvectionDiffusionFICElement2D3N )

@@ -41,6 +41,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"reform_dofs_at_each_step\":           [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
     puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     puts $FileVar "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
+    puts $FileVar "        \"newmark_theta\":                      [GiD_AccessValue get gendata Newmark_Theta],"
     puts $FileVar "        \"strategy_type\":                      \"[GiD_AccessValue get gendata Strategy_Type]\","
     puts $FileVar "        \"convergence_criterion\":              \"[GiD_AccessValue get gendata Convergence_Criterion]\","
     puts $FileVar "        \"displacement_relative_tolerance\":    [GiD_AccessValue get gendata Displacement_Relative_Tolerance],"

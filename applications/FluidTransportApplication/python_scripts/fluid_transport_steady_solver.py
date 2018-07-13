@@ -41,6 +41,7 @@ class FluidTransportSteadySolver(object):
             "reform_dofs_at_each_step":           false,
             "block_builder":                      true,
             "solution_type":                      "Steady",
+            "newmark_theta":                      0.5,
             "strategy_type":                      "Linear",
             "convergence_criterion":              "And_criterion",
             "displacement_relative_tolerance":    1.0E-4,
@@ -99,6 +100,7 @@ class FluidTransportSteadySolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.DT_PHI) # Generic variable refering to the time derivative of unknown variable
 
         print("Variables correctly added")
 
@@ -144,7 +146,7 @@ class FluidTransportSteadySolver(object):
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
 
         # Solution scheme creation
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        scheme = self._ConstructScheme(self.settings["solution_type"].GetString())
 
         # Solver creation
         self.Solver = self._ConstructSolver(builder_and_solver,
@@ -242,6 +244,17 @@ class FluidTransportSteadySolver(object):
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
         return builder_and_solver
+
+    def _ConstructScheme(self, solution_type):
+
+        # Creating the builder and solver
+        if(solution_type == "Steady"):
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        else:
+            theta = self.settings["newmark_theta"].GetDouble()
+            scheme = KratosFluidTransport.GeneralizedNewmarkGN11Scheme(theta)
+
+        return scheme
 
     def _ConstructSolver(self, builder_and_solver, scheme, strategy_type):
 
