@@ -75,7 +75,7 @@ public:
         const int IndexU,
         const int IndexV) const override
     {
-        auto& node = *Node(IndexU, IndexV);
+        const auto& node = *Node(IndexU, IndexV);
 
         VectorType pole;
         pole[0] = node[0];
