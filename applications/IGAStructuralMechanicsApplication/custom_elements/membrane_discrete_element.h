@@ -109,45 +109,24 @@ public:
         ProcessInfo& rCurrentProcessInfo
     ) override;
 
-    /**
-    * Sets on rResult the ID's of the element degrees of freedom
-    * @param rResult: The vector containing the equation id
-    * @param rCurrentProcessInfo: The current process info instance
-    */
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
 
-    /**
-    * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-    * @param rElementalDofList: The vector containing the dof of the element
-    * @param rCurrentProcessInfo: The current process info instance
-    */
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+    void CalculateStresses(
+        Vector& rStresses,
+        const ProcessInfo& rCurrentProcessInfo);
 
+    void CalculatePresstressTensor(
+        Vector& rPrestressTensor,
+        MetricVariables& rMetric);
     ///@}
 
 protected:
-    /**
-    * It initializes the material
-    */
-    virtual void InitializeMaterial();
-    /**
-    * Called at the end of eahc solution step
-    * @param rCurrentProcessInfo: the current process info instance
-    */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 private:
     ///@name Static Member Variables
     ///@{
     ///@name Operations
     ///@{
-    void CalculateMetric( MetricVariables& metric ) override;
+    void CalculateMetric( MetricVariables& rMetric ) override;
 
 
     /**

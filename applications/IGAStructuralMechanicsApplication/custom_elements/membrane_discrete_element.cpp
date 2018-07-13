@@ -19,7 +19,6 @@
 
 // External includes
 
-
 // Project includes
 #include "custom_elements/membrane_discrete_element.h"
 
@@ -29,84 +28,6 @@
 
 namespace Kratos
 {
-    //************************************************************************************
-    //************************************************************************************
-    void MembraneDiscreteElement::EquationIdVector(
-        EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        KRATOS_TRY;
-        unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int dim = number_of_nodes * 3;
-
-        if (rResult.size() != dim)
-            rResult.resize(dim);
-
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            int index = i * 3;
-            rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-        }
-        KRATOS_CATCH("")
-    };
-
-    //************************************************************************************
-    //************************************************************************************
-    void MembraneDiscreteElement::GetDofList(
-        DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        KRATOS_TRY;
-
-        rElementalDofList.resize(0);
-
-        for (unsigned int i = 0; i < GetGeometry().size(); i++)
-        {
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-        }
-
-        KRATOS_CATCH("")
-    };
-    //***********************************************************************************
-    //***********************************************************************************
-    void MembraneDiscreteElement::FinalizeSolutionStep(
-        ProcessInfo& rCurrentProcessInfo)
-    {
-        mConstitutiveLaw->FinalizeSolutionStep(GetProperties(),
-            GetGeometry(),
-            this->GetValue(SHAPE_FUNCTION_VALUES),
-            rCurrentProcessInfo);
-    }
-    //************************************************************************************
-    //************************************************************************************
-    void MembraneDiscreteElement::InitializeMaterial()
-    {
-        KRATOS_TRY
-
-            if (GetProperties()[CONSTITUTIVE_LAW] != NULL)
-            {
-                //get shape functions for evaluation of stresses inside the constitutive law
-                const Vector&  N = this->GetValue(SHAPE_FUNCTION_VALUES);
-                //const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-                //const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-
-                mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-                ProcessInfo emptyProcessInfo = ProcessInfo();
-                mConstitutiveLaw->InitializeMaterial(GetProperties(), GetGeometry(), N);
-            }
-            else
-            {
-                KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
-            }
-
-        KRATOS_CATCH("");
-    }
     //************************************************************************************
     //************************************************************************************
     void MembraneDiscreteElement::CalculateAll(
@@ -153,6 +74,10 @@ namespace Kratos
         ConstitutiveVariables constitutive_variables(3);
         CalculateConstitutiveVariables(actual_metric, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
 
+        Vector prestress_tensor = ZeroVector(3);
+        CalculatePresstressTensor(prestress_tensor, actual_metric);
+        constitutive_variables.S += prestress_tensor;
+
         // calculate B MATRICES
         Matrix BMembrane = ZeroMatrix(3, mat_size);
         CalculateBMembrane(BMembrane, actual_metric);
@@ -169,13 +94,13 @@ namespace Kratos
             //adding membrane contributions to the stiffness matrix
             CalculateAndAddKm(rLeftHandSideMatrix, 
                 BMembrane, 
-                constitutive_variables.DMembrane, 
+                constitutive_variables.D,
                 weighting);
 
             //adding non-linear-contribution to Stiffness-Matrix
             CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
                 SecondVariationsStrain,
-                constitutive_variables.StressVector,
+                constitutive_variables.S,
                 weighting);
         }
 
@@ -183,7 +108,7 @@ namespace Kratos
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
             // operation performed: rRightHandSideVector -= Weight*IntForce
-            noalias(rRightHandSideVector) -= weighting * prod(trans(BMembrane), constitutive_variables.StressVector);
+            noalias(rRightHandSideVector) -= weighting * prod(trans(BMembrane), constitutive_variables.S);
         }
         KRATOS_CATCH("");
     }
@@ -198,61 +123,22 @@ namespace Kratos
     {
         if (rVariable == VON_MISES_STRESS)
         {
-            // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-            // Set constitutive law flags:
-            Flags& ConstitutiveLawOptions = Values.GetOptions();
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+            Vector stresses = ZeroVector(3);
+            CalculateStresses(stresses, rCurrentProcessInfo);
 
-            MetricVariables actual_metric(3);
-            CalculateMetric(actual_metric);
-            ConstitutiveVariables constitutive_variables(3);
-            CalculateConstitutiveVariables(actual_metric, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
-
-            double detF = actual_metric.dA / mInitialMetric.dA;
-
-            Vector n_pk2_ca = prod(constitutive_variables.DMembrane, constitutive_variables.StrainVector);
-            Vector n_pk2_con = prod(mInitialMetric.T, n_pk2_ca);
-            Vector n_cau = 1.0 / detF*n_pk2_con;
-
-            Vector n = ZeroVector(8);
-            // Cauchy normal force in normalized g1,g2
-            n[0] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[0])*n_cau[0];
-            n[1] = sqrt(actual_metric.gab[1] / actual_metric.gab_con[1])*n_cau[1];
-            n[2] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[1])*n_cau[2];
-            // Cauchy normal force in local cartesian e1,e2
-            array_1d<double, 3> n_e = prod(actual_metric.T, n_cau);
-            n[3] = n_e[0];
-            n[4] = n_e[1];
-            n[5] = n_e[2];
+            Vector principal_forces = ZeroVector(3);
             // Principal normal forces
-            n[6] = 0.5*(n_e[0] + n_e[1] + sqrt(pow(n_e[0] - n_e[1], 2) + 4.0*pow(n_e[2], 2)));
-            n[7] = 0.5*(n_e[0] + n_e[1] - sqrt(pow(n_e[0] - n_e[1], 2) + 4.0*pow(n_e[2], 2)));
+            principal_forces[0] = 0.5*(stresses[0] + stresses[1]) + sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_forces[1] = 0.5*(stresses[0] + stresses[1]) - sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_forces[2] = sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
 
-
-            double thickness = this->GetProperties().GetValue(THICKNESS);
-
-            double W = pow(thickness, 2) / 6.0;
-            double sigma_1_top = n[3] / thickness;
-            double sigma_2_top = n[4] / thickness;
-            double sigma_3_top = n[5] / thickness;
-            double vMises = pow(pow(sigma_1_top, 2) + pow(sigma_2_top, 2) - sigma_1_top*sigma_2_top + 3 * pow(sigma_3_top, 2), 0.5);
+            double vMises = sqrt(pow(principal_forces[0], 2) + pow(principal_forces[1], 2) - principal_forces[0] * principal_forces[1] + 3 * pow(principal_forces[2], 2));
 
             rOutput = vMises;
         }
-        else if (rVariable == DAMAGE_T)
-        {
-            mConstitutiveLaw->GetValue(DAMAGE_T, rOutput);
-        }
-        else if (rVariable == DAMAGE_C)
-        {
-            mConstitutiveLaw->GetValue(DAMAGE_C, rOutput);
-        }
         else
         {
-            SurfaceBaseDiscreteElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+            //SurfaceBaseDiscreteElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
         }
     }
 
@@ -262,54 +148,41 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
-        if (rValues.size() != 1)
-        {
-            rValues.resize(1);
-        }
-
         if (rVariable == STRESSES)
         {
-            // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-            // Set constitutive law flags:
-            Flags& ConstitutiveLawOptions = Values.GetOptions();
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+            Vector stresses = ZeroVector(3);
 
-            MetricVariables actual_metric(3);
-            CalculateMetric(actual_metric);
-            ConstitutiveVariables constitutive_variables(3);
-            CalculateConstitutiveVariables(actual_metric, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
+            CalculateStresses(stresses, rCurrentProcessInfo);
 
-            double detF = actual_metric.dA / mInitialMetric.dA;
+            rValues = stresses;
+        }
+        else if (rVariable == PRINCIPAL_STRESSES)
+        {
+            Vector stresses = ZeroVector(3);
+            CalculateStresses(stresses, rCurrentProcessInfo);
 
-            Vector n_pk2_ca = prod(constitutive_variables.DMembrane, constitutive_variables.StrainVector);
-            Vector n_pk2_con = prod(mInitialMetric.T, n_pk2_ca);
-            Vector n_cau = 1.0 / detF*n_pk2_con;
-
-            Vector n = ZeroVector(8);
-            // Cauchy normal force in normalized g1,g2
-            n[0] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[0])*n_cau[0];
-            n[1] = sqrt(actual_metric.gab[1] / actual_metric.gab_con[1])*n_cau[1];
-            n[2] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[1])*n_cau[2];
-            // Cauchy normal force in local cartesian e1,e2
-            array_1d<double, 3> n_e = prod(actual_metric.T, n_cau);
-            n[3] = n_e[0];
-            n[4] = n_e[1];
-            n[5] = n_e[2];
+            Vector principal_stresses = ZeroVector(3);
             // Principal normal forces
-            n[6] = 0.5*(n_e[0] + n_e[1] + sqrt(pow(n_e[0] - n_e[1], 2) + 4.0*pow(n_e[2], 2)));
-            n[7] = 0.5*(n_e[0] + n_e[1] - sqrt(pow(n_e[0] - n_e[1], 2) + 4.0*pow(n_e[2], 2)));
+            principal_stresses[0] = 0.5*(stresses[0] + stresses[1]) + sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[1] = 0.5*(stresses[0] + stresses[1]) - sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[2] = sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
 
-            double thickness = this->GetProperties().GetValue(THICKNESS);
+            rValues = principal_stresses;
+        }
+        else if (rVariable == PRINCIPAL_FORCES)
+        {
+            Vector stresses = ZeroVector(3);
+            CalculateStresses(stresses, rCurrentProcessInfo);
 
-            Vector sigma_top = ZeroVector(3);
-            sigma_top(0) = n[3] / thickness;
-            sigma_top(1) = n[4] / thickness;
-            sigma_top(2) = n[5] / thickness;
+            Vector principal_stresses = ZeroVector(3);
+            // Principal normal forces
+            principal_stresses[0] = 0.5*(stresses[0] + stresses[1]) + sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[1] = 0.5*(stresses[0] + stresses[1]) - sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
+            principal_stresses[2] = sqrt(pow((stresses[0] - stresses[1]) / 2, 2) + pow(stresses[2], 2));
 
-            rValues = sigma_top;
+            const double thickness = GetValue(THICKNESS);
+
+            rValues = principal_stresses * thickness;
         }
         else
         {
@@ -317,6 +190,54 @@ namespace Kratos
         }
     }
 
+    void MembraneDiscreteElement::CalculateStresses(
+        Vector& rStresses,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        if (rStresses.size() != 5)
+            rStresses.resize(5);
+        noalias(rStresses) = ZeroVector(5); //resetting LHS
+        
+
+        const int number_of_control_points = GetGeometry().size();
+        const int mat_size = number_of_control_points * 3;
+
+        //set up properties for Constitutive Law
+        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
+        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+        MetricVariables actual_metric(3);
+        CalculateMetric(actual_metric);
+        ConstitutiveVariables constitutive_variables(3);
+        CalculateConstitutiveVariables(actual_metric, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
+
+        double detF = actual_metric.dA / mInitialMetric.dA;
+
+        Vector prestress_tensor = ZeroVector(3);
+        CalculatePresstressTensor(prestress_tensor, actual_metric);
+        constitutive_variables.S += prestress_tensor;
+
+        // PK2 normal force in local cartesian e1, e2
+        rStresses[0] = constitutive_variables.S[0];
+        rStresses[1] = constitutive_variables.S[1];
+        rStresses[2] = constitutive_variables.S[2];
+    }
+
+    void MembraneDiscreteElement::CalculatePresstressTensor(
+        Vector& rPrestressTensor,
+        MetricVariables& rMetric
+    )
+    {
+        rPrestressTensor.resize(3);
+
+        const Vector prestress_variable = this->GetValue(MEMBRANE_PRESTRESS_TENSOR_PK2);
+        const double thickness = this->GetValue(THICKNESS);
+
+        rPrestressTensor = prestress_variable;
+    }
 
     void MembraneDiscreteElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,
@@ -324,15 +245,15 @@ namespace Kratos
     )
     {
         KRATOS_TRY;
-        double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-        Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
-        Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+        const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+        const Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+        const Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
-        double thickness = this->GetProperties().GetValue(THICKNESS);
-        double density = this->GetProperties().GetValue(DENSITY);
-        double mass = thickness * density * mInitialMetric.dA * integration_weight;
+        const double thickness = this->GetProperties().GetValue(THICKNESS);
+        const double density = this->GetProperties().GetValue(DENSITY);
+        const double mass = thickness * density * mInitialMetric.dA * integration_weight;
 
-        const int number_of_control_points = ShapeFunctionsN.size();
+        const int number_of_control_points = N.size();
         const int mat_size = 3 * number_of_control_points;
 
         if (rMassMatrix.size1() != mat_size)
@@ -343,7 +264,7 @@ namespace Kratos
         {
             for (int s = 0; s<number_of_control_points; s++)
             {
-                rMassMatrix(3 * s,     3 * r)     = ShapeFunctionsN(s)*ShapeFunctionsN(r) * mass;
+                rMassMatrix(3 * s,     3 * r)     = N(s)*N(r) * mass;
                 rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
                 rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
             }
@@ -353,88 +274,88 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     void MembraneDiscreteElement::CalculateMetric(
-        MetricVariables& metric
+        MetricVariables& rMetric
     )
     {
         const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         const Matrix& DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
-        Jacobian(DN_De, metric.J);
+        Jacobian(DN_De, rMetric.J);
 
 
-        metric.g1[0] = metric.J(0, 0);
-        metric.g2[0] = metric.J(0, 1);
-        metric.g1[1] = metric.J(1, 0);
-        metric.g2[1] = metric.J(1, 1);
-        metric.g1[2] = metric.J(2, 0);
-        metric.g2[2] = metric.J(2, 1);
+        rMetric.g1[0] = rMetric.J(0, 0);
+        rMetric.g2[0] = rMetric.J(0, 1);
+        rMetric.g1[1] = rMetric.J(1, 0);
+        rMetric.g2[1] = rMetric.J(1, 1);
+        rMetric.g1[2] = rMetric.J(2, 0);
+        rMetric.g2[2] = rMetric.J(2, 1);
 
         //basis vector g3
-        MathUtils<double>::CrossProduct(metric.g3, metric.g1, metric.g2);
+        MathUtils<double>::CrossProduct(rMetric.g3, rMetric.g1, rMetric.g2);
         //differential area dA
-        metric.dA = norm_2(metric.g3);
+        rMetric.dA = norm_2(rMetric.g3);
         //normal vector _n
-        Vector n = metric.g3 / metric.dA;
+        Vector n = rMetric.g3 / rMetric.dA;
 
 
         //GetCovariantMetric
-        metric.gab[0] = pow(metric.g1[0], 2) + pow(metric.g1[1], 2) + pow(metric.g1[2], 2);
-        metric.gab[1] = pow(metric.g2[0], 2) + pow(metric.g2[1], 2) + pow(metric.g2[2], 2);
-        metric.gab[2] = metric.g1[0] * metric.g2[0] + metric.g1[1] * metric.g2[1] + metric.g1[2] * metric.g2[2];
+        rMetric.gab[0] = pow(rMetric.g1[0], 2) + pow(rMetric.g1[1], 2) + pow(rMetric.g1[2], 2);
+        rMetric.gab[1] = pow(rMetric.g2[0], 2) + pow(rMetric.g2[1], 2) + pow(rMetric.g2[2], 2);
+        rMetric.gab[2] = rMetric.g1[0] * rMetric.g2[0] + rMetric.g1[1] * rMetric.g2[1] + rMetric.g1[2] * rMetric.g2[2];
 
-        Hessian(metric.H, DDN_DDe);
+        Hessian(rMetric.H, DDN_DDe);
 
-        metric.curvature[0] = metric.H(0, 0)*n[0] + metric.H(1, 0)*n[1] + metric.H(2, 0)*n[2];
-        metric.curvature[1] = metric.H(0, 1)*n[0] + metric.H(1, 1)*n[1] + metric.H(2, 1)*n[2];
-        metric.curvature[2] = metric.H(0, 2)*n[0] + metric.H(1, 2)*n[1] + metric.H(2, 2)*n[2];
+        rMetric.curvature[0] = rMetric.H(0, 0)*n[0] + rMetric.H(1, 0)*n[1] + rMetric.H(2, 0)*n[2];
+        rMetric.curvature[1] = rMetric.H(0, 1)*n[0] + rMetric.H(1, 1)*n[1] + rMetric.H(2, 1)*n[2];
+        rMetric.curvature[2] = rMetric.H(0, 2)*n[0] + rMetric.H(1, 2)*n[1] + rMetric.H(2, 2)*n[2];
 
 
-        //contravariant metric gab_con and base vectors g_con
+        //contravariant rMetric gab_con and base vectors g_con
         //Vector gab_con = ZeroVector(3);
-        double invdetGab = 1.0 / (metric.gab[0] * metric.gab[1] - metric.gab[2] * metric.gab[2]);
-        metric.gab_con[0] = invdetGab*metric.gab[1];
-        metric.gab_con[2] = -invdetGab*metric.gab[2];
-        metric.gab_con[1] = invdetGab*metric.gab[0];
+        double invdetGab = 1.0 / (rMetric.gab[0] * rMetric.gab[1] - rMetric.gab[2] * rMetric.gab[2]);
+        rMetric.gab_con[0] = invdetGab*rMetric.gab[1];
+        rMetric.gab_con[2] = -invdetGab*rMetric.gab[2];
+        rMetric.gab_con[1] = invdetGab*rMetric.gab[0];
 
 
-        array_1d<double, 3> g_con_1 = metric.g1*metric.gab_con[0] + metric.g2*metric.gab_con[2];
-        array_1d<double, 3> g_con_2 = metric.g1*metric.gab_con[2] + metric.g2*metric.gab_con[1];
+        array_1d<double, 3> g_con_1 = rMetric.g1*rMetric.gab_con[0] + rMetric.g2*rMetric.gab_con[2];
+        array_1d<double, 3> g_con_2 = rMetric.g1*rMetric.gab_con[2] + rMetric.g2*rMetric.gab_con[1];
 
 
         //local cartesian coordinates
-        double lg1 = norm_2(metric.g1);
-        array_1d<double, 3> e1 = metric.g1 / lg1;
+        double lg1 = norm_2(rMetric.g1);
+        array_1d<double, 3> e1 = rMetric.g1 / lg1;
         double lg_con2 = norm_2(g_con_2);
         array_1d<double, 3> e2 = g_con_2 / lg_con2;
 
         //Matrix T_G_E = ZeroMatrix(3, 3);
         //Transformation matrix T from contravariant to local cartesian basis
-        double eG11 = inner_prod(e1, metric.g1);
-        double eG12 = inner_prod(e1, metric.g2);
-        double eG21 = inner_prod(e2, metric.g1);
-        double eG22 = inner_prod(e2, metric.g2);
+        double eG11 = inner_prod(e1, rMetric.g1);
+        double eG12 = inner_prod(e1, rMetric.g2);
+        double eG21 = inner_prod(e2, rMetric.g1);
+        double eG22 = inner_prod(e2, rMetric.g2);
 
-        metric.Q = ZeroMatrix(3, 3);
-        metric.Q(0, 0) = eG11*eG11;
-        metric.Q(0, 1) = eG12*eG12;
-        metric.Q(0, 2) = 2.0*eG11*eG12;
-        metric.Q(1, 0) = eG21*eG21;
-        metric.Q(1, 1) = eG22*eG22;
-        metric.Q(1, 2) = 2.0*eG21*eG22;
-        metric.Q(2, 0) = 2.0*eG11*eG21;
-        metric.Q(2, 1) = 2.0*eG12*eG22;
-        metric.Q(2, 2) = 2.0*eG11*eG22 + eG12*eG21;
+        rMetric.Q = ZeroMatrix(3, 3);
+        rMetric.Q(0, 0) = eG11*eG11;
+        rMetric.Q(0, 1) = eG12*eG12;
+        rMetric.Q(0, 2) = 2.0*eG11*eG12;
+        rMetric.Q(1, 0) = eG21*eG21;
+        rMetric.Q(1, 1) = eG22*eG22;
+        rMetric.Q(1, 2) = 2.0*eG21*eG22;
+        rMetric.Q(2, 0) = 2.0*eG11*eG21;
+        rMetric.Q(2, 1) = 2.0*eG12*eG22;
+        rMetric.Q(2, 2) = 2.0*eG11*eG22 + eG12*eG21;
 
-        metric.T = ZeroMatrix(3, 3);
-        metric.T(0, 0) = eG11*eG11;
-        metric.T(0, 1) = eG21*eG21;
-        metric.T(0, 2) = 2.0*eG11*eG21;
-        metric.T(1, 0) = eG12*eG12;
-        metric.T(1, 1) = eG22*eG22;
-        metric.T(1, 2) = 2.0*eG12*eG22;
-        metric.T(2, 0) = eG11*eG12;
-        metric.T(2, 1) = eG21*eG22;
-        metric.T(2, 2) = eG11*eG22 + eG12*eG21;
+        rMetric.T = ZeroMatrix(3, 3);
+        rMetric.T(0, 0) = eG11*eG11;
+        rMetric.T(0, 1) = eG21*eG21;
+        rMetric.T(0, 2) = 2.0*eG11*eG21;
+        rMetric.T(1, 0) = eG12*eG12;
+        rMetric.T(1, 1) = eG22*eG22;
+        rMetric.T(1, 2) = 2.0*eG12*eG22;
+        rMetric.T(2, 0) = eG11*eG12;
+        rMetric.T(2, 1) = eG21*eG22;
+        rMetric.T(2, 2) = eG11*eG22 + eG12*eG21;
     }
     //************************************************************************************
     //************************************************************************************
@@ -448,18 +369,18 @@ namespace Kratos
         Vector strain_vector = ZeroVector(3);
 
         CalculateStrain(strain_vector, rActualMetric.gab, mInitialMetric.gab);
-        rThisConstitutiveVariables.StrainVector = prod(mInitialMetric.Q, strain_vector);
+        rThisConstitutiveVariables.E = prod(mInitialMetric.Q, strain_vector);
 
         //Constitive Matrices DMembrane and DCurvature
-        rValues.SetStrainVector(rThisConstitutiveVariables.StrainVector); //this is the input parameter
-        rValues.SetStressVector(rThisConstitutiveVariables.StressVector);    //this is an ouput parameter
-        rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.DMembrane); //this is an ouput parameter
+        rValues.SetStrainVector(rThisConstitutiveVariables.E); //this is the input parameter
+        rValues.SetStressVector(rThisConstitutiveVariables.S);    //this is an ouput parameter
+        rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); //this is an ouput parameter
 
-        mConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
+        mConstitutiveLawVector[0]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
         //Local Cartesian Forces and Moments
-        rThisConstitutiveVariables.StressVector = prod(
-            trans(rThisConstitutiveVariables.DMembrane), rThisConstitutiveVariables.StrainVector);
+        rThisConstitutiveVariables.S = prod(
+            trans(rThisConstitutiveVariables.D), rThisConstitutiveVariables.E);
     }
 } // Namespace Kratos
 
