@@ -60,16 +60,24 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseKirchhoff(Con
 
 void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    ConstitutiveLaw::Pointer plaw = this->GetPlasticityConstitutiveLaw();
+    
     Vector plastic_strain = ZeroVector(6);
+
+    plaw->GetValue(PLASTIC_STRAIN_VECTOR, plastic_strain);
+    
     mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, plastic_strain);
-    Vector& strain_vector = rValues.GetStrainVector();
-    const Vector strain_for_visco = strain_vector - plastic_strain;
-    const Vector initial_strain_vector = strain_vector;
+    //KRATOS_WATCH(plastic_strain)
+    //Vector& strain_vector = rValues.GetStrainVector();
+    //const Vector strain_for_visco = strain_vector - plastic_strain;
+    //const Vector initial_strain_vector = strain_vector;
 
-    strain_vector = strain_for_visco;
-    mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Relaxes the Stress...
+    // strain_vector = strain_for_visco;
+	// rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    // mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Relaxes the Stress...
 
-    strain_vector = initial_strain_vector;
+    //strain_vector = initial_strain_vector;
+	rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     mpPlasticityConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Plastification occurs...
 
 } // End CalculateMaterialResponseCauchy
@@ -85,11 +93,11 @@ void GenericSmallStrainViscoplasticity3D::FinalizeSolutionStep(
     )
 {
     // Update the int vars of each SubConstitutiveLaw
-    mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
-                                rShapeFunctionsValues,rCurrentProcessInfo);
+    mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
+                                rShapeFunctionsValues, rCurrentProcessInfo);
 
-    mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
-                        rShapeFunctionsValues,rCurrentProcessInfo);
+    // mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
+    //                     rShapeFunctionsValues,rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -154,4 +162,63 @@ void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseKirchhoff(Cons
 void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double& GenericSmallStrainViscoplasticity3D::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
+    )
+{
+    if(rThisVariable == UNIAXIAL_STRESS) {
+        rValue = mpPlasticityConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+        rValue = mpPlasticityConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, rValue);
+    }
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector& GenericSmallStrainViscoplasticity3D::GetValue(
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue
+    )
+{
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        rValue = mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
+    }
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GenericSmallStrainViscoplasticity3D::Has(const Variable<double>& rThisVariable)
+{
+    if (rThisVariable == UNIAXIAL_STRESS) {
+        return true;
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+        return true;
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double& GenericSmallStrainViscoplasticity3D::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<double>& rThisVariable,
+    double& rValue)
+{
+    return this->GetValue(rThisVariable, rValue);
+}
+
+
+
+
 } // namespace kratos

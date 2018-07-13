@@ -201,6 +201,17 @@ public:
      */
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+
+    bool Has(const Variable<double>& rThisVariable) override;
+
+    double& CalculateValue(
+        Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
+        double& rValue) override;
+
     ///@}
     ///@name Access
     ///@{
