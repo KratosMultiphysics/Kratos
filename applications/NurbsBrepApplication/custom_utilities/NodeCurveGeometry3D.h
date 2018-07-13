@@ -14,7 +14,7 @@
 namespace Kratos {
 
 class NodeCurveGeometry3D
-: public ANurbs::CurveGeometryBase<double, Kratos::array_1d<double, 3>>
+    : public ANurbs::CurveGeometryBase<double, Kratos::array_1d<double, 3>>
 {
 protected:
     using NodePointer = typename Node<3>::Pointer;
@@ -28,7 +28,7 @@ public:
  
 protected:
     std::vector<NodePointer> mNodes;
- 
+
 public:
     NodeCurveGeometry3D(
         const int Degree,
@@ -37,7 +37,7 @@ public:
         , mNodes(NumberOfNodes)
     {
     }
- 
+
     NodePointer
     Node(
         const int Index
@@ -45,7 +45,7 @@ public:
     {
         return mNodes[Index];
     }
- 
+
     void
     SetNode(
         const int Index,
@@ -54,7 +54,7 @@ public:
     {
         mNodes[Index] = Value;
     }
- 
+
     VectorType
     Pole(
         const int Index) const override
@@ -68,7 +68,7 @@ public:
  
         return pole;
     }
- 
+
     void
     SetPole(
         const int Index,
@@ -80,7 +80,7 @@ public:
         node[1] = Value[1];
         node[2] = Value[2];
     }
- 
+
     bool
     IsRational() const override
     {
@@ -102,10 +102,10 @@ public:
         const ScalarType Value) override
     {
         auto node = Node(Index);
- 
+
         node->SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
     }
-    
+
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
     TDataType
     ValueAt(
@@ -116,7 +116,7 @@ public:
             return Node(i)->GetValue(Variable);
         }, T);
     }
-    
+
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
     std::vector<TDataType>
     ValueAt(
