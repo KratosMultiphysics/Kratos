@@ -33,7 +33,7 @@ void AddCustomUtilitiesToPython(py::module& m)
 {
     using namespace pybind11::literals;
 
-    using Vector3D = Kratos::array_1d<double, 3>;
+    using Array3D = Kratos::array_1d<double, 3>;
 
     // register Interval
     {
@@ -95,13 +95,13 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "Variable"_a,
                 "T"_a,
                 "Order"_a)
-            .def("ValueAt", (Vector3D (Type::*)(const Variable<Vector3D>&,
-                const double)) &Type::ValueAt<Vector3D>,
+            .def("ValueAt", (Array3D (Type::*)(const Variable<Array3D>&,
+                const double)) &Type::ValueAt<Array3D>,
                 "Variable"_a,
                 "T"_a)
-            .def("ValueAt", (std::vector<Vector3D> (Type::*)(
-                const Variable<Vector3D>&, const double, const int))
-                &Type::ValueAt<Vector3D>,
+            .def("ValueAt", (std::vector<Array3D> (Type::*)(
+                const Variable<Array3D>&, const double, const int))
+                &Type::ValueAt<Array3D>,
                 "Variable"_a,
                 "T"_a,
                 "Order"_a)
@@ -178,14 +178,14 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "U"_a,
                 "V"_a,
                 "Order"_a)
-            .def("ValueAt", (Vector3D (Type::*)(const Variable<Vector3D>&,
-                const double, const double)) &Type::ValueAt<Vector3D>,
+            .def("ValueAt", (Array3D (Type::*)(const Variable<Array3D>&,
+                const double, const double)) &Type::ValueAt<Array3D>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a)
-            .def("ValueAt", (std::vector<Vector3D> (Type::*)(
-                const Variable<Vector3D>&, const double, const double,
-                const int)) &Type::ValueAt<Vector3D>,
+            .def("ValueAt", (std::vector<Array3D> (Type::*)(
+                const Variable<Array3D>&, const double, const double,
+                const int)) &Type::ValueAt<Array3D>,
                 "Variable"_a,
                 "U"_a,
                 "V"_a,
