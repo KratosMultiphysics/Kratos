@@ -341,7 +341,7 @@ void SUPGConvDiff2D::CalculateArtifitialViscosity(double& art_visc,
 
 //************************************************************************************
 //************************************************************************************
-void SUPGConvDiff2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void SUPGConvDiff2D::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
 
     /*        double delta_t = rCurrentProcessInfo[DELTA_TIME];*/
