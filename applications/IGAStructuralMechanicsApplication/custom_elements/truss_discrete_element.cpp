@@ -89,7 +89,7 @@ namespace Kratos
 	void TrussDiscreteElement::FinalizeSolutionStep(
 		ProcessInfo& rCurrentProcessInfo)
 	{
-		mConstitutiveLaw->FinalizeSolutionStep(GetProperties(),
+		mConstitutiveLawVector[0]->FinalizeSolutionStep(GetProperties(),
 			GetGeometry(),
 			this->GetValue(SHAPE_FUNCTION_VALUES),
 			rCurrentProcessInfo);
@@ -106,9 +106,9 @@ namespace Kratos
 				const Vector&  N = this->GetValue(SHAPE_FUNCTION_VALUES);
 				const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 
-				mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+                mConstitutiveLawVector[0] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
 				ProcessInfo emptyProcessInfo = ProcessInfo();
-				mConstitutiveLaw->InitializeMaterial(GetProperties(), GetGeometry(), N);
+                mConstitutiveLawVector[0]->InitializeMaterial(GetProperties(), GetGeometry(), N);
 			}
 			else
 			{
