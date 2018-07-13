@@ -100,7 +100,6 @@ namespace Testing
         T::CalculateEquivalentStress(Stress, Strain, TestT, rMaterialProperties);
         SJ::CalculateEquivalentStress(Stress, Strain, TestSJ, rMaterialProperties);
 
-		KRATOS_WATCH(TestDP)
         // Check the results!
         KRATOS_CHECK_NEAR(MCres, TestMC, 0.001e6);
         KRATOS_CHECK_NEAR(VMres, TestVM, 0.0001e6);
