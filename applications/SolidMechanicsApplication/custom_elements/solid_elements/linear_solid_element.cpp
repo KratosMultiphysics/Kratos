@@ -15,6 +15,7 @@
 #include "includes/define.h"
 #include "includes/constitutive_law.h"
 #include "custom_elements/solid_elements/linear_solid_element.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 #include "solid_mechanics_application_variables.h"
 

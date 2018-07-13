@@ -202,6 +202,41 @@ void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorTyp
 
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    SolidElement::InitializeExplicitContributions();
+    
+    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    {
+      case VELOCITY_STEP:
+        {
+
+          for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
+                                                               GetGeometry(),
+                                                               row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
+                                                               rCurrentProcessInfo );
+          break;
+        }
+      case PRESSURE_STEP:
+        {
+          break;
+        }
+      default:
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+    }
+    
+
+    KRATOS_CATCH( "" )
+
+}
+
 //************************************************************************************
 //************************************************************************************
 
@@ -225,6 +260,30 @@ void LargeDisplacementSegregatedVPElement::FinalizeNonLinearIteration( ProcessIn
   KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+    
+    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    {
+      case VELOCITY_STEP:
+        {
+          SolidElement::FinalizeSolutionStep(rCurrentProcessInfo);
+          break;
+        }
+      case PRESSURE_STEP:
+        {
+          break;
+        }
+      default:
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+    }
+    
+    KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************

@@ -68,10 +68,10 @@
 			"time_integration_order" : 1
 		    },
 		    "solving_strategy_settings" : {
-			"iterative_update"       : false,
+			"iterative_update"       : true,
 			"compute_reactions"      : false,
 			"reform_dofs_at_each_step" : true,
-			"max_iteration"          : 15
+			"max_iteration"          : 22
 		    },
 		    "convergence_criterion_settings" : {
 			"convergence_criterion"       : "Variable_criterion",

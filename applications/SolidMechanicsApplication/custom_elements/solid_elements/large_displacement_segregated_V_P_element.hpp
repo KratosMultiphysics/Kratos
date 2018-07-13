@@ -121,6 +121,16 @@ public:
     //************* STARTING - ENDING  METHODS
 
     /**
+     * Called at the beginning of each solution step
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Called at the end of eahc solution step
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    
+    /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
