@@ -89,16 +89,7 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
 
 
     def InitializeSolutionStep(self):
-        (self.bdf_process).Execute()
-        (self.find_nodal_neighbours_process).Execute()
         if self._TimeBufferIsInitialized():
-            (self.solver).InitializeSolutionStep()
-
-
-    def Solve(self):
-        (self.bdf_process).Execute()
-        (self.find_nodal_neighbours_process).Execute()
-
-        # Note that the first two time steps are dropped to fill the BDF buffer
-        if self._TimeBufferIsInitialized():
-            (self.solver).Solve()
+            (self.find_nodal_neighbours_process).Execute()
+            
+        super(NavierStokesEmbeddedAusasMonolithicSolver,self).InitializeSolutionStep()
