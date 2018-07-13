@@ -1022,7 +1022,11 @@ protected:
                                       ProcessInfo& rCurrentProcessInfo)
     {
         std::vector<Vector> values;
+        #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
+        father_elem->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        #else
         father_elem->GetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        #endif
         /* /// WARNING =  Calculando la longitud ponderada de fractura del elemento. Solo valido para isotropic_damage
          Element::GeometryType& geom_father = father_elem->GetGeometry();
          Element::GeometryType& geom_child  = child_elem->GetGeometry();
@@ -1030,7 +1034,11 @@ protected:
          double area_child  = geom_child.Area();
          values[0][4]       = (area_child/area_father) * values[0][4];
          */
+        #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
+        child_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        #else
         child_elem->SetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        #endif
 
     }
 
@@ -1495,6 +1503,6 @@ protected:
 
 } // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_LOCAL_REFINE_SIMPLEX_MESH  defined 
+#endif // KRATOS_TRILINOS_LOCAL_REFINE_SIMPLEX_MESH  defined
 
 
