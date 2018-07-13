@@ -73,9 +73,9 @@ protected:
     */
     struct ConstitutiveVariables
     {
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix DMembrane;
+        Vector E;
+        Vector S;
+        Matrix D;
 
         /**
         * The default constructor
@@ -83,9 +83,9 @@ protected:
         */
         ConstitutiveVariables(const unsigned int& StrainSize)
         {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            DMembrane = ZeroMatrix(StrainSize, StrainSize);
+            E = ZeroVector(StrainSize);
+            S = ZeroVector(StrainSize);
+            D = ZeroMatrix(StrainSize, StrainSize);
         }
     };
 
@@ -173,7 +173,6 @@ public:
     ///@}
 protected:
 
-    ConstitutiveLaw::Pointer mConstitutiveLaw;
     MetricVariables mInitialMetric = MetricVariables(3);
 
     ///@name Operations
@@ -292,13 +291,11 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-        rSerializer.save("ConstitutiveLaw", mConstitutiveLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseDiscreteElement)
     }
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-        rSerializer.load("ConstitutiveLaw", mConstitutiveLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseDiscreteElement)
     }
     ///@}
 };     // Class SurfaceBaseDiscreteElement
