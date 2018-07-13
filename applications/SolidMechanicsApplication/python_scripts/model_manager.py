@@ -259,7 +259,7 @@ class ModelManager(object):
                     transfer_process.Execute()
                 elif (body_model_part_type=="Rigid"):
                     part.Set(KratosMultiphysics.RIGID)
-                    assign_flags = [KratosMultiphysics.RIGID,KratosMultiphysics.BOUNDARY]
+                    assign_flags = [KratosMultiphysics.RIGID]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
 
@@ -279,15 +279,6 @@ class ModelManager(object):
             if( body_model_part_type == "Rigid" ):
                 body_model_part.Set(KratosMultiphysics.RIGID)
                 rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
-
-        #add walls in fluid domains:
-        transfer_flags = [KratosMultiphysics.RIGID,KratosMultiphysics.NOT_FLUID]
-
-        entity_type = "Nodes"
-        for fluid_part in fluid_body_model_parts:
-            for rigid_part in rigid_body_model_parts:
-                transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,rigid_part,entity_type,transfer_flags)
-                transfer_process.Execute()
 
 
     #

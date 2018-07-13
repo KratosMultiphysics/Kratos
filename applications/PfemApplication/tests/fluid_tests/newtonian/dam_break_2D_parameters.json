@@ -1,7 +1,7 @@
 {
     "time_settings" : {
         "time_step"  : 0.001,
-        "end_time"   : 0.15
+        "end_time"   : 0.5
     },
     "model_settings"           : {
 	"model_name"     : "main_domain",
@@ -18,17 +18,14 @@
             "body_type"  : "Rigid",
             "body_name"  : "Body3",
             "parts_list" : ["Parts_Parts_Auto3"]
-        },{
-            "body_type"  : "Rigid",
-            "body_name"  : "Body4",
-            "parts_list" : ["Parts_Parts_Auto4"]
-        }],
-        "domain_parts_list"     : ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3","Parts_Parts_Auto4"],
+        }
+        ],
+        "domain_parts_list"     : ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3"],
         "processes_parts_list"  : ["VELOCITY_Velocity_Auto1"]
     },
     "problem_data"        : {
-	"echo_level"      : 1,
-        "threads"         : 1,
+	"echo_level"      : 0,
+        "threads"         : 2,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
     "solver_settings" : {
@@ -43,9 +40,9 @@
 			"integration_method"     : "Newmark"
 		    },
 		    "solving_strategy_settings" : {
-			"iterative_update"            : false,
+			"iterative_update"            : true,
 			"reform_dofs_at_each_step"    : true,
-			"max_iteration"               : 20
+			"max_iteration"               : 15
 		    },
 		    "convergence_criterion_settings" : {
 			"convergence_criterion"       : "Variable_criterion",
@@ -73,8 +70,8 @@
 		    "solving_strategy_settings" : {
 			"iterative_update"       : false,
 			"compute_reactions"      : false,
-			"reform_dofs_at_each_step"  : true,
-			"max_iteration"          : 22
+			"reform_dofs_at_each_step" : true,
+			"max_iteration"          : 15
 		    },
 		    "convergence_criterion_settings" : {
 			"convergence_criterion"       : "Variable_criterion",
@@ -296,70 +293,6 @@
                     }
                 },
                 "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
-            },{
-                "model_part_name"                 : "Body4",
-                "python_module"                   : "meshing_domain",
-                "alpha_shape"                     : 1.25,
-                "offset_factor"                   : 0.0,
-                "meshing_strategy"                : {
-                    "python_module"                 : "fluid_meshing_strategy",
-                    "meshing_frequency"             : 0,
-                    "remesh"                        : false,
-                    "refine"                        : false,
-                    "reconnect"                     : false,
-                    "transfer"                      : false,
-                    "constrained"                   : false,
-                    "mesh_smoothing"                : false,
-                    "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
-                    "reference_element_type"        : "UpdatedLagrangianSegregatedFluidElement2D3N",
-                    "reference_condition_type"      : "CompositeCondition2D2N"
-                },
-                "spatial_bounding_box"            : {
-                    "upper_point" : [0.0,0.0,0.0],
-                    "lower_point" : [0.0,0.0,0.0],
-                    "velocity"    : [0.0,0.0,0.0]
-                },
-                "refining_parameters"             : {
-                    "critical_size"       : 0.0,
-                    "threshold_variable"  : "PLASTIC_STRAIN",
-                    "reference_threshold" : 0.0,
-                    "error_variable"      : "NORM_ISOCHORIC_STRESS",
-                    "reference_error"     : 0.0,
-                    "add_nodes"           : false,
-                    "insert_nodes"        : true,
-                    "remove_nodes"        : {
-                        "apply_removal" : true,
-                        "on_distance"   : true,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "remove_boundary"     : {
-                        "apply_removal" : false,
-                        "on_distance"   : false,
-                        "on_threshold"  : false,
-                        "on_error"      : false
-                    },
-                    "refine_elements"     : {
-                        "apply_refinement" : true,
-                        "on_distance"      : true,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refine_boundary"     : {
-                        "apply_refinement" : false,
-                        "on_distance"      : false,
-                        "on_threshold"     : false,
-                        "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
-                    }
-                },
-                "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
             }]
         }
     }],
@@ -414,6 +347,7 @@
             "output_frequency"    : 1,
             "node_output"         : true,
             "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE","NORMAL"],
+	    "nodal_flags_results" : ["FREE_SURFACE","BOUNDARY","ISOLATED","RIGID"],
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR"]
         }
     }

@@ -268,9 +268,9 @@ namespace Kratos
       else
 	mrRemesh.Info->GeometricalSmoothingRequired = true;
 
-      //if( mrRemesh.Options.Is(MesherUtilities::MESH_SMOOTHING) ){
-      //if( mrRemesh.smoothing && mrRemesh.remesh && mrRemesh.Info->GeometricalSmoothingRequired ){
-      if( mrRemesh.Options.Is(MesherUtilities::MESH_SMOOTHING) && mrRemesh.Info->GeometricalSmoothingRequired ){
+      // check geometrical smoothing is better for solid cutting problems commented July 2018 for fluid testing
+      //if( mrRemesh.Options.Is(MesherUtilities::MESH_SMOOTHING) && mrRemesh.Info->GeometricalSmoothingRequired ){ 
+      if( mrRemesh.Options.Is(MesherUtilities::MESH_SMOOTHING) ){
       	int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
 	LaplacianSmoothing  MeshGeometricSmoothing(mrModelPart);
 	MeshGeometricSmoothing.SetEchoLevel(mEchoLevel);

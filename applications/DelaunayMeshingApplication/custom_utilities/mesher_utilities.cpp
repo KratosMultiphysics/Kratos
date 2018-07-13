@@ -1762,8 +1762,6 @@ namespace Kratos
 	  if( rMeshingVariables.NodalPreIds[direct] > rMeshingVariables.NodeMaxId)
 	    rMeshingVariables.NodeMaxId = rMeshingVariables.NodalPreIds[direct];
 	}
-	(nodes_begin + i)->Reset(INTERFACE); 
-	(nodes_begin + i)->Reset(FREE_SURFACE);
 
 	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
 

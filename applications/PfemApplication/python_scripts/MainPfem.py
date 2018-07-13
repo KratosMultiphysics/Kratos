@@ -27,6 +27,15 @@ class PfemSolution(MainSolid.Solution):
             extended_problem_processes = self._set_particle_properties_process(problem_processes)
             processes_parameters.AddValue("problem_process_list", extended_problem_processes)
             #print(" EXTENDED_PROBLEM_PROCESSES ", processes_parameters["problem_process_list"].PrettyPrintJsonString())
+
+        if(processes_parameters.Has("constraints_process_list")):
+            constraints_processes = processes_parameters["constraints_process_list"]
+            if(self.echo_level>0):
+                print(" CONSTRAINTS_PROCESSES ", processes_parameters["constraints_process_list"].PrettyPrintJsonString())
+            extended_constraints_processes = self._set_isolated_nodes_management_process(constraints_processes)
+            processes_parameters.AddValue("constraints_process_list", extended_constraints_processes)
+            if(self.echo_level>0):
+                print(" EXTENDED_CONSTRAINTS_PROCESSES ", processes_parameters["constraints_process_list"].PrettyPrintJsonString())
             
         if(processes_parameters.Has("loads_process_list")):
             loads_processes = processes_parameters["loads_process_list"]
@@ -39,6 +48,24 @@ class PfemSolution(MainSolid.Solution):
 
         return processes_parameters
 
+    def _set_isolated_nodes_management_process(self, constraints_processes):
+        
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+             "python_module" : "manage_isolated_nodes_process",
+             "kratos_module" : "KratosMultiphysics.PfemApplication",
+             "Parameters"    : {}             
+        }
+        """)
+
+        model_part_name = self.model.GetMainModelPart().Name
+        default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
+
+        constraints_processes.Append(default_settings)
+
+        return constraints_processes
+
+    
     def _set_volume_acceleration_process(self, loads_processes):
         
         default_settings = KratosMultiphysics.Parameters("""

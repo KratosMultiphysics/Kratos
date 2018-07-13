@@ -183,13 +183,9 @@ namespace Kratos
       //ComputeBoundaryNormals BoundUtils;
       BoundaryNormalsCalculationUtilities BoundaryComputation;
       if( mModelPartName == mrModelPart.Name() ){
-        if( mEchoLevel >= 1 )
-          std::cout<<"  Compute Normals in "<<mrModelPart.Name()<<std::endl;
 	BoundaryComputation.CalculateWeightedBoundaryNormals(mrModelPart, mEchoLevel);
       }
       else{
-        if( mEchoLevel >= 1 )
-          std::cout<<"  SB Compute Normals in "<<mModelPartName<<std::endl;
 	ModelPart& rModelPart = mrModelPart.GetSubModelPart(mModelPartName);
 	BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, mEchoLevel);
       }
@@ -618,13 +614,24 @@ namespace Kratos
       ModelPart::ElementsContainerType::iterator elements_begin  = rModelPart.ElementsBegin();
       ModelPart::ElementsContainerType::iterator elements_end    = rModelPart.ElementsEnd();
 
+      //clear nodal boundary flag
+      for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
+	{	  
+	  Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
+
+          for(unsigned int j=0; j<rElementGeometry.size(); ++j)
+          {
+            rElementGeometry[j].Reset(BOUNDARY);
+          }
+        }
+      
       rConditionId=0;
       for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
 	{	  
 	  Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
 
 	  const unsigned int dimension = rElementGeometry.WorkingSpaceDimension();
-	  
+          
 	  if( rElementGeometry.FacesNumber() >= 3 ){ //3 or 4
 
 	    //********************************************************************
@@ -748,6 +755,13 @@ namespace Kratos
 	      } //end loop neighbours
 
 	  }
+          else{
+          //set nodes to BOUNDARY for elements outside of the working space dimension
+            for(unsigned int j=0; j<rElementGeometry.size(); ++j)
+            {
+              rElementGeometry[j].Set(BOUNDARY);
+            }
+          }
 	}
 
        

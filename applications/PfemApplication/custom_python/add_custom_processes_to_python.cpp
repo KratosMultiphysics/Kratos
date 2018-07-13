@@ -22,6 +22,7 @@
 #include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
 #include "custom_processes/assign_properties_to_nodes_process.hpp"
+#include "custom_processes/manage_isolated_nodes_process.hpp"
 
 // Mesher initialization and finalization processes
 #include "custom_processes/settle_fluid_model_structure_process.hpp"
@@ -117,6 +118,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
   class_<RecoverVolumeLossesMesherProcess, RecoverVolumeLossesMesherProcess::Pointer, MesherProcess>
       (m, "RecoverVolumeLosses")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+
+  
+  //*********VOLUME RECOVETY PROCESS********//
+  class_<ManageIsolatedNodesProcess, ManageIsolatedNodesProcess::Pointer, Process>
+      (m, "ManageIsolatedNodesProcess")
+      .def(init<ModelPart&>());
   
 }
  

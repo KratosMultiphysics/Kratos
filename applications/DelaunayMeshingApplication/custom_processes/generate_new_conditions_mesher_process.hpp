@@ -109,6 +109,7 @@ namespace Kratos
       
       if( mEchoLevel > 0 )
 	std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
+      
 
       success=this->UniqueSkinSearch(mrModelPart);
 			    
@@ -201,13 +202,25 @@ namespace Kratos
       
       ModelPart::ElementsContainerType::iterator elements_begin  = mrModelPart.ElementsBegin();
       ModelPart::ElementsContainerType::iterator elements_end    = mrModelPart.ElementsEnd();
-    
+
+
+      //clear nodal boundary flag
+      for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
+	{	  
+	  Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
+
+          for(unsigned int j=0; j<rElementGeometry.size(); ++j)
+          {
+            rElementGeometry[j].Reset(BOUNDARY);
+          }
+        }
+      
       rConditionId=0;
       for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ++ie)
 	{
 	  
 	  Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
-	  
+	          
 	  if( rElementGeometry.FacesNumber() >= 3 ){ //3 or 4
 
 	    /*each face is opposite to the corresponding node number so in 2D triangle
@@ -432,6 +445,13 @@ namespace Kratos
 
 	      } //end loop neighbours
 	  }
+          // else{
+          //   //set nodes to BOUNDARY for elements outside of the working space dimension
+          //   for(unsigned int j=0; j<rElementGeometry.size(); ++j)
+          //   {
+          //     rElementGeometry[j].Set(BOUNDARY);
+          //   }
+          // }
 	}
 
       return true;
