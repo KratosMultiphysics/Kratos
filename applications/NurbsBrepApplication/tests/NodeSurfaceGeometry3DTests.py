@@ -124,3 +124,16 @@ class NodeSurfaceGeometry3DTests(KratosUnittest.TestCase):
                 V=0.5)
 
             self.assertAlmostEqual(displacement_z_at_t, t - t**2)
+
+    def testNodeIndexOutOfRange(self):
+        with self.assertRaises(Exception) as cm:
+            invalid_node = self.surface.Node(IndexU=-1, IndexV=0)
+
+        with self.assertRaises(Exception) as cm:
+            invalid_node = self.surface.Node(IndexU=3, IndexV=0)
+
+        with self.assertRaises(Exception) as cm:
+            invalid_node = self.surface.Node(IndexU=0, IndexV=-1)
+
+        with self.assertRaises(Exception) as cm:
+            invalid_node = self.surface.Node(IndexU=0, IndexV=3)
