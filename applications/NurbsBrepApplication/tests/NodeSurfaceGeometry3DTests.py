@@ -120,7 +120,7 @@ class NodeSurfaceGeometry3DTests(KratosUnittest.TestCase):
         for i in range(n + 1):
             t = 1.0 / n * i
 
-            displacement_y_at_t = surface.ValueAt(Variable=DISPLACEMENT_Z, U=t,
+            displacement_z_at_t = surface.ValueAt(Variable=DISPLACEMENT_Z, U=t,
                 V=0.5)
 
-            self.assertAlmostEqual(displacement_y_at_t, t - t**2)
+            self.assertAlmostEqual(displacement_z_at_t, t - t**2)
