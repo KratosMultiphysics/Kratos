@@ -144,17 +144,18 @@ class AlgorithmSVD( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
+        self.ConvergedNodelist = self.Communicator.getReportedNodeList()
+        print("__storeResultOfSensitivityAnalysisOnNodes:")
+        print("ListOfConvergedNodes")
+        print(self.ConvergedNodelist)
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")        
         gradientOfObjectiveFunction = self.Communicator.getStandardizedGradient ( self.onlyObjectiveId )
         gradientOfConstraintFunction = self.Communicator.getStandardizedGradient( self.onlyConstraintId )
         self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, OBJECTIVE_SENSITIVITY )
         self.__storeGradientOnNodalVariable( gradientOfConstraintFunction, CONSTRAINT_SENSITIVITY )
 
-        # self.ConvergedNodelist = self.Communicator.getReportedNodeList()
-        # print("__storeResultOfSensitivityAnalysisOnNodes:")
-        # print("ListOfConvergedNodes")
-        # print(self.ConvergedNodelist)
-        # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-        # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+
 
     # --------------------------------------------------------------------------
     def __storeGradientOnNodalVariable( self, gradients, variable_name ):
@@ -163,11 +164,11 @@ class AlgorithmSVD( OptimizationAlgorithm ) :
             gradient[0] = gradients[nodeId][0]
             gradient[1] = gradients[nodeId][1]
             gradient[2] = gradients[nodeId][2]
-            # if nodeId in self.ConvergedNodelist:
-            #     gradient[0] = 0.0
-            #     gradient[1] = 0.0
-            #     gradient[2] = 0.0
-            #     print("TOUCH BOUND")
+            if nodeId in self.ConvergedNodelist:
+                gradient[0] = 0.0
+                gradient[1] = 0.0
+                gradient[2] = 0.0
+                #print("TOUCH BOUND")
             #self.DesignSurface.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)            
             self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
 
@@ -180,6 +181,7 @@ class AlgorithmSVD( OptimizationAlgorithm ) :
     def __projectSensitivitiesOnSurfaceNormals( self ):
         self.GeometryUtilities.ComputeUnitSurfaceNormals()
         self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
+        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( CONSTRAINT_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):

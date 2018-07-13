@@ -341,7 +341,7 @@ public:
         double cos1 = inner_prod(v0, v11) /(norm_2(v0) * norm_2(v11));
         std::cout << "############ cos1:" << cos1 << std::endl;
         double cos2 = correlationFactor * inner_prod(v0, v22) /(norm_2(v0) * norm_2(v22));
-        std::cout << "############ cos2:" << cos2 << std::endl;
+        std::cout << "############ cos2:" << cos2/correlationFactor << std::endl;
         
         std::cout << "############ correlationFactor:" << correlationFactor << std::endl;
 

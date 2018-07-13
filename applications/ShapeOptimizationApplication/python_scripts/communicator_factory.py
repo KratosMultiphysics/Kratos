@@ -27,6 +27,7 @@ class Communicator:
 
         self.__initializeListOfRequests()
         self.__initializeListOfResponses()
+        self.listOfConvergedNodes = []
 
     # --------------------------------------------------------------------------
     def initializeCommunication( self ):
@@ -92,6 +93,14 @@ class Communicator:
         if self.list_of_responses[response_id]["standardized_gradient"] is None:
             raise RuntimeError("The requested standardized_gradient for ", response_id, " is None!")
         return self.list_of_responses[response_id]["standardized_gradient"]
+
+    # --------------------------------------------------------------------------
+    def reportConvergedNodeList( self, listOfNodeIds ):
+        self.listOfConvergedNodes = listOfNodeIds
+
+    # --------------------------------------------------------------------------
+    def getReportedNodeList( self ):
+        return self.listOfConvergedNodes
 
     # --------------------------------------------------------------------------
     def __initializeListOfRequests( self ):
