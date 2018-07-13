@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Thomas Oberbichler
+//
+
 #if !defined(KRATOS_NODE_SURFACE_GEOMETRY_3D_H_INCLUDED)
 #define KRATOS_NODE_SURFACE_GEOMETRY_3D_H_INCLUDED
 
@@ -25,10 +37,10 @@ public:
     using typename SurfaceGeometryBaseType::KnotsType;
     using typename SurfaceGeometryBaseType::ScalarType;
     using typename SurfaceGeometryBaseType::VectorType;
- 
+
 protected:
     ANurbs::Grid<NodePointer> mNodes;
- 
+
 public:
     NodeSurfaceGeometry3D(
         const int DegreeU,
@@ -48,7 +60,7 @@ public:
     {
         return mNodes(IndexU, IndexV);
     }
- 
+
     void
     SetNode(
         const int IndexU,
@@ -57,19 +69,19 @@ public:
     {
         mNodes.SetValue(IndexU, IndexV, Value);
     }
- 
+
     VectorType
     Pole(
         const int IndexU,
         const int IndexV) const override
     {
         auto& node = *Node(IndexU, IndexV);
- 
+
         VectorType pole;
         pole[0] = node[0];
         pole[1] = node[1];
         pole[2] = node[2];
- 
+
         return pole;
     }
 
@@ -80,25 +92,25 @@ public:
         const VectorType& Value) override
     {
         auto& node = *Node(IndexU, IndexV);
- 
+
         node[0] = Value[0];
         node[1] = Value[1];
         node[2] = Value[2];
     }
- 
+
     bool
     IsRational() const override
     {
         return true;
     }
- 
+
     ScalarType
     Weight(
         const int IndexU,
         const int IndexV) const override
     {
         auto node = Node(IndexU, IndexV);
- 
+
         return node->GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
     }
 
@@ -109,10 +121,10 @@ public:
         const ScalarType Value) override
     {
         auto node = Node(IndexU, IndexV);
- 
+
         node->SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
     }
-    
+
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
     TDataType
     ValueAt(
@@ -124,7 +136,7 @@ public:
             return Node(i, j)->GetValue(Variable);
         }, U, V);
     }
-    
+
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
     std::vector<TDataType>
     ValueAt(

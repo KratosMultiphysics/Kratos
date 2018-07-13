@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Thomas Oberbichler
+//
+
 #if !defined(KRATOS_NODE_CURVE_GEOMETRY_3D_H_INCLUDED)
 #define KRATOS_NODE_CURVE_GEOMETRY_3D_H_INCLUDED
 
