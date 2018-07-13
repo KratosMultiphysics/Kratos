@@ -297,7 +297,6 @@ public:
         }
 
         KRATOS_ERROR << "Condition " << this->Id() << " cannot find parent element.";
-        // }
 
         KRATOS_CATCH("Error in EmbeddedAusasNavierStokesWallCondition InitializeSolutionStep() method.");
     }
