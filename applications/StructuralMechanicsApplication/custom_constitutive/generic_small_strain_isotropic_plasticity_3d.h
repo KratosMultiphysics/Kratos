@@ -81,8 +81,8 @@ public:
     /**
     * Copy constructor.
     */
-    GenericSmallStrainIsotropicPlasticity3D (const GenericSmallStrainIsotropicPlasticity3D& rOther)
-    : ConstitutiveLaw(rOther)
+    GenericSmallStrainIsotropicPlasticity3D (const GenericSmallStrainIsotropicPlasticity3D& rOther) 
+    : ConstitutiveLaw(rOther) 
     , mPlasticDissipation(rOther.mPlasticDissipation)
     , mThreshold(rOther.mThreshold)
     , mPlasticStrain(rOther.mPlasticStrain)
@@ -273,6 +273,16 @@ public:
         double& rValue
         ) override;
 
+
+    Matrix& GetValue(
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue
+    ) override;
+
+    Matrix& CalculateValue(
+        Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue) override;
     ///@}
     ///@name Access
     ///@{

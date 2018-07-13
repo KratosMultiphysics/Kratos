@@ -86,6 +86,8 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateM
     PlasticDissipation = this->GetPlasticDissipation();
     PlasticStrain = this->GetPlasticStrain();
 
+	//KRATOS_WATCH(PlasticStrain)
+
     // S0 = C:(E-Ep)
     Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
 
@@ -132,6 +134,7 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateM
             noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
             this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
         }
+		//KRATOS_WATCH(this->GetNonConvPlasticStrain())
     }
 } // End CalculateMaterialResponseCauchy
 
@@ -156,6 +159,7 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::FinalizeSo
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+	//KRATOS_WATCH(this->GetNonConvPlasticStrain())
     this->SetPlasticDissipation(this->GetNonConvPlasticDissipation());
     this->SetThreshold(this->GetNonConvThreshold());
     this->SetPlasticStrain(this->GetNonConvPlasticStrain());
@@ -389,6 +393,22 @@ Vector& GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::GetValu
 /***********************************************************************************/
 
 template <class ConstLawIntegratorType>
+Matrix& GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::GetValue(
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue
+    )
+{
+    if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
+        rValue = MathUtils<double>::StrainVectorToTensor(mPlasticStrain);
+    }
+
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
 double& GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateValue(
     Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
@@ -397,9 +417,21 @@ double& GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::Calcula
     return this->GetValue(rThisVariable, rValue);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+Matrix& GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue)
+{
+    return this->GetValue(rThisVariable, rValue);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template class GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential>>>;
 template class GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
 template class GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>;

@@ -27,8 +27,10 @@ ConstitutiveLaw::Pointer GenericSmallStrainViscoplasticity3D::Create(Kratos::Par
 {
     ConstitutiveLaw::Pointer p_plasticity_cl = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
     ConstitutiveLaw::Pointer p_viscous_cl    = Kratos::make_shared<ViscousGeneralizedMaxwell3D>();
-
     return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(p_plasticity_cl, p_viscous_cl);
+
+
+    //return GenericSmallStrainViscoplasticity3D(p_plasticity_cl, p_viscous_cl).Clone();
 }
 
 /***********************************************************************************/
@@ -68,6 +70,7 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(Consti
     
     mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, plastic_strain);
     //KRATOS_WATCH(plastic_strain)
+
     //Vector& strain_vector = rValues.GetStrainVector();
     //const Vector strain_for_visco = strain_vector - plastic_strain;
     //const Vector initial_strain_vector = strain_vector;
