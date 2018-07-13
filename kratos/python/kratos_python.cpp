@@ -75,10 +75,10 @@ char const* greet()
     return header.str().c_str();
 }
 
-using namespace pybind11;
-
 PYBIND11_MODULE(Kratos, m)
 {
+    namespace py = pybind11;
+
     AddVectorToPython(m);
     AddMatrixToPython(m);
     AddPointsToPython(m);
@@ -146,7 +146,7 @@ PYBIND11_MODULE(Kratos, m)
 
     #define INTERNAL_KRATOS_MAKE_STRING(arg) #arg
     #define KRATOS_MAKE_STRING(arg) INTERNAL_KRATOS_MAKE_STRING(arg)
-    const object build_type = cast(KRATOS_MAKE_STRING(KRATOS_BUILD_TYPE));
+    const py::object build_type = py::cast(KRATOS_MAKE_STRING(KRATOS_BUILD_TYPE));
     #undef KRATOS_MAKE_STRING
     #undef INTERNAL_KRATOS_MAKE_STRING
     m.attr("KRATOS_BUILD_TYPE") = build_type;
