@@ -485,7 +485,8 @@ class TestProcesses(KratosUnittest.TestCase):
                 i=i+1
 
     def test_assign_scalar_field_scalar_variable_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -508,10 +509,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(5.0)
 
@@ -715,15 +714,8 @@ class TestProcesses(KratosUnittest.TestCase):
                     }
                 ]
             }
-<<<<<<< HEAD
             """)    
  
-=======
-            """)
-
-        Model = {"Main":model_part}
-
->>>>>>> master
         import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
@@ -759,7 +751,8 @@ class TestProcesses(KratosUnittest.TestCase):
             process.ExecuteFinalizeSolutionStep()
 
     def test_point_output_process_node(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -809,7 +802,8 @@ class TestProcesses(KratosUnittest.TestCase):
         kratos_utils.DeleteDirectoryIfExisting(os.path.join("test_parent_folder","test_parent_folder"))
 
     def test_point_output_process_element(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -855,7 +849,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_condition(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -904,7 +899,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_restart(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -966,7 +962,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_failed_restart(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -1017,7 +1014,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_multiple_point_output_process(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -1087,7 +1085,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_line_output_process(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -1169,10 +1168,9 @@ def SetNodalValuesForPointOutputProcesses(model_part):
         node.SetSolutionStepValue(VISCOSITY, time**2 + 1.038)
 
 def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
-    Model = {"Main":model_part}
-
+    current_model = model_part.GetOwnerModel()
     import process_factory
-    list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
+    list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
         settings["process_list"] )
 
     for process in list_of_processes:

@@ -15,9 +15,11 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
+
 
 /* Processes */
 #include "processes/replace_elements_and_condition_process.h"
@@ -36,7 +38,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestReplaceElementsAndConditionsProcess1, KratosReplaceElementsAndConditionsProcessFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             
@@ -107,7 +110,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestReplaceElementsAndConditionsProcess2, KratosReplaceElementsAndConditionsProcessFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             

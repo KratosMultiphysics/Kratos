@@ -171,8 +171,6 @@ class PythonSolver(object):
             restart_settings.AddValue("echo_level", model_part_import_settings["echo_level"])
 
         return restart_settings
-<<<<<<< HEAD
-=======
 
     #### Auxiliar functions ####
 
@@ -242,4 +240,3 @@ class PythonSolver(object):
                 else:
                     raise Exception('Unsupported parameter type.')
                 origin_settings.RemoveValue(name)
->>>>>>> master

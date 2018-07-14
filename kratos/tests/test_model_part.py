@@ -681,7 +681,8 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(counter, 2)
 
     def test_model_part_has_solution_step_variable(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VELOCITY)
 
         self.assertTrue(model_part.HasNodalSolutionStepVariable(VELOCITY))

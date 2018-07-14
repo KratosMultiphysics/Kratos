@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
 
@@ -24,7 +25,8 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutVariableInVariablesList, KratosCoreFastSuite)
 {
-    ModelPart model_part("TestModelPart");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
 
     model_part.SetBufferSize(1);
 
@@ -36,7 +38,8 @@ KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutVariableInVariablesList, KratosCo
 
 KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutReactionInVariablesList, KratosCoreFastSuite)
 {
-    ModelPart model_part("TestModelPart");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
 
     model_part.AddNodalSolutionStepVariable(VELOCITY);
 
@@ -50,7 +53,8 @@ KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutReactionInVariablesList, KratosCo
 
 KRATOS_TEST_CASE_IN_SUITE(DofFixing, KratosCoreFastSuite)
 {
-    ModelPart model_part("TestModelPart");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
 
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(REACTION);
@@ -78,7 +82,8 @@ KRATOS_TEST_CASE_IN_SUITE(DofFixing, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DofVariables, KratosCoreFastSuite)
 {
-    ModelPart model_part("TestModelPart");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
 
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(REACTION);
@@ -98,7 +103,8 @@ KRATOS_TEST_CASE_IN_SUITE(DofVariables, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DofEquationId, KratosCoreFastSuite)
 {
-    ModelPart model_part("TestModelPart");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
 
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(REACTION);
@@ -118,7 +124,8 @@ KRATOS_TEST_CASE_IN_SUITE(DofEquationId, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DofId, KratosCoreFastSuite)
 {
-    ModelPart model_part("TestModelPart");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
 
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(REACTION);

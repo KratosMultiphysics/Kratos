@@ -239,9 +239,8 @@ class TestRestart(KratosUnittest.TestCase):
         self._check_modelpart(loaded_model_part)
 
     def test_save_restart_process(self):
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"))
         model = KratosMultiphysics.Model()
-        model.AddModelPart(model_part)
+        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"), model)
 
         # Here "step" is used as control type, since "time" (=> default) is covered in the tests above
         save_restart_process_params = KratosMultiphysics.Parameters("""{
@@ -281,9 +280,14 @@ class TestRestart(KratosUnittest.TestCase):
         num_files = len([name for name in os.listdir(base_path) if IsRestartFile(os.path.join(base_path, name))])
         self.assertEqual(expected_num_files, num_files)
 
+        #deleting the model so to be sure nothing remains in the memory
+        del(model)
+
+
         # Loading one of the files and checking if the loaded model_part is ok
+        loaded_model = KratosMultiphysics.Model()
         file_name = base_file_name + "16"
-        loaded_model_part = self.__execute_restart_load(file_name, KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE)
+        loaded_model_part = self.__execute_restart_load(loaded_model, file_name, KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE)
 
         self._check_modelpart(loaded_model_part)
 

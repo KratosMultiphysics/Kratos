@@ -13,39 +13,11 @@
 //
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
 
 namespace Kratos {
-<<<<<<< HEAD
-	namespace Testing {
-
-		KRATOS_TEST_CASE_IN_SUITE(NodeAssignOperator, KratosCoreFastSuite)
-		{
-            Model current_model;
-            
-			ModelPart& model_part = current_model.CreateModelPart("test");
-			model_part.AddNodalSolutionStepVariable(DISTANCE);
-			model_part.AddNodalSolutionStepVariable(VELOCITY);
-            
-			auto p_node = model_part.CreateNewNode(1, 1., 0, 0);
-
-            p_node->FastGetSolutionStepValue(DISTANCE) = 12.1;
-            p_node->FastGetSolutionStepValue(VELOCITY_X) = 32.4;
-            p_node->Set(ACTIVE, true);
-
-            Node<3> copy_of_node(2,1,0,0);
-            copy_of_node = *p_node;
-
-            KRATOS_CHECK_EQUAL(copy_of_node.Id(), 1);
-            KRATOS_CHECK_DOUBLE_EQUAL(copy_of_node.FastGetSolutionStepValue(DISTANCE), 12.1);
-            KRATOS_CHECK_DOUBLE_EQUAL(copy_of_node.FastGetSolutionStepValue(VELOCITY_X), 32.4);
-            KRATOS_CHECK_DOUBLE_EQUAL(copy_of_node.FastGetSolutionStepValue(VELOCITY_Y), 0.00);
-            KRATOS_CHECK_DOUBLE_EQUAL(copy_of_node.FastGetSolutionStepValue(VELOCITY_Z), 0.00);
-            KRATOS_CHECK(copy_of_node.Is(ACTIVE));
-		}
-	}
-=======
     namespace Testing {
 
     typedef Node<3> NodeType;
@@ -56,7 +28,8 @@ namespace Kratos {
 
     KRATOS_TEST_CASE_IN_SUITE(NodeAssignOperator, KratosCoreFastSuite)
     {
-        ModelPart model_part("test");
+        Model current_model;
+        ModelPart& model_part = current_model.CreateModelPart("test");
         model_part.AddNodalSolutionStepVariable(DISTANCE);
         model_part.AddNodalSolutionStepVariable(VELOCITY);
 
@@ -82,7 +55,8 @@ namespace Kratos {
      */
     KRATOS_TEST_CASE_IN_SUITE(NodeCloneOperator, KratosCoreFastSuite)
     {
-        ModelPart model_part("test");
+        Model current_model;
+        ModelPart& model_part = current_model.CreateModelPart("test");
         model_part.AddNodalSolutionStepVariable(DISTANCE);
         model_part.AddNodalSolutionStepVariable(VELOCITY);
 
@@ -102,5 +76,4 @@ namespace Kratos {
         KRATOS_CHECK(p_clone_of_node->Is(ACTIVE));
     }
 }  // namespace Testing.
->>>>>>> master
 }  // namespace Kratos.

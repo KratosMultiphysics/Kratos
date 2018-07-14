@@ -306,7 +306,7 @@ protected:
     ///@{
 
     ModelPart& mrBaseModelPart;
-    ModelPart::UniquePointer mpDistanceModelPart;
+    ModelPart* mpDistanceModelPart;
 
     Variable<double>& mrLevelSetVar;
 
@@ -347,14 +347,17 @@ protected:
 
         KRATOS_TRY
 
+        Model& current_model = rBaseModelPart.GetOwnerModel();
+
         // Check buffer size
         const auto base_buffer_size = rBaseModelPart.GetBufferSize();
         KRATOS_ERROR_IF(base_buffer_size < 2) << 
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
         // Generate
-        ModelPart::UniquePointer p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
-        mpDistanceModelPart.swap(p_aux_model_part);
+        if(current_model.HasModelPart("DistancePart"))
+            current_model.DeleteModelPart("DistancePart");
+        mpDistanceModelPart= &current_model.CreateModelPart("DistancePart");
 
         mpDistanceModelPart->Nodes().clear();
         mpDistanceModelPart->Conditions().clear();

@@ -217,7 +217,11 @@ namespace Kratos
             if(part.Name() == ModelPartName)
                 return &part;
             else
-                return RecursiveSearchByName(ModelPartName, &part);
+            {
+                ModelPart* pmodel_part = RecursiveSearchByName(ModelPartName, &part);
+                if(pmodel_part != nullptr)
+                    return pmodel_part;
+            }
         }
         return nullptr;
     }

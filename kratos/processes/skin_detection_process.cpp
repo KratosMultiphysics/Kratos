@@ -135,9 +135,6 @@ void SkinDetectionProcess<TDim>::Execute()
     }
 
     // We create the auxiliar ModelPart
-<<<<<<< HEAD
-    ModelPart* p_auxiliar_model_part = mrModelPart.CreateSubModelPart(mThisParameters["name_auxiliar_model_part"].GetString());
-=======
     const std::string& name_auxiliar_model_part = mThisParameters["name_auxiliar_model_part"].GetString();
     if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
@@ -161,7 +158,6 @@ void SkinDetectionProcess<TDim>::Execute()
         r_auxiliar_model_part.RemoveConditions(TO_ERASE);
     } 
     ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
->>>>>>> master
 
     // The auxiliar name of the condition
     const std::string& name_condition = mThisParameters["name_auxiliar_condition"].GetString();
