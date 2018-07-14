@@ -273,7 +273,7 @@ class GiDOutputProcess(Process):
         self.__write_gp_results(time)
         self.__write_nonhistorical_nodal_results(time)
         self.__write_nodal_flags(time)
-        self.__write_elemental_conditional_flags(label)
+        self.__write_elemental_conditional_flags(time)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
