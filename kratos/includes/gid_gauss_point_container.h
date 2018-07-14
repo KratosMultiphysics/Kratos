@@ -110,20 +110,16 @@ public:
             if( mMeshElements.size() != 0 ) {
                 for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
                     const double double_flag = static_cast<double>(it->Is(rFlag));
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
-                            GiD_fWriteScalar( ResultFile, it->Id(), double_flag);
-                        }
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                        GiD_fWriteScalar( ResultFile, it->Id(), double_flag);
                     }
                 }
             }
             if( mMeshConditions.size() != 0 ) {
                 for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        const double double_flag = static_cast<double>(it->Is(rFlag));
-                        for(unsigned int i=0; i<mIndexContainer.size(); i++) {
-                            GiD_fWriteScalar( ResultFile, it->Id(), double_flag );
-                        }
+                    const double double_flag = static_cast<double>(it->Is(rFlag));
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                        GiD_fWriteScalar( ResultFile, it->Id(), double_flag );
                     }
                 }
             }
