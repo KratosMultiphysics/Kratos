@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 def CreateSolver(model, custom_settings):
 
-    if (type(model) != KratosMultiphysics.ModelInterface):
+    if (type(model) != KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
 
     if (type(custom_settings) != KratosMultiphysics.Parameters):

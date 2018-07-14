@@ -122,7 +122,7 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part = self.model[model_part_name]
             self.solver_imports_model_part = False
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name) # Model.CreateodelPart()
+            self.main_model_part = model.CreateModelPart(model_part_name)
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
                 raise Exception('Please specify a "domain_size" >= 0!')
