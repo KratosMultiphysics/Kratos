@@ -100,7 +100,7 @@ class chebyshev {
             // Chebyshev polynomial roots on the interval [lo, hi].
             std::vector<scalar_type> roots(prm.degree);
             for(unsigned i = 0; i < prm.degree; ++i) {
-                scalar_type pi   = static_cast<scalar_type>(M_PI);
+                scalar_type pi   = static_cast<scalar_type>(3.14159265358979323846);
                 scalar_type half = static_cast<scalar_type>(0.5);
 
                 roots[i] = lo + half * (hi - lo) * (1 + cos( pi * ( i + half ) / prm.degree));
