@@ -105,6 +105,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
         self.gid_io.WriteNodalResults(VELOCITY, self.modelPart.Nodes, label, 0)
         self.gid_io.PrintOnGaussPoints(VORTICITY, self.modelPart, label)
         self.gid_io.PrintOnGaussPoints(NORMAL, self.modelPart, label)
+        self.gid_io.PrintFlagsOnGaussPoints(ACTIVE, "ACTIVE", self.modelPart, label)
 
 
     def finalizeOutputFile(self):
