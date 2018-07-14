@@ -1,10 +1,10 @@
-#ifndef AMGCL_MPI_SKYLINE_LU_HPP
-#define AMGCL_MPI_SKYLINE_LU_HPP
+#ifndef AMGCL_MPI_DIRECT_SOLVER_SKYLINE_LU_HPP
+#define AMGCL_MPI_DIRECT_SOLVER_SKYLINE_LU_HPP
 
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ THE SOFTWARE.
 */
 
 /**
-\file   amgcl/mpi/skyline_lu.hpp
+\file   amgcl/mpi/direct_solver/skyline_lu.hpp
 \author Denis Demidov <dennis.demidov@gmail.com>
 \brief  MPI wrapper for Skyline LU factorization solver.
 
@@ -36,46 +36,46 @@ distributed direct solver interface but always works sequentially.
 
 #include <mpi.h>
 
+#include <memory>
+
+#include <amgcl/backend/builtin.hpp>
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/solver/skyline_lu.hpp>
+#include <amgcl/mpi/util.hpp>
+#include <amgcl/mpi/direct_solver/solver_base.hpp>
 
 namespace amgcl {
 namespace mpi {
+namespace direct {
 
 /// Provides distributed direct solver interface for Skyline LU solver.
 template <typename value_type>
-class skyline_lu {
+class skyline_lu : public solver_base< value_type, skyline_lu<value_type> > {
     public:
-        typedef typename solver::skyline_lu<value_type>::params params;
+        typedef amgcl::solver::skyline_lu<value_type> Solver;
+        typedef typename Solver::params params;
+        typedef backend::crs<value_type> build_matrix;
 
-        /// The number of processes optimal for the given problem size.
-        static int comm_size(int /*n_global_rows*/, const params& = params()) {
+        /// Constructor.
+        template <class Matrix>
+        skyline_lu(communicator comm, const Matrix &A,
+                const params &prm = params()
+                ) : prm(prm)
+        {
+            static_cast<Base*>(this)->init(comm, A);
+        }
+
+        static size_t coarse_enough() {
+            return Solver::coarse_enough();
+        }
+
+        int comm_size(int /*n*/) const {
             return 1;
         }
 
-        /// Constructor.
-        /**
-         * \param comm MPI communicator containing processes to participate in
-         *        solution of the problem. The number of processes in
-         *        communicator should be (but not necessarily) equal to the
-         *        result of comm_size().
-         * \param n_local_rows Number of matrix rows belonging to the calling
-         *        process.
-         * \param ptr Start of each row in col and val arrays.
-         * \param col Column numbers of nonzero elements.
-         * \param val Values of nonzero elements.
-         * \param prm Solver parameters.
-         */
-        template <class PRng, class CRng, class VRng>
-        skyline_lu(
-                MPI_Comm,
-                int n_local_rows,
-                const PRng &ptr,
-                const CRng &col,
-                const VRng &val,
-                const params &prm = params()
-                ) : S( boost::tie(n_local_rows, ptr, col, val), prm )
-        {}
+        void init(communicator, const build_matrix &A) {
+            S = std::make_shared<Solver>(A, prm);
+        }
 
         /// Solves the problem for the given right-hand side.
         /**
@@ -83,14 +83,17 @@ class skyline_lu {
          * \param x   The solution.
          */
         template <class Vec1, class Vec2>
-        void operator()(const Vec1 &rhs, Vec2 &x) const {
-            S(rhs, x);
+        void solve(const Vec1 &rhs, Vec2 &x) const {
+            (*S)(rhs, x);
         }
     private:
-        solver::skyline_lu<value_type> S;
+        typedef solver_base< value_type, skyline_lu<value_type> > Base;
+        params prm;
+        std::shared_ptr<Solver> S;
 };
 
-}
-}
+} // namespace direct
+} // namespace mpi
+} // namespace amgcl
 
 #endif
