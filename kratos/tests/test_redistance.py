@@ -24,6 +24,7 @@ class TestRedistance(KratosUnittest.TestCase):
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
 
@@ -39,7 +40,7 @@ class TestRedistance(KratosUnittest.TestCase):
         max_iterations = 2
         KratosMultiphysics.VariationalDistanceCalculationProcess3D(model_part, linear_solver, max_iterations).Execute()
 
-        max_distance = -1.0;
+        max_distance = -1.0
         min_distance = +1.0
         for node in model_part.Nodes:
             d =  node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)

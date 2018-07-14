@@ -25,8 +25,6 @@ rm -rf CMakeFiles\
 
 cmake ..                                                                            \
 -DCMAKE_C_COMPILER=/usr/bin/gcc                                                     \
--DCMAKE_INSTALL_RPATH="/home/youruser/kratos/libs"                                  \
--DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE                                            \
 -DCMAKE_CXX_COMPILER=/usr/bin/g++                                                   \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 "                           \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 "                                          \
@@ -40,7 +38,7 @@ cmake ..                                                                        
 -DSOLID_MECHANICS_APPLICATION=ON                                                    \
 -DCONSTITUTIVE_MODELS_APPLICATION=ON                                                \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                     \
--DMESH_MOVING_APPLICATION=ON                                                                \
+-DMESH_MOVING_APPLICATION=ON                                                        \
 -DFSI_APPLICATION=ON                                                                \
 -DDEM_APPLICATION=OFF                                                               \
 -DSWIMMING_DEM_APPLICATION=OFF                                                      \

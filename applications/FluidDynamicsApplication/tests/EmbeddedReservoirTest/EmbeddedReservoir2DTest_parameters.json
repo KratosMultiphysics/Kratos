@@ -35,6 +35,8 @@
     },
     "solver_settings"                  : {
         "solver_type"                  : "Embedded",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "reservoir_2D"

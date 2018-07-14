@@ -34,7 +34,7 @@ namespace Python {
 void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity severity, bool useKwargLabel) {
     if(len(args) == 0)
         std::cout << "ERROR" << std::endl;
-    
+
     std::stringstream buffer;
     Logger::Severity severityOption = severity;
     Logger::Category categoryOption = Logger::Category::STATUS;
@@ -54,7 +54,7 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
         label = str(args[0]); //if the kwargs label is false, consider the first entry of the args as the label
         to_skip = 1;
     }
-    
+
     unsigned int counter = 0;
     for(auto item : args)
     {
@@ -129,6 +129,7 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("Print", printDefault); // raw_function(printDefault,1))
     logger_scope.def_static("PrintInfo",printInfo); // raw_function(printInfo,1))
     logger_scope.def_static("PrintWarning", printWarning); //raw_function(printWarning,1))
+    logger_scope.def_static("Flush", Logger::Flush);
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, return_value_policy::reference); //_internal )
     ;
 

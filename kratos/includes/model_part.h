@@ -387,6 +387,11 @@ public:
         return GetMesh(ThisIndex).GetNode(NodeId);
     }
 
+    const NodeType& GetNode(IndexType NodeId, IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).GetNode(NodeId);
+    }
+
     /** Remove the node with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveNode(IndexType NodeId, IndexType ThisIndex = 0);
@@ -453,6 +458,11 @@ public:
         return GetMesh(ThisIndex).Nodes();
     }
 
+    const NodesContainerType& Nodes(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).Nodes();
+    }
+
     NodesContainerType::Pointer pNodes(IndexType ThisIndex = 0)
     {
         return GetMesh(ThisIndex).pNodes();
@@ -471,7 +481,7 @@ public:
     template<class TDataType>
     void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
     {
-        if (!mpVariablesList->Has(ThisVariable))
+        if (!HasNodalSolutionStepVariable(ThisVariable))
         {
             // This error prevents memory leaks if variables are being added to a non-empty modelpart
             KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0)
@@ -480,6 +490,12 @@ public:
 
             mpVariablesList->Add(ThisVariable);
         }
+    }
+
+    template<class TDataType>
+    bool HasNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable) const
+    {
+        return mpVariablesList->Has(ThisVariable);
     }
 
     VariablesList& GetNodalSolutionStepVariablesList()
@@ -787,6 +803,11 @@ public:
         return GetMesh(ThisIndex).GetElement(ElementId);
     }
 
+    const ElementType& GetElement(IndexType ElementId, IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).GetElement(ElementId);
+    }
+
     /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveElement(IndexType ElementId, IndexType ThisIndex = 0);
@@ -846,6 +867,11 @@ public:
     }
 
     ElementsContainerType& Elements(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).Elements();
+    }
+
+    const ElementsContainerType& Elements(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).Elements();
     }
@@ -955,6 +981,11 @@ public:
         return GetMesh(ThisIndex).GetCondition(ConditionId);
     }
 
+    const ConditionType& GetCondition(IndexType ConditionId, IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).GetCondition(ConditionId);
+    }
+
     /**  Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveCondition(IndexType ConditionId, IndexType ThisIndex = 0);
@@ -1014,6 +1045,11 @@ public:
     }
 
     ConditionsContainerType& Conditions(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).Conditions();
+    }
+
+    const ConditionsContainerType& Conditions(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).Conditions();
     }
@@ -1234,7 +1270,7 @@ public:
 
     void SetBufferSize(IndexType NewBufferSize);
 
-    IndexType GetBufferSize()
+    IndexType GetBufferSize() const
     {
         return mBufferSize;
     }

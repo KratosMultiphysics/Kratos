@@ -9,22 +9,16 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
 
 #include "spaces/ublas_space.h"
 
 // Strategies
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
@@ -32,13 +26,11 @@
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
 
 // Schemes
-#include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 
 // Builder and solvers
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc.h"
 
 // Convergence criterias
@@ -74,6 +66,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
+    typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
 
     // Custom strategy types
     // typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
@@ -111,10 +104,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def(init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
             ;
 
-
-    class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, BaseSolvingStrategyType >(m,"FormfindingUpdatedReferenceStrategy")
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool >())
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool >())
+    class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingUpdatedReferenceStrategy")
+        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool, bool >())
+        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool, bool, bool >())
         .def("SetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::SetMaxIterationNumber)
         .def("GetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::GetMaxIterationNumber)
         .def("SetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::SetKeepSystemConstantDuringIterations)

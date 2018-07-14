@@ -6,7 +6,7 @@ def Factory(settings, current_model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignVectorVariableProcess(current_model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignVectorVariableProcess(KratosMultiphysics.Process):
     def __init__(self, current_model, settings ):
         KratosMultiphysics.Process.__init__(self)
