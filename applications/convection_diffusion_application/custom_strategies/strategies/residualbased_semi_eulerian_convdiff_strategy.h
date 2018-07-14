@@ -428,7 +428,8 @@ private:
 
   void GenerateMeshPart(int dimension)
   {
-    mpConvectionModelPart = &(Kernel::GetModel().CreateModelPart("ConvectionPart",1));
+    Model& current_model = BaseType::GetModelPart().GetOwnerModel();
+    mpConvectionModelPart = &current_model.CreateModelPart("ConvectionPart",1);
 
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());

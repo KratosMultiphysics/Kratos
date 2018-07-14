@@ -59,6 +59,8 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 {
     KRATOS_TRY
 
+    Model& current_model = mrThisModelPart.GetOwnerModel();
+
     // The name of the submodelpart
     const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
     ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
@@ -67,13 +69,13 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     NodeType::Pointer p_node_begin = *(geometry_model_part.NodesBegin().base());
 
     // Auxiliar model part where to store new nodes and elements
-    ModelPart auxiliar_model_part;
+    ModelPart& auxiliar_model_part = current_model.CreateModelPart("AuxiliarModelPart");
     const bool create_submodelparts_external_layers = mThisParameters["create_submodelparts_external_layers"].GetBool();
     const bool append_submodelparts_external_layers = mThisParameters["append_submodelparts_external_layers"].GetBool();
 
-    Model& current_model = mrThisModelPart.GetOwnerModel();
-    ModelPart& auxiliar_model_part_upper = current_model.CreateNewModelPart("upper");
-    ModelPart& auxiliar_model_part_lower = current_model.CreateNewModelPart("lower");
+    
+    ModelPart& auxiliar_model_part_upper = current_model.CreateModelPart("upper");
+    ModelPart& auxiliar_model_part_lower = current_model.CreateModelPart("lower");
 
     // Auxiliar values
     NodesArrayType& nodes_array = geometry_model_part.Nodes();
@@ -246,14 +248,16 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     geometry_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
     geometry_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
     
+    KRATOS_ERROR << "something wrong with the creation of the modelparts...the author of this file should take a look" << std::endl;
+
     // We copy the external layers
     if (create_submodelparts_external_layers) {
         const std::string name_upper = "Upper_"+model_part_name;
-        ModelPart::Pointer p_upper_model_part = append_submodelparts_external_layers ? geometry_model_part.CreateSubModelPart(name_upper) : mrThisModelPart.CreateSubModelPart(name_upper);
+        ModelPart* p_upper_model_part = append_submodelparts_external_layers ? geometry_model_part.CreateSubModelPart(name_upper) : mrThisModelPart.CreateSubModelPart(name_upper);
         p_upper_model_part->AddNodes( auxiliar_model_part_upper.NodesBegin(), auxiliar_model_part_upper.NodesEnd() );
         p_upper_model_part->AddConditions( auxiliar_model_part_upper.ConditionsBegin(), auxiliar_model_part_upper.ConditionsEnd() );
         const std::string name_lower = "Lower_"+model_part_name;
-        ModelPart::Pointer p_lower_model_part = append_submodelparts_external_layers ? geometry_model_part.CreateSubModelPart(name_lower) : mrThisModelPart.CreateSubModelPart(name_lower);
+        ModelPart* p_lower_model_part = append_submodelparts_external_layers ? geometry_model_part.CreateSubModelPart(name_lower) : mrThisModelPart.CreateSubModelPart(name_lower);
         p_lower_model_part->AddNodes( auxiliar_model_part_lower.NodesBegin(), auxiliar_model_part_lower.NodesEnd() );
         p_lower_model_part->AddConditions( auxiliar_model_part_lower.ConditionsBegin(), auxiliar_model_part_lower.ConditionsEnd() );
     }
@@ -296,6 +300,8 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 template<SizeType TNumNodes>
 void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccordingShellConnectivity)
 {
+    KRATOS_ERROR << "author needs to review the creation of modelparts in this file" << std::endl;
+    /*
     if (!ReorderAccordingShellConnectivity) {
         NodesArrayType& nodes_array = mrThisModelPart.Nodes();
         for(SizeType i = 0; i < nodes_array.size(); ++i)
@@ -306,7 +312,9 @@ void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccord
         ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
 
         // Auxiliar model part where to store new nodes and elements
-        ModelPart auxiliar_model_part;
+        //ModelPart auxiliar_model_part;
+        
+        KRATOS_ERROR << "author needs to review the creation of modelparts in this file" << std::endl;
 
         // Auxiliar values
         NodesArrayType& nodes_array = geometry_model_part.Nodes();
@@ -345,6 +353,7 @@ void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccord
     ElementsArrayType& element_array = mrThisModelPart.Elements();
     for(SizeType i = 0; i < element_array.size(); ++i)
         (element_array.begin() + i)->SetId(i + 1);
+        */
 }
 
 /***********************************************************************************/

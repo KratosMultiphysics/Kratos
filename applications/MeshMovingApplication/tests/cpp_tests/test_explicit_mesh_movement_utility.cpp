@@ -12,7 +12,6 @@
 //
 
 // Project includes
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/checks.h"
@@ -30,6 +29,7 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(ExplicitMeshMovingUtilities2D, MeshMovingApplicationFastSuite)
     {
+        Model current_model;
 
         // Generate the origin model part (done with the StructuredMeshGeneratorProcess)
         Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, 0.0, 0.0, 0.0);
@@ -45,7 +45,7 @@ namespace Testing {
             "element_name": "Element2D3N"
         })");
 
-        ModelPart& origin_model_part = Kernel::GetModel().CreateModelPart("OriginModelPart");
+        ModelPart& origin_model_part = current_model.CreateModelPart("OriginModelPart");
         origin_model_part.SetBufferSize(3);
         origin_model_part.AddNodalSolutionStepVariable(VELOCITY);
         origin_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -82,7 +82,7 @@ namespace Testing {
         }
 
         // Set the virtual model part
-        ModelPart& virtual_model_part = Kernel::GetModel().CreateModelPart("VirtualModelPart");
+        ModelPart& virtual_model_part = current_model.CreateModelPart("VirtualModelPart");
         virtual_model_part.SetBufferSize(3);
         virtual_model_part.AddNodalSolutionStepVariable(VELOCITY);
         virtual_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -90,7 +90,7 @@ namespace Testing {
         virtual_model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT);
 
         // Set the structure model part
-        ModelPart& str_model_part = Kernel::GetModel().CreateModelPart("StructureModelPart");
+        ModelPart& str_model_part =current_model.CreateModelPart("StructureModelPart");
         str_model_part.SetBufferSize(3);
         str_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);

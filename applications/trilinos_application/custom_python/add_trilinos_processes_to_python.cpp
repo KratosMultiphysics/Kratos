@@ -66,16 +66,10 @@ void AddProcesses(pybind11::module& m)
         ;
 
     typedef TrilinosStokesInitializationProcess<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosStokesInitializationType;
-<<<<<<< HEAD
     class_<TrilinosStokesInitializationType, TrilinosStokesInitializationType::Pointer, BaseStokesInitializationType >
             (m,"TrilinosStokesInitializationProcess")
             .def(init<Epetra_MpiComm&, ModelPart&,TrilinosLinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
             ;
-=======
-    class_<TrilinosStokesInitializationType, TrilinosStokesInitializationType::Pointer, BaseStokesInitializationType >(m,"TrilinosStokesInitializationProcess")
-        .def(init<Epetra_MpiComm&, ModelPart::Pointer,TrilinosLinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
-        ;
->>>>>>> master
 
     // Variational distance calculation processes
     typedef VariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseDistanceCalculationType2D;

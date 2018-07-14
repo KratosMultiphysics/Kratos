@@ -156,17 +156,6 @@ class ManufacturedSolutionProblem:
             self.ProjectParameters["problem_data"]["problem_name"].SetString(self.input_file_name)
         self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file_name)
 
-<<<<<<< HEAD
-        ## Fluid model part definition
-        print(KratosMultiphysics.Model())
-        self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-        ###TODO replace this "model" for real one once available
-        Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
-
-=======
->>>>>>> master
         ## Solver construction
         import python_solvers_wrapper_fluid
         self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)

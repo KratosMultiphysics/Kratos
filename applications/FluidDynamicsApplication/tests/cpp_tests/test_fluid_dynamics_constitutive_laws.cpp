@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -221,7 +222,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Get the trial element
-            ModelPart model_part("Main", 3);
+            Model current_model;
+            ModelPart& model_part = current_model.CreateModelPart("Main", 3);
             model_part.AddNodalSolutionStepVariable(DISTANCE);
             model_part.AddNodalSolutionStepVariable(VELOCITY);
             model_part.AddNodalSolutionStepVariable(DENSITY);

@@ -100,18 +100,11 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             structural_mechanics_analysis.StructuralMechanicsAnalysis(model_load, self.project_parameters_load).Run()
 
     def tearDown(self):
-<<<<<<< HEAD
-        KratosMultiphysics.Model().Reset()
-        # remove the created restart files
-        raw_path, raw_file_name = os.path.split(self.file_name)
-        folder_name = os.path.join(raw_path, raw_file_name + "__restart_files")
-=======
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # remove the created restart files
             raw_path, raw_file_name = os.path.split(self.file_name)
             folder_name = raw_file_name + "__restart_files"
->>>>>>> master
 
             kratos_utils.DeleteDirectoryIfExisting(GetFilePath(folder_name))
 

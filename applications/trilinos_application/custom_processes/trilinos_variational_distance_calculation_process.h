@@ -198,18 +198,11 @@ protected:
     {
         KRATOS_TRY
 
-<<<<<<< HEAD
-        if(Kernel::GetModel().HasModelPart("DistancePart"))
-            Kernel::GetModel().DeleteModelPart("DistancePart"); //wipe out the aux modelpart if it exists already
-        //generate
-        this->mp_distance_model_part = &(Kernel::GetModel().CreateModelPart("DistancePart",1) );
-=======
         // Generate distance model part
         ModelPart::UniquePointer pAuxModelPart = Kratos::make_unique<ModelPart>("DistancePart");
 
         ModelPart::UniquePointer& p_distance_model_part = this->mp_distance_model_part;
         p_distance_model_part.swap(pAuxModelPart);
->>>>>>> master
 
         ModelPart*& p_distance_model_part = this->mp_distance_model_part;
         

@@ -10,14 +10,6 @@ from math import sqrt, sin, cos, pi, exp, atan
 class SpringDamperElementTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
-<<<<<<< HEAD
-    
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
-    
-=======
-
->>>>>>> master
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
