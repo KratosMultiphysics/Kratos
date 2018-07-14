@@ -10,11 +10,9 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
 
-    def _base_spring_test_dynamic_schemes(self, scheme_name = "bossak", buffer_size = 2, dt = 5.0e-3):
-        mp = KratosMultiphysics.ModelPart("sdof")
+    def _base_spring_test_dynamic_schemes(self, current_model, scheme_name = "bossak", buffer_size = 2, dt = 5.0e-3):
+        mp = current_model.CreateModelPart("sdof")
         add_variables(mp)
 
         # Create node
@@ -77,8 +75,8 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), current_analytical_velocity_y, delta=1e-3)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), current_analytical_acceleration_y, delta=1e-3)
 
-    def _base_fall_test_dynamic_schemes(self, scheme_name = "bossak", buffer_size = 2, dt = 1.0e-2):
-        mp = KratosMultiphysics.ModelPart("sdof")
+    def _base_fall_test_dynamic_schemes(self, current_model, scheme_name = "bossak", buffer_size = 2, dt = 1.0e-2):
+        mp = current_model.CreateModelPart("sdof")
         add_variables(mp)
 
         # Create node
@@ -148,28 +146,36 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), current_analytical_displacement_y, delta=1e-3)
 
     def test_spring_bossak_scheme(self):
-        self._base_spring_test_dynamic_schemes("bossak", 2)
+        current_model = KratosMultiphysics.Model()
+        self._base_spring_test_dynamic_schemes(current_model,"bossak", 2)
 
     def test_spring_newmark_scheme(self):
-        self._base_spring_test_dynamic_schemes("newmark", 2)
+        current_model = KratosMultiphysics.Model()
+        self._base_spring_test_dynamic_schemes(current_model,"newmark", 2)
 
     def test_spring_backward_euler_scheme(self):
-        self._base_spring_test_dynamic_schemes("backward_euler", 2, 4.0e-3)
+        current_model = KratosMultiphysics.Model()
+        self._base_spring_test_dynamic_schemes(current_model,"backward_euler", 2, 4.0e-3)
 
     def test_spring_bdf2_scheme(self):
-        self._base_spring_test_dynamic_schemes("bdf2", 3)
+        current_model = KratosMultiphysics.Model()
+        self._base_spring_test_dynamic_schemes(current_model,"bdf2", 3)
 
     def test_fall_bossak_scheme(self):
-        self._base_fall_test_dynamic_schemes("bossak", 2)
+        current_model = KratosMultiphysics.Model()
+        self._base_fall_test_dynamic_schemes(current_model,"bossak", 2)
 
     def test_fall_newmark_scheme(self):
-        self._base_fall_test_dynamic_schemes("newmark", 2)
+        current_model = KratosMultiphysics.Model()
+        self._base_fall_test_dynamic_schemes(current_model,"newmark", 2)
 
     def test_fall_backward_euler_scheme(self):
-        self._base_fall_test_dynamic_schemes("backward_euler", 2, 2.0e-3)
+        current_model = KratosMultiphysics.Model()
+        self._base_fall_test_dynamic_schemes(current_model,"backward_euler", 2, 2.0e-3)
 
     def test_fall_bdf2_scheme(self):
-        self._base_fall_test_dynamic_schemes("bdf2", 3)
+        current_model = KratosMultiphysics.Model()
+        self._base_fall_test_dynamic_schemes(current_model,"bdf2", 3)
 
 def set_and_fill_buffer(mp,buffer_size,delta_time):
     # Set buffer size

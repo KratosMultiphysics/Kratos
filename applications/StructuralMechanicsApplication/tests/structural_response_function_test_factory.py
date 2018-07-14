@@ -37,7 +37,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
                 parameters = KratosMultiphysics.Parameters( parameter_file.read())
 
             self.problem_name = parameters["problem_data"]["problem_name"].GetString()
-            model_part = KratosMultiphysics.ModelPart(self.problem_name)
+            model_part = self.current_model.CreateModelPart(self.problem_name)
 
             self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model_part)
 
@@ -60,7 +60,6 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             self.response_function.FinalizeSolutionStep()
 
     def tearDown(self):
-        KratosMultiphysics.Model().Reset()
         # Within this location context:
         with controlledExecutionScope(self.path):
             self.response_function.Finalize()
@@ -74,17 +73,20 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
 
     def test_execution(self):
+        self.current_model = KratosMultiphysics.Model()
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 1569.9999999999998)
 
         self.assertEqual(len(self.gradient.keys()), 125)
         self.assertNotEqual(self.gradient[1][0], 0.0)
+        del(self.current_model)
 
 class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     path = GetFilePath("response_function_tests")
     file_name = "strain_energy_response"
 
     def test_execution(self):
+        self.current_model = KratosMultiphysics.Model()
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 8.484005297318718e-05)
 
@@ -92,6 +94,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[nodeId][0], -1.7336721959838976e-05, 12)
         self.assertAlmostEqual(self.gradient[nodeId][1], 3.6004964666202887e-08, 12)
         self.assertAlmostEqual(self.gradient[nodeId][2], -2.885071090097132e-09, 12)
+        del(self.current_model)
 
 if __name__ == "__main__":
     suites = KratosUnittest.KratosSuites

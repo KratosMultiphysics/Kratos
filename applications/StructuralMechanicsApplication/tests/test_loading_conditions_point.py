@@ -10,8 +10,8 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
     def tearDown(self):
         KratosMultiphysics.Model().Reset()
         
-    def _execute_point_load_condition_test(self, Dimension):
-        mp = KratosMultiphysics.ModelPart("solid_part")
+    def _execute_point_load_condition_test(self, current_model, Dimension):
+        mp = current_model.CreateModelPart("solid_part")
         mp.SetBufferSize(2)
 
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -68,8 +68,8 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
         if Dimension == 3:
             self.assertEqual(rhs[2], load_on_cond[2] + nodal_load[2])
 
-    def _execute_point_moment_condition_test(self):
-        mp = KratosMultiphysics.ModelPart("solid_part")
+    def _execute_point_moment_condition_test(self, current_model):
+        mp = current_model.CreateModelPart("solid_part")
         mp.SetBufferSize(2)
 
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
@@ -121,13 +121,16 @@ class TestLoadingConditionsPoint(KratosUnittest.TestCase):
             
 
     def test_PointLoadCondition2D1N(self):
-        self._execute_point_load_condition_test(Dimension=2)
+        current_model = KratosMultiphysics.Model()
+        self._execute_point_load_condition_test(current_model, Dimension=2)
 
     def test_PointLoadCondition3D1N(self):
-        self._execute_point_load_condition_test(Dimension=3)
+        current_model = KratosMultiphysics.Model()
+        self._execute_point_load_condition_test(current_model, Dimension=3)
 
     def test_PointMomentCondition3D1N(self):
-        self._execute_point_moment_condition_test()
+        current_model = KratosMultiphysics.Model()
+        self._execute_point_moment_condition_test(current_model)
     
 
 if __name__ == '__main__':

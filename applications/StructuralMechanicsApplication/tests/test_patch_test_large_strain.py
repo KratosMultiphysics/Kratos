@@ -9,9 +9,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
-
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -267,7 +264,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         bc_nodes = [1, 2]
         load_nodes = [3, 4]
 
-        tl_mp = KratosMultiphysics.ModelPart("tl_solid_part")
+        current_model = KratosMultiphysics.Model()
+        tl_mp = current_model.CreateModelPart("tl_solid_part")
+
         self._add_variables(tl_mp)
         self._apply_material_properties(tl_mp, dim, False)
 
@@ -299,7 +298,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         self._set_buffer(tl_mp)
         tl_lhs = KratosMultiphysics.CompressedMatrix()
 
-        ul_mp = KratosMultiphysics.ModelPart("ul_solid_part")
+        current_model = KratosMultiphysics.Model()
+        ul_mp = current_model.CreateModelPart("ul_solid_part")
         self._add_variables(ul_mp)
         self._apply_material_properties(ul_mp, dim, False)
 
@@ -391,7 +391,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
     def test_TL_2D_triangle(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -427,7 +428,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
     def test_TL_2D_quadrilateral(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -467,7 +469,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
     def test_TL_3D_hexa(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -518,7 +521,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
     def test_UL_2D_triangle(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -555,7 +559,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
     def test_UL_2D_quadrilateral(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -596,7 +601,8 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
 
     def test_UL_3D_hexa(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
