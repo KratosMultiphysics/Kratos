@@ -31,9 +31,7 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
 
         # Solver processes
         self.processes = []
-        for i in range(0,process_list.size()):
-            self.processes.append(process_list[i])
-
+ 
         
     def SetComputingModelPart(self, computing_model_part):
         self.model_part = computing_model_part
@@ -43,6 +41,10 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
             solver.SetComputingModelPart(solver._create_computing_sub_model_part(computing_model_part,counter))
             counter+=1
 
+        for i in range(0,process_list.size()):
+            self.processes.append(self._construct_process(process_list[i]))
+
+            
     def ExecuteInitialize(self):
         super(CompositeSolver, self).ExecuteInitialize()
         self._processes_execute_initialize()
@@ -50,10 +52,10 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
     #### Solve loop methods ####
 
     def Solve(self):
+        self._processes_execute_initialize_solution_step()
         for solver in self.solvers:
-            self._processes_execute_initialize_solution_step()
             solver.Solve()
-            self._processes_execute_finalize_solution_step()
+        self._processes_execute_finalize_solution_step()
 
     # step by step:
 
@@ -75,6 +77,11 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
         self._processes_execute_finalize_solution_step()
 
     #### Solver internal methods ####
+    #
+    def _construct_process(self, process):        
+        kratos_module = __import__(process["kratos_module"].GetString())
+        python_module = __import__(process["python_module"].GetString())
+        return(python_module.Factory(process, self.model_part))
 
     #
     def _processes_execute_initialize(self):
