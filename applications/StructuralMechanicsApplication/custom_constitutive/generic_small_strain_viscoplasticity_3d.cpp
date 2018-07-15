@@ -97,8 +97,8 @@ void GenericSmallStrainViscoplasticity3D::FinalizeSolutionStep(
     mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
                                                       rShapeFunctionsValues, rCurrentProcessInfo);
 
-    // mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
-    //                     rShapeFunctionsValues,rCurrentProcessInfo);
+    // mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
+    //                                                rShapeFunctionsValues, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/

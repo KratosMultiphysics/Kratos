@@ -106,10 +106,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
         Vector PrincipalStressVector;
         ConstitutiveLawUtilities::CalculatePrincipalStresses(PrincipalStressVector, StressVector);
 
-        double sigma_t, sigma_c, n;
-        sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
-        sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        n = std::abs(sigma_c / sigma_t);
+        double sigma_tension, sigma_compression, n;
+        sigma_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+        sigma_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        n = std::abs(sigma_compression / sigma_tension);
 
         double SumA = 0.0, SumB = 0.0, SumC = 0.0, ere0, ere1;
         for (std::size_t cont = 0; cont < 2; cont++)
@@ -152,18 +152,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
         const double CharacteristicLength)
     {
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
-        const double n = sigma_c / sigma_t;
+        const double sigma_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double sigma_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double n = sigma_compression / sigma_tension;
 
         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential))
         {
-            AParameter = 1.0 / (Gf * n * n / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+            AParameter = 1.0 / (Gf * n * n / (CharacteristicLength * std::pow(sigma_compression, 2)) - 0.5);
             KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         }
         else
         { // linear
-            AParameter = -std::pow(sigma_c, 2) / (2.0 * Gf * n * n / CharacteristicLength);
+            AParameter = -std::pow(sigma_compression, 2) / (2.0 * Gf * n * n / CharacteristicLength);
         }
     }
 
