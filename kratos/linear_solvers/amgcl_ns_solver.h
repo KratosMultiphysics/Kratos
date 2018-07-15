@@ -34,6 +34,12 @@
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
 #include <utility>
+
+#include <boost/utility/enable_if.hpp>
+#include <boost/type_traits/is_arithmetic.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/ublas.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
@@ -47,11 +53,6 @@
 #include <amgcl/solver/runtime.hpp>
 #include <amgcl/relaxation/as_preconditioner.hpp>
 #include <amgcl/preconditioner/schur_pressure_correction.hpp>
-
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_arithmetic.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
 
 namespace Kratos
 {

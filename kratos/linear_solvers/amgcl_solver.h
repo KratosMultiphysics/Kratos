@@ -37,6 +37,9 @@
 #include "linear_solvers/iterative_solver.h"
 #include<utility>
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/ublas.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
@@ -48,7 +51,6 @@
 #include <amgcl/coarsening/runtime.hpp>
 #include <amgcl/relaxation/runtime.hpp>
 #include <amgcl/solver/runtime.hpp>
-#include <boost/property_tree/json_parser.hpp>
 
 namespace Kratos
 {
