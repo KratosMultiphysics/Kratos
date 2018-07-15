@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu 
+//  Main authors:    Alejandro Cornejo & Lucia Barbu
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
@@ -21,7 +21,7 @@
 
 namespace Kratos
 {
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -29,7 +29,7 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK1(ConstitutiveLaw::
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -37,7 +37,7 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK2(ConstitutiveLaw::
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -45,32 +45,31 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(Constitutiv
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
     // Integrate Stress Damage
-    const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-    Vector& IntegratedStressVector = rValues.GetStressVector(); // To be updated
-    const Vector& StrainVector = rValues.GetStrainVector();
-    Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const ProcessInfo& ProcessInfo = rValues.GetProcessInfo();
+    const Properties &rMaterialProperties = rValues.GetMaterialProperties();
+    Vector &IntegratedStressVector = rValues.GetStressVector(); // To be updated
+    const Vector &StrainVector = rValues.GetStrainVector();
+    Matrix &TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+    const ProcessInfo &ProcessInfo = rValues.GetProcessInfo();
     const double TimeStep = ProcessInfo[DELTA_TIME];
 
-    const double Kvisco    = rMaterialProperties[VISCOUS_PARAMETER]; //  C1/Cinf
+    const double Kvisco = rMaterialProperties[VISCOUS_PARAMETER]; //  C1/Cinf
     const double DelayTime = rMaterialProperties[DELAY_TIME];
 
     // Elastic Matrix
     Matrix C;
     this->CalculateElasticMatrix(C, rMaterialProperties);
 
-    const Vector& PreviousStrain  = this->GetPreviousStrainVector();
-    const Vector& PreviousStress  = this->GetPreviousStressVector();
-    const Vector& StrainIncrement = StrainVector - PreviousStrain;
+    const Vector &PreviousStrain = this->GetPreviousStrainVector();
+    const Vector &PreviousStress = this->GetPreviousStressVector();
+    const Vector &StrainIncrement = StrainVector - PreviousStrain;
 
-    const double coef = Kvisco * TimeStep / ((1.0 + Kvisco)*2.0*DelayTime);
-    const Vector& Aux = -(StrainVector - StrainIncrement)*std::exp(-TimeStep/DelayTime)*(1.0 + coef)
-                            + StrainVector*(1.0 - coef);
+    const double coef = Kvisco * TimeStep / ((1.0 + Kvisco) * 2.0 * DelayTime);
+    const Vector &Aux = -(StrainVector - StrainIncrement) * std::exp(-TimeStep / DelayTime) * (1.0 + coef) + StrainVector * (1.0 - coef);
 
-    noalias(IntegratedStressVector) = PreviousStress*std::exp(-TimeStep/DelayTime) + prod(C, Aux);
+    noalias(IntegratedStressVector) = PreviousStress * std::exp(-TimeStep / DelayTime) + prod(C, Aux);
     noalias(TangentTensor) = C;
 
     this->SetNonConvPreviousStressVector(IntegratedStressVector);
@@ -82,11 +81,10 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLa
 /***********************************************************************************/
 
 void ViscousGeneralizedMaxwell3D::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
+    const Properties &rMaterialProperties,
+    const GeometryType &rElementGeometry,
+    const Vector &rShapeFunctionsValues,
+    const ProcessInfo &rCurrentProcessInfo)
 {
     // Update the required vectors
     this->SetPreviousStrainVector(this->GetNonConvPreviousStrainVector());
@@ -98,8 +96,7 @@ void ViscousGeneralizedMaxwell3D::FinalizeSolutionStep(
 
 void ViscousGeneralizedMaxwell3D::CalculateElasticMatrix(
     Matrix &rElasticityTensor,
-    const Properties &rMaterialProperties
-    )
+    const Properties &rMaterialProperties)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
@@ -128,42 +125,42 @@ void ViscousGeneralizedMaxwell3D::CalculateElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& ViscousGeneralizedMaxwell3D::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Matrix>& rThisVariable, Matrix& rValue)
+Matrix &ViscousGeneralizedMaxwell3D::CalculateValue(ConstitutiveLaw::Parameters &rParameterValues,
+                                                    const Variable<Matrix> &rThisVariable, Matrix &rValue)
 {
-    if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-		rValue = MathUtils<double>::StressVectorToTensor(this->GetPreviousStressVector());
-		return rValue;
+    if (rThisVariable == INTEGRATED_STRESS_TENSOR)
+    {
+        rValue = MathUtils<double>::StressVectorToTensor(this->GetPreviousStressVector());
+        return rValue;
     }
 }
 
-
-} // namespace kratos
+} // namespace Kratos
