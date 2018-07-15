@@ -50,6 +50,7 @@ SolidElement::SolidElement( IndexType NewId, GeometryType::Pointer pGeometry )
 SolidElement::SolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     :Element( NewId, pGeometry, pProperties )
 {
+    this->Set(SOLID);
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 

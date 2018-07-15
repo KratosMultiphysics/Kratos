@@ -39,6 +39,8 @@ namespace Kratos
   ElasticCondition::ElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BoundaryCondition(NewId, pGeometry, pProperties)
   {
+    this->Set(SOLID);
+    this->Set(STRUCTURE);
   }
 
   //************************************************************************************

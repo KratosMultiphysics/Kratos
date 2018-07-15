@@ -38,6 +38,7 @@ namespace Kratos
   MomentCondition::MomentCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : BoundaryCondition(NewId, pGeometry, pProperties)
   {
+    this->Set(STRUCTURE);
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
   }
 

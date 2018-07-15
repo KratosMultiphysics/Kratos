@@ -50,6 +50,7 @@ FluidElement::FluidElement( IndexType NewId, GeometryType::Pointer pGeometry )
 FluidElement::FluidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     :Element( NewId, pGeometry, pProperties )
 {
+    this->Set(FLUID);
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 

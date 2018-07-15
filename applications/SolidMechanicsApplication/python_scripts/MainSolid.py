@@ -158,9 +158,6 @@ class Solution(object):
 
         self.output.ExecuteInitializeSolutionStep()
 
-        # Step by step (1)
-        #self.solver.InitializeSolutionStep()
-
         self._stop_time_measuring(self.clock_time,"Initialize Step", self.report);
 
 
@@ -168,11 +165,17 @@ class Solution(object):
 
         self.clock_time = self._start_time_measuring();
 
+        # All steps included (1)(2)(3)
+        self.solver.Solve()
+        
+        # Step by step (1)
+        #self.solver.InitializeSolutionStep()
+
         # Step by step (2)
         #self.solver.SolveSolutionStep()
 
-        # All steps included (1)(2)(3)
-        self.solver.Solve()
+        # Step by step (3)
+        #self.solver.FinalizeSolutionStep()
 
         self._stop_time_measuring(self.clock_time,"Solve Step", self.report);
 
@@ -180,9 +183,6 @@ class Solution(object):
     def FinalizeSolutionStep(self):
 
         self.clock_time = self._start_time_measuring();
-
-        # Step by step (3)
-        #self.solver.FinalizeSolutionStep()
 
         self.output.ExecuteFinalizeSolutionStep()
 

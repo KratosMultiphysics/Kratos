@@ -43,12 +43,8 @@ namespace Kratos
   BeamElement::BeamElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
   {
-    KRATOS_TRY
-      
+    this->Set(STRUCTURE);
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    
-    KRATOS_CATCH( "" )
-
   }
 
   //******************************COPY CONSTRUCTOR**************************************
