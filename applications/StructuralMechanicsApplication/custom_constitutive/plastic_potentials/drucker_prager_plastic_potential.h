@@ -9,9 +9,8 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-
 #if !defined(KRATOS_DRUCKER_PRAGER_PLASTIC_POTENTIAL_H_INCLUDED)
-#define  KRATOS_DRUCKER_PRAGER_PLASTIC_POTENTIAL_H_INCLUDED
+#define KRATOS_DRUCKER_PRAGER_PLASTIC_POTENTIAL_H_INCLUDED
 
 // System includes
 
@@ -47,7 +46,7 @@ namespace Kratos
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -64,19 +63,18 @@ public:
     }
 
     /// Copy constructor
-    DruckerPragerPlasticPotential(DruckerPragerPlasticPotential const& rOther)
+    DruckerPragerPlasticPotential(DruckerPragerPlasticPotential const &rOther)
     {
     }
 
     /// Assignment operator
-    DruckerPragerPlasticPotential& operator=(DruckerPragerPlasticPotential const& rOther)
+    DruckerPragerPlasticPotential &operator=(DruckerPragerPlasticPotential const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~DruckerPragerPlasticPotential() {};
-
+    virtual ~DruckerPragerPlasticPotential(){};
 
     ///@}
     ///@name Operators
@@ -98,12 +96,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector, 
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rGFlux,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rGFlux,
+        const Properties &rMaterialProperties)
     {
         Vector FirstVector, SecondVector, ThirdVector;
 
@@ -114,14 +111,14 @@ public:
         const double c3 = 0.0;
 
         const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
-        const double sin_dil    = std::sin(dilatancy);
-        const double Root3     = std::sqrt(3.0);
+        const double sin_dil = std::sin(dilatancy);
+        const double Root3 = std::sqrt(3.0);
 
-        const double CFL = -Root3*(3.0-sin_dil) / (3.0*sin_dil-3.0);
-        const double c1 = CFL*2.0*sin_dil / (Root3*(3.0-sin_dil));
+        const double CFL = -Root3 * (3.0 - sin_dil) / (3.0 * sin_dil - 3.0);
+        const double c1 = CFL * 2.0 * sin_dil / (Root3 * (3.0 - sin_dil));
         const double c2 = CFL;
 
-        noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
+        noalias(rGFlux) = c1 * FirstVector + c2 * SecondVector + c3 * ThirdVector;
     }
 
     ///@}
@@ -142,7 +139,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -172,7 +169,7 @@ protected:
 
     ///@}
 
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -204,14 +201,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
-
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
-
     }
 
     ///@}
@@ -229,5 +224,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif

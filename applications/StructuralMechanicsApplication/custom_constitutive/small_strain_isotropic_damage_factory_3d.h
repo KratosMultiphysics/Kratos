@@ -10,8 +10,8 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED)
-#define  KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED
+#if !defined(KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED)
+#define KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED
 
 // System includes
 
@@ -72,7 +72,7 @@ namespace Kratos
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamageFactory3D
     : public ConstitutiveLaw
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -104,10 +104,10 @@ public:
      */
     ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
     {
-        const std::string& yield = NewParameters["yield_surface"].GetString();
-        const std::string& potential = NewParameters["plastic_potential"].GetString();
+        const std::string &yield = NewParameters["yield_surface"].GetString();
+        const std::string &potential = NewParameters["plastic_potential"].GetString();
 
-        const std::string& name = "SmallStrainIsotropicDamage3D" + yield + potential;
+        const std::string &name = "SmallStrainIsotropicDamage3D" + yield + potential;
         return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
     }
 
@@ -137,7 +137,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -166,7 +166,7 @@ protected:
     ///@{
 
     ///@}
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -198,5 +198,5 @@ private:
 
 }; // Class GenericYieldSurface
 
-} // namespace kratos
+} // namespace Kratos
 #endif

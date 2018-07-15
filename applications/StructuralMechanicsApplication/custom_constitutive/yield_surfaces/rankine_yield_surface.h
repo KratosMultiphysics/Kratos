@@ -10,7 +10,7 @@
 //
 
 #if !defined(KRATOS_RANKINE_YIELD_SURFACE_H_INCLUDED)
-#define  KRATOS_RANKINE_YIELD_SURFACE_H_INCLUDED
+#define KRATOS_RANKINE_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
@@ -49,7 +49,7 @@ namespace Kratos
 template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RankineYieldSurface
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -69,18 +69,18 @@ public:
     }
 
     /// Copy constructor
-    RankineYieldSurface(RankineYieldSurface const& rOther)
+    RankineYieldSurface(RankineYieldSurface const &rOther)
     {
     }
 
     /// Assignment operator
-    RankineYieldSurface& operator=(RankineYieldSurface const& rOther)
+    RankineYieldSurface &operator=(RankineYieldSurface const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~RankineYieldSurface() {};
+    virtual ~RankineYieldSurface(){};
 
     ///@}
     ///@name Operators
@@ -95,17 +95,16 @@ public:
      * @param StrainVector The StrainVector vector
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEquivalentStress(  
-        const Vector& StressVector,
-        const Vector& StrainVector,
-        double& rEqStress, 
-        const Properties& rMaterialProperties
-    )
-    {      
+    static void CalculateEquivalentStress(
+        const Vector &StressVector,
+        const Vector &StrainVector,
+        double &rEqStress,
+        const Properties &rMaterialProperties)
+    {
         Vector PrincipalStressVector = ZeroVector(3);
         ConstitutiveLawUtilities::CalculatePrincipalStresses(PrincipalStressVector, StressVector);
         // the rEqStress is the maximum principal stress
-        rEqStress = std::max(std::max(PrincipalStressVector[0],PrincipalStressVector[1]), PrincipalStressVector[2]);
+        rEqStress = std::max(std::max(PrincipalStressVector[0], PrincipalStressVector[1]), PrincipalStressVector[2]);
     }
 
     /**
@@ -113,7 +112,7 @@ public:
      * @param rThreshold The uniaxial stress threshold
      * @param rMaterialProperties The material properties
      */
-    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
     {
         rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_TENSION]);
     }
@@ -125,22 +124,23 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties& rMaterialProperties, 
-        double& AParameter, 
-        const double CharacteristicLength
-        )
+        const Properties &rMaterialProperties,
+        double &AParameter,
+        const double CharacteristicLength)
     {
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double E  = rMaterialProperties[YOUNG_MODULUS];
+        const double E = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            AParameter = 1.00 / (Gf*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential))
+        {
+            AParameter = 1.00 / (Gf * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
             KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        } else { // linear
-            AParameter = - std::pow(sigma_c, 2) / (2.0*E*Gf / CharacteristicLength);
         }
-		
+        else
+        { // linear
+            AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf / CharacteristicLength);
+        }
     }
 
     /**
@@ -152,12 +152,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector,
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rg,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rg,
+        const Properties &rMaterialProperties)
     {
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
     }
@@ -174,16 +173,15 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& StressVector, 
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rFFlux,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rFFlux,
+        const Properties &rMaterialProperties)
     {
         KRATOS_ERROR << "Yield surface derivative not defined for Rankine..." << std::endl;
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -202,7 +200,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -231,7 +229,7 @@ protected:
     ///@{
 
     ///@}
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -263,11 +261,11 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
     }
 
@@ -286,5 +284,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif

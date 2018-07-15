@@ -10,7 +10,7 @@
 //
 
 #if !defined(KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED)
-#define  KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED
+#define KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
@@ -49,7 +49,7 @@ namespace Kratos
 template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -57,7 +57,7 @@ public:
     typedef TPlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of TrescaYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION( TrescaYieldSurface );
+    KRATOS_CLASS_POINTER_DEFINITION(TrescaYieldSurface);
 
     ///@}
     ///@name Life Cycle
@@ -69,18 +69,18 @@ public:
     }
 
     /// Copy constructor
-    TrescaYieldSurface(TrescaYieldSurface const& rOther)
+    TrescaYieldSurface(TrescaYieldSurface const &rOther)
     {
     }
 
     /// Assignment operator
-    TrescaYieldSurface& operator=(TrescaYieldSurface const& rOther)
+    TrescaYieldSurface &operator=(TrescaYieldSurface const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~TrescaYieldSurface() {};
+    virtual ~TrescaYieldSurface(){};
 
     ///@}
     ///@name Operators
@@ -97,11 +97,10 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculateEquivalentStress(
-        const Vector& StressVector,
-        const Vector& StrainVector, 
-        double& rEqStress, 
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &StrainVector,
+        double &rEqStress,
+        const Properties &rMaterialProperties)
     {
         double I1, J2, J3, lode_angle;
         Vector deviator = ZeroVector(6);
@@ -111,7 +110,7 @@ public:
         ConstitutiveLawUtilities::CalculateJ3Invariant(deviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        rEqStress = 2.0*std::cos(lode_angle)*std::sqrt(J2);
+        rEqStress = 2.0 * std::cos(lode_angle) * std::sqrt(J2);
     }
 
     /**
@@ -119,9 +118,9 @@ public:
      * @param rThreshold The uniaxial stress threshold
      * @param rMaterialProperties The material properties
      */
-    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
     {
-        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_TENSION]);  // TODO Check
+        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_TENSION]); // TODO Check
     }
 
     /**
@@ -131,22 +130,24 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties& rMaterialProperties, 
-        double& AParameter, 
-        const double CharacteristicLength
-    )
+        const Properties &rMaterialProperties,
+        double &AParameter,
+        const double CharacteristicLength)
     {
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double E  = rMaterialProperties[YOUNG_MODULUS];
+        const double E = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-		const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
-		const double n = sigma_c / sigma_t;
+        const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double n = sigma_c / sigma_t;
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            AParameter = 1.00 / (Gf*n*n*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential))
+        {
+            AParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
             KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        } else { // linear
-            AParameter = - std::pow(sigma_c, 2) / (2.0*E*Gf*n*n / CharacteristicLength);
+        }
+        else
+        { // linear
+            AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf * n * n / CharacteristicLength);
         }
     }
 
@@ -159,12 +160,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector,
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rg,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rg,
+        const Properties &rMaterialProperties)
     {
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
     }
@@ -181,12 +181,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& StressVector, 
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rFFlux,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rFFlux,
+        const Properties &rMaterialProperties)
     {
         Vector first_vector, second_vector, third_vector;
 
@@ -198,20 +197,23 @@ public:
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double checker = std::abs(lode_angle*180/Globals::Pi);
+        const double checker = std::abs(lode_angle * 180 / Globals::Pi);
 
         double c1, c2, c3;
         c1 = 0.0;
 
-        if (checker < 29.0) {
-            c2 = 2.0*(std::cos(lode_angle) + std::sin(lode_angle)*std::tan(3.0*lode_angle));
-            c3 = std::sqrt(3.0)*std::sin(lode_angle) / (J2*std::cos(3.0*lode_angle));
-        } else {
+        if (checker < 29.0)
+        {
+            c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
+            c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
+        }
+        else
+        {
             c2 = std::sqrt(3.0);
             c3 = 0.0;
         }
 
-        noalias(rFFlux) = c1*first_vector + c2*second_vector + c3*third_vector;
+        noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     ///@}
@@ -232,7 +234,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -261,7 +263,7 @@ protected:
     ///@{
 
     ///@}
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -293,11 +295,11 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
     }
 
@@ -316,5 +318,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif

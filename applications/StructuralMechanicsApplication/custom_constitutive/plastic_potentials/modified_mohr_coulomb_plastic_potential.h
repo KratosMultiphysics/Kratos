@@ -9,9 +9,8 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-
 #if !defined(KRATOS_MODIFIED_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED)
-#define  KRATOS_MODIFIED_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED
+#define KRATOS_MODIFIED_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED
 
 // System includes
 
@@ -38,7 +37,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class ModifiedMohrCoulombPlasticPotential
  * @ingroup StructuralMechanicsApplication
@@ -48,7 +47,7 @@ namespace Kratos
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPotential
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -67,19 +66,18 @@ public:
     }
 
     /// Copy constructor
-    ModifiedMohrCoulombPlasticPotential(ModifiedMohrCoulombPlasticPotential const& rOther)
+    ModifiedMohrCoulombPlasticPotential(ModifiedMohrCoulombPlasticPotential const &rOther)
     {
     }
 
     /// Assignment operator
-    ModifiedMohrCoulombPlasticPotential& operator=(ModifiedMohrCoulombPlasticPotential const& rOther)
+    ModifiedMohrCoulombPlasticPotential &operator=(ModifiedMohrCoulombPlasticPotential const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~ModifiedMohrCoulombPlasticPotential() {};
-
+    virtual ~ModifiedMohrCoulombPlasticPotential(){};
 
     ///@}
     ///@name Operators
@@ -99,12 +97,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector, 
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rGFlux,
-        const Properties& rMaterialProperties
-        )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rGFlux,
+        const Properties &rMaterialProperties)
     {
         Vector first_vector, second_vector, third_vector;
 
@@ -116,17 +113,17 @@ public:
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double Checker = std::abs(lode_angle * 180.0/Globals::Pi);
+        const double Checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
-        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi/180.0;
-        const double sin_dil    = std::sin(dilatancy);
-        const double cos_dil    = std::cos(dilatancy);
-        const double sin_theta  = std::sin(lode_angle);
-        const double cos_theta  = std::cos(lode_angle);
-        const double cos_3theta = std::cos(3.0*lode_angle);
-        const double tan_theta  = std::tan(lode_angle);
-        const double tan_3theta = std::tan(3.0*lode_angle);
-        const double Root3     = std::sqrt(3.0);
+        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+        const double sin_dil = std::sin(dilatancy);
+        const double cos_dil = std::cos(dilatancy);
+        const double sin_theta = std::sin(lode_angle);
+        const double cos_theta = std::cos(lode_angle);
+        const double cos_3theta = std::cos(3.0 * lode_angle);
+        const double tan_theta = std::tan(lode_angle);
+        const double tan_3theta = std::tan(3.0 * lode_angle);
+        const double Root3 = std::sqrt(3.0);
 
         const double compr_yield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double tensi_yield = rMaterialProperties[YIELD_STRESS_TENSION];
@@ -137,22 +134,28 @@ public:
 
         const double CFL = 2.0 * std::tan(angle_phi) / cos_dil;
 
-        const double K1 = 0.5*(1 + alpha) - 0.5*(1 - alpha)*sin_dil;
-        const double K2 = 0.5*(1 + alpha) - 0.5*(1 - alpha) / sin_dil;
-        const double K3 = 0.5*(1 + alpha)*sin_dil - 0.5*(1 - alpha);
+        const double K1 = 0.5 * (1 + alpha) - 0.5 * (1 - alpha) * sin_dil;
+        const double K2 = 0.5 * (1 + alpha) - 0.5 * (1 - alpha) / sin_dil;
+        const double K3 = 0.5 * (1 + alpha) * sin_dil - 0.5 * (1 - alpha);
 
         double c1, c2, c3;
-        if (std::abs(sin_dil) > tolerance) c1 = CFL * K3 / 3.0;
-        else c1 = 0.0; // check
+        if (std::abs(sin_dil) > tolerance)
+            c1 = CFL * K3 / 3.0;
+        else
+            c1 = 0.0; // check
 
-        if (Checker < 29.0) {
-            c2 = cos_theta * CFL * (K1*(1 + tan_theta*tan_3theta) + K2*sin_dil*(tan_3theta - tan_theta) / Root3);
-            c3 = CFL*(K1*Root3*sin_theta + K2*sin_dil*cos_theta) / (2.0*J2*cos_3theta);
-        } else {
+        if (Checker < 29.0)
+        {
+            c2 = cos_theta * CFL * (K1 * (1 + tan_theta * tan_3theta) + K2 * sin_dil * (tan_3theta - tan_theta) / Root3);
+            c3 = CFL * (K1 * Root3 * sin_theta + K2 * sin_dil * cos_theta) / (2.0 * J2 * cos_3theta);
+        }
+        else
+        {
             c3 = 0.0;
             double Aux = 1.0;
-            if (std::abs(lode_angle) > tolerance) Aux = -1.0;
-            c2 = 0.5*CFL*(K1*Root3 + Aux*K2*sin_dil/Root3);
+            if (std::abs(lode_angle) > tolerance)
+                Aux = -1.0;
+            c2 = 0.5 * CFL * (K1 * Root3 + Aux * K2 * sin_dil / Root3);
         }
 
         noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
@@ -176,7 +179,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -206,7 +209,7 @@ protected:
 
     ///@}
 
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -238,14 +241,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
-
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
-
     }
 
     ///@}
@@ -263,5 +264,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif

@@ -10,7 +10,7 @@
 //
 
 #if !defined(KRATOS_DRUCKER_PRAGER_YIELD_SURFACE_H_INCLUDED)
-#define  KRATOS_DRUCKER_PRAGER_YIELD_SURFACE_H_INCLUDED
+#define KRATOS_DRUCKER_PRAGER_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
@@ -50,7 +50,7 @@ namespace Kratos
 template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerYieldSurface
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -72,18 +72,18 @@ public:
     }
 
     /// Copy constructor
-    DruckerPragerYieldSurface(DruckerPragerYieldSurface const& rOther)
+    DruckerPragerYieldSurface(DruckerPragerYieldSurface const &rOther)
     {
     }
 
     /// Assignment operator
-    DruckerPragerYieldSurface& operator=(DruckerPragerYieldSurface const& rOther)
+    DruckerPragerYieldSurface &operator=(DruckerPragerYieldSurface const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~DruckerPragerYieldSurface() {};
+    virtual ~DruckerPragerYieldSurface(){};
 
     ///@}
     ///@name Operators
@@ -98,19 +98,19 @@ public:
      * @param StrainVector The StrainVector vector
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEquivalentStress(  
-        const Vector& StressVector,
-        const Vector& StrainVector, 
-        double& rEqStress, 
-        const Properties& rMaterialProperties
-    )
-    {   
+    static void CalculateEquivalentStress(
+        const Vector &StressVector,
+        const Vector &StrainVector,
+        double &rEqStress,
+        const Properties &rMaterialProperties)
+    {
         double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double sin_phi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
         // Check input variables
-        if (friction_angle < tolerance) {
+        if (friction_angle < tolerance)
+        {
             friction_angle = 32.0 * Globals::Pi / 180.0;
             KRATOS_WARNING("DruckerPragerYieldSurface") << "Friction Angle not defined, assumed equal to 32 " << std::endl;
         }
@@ -118,13 +118,17 @@ public:
         double I1, J2;
         ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
         Vector Deviator = ZeroVector(6);
-        ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector,I1, Deviator, J2);
+        ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, Deviator, J2);
 
-        if (I1 == 0.0) { rEqStress = 0; }
-        else {
-            const double CFL = -Root3*(3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
-            const double TEN0 = 2.0 * I1 * sin_phi / (Root3*(3.0 - sin_phi)) + std::sqrt(J2);
-            rEqStress = std::abs(CFL*TEN0);
+        if (I1 == 0.0)
+        {
+            rEqStress = 0.0;
+        }
+        else
+        {
+            const double CFL = -Root3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
+            const double TEN0 = 2.0 * I1 * sin_phi / (Root3 * (3.0 - sin_phi)) + std::sqrt(J2);
+            rEqStress = std::abs(CFL * TEN0);
         }
     }
 
@@ -133,12 +137,12 @@ public:
      * @param rThreshold The uniaxial stress threshold
      * @param rMaterialProperties The material properties
      */
-    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
     {
         const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double sin_phi = std::sin(friction_angle);
-        rThreshold = std::abs(yield_tension*(3.0 + sin_phi) / (3.0*sin_phi - 3.0));
+        rThreshold = std::abs(yield_tension * (3.0 + sin_phi) / (3.0 * sin_phi - 3.0));
     }
 
     /**
@@ -148,24 +152,25 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties& rMaterialProperties, 
-        double& AParameter, 
-        const double CharacteristicLength
-        )
+        const Properties &rMaterialProperties,
+        double &AParameter,
+        const double CharacteristicLength)
     {
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double E  = rMaterialProperties[YOUNG_MODULUS];
+        const double E = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            AParameter = 1.00 / (Gf*n*n*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential))
+        {
+            AParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
             KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        } else { // linear
-            AParameter = - std::pow(sigma_c, 2) / (2.0*E*Gf*n*n / CharacteristicLength);
         }
-        
+        else
+        { // linear
+            AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf * n * n / CharacteristicLength);
+        }
     }
 
     /**
@@ -177,12 +182,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector,
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rg,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rg,
+        const Properties &rMaterialProperties)
     {
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
     }
@@ -199,12 +203,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& StressVector, 
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rFFlux,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rFFlux,
+        const Properties &rMaterialProperties)
     {
         Vector FirstVector, SecondVector, ThirdVector;
         ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
@@ -215,14 +218,14 @@ public:
         c3 = 0.0;
 
         const double friction_angle = rMaterialProperties[FRICTION_ANGLE];
-        const double sin_phi    = std::sin(friction_angle);
-        const double Root3     = std::sqrt(3.0);
+        const double sin_phi = std::sin(friction_angle);
+        const double Root3 = std::sqrt(3.0);
 
-        const double CFL = -Root3*(3.0-sin_phi) / (3.0*sin_phi-3.0);
-        c1 = CFL*2.0*sin_phi / (Root3*(3.0-sin_phi));
+        const double CFL = -Root3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
+        c1 = CFL * 2.0 * sin_phi / (Root3 * (3.0 - sin_phi));
         c2 = CFL;
 
-        noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
+        noalias(rFFlux) = c1 * FirstVector + c2 * SecondVector + c3 * ThirdVector;
     }
 
     ///@}
@@ -243,7 +246,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -272,7 +275,7 @@ protected:
     ///@{
 
     ///@}
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -304,11 +307,11 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
     }
 
@@ -327,5 +330,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif

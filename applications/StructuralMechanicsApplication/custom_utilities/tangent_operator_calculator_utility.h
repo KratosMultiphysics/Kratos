@@ -9,8 +9,8 @@
 //  Main authors:   Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED )
-#define  KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED
+#if !defined(KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED)
+#define KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED
 
 // System includes
 
@@ -53,8 +53,7 @@ namespace Kratos
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtility
 {
-public:
-
+  public:
     /// Pointer definition of TangentOperatorCalculatorUtility
     KRATOS_CLASS_POINTER_DEFINITION(TangentOperatorCalculatorUtility);
 
@@ -67,29 +66,29 @@ public:
     virtual ~TangentOperatorCalculatorUtility() {}
 
     static void CalculateTangentTensor(
-        ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw* pConstitutiveLaw
-    )
+        ConstitutiveLaw::Parameters &rValues,
+        ConstitutiveLaw *pConstitutiveLaw)
     {
         // Converged values to be storaged
         const Vector StrainVectorGP = rValues.GetStrainVector();
         const Vector StressVectorGP = rValues.GetStressVector();
 
-        Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
+        Matrix &TangentTensor = rValues.GetConstitutiveMatrix();
         TangentTensor.clear();
 
         const std::size_t NumComp = StrainVectorGP.size();
         // Loop over components of the strain
-        for (std::size_t Component = 0; Component < NumComp; Component++) {
-            Vector& PerturbedStrain = rValues.GetStrainVector();
-			
+        for (std::size_t Component = 0; Component < NumComp; Component++)
+        {
+            Vector &PerturbedStrain = rValues.GetStrainVector();
+
             double Perturbation;
             CalculatePerturbation(PerturbedStrain, Component, Perturbation);
             PerturbateStrainVector(PerturbedStrain, StrainVectorGP, Perturbation, Component);
             IntegratePerturbedStrain(rValues, pConstitutiveLaw);
 
-            Vector& PerturbedIntegratedStress = rValues.GetStressVector(); // now integrated
-            const Vector& DeltaStress = PerturbedIntegratedStress - StressVectorGP; 
+            Vector &PerturbedIntegratedStress = rValues.GetStressVector(); // now integrated
+            const Vector &DeltaStress = PerturbedIntegratedStress - StressVectorGP;
             AssignComponentsToTangentTensor(TangentTensor, DeltaStress, Perturbation, Component);
 
             // Reset the values to the initial ones
@@ -99,42 +98,42 @@ public:
     }
 
     static void CalculatePerturbation(
-        const Vector& StrainVector, 
+        const Vector &StrainVector,
         const int Component,
-        double& rPerturbation
-    )
+        double &rPerturbation)
     {
         double Pert1, Pert2;
-        if (StrainVector[Component] != 0.0) {
+        if (StrainVector[Component] != 0.0)
+        {
             Pert1 = 1.0e-5 * StrainVector[Component];
-        } else {
+        }
+        else
+        {
             double MinStrainComp;
             GetMinAbsValue(StrainVector, MinStrainComp);
             Pert1 = 1.0e-5 * MinStrainComp;
         }
         double MaxStrainComp;
         GetMaxAbsValue(StrainVector, MaxStrainComp);
-        Pert2 = 1e-10*MaxStrainComp;
+        Pert2 = 1e-10 * MaxStrainComp;
         rPerturbation = std::max(Pert1, Pert2);
     }
 
     static void PerturbateStrainVector(
-        Vector& PerturbedStrainVector, 
-        const Vector& StrainVectorGP,
+        Vector &PerturbedStrainVector,
+        const Vector &StrainVectorGP,
         const double Perturbation,
-        const int Component
-    )
+        const int Component)
     {
         PerturbedStrainVector = StrainVectorGP;
         PerturbedStrainVector[Component] += Perturbation;
     }
 
     static void IntegratePerturbedStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw* pConstitutiveLaw
-    )
+        ConstitutiveLaw::Parameters &rValues,
+        ConstitutiveLaw *pConstitutiveLaw)
     {
-		Flags& ConstitutiveLawOptions = rValues.GetOptions();
+        Flags &ConstitutiveLawOptions = rValues.GetOptions();
         // In order to avoid recursivity...
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -142,61 +141,67 @@ public:
     }
 
     static void GetMaxAbsValue(
-        const Vector& ArrayValues, 
-        double& MaxValue
-    )
-    {
-		const int Dim = ArrayValues.size();
-		std::vector<double> non_zero_values;
-
-		for (int i = 1; i < Dim; i++) {
-			if (ArrayValues[i] != 0.0) non_zero_values.push_back(std::abs(ArrayValues[i]));
-		}
-		KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
-
-		double aux = std::abs(non_zero_values[0]);
-		for (int i = 1; i < non_zero_values.size(); i++) {
-			if (non_zero_values[i] > aux) aux = non_zero_values[i];
-		}
-
-		MaxValue = aux;
-    }
-
-    static void GetMinAbsValue(
-        const Vector& ArrayValues, 
-        double& MinValue
-    )
+        const Vector &ArrayValues,
+        double &MaxValue)
     {
         const int Dim = ArrayValues.size();
-		std::vector<double> non_zero_values;
+        std::vector<double> non_zero_values;
 
-        for (int i = 0; i < Dim; i++) {
-			if (ArrayValues[i] != 0.0) non_zero_values.push_back(std::abs(ArrayValues[i]));
+        for (int i = 1; i < Dim; i++)
+        {
+            if (ArrayValues[i] != 0.0)
+                non_zero_values.push_back(std::abs(ArrayValues[i]));
         }
         KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
 
-		double aux = std::abs(non_zero_values[0]);
-		for (int i = 1; i < non_zero_values.size(); i++) {
-			if (non_zero_values[i] < aux) aux = non_zero_values[i];
-		}
+        double aux = std::abs(non_zero_values[0]);
+        for (int i = 1; i < non_zero_values.size(); i++)
+        {
+            if (non_zero_values[i] > aux)
+                aux = non_zero_values[i];
+        }
 
-		MinValue = aux;
+        MaxValue = aux;
+    }
+
+    static void GetMinAbsValue(
+        const Vector &ArrayValues,
+        double &MinValue)
+    {
+        const int Dim = ArrayValues.size();
+        std::vector<double> non_zero_values;
+
+        for (int i = 0; i < Dim; i++)
+        {
+            if (ArrayValues[i] != 0.0)
+                non_zero_values.push_back(std::abs(ArrayValues[i]));
+        }
+        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
+
+        double aux = std::abs(non_zero_values[0]);
+        for (int i = 1; i < non_zero_values.size(); i++)
+        {
+            if (non_zero_values[i] < aux)
+                aux = non_zero_values[i];
+        }
+
+        MinValue = aux;
     }
 
     static void AssignComponentsToTangentTensor(
-        Matrix& TangentTensor, 
-        const Vector& DeltaStress,
+        Matrix &TangentTensor,
+        const Vector &DeltaStress,
         const double Perturbation,
-        const int Component
-    )
+        const int Component)
     {
         const int Dim = DeltaStress.size();
-        for (int row = 0; row < Dim; row++) {
+        for (int row = 0; row < Dim; row++)
+        {
             TangentTensor(row, Component) = DeltaStress[row] / Perturbation;
         }
     }
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -225,7 +230,7 @@ protected:
     ///@{
 
     ///@}
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -254,8 +259,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    TangentOperatorCalculatorUtility& operator=(TangentOperatorCalculatorUtility const& rOther);
-
+    TangentOperatorCalculatorUtility &operator=(TangentOperatorCalculatorUtility const &rOther);
 };
-}// namespace Kratos.
+} // namespace Kratos.
 #endif // KRATOS_TANGENT_OPERATOR_CALCULATOR_PROCESS_H_INCLUDED  defined

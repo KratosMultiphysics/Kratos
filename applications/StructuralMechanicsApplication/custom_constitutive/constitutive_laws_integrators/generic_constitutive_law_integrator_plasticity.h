@@ -10,7 +10,7 @@
 //
 
 #if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_PLASTICITY_H_INCLUDED)
-#define  KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_PLASTICITY_H_INCLUDED
+#define KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_PLASTICITY_H_INCLUDED
 
 // System includes
 #include <string>
@@ -56,7 +56,7 @@ namespace Kratos
 template <class TYieldSurfaceType> //, std::size_t TVoigtSize>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorPlasticity
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -64,7 +64,7 @@ public:
     /// The type of yield surface
     typedef TYieldSurfaceType YieldSurfaceType;
 
-    /// The type of plastic potential 
+    /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of GenericConstitutiveLawIntegratorPlasticity
@@ -74,7 +74,13 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum class HardeningCurveType {LinearSoftening = 0, ExponentialSoftening = 1, InitialHardeningExponentialSoftening = 2, PerfectPlasticity = 3};
+    enum class HardeningCurveType
+    {
+        LinearSoftening = 0,
+        ExponentialSoftening = 1,
+        InitialHardeningExponentialSoftening = 2,
+        PerfectPlasticity = 3
+    };
 
     ///@}
     ///@name Life Cycle
@@ -86,12 +92,12 @@ public:
     }
 
     /// Copy constructor
-    GenericConstitutiveLawIntegratorPlasticity(GenericConstitutiveLawIntegratorPlasticity const& rOther)
+    GenericConstitutiveLawIntegratorPlasticity(GenericConstitutiveLawIntegratorPlasticity const &rOther)
     {
     }
 
     /// Assignment operator
-    GenericConstitutiveLawIntegratorPlasticity& operator=(GenericConstitutiveLawIntegratorPlasticity const& rOther)
+    GenericConstitutiveLawIntegratorPlasticity &operator=(GenericConstitutiveLawIntegratorPlasticity const &rOther)
     {
         return *this;
     }
@@ -108,7 +114,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
 
     /**
      * @brief This method integrates the predictive stress vector with the CL using differents evolution laws using the backward euler scheme
@@ -127,50 +132,53 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void IntegrateStressVector(
-        Vector& rPredictiveStressVector,
-        Vector& StrainVector, 
-        double& UniaxialStress, 
-        double& Threshold, 
-        double& PlasticDenominator, 
-        Vector& Fflux, 
-        Vector& Gflux, 
-        double& PlasticDissipation, 
-        Vector& PlasticStrainIncrement,  
-        const Matrix& C, 
-        Vector& PlasticStrain, 
-        const Properties& rMaterialProperties,
-        const double CharacteristicLength
-    )
+        Vector &rPredictiveStressVector,
+        Vector &StrainVector,
+        double &UniaxialStress,
+        double &Threshold,
+        double &PlasticDenominator,
+        Vector &Fflux,
+        Vector &Gflux,
+        double &PlasticDissipation,
+        Vector &PlasticStrainIncrement,
+        const Matrix &C,
+        Vector &PlasticStrain,
+        const Properties &rMaterialProperties,
+        const double CharacteristicLength)
     {
-        bool is_converged = false; 
-        int iteration = 0, max_iter = 9000;  
-        BoundedVector<double,6> DSigma, DS;
+        bool is_converged = false;
+        int iteration = 0, max_iter = 9000;
+        BoundedVector<double, 6> DSigma, DS;
         double PlasticConsistencyFactorIncrement, F;
 
-        // Backward Euler  
-        while (is_converged == false && iteration <= max_iter) {
-            
+        // Backward Euler
+        while (is_converged == false && iteration <= max_iter)
+        {
             F = UniaxialStress - Threshold;
-            PlasticConsistencyFactorIncrement = F * PlasticDenominator; 
-            //if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
-            noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; 
-            noalias(PlasticStrain) += PlasticStrainIncrement; 
-            noalias(DS) = prod(C, PlasticStrainIncrement); 
+            PlasticConsistencyFactorIncrement = F * PlasticDenominator;
+            //if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0;
+            noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux;
+            noalias(PlasticStrain) += PlasticStrainIncrement;
+            noalias(DS) = prod(C, PlasticStrainIncrement);
             noalias(rPredictiveStressVector) -= DS;
 
-            CalculatePlasticParameters(rPredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
-                PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
-                C, rMaterialProperties, CharacteristicLength); 
+            CalculatePlasticParameters(rPredictiveStressVector, StrainVector, UniaxialStress, Threshold,
+                                       PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement,
+                                       C, rMaterialProperties, CharacteristicLength);
 
             F = UniaxialStress - Threshold;
 
-            if (std::abs(F) <= std::abs(1.0e-4 * Threshold)) { // Has converged
+            if (std::abs(F) <= std::abs(1.0e-4 * Threshold))
+            { // Has converged
                 is_converged = true;
-            } else {
+            }
+            else
+            {
                 iteration++;
             }
         }
-        if (iteration == max_iter) KRATOS_WARNING("Backward Euler Plasticity") << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        if (iteration == max_iter)
+            KRATOS_WARNING("Backward Euler Plasticity") << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
     /**
@@ -190,36 +198,35 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculatePlasticParameters(
-        Vector& PredictiveStressVector, 
-        Vector& StrainVector,
-        double& UniaxialStress, 
-        double& Threshold,
-        double& PlasticDenominator, 
-        Vector& Fflux, 
-        Vector& Gflux, 
-        double& PlasticDissipation, 
-        Vector& PlasticStrainIncrement,
-        const Matrix& C, 
-        const Properties& rMaterialProperties,
-        const double CharacteristicLength
-    )
+        Vector &PredictiveStressVector,
+        Vector &StrainVector,
+        double &UniaxialStress,
+        double &Threshold,
+        double &PlasticDenominator,
+        Vector &Fflux,
+        Vector &Gflux,
+        double &PlasticDissipation,
+        Vector &PlasticStrainIncrement,
+        const Matrix &C,
+        const Properties &rMaterialProperties,
+        const double CharacteristicLength)
     {
-        Vector Deviator = ZeroVector(6); 
-        Vector HCapa    = ZeroVector(6);
+        Vector Deviator = ZeroVector(6);
+        Vector HCapa = ZeroVector(6);
         double J2, r0, r1, Slope, HardParam;
 
         YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, StrainVector,
-             UniaxialStress, rMaterialProperties);
+                                                    UniaxialStress, rMaterialProperties);
         const double I1 = PredictiveStressVector[0] + PredictiveStressVector[1] + PredictiveStressVector[2];
         ConstitutiveLawUtilities::CalculateJ2Invariant(PredictiveStressVector, I1, Deviator, J2);
         CalculateFFluxVector(PredictiveStressVector, Deviator, J2, Fflux, rMaterialProperties);
         CalculateGFluxVector(PredictiveStressVector, Deviator, J2, Gflux, rMaterialProperties);
         CalculateRFactors(PredictiveStressVector, r0, r1);
         CalculatePlasticDissipation(PredictiveStressVector, r0, r1, PlasticStrainIncrement,
-            PlasticDissipation, HCapa, rMaterialProperties, CharacteristicLength);
+                                    PlasticDissipation, HCapa, rMaterialProperties, CharacteristicLength);
         CalculateEquivalentStressThreshold(PlasticDissipation, r0,
-            r1, Threshold, Slope, rMaterialProperties);
-        CalculateHardeningParameter(Fflux, Slope, HCapa, HardParam); 
+                                           r1, Threshold, Slope, rMaterialProperties);
+        CalculateHardeningParameter(Fflux, Slope, HCapa, HardParam);
         CalculatePlasticDenominator(Fflux, Gflux, C, HardParam, PlasticDenominator);
     }
 
@@ -232,15 +239,14 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculateFFluxVector(
-        const Vector& StressVector,
-        const Vector& Deviator,
+        const Vector &StressVector,
+        const Vector &Deviator,
         const double J2,
-        Vector& FFluxVector,
-        const Properties& rMaterialProperties
-    )
+        Vector &FFluxVector,
+        const Properties &rMaterialProperties)
     {
-        YieldSurfaceType::CalculateYieldSurfaceDerivative(StressVector, Deviator, J2, 
-            FFluxVector, rMaterialProperties);
+        YieldSurfaceType::CalculateYieldSurfaceDerivative(StressVector, Deviator, J2,
+                                                          FFluxVector, rMaterialProperties);
     }
 
     /**
@@ -252,17 +258,16 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculateGFluxVector(
-        const Vector& StressVector, 
-        const Vector& Deviator,
-        const double J2, 
-        Vector& GFluxVector,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &GFluxVector,
+        const Properties &rMaterialProperties)
     {
-        YieldSurfaceType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, 
-            GFluxVector, rMaterialProperties);
+        YieldSurfaceType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2,
+                                                              GFluxVector, rMaterialProperties);
     }
-    
+
     /**
      * @brief This method computes the tensile/compressive indicators
      * @param StressVector The stress vector 
@@ -270,31 +275,34 @@ public:
      * @param r1 The compressive indicator
      */
     static void CalculateRFactors(
-        const Vector& StressVector,
-        double& r0,
-        double& r1
-        )
+        const Vector &StressVector,
+        double &r0,
+        double &r1)
     {
         Vector principal_stresses = ZeroVector(3);
         ConstitutiveLawUtilities::CalculatePrincipalStresses(principal_stresses, StressVector);
 
         double suma = 0.0, sumb = 0.0, sumc = 0.0;
-        Vector SA = ZeroVector(3) , SB = ZeroVector(3), SC = ZeroVector(3);
+        Vector SA = ZeroVector(3), SB = ZeroVector(3), SC = ZeroVector(3);
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++)
+        {
             SA[i] = std::abs(principal_stresses[i]);
-            SB[i] = 0.5*(principal_stresses[i]  + SA[i]);
-            SC[i] = 0.5*(-principal_stresses[i] + SA[i]);
+            SB[i] = 0.5 * (principal_stresses[i] + SA[i]);
+            SC[i] = 0.5 * (-principal_stresses[i] + SA[i]);
 
             suma += SA[i];
             sumb += SB[i];
             sumc += SC[i];
         }
 
-        if (std::abs(suma) > tolerance) {
-            r0 = sumb/suma;
-            r1 = sumc/suma;
-        } else {
+        if (std::abs(suma) > tolerance)
+        {
+            r0 = sumb / suma;
+            r1 = sumc / suma;
+        }
+        else
+        {
             r0 = sumb;
             r1 = sumc;
         }
@@ -312,45 +320,48 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculatePlasticDissipation(
-        const Vector& StressVector, 
+        const Vector &StressVector,
         const double r0,
-        const double r1, 
-        const Vector& PlasticStrainInc, 
-        double& rPlasticDissipation, 
-        Vector& rHCapa,
-        const Properties& rMaterialProperties,
-        const double CharacteristicLength
-    )
+        const double r1,
+        const Vector &PlasticStrainInc,
+        double &rPlasticDissipation,
+        Vector &rHCapa,
+        const Properties &rMaterialProperties,
+        const double CharacteristicLength)
     {
         const double Young = rMaterialProperties[YOUNG_MODULUS];
         const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double yield_tension     = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = yield_compression / yield_tension;
-        const double Gf = rMaterialProperties[FRACTURE_ENERGY]; // Frac energy in tension
+        const double Gf = rMaterialProperties[FRACTURE_ENERGY];                   // Frac energy in tension
         const double Gfc = rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
 
-        const double gf  = Gf / CharacteristicLength;
+        const double gf = Gf / CharacteristicLength;
         const double gfc = Gfc / CharacteristicLength;
 
-        const double hlim = 2.0*Young*gfc / (std::pow(yield_compression, 2));
+        const double hlim = 2.0 * Young * gfc / (std::pow(yield_compression, 2));
         KRATOS_ERROR_IF(CharacteristicLength > hlim) << "The Fracture Energy is to low: " << gfc << std::endl;
 
         double Const0 = 0.0, Const1 = 0.0, dplastic_dissipation = 0.0;
-        if (gf > 0.000001) {
+        if (gf > 0.000001)
+        {
             Const0 = r0 / gf;
             Const1 = r1 / gfc;
         }
         const double Const = Const0 + Const1;
 
-        for (int i = 0; i < 6; i++) {
-            rHCapa[i] = Const*StressVector[i];
-            dplastic_dissipation += rHCapa[i]*PlasticStrainInc[i];
+        for (int i = 0; i < 6; i++)
+        {
+            rHCapa[i] = Const * StressVector[i];
+            dplastic_dissipation += rHCapa[i] * PlasticStrainInc[i];
         }
 
-        if (dplastic_dissipation < 0.0 | dplastic_dissipation > 1.0) dplastic_dissipation = 0.0;
+        if (dplastic_dissipation<0.0 | dplastic_dissipation> 1.0)
+            dplastic_dissipation = 0.0;
 
         rPlasticDissipation += dplastic_dissipation;
-        if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999; 
+        if (rPlasticDissipation >= 1.0)
+            rPlasticDissipation = 0.9999;
     }
 
     /**
@@ -365,54 +376,54 @@ public:
     static void CalculateEquivalentStressThreshold(
         const double PlasticDissipation,
         const double r0,
-        const double r1, 
-        double& rEquivalentStressThreshold, 
-        double& rSlope,
-        const Properties& rMaterialProperties
-    )
+        const double r1,
+        double &rEquivalentStressThreshold,
+        double &rSlope,
+        const Properties &rMaterialProperties)
     {
-        const int    curve_type    = rMaterialProperties[HARDENING_CURVE];
-        const double yield_comp    = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const int curve_type = rMaterialProperties[HARDENING_CURVE];
+        const double yield_comp = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = yield_comp / yield_tension;
 
-        BoundedVector<double,2> Gf, slopes, eq_thresholds;
+        BoundedVector<double, 2> Gf, slopes, eq_thresholds;
 
         Gf[0] = rMaterialProperties[FRACTURE_ENERGY];
-        Gf[1] = std::pow(n, 2)*Gf[0];
+        Gf[1] = std::pow(n, 2) * Gf[0];
 
-        for (int i = 0; i < 2; i++) { // i:0 Tension ; i:1 compression
-            switch(static_cast<HardeningCurveType>(curve_type))
+        for (int i = 0; i < 2; i++)
+        { // i:0 Tension ; i:1 compression
+            switch (static_cast<HardeningCurveType>(curve_type))
             {
-                case HardeningCurveType::LinearSoftening:
-                    CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1,
-                        eq_thresholds[i], slopes[i], rMaterialProperties);
-                    break;
+            case HardeningCurveType::LinearSoftening:
+                CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1,
+                                                     eq_thresholds[i], slopes[i], rMaterialProperties);
+                break;
 
-                case HardeningCurveType::ExponentialSoftening:
-                    CalculateEqStressThresholdHardCurve2(PlasticDissipation, r0, r1,
-                        eq_thresholds[i], slopes[i], rMaterialProperties);
-                    break;
+            case HardeningCurveType::ExponentialSoftening:
+                CalculateEqStressThresholdHardCurve2(PlasticDissipation, r0, r1,
+                                                     eq_thresholds[i], slopes[i], rMaterialProperties);
+                break;
 
-                case HardeningCurveType::InitialHardeningExponentialSoftening:
-                    CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1,
-                        eq_thresholds[i], slopes[i], rMaterialProperties);  
-                    break;
+            case HardeningCurveType::InitialHardeningExponentialSoftening:
+                CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1,
+                                                     eq_thresholds[i], slopes[i], rMaterialProperties);
+                break;
 
-                case HardeningCurveType::PerfectPlasticity:
-                    CalculateEqStressThresholdHardCurve4(PlasticDissipation, r0, r1,
-                        eq_thresholds[i], slopes[i], rMaterialProperties);  
-                    break;
+            case HardeningCurveType::PerfectPlasticity:
+                CalculateEqStressThresholdHardCurve4(PlasticDissipation, r0, r1,
+                                                     eq_thresholds[i], slopes[i], rMaterialProperties);
+                break;
 
                 // Add more cases...
 
-                default:
-                    KRATOS_ERROR << " The HARDENING_CURVE of plasticity is not set or wrong..."<< curve_type << std::endl;     
-                    break;
+            default:
+                KRATOS_ERROR << " The HARDENING_CURVE of plasticity is not set or wrong..." << curve_type << std::endl;
+                break;
             }
         }
-        rEquivalentStressThreshold = r0*eq_thresholds[0] + r1*eq_thresholds[1];
-        rSlope = rEquivalentStressThreshold*((r0*slopes[0] / eq_thresholds[0]) + (r1*slopes[1] / eq_thresholds[1]));
+        rEquivalentStressThreshold = r0 * eq_thresholds[0] + r1 * eq_thresholds[1];
+        rSlope = rEquivalentStressThreshold * ((r0 * slopes[0] / eq_thresholds[0]) + (r1 * slopes[1] / eq_thresholds[1]));
     }
 
     /**
@@ -424,21 +435,20 @@ public:
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve1(        
+    static void CalculateEqStressThresholdHardCurve1(
         const double PlasticDissipation,
         const double r0,
-        const double r1, 
-        double& rEquivalentStressThreshold, 
-        double& rSlope,
-        const Properties& rMaterialProperties
-    )
+        const double r1,
+        double &rEquivalentStressThreshold,
+        double &rSlope,
+        const Properties &rMaterialProperties)
     {
         //const double initial_threshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold * std::sqrt(1.0 - PlasticDissipation);
-        rSlope = -0.5*(std::pow(initial_threshold, 2.0) / (rEquivalentStressThreshold));
+        rSlope = -0.5 * (std::pow(initial_threshold, 2.0) / (rEquivalentStressThreshold));
     }
 
     /**
@@ -450,21 +460,20 @@ public:
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve2(        
+    static void CalculateEqStressThresholdHardCurve2(
         const double PlasticDissipation,
         const double r0,
-        const double r1, 
-        double& rEquivalentStressThreshold, 
-        double& rSlope,
-        const Properties& rMaterialProperties
-    )
+        const double r1,
+        double &rEquivalentStressThreshold,
+        double &rSlope,
+        const Properties &rMaterialProperties)
     {
         //const double initial_threshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
-        rSlope = -0.5*initial_threshold;
+        rSlope = -0.5 * initial_threshold;
     }
 
     /**
@@ -479,33 +488,33 @@ public:
     static void CalculateEqStressThresholdHardCurve3(
         const double PlasticDissipation,
         const double r0,
-        const double r1, 
-        double& rEquivalentStressThreshold, 
-        double& rSlope,
-        const Properties& rMaterialProperties
-    )
+        const double r1,
+        double &rEquivalentStressThreshold,
+        double &rSlope,
+        const Properties &rMaterialProperties)
     {
         //const double initial_threshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];  // sikma
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
         const double ultimate_stress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
-        const double max_stress_position = rMaterialProperties[MAXIMUM_STRESS_POSITION];  // cappi
-        
-        if (PlasticDissipation < 1.0) {
+        const double max_stress_position = rMaterialProperties[MAXIMUM_STRESS_POSITION]; // cappi
+
+        if (PlasticDissipation < 1.0)
+        {
             const double ro = std::sqrt(1.0 - initial_threshold / ultimate_stress);
-            double Alpha = std::log((1.0 - (1.0 - ro)*(1.0 - ro)) / ((3.0 - ro)*(1.0 + ro)*max_stress_position));
+            double Alpha = std::log((1.0 - (1.0 - ro) * (1.0 - ro)) / ((3.0 - ro) * (1.0 + ro) * max_stress_position));
             Alpha = std::exp(Alpha / (1.0 - max_stress_position));
-            const double phi = std::pow((1.0 - ro), 2.0) + ((3.0 - ro)*(1.0 + ro)*PlasticDissipation*(std::pow(Alpha, (1.0 - PlasticDissipation))));
+            const double phi = std::pow((1.0 - ro), 2.0) + ((3.0 - ro) * (1.0 + ro) * PlasticDissipation * (std::pow(Alpha, (1.0 - PlasticDissipation))));
 
-            rEquivalentStressThreshold = ultimate_stress*(2.0*std::sqrt(phi) - phi);
-            rSlope = ultimate_stress*((1.0 / std::sqrt(phi)) - 1.0)*(3.0 - ro)*(1.0 + ro)*(std::pow(Alpha, (1.0 - PlasticDissipation)))*
-                (1.0 - std::log(Alpha)*PlasticDissipation);
-
-        } else {
+            rEquivalentStressThreshold = ultimate_stress * (2.0 * std::sqrt(phi) - phi);
+            rSlope = ultimate_stress * ((1.0 / std::sqrt(phi)) - 1.0) * (3.0 - ro) * (1.0 + ro) * (std::pow(Alpha, (1.0 - PlasticDissipation))) *
+                     (1.0 - std::log(Alpha) * PlasticDissipation);
+        }
+        else
+        {
             KRATOS_ERROR << "PlasticDissipation > 1.0 " << PlasticDissipation << std::endl;
         }
     }
-
 
     /**
      * @brief This method computes the uniaxial threshold using a perfect plasticity law
@@ -519,17 +528,16 @@ public:
     static void CalculateEqStressThresholdHardCurve4(
         const double PlasticDissipation,
         const double r0,
-        const double r1, 
-        double& rEquivalentStressThreshold, 
-        double& rSlope,
-        const Properties& rMaterialProperties
-    )
+        const double r1,
+        double &rEquivalentStressThreshold,
+        double &rSlope,
+        const Properties &rMaterialProperties)
     {
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold;
-        rSlope = -0.5*initial_threshold;
+        rSlope = -0.5 * initial_threshold;
     }
     /**
      * @brief This method computes hardening parameter needed for the algorithm
@@ -539,19 +547,20 @@ public:
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      */
     static void CalculateHardeningParameter(
-        const Vector& GFlux, 
+        const Vector &GFlux,
         const double SlopeThreshold,
-        const Vector& HCapa, 
-        double& rHardParameter
-    ) 
+        const Vector &HCapa,
+        double &rHardParameter)
     {
         rHardParameter = -SlopeThreshold;
         double aux = 0.0;
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 6; i++)
+        {
             aux += HCapa[i] * GFlux[i];
         }
-        if (aux != 0.0) rHardParameter *= aux;
+        if (aux != 0.0)
+            rHardParameter *= aux;
     }
 
     /**
@@ -564,18 +573,18 @@ public:
      * @param PlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
      */
     static void CalculatePlasticDenominator(
-        const Vector& FFlux, 
-        const Vector& GFlux,
-        const Matrix& C,
-        double& rHardParameter,
-        double& PlasticDenominator
-    )
+        const Vector &FFlux,
+        const Vector &GFlux,
+        const Matrix &C,
+        double &rHardParameter,
+        double &PlasticDenominator)
     {
         //const Vector DVect = prod(C, GFlux);
         const Vector DVect = prod(GFlux, C);
         double A1 = 0.0;
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 6; i++)
+        {
             A1 += FFlux[i] * DVect[i];
         }
 
@@ -602,7 +611,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -632,7 +641,7 @@ protected:
 
     ///@}
 
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -664,11 +673,11 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
     }
 
@@ -687,5 +696,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif

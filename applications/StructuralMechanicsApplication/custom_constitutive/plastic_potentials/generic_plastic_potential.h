@@ -9,9 +9,8 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-
 #if !defined(KRATOS_GENERIC_PLASTIC_POTENTIAL_H_INCLUDED)
-#define  KRATOS_GENERIC_PLASTIC_POTENTIAL_H_INCLUDED
+#define KRATOS_GENERIC_PLASTIC_POTENTIAL_H_INCLUDED
 
 // System includes
 #include <string>
@@ -54,7 +53,7 @@ namespace Kratos
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -71,19 +70,18 @@ public:
     }
 
     /// Copy constructor
-    GenericPlasticPotential(GenericPlasticPotential const& rOther)
+    GenericPlasticPotential(GenericPlasticPotential const &rOther)
     {
     }
 
     /// Assignment operator
-    GenericPlasticPotential& operator=(GenericPlasticPotential const& rOther)
+    GenericPlasticPotential &operator=(GenericPlasticPotential const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~GenericPlasticPotential() {};
-
+    virtual ~GenericPlasticPotential(){};
 
     ///@}
     ///@name Operators
@@ -105,12 +103,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector, 
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rg,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rg,
+        const Properties &rMaterialProperties)
     {
     }
 
@@ -132,7 +129,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -162,7 +159,7 @@ protected:
 
     ///@}
 
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -194,14 +191,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
-
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
-
     }
 
     ///@}
@@ -219,5 +214,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif

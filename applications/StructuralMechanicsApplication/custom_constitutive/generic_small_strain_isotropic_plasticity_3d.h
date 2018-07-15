@@ -10,8 +10,8 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED)
-#define  KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED
+#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED)
+#define KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED
 
 // System includes
 
@@ -40,7 +40,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class GenericConstitutiveLawIntegrator
  * @ingroup StructuralMechanicsApplication
@@ -52,7 +52,7 @@ template <class ConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity3D
     : public ConstitutiveLaw
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -81,16 +81,9 @@ public:
     /**
     * Copy constructor.
     */
-    GenericSmallStrainIsotropicPlasticity3D (const GenericSmallStrainIsotropicPlasticity3D& rOther) 
-    : ConstitutiveLaw(rOther) 
-    , mPlasticDissipation(rOther.mPlasticDissipation)
-    , mThreshold(rOther.mThreshold)
-    , mPlasticStrain(rOther.mPlasticStrain)
-    , mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation)
-    , mNonConvThreshold(rOther.mNonConvThreshold)
-    , mNonConvPlasticStrain(rOther.mNonConvPlasticStrain)
-    , mUniaxialStress(rOther.mUniaxialStress)
-    { 
+    GenericSmallStrainIsotropicPlasticity3D(const GenericSmallStrainIsotropicPlasticity3D &rOther)
+        : ConstitutiveLaw(rOther), mPlasticDissipation(rOther.mPlasticDissipation), mThreshold(rOther.mThreshold), mPlasticStrain(rOther.mPlasticStrain), mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation), mNonConvThreshold(rOther.mNonConvThreshold), mNonConvPlasticStrain(rOther.mNonConvPlasticStrain), mUniaxialStress(rOther.mUniaxialStress)
+    {
     }
 
     /**
@@ -127,30 +120,30 @@ public:
     {
         return 6;
     };
-    
+
     /**
      * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * to be called at the end of each solution step
@@ -161,11 +154,10 @@ public:
      * @param the current ProcessInfo instance
      */
     void FinalizeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const Properties &rMaterialProperties,
+        const GeometryType &rElementGeometry,
+        const Vector &rShapeFunctionsValues,
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * Finalize the material response,  called by the element in FinalizeSolutionStep.
@@ -181,38 +173,38 @@ public:
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
     /**
      * Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<double>& rThisVariable) override;
+    bool Has(const Variable<double> &rThisVariable) override;
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (Vector)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<Vector>& rThisVariable) override;
+    bool Has(const Variable<Vector> &rThisVariable) override;
 
     /**
      * @brief Sets the value of a specified variable (double)
@@ -221,10 +213,9 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<double>& rThisVariable,
-        const double& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const Variable<double> &rThisVariable,
+        const double &rValue,
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief Sets the value of a specified variable (Vector)
@@ -233,10 +224,9 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<Vector>& rThisVariable,
-        const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const Variable<Vector> &rThisVariable,
+        const Vector &rValue,
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief Returns the value of a specified variable (double)
@@ -244,10 +234,9 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    double& GetValue(
-        const Variable<double>& rThisVariable,
-        double& rValue
-        ) override;
+    double &GetValue(
+        const Variable<double> &rThisVariable,
+        double &rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (Vector)
@@ -255,10 +244,9 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    Vector& GetValue(
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-        ) override;
+    Vector &GetValue(
+        const Variable<Vector> &rThisVariable,
+        Vector &rValue) override;
 
     /**
      * returns the value of a specified variable (double)
@@ -267,22 +255,19 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    double& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<double>& rThisVariable,
-        double& rValue
-        ) override;
+    double &CalculateValue(
+        Parameters &rParameterValues,
+        const Variable<double> &rThisVariable,
+        double &rValue) override;
 
+    Matrix &GetValue(
+        const Variable<Matrix> &rThisVariable,
+        Matrix &rValue) override;
 
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-    ) override;
-
-    Matrix& CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue) override;
+    Matrix &CalculateValue(
+        Parameters &rParameterValues,
+        const Variable<Matrix> &rThisVariable,
+        Matrix &rValue) override;
     ///@}
     ///@name Access
     ///@{
@@ -301,7 +286,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -330,7 +315,7 @@ protected:
     ///@{
 
     ///@}
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -346,7 +331,7 @@ private:
     // Non Converged values
     double mNonConvPlasticDissipation = 0.0;
     double mNonConvThreshold = 0.0;
-    Vector mNonConvPlasticStrain = ZeroVector(this->GetStrainSize());
+    Vector mNonConvPlasticStrain = ZeroVector(6);
 
     // Auxiliar to print (NOTE: Alejandro do we need this now?)
     double mUniaxialStress = 0.0;
@@ -359,27 +344,27 @@ private:
     ///@name Private Operations
     ///@{
 
-    double GetThreshold() {return mThreshold;}
-    double GetPlasticDissipation() {return mPlasticDissipation;}
-    Vector GetPlasticStrain(){return mPlasticStrain;}
+    double GetThreshold() { return mThreshold; }
+    double GetPlasticDissipation() { return mPlasticDissipation; }
+    Vector GetPlasticStrain() { return mPlasticStrain; }
 
-    double GetNonConvThreshold() {return mNonConvThreshold;}
-    double GetNonConvPlasticDissipation() {return mNonConvPlasticDissipation;}
-    Vector GetNonConvPlasticStrain(){return mNonConvPlasticStrain;}
+    double GetNonConvThreshold() { return mNonConvThreshold; }
+    double GetNonConvPlasticDissipation() { return mNonConvPlasticDissipation; }
+    Vector GetNonConvPlasticStrain() { return mNonConvPlasticStrain; }
 
-    void SetThreshold(const double& toThreshold) {mThreshold = toThreshold;}
-    void SetPlasticDissipation(const double& toCapap) {mPlasticDissipation = toCapap;}
-    void SetPlasticStrain(const Vector& Ep){mPlasticStrain = Ep;}
+    void SetThreshold(const double &toThreshold) { mThreshold = toThreshold; }
+    void SetPlasticDissipation(const double &toCapap) { mPlasticDissipation = toCapap; }
+    void SetPlasticStrain(const Vector &Ep) { mPlasticStrain = Ep; }
 
-    void SetNonConvThreshold(const double& toThreshold) {mNonConvThreshold = toThreshold;}
-    void SetNonConvPlasticDissipation(const double& toCapap) {mNonConvPlasticDissipation = toCapap;}
-    void SetNonConvPlasticStrain(const Vector& Ep){mNonConvPlasticStrain = Ep;}
+    void SetNonConvThreshold(const double &toThreshold) { mNonConvThreshold = toThreshold; }
+    void SetNonConvPlasticDissipation(const double &toCapap) { mNonConvPlasticDissipation = toCapap; }
+    void SetNonConvPlasticStrain(const Vector &Ep) { mNonConvPlasticStrain = Ep; }
 
     /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues);
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
 
     /**
      * @brief This method computes the elastic tensor
@@ -388,8 +373,7 @@ private:
      */
     void CalculateElasticMatrix(
         Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties
-        );
+        const Properties &rMaterialProperties);
 
     ///@}
     ///@name Private  Access
@@ -407,9 +391,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer &rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
@@ -418,9 +402,9 @@ private:
         rSerializer.save("NonConvPlasticStrain", mNonConvPlasticStrain);
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer &rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
@@ -433,5 +417,5 @@ private:
 
 }; // Class GenericYieldSurface
 
-} // namespace kratos
+} // namespace Kratos
 #endif

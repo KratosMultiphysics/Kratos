@@ -6,12 +6,12 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu 
+//  Main authors:    Alejandro Cornejo & Lucia Barbu
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_VISCOUS_GENERALIZED_MAXWELL_H_INCLUDED)
-#define  KRATOS_VISCOUS_GENERALIZED_MAXWELL_H_INCLUDED
+#if !defined(KRATOS_VISCOUS_GENERALIZED_MAXWELL_H_INCLUDED)
+#define KRATOS_VISCOUS_GENERALIZED_MAXWELL_H_INCLUDED
 
 // System includes
 
@@ -51,7 +51,7 @@ namespace Kratos
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
     : public ConstitutiveLaw
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -80,12 +80,8 @@ public:
     /**
     * Copy constructor.
     */
-    ViscousGeneralizedMaxwell3D (const ViscousGeneralizedMaxwell3D& rOther)
-        : ConstitutiveLaw(rOther)
-        , mPrevStressVector(rOther.mPrevStressVector)
-        , mPrevStrainVector(rOther.mPrevStrainVector)
-        , mNonConvPrevStressVector(rOther.mNonConvPrevStressVector)
-        , mNonConvPrevStrainVector(rOther.mNonConvPrevStrainVector)
+    ViscousGeneralizedMaxwell3D(const ViscousGeneralizedMaxwell3D &rOther)
+        : ConstitutiveLaw(rOther), mPrevStressVector(rOther.mPrevStressVector), mPrevStrainVector(rOther.mPrevStrainVector), mNonConvPrevStressVector(rOther.mNonConvPrevStressVector), mNonConvPrevStrainVector(rOther.mNonConvPrevStrainVector)
     {
     }
 
@@ -124,25 +120,25 @@ public:
      * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * to be called at the end of each solution step
@@ -153,42 +149,40 @@ public:
      * @param the current ProcessInfo instance
      */
     void FinalizeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const Properties &rMaterialProperties,
+        const GeometryType &rElementGeometry,
+        const Vector &rShapeFunctionsValues,
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
      * Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
 
-    Matrix& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-        
+    Matrix &CalculateValue(
+        ConstitutiveLaw::Parameters &rParameterValues,
+        const Variable<Matrix> &rThisVariable,
+        Matrix &rValue) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -207,7 +201,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -236,7 +230,7 @@ protected:
     ///@{
 
     ///@}
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -247,7 +241,7 @@ private:
     // Converged values
     Vector mPrevStressVector = ZeroVector(6);
     Vector mPrevStrainVector = ZeroVector(6);
-    
+
     // Non Converged values
     Vector mNonConvPrevStressVector = ZeroVector(6);
     Vector mNonConvPrevStrainVector = ZeroVector(6);
@@ -277,8 +271,7 @@ private:
      */
     void CalculateElasticMatrix(
         Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties
-        );
+        const Properties &rMaterialProperties);
 
     ///@}
     ///@name Private  Access
@@ -296,19 +289,18 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer &rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("PrevStressVector", mPrevStressVector);
         rSerializer.save("PrevStrainVector", mPrevStrainVector);
         rSerializer.save("NonConvPrevStressVector", mNonConvPrevStressVector);
         rSerializer.save("NonConvPrevStrainVector", mNonConvPrevStrainVector);
-
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer &rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("PrevStressVector", mPrevStressVector);
         rSerializer.load("PrevStrainVector", mPrevStrainVector);
         rSerializer.load("NonConvPrevStressVector", mNonConvPrevStressVector);
@@ -319,5 +311,5 @@ private:
 
 }; // Class GenericYieldSurface
 
-} // namespace kratos
+} // namespace Kratos
 #endif

@@ -10,7 +10,7 @@
 //
 
 #if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED)
-#define  KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED
+#define KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED
 
 // System includes
 #include <string>
@@ -56,15 +56,14 @@ namespace Kratos
 template <class TYieldSurfaceType> //, class TVoigtSize>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorDamage
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
-
 
     /// The type of yield surface
     typedef TYieldSurfaceType YieldSurfaceType;
 
-    /// The type of plastic potential 
+    /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of GenericConstitutiveLawIntegratorDamage
@@ -76,12 +75,12 @@ public:
     }
 
     /// Copy constructor
-    GenericConstitutiveLawIntegratorDamage(GenericConstitutiveLawIntegratorDamage const& rOther)
+    GenericConstitutiveLawIntegratorDamage(GenericConstitutiveLawIntegratorDamage const &rOther)
     {
     }
 
     /// Assignment operator
-    GenericConstitutiveLawIntegratorDamage& operator=(GenericConstitutiveLawIntegratorDamage const& rOther)
+    GenericConstitutiveLawIntegratorDamage &operator=(GenericConstitutiveLawIntegratorDamage const &rOther)
     {
         return *this;
     }
@@ -98,7 +97,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-        
+
     /**
      * @brief This method integrates the predictive stress vector with the CL using linear or exponential softening
      * @param PredictiveStressVector The predictive stress vector
@@ -109,30 +108,30 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void IntegrateStressVector(
-        Vector& rPredictiveStressVector,
+        Vector &rPredictiveStressVector,
         const double UniaxialStress,
-        double& rDamage,
-        double& rThreshold,
-        const Properties& rMaterialProperties,
-        const double CharacteristicLength
-    )
+        double &rDamage,
+        double &rThreshold,
+        const Properties &rMaterialProperties,
+        const double CharacteristicLength)
     {
         const int softening_type = rMaterialProperties[SOFTENING_TYPE];
         double DamageParameter;
         TYieldSurfaceType::CalculateDamageParameter(rMaterialProperties, DamageParameter, CharacteristicLength);
 
-        switch(softening_type) {
-            case static_cast<int>(SofteningType::Linear):
-                CalculateLinearDamage(UniaxialStress, rThreshold, DamageParameter,
-                    CharacteristicLength, rMaterialProperties, rDamage);
-                break;
-            case static_cast<int>(SofteningType::Exponential):
-                CalculateExponentialDamage(UniaxialStress, rThreshold, DamageParameter,
-                    CharacteristicLength, rMaterialProperties, rDamage);
-                break;
-            default:
-                KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
-                break;
+        switch (softening_type)
+        {
+        case static_cast<int>(SofteningType::Linear):
+            CalculateLinearDamage(UniaxialStress, rThreshold, DamageParameter,
+                                  CharacteristicLength, rMaterialProperties, rDamage);
+            break;
+        case static_cast<int>(SofteningType::Exponential):
+            CalculateExponentialDamage(UniaxialStress, rThreshold, DamageParameter,
+                                       CharacteristicLength, rMaterialProperties, rDamage);
+            break;
+        default:
+            KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
+            break;
         }
         rPredictiveStressVector *= (1.0 - rDamage);
     }
@@ -150,13 +149,12 @@ public:
         const double Threshold,
         const double DamageParameter,
         const double CharacteristicLength,
-        const Properties& rMaterialProperties,
-        double& Damage
-    )
+        const Properties &rMaterialProperties,
+        double &Damage)
     {
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
-        Damage = 1.0 - (initial_threshold / UniaxialStress)*std::exp(DamageParameter*(1.0 - UniaxialStress / initial_threshold));
+        Damage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter * (1.0 - UniaxialStress / initial_threshold));
     }
 
     /**
@@ -172,9 +170,8 @@ public:
         const double Threshold,
         const double DamageParameter,
         const double CharacteristicLength,
-        const Properties& rMaterialProperties,
-        double& Damage
-    )
+        const Properties &rMaterialProperties,
+        double &Damage)
     {
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
@@ -199,7 +196,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -229,7 +226,7 @@ protected:
 
     ///@}
 
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -261,11 +258,11 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
     }
 
@@ -284,5 +281,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif

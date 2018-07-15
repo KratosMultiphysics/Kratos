@@ -10,7 +10,7 @@
 //
 
 #if !defined(KRATOS_GENERIC_YIELD_SURFACE_H_INCLUDED)
-#define  KRATOS_GENERIC_YIELD_SURFACE_H_INCLUDED
+#define KRATOS_GENERIC_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 #include <string>
@@ -56,7 +56,7 @@ namespace Kratos
 template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -64,7 +64,7 @@ public:
     typedef TPlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION( GenericYieldSurface );
+    KRATOS_CLASS_POINTER_DEFINITION(GenericYieldSurface);
 
     ///@}
     ///@name  Enum's
@@ -80,18 +80,18 @@ public:
     }
 
     /// Copy constructor
-    GenericYieldSurface(GenericYieldSurface const& rOther)
+    GenericYieldSurface(GenericYieldSurface const &rOther)
     {
     }
 
     /// Assignment operator
-    GenericYieldSurface& operator=(GenericYieldSurface const& rOther)
+    GenericYieldSurface &operator=(GenericYieldSurface const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~GenericYieldSurface() {};
+    virtual ~GenericYieldSurface(){};
 
     ///@}
     ///@name Operators
@@ -107,7 +107,7 @@ public:
      * @param StrainVector The StrainVector vector
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEquivalentStress(const Vector& StressVector, double& rEqStress, const Properties& rMaterialProperties)
+    static void CalculateEquivalentStress(const Vector &StressVector, double &rEqStress, const Properties &rMaterialProperties)
     {
     }
 
@@ -116,7 +116,7 @@ public:
      * @param rThreshold The uniaxial stress threshold
      * @param rMaterialProperties The material properties
      */
-    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
     {
     }
 
@@ -127,10 +127,9 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties& rMaterialProperties, 
-        double& AParameter, 
-        const double CharacteristicLength
-        )
+        const Properties &rMaterialProperties,
+        double &AParameter,
+        const double CharacteristicLength)
     {
     }
 
@@ -143,14 +142,13 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector,
-        const Vector& Deviator,
-        const double& J2, 
-        Vector& rg,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double &J2,
+        Vector &rg,
+        const Properties &rMaterialProperties)
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector,Deviator, J2,rg, rMaterialProperties);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
     }
 
     /**
@@ -165,12 +163,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& StressVector, 
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rFFlux,
-        const Properties& rMaterialProperties
-    )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rFFlux,
+        const Properties &rMaterialProperties)
     {
     }
 
@@ -192,7 +189,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -221,7 +218,7 @@ protected:
     ///@{
 
     ///@}
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -253,11 +250,11 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
     }
 
@@ -276,5 +273,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif

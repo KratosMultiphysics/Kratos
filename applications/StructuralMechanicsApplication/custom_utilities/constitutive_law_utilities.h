@@ -43,8 +43,7 @@ namespace Kratos
  */
 class ConstitutiveLawUtilities
 {
-public:
-
+  public:
     ///@name Type definitions
     ///@{
 
@@ -68,9 +67,8 @@ public:
      * @param rI1 The first invariant
      */
     static void CalculateI1Invariant(
-        const Vector& StressVector,
-        double& rI1
-        )
+        const Vector &StressVector,
+        double &rI1)
     {
         rI1 = StressVector[0] + StressVector[1] + StressVector[2];
     }
@@ -81,12 +79,11 @@ public:
      * @param rI2 The second invariant
      */
     static void CalculateI2Invariant(
-        const Vector& StressVector,
-        double& rI2
-        )
+        const Vector &StressVector,
+        double &rI2)
     {
-        rI2 = (StressVector[0] + StressVector[2])*StressVector[1] + StressVector[0]*StressVector[2] +
-            - StressVector[3]*StressVector[3] - StressVector[4]*StressVector[4] - StressVector[5]*StressVector[5];
+        rI2 = (StressVector[0] + StressVector[2]) * StressVector[1] + StressVector[0] * StressVector[2] +
+              -StressVector[3] * StressVector[3] - StressVector[4] * StressVector[4] - StressVector[5] * StressVector[5];
     }
 
     /**
@@ -95,13 +92,12 @@ public:
      * @param rI3 The third invariant
      */
     static void CalculateI3Invariant(
-        const Vector& StressVector,
-        double& rI3
-        )
+        const Vector &StressVector,
+        double &rI3)
     {
-        rI3 = (StressVector[1]*StressVector[2] - StressVector[4]*StressVector[4])*StressVector[0] -
-            StressVector[1]*StressVector[5]*StressVector[5] - StressVector[2]*StressVector[3]*StressVector[3] +
-            2.0*StressVector[3]*StressVector[4]*StressVector[5];
+        rI3 = (StressVector[1] * StressVector[2] - StressVector[4] * StressVector[4]) * StressVector[0] -
+              StressVector[1] * StressVector[5] * StressVector[5] - StressVector[2] * StressVector[3] * StressVector[3] +
+              2.0 * StressVector[3] * StressVector[4] * StressVector[5];
     }
 
     /**
@@ -112,11 +108,10 @@ public:
      * @param rJ2 The second invariant of J
      */
     static void CalculateJ2Invariant(
-        const Vector& StressVector,
+        const Vector &StressVector,
         const double I1,
-        Vector& rDeviator,
-        double& rJ2
-        )
+        Vector &rDeviator,
+        double &rJ2)
     {
         rDeviator = StressVector;
         const double Pmean = I1 / 3.0;
@@ -125,8 +120,8 @@ public:
         rDeviator[1] -= Pmean;
         rDeviator[2] -= Pmean;
 
-        rJ2 = 0.5*(rDeviator[0]*rDeviator[0] + rDeviator[1]*rDeviator[1] + rDeviator[2]*rDeviator[2]) +
-            (rDeviator[3]*rDeviator[3] + rDeviator[4]*rDeviator[4] + rDeviator[5]*rDeviator[5]);
+        rJ2 = 0.5 * (rDeviator[0] * rDeviator[0] + rDeviator[1] * rDeviator[1] + rDeviator[2] * rDeviator[2]) +
+              (rDeviator[3] * rDeviator[3] + rDeviator[4] * rDeviator[4] + rDeviator[5] * rDeviator[5]);
     }
 
     /**
@@ -135,20 +130,19 @@ public:
      * @param rJ3 The third invariant of J
      */
     static void CalculateJ3Invariant(
-        const Vector& Deviator,
-        double& rJ3
-        )
+        const Vector &Deviator,
+        double &rJ3)
     {
-        rJ3 = Deviator[0]*(Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4])  +
-               Deviator[3]*(-Deviator[3]*Deviator[2]  + Deviator[5]*Deviator[4])  +
-               Deviator[5]*(Deviator[3]*Deviator[4] - Deviator[5]*Deviator[1]);
+        rJ3 = Deviator[0] * (Deviator[1] * Deviator[2] - Deviator[4] * Deviator[4]) +
+              Deviator[3] * (-Deviator[3] * Deviator[2] + Deviator[5] * Deviator[4]) +
+              Deviator[5] * (Deviator[3] * Deviator[4] - Deviator[5] * Deviator[1]);
     }
 
     /**
      * @brief This method computes the first vector
      * @param FirstVector The first vector
      */
-    static void CalculateFirstVector(Vector& FirstVector)
+    static void CalculateFirstVector(Vector &FirstVector)
     {
         FirstVector = ZeroVector(6);
         FirstVector[0] = 1.0;
@@ -163,14 +157,15 @@ public:
      * @param SecondVector The second vector
      */
     static void CalculateSecondVector(
-        const Vector& Deviator,
+        const Vector &Deviator,
         const double J2,
-        Vector& SecondVector
-        )
+        Vector &SecondVector)
     {
-		if (SecondVector.size() == 0) SecondVector.resize(6);
-        const double twosqrtJ2 = 2.0*std::sqrt(J2);
-        for (int i = 0; i < 6; i++) {
+        if (SecondVector.size() == 0)
+            SecondVector.resize(6);
+        const double twosqrtJ2 = 2.0 * std::sqrt(J2);
+        for (int i = 0; i < 6; i++)
+        {
             SecondVector[i] = Deviator[i] / (twosqrtJ2);
         }
 
@@ -186,20 +181,19 @@ public:
      * @param ThirdVector The third vector
      */
     static void CalculateThirdVector(
-        const Vector& Deviator,
+        const Vector &Deviator,
         const double J2,
-        Vector& ThirdVector
-        )
+        Vector &ThirdVector)
     {
         ThirdVector.resize(6);
         const double J2thirds = J2 / 3.0;
 
-        ThirdVector[0] = Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4] + J2thirds;
-        ThirdVector[1] = Deviator[0]*Deviator[2] - Deviator[5]*Deviator[5] + J2thirds;
-        ThirdVector[2] = Deviator[0]*Deviator[1] - Deviator[3]*Deviator[3] + J2thirds;
-        ThirdVector[3] = 2.0*(Deviator[4]*Deviator[5] - Deviator[3]*Deviator[2]);
-        ThirdVector[4] = 2.0*(Deviator[3]*Deviator[4] - Deviator[1]*Deviator[5]);
-        ThirdVector[5] = 2.0*(Deviator[5]*Deviator[3] - Deviator[0]*Deviator[4]);
+        ThirdVector[0] = Deviator[1] * Deviator[2] - Deviator[4] * Deviator[4] + J2thirds;
+        ThirdVector[1] = Deviator[0] * Deviator[2] - Deviator[5] * Deviator[5] + J2thirds;
+        ThirdVector[2] = Deviator[0] * Deviator[1] - Deviator[3] * Deviator[3] + J2thirds;
+        ThirdVector[3] = 2.0 * (Deviator[4] * Deviator[5] - Deviator[3] * Deviator[2]);
+        ThirdVector[4] = 2.0 * (Deviator[3] * Deviator[4] - Deviator[1] * Deviator[5]);
+        ThirdVector[5] = 2.0 * (Deviator[5] * Deviator[3] - Deviator[0] * Deviator[4]);
     }
 
     /**
@@ -211,12 +205,13 @@ public:
     static void CalculateLodeAngle(
         const double J2,
         const double J3,
-        double& LodeAngle
-        )
+        double &LodeAngle)
     {
-        double sint3 = (-3.0*std::sqrt(3.0)*J3) / (2.0*J2*std::sqrt(J2));
-        if (sint3 < -0.95) sint3 = -1.0;
-        if (sint3 > 0.95)  sint3 = 1.0;
+        double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
+        if (sint3 < -0.95)
+            sint3 = -1.0;
+        if (sint3 > 0.95)
+            sint3 = 1.0;
         LodeAngle = std::asin(sint3) / 3.0;
     }
 
@@ -226,9 +221,8 @@ public:
      * @param rStressVector The vector of stresses
      */
     static void CalculatePrincipalStresses(
-        Vector& rPrincipalStressVector,
-        const Vector& rStressVector
-        )
+        Vector &rPrincipalStressVector,
+        const Vector &rStressVector)
     {
         if (rPrincipalStressVector.size() != 3)
             rPrincipalStressVector.resize(3, false);
@@ -237,35 +231,40 @@ public:
         CalculateI1Invariant(rStressVector, I1);
         CalculateI2Invariant(rStressVector, I2);
         CalculateI3Invariant(rStressVector, I3);
-        II1 = I1*I1;
+        II1 = I1 * I1;
 
-        Num = (2.0*II1 - 9.0*I2)*I1 + 27.0*I3;
-        Denom = (II1 - 3.0*I2);
+        Num = (2.0 * II1 - 9.0 * I2) * I1 + 27.0 * I3;
+        Denom = (II1 - 3.0 * I2);
 
-        if (std::abs(Denom) > tolerance) {
-            phi = Num / (2.0*Denom*std::sqrt(Denom));
+        if (std::abs(Denom) > tolerance)
+        {
+            phi = Num / (2.0 * Denom * std::sqrt(Denom));
 
-            if (std::abs(phi) > 1.0) {
-                if (phi > 0.0) phi = 1.0;
-                else phi = -1.0;
+            if (std::abs(phi) > 1.0)
+            {
+                if (phi > 0.0)
+                    phi = 1.0;
+                else
+                    phi = -1.0;
             }
 
             const double acosphi = std::acos(phi);
             phi = acosphi / 3.0;
 
-            double aux1 = 2.0/3.0*std::sqrt(II1 - 3.0*I2);
+            double aux1 = 2.0 / 3.0 * std::sqrt(II1 - 3.0 * I2);
             double aux2 = I1 / 3.0;
 
             rPrincipalStressVector[0] = aux2 + aux1 * std::cos(phi);
             rPrincipalStressVector[1] = aux2 + aux1 * std::cos(phi - 2.09439510239);
             rPrincipalStressVector[2] = aux2 + aux1 * std::cos(phi - 4.18879020478);
-        } else {
+        }
+        else
+        {
             rPrincipalStressVector = ZeroVector(3);
         }
     }
 
-private:
-};// class ConstitutiveLawUtilities
-}
+  private:
+}; // class ConstitutiveLawUtilities
+} // namespace Kratos
 #endif /* KRATOS_CONSTITUTIVE_LAW_UTILITIES defined */
-

@@ -9,9 +9,8 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-
 #if !defined(KRATOS_TRESCA_PLASTIC_POTENTIAL_H_INCLUDED)
-#define  KRATOS_TRESCA_PLASTIC_POTENTIAL_H_INCLUDED
+#define KRATOS_TRESCA_PLASTIC_POTENTIAL_H_INCLUDED
 
 // System includes
 
@@ -47,7 +46,7 @@ namespace Kratos
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
@@ -64,19 +63,18 @@ public:
     }
 
     /// Copy constructor
-    TrescaPlasticPotential(TrescaPlasticPotential const& rOther)
+    TrescaPlasticPotential(TrescaPlasticPotential const &rOther)
     {
     }
 
     /// Assignment operator
-    TrescaPlasticPotential& operator=(TrescaPlasticPotential const& rOther)
+    TrescaPlasticPotential &operator=(TrescaPlasticPotential const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~TrescaPlasticPotential() {};
-
+    virtual ~TrescaPlasticPotential(){};
 
     ///@}
     ///@name Operators
@@ -98,12 +96,11 @@ public:
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector, 
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rGFlux,
-        const Properties& rMaterialProperties
-        )
+        const Vector &StressVector,
+        const Vector &Deviator,
+        const double J2,
+        Vector &rGFlux,
+        const Properties &rMaterialProperties)
     {
         Vector first_vector, second_vector, third_vector;
 
@@ -115,20 +112,23 @@ public:
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double checker = std::abs(lode_angle*180.0/Globals::Pi);
+        const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         const double c1 = 0.0;
         double c2, c3;
 
-        if (checker < 29.0) {
-            c2 = 2.0*(std::cos(lode_angle) + std::sin(lode_angle)*std::tan(3.0*lode_angle));
-            c3 = std::sqrt(3.0)*std::sin(lode_angle) / (J2*std::cos(3.0*lode_angle));
-        } else {
+        if (checker < 29.0)
+        {
+            c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
+            c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
+        }
+        else
+        {
             c2 = std::sqrt(3.0);
             c3 = 0.0;
         }
 
-        noalias(rGFlux) = c1*first_vector + c2*second_vector + c3*third_vector;
+        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     ///@}
@@ -149,7 +149,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -179,7 +179,7 @@ protected:
 
     ///@}
 
-private:
+  private:
     ///@name Static Member Variables
     ///@{
 
@@ -211,14 +211,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer &rSerializer) const
     {
-
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer &rSerializer)
     {
-
     }
 
     ///@}
@@ -236,5 +234,5 @@ private:
 
 ///@}
 
-}// namespace Kratos.
+} // namespace Kratos.
 #endif
