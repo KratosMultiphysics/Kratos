@@ -179,6 +179,7 @@ class Mesher(object):
         self.echo_level = echo_level
 
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[-------Mesher------]::"
         return header

@@ -19,12 +19,12 @@
 #include "includes/model_part.h"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -51,18 +51,18 @@ public:
     ///@{
 
     /// Default constructor.
-    ModelVolumeCalculationProcess(ModelPart& rModelPart, bool Axisymmetric, int EchoLevel) 
+    ModelVolumeCalculationProcess(ModelPart& rModelPart, bool Axisymmetric, int EchoLevel)
       : mrModelPart(rModelPart)
     {
       mAxisymmetric = Axisymmetric;
       mEchoLevel = EchoLevel;
     }
 
-    ModelVolumeCalculationProcess(ModelPart& rModelPart) 
+    ModelVolumeCalculationProcess(ModelPart& rModelPart)
       : mrModelPart(rModelPart)
     {
       mAxisymmetric = false;
-    } 
+    }
 
     /// Destructor.
     virtual ~ModelVolumeCalculationProcess() {}
@@ -85,27 +85,27 @@ public:
       KRATOS_TRY
 
       mModelVolume = ComputeModelVolume(mMeshVolume);
-      
+
       if( mEchoLevel > 0 )
 	std::cout<<"  [ Model Volume : "<<mModelVolume<<" ]"<<std::endl;
 
       KRATOS_CATCH( "" )
-	
+
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
     void ExecuteFinalizeSolutionStep() override
     {
-      KRATOS_TRY	 
+      KRATOS_TRY
 
       std::vector<double> MeshVolume;
       double ModelVolume = ComputeModelVolume(MeshVolume);
-      
+
       if( mEchoLevel > 0 )
 	std::cout<<"  [ Model Volume : "<<ModelVolume<<" ] [ Step increment : "<<ModelVolume-mModelVolume<<" ] "<<std::endl;
 
 
-      KRATOS_CATCH( "" )      
+      KRATOS_CATCH( "" )
     }
 
     ///@}
@@ -156,13 +156,13 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart&  mrModelPart;
- 
+
     bool mAxisymmetric;
- 
+
     double mModelVolume;
-  
+
     std::vector<double> mMeshVolume;
-  
+
     int mEchoLevel;
 
     ///@}
@@ -182,10 +182,10 @@ private:
 
       unsigned int start=0;
       unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
-      if(NumberOfMeshes>1) 
+      if(NumberOfMeshes>1)
 	start=1;
 
-      
+
       rMeshVolume.resize(NumberOfMeshes+start);
       std::fill( rMeshVolume.begin(), rMeshVolume.end(), 0.0 );
 
@@ -199,11 +199,11 @@ private:
 	double two_pi = 6.28318530717958647693;
 
 	//By the way: set meshes options from bools
-	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; ++MeshId)
 	  {
-	    for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin(MeshId); ie != mrModelPart.ElementsEnd(MeshId); ie++)
+	    for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin(MeshId); ie != mrModelPart.ElementsEnd(MeshId); ++ie)
 	      {
-		
+
 		const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
 
 		if( dimension > 2 )
@@ -214,12 +214,12 @@ private:
 		  radius += ie->GetGeometry()[i].X();
 
 		radius/=double(ie->GetGeometry().size());
-		
+
 		rMeshVolume[MeshId] += ie->GetGeometry().Area() * two_pi * radius ;
 
 
 	      }
-	  
+
 	    ModelVolume += rMeshVolume[MeshId];
 	  }
 
@@ -227,9 +227,9 @@ private:
       else{
 
 	//By the way: set meshes options from bools
-	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; ++MeshId)
 	  {
-	    for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin(MeshId); ie != mrModelPart.ElementsEnd(MeshId); ie++)
+	    for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin(MeshId); ie != mrModelPart.ElementsEnd(MeshId); ++ie)
 	      {
 		const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
 		if( dimension == 2){
@@ -243,7 +243,7 @@ private:
 		}
 
 	      }
-	  
+
 	    ModelVolume += rMeshVolume[MeshId];
 
 	  }
@@ -295,6 +295,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODEL_VOLUME_CALCULATION_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MODEL_VOLUME_CALCULATION_PROCESS_H_INCLUDED  defined

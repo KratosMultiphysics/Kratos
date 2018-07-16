@@ -37,9 +37,9 @@ class DomainUtilities(object):
                 # search nodal h
                 self.SearchNodalH(model_part, echo_level)
 
-                # add rigid and solid boundary nodes to fluid domains:      
+                # add rigid and solid boundary nodes to fluid domains:
                 self.AddBoundaryNodesToFluidDomains(model_part)
-                        
+
                 # set the domain labels to nodes
                 mesher_utils.SetModelPartNameToNodes(model_part)
 
@@ -52,6 +52,7 @@ class DomainUtilities(object):
 
 
     #
+    @classmethod
     def SearchNodeNeighbours(self, model_part, echo_level):
 
 
@@ -68,6 +69,7 @@ class DomainUtilities(object):
         print("::[--Domain Utilities-]:: Nodal Search executed ")
 
     #
+    @classmethod
     def SearchElementNeighbours(self, model_part, echo_level):
 
         dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
@@ -85,6 +87,7 @@ class DomainUtilities(object):
 
 
     #
+    @classmethod
     def BuildModelPartBoundary(self, model_part, echo_level):
 
 
@@ -108,6 +111,7 @@ class DomainUtilities(object):
     ###
 
     #
+    @classmethod
     def SearchNodalH(self, model_part, echo_level):
 
         # define search utility
@@ -123,6 +127,7 @@ class DomainUtilities(object):
             print("::[--Domain Utilities-]:: Nodal H Search executed ")
 
     #
+    @classmethod
     def ComputeBoundaryNormals(self, model_part, echo_level):
 
         # define calculation utility
@@ -139,6 +144,7 @@ class DomainUtilities(object):
 
 
     #
+    @classmethod
     def AddBoundaryNodesToFluidDomains(self,model_part):
 
         exist_fluid_domain = False
@@ -148,15 +154,15 @@ class DomainUtilities(object):
                break
 
         if( exist_fluid_domain ):
-            
+
             print("::[--Domain Utilities-]:: Add boundary nodes to fluid domains ")
-            
+
             try:
                 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-            except ImportError as e:
+            except:
                 raise Exception("SolidMechanicsApplication not imported and needed in this operation")
-                
-            transfer_flags = [KratosMultiphysics.BOUNDARY,KratosMultiphysics.NOT_FLUID]               
+
+            transfer_flags = [KratosMultiphysics.BOUNDARY,KratosMultiphysics.NOT_FLUID]
             entity_type = "Nodes"
             for fluid_part in model_part.SubModelParts:
                 if (fluid_part.IsNot(KratosMultiphysics.ACTIVE) and fluid_part.Is(KratosMultiphysics.FLUID)):

@@ -29,8 +29,8 @@
 //StepData: MEAN_ERROR, CONTACT_FORCE
 //Flags:    (checked) TO_ERASE, BOUNDARY, STRUCTURE, TO_SPLIT, CONTACT, NEW_ENTITY, BLOCKED
 //          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)(set), VISITED(nodes)(set)
-//          (modified)  
-//          (reset)   
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -48,7 +48,7 @@ namespace Kratos
     Additional treatment of the nonconvex boundaries is also going to erase nodes.
 
     At the end of the execution nodes are cleaned (only in the current mesh)
-    If boundary nodes are removed, conditions must be build again (new conditions are build in the current mesh)   
+    If boundary nodes are removed, conditions must be build again (new conditions are build in the current mesh)
 */
 
 
@@ -81,7 +81,7 @@ public:
     /// Default constructor.
     RemoveNodesMesherProcess(ModelPart& rModelPart,
 			   MesherUtilities::MeshingParameters& rRemeshingParameters,
-			   int EchoLevel) 
+			   int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
@@ -125,24 +125,24 @@ public:
 
       mrRemesh.Refine->Info.BodyNodesRemoved.Initialize();
       mrRemesh.Refine->Info.BoundaryNodesRemoved.Initialize();
-      
+
       double RemovedConditions = mrModelPart.NumberOfConditions();
       double NumberOfNodes     = mrModelPart.NumberOfNodes();
-      
+
       bool any_node_removed      = false;
-      bool any_condition_removed = false;         
-      
+      bool any_condition_removed = false;
+
       //if the remove_node switch is activated, we check if the nodes got too close
       if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES) || (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES)) )
 	{
 	  bool any_node_removed_on_error = false;
 	  ////////////////////////////////////////////////////////////
-	  if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_ERROR) && mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES) )	      
+	  if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_ERROR) && mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES) )
 	    {
-	     
+
 	      any_node_removed_on_error = RemoveNodesOnError(mrModelPart, mrRemesh.Refine->Info.BodyNodesRemoved.on_error); //2D and 3D
 	    }
-	  //////////////////////////////////////////////////////////// 
+	  ////////////////////////////////////////////////////////////
 
 	  bool any_convex_condition_removed = false;
 	  ////////////////////////////////////////////////////////////
@@ -150,18 +150,18 @@ public:
 	    {
 	      any_convex_condition_removed = RemoveNonConvexBoundary(mrModelPart); //2D only
 	    }
-	  //////////////////////////////////////////////////////////// 
+	  ////////////////////////////////////////////////////////////
 
 
 	  bool any_node_removed_on_distance = false;
 	  ////////////////////////////////////////////////////////////
-	  if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) || mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE))	      
+	  if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) || mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE))
 	    {
 	      any_node_removed_on_distance = RemoveNodesOnDistance(mrModelPart, mrRemesh.Refine->Info.BodyNodesRemoved.on_distance, mrRemesh.Refine->Info.BoundaryNodesRemoved.on_distance, any_condition_removed); //2D only (RebuildBoundary is only 2D)
 	    }
 	  // REMOVE ON DISTANCE
 	  ////////////////////////////////////////////////////////////
-	  
+
 	  ////////////////////////////////////////////////////////////
 	  // REMOVE CONTACT NODES (and boundary near the contact)
           if ( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE) )
@@ -177,7 +177,7 @@ public:
 
 	  if(any_convex_condition_removed || any_condition_removed)
 	    any_condition_removed = true;
-	  
+
 
 	  if(any_node_removed)
 	    this->CleanRemovedNodes(mrModelPart);
@@ -187,7 +187,7 @@ public:
 	    ModelPart::ConditionsContainerType PreservedConditions;
 
 	    //id = 0;
-	    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
+	    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ++ic)
 	      {
 
 		if(ic->IsNot(TO_ERASE)){
@@ -207,11 +207,11 @@ public:
 
 	}
 
-      
+
       // number of removed nodes:
-      mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();      
+      mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();
       RemovedConditions -= mrModelPart.NumberOfConditions();
-      
+
       if( mEchoLevel > 0 ){
 	std::cout<<"   [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
 	std::cout<<"   [ NODES      ( removed : "<<mrRemesh.Info->RemovedNodes<<" ) ]"<<std::endl;
@@ -220,15 +220,15 @@ public:
 	  mrRemesh.Refine->Info.BodyNodesRemoved.EchoStats();
 	  mrRemesh.Refine->Info.BoundaryNodesRemoved.EchoStats();
 	}
-	
+
 	//std::cout<<"   Nodes after  erasing : "<<mrModelPart.Nodes().size()<<std::endl;
-	std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;	
+	std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;
       }
 
       KRATOS_CATCH(" ")
     }
 
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -276,10 +276,10 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart& mrModelPart;
- 
+
     MesherUtilities::MeshingParameters& mrRemesh;
 
-    MesherUtilities mMesherUtilities;  
+    MesherUtilities mMesherUtilities;
 
     int mEchoLevel;
 
@@ -287,7 +287,7 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    
+
 
     //**************************************************************************
     //**************************************************************************
@@ -299,23 +299,23 @@ private:
         //MESH 0 total domain mesh
 	ModelPart::NodesContainerType temporal_nodes;
 	temporal_nodes.reserve(rModelPart.Nodes().size());
-	
+
 	temporal_nodes.swap(rModelPart.Nodes());
-	
-	for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
+
+	for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; ++i_node)
 	  {
 	    if( i_node->IsNot(TO_ERASE) ){
-	      (rModelPart.Nodes()).push_back(*(i_node.base()));	
+	      (rModelPart.Nodes()).push_back(*(i_node.base()));
 	    }
 	    else{
 	      if( i_node->Is(BOUNDARY) )
 		std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
 	    }
 	  }
-	
+
 	rModelPart.Nodes().Sort();
-	
-	
+
+
 	KRATOS_CATCH( "" )
     }
 
@@ -325,10 +325,10 @@ private:
     bool RemoveNodesOnError(ModelPart& rModelPart, unsigned int& error_removed_nodes)
     {
        KRATOS_TRY
-	 
-       //***SIZES :::: parameters do define the tolerance in mesh size: 
+
+       //***SIZES :::: parameters do define the tolerance in mesh size:
        double size_for_criterion_error   = 2.0 * mrRemesh.Refine->CriticalRadius; //compared with mean node radius
-       
+
        bool any_node_removed = false;
 
        MeshErrorCalculationUtilities MeshErrorDistribution;
@@ -337,7 +337,7 @@ private:
        std::vector<double> NodalError(rModelPart.NumberOfNodes()+1);
 
        unsigned int number_of_nodes = 0;
-       
+
        if(mrRemesh.InputInitializedFlag)
 	 number_of_nodes = mrRemesh.NodeMaxId+1;
        else
@@ -345,37 +345,37 @@ private:
 
        std::vector<int> nodes_ids(number_of_nodes);
 
-	      
+
        MeshErrorDistribution.NodalErrorCalculation(rModelPart,NodalError,nodes_ids,mrRemesh.Refine->GetErrorVariable());
 
-       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
+       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
 	 {
 
 	   WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
 	   int erased_nodes =0;
-	   for(unsigned int i = 0; i < rN.size(); i++)
+	   for(unsigned int i = 0; i < rN.size(); ++i)
 	     {
 	       if(rN[i].Is(TO_ERASE))
 		 erased_nodes += 1;
 	     }
-	   
-	   
+
+
 	   if( in->IsNot(BOUNDARY) && erased_nodes < 1 )
 	     {
 	       double& MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
 	       MeanError = NodalError[nodes_ids[in->Id()]];
-	       
+
 	       WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
 	       double mean_node_radius = 0;
-	       for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+	       for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		 {
 		   mean_node_radius+= mMesherUtilities.CalculateElementRadius(ne->GetGeometry()); //Triangle 2D, Tetrahedron 3D
 		   //mean_node_radius+= mMesherUtilities.CalculateTriangleRadius(ne->GetGeometry());
 		   //mean_node_radius+= mMesherUtilities.CalculateTetrahedronRadius(ne->GetGeometry());
 		 }
-	       
+
 	       mean_node_radius /= double(neighb_elems.size());
-	       
+
 	       if(NodalError[nodes_ids[in->Id()]] < mrRemesh.Refine->ReferenceError && mean_node_radius < size_for_criterion_error)
 		 {
 		   //std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
@@ -386,7 +386,7 @@ private:
 		 }
 	     }
 	 }
-       
+
        return any_node_removed;
 
        KRATOS_CATCH(" ")
@@ -396,16 +396,16 @@ private:
          //**************************************************************************
          //**************************************************************************
 
-         bool RemoveNodesOnContact(ModelPart& rModelPart, unsigned int& inside_nodes_removed, unsigned int& boundary_nodes_removed, bool& any_condition_removed) 
+         bool RemoveNodesOnContact(ModelPart& rModelPart, unsigned int& inside_nodes_removed, unsigned int& boundary_nodes_removed, bool& any_condition_removed)
          {
             KRATOS_TRY
 
             // sizes
-            double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius; 
-            double size_for_distance_boundary     = 1.5  * size_for_distance_inside; 
+            double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius;
+            double size_for_distance_boundary     = 1.5  * size_for_distance_inside;
 
             double size_for_wall_tip_contact_side = (0.5 * mrRemesh.Refine->CriticalSide); // the distance to refine
-            size_for_wall_tip_contact_side *= 0.5; // half the distance 
+            size_for_wall_tip_contact_side *= 0.5; // half the distance
             size_for_wall_tip_contact_side =  size_for_wall_tip_contact_side * size_for_wall_tip_contact_side;  // the return of  search in radius is distance^2
 
             double SF = 0.80;
@@ -420,7 +420,7 @@ private:
             //create the list of the nodes to be check during the search
             std::vector<Node<3>::Pointer> list_of_nodes;
             list_of_nodes.reserve(mrModelPart.NumberOfNodes());
-            for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+            for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
             {
                (list_of_nodes).push_back(*(i_node.base()));
             }
@@ -442,15 +442,15 @@ private:
             unsigned int n_points_in_radius;
 
 
-            for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
+            for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
             {
                bool on_contact_tip = false;
                array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
 
                if(norm_2(ContactForceNormal)>0 || in->Is(TO_SPLIT) || in->Is(CONTACT) ) // vale, TO_SPLIT is never set when you arrive at this function
-                  on_contact_tip = true;				  
+                  on_contact_tip = true;
 
-               bool on_contact_tip_strict = false; 
+               bool on_contact_tip_strict = false;
                if (norm_2(ContactForceNormal) > 0)
                   on_contact_tip_strict = true;
 
@@ -475,8 +475,8 @@ private:
                            unsigned int contact_nodes = 0;
                            unsigned int erased_nodes = 0;
                            unsigned int near_to_contact_nodes = 0;
-                           unsigned int kk = 0; 
-                           for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+                           unsigned int kk = 0;
+                           for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
                            {
                               if( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) )
                                  contact_nodes += 1;
@@ -484,11 +484,11 @@ private:
                               if( (*nn)->Is(TO_ERASE) )
                                  erased_nodes += 1;
 
-                              // to remove a node that is very close to a contact node (two times the safety factor) 
+                              // to remove a node that is very close to a contact node (two times the safety factor)
                               if ( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) && (neighbour_distances[kk] < SF*size_for_wall_tip_contact_side) )
                                  near_to_contact_nodes += 1;
 
-                              kk++; 
+                              kk++;
 
                            } // end for neighbours
 
@@ -502,9 +502,9 @@ private:
                               std::cout <<"      X: " << in->X() << " Y: " << in->Y() << std::endl;
                            } // end else if
 
-                        } 
+                        }
 
-                     } 
+                     }
                      else if ( (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES) && mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)) && (in)->IsNot(TO_ERASE))
                         //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
                      {
@@ -515,7 +515,7 @@ private:
                         //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
                         unsigned int k = 0;
                         unsigned int counterC2 = 0, counterC3 = 0;
-                        for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+                        for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
                         {
 
 
@@ -523,11 +523,11 @@ private:
                            array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
 
                            if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
-                              nn_on_contact_tip = true;				  
+                              nn_on_contact_tip = true;
 
                            bool nn_on_contact_tip_strict = false;
                            if (norm_2(ContactForceNormal)>0)
-                              nn_on_contact_tip_strict = true; 
+                              nn_on_contact_tip_strict = true;
 
                            if ( (*nn)->Is(BOUNDARY)  && neighbour_distances[k] > 0.0 && (*nn)->IsNot(TO_ERASE) )
                            {
@@ -537,8 +537,8 @@ private:
                                     counterC2 += 1;
                                  }
                                  if ( nn_on_contact_tip && nn_on_contact_tip_strict && neighbour_distances[k] < SF*size_for_distance_boundary ) {
-                                    counterC3 += 1; 
-                                 } 
+                                    counterC3 += 1;
+                                 }
                               }
                            }
 
@@ -561,28 +561,28 @@ private:
                            std::cout << "      X: " << in->X() << " Y: " << in->Y() << std::endl;
 
                         }
-                     } 
-                  } 
+                     }
+                  }
 
                }
-            } 
+            }
 
             // New loop to see if just two contacting nodes are very near. (it has to be done after the others to not to remove a pair)
 
             if ( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES) &&  mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE) )
             {
-               for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
+               for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
                {
 
                   bool on_contact_tip = false;
                   array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
 
                   if(norm_2(ContactForceNormal)>0 || in->Is(TO_SPLIT) || in->Is(CONTACT) )
-                     on_contact_tip = true;				 
+                     on_contact_tip = true;
 
-                  bool on_contact_tip_strict = false; 
+                  bool on_contact_tip_strict = false;
                   if (norm_2(ContactForceNormal) > 0)
-                     on_contact_tip_strict = true; 
+                     on_contact_tip_strict = true;
 
                   if ( in->IsNot(NEW_ENTITY) &&  in->IsNot(TO_ERASE) && in->Is(BOUNDARY) && on_contact_tip )
                   {
@@ -598,17 +598,17 @@ private:
                      {
                         unsigned int k = 0;
                         unsigned int counterC4 = 0;
-                        for (std::vector<Node<3>::Pointer>::iterator  nn = neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius; nn++)
+                        for (std::vector<Node<3>::Pointer>::iterator  nn = neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius; ++nn)
                         {
                            bool nn_on_contact_tip = false;
                            array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
 
                            // alternative definition
                            if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
-                              nn_on_contact_tip = true;				
-                           bool nn_on_contact_tip_strict = false; 
+                              nn_on_contact_tip = true;
+                           bool nn_on_contact_tip_strict = false;
                            if (norm_2(ContactForceNormal) > 0)
-                              nn_on_contact_tip_strict = true; 
+                              nn_on_contact_tip_strict = true;
 
                            if ( (*nn)->IsNot(NEW_ENTITY) && (*nn)->IsNot(TO_ERASE) && (*nn)->Is(BOUNDARY) && neighbour_distances[k] > 0.0)
                            {
@@ -616,10 +616,10 @@ private:
                               {
                                  counterC4 += 1;
                                  std::cout << " THIS IS THE CONTRARY NODE: " << (*nn)->X() << " " << (*nn)->Y() << std::endl;
-                                 std::cout << " THIS IS THE CONTRARY FORCE: " << ContactForceNormal << std::endl; 
-                                 std::cout << " module " << norm_2(ContactForceNormal) << std::endl; 
-                                 std::cout << " module " << (*nn)->Is(TO_SPLIT)  << std::endl; 
-                                 std::cout << " module " << (*nn)->Is(CONTACT) << std::endl; 
+                                 std::cout << " THIS IS THE CONTRARY FORCE: " << ContactForceNormal << std::endl;
+                                 std::cout << " module " << norm_2(ContactForceNormal) << std::endl;
+                                 std::cout << " module " << (*nn)->Is(TO_SPLIT)  << std::endl;
+                                 std::cout << " module " << (*nn)->Is(CONTACT) << std::endl;
                               }
                            } // first if for C4 Condi
                            k++;
@@ -633,10 +633,10 @@ private:
                            std::cout << "    RemovingC4: two contacting nodes are very very near, removing one " << in->Id() << std::endl;
                            std::cout << "      X: " << in->X() << " Y: " << in->Y() << std::endl;
                         }
-                     } 
+                     }
                   }
 
-               } 
+               }
             }
 
 
@@ -647,7 +647,7 @@ private:
             //Build boundary after removing boundary nodes due distance criterion
 
 
-            return any_node_removed; 
+            return any_node_removed;
             KRATOS_CATCH("")
          }
     //**************************************************************************
@@ -656,48 +656,48 @@ private:
     bool RemoveNodesOnDistance(ModelPart& rModelPart, unsigned int& inside_nodes_removed, unsigned int& boundary_nodes_removed, bool& any_condition_removed)
     {
        KRATOS_TRY
-	 
 
-       //***SIZES :::: parameters do define the tolerance in mesh size: 
+
+       //***SIZES :::: parameters do define the tolerance in mesh size:
        double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius; //compared with element radius
        double size_for_distance_boundary     = 1.5  * size_for_distance_inside; //compared with element radius
- 
+
 
        bool any_node_removed = false;
 
        //bucket size definition:
        unsigned int bucket_size = 20;
-       
+
        //create the list of the nodes to be check during the search
        std::vector<Node<3>::Pointer> list_of_nodes;
        list_of_nodes.reserve(rModelPart.NumberOfNodes());
-       for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; i_node++)
+       for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; ++i_node)
 	 {
 	   (list_of_nodes).push_back(*(i_node.base()));
 	 }
-       
+
        KdtreeType nodes_tree(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
 
        ////////////////////////////////////////////////////////////
-       
+
        //all of the nodes in this list will be preserved
        unsigned int num_neighbours = 100;
-       
+
        std::vector<Node<3>::Pointer> neighbours         (num_neighbours);
        std::vector<double>           neighbour_distances(num_neighbours);
-       
-       
+
+
        //radius means the distance, if the distance between two nodes is closer to radius -> mark for removing
        double radius=0;
        Node<3> work_point(0,0.0,0.0,0.0);
        unsigned int n_points_in_radius;
-       
-       
-       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
+
+
+       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
 	 {
 	   bool on_contact_tip = false;
 	   bool contact_active = false;
-	   
+
 	   if( in->SolutionStepsDataHas(CONTACT_FORCE) ){
 	     array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
 	     if(norm_2(ContactForceNormal)>0)
@@ -705,7 +705,7 @@ private:
 	   }
 
 	   if(contact_active || in->Is(TO_SPLIT) || in->Is(CONTACT) )
-	     on_contact_tip = true;				  
+	     on_contact_tip = true;
 
 	   if( in->IsNot(NEW_ENTITY) )
 	     {
@@ -729,7 +729,7 @@ private:
 			 //look if we are already erasing any of the other nodes
 			 unsigned int contact_nodes = 0;
 			 unsigned int erased_nodes = 0;
-			 for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+			 for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
 			   {
 			     if( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) )
 			       contact_nodes += 1;
@@ -758,19 +758,19 @@ private:
 		       //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
 		       unsigned int k = 0;
 		       unsigned int counter = 0;
-		       for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+		       for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
 			 {
 			   bool nn_on_contact_tip = false;
 			   bool contact_active = false;
-	   
+
 			   if( (*nn)->SolutionStepsDataHas(CONTACT_FORCE) ){
 			     array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
 			     if(norm_2(ContactForceNormal)>0)
 			       contact_active = true;
 			   }
-			   
+
 			   if(contact_active || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
-			     nn_on_contact_tip = true;				  
+			     nn_on_contact_tip = true;
 
 			   //std::cout<<" radius * extra_factor "<<(extra_factor*radius)<<" >? "<<neighbour_distances[k]<<std::endl;
 			   if ( (*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
@@ -799,7 +799,7 @@ private:
 
 		 }
 
-	     }	
+	     }
 	 }
 
        //Build boundary after removing boundary nodes due distance criterion
@@ -807,10 +807,10 @@ private:
 	 any_condition_removed = RebuildBoundary(rModelPart);
        }
        //Build boundary after removing boundary nodes due distance criterion
-       
+
 
        return any_node_removed;
-       
+
        KRATOS_CATCH(" ")
 
     }
@@ -818,10 +818,10 @@ private:
     //**************************************************************************
     //**************************************************************************
 
-    bool RebuildBoundary(ModelPart& rModelPart) 
+    bool RebuildBoundary(ModelPart& rModelPart)
     {
       KRATOS_TRY
-	   
+
       bool any_condition_removed = false;
 
       unsigned int number_of_nodes = 0;
@@ -829,27 +829,27 @@ private:
 	number_of_nodes = rModelPart.NumberOfNodes()+1;
       else
 	number_of_nodes = rModelPart.GetParentModelPart()->NumberOfNodes()+1;
-      
+
       std::vector<std::vector<Condition::Pointer> > node_shared_conditions(number_of_nodes); //all domain nodes
-      
-      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
-	{	 
+
+      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ++ic)
+	{
 	  if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
 	    Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
-	    for(unsigned int i=0; i<rConditionGeom.size(); i++){
+	    for(unsigned int i=0; i<rConditionGeom.size(); ++i){
 	      //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
 	      if(rConditionGeom[i].Is(TO_ERASE)){
 		if( mEchoLevel > 0 )
 		  std::cout<<"     Released node condition ["<<rConditionGeom[i].Id()<<"]: WARNING "<<std::endl;
 	      }
-	      
-	      node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));	  
+
+	      node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));
 	    }
 	  }
-	  
+
 	}
-      
-      
+
+
       //nodes
       int i=0,j=0;
 
@@ -858,13 +858,13 @@ private:
 	initial_cond_size = rModelPart.NumberOfConditions()+1; //total model part conditions size
       else
 	initial_cond_size = rModelPart.GetParentModelPart()->NumberOfConditions()+1;
-  
+
       unsigned int id = 1;
       unsigned int new_id = 0;
-      
-      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++) 
+
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
 	{
-	  
+
 	  if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) && in->Is(TO_ERASE) ){
 
 	    unsigned int nodeId = in->Id();
@@ -927,7 +927,7 @@ private:
 		pcond->SetValue(MASTER_NODES, NewCond->GetValue(MASTER_NODES) );
 
 		MeshDataTransferUtilities TransferUtilities;
-		TransferUtilities.TransferBoundaryData(pcond, NewCond, *(mrRemesh.Transfer)); 
+		TransferUtilities.TransferBoundaryData(pcond, NewCond, *(mrRemesh.Transfer));
 
 		(rModelPart.Conditions()).push_back(pcond);
 
@@ -942,7 +942,7 @@ private:
 
 	}
 
-      // for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
+      // for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
       // 	{
       // 	  in->Reset(BLOCKED);
       // 	}
@@ -966,54 +966,54 @@ private:
 
       double RemovedConditions = rModelPart.NumberOfConditions();
 
-      //***SIZES :::: parameters do define the tolerance in mesh size: 
+      //***SIZES :::: parameters do define the tolerance in mesh size:
       double critical_angle        = -120;
       double size_for_side_normal  =  mrRemesh.Refine->CriticalRadius;
-      
+
 
       unsigned int number_of_nodes = 0;
       if( !rModelPart.IsSubModelPart() )
 	number_of_nodes = rModelPart.NumberOfNodes()+1;
       else
 	number_of_nodes = rModelPart.GetParentModelPart()->NumberOfNodes()+1;
-  
-      
+
+
       std::vector<std::vector<Condition::Pointer> > node_shared_conditions(number_of_nodes); //all domain nodes
-      
+
       //std::cout<<"     Shared Conditions Size "<<node_shared_conditions.size()<<std::endl;
-      
-      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
-	{	 
+
+      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ++ic)
+	{
 	  if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
 	    Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
-	    for(unsigned int i=0; i<rConditionGeom.size(); i++){
+	    for(unsigned int i=0; i<rConditionGeom.size(); ++i){
 	      //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
 	      if(rConditionGeom[i].Is(TO_ERASE))
 		std::cout<<"     WARNING: Released node condition "<<std::endl;
 
-	      node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));	  
+	      node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));
 	    }
 	  }
 	}
 
       //std::cout<<"     Node Shared Conditions (Pair of Condition Nodes) is now set "<<std::endl;
-      
-      
+
+
       //vector of the neighbour conditions
       array_1d<double,3> S1;
       array_1d<double,3> S2;
       S1.clear();
       S2.clear();
-      
+
       //normals of the neighbour conditions
       array_1d<double,3> N1;
       array_1d<double,3> N2;
       N1.clear();
       N2.clear();
-      
+
       //nodes
       int i=0,j=0;
-      
+
       //condition id and size
 
       unsigned int initial_cond_size = 0;
@@ -1021,16 +1021,16 @@ private:
 	initial_cond_size = rModelPart.NumberOfConditions()+1; //total model part conditions size
       else
 	initial_cond_size = rModelPart.GetParentModelPart()->NumberOfConditions()+1;
-        
-      
+
+
       unsigned int id = 1;
       unsigned int new_id = 0;
       int RemovedNodes =0;
-      
-      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
+
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
 	{
 
-          //angles 
+          //angles
          double condition_angle = 0;
 
 	  if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) )
@@ -1041,7 +1041,7 @@ private:
 
 		// std::cout<<"     nodeId "<<nodeId<<std::endl;
 		if(node_shared_conditions[nodeId][0]->IsNot(TO_ERASE) && node_shared_conditions[nodeId][1]->IsNot(TO_ERASE)){
-		
+
 		  if(node_shared_conditions[nodeId][0]->GetGeometry()[0].Id() == in->Id()){
 		    i = 1;
 		    j = 0;
@@ -1050,22 +1050,22 @@ private:
 		    i = 0;
 		    j = 1;
 		  }
-	      
-		  
+
+
 		  //Node1*  neighbour conditions in 2D:   (Node0) ---[1]--- (Node1*)
 
 		  //normal condition [1]
 		  N1 = node_shared_conditions[nodeId][i]->GetValue(NORMAL);
 		  //normal condition [2]
 		  N2 = node_shared_conditions[nodeId][j]->GetValue(NORMAL);
-	      
+
 		  // std::cout<<"     N1 "<<N1<<std::endl;
 		  // std::cout<<"     N2 "<<N2<<std::endl;
-		
+
 
 		  Geometry< Node<3> >& rConditionGeom1 = node_shared_conditions[nodeId][i]->GetGeometry();
 		  Geometry< Node<3> >& rConditionGeom2 = node_shared_conditions[nodeId][j]->GetGeometry();
-	      
+
 		  //node in id Node1;
 
 		  Node<3> & Node0 = rConditionGeom1[0]; // other node in condition [1]
@@ -1078,7 +1078,7 @@ private:
 		  //segment condition [1]
 		  S1[0] = rConditionGeom1[1].X() - rConditionGeom1[0].X();
 		  S1[1] = rConditionGeom1[1].Y() - rConditionGeom1[0].Y();
-	      
+
 		  if(norm_2(S1)!=0)
 		    S1/=norm_2(S1);
 
@@ -1088,7 +1088,7 @@ private:
 
 		  if(norm_2(S2)!=0)
 		    S2/=norm_2(S2);
-		  
+
 		  // std::cout<<"     S1 "<<S1<<std::endl;
 		  // std::cout<<"     S2 "<<S2<<std::endl;
 
@@ -1102,13 +1102,13 @@ private:
 		    remove_S2 = true;
 
 		  if(remove_S1 || remove_S2){
-		    
+
 		    node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
 		    node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
 		    in->Set(TO_ERASE);    //release Node1*
 
 		    Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
-		    
+
 		    Node0.Set(BLOCKED);
 		    Node2.Set(BLOCKED);
 
@@ -1118,7 +1118,7 @@ private:
 
 		    face.push_back(rConditionGeom1(0));
 		    face.push_back(rConditionGeom2(1));
-		
+
 		    new_id = initial_cond_size + id;
 		    //properties to be used in the generation
 		    Condition::Pointer pcond       = NewCond->Clone(new_id, face);
@@ -1132,14 +1132,14 @@ private:
 		    pcond->SetValue(MASTER_NODES, NewCond->GetValue(MASTER_NODES) );
 
 		    MeshDataTransferUtilities TransferUtilities;
-		    TransferUtilities.TransferBoundaryData(pcond, NewCond,*(mrRemesh.Transfer)); 
+		    TransferUtilities.TransferBoundaryData(pcond, NewCond,*(mrRemesh.Transfer));
 
 		    (rModelPart.Conditions()).push_back(pcond);
 
 		    RemovedNodes += 1;
 		    id +=1;
 
-		   
+
 		  }
 		  else{
 
@@ -1149,20 +1149,20 @@ private:
 
 		    if(projection_normals!=0)
 		      relative_angle = projection_sides/projection_normals;
-		  
+
 		    if(relative_angle<=1 && relative_angle>=-1 )
 		      condition_angle = (180.0/3.14159) * std::acos(relative_angle);
-	    
-		    if(inner_prod(S1,N2)<0) 
+
+		    if(inner_prod(S1,N2)<0)
 		      condition_angle *=(-1);
 
 		    // std::cout<<"     projection_sides "<<projection_sides<<std::endl;
 		    // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
 		    // std::cout<<"     relative_angle "<<relative_angle<<std::endl;
 		    // std::cout<<"     condition_angle "<<condition_angle<<" critical_angle "<<critical_angle<<std::endl;
-		  
 
-		    if( condition_angle < -40 ){		    
+
+		    if( condition_angle < -40 ){
 		      // std::cout<<"     B NODE "<<in->Id()<<std::endl;
 		      // std::cout<<"     projection_sides "<<projection_sides<<std::endl;
 		      // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
@@ -1172,14 +1172,14 @@ private:
 
 		      Node0.Set(VISITED);
 		      Node2.Set(VISITED);
-		  
+
 		    }
 
 		    if(condition_angle<critical_angle){
-		
+
 
 		      //Path of neighbour conditions in 2D:   (NodeA) ---[0]--- (Node0) ---[1]--- (Node1*) ---[2]--- (Node2) --- [3]--- (NodeB)
-		    
+
 		      //realease positions:
 		      node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
 		      node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
@@ -1198,12 +1198,12 @@ private:
 		      Node0.Z() = 0.5 * ( Node0.Z() + Node2.Z() );
 
 		      //assign data to dofs
-		      VariablesList& variables_list = rModelPart.GetNodalSolutionStepVariablesList();		     
+		      VariablesList& variables_list = rModelPart.GetNodalSolutionStepVariablesList();
 
 		      PointsArrayType  PointsArray;
-		      PointsArray.push_back( *(in.base()) ); 
-		      //PointsArray.push_back( Node<3>::Pointer(&Node2) ); 
-		      PointsArray.push_back( rConditionGeom2(1) ); 
+		      PointsArray.push_back( *(in.base()) );
+		      //PointsArray.push_back( Node<3>::Pointer(&Node2) );
+		      PointsArray.push_back( rConditionGeom2(1) );
 
 		      Geometry<Node<3> > geom( PointsArray );
 
@@ -1218,7 +1218,7 @@ private:
 		      // unsigned int buffer_size = Node0.GetBufferSize();
 		      // unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
 
-		      // for(unsigned int step = 0; step<buffer_size; step++)
+		      // for(unsigned int step = 0; step<buffer_size; ++step)
 		      // 	{
 		      // 	  //getting the data of the solution step
 		      // 	  double* step_data = Node0.SolutionStepData().Data(step);
@@ -1227,18 +1227,18 @@ private:
 		      // 	  double* node1_data = Node2.SolutionStepData().Data(step);
 
 		      // 	  //copying this data in the position of the vector we are interested in
-		      // 	  for(unsigned int j= 0; j<step_data_size; j++)
+		      // 	  for(unsigned int j= 0; j<step_data_size; ++j)
 		      // 	    {
 		      // 	      step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
 		      // 	    }
 		      // 	}
-			
+
 		      //recover the original position of the node
 		      const array_1d<double,3>& disp = Node0.FastGetSolutionStepValue(DISPLACEMENT);
 		      Node0.X0() = Node0.X() - disp[0];
 		      Node0.Y0() = Node0.Y() - disp[1];
 		      Node0.Z0() = Node0.Z() - disp[2];
-	
+
 		      //search shared condition of Node0 and Node A
 		      if(node_shared_conditions[Node0.Id()][0]->Id() == Node0.Id()){
 			i = 1;
@@ -1246,7 +1246,7 @@ private:
 		      else{
 			i = 0;
 		      }
-		
+
 		      Geometry<Node<3> >& rConditionGeom0 = node_shared_conditions[Node0.Id()][i]->GetGeometry();
 		      Node<3> & NodeA = rConditionGeom0[0];
 
@@ -1257,7 +1257,7 @@ private:
 		      else{
 			i = 1;
 		      }
-		
+
 		      //New conditions profile in 2D:  (NodeA) ---[0]--- (Node0**) ---[3]--- (NodeB)   where (Node0**) is (Node0) in another position
 
 		      Condition::Pointer NewCond = node_shared_conditions[Node2.Id()][i];
@@ -1268,14 +1268,14 @@ private:
 		      NodeA.Set(BLOCKED);
 		      NodeB.Set(BLOCKED);
 		      Node0.Set(BLOCKED);
-				
+
 		      //create new condition Node0-NodeB
 		      Condition::NodesArrayType face;
 		      face.reserve(2);
 
 		      face.push_back(rConditionGeom1(0));
 		      face.push_back(rConditionGeom3(1));
-		
+
 		      new_id = initial_cond_size + id;
 		      //properties to be used in the generation
 		      Condition::Pointer pcond       = NewCond->Clone(new_id, face);
@@ -1295,13 +1295,13 @@ private:
 		      pcond->SetValue(MASTER_NODES, NewCond->GetValue(MASTER_NODES) );
 
 		      MeshDataTransferUtilities TransferUtilities;
-		      TransferUtilities.TransferBoundaryData(pcond, NewCond, *(mrRemesh.Transfer) ); 
+		      TransferUtilities.TransferBoundaryData(pcond, NewCond, *(mrRemesh.Transfer) );
 
 		      (rModelPart.Conditions()).push_back(pcond);
 
 		      RemovedNodes += 1;
 		      id +=1;
-		
+
 		    }
 		  }
 		}
@@ -1309,18 +1309,18 @@ private:
 	    }
 	}
 
-      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
 	{
 	  in->Reset(BLOCKED);
 	}
-	      
-    
+
+
       RemovedConditions = rModelPart.Conditions().size() - RemovedConditions;
 
       if( mEchoLevel > 0 ){
 	std::cout<<"     [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
 	std::cout<<"     [ NODES      ( removed : "<<RemovedNodes<<" ) ]"<<std::endl;
-    
+
 	std::cout<<"     Ending   Conditions : "<<rModelPart.Conditions().size()<<"  (Removed nodes: "<< RemovedNodes<<" ) "<<std::endl;
 	std::cout<<"     REMOVE NON CONVEX BOUNDARY ]; "<<std::endl;
       }
@@ -1329,7 +1329,7 @@ private:
 	return true;
       else
 	return false;
-      
+
       KRATOS_CATCH(" ")
 
     }
@@ -1381,6 +1381,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REMOVE_NODES_MESHER_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_REMOVE_NODES_MESHER_PROCESS_H_INCLUDED  defined

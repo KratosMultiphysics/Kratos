@@ -74,7 +74,7 @@ public:
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     void ExecuteInitialize() override
-    {           
+    {
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
@@ -87,7 +87,7 @@ public:
       //BOUNDARY flag must be set in model part nodes
       mBoundingBox = SpatialBoundingBox(mrModelPart,Radius);
 
-      KRATOS_CATCH("")         
+      KRATOS_CATCH("")
     }
 
 
@@ -95,7 +95,7 @@ public:
     void ExecuteInitializeSolutionStep() override
     {
       KRATOS_TRY
-          
+
       const int nnodes = mrModelPart.Nodes().size();
 
       if (nnodes != 0)
@@ -104,24 +104,24 @@ public:
             mrModelPart.NodesBegin();
 
 #pragma omp parallel for
-        for (int i = 0; i < nnodes; i++)
+        for (int i = 0; i < nnodes; ++i)
         {
           ModelPart::NodesContainerType::iterator it = it_begin + i;
 
           if( it->Is(ISOLATED) || (it->Is(RIGID) && (it->IsNot(SOLID) && it->IsNot(FLUID)) ) ){
-            
+
 	    it->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
 	    it->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
 	    it->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0;
 	    it->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0;
 	    it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0;
 	    it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0;
-            
+
           }
         }
       }
 
-      KRATOS_CATCH("")       
+      KRATOS_CATCH("")
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
@@ -137,7 +137,7 @@ public:
             mrModelPart.NodesBegin();
 
 #pragma omp parallel for
-        for (int i = 0; i < nnodes; i++)
+        for (int i = 0; i < nnodes; ++i)
         {
           ModelPart::NodesContainerType::iterator it = it_begin + i;
 
@@ -148,12 +148,12 @@ public:
             }
             // std::cout<<"PRE POSITION "<<it->Coordinates()<<"  ACCELERATION "<<it->FastGetSolutionStepValue(ACCELERATION)<<std::endl;
             // std::cout<<"DISPLACEMENT "<<it->FastGetSolutionStepValue(DISPLACEMENT)<<"  VELOCITY "<<it->FastGetSolutionStepValue(VELOCITY)<<std::endl;
-                        
+
             noalias(it->FastGetSolutionStepValue(VELOCITY)) = it->FastGetSolutionStepValue(VELOCITY,1) + it->FastGetSolutionStepValue(ACCELERATION)*TimeStep;
             noalias(it->Coordinates()) -= it->FastGetSolutionStepValue(DISPLACEMENT);
             noalias(it->FastGetSolutionStepValue(DISPLACEMENT)) = it->FastGetSolutionStepValue(DISPLACEMENT,1) + it->FastGetSolutionStepValue(VELOCITY)*TimeStep + 0.5*it->FastGetSolutionStepValue(ACCELERATION)*TimeStep*TimeStep;
             noalias(it->Coordinates()) += it->FastGetSolutionStepValue(DISPLACEMENT);
-            
+
             // std::cout<<"POST POSITION "<<it->Coordinates()<<"  ACCELERATION "<<it->FastGetSolutionStepValue(ACCELERATION)<<std::endl;
             // std::cout<<"DISPLACEMENT "<<it->FastGetSolutionStepValue(DISPLACEMENT)<<"  VELOCITY "<<it->FastGetSolutionStepValue(VELOCITY)<<std::endl;
 
@@ -162,7 +162,7 @@ public:
           }
         }
       }
-      KRATOS_CATCH("") 
+      KRATOS_CATCH("")
     }
 
 
@@ -261,7 +261,7 @@ private:
     ModelPart& mrModelPart;
 
     SpatialBoundingBox mBoundingBox;
-  
+
     ///@}
     ///@name Private Operators
     ///@{

@@ -15,18 +15,18 @@
 
 // System includes
 
-// Project includes 
+// Project includes
 #include "includes/model_part.h"
 #include "custom_utilities/mesher_utilities.hpp"
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:      
+//Data:
 //StepData: CONTACT_FORCE, DISPLACEMENT
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -62,7 +62,7 @@ class RecoverVolumeLossesMesherProcess
   /// Default constructor.
   RecoverVolumeLossesMesherProcess(ModelPart& rModelPart,
                              MesherUtilities::MeshingParameters& rRemeshingParameters,
-                             int EchoLevel) 
+                             int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
   {
@@ -113,7 +113,7 @@ class RecoverVolumeLossesMesherProcess
     double initialVolume=0;
     double currentVolume=0;
     double volumeLoss=0;
-	
+
     if(currentTime<=2*timeInterval){
       initialVolume=MesherUtils.ComputeModelPartVolume(mrModelPart);
       if( mEchoLevel > 0 )
@@ -132,14 +132,14 @@ class RecoverVolumeLossesMesherProcess
       double freeSurfaceLength=0;
 
       /////////////////////////        compute the free-surface length         /////////////////////////
-      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
+      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
       //ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
       const unsigned int nds = element_begin->GetGeometry().size();
-      for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
+      for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ++ie)
       {
         unsigned int freesurfaceNodes=0;
         double freeSurfaceElementalSize=0;
-        for(unsigned int pn=0; pn<nds; pn++)
+        for(unsigned int pn=0; pn<nds; ++pn)
         {
           // if(ie->GetGeometry()[pn].Is(FREE_SURFACE)){
           if(ie->GetGeometry()[pn].Is(BOUNDARY) && ie->GetGeometry()[pn].IsNot(RIGID) && ie->GetGeometry()[pn].Is(FLUID)){
@@ -206,7 +206,7 @@ class RecoverVolumeLossesMesherProcess
       // if( mEchoLevel > 0 )
       std::cout<<"freeSurface length "<<freeSurfaceLength<<"  offset "<<offset<<std::endl;
 
-      for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+      for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
       {
         if(i_node->Is(BOUNDARY) && i_node->IsNot(RIGID)){
           array_1d<double, 3>  Normal(3,0.0);
@@ -220,7 +220,7 @@ class RecoverVolumeLossesMesherProcess
       }
     }
 
- 
+
     if( mEchoLevel > 0 )
       std::cout<<" RECOVER VOLUME LOSSES ]; "<<std::endl;
 
@@ -275,10 +275,10 @@ class RecoverVolumeLossesMesherProcess
   ///@name Static Member Variables
   ///@{
   ModelPart& mrModelPart;
- 
+
   MesherUtilities::MeshingParameters& mrRemesh;
 
-  MesherUtilities mMesherUtilities;  
+  MesherUtilities mMesherUtilities;
 
   int mEchoLevel;
 
@@ -360,6 +360,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RECOVER_VOLUME_LOSSES_MESHER_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_RECOVER_VOLUME_LOSSES_MESHER_PROCESS_H_INCLUDED  defined

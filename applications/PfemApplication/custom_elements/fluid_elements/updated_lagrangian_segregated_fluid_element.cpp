@@ -100,7 +100,7 @@ Element::Pointer UpdatedLagrangianSegregatedFluidElement::Clone( IndexType NewId
       KRATOS_ERROR << "constitutive law not has the correct size " << NewElement.mConstitutiveLawVector.size() << std::endl;
   }
 
-  for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+  for(unsigned int i=0; i<mConstitutiveLawVector.size(); ++i)
   {
     NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
   }
@@ -207,7 +207,7 @@ void UpdatedLagrangianSegregatedFluidElement::InitializeSolutionStep( ProcessInf
     KRATOS_TRY
 
     FluidElement::InitializeExplicitContributions();
-    
+
     switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
     {
       case VELOCITY_STEP:
@@ -227,7 +227,7 @@ void UpdatedLagrangianSegregatedFluidElement::InitializeSolutionStep( ProcessInf
       default:
         KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
     }
-    
+
 
     KRATOS_CATCH( "" )
 
@@ -262,7 +262,7 @@ void UpdatedLagrangianSegregatedFluidElement::FinalizeNonLinearIteration( Proces
 void UpdatedLagrangianSegregatedFluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
     {
       case VELOCITY_STEP:
@@ -277,7 +277,7 @@ void UpdatedLagrangianSegregatedFluidElement::FinalizeSolutionStep( ProcessInfo&
       default:
         KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -678,7 +678,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateMassMatrix( MatrixType& r
     default:
       KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
   }
-  
+
   KRATOS_CATCH( "" )
 }
 
@@ -1124,7 +1124,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
 
   // Add Divergence and volume acceleration vector
   double TraceVelocityGradient = 0;
-  for (SizeType i = 0; i < dimension; i++)
+  for (SizeType i = 0; i < dimension; ++i)
   {
     TraceVelocityGradient += rVariables.L(i,i);
   }
@@ -1266,7 +1266,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
   //based in existance of neighbour elements (proper detection for triangles and tetrahedra)
   WeakPointerVector<Element>& neighb_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
   unsigned int counter=0;
-  for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+  for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
   {
     if (ne->Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
     {
@@ -1275,7 +1275,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
       unsigned int InletNodes = 0;
       unsigned int FreeSurfaceNodes = 0;
 
-      for(unsigned int i = 1; i < NodesInFaces.size1(); i++)
+      for(unsigned int i = 1; i < NodesInFaces.size1(); ++i)
       {
         Nodes.push_back(NodesInFaces(i,counter));  //set boundary nodes
         if(rGeometry[NodesInFaces(i,counter)].Is(RIGID) || rGeometry[NodesInFaces(i,counter)].Is(SOLID)){
@@ -1317,7 +1317,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFaceNormal(const std::vector<Si
   noalias(rNormal) = ZeroVector(dimension);
   for( SizeType j=0; j<rFace.size(); ++j )
   {
-    for(unsigned int d=0; d<dimension; d++)
+    for(unsigned int d=0; d<dimension; ++d)
     {
       rNormal[d] += rVariables.DN_DX(rFace[j],d);
     }
@@ -1345,7 +1345,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFaceWeight(const std::vector<Si
   noalias(An) = ZeroVector(dimension);
   for( SizeType j=0; j<rFace.size(); ++j )
   {
-    for(unsigned int d=0; d<dimension; d++)
+    for(unsigned int d=0; d<dimension; ++d)
     {
       An[d] += rVariables.DN_DX(rFace[j],d);
     }

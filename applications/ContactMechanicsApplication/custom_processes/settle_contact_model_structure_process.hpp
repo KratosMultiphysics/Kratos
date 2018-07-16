@@ -22,12 +22,12 @@
 #include "custom_processes/settle_model_structure_process.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -77,7 +77,7 @@ namespace Kratos
 				       Flags Options,
 				       int EchoLevel = 0)
       : SettleModelStructureProcess(rMainModelPart, Options, EchoLevel)
-    { 
+    {
     }
 
     /// Destructor.
@@ -121,8 +121,8 @@ namespace Kratos
       	BuildModelPartBoundaryProcess BuildBoundaryProcess(mrMainModelPart, mrMainModelPart.Name(), mEchoLevel);
       	BuildBoundaryProcess.SearchConditionMasters();
       }
-      
-      //Update Boundary Normals before Contact Search   
+
+      //Update Boundary Normals before Contact Search
       //(needed when meshing of the domains is not performed:
       // normal directions change with mesh movement)
       BoundaryNormalsCalculationUtilities BoundaryComputation;
@@ -131,7 +131,7 @@ namespace Kratos
       //mrMainModelPart.Conditions().Sort();
       //mrMainModelPart.Conditions().Unique();
 
-      
+
       KRATOS_CATCH(" ")
     }
 
@@ -141,13 +141,13 @@ namespace Kratos
     void ExecuteFinalize() override
     {
       KRATOS_TRY
-      
+
       // Add contact conditions
       this->AddContactConditions();
 
       // Restore contact nodal flags
       this->RestoreContactFlags();
-      
+
       // Renumerate conditions
       this->RenumerateConditions();
 
@@ -157,7 +157,7 @@ namespace Kratos
       // Clear Contact Normals
       this->ClearContactNormals();
 
-      
+
       KRATOS_CATCH(" ")
     }
 
@@ -235,10 +235,10 @@ namespace Kratos
       else{
 	consecutive_index = LastConditionId+1;
       }
-	
-      for(ModelPart::ConditionsContainerType::iterator it = mrMainModelPart.ConditionsBegin(); it!=mrMainModelPart.ConditionsEnd(); it++){
+
+      for(ModelPart::ConditionsContainerType::iterator it = mrMainModelPart.ConditionsBegin(); it!=mrMainModelPart.ConditionsEnd(); ++it){
 	if(it->Is(CONTACT)){
-	  it->SetId(consecutive_index); 
+	  it->SetId(consecutive_index);
 	  consecutive_index++;
 	}
       }
@@ -247,7 +247,7 @@ namespace Kratos
 
     }
 
-   
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -290,7 +290,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-     
+
       ModelPart::NodesContainerType& rNodes = mrMainModelPart.Nodes();
 
       // create contact condition for rigid and deformable bodies
@@ -302,11 +302,11 @@ namespace Kratos
 	  }
 
 	}
-                
+
       KRATOS_CATCH( "" )
-	
+
     }
-    
+
     //**************************************************************************
     //**************************************************************************
 
@@ -314,7 +314,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-     
+
       ModelPart::NodesContainerType& rNodes = mrMainModelPart.Nodes();
 
       // create contact condition for rigid and deformable bodies
@@ -326,11 +326,11 @@ namespace Kratos
 	  }
 
 	}
-                
+
       KRATOS_CATCH( "" )
-	
+
     }
-    
+
     //**************************************************************************
     //**************************************************************************
 
@@ -338,7 +338,7 @@ namespace Kratos
     {
      KRATOS_TRY
 
-      for(ModelPart::NodesContainerType::iterator i_node = mrMainModelPart.NodesBegin(); i_node!= mrMainModelPart.NodesEnd(); i_node++)
+      for(ModelPart::NodesContainerType::iterator i_node = mrMainModelPart.NodesBegin(); i_node!= mrMainModelPart.NodesEnd(); ++i_node)
 	{
 	  if( i_node->Is(CONTACT) ){
 	    i_node->Set(CONTACT,false);
@@ -357,10 +357,10 @@ namespace Kratos
 
       KRATOS_TRY
 
-      for(ModelPart::ConditionsContainerType::iterator i_cond = mrMainModelPart.ConditionsBegin(); i_cond!= mrMainModelPart.ConditionsEnd(); i_cond++)
+      for(ModelPart::ConditionsContainerType::iterator i_cond = mrMainModelPart.ConditionsBegin(); i_cond!= mrMainModelPart.ConditionsEnd(); ++i_cond)
 	{
 	  if( i_cond->Is(CONTACT) ){
-	    for(unsigned int i=0; i<i_cond->GetGeometry().size(); i++)
+	    for(unsigned int i=0; i<i_cond->GetGeometry().size(); ++i)
 	      {
 		i_cond->GetGeometry()[i].Set(CONTACT,true);
 	      }
@@ -369,7 +369,7 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
     }
-    
+
     //**************************************************************************
     //**************************************************************************
 
@@ -380,29 +380,29 @@ namespace Kratos
 
       //Add contact conditions from contact domain
       std::string ModelPartName;
-      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
+      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); ++i_mp)
 	{
 	  if(i_mp->Is(CONTACT))
 	    ModelPartName = i_mp->Name();
 	}
-      
+
       ModelPart& ContactModelPart = mrMainModelPart.GetSubModelPart(ModelPartName);
 
       //Add contact conditions to computing domain
-      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
+      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); ++i_mp)
 	{
 	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
 	    ModelPartName = i_mp->Name();
 	}
 
-      
+
       AddContactConditions(ContactModelPart, mrMainModelPart.GetSubModelPart(ModelPartName));
 
       //Add contact conditions to  main domain (if added in computing domaing with AddCondition, are automatically added to the main domain, else use push_back)
       AddContactConditions(ContactModelPart, mrMainModelPart);
 
       KRATOS_CATCH( "" )
-	
+
     }
 
     //**************************************************************************
@@ -416,25 +416,25 @@ namespace Kratos
       //*******************************************************************
       //adding contact conditions
       //
-	
+
       if( mEchoLevel >= 1 ){
 	std::cout<<" ["<<rDestinationModelPart.Name()<<" :: CONDITIONS [OLD:"<<rDestinationModelPart.NumberOfConditions();
       }
 
-      for(ModelPart::ConditionsContainerType::iterator ic = rOriginModelPart.ConditionsBegin(); ic!= rOriginModelPart.ConditionsEnd(); ic++)
+      for(ModelPart::ConditionsContainerType::iterator ic = rOriginModelPart.ConditionsBegin(); ic!= rOriginModelPart.ConditionsEnd(); ++ic)
 	{
 
 	  if(ic->Is(CONTACT))
 	    rDestinationModelPart.AddCondition(*(ic.base()));
-	  
+
 	}
-      
+
       if( mEchoLevel >= 1 ){
 	std::cout<<" / NEW:"<<rDestinationModelPart.NumberOfConditions()<<"] "<<std::endl;
       }
-            
+
       KRATOS_CATCH( "" )
-	
+
     }
 
 
@@ -450,21 +450,21 @@ namespace Kratos
 
       //Clear contact conditions from computing domain
       std::string ModelPartName;
-      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
+      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); ++i_mp)
 	{
 	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
 	    ModelPartName = i_mp->Name();
 	}
-      
+
       ClearContactConditions(mrMainModelPart.GetSubModelPart(ModelPartName));
 
       //Clear contact conditions from the main domain
       ClearContactConditions(mrMainModelPart);
 
       KRATOS_CATCH( "" )
-	
+
     }
-    
+
 
     //**************************************************************************
     //**************************************************************************
@@ -477,23 +477,23 @@ namespace Kratos
       //*******************************************************************
       //clearing contact conditions
       //
-	
+
       if( mEchoLevel >= 1 ){
 	std::cout<<" ["<<rModelPart.Name()<<" :: CONDITIONS [OLD:"<<rModelPart.NumberOfConditions();
       }
 
       ModelPart::ConditionsContainerType PreservedConditions;
 
-      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
+      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ++ic)
 	{
 
 	  if(ic->IsNot(CONTACT) && ic->GetGeometry().size() > 1){
 	    PreservedConditions.push_back(*(ic.base()));
 	  }
 	}
-      
+
       rModelPart.Conditions().swap(PreservedConditions);
-	      
+
       //rModelPart.Conditions().Sort();
       //rModelPart.Conditions().Unique();
 
@@ -502,9 +502,9 @@ namespace Kratos
       }
 
       KRATOS_CATCH( "" )
-	
+
     }
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -560,4 +560,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SETTLE_CONTACT_MODEL_STRUCTURE_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_SETTLE_CONTACT_MODEL_STRUCTURE_PROCESS_H_INCLUDED  defined

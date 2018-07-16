@@ -25,11 +25,11 @@
 
 ///VARIABLES used:
 //Data:     MASTER_ELEMENTS(set), MASTER_CONDITION(set)
-//StepData: 
-//Flags:    (checked) 
+//StepData:
+//Flags:    (checked)
 //          (set)     CONTACT(set)
-//          (modified)  
-//          (reset)   
+//          (modified)
+//          (reset)
 // (set):=(set in this process)
 
 namespace Kratos
@@ -114,21 +114,21 @@ namespace Kratos
 
       if( mrModelPart.Name() != mrRemesh.SubModelPartName )
 	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
-      
+
       //*******************************************************************
       //selecting elements
       if( !mrRemesh.MeshElementsSelectedFlag )  //Select Mesh Elements not performed  ... is needed to be done before building new elements
-	{  
+	{
 	  std::cout<<" ERROR : no selection of elements performed before building the elements "<<std::endl;
 	  SelectElementsMesherProcess SelectElements(mrModelPart,mrRemesh,mEchoLevel);
 	  SelectElements.Execute();
 	}
-      
+
 
       //*******************************************************************
       //set consecutive ids for global conditions
       int id=1;
-      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.GetParentModelPart()->ConditionsBegin() ; i_cond != mrModelPart.GetParentModelPart()->ConditionsEnd() ; i_cond++)
+      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.GetParentModelPart()->ConditionsBegin() ; i_cond != mrModelPart.GetParentModelPart()->ConditionsEnd(); ++i_cond)
 	{
 	  i_cond->SetId(id);
 	  id++;
@@ -139,7 +139,7 @@ namespace Kratos
       Properties::Pointer pProperties = mrRemesh.GetProperties();
 
       Condition const & rReferenceCondition=mrRemesh.GetReferenceCondition(); //contact element
-      
+
       const unsigned int nds = rReferenceCondition.GetGeometry().size();
 
       std::cout<<"   [START contact Element Generation "<<std::endl;
@@ -152,22 +152,22 @@ namespace Kratos
 
       ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
 
-      for(int el = 0; el<OutNumberOfElements; el++)
-	{  
+      for(int el = 0; el<OutNumberOfElements; ++el)
+	{
 	  if(mrRemesh.PreservedElements[el])
-	    {	      
+	    {
 	      Geometry<Node<3> > Vertices;
-	      for(unsigned int i=0; i<nds; i++)
+	      for(unsigned int i=0; i<nds; ++i)
 		{
 		  //note that OutElementList, starts from node 1, not from node 0, it can be directly assigned to mrRemesh.NodalPreIds.
 
 		  // detected problems in find() method for mesh nodes
 		  // bool node_exists = mrModelPart.GetMesh().HasNode(OutElementList[el*nds+i]);
 		  // if(!node_exists){
-		    
+
 		  //   std::cout<<" ERROR node "<<mrRemesh.NodalPreIds[OutElementList[el*nds+i]]<<" is not in the modelpart "<<std::endl;
 		  //   std::cout<<" Element["<<el<<"] lnode["<<i<<"]: ["<<el*nds+i<<"] ElList["<<OutElementList[el*nds+i]<<"]: NODE "<<mrRemesh.NodalPreIds[OutElementList[el*nds+i]]<<std::endl;
-		  //   for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+		  //   for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
 		  //     {
 		  // 	if( i_node->Id() == (unsigned int)mrRemesh.NodalPreIds[OutElementList[el*nds+i]] )
 		  // 	  std::cout<<" Node "<<i_node->Id()<<" is in Model PART !!!! "<<std::endl;
@@ -178,15 +178,15 @@ namespace Kratos
 		  //Vertices.push_back(mrModelPart.pGetNode(mrRemesh.NodalPreIds[OutElementList[el*nds+i]]));
 		  Vertices.back().Set(CONTACT);
 		}
-	      
+
 	      id += 1;
 
 	      Condition::Pointer pContactCondition = rReferenceCondition.Create(id, Vertices, pProperties);
-	      
+
 
 	      //search the model part condition associated to this contact element MASTER CONDITION
 	      //assign the MASTER ELEMENT and the MASTER NODE
-				
+
 	      bool condition_found=false;
 	      MesherUtilities MesherUtils;
 	      Condition::Pointer pMasterCondition = MesherUtils.FindMasterCondition(pContactCondition,mrModelPart.Conditions(),condition_found);
@@ -207,9 +207,9 @@ namespace Kratos
 		pContactCondition->SetValue(MASTER_CONDITION, pMasterCondition );
 		pContactCondition->SetValue(MASTER_ELEMENTS, pMasterCondition->GetValue(MASTER_ELEMENTS) );
 		pContactCondition->SetValue(MASTER_NODES, pMasterCondition->GetValue(MASTER_NODES) );
-		
+
 		if( pContactCondition->Is(SELECTED) ){ //two master nodes needed
-		  
+
 		  Element::ElementType& rMasterElement  = pMasterCondition->GetValue(MASTER_ELEMENTS).back();
 		  Geometry< Node<3> >&  rMasterGeometry = rMasterElement.GetGeometry();
 		  Element::NodeType&    rMasterNode     = pContactCondition->GetValue(MASTER_NODES).back();
@@ -218,9 +218,9 @@ namespace Kratos
 		  std::vector<bool> edge_nodes(4);
 		  std::fill(edge_nodes.begin(), edge_nodes.end(), false);
 
-		  for(unsigned int i=0; i<rMasterGeometry.PointsNumber(); i++)
+		  for(unsigned int i=0; i<rMasterGeometry.PointsNumber(); ++i)
 		    {
-		      for(unsigned int j=0; j<rGeometry.PointsNumber(); j++)
+		      for(unsigned int j=0; j<rGeometry.PointsNumber(); ++j)
 			{
 			  if(rGeometry[j].Id()==rMasterGeometry[i].Id()){
 			    edge_nodes[i] = true;
@@ -229,22 +229,22 @@ namespace Kratos
 			}
 		    }
 
-		  for(unsigned int i=0; i<4; i++)
+		  for(unsigned int i=0; i<4; ++i)
 		    {
 		      if(!edge_nodes[i] && rMasterGeometry[i].Id() != rMasterNode.Id())
 			pContactCondition->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer(rMasterGeometry(i)) );
 		    }
 		}
-		  
-		  
+
+
 		pContactCondition->SetValue(NORMAL, pMasterCondition->GetValue(NORMAL) );
 		pContactCondition->Set(CONTACT);
 
 		//set ACTIVE if it is going to be considered in computation:
 		//here one can check the geometrical gap to dismiss some contact elements here
 		//it will be done later in the contact element calculation
-		pContactCondition->Set(ACTIVE);		
-				
+		pContactCondition->Set(ACTIVE);
+
 		//setting new elements
 		mrModelPart.AddCondition(pContactCondition);
 
@@ -254,13 +254,13 @@ namespace Kratos
 
 
       //Restore global ID's
-      for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin() ; in != mrModelPart.NodesEnd() ; in++)
+      for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin() ; in != mrModelPart.NodesEnd(); ++in)
 	{
 	  in->SetId( mrRemesh.NodalPreIds[ in->Id() ] );
 	}
-      
+
       std::cout<<"   [END   contact Elements Generation ["<<id-previous_id<<"] ]"<<std::endl;
-      
+
       std::cout<<"   Total Conditions AFTER: ["<<mrModelPart.Conditions().size()<<"] ];"<<std::endl;
 
 
@@ -427,4 +427,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GENERATE_NEW_CONTACT_CONDITIONS_MESHER_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_GENERATE_NEW_CONTACT_CONDITIONS_MESHER_PROCESS_H_INCLUDED  defined

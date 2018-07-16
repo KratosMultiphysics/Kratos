@@ -28,6 +28,7 @@ class AssignPropertiesToNodesProcess(KratosMultiphysics.Process):
 
         self.model = Model
 
+    @classmethod
     def GetVariables(self):
         nodal_variables = []
         return nodal_variables

@@ -279,7 +279,7 @@ public:
       //added
       unsigned int   NumberOfNewElements;
       unsigned int   NumberOfNewNodes;
-      unsigned int   NumberOfNewConditions;     
+      unsigned int   NumberOfNewConditions;
 
       //total for all refining boxes
       unsigned int   InsertedNodes;
@@ -311,7 +311,7 @@ public:
 	InsertedBoundaryConditions = 0;
 
 	CriticalElements = 0;
-	
+
 	GeometricalSmoothingRequired = false;
 	MechanicalSmoothingRequired  = false;
 
@@ -347,7 +347,7 @@ public:
       {
 	return NumberOfConditions;
       }
-      
+
       void SetNumberOfNewNodes(unsigned int NumberNodes)
       {
 	NumberOfNewNodes = NumberNodes;
@@ -376,7 +376,7 @@ public:
       bool CheckGeometricalSmoothing(){
 
 	//std::cout<<" Inserted Nodes "<<InsertedNodes<<" NumNodes "<<NumberOfNodes<<" Removed "<<RemovedNodes<<std::endl;
-	
+
 	if( InsertedNodes > NumberOfNodes * 0.001 || RemovedNodes > NumberOfNodes * 0.001 ){
 	  GeometricalSmoothingRequired = true;
 	}
@@ -419,11 +419,11 @@ public:
 	on_threshold=0;
 	on_error=0;
       }
-      
+
       void EchoStats(){
 	std::cout<<"   BodyInfo [on_distance:"<<on_distance<<", on_threshold:"<<on_threshold<<", on_error:"<<on_error<<"]"<<std::endl;
       }
-      
+
     };
 
     struct RefineBoundaryInfo
@@ -445,15 +445,15 @@ public:
 	in_concave_boundary=0;
 	in_convex_boundary=0;
       }
-      
+
       void EchoStats(){
 	std::cout<<"   BoundaryInfo [on_distance:"<<on_distance<<", on_threshold:"<<on_threshold<<", on_error:"<<on_error<<"]"<<std::endl;
 	std::cout<<"                [in_contact:"<<in_contact<<", in_concave_boundary:"<<in_concave_boundary<<", in_convex_boundary:"<<in_convex_boundary<<"]"<<std::endl;
       }
-      
+
     };
 
-    
+
     struct RefiningInfoParameters
     {
       //refine/remove body
@@ -480,14 +480,14 @@ public:
     public:
 
       //reference sizes
-      Flags    RefiningOptions;     //configuration refining options        
-      Flags    RemovingOptions;     //configuration removing options    
-      
+      Flags    RefiningOptions;     //configuration refining options
+      Flags    RemovingOptions;     //configuration removing options
+
       double   Alpha;               //critical alpha parameter
 
       double   CriticalRadius;      //critical area   size
       double   CriticalSide;        //critical length size
-      
+
       double   ReferenceThreshold;  //critical variable threshold value
       double   ReferenceError;      //critical error percentage
 
@@ -497,12 +497,12 @@ public:
 
       //info parameters
       RefiningInfoParameters Info;
-      
+
       //applied in the spatial box
-      bool     RefiningBoxSetFlag;     
+      bool     RefiningBoxSetFlag;
       SpatialBoundingBox::Pointer  RefiningBox;
 
-      
+
       // setting refining variables (generally for python interface)
 
       void SetRefiningOptions(const Flags&  rOptions)
@@ -612,15 +612,15 @@ public:
 
 	Alpha               = 0;
 
-	CriticalRadius      = 0;	
+	CriticalRadius      = 0;
 	CriticalSide        = 0;
-	
+
 	ReferenceThreshold  = 0;
 	ReferenceError      = 0;
 
 	InitialRadius       = 0;
 	MeanVolume          = 0;
-	
+
       };
 
     };
@@ -661,14 +661,14 @@ public:
       //Local execution variablesg
       bool InputInitializedFlag;
       bool MeshElementsSelectedFlag;
-      
+
       unsigned int ConditionMaxId;
       unsigned int ElementMaxId;
       unsigned int NodeMaxId;
 
       std::vector<int> NodalPreIds;
-      std::vector<int> PreservedElements;     
-      
+      std::vector<int> PreservedElements;
+
       std::vector<bounded_vector<double, 3> > Holes;
 
       //Mesher pointers to the mesh structures
@@ -677,7 +677,7 @@ public:
       MeshContainer      MidMesh;
 
       std::vector<std::vector<int> > NeighbourList;
-      
+
       //Global Meshing info
       MeshingInfoParameters::Pointer      Info;
 
@@ -686,7 +686,7 @@ public:
 
       //some local bbx-based refining parameters
       //can be defined here: std::vector<RefiningParameters::Pointer> LocalRefineVector;
-      
+
       //Global Tranfer parameters
       TransferParametersType::Pointer Transfer;
 
@@ -696,7 +696,7 @@ public:
       bool MeshingBoxSetFlag;
       SpatialBoundingBox::Pointer  MeshingBox;
 
-     
+
       void Set(Flags ThisFlag)
       {
 	Options.Set(ThisFlag);
@@ -856,7 +856,7 @@ public:
 	ConditionMaxId = 0;
 	ElementMaxId = 0;
 	NodeMaxId = 0;
-	
+
 	InMesh.Initialize();
 	OutMesh.Initialize();
 	MidMesh.Initialize();
@@ -906,7 +906,7 @@ public:
     void SetModelPartNameToNodes (ModelPart& rModelPart);
 
     double ComputeModelPartVolume (ModelPart& rModelPart);
-    
+
     //*******************************************************************************************
     //*******************************************************************************************
 
@@ -1298,7 +1298,7 @@ public:
 
       unsigned int max_id = rModelPart.Nodes().back().Id();
 
-      for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node!= rModelPart.NodesEnd(); i_node++)
+      for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node!= rModelPart.NodesEnd(); ++i_node)
 	{
 	  if(i_node->Id() > max_id)
 	    max_id = i_node->Id();
@@ -1316,30 +1316,30 @@ public:
     static inline double CalculateModelPartVolume(ModelPart& rModelPart)
     {
       KRATOS_TRY
-      
+
 	const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
       double ModelPartVolume = 0;
       if( dimension ==2 ){
-      
-	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
+
+	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; ++i_elem)
 	  {
 	    ModelPartVolume += i_elem->GetGeometry().Area();
 	  }
       }
       else{ //dimension == 3
-      
-	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
+
+	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; ++i_elem)
 	  {
 	    ModelPartVolume += i_elem->GetGeometry().Volume();
 	  }
       }
 
       return ModelPartVolume;
-    
+
       KRATOS_CATCH(" ")
-  
+
 	}
-  
+
 
 
     //*******************************************************************************************
@@ -1351,7 +1351,7 @@ public:
 
       unsigned int max_id = rModelPart.Conditions().back().Id();
 
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
+      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); ++i_cond)
 	{
 	  if(i_cond->Id() > max_id)
 	    max_id = i_cond->Id();
@@ -1372,7 +1372,7 @@ public:
 
       unsigned int max_id = rModelPart.Elements().back().Id();
 
-      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(); i_elem!= rModelPart.ElementsEnd(); i_elem++)
+      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(); i_elem!= rModelPart.ElementsEnd(); ++i_elem)
 	{
 	  if(i_elem->Id() > max_id)
 	    max_id = i_elem->Id();
@@ -1390,7 +1390,7 @@ public:
 
     //*******************************************************************************************
     //*******************************************************************************************
-    
+
     /**
      *  Set Nodes to mesh
      */
@@ -1436,7 +1436,7 @@ public:
     {
       rOStream << "MesherUtilities Data";
     }
-    
+
 
     ///@}
     ///@name Friends
@@ -1526,13 +1526,13 @@ private:
 
   ///@name Type Definitions
   ///@{
-  
-  
+
+
   ///@}
   ///@name Input and output
   ///@{
-  
-  
+
+
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream,
 				      MesherUtilities& rThis);
@@ -1544,13 +1544,13 @@ private:
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);
-    
+
     return rOStream;
   }
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_MESHER_UTILITIES_H_INCLUDED  defined

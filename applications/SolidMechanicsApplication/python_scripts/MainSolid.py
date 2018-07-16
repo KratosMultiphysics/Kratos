@@ -167,7 +167,7 @@ class Solution(object):
 
         # All steps included (1)(2)(3)
         self.solver.Solve()
-        
+
         # Step by step (1)
         #self.solver.InitializeSolutionStep()
 
@@ -337,7 +337,7 @@ class Solution(object):
             problem_path = os.getcwd()
 
             self.model.CleanModel()
-            
+
             print("::[-----Material------]:: Reading file: materials.py ")
 
         else:

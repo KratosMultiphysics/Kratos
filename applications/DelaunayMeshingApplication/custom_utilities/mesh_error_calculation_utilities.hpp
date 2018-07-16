@@ -25,11 +25,11 @@
 
 ///VARIABLES used:
 //Data:     NEIGHBOUR_ELEMENTS
-//StepData: 
+//StepData:
 //Flags:    (checked) NEW_ENTITY
-//          (set)     
-//          (modified)  
-//          (reset)   
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -104,43 +104,43 @@ namespace Kratos
 	rNodalError.resize(rModelPart.NumberOfNodes()+1);
 
       std::fill( rNodalError.begin(), rNodalError.end(), 100 );
-      
+
       if( !rIds.size() )
 	rIds.resize(MesherUtilities::GetMaxNodeId(rModelPart)+1);
-	
+
       std::fill( rIds.begin(), rIds.end(), 0 );
 
       double NodalMeanError  = 0;
-    
+
       int id=1;
-      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin() ; in != rModelPart.NodesEnd() ; in++)
+      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin() ; in != rModelPart.NodesEnd() ; ++in)
 	{
-	  if( in->IsNot(NEW_ENTITY) ){// && in->IsNot(STRUCTURE)){ 
+	  if( in->IsNot(NEW_ENTITY) ){// && in->IsNot(STRUCTURE)){
 
 	    WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
-		  
-	    NodalMeanError  = 0;
-	
 
-	    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+	    NodalMeanError  = 0;
+
+
+	    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 	      {
-		NodalMeanError += ElementalError[elems_ids[ne->Id()]];	    
+		NodalMeanError += ElementalError[elems_ids[ne->Id()]];
 	      }
-	   	    
+
 	    rIds[in->Id()]   = id;
 	    rNodalError[id]  = NodalMeanError / double(neighb_elems.size());
-	
+
 	  }
 	  else{
 
 	    rIds[in->Id()]=id;
 	    rNodalError[id] = 0;
 	  }
-	  
-	
+
+
 	  id++;
 	}
-    
+
       KRATOS_CATCH( "" )
     }
 
@@ -169,22 +169,22 @@ namespace Kratos
       std::vector<double> Value(1);
 
       unsigned int id=1;
-      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ie++)
-	{   		   
+      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ++ie)
+	{
 	  (ie)->GetValueOnIntegrationPoints(rVariable,Value,CurrentProcessInfo);
-	   
+
 	  elems_ids[ie->Id()] = id;
 	  ElementVariable[id] = Value[0];
 
 	  if(ElementVariable[id]>VariableMax)
 	    VariableMax = ElementVariable[id];
-	 
+
 	  if(ElementVariable[id]<VariableMin)
 	    VariableMin = ElementVariable[id];
 
 	  // if( ElementVariable[id] == 0 )
 	  //   std::cout<<" ELEMENT ["<<ie->Id()<<"] : "<<ElementVariable[id]<<std::endl;
-	   
+
 	  id++;
 	}
 
@@ -200,9 +200,9 @@ namespace Kratos
 
       double Size  = 0;
       double Error = 0;
-  
+
       id=1;
-      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); in++)
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); ++in)
 	{
 
 	  if(in->IsNot(NEW_ENTITY) ){// && in->IsNot(STRUCTURE)){
@@ -211,13 +211,13 @@ namespace Kratos
 	    PatchError = 0;
 
 	    WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
-	  
 
-	    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
-	      {		  
-	           
+
+	    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+	      {
+
 		Geometry<Node<3> >& pGeom = (ne)->GetGeometry();
-	     
+
 		Size   = pGeom.DomainSize();  //Area(); or Volume();
 		Error  = ElementVariable[elems_ids[ne->Id()]] * Size;
 
@@ -225,7 +225,7 @@ namespace Kratos
 		PatchError += Error;
 
 	      }
-	      
+
 	    if(PatchSize!=0){
 	      nodes_ids[in->Id()]=id;
 	      NodalError[id] = PatchError/PatchSize;
@@ -244,7 +244,7 @@ namespace Kratos
 	  }
 
 	  id++;
-	   
+
 
 	}
 
@@ -256,27 +256,27 @@ namespace Kratos
       std::fill( rIds.begin(), rIds.end(), 0 );
 
       double VariableVariation = VariableMax - VariableMin;
-	
+
       if(VariableVariation == 0){
 	VariableVariation = 1;
 	std::cout<<"   WARNING: "<<rVariable<<" min-max errors are the same ( MinVar= "<<VariableMin<<", MaxVar= "<<VariableMax<<" )"<<std::endl;
       }
       else{
-	  
+
 	if( GetEchoLevel() > 0 )
 	  std::cout<<"   Variable errors ( MinVar= "<<VariableMin<<", MaxVar= "<<VariableMax<<" )"<<std::endl;
 
 	id=1;
-	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ie++)
+	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ++ie)
 	  {
 
 	    PointsArrayType& vertices=ie->GetGeometry().Points();
-	  
+
 
 	    PatchError = 0;
-	  
+
 	    unsigned int NumberOfVertices =vertices.size();
-	    for(unsigned int i=0; i<NumberOfVertices; i++)
+	    for(unsigned int i=0; i<NumberOfVertices; ++i)
 	      {
 		PatchError += NodalError[nodes_ids[vertices[i].Id()]];
 	      }
@@ -287,7 +287,7 @@ namespace Kratos
 	    else{
 	      std::cout<<" ERROR ME: Number of Vertices of the Element: "<<ie->Id()<<" is null "<<std::endl;
 	    }
-	      
+
 	    rIds[ie->Id()]=id;
 	    rElementalError[id] = fabs( ( PatchError - ElementVariable[id] ) / VariableVariation ) * 100;
 
@@ -306,7 +306,7 @@ namespace Kratos
     {
       mEchoLevel = Level;
     }
-      
+
     int GetEchoLevel()
     {
       return mEchoLevel;
@@ -407,19 +407,18 @@ namespace Kratos
 
 
   }; // Class MeshErrorCalculationUtilities
-  
+
   ///@}
   ///@name Type Definitions
   ///@{
-  
-  
+
+
   ///@}
   ///@name Input and output
   ///@{
-  
+
   ///@}
 
 } // namespace Kratos.
 
-#endif // KRATOS_MESH_ERROR_CALCULATION_UTILITIES_H_INCLUDED defined 
-
+#endif // KRATOS_MESH_ERROR_CALCULATION_UTILITIES_H_INCLUDED defined

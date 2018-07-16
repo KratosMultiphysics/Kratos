@@ -27,7 +27,7 @@ namespace Kratos
   void Mesher::Initialize()
   {
   }
-  
+
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -53,7 +53,7 @@ namespace Kratos
   void Mesher::SetMeshingParameters( MeshingParametersType::Pointer& rMeshingParameters )
   {
     KRATOS_TRY
-    
+
     mpMeshingVariables = rMeshingParameters;
 
     bool Remesh = false;
@@ -81,9 +81,9 @@ namespace Kratos
   void Mesher::SetPreMeshingProcess( MesherProcess::Pointer pPreMeshingProcess )
   {
      KRATOS_TRY
-       
+
      mPreMeshingProcesses.push_back(pPreMeshingProcess); //NOTE: order set = order of execution
-       
+
      KRATOS_CATCH(" ")
   }
 
@@ -93,9 +93,9 @@ namespace Kratos
   void Mesher::SetPostMeshingProcess( MesherProcess::Pointer pPostMeshingProcess )
   {
      KRATOS_TRY
-       
+
      mPostMeshingProcesses.push_back(pPostMeshingProcess); //NOTE: order set = order of execution
-       
+
      KRATOS_CATCH(" ")
   }
 
@@ -106,9 +106,9 @@ namespace Kratos
   void Mesher::SetPreMeshingProcessVector( std::vector<MesherProcess::Pointer>& rPreMeshingProcessVector )
   {
      KRATOS_TRY
-       
-     mPreMeshingProcesses = rPreMeshingProcessVector; 
-       
+
+     mPreMeshingProcesses = rPreMeshingProcessVector;
+
      KRATOS_CATCH(" ")
   }
 
@@ -118,9 +118,9 @@ namespace Kratos
   void Mesher::SetPostMeshingProcessVector( std::vector<MesherProcess::Pointer>& rPostMeshingProcessVector )
   {
      KRATOS_TRY
-       
-     mPostMeshingProcesses = rPostMeshingProcessVector; 
-       
+
+     mPostMeshingProcesses = rPostMeshingProcessVector;
+
      KRATOS_CATCH(" ")
   }
 
@@ -132,11 +132,11 @@ namespace Kratos
   void Mesher::ExecutePreMeshingProcesses()
   {
     KRATOS_TRY
-    
+
     //Refine and Remove nodes processes
     ////////////////////////////////////////////////////////////
     if( mPreMeshingProcesses.size() )
-      for(unsigned int i=0; i<mPreMeshingProcesses.size(); i++)
+      for(unsigned int i=0; i<mPreMeshingProcesses.size(); ++i)
 	mPreMeshingProcesses[i]->Execute();
     ////////////////////////////////////////////////////////////
 
@@ -155,11 +155,11 @@ namespace Kratos
     //Rebuild Boundary processes
     ////////////////////////////////////////////////////////////
     if( mPostMeshingProcesses.size() )
-      for(unsigned int i=0; i<mPostMeshingProcesses.size(); i++)
+      for(unsigned int i=0; i<mPostMeshingProcesses.size(); ++i)
 	mPostMeshingProcesses[i]->Execute();
     ////////////////////////////////////////////////////////////
 
- 
+
     KRATOS_CATCH( "" )
 
   }
@@ -203,7 +203,7 @@ namespace Kratos
     if( GetEchoLevel() > 0 ){
       std::cout<<" [ GetRemeshData: [ RefineFlag: "<<mpMeshingVariables->Options.Is(MesherUtilities::REFINE)<<"; RemeshFlag : "<<mpMeshingVariables->Options.Is(MesherUtilities::REMESH)<<" ] ]"<<std::endl;
     }
-  
+
     // bool out_buffer_active = true;
     // std::streambuf* buffer = NULL;
     // if( mEchoLevel == 0 ){
@@ -213,8 +213,8 @@ namespace Kratos
     //   std::cout.rdbuf(fout.rdbuf());
     //   //std::cout<<output(off,buffer);
     //   out_buffer_active = false;
-    // } 
-	
+    // }
+
     // Located in the begining of the assignation:
 
     // check mesh size introduced :: warning must be shown
@@ -225,27 +225,27 @@ namespace Kratos
       MesherUtilities MesherUtils;
       MesherUtils.CheckCriticalRadius(rModelPart, mpMeshingVariables->Refine->CriticalRadius);
     }
-    
+
     // if(!out_buffer_active){
     //   buffer = std::cout.rdbuf();
     //   std::ofstream fout("/dev/null");
     //   std::cout.rdbuf(fout.rdbuf());
     // }
     // check mesh size introduced :: warning must be shown
-    
-	
+
+
     //bool remesh_performed=false;
-	
+
     if( GetEchoLevel() > 0 ){
       std::cout<<" --------------                     -------------- "<<std::endl;
       std::cout<<" --------------       DOMAIN        -------------- "<<std::endl;
     }
-	
+
     // Located in the begining of the assignation:
 
     //generate mesh
     this->Generate(rModelPart,*(mpMeshingVariables));
-   
+
 
     KRATOS_CATCH(" ")
   }
@@ -286,7 +286,7 @@ namespace Kratos
 			     MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
-     
+
     MesherUtilities MesherUtils;
     MesherUtils.SetNodes(rModelPart,rMeshingVariables);
 
@@ -302,7 +302,7 @@ namespace Kratos
 				MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
-       
+
     MesherUtilities MesherUtils;
     MesherUtils.SetElements(rModelPart,rMeshingVariables);
 
@@ -318,7 +318,7 @@ namespace Kratos
 				  MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
-        
+
     //*********************************************************************
     //input mesh: NEIGHBOURELEMENTS
     ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
@@ -328,7 +328,7 @@ namespace Kratos
 
     InMesh.CreateElementNeighbourList(rModelPart.Elements().size(), nds);
 
-    int* ElementNeighbourList      = InMesh.GetElementNeighbourList();   
+    int* ElementNeighbourList      = InMesh.GetElementNeighbourList();
 
     for(unsigned int el = 0; el<rModelPart.Elements().size(); el++)
       {
@@ -340,7 +340,7 @@ namespace Kratos
 	  else
 	    ElementNeighbourList[el*nds+pn] = rE[pn].Id();
 	}
-	      
+
       }
 
     KRATOS_CATCH( "" )
@@ -361,10 +361,10 @@ namespace Kratos
     }
 
     ModelPart::ElementsContainerType::const_iterator el_begin = rModelPart.ElementsBegin();
-	
+
     int facecounter=0;
     for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin();
-	iii != rModelPart.ElementsEnd(); iii++)
+	iii != rModelPart.ElementsEnd(); ++iii)
       {
 
 	int Id= iii->Id() - 1;
@@ -378,10 +378,10 @@ namespace Kratos
 	for(int i = 0; i<number_of_faces; i++)
 	  {
 	    int index = rMeshingVariables.NeighbourList[Id][i];
-				
+
 	    if(index > 0)
 	      {
-		//std::cout<<" Element "<<Id<<" size "<<rMeshingVariables.PreservedElements.size()<<std::endl;			    
+		//std::cout<<" Element "<<Id<<" size "<<rMeshingVariables.PreservedElements.size()<<std::endl;
 		//std::cout<<" Index pre "<<index<<" size "<<rMeshingVariables.PreservedElements.size()<<std::endl;
 		index = rMeshingVariables.PreservedElements[index-1];
 		//std::cout<<" Index post "<<index<<std::endl;
@@ -399,7 +399,7 @@ namespace Kratos
 	      }
 	  }
       }
-	
+
     if( this->GetEchoLevel() > 0 ){
       std::cout<<"   Final Faces : "<<facecounter<<std::endl;
       std::cout<<"   SET ELEMENT NEIGHBOURS ]; "<<std::endl;
@@ -417,9 +417,9 @@ namespace Kratos
 					    MeshingParametersType& rMeshingVariables)
   {
     KRATOS_TRY
-    
+
     const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-          
+
     //*********************************************************************
     //input mesh: ELEMENTS
 
@@ -433,10 +433,10 @@ namespace Kratos
 
     int base=0;
     for(unsigned int i = 0; i<rModelPart.Nodes().size(); i++)
-      { 
-	   
+      {
+
 	if( (nodes_begin + i)->Is(BOUNDARY) ){
-	  
+
 	  array_1d<double, 3>& Position = (nodes_begin + i)->Coordinates();
 	  for( unsigned int j=0; j<dimension; j++)
 	    {
@@ -444,7 +444,7 @@ namespace Kratos
 	      OutPointList[base+j]   = Position[j];
 	    }
 	}
-	   
+
 	base+=dimension;
       }
 
@@ -453,4 +453,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-

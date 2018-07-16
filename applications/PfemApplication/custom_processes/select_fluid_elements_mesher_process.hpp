@@ -131,7 +131,7 @@ class SelectFluidElementsMesherProcess
 
     if(mrRemesh.ExecutionOptions.IsNot(MesherUtilities::SELECT_TESSELLATION_ELEMENTS))
     {
-      for(int el=0; el<OutNumberOfElements; el++)
+      for(int el=0; el<OutNumberOfElements; ++el)
       {
         mrRemesh.PreservedElements[el]=1;
         mrRemesh.Info->NumberOfElements+=1;
@@ -156,7 +156,7 @@ class SelectFluidElementsMesherProcess
       // std::cout<<" NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
 
       //#pragma omp parallel for reduction(+:number) private(el)
-      for(el=0; el<OutNumberOfElements; el++)
+      for(el=0; el<OutNumberOfElements; ++el)
       {
         Geometry<Node<3> > vertices;
 
@@ -174,7 +174,7 @@ class SelectFluidElementsMesherProcess
         box_side_element = false;
 
 
-        for(unsigned int pn=0; pn<nds; pn++)
+        for(unsigned int pn=0; pn<nds; ++pn)
         {
           //set vertices
           if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
@@ -216,10 +216,10 @@ class SelectFluidElementsMesherProcess
 
           if( vertices.back().Is(FREE_SURFACE) ){
             numfreesurf++;
-          } 
-          
+          }
+
           if(vertices.back().Is(FLUID)){
-            numfluid++;            
+            numfluid++;
           }
 
           if(vertices.back().Is(FREE_SURFACE) || vertices.back().Is(ISOLATED)){
@@ -243,7 +243,7 @@ class SelectFluidElementsMesherProcess
         double Alpha =  mrRemesh.AlphaParameter; //*nds;
 
         if(dimension==2){
-          
+
           if( (numisolated+numfreesurf)==nds && firstMesh==false ){
             if(checkedNodes==nds){
               const double maxValue=1.5;
@@ -258,9 +258,9 @@ class SelectFluidElementsMesherProcess
               Alpha*=0;
             }
           }
-          
 
-          
+
+
           if(numrigid==0 && numsolid==0 && numfreesurf==0 && numisolated==0){
             Alpha*=1.75;
           }
@@ -270,13 +270,13 @@ class SelectFluidElementsMesherProcess
               Alpha*=0.95;
             }
             else{
-              Alpha*=1.04;  
+              Alpha*=1.04;
             }
           }
 
         }
         else if(dimension==3){
-          
+
            if( (numisolated+numfreesurf)==nds ){
             if(checkedNodes==nds){
               const double maxValue=1.5;
@@ -395,10 +395,10 @@ class SelectFluidElementsMesherProcess
       ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
       //check engaged nodes
-      for(int el=0; el<OutNumberOfElements; el++)
+      for(int el=0; el<OutNumberOfElements; ++el)
       {
         if( mrRemesh.PreservedElements[el] ){
-          for(unsigned int pn=0; pn<nds; pn++)
+          for(unsigned int pn=0; pn<nds; ++pn)
           {
             //set vertices
             rNodes[OutElementList[el*nds+pn]].Set(BLOCKED);
@@ -410,7 +410,7 @@ class SelectFluidElementsMesherProcess
       }
 
       int count_release = 0;
-      for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
+      for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; ++i_node)
       {
 
         if( i_node->IsNot(BLOCKED)  ){
@@ -437,7 +437,7 @@ class SelectFluidElementsMesherProcess
 
       ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
-      for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
+      for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; ++i_node)
       {
         i_node->Reset(BLOCKED);
       }

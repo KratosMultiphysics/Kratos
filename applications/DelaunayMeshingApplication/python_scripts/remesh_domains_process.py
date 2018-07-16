@@ -7,7 +7,7 @@ KratosMultiphysics.CheckForPreviousImport()
 #from multiprocessing import Pool
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return RemeshDomainsProcess(Model, settings["Parameters"])
 
@@ -219,6 +219,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         return nodal_variables
 
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[--Meshing_Process--]::"
         return header

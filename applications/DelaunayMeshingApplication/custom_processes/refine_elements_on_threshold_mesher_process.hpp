@@ -25,12 +25,12 @@
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
+//Data:
+//StepData:
 //Flags:    (checked) BOUNDARY
 //          (set)     TO_REFINE(nodes)(set)
-//          (modified)  
-//          (reset)   
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -65,7 +65,7 @@ public:
     /// Default constructor.
     RefineElementsOnThresholdMesherProcess(ModelPart& rModelPart,
 					 MesherUtilities::MeshingParameters& rRemeshingParameters,
-					 int EchoLevel) 
+					 int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
@@ -99,7 +99,7 @@ public:
       KRATOS_TRY
 
 	if( ( mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_ADD_NODES) ||  mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_INSERT_NODES) ) && (mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_ELEMENTS_ON_THRESHOLD) ) ){
-	  
+
 	  SetNodesToRefine();
 
 	}
@@ -107,7 +107,7 @@ public:
       KRATOS_CATCH(" ")
     }
 
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -155,10 +155,10 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart& mrModelPart;
- 
+
     MesherUtilities::MeshingParameters& mrRemesh;
 
-    MesherUtilities mMesherUtilities;  
+    MesherUtilities mMesherUtilities;
 
     int mEchoLevel;
 
@@ -172,62 +172,62 @@ private:
     void SetNodesToRefine()
     {
       KRATOS_TRY
-    
+
       ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
-      
+
       double max_value = 0;
-      double critical_value = mrRemesh.Refine->ReferenceThreshold; 
+      double critical_value = mrRemesh.Refine->ReferenceThreshold;
 
       int counter = 0;
       //set label refine in elements that must be refined due to dissipation
       for(ModelPart::ElementsContainerType::const_iterator iii = mrModelPart.ElementsBegin();
-	  iii != mrModelPart.ElementsEnd(); iii++)
+	  iii != mrModelPart.ElementsEnd(); ++iii)
 	{
 	  double variable_value=0;
 	  std::vector<double> Value(1);
 
 	  (iii)->GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
-	    
+
 	  //the expected returned value is an "specific" value (per unit of Area) (usually PlasticPower)
 	  //variable_value = Value[0] * iii->GetGeometry().Area();
 	  variable_value = Value[0] * iii->GetGeometry().DomainSize(); //Area() or Volume()
 
 
-	
+
 	  if( variable_value > max_value )
 	    max_value = variable_value;
- 
+
 	  // if(variable_value>0)
 	  //   std::cout<<" Element ["<<iii->Id()<<"] "<<mrRemesh.Refine->GetThresholdVariable()<<": "<<variable_value<<" CriticalValue "<<critical_value<<" Area "<<iii->GetGeometry().DomainSize()<<std::endl;
-	 
+
 	  if( variable_value > critical_value )
 	    {
 	      //std::cout<<" Refine element "<<std::endl;
 	      Geometry< Node<3> >& rGeometry = iii->GetGeometry();
-	      for(unsigned int i = 0; i<rGeometry.size(); i++)
+	      for(unsigned int i = 0; i<rGeometry.size(); ++i)
 		{
 		  if(rGeometry[i].IsNot(BOUNDARY))
 		    rGeometry[i].Set(TO_REFINE);
 		}
 	      counter ++;
 	    }
-		    
+
 	}
-    
-      if( mEchoLevel >= 1 ){	
+
+      if( mEchoLevel >= 1 ){
 	if( max_value < critical_value )
 	  std::cout<<" Threshold Value not REACHED ::  max_value  "<< max_value<<std::endl;
 
 	if( counter > 0 )
 	  std::cout<<" Threshold reached "<<counter<<" times "<<std::endl;
       }
-      
+
 
       if( mEchoLevel >= 1 )
 	std::cout<<"   Refine Elements On Threshold [number:"<<counter<<"]"<<std::endl;
 
       KRATOS_CATCH( "" )
- 
+
     }
 
     /// Assignment operator.
@@ -275,6 +275,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REFINE_ELEMENTS_ON_THRESHOLD_MESHER_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_REFINE_ELEMENTS_ON_THRESHOLD_MESHER_PROCESS_H_INCLUDED  defined

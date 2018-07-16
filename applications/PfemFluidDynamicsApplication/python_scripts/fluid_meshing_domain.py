@@ -298,11 +298,11 @@ class FluidMeshingDomain(object):
 
     #
     def ComputeAverageMeshParameters(self):
-        
+
         MesherUtils = KratosDelaunay.MesherUtilities();
         self.domain_volume =  MesherUtils.ComputeModelPartVolume(self.main_model_part)
         self.element_mean_volume = 0
-        
+
         number_of_elements =  self.main_model_part.NumberOfElements()
         nodes_for_element  =  self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION] + 1
 
@@ -310,32 +310,32 @@ class FluidMeshingDomain(object):
             self.element_mean_volume = self.domain_volume/float(number_of_elements*nodes_for_element)
 
         self.RefiningParameters.SetMeanVolume(self.element_mean_volume)
-            
-    #    
+
+    #
     def GetMeanVolume(self):
 
         return self.element_mean_volume
 
-    #    
+    #
     def GetTotalVolume(self):
 
         return self.domain_volume
 
     #
-    def ComputeInitialAverageMeshParameters(self):        
- 
+    def ComputeInitialAverageMeshParameters(self):
+
         numFluid=0
         mean_nodal_h=0
         for node in self.main_model_part.Nodes:
             if (node.Is(KratosMultiphysics.FLUID)):
                 numFluid+=1
                 nodal_h=node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
-                mean_nodal_h+=nodal_h 
+                mean_nodal_h+=nodal_h
 
         mean_nodal_h*=1.0/numFluid;
 
         print("the mean_nodal_h is  ",mean_nodal_h)
-    
+
         self.RefiningParameters.SetCriticalRadius(mean_nodal_h)
         self.RefiningParameters.SetInitialRadius(mean_nodal_h)
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
@@ -343,6 +343,6 @@ class FluidMeshingDomain(object):
         self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.CURRENT_DELTA_TIME,delta_time)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.PREVIOUS_DELTA_TIME,delta_time)
         self.main_model_part.ProcessInfo.SetValue(KratosPfemFluid.TIME_INTERVAL_CHANGED,False)
-        
+
 
     #

@@ -394,6 +394,7 @@ class ModelManager(object):
                 except OSError:
                     pass
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[---Model_Manager---]::"
         return header

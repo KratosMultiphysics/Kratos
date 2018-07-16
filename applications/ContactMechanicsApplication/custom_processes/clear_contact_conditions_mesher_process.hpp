@@ -22,12 +22,12 @@
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -76,7 +76,7 @@ namespace Kratos
     ClearContactConditionsMesherProcess(ModelPart& rModelPart,
 				  int EchoLevel = 0)
       : mrModelPart(rModelPart)
-    { 
+    {
       mEchoLevel = EchoLevel;
     }
 
@@ -103,10 +103,10 @@ namespace Kratos
     void Execute() override
     {
       KRATOS_TRY
-	
+
       this->ClearContactConditions();
 
-      KRATOS_CATCH(" ")   
+      KRATOS_CATCH(" ")
     };
 
 
@@ -223,7 +223,7 @@ namespace Kratos
 
 
       KRATOS_CATCH( "" )
-	
+
     }
 
     //**************************************************************************
@@ -237,14 +237,14 @@ namespace Kratos
       //*******************************************************************
       //clearing contact conditions
       //
-	
+
       if( mEchoLevel >= 1 ){
 	std::cout<<" ["<<rModelPart.Name()<<" :: CONDITIONS [OLD:"<<rModelPart.NumberOfConditions();
       }
 
       ModelPart::ConditionsContainerType PreservedConditions;
 
-      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
+      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ++ic)
 	{
 	  if(ic->IsNot(CONTACT)){
 	    PreservedConditions.push_back(*(ic.base()));
@@ -256,7 +256,7 @@ namespace Kratos
       if( mEchoLevel >= 1 ){
 	std::cout<<" / PRE:"<<rModelPart.NumberOfConditions();
       }
-      
+
       //rModelPart.Conditions().Sort();
       //rModelPart.Conditions().Unique();
 
@@ -265,9 +265,9 @@ namespace Kratos
       }
 
       KRATOS_CATCH( "" )
-	
+
     }
- 
+
 
     ///@}
     ///@name Private  Access
@@ -324,4 +324,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // CONTACT_CLEAR_CONTACT_CONDITIONS_MESHER_PROCESS_H_INCLUDED  defined 
+#endif // CONTACT_CLEAR_CONTACT_CONDITIONS_MESHER_PROCESS_H_INCLUDED  defined

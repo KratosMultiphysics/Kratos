@@ -14,20 +14,20 @@ def CreateMesher(main_model_part, meshing_parameters):
     return PreRefiningMesher(main_model_part, meshing_parameters)
 
 class PreRefiningMesher(fluid_mesher.FluidMesher):
-    
+
     #
-    def __init__(self, main_model_part, meshing_parameters): 
-        
+    def __init__(self, main_model_part, meshing_parameters):
+
         self.echo_level        = 1
-        self.main_model_part   = main_model_part 
+        self.main_model_part   = main_model_part
         self.MeshingParameters = meshing_parameters
-        
+
         self.model_part = self.main_model_part
         if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
-            
+
         print("Construction of the Pre Refining Mesher finished")
-           
+
     #
     def InitializeMeshing(self):
 
@@ -35,12 +35,12 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
             print("::[fluid_pre_refining_mesher]:: -START InitializeMeshing-")
 
         self.MeshingParameters.InitializeMeshing()
-   
+
         # set execution flags: to set the options to be executed in methods and processes
         meshing_options = self.MeshingParameters.GetOptions()
 
         execution_options = KratosMultiphysics.Flags()
-    
+
         execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, True)
         execution_options.Set(KratosDelaunay.MesherUtilities.FINALIZE_MESHER_INPUT,  True)
 
@@ -56,20 +56,20 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
 
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
-        
+
         # set mesher flags: to set options for the mesher (triangle 2D, tetgen 3D)
         # RECONNECT
-            
+
         mesher_flags = ""
         mesher_info  = "Prepare domain for refinement"
         if( self.dimension == 2 ):
-           
+
             if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
-                mesher_flags = "pnBYYQ"  
+                mesher_flags = "pnBYYQ"
             else:
                 mesher_flags = "nQP"
 
-            
+
         elif( self.dimension == 3 ):
 
             if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
@@ -97,7 +97,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
 
         #recover_volume_losses  = KratosPfemFluid.RecoverVolumeLosses(self.model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPreMeshingProcess(recover_volume_losses)
-        
+
         unactive_peak_elements = False
         unactive_sliver_elements = False
         set_active_flag = KratosPfemFluid.SetActiveFlagMesherProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
@@ -154,7 +154,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
         #unactive_sliver_elements = False
         #set_active_flag = KratosPfemFluid.SetActiveFlagMesherProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
         #self.mesher.SetPostMeshingProcess(set_active_flag)
-                
+
 
         #inlet_management = KratosPfemFluid.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPostMeshingProcess(inlet_management)
@@ -166,7 +166,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
 
     #
     def FinalizeMeshing(self):
-        
+
         if(self.echo_level>0):
             print("::[fluid_pre_refining_mesher]:: -START FinalizeMeshing-")
 
@@ -184,7 +184,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
 
             if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
                 execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
-                 
+
 
         if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES) ):
             execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, False)

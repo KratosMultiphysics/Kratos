@@ -12,7 +12,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.DelaunayMeshingApplication
-import KratosMultiphysics.PfemFluidDynamicsApplication     
+import KratosMultiphysics.PfemFluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication
 
 class Solution(object):
@@ -46,7 +46,7 @@ class Solution(object):
         self.report = False
         if( self.echo_level > 0 ):
             self.report = True
-        
+
         print(" ")
 
         # defining the number of threads:
@@ -227,7 +227,7 @@ class Solution(object):
     def InitializeSolutionStep(self):
 
         self.clock_time = self.StartTimeMeasuring();
-               
+
         # current time parameters
         # self.main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = self.delta_time
         self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
@@ -253,7 +253,7 @@ class Solution(object):
     def SolveSolutionStep(self):
 
         self.clock_time = self.StartTimeMeasuring();
-        
+
         self.solver.Predict()
 
         self.solver.SolveSolutionStep()
@@ -282,7 +282,7 @@ class Solution(object):
         self.model_processes.ExecuteAfterOutputStep()
 
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
-        
+
     def Finalize(self):
 
         # Ending the problem (time integration finished)
@@ -379,4 +379,3 @@ class Solution(object):
 
 if __name__ == "__main__":
     Solution().Run()
-

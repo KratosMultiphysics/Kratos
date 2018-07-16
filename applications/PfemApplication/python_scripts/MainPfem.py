@@ -36,7 +36,7 @@ class PfemSolution(MainSolid.Solution):
             processes_parameters.AddValue("constraints_process_list", extended_constraints_processes)
             if(self.echo_level>0):
                 print(" EXTENDED_CONSTRAINTS_PROCESSES ", processes_parameters["constraints_process_list"].PrettyPrintJsonString())
-            
+
         if(processes_parameters.Has("loads_process_list")):
             loads_processes = processes_parameters["loads_process_list"]
             if(self.echo_level>0):
@@ -49,12 +49,12 @@ class PfemSolution(MainSolid.Solution):
         return processes_parameters
 
     def _set_isolated_nodes_management_process(self, constraints_processes):
-        
+
         default_settings = KratosMultiphysics.Parameters("""
         {
              "python_module" : "manage_isolated_nodes_process",
              "kratos_module" : "KratosMultiphysics.PfemApplication",
-             "Parameters"    : {}             
+             "Parameters"    : {}
         }
         """)
 
@@ -65,9 +65,9 @@ class PfemSolution(MainSolid.Solution):
 
         return constraints_processes
 
-    
+
     def _set_volume_acceleration_process(self, loads_processes):
-        
+
         default_settings = KratosMultiphysics.Parameters("""
         {
              "python_module" : "assign_modulus_and_direction_to_nodes_process",
@@ -116,9 +116,9 @@ class PfemSolution(MainSolid.Solution):
         loads_processes.Append(default_settings)
 
         return loads_processes
-    
+
     def _set_particle_properties_process(self, problem_processes):
-        
+
         default_settings = KratosMultiphysics.Parameters("""
         {
             "python_module" : "assign_properties_to_nodes_process",
@@ -132,11 +132,11 @@ class PfemSolution(MainSolid.Solution):
 
         model_part_name = self.model.GetMainModelPart().Name
         default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
-        
+
         problem_processes.Append(default_settings)
-        
+
         return problem_processes
-    
+
     def _class_prefix(self):
         header = "::[--PFEM Simulation--]::"
         return header

@@ -24,12 +24,12 @@
 #include "custom_processes/set_active_flag_process.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -45,7 +45,7 @@ typedef  ModelPart::NodesContainerType                      NodesContainerType;
 typedef  ModelPart::ElementsContainerType                ElementsContainerType;
 typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
- 
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -146,13 +146,13 @@ class SetActiveEntitiesMesherProcess
         std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
       }
     }
-	      
+
     // ELIMINATION CHECK FOR PEAK ELEMENTS (those annoying elements created by pfem remeshing and placed bewteen the free-surface and the walls)
     if(mUnactivePeakElements == true && sliverEliminationCriteria==false){
       double scalarProduct=1.0;
       bool doNotErase=false;
       unsigned int elementRigidNodes=0;
-      for(unsigned int i=0; i<numNodes; i++)
+      for(unsigned int i=0; i<numNodes; ++i)
       {
         if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID)){
           elementRigidNodes++;
@@ -166,7 +166,7 @@ class SetActiveEntitiesMesherProcess
           const array_1d<double,3> &wallVelocity = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
           double normWallVelocity=norm_2(wallVelocity);
           if(normWallVelocity==0){// up to now this is for fixed walls only
-            for(unsigned int j=0; j<numNodes; j++)
+            for(unsigned int j=0; j<numNodes; ++j)
             {
 
               if(itElem->GetGeometry()[j].IsNot(RIGID) && itElem->GetGeometry()[j].Is(FREE_SURFACE)){
@@ -194,7 +194,7 @@ class SetActiveEntitiesMesherProcess
                   WeakPointerVector<Node<3> >& rN = itElem->GetGeometry()[j].GetValue(NEIGHBOUR_NODES);
                   unsigned int rigidNodes=0;
                   unsigned int freeSurfaceNodes=0;
-                  for(unsigned int i = 0; i < rN.size(); i++)
+                  for(unsigned int i = 0; i < rN.size(); ++i)
                   {
                     if(rN[i].Is(RIGID) && rN[i].IsNot(SOLID))
                       rigidNodes += 1;
@@ -226,25 +226,25 @@ class SetActiveEntitiesMesherProcess
         Geometry<Node<3> > wallElementNodes=itElem->GetGeometry();
         this->SetPressureToIsolatedWallNodes(wallElementNodes);
       }
-		
+
 
     }
     // ELIMINATION CHECK FOR ELEMENTS FORMED BY WALL PARTICLES ONLY (this is included for computational efficiency purpose also in the previous peak element check)
     else if (mUnactivePeakElements == false){
       unsigned int elementRigidNodes=0;
-      for(unsigned int i=0; i<numNodes; i++)
+      for(unsigned int i=0; i<numNodes; ++i)
       {
         if(itElem->GetGeometry()[i].Is(RIGID) && itElem->GetGeometry()[i].IsNot(SOLID)){
           elementRigidNodes++;
         }
       }
-		
+
       if(elementRigidNodes==numNodes){
         wallElementsEliminationCriteria=true;
         Geometry<Node<3> > wallElementNodes=itElem->GetGeometry();
         this->SetPressureToIsolatedWallNodes(wallElementNodes);
       }
-		
+
     }
 
     if(sliverEliminationCriteria==true || peakElementsEliminationCriteria==true ||  wallElementsEliminationCriteria==true){
@@ -263,7 +263,7 @@ class SetActiveEntitiesMesherProcess
 
   ///@}
   ///@name Operators
-  ///@{ 
+  ///@{
 
   ///@}
   ///@name Access
@@ -290,12 +290,12 @@ class SetActiveEntitiesMesherProcess
   {
     rOStream << "SetActiveEntitiesMesherProcess";
   }
-    
+
   /// Print object's data.
   void PrintData(std::ostream& rOStream) const override
   {
   }
-  
+
  protected:
   ///@name Protected static Member Variables
   ///@{
@@ -395,5 +395,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SET_ACTIVE_ENTITIES_MESHER_PROCESS_H_INCLUDED  defined 
-
+#endif // KRATOS_SET_ACTIVE_ENTITIES_MESHER_PROCESS_H_INCLUDED  defined

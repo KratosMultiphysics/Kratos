@@ -26,7 +26,7 @@ class TestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
 
             if( self.file_parameters == None ):
-                self.file_parameters = self.file_name + "_parameters.json"            
+                self.file_parameters = self.file_name + "_parameters.json"
 
             # Set severity to avoid many prints
             # KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)

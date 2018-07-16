@@ -13,7 +13,7 @@ def CreateSolver(custom_settings):
 
 #Base class to develop other solvers
 class MonolithicSolver(object):
-    """The base class for solid mechanics solvers.
+    """The base class for solid mechanics solvers
 
     This class provides functions for importing and exporting models,
     adding nodal variables and dofs and solving each solution step.
@@ -208,7 +208,7 @@ class MonolithicSolver(object):
         # Process information
         self.process_info = self.main_model_part.ProcessInfo
 
-               
+
     def _set_integration_parameters(self):
         # Add dofs
         if( self._is_not_restarted() ):
@@ -314,7 +314,7 @@ class MonolithicSolver(object):
             print(dof_variables + dof_reactions)
             print(self._class_prefix()+" DOF's ADDED")
 
-
+    @classmethod
     def _get_scheme_custom_processes(self):
         process_list = []
         return process_list
@@ -400,6 +400,7 @@ class MonolithicSolver(object):
         #print(component_integration_methods)
 
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[-Monolithic_Solver-]::"
         return header

@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import sys
-import os
+
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
@@ -61,9 +60,9 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
 
     def SetComputingModelPart(self, computing_model_part):
         self.model_part = computing_model_part
-           
+
         for create_part in self.create_parts:
-            solver.SetComputingModelPart(self.model_part.GetSubModelPart(create_part["Parameters"]["model_part_name"].GetString()))           
+            solver.SetComputingModelPart(self.model_part.GetSubModelPart(create_part["Parameters"]["model_part_name"].GetString()))
 
     def ExecuteInitialize(self):
         self._create_computing_sub_parts()

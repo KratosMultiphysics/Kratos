@@ -25,11 +25,11 @@
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
+//Data:
+//StepData:
+//Flags:    (checked)
 //          (set)     TO_SPLIT / VISITED
-//          (modified)  
+//          (modified)
 //          (reset)   TO_SPLIT / VISITED
 //(set):=(set in this process)
 
@@ -65,7 +65,7 @@ public:
     /// Default constructor.
     RefineElementsInEdgesMesherProcess(ModelPart& rModelPart,
 				     MesherUtilities::MeshingParameters& rRemeshingParameters,
-				     int EchoLevel) 
+				     int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
@@ -103,18 +103,18 @@ public:
 	  {
 	    //0.- Clean locally used flags
 	    this->CleanUsedFlags(mrModelPart);
-	    
+
 	    //1.- Select Elements TO_SPLIT (edge elements with all nodes as boundary-free surface)
 	    ModelPart::ElementsContainerType   BoundaryEdgedElements;
 	    ModelPart::ConditionsContainerType BoundaryEdgedConditions;
-	    
-	    this->SelectFullBoundaryEdgedElements(mrModelPart, BoundaryEdgedElements,BoundaryEdgedConditions); 
-	    
+
+	    this->SelectFullBoundaryEdgedElements(mrModelPart, BoundaryEdgedElements,BoundaryEdgedConditions);
+
 	    //2.- Select Inside Faces to refine
 	    std::vector<Geometry< Node<3> > > ListOfFacesToSplit;
 	    this->SelectFacesToSplit(BoundaryEdgedElements,BoundaryEdgedConditions,ListOfFacesToSplit);
-	    
-    
+
+
 	    //3.- Create and insert new nodes
 	    std::vector<Node<3>::Pointer>  ListOfNewNodes;
 	    this->GenerateNewNodes(mrModelPart,ListOfNewNodes,ListOfFacesToSplit);
@@ -125,13 +125,13 @@ public:
 	    //0.- Clean locally used flags
 	    this->CleanUsedFlags(mrModelPart);
 
-	    
+
 	  }
-      
+
       KRATOS_CATCH(" ")
     }
 
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -179,10 +179,10 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart& mrModelPart;
- 
+
     MesherUtilities::MeshingParameters& mrRemesh;
 
-    MesherUtilities mMesherUtilities;  
+    MesherUtilities mMesherUtilities;
 
     int mEchoLevel;
 
@@ -198,21 +198,21 @@ private:
       KRATOS_TRY
 
 	for(ModelPart::ElementsContainerType::const_iterator i_elem = rModelPart.ElementsBegin();
-	    i_elem != rModelPart.ElementsEnd(); i_elem++)
+	    i_elem != rModelPart.ElementsEnd(); ++i_elem)
 	  {
 	    i_elem->Set(TO_SPLIT,false);
 	  }
 
 	for(ModelPart::NodesContainerType::const_iterator i_node = rModelPart.NodesBegin();
-	    i_node != rModelPart.NodesEnd(); i_node++)
+	    i_node != rModelPart.NodesEnd(); ++i_node)
 	  {
 	    i_node->Set(TO_SPLIT,false);
 	  }
-      
-      
+
+
       KRATOS_CATCH( "" )
     }
-  
+
     //**************************************************************************
     //**************************************************************************
 
@@ -221,15 +221,15 @@ private:
 					 ModelPart::ConditionsContainerType& rBoundaryEdgedConditions)
     {
       KRATOS_TRY
-	
+
 	bool is_full_boundary = false;
 	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin();
-	    i_elem != rModelPart.ElementsEnd(); i_elem++)
+	    i_elem != rModelPart.ElementsEnd(); ++i_elem)
 	  {
 	    Geometry< Node<3> >& rGeometry = i_elem->GetGeometry();
 
-	    is_full_boundary = true;	    
-	    for(unsigned int i=0; i<rGeometry.size(); i++)
+	    is_full_boundary = true;
+	    for(unsigned int i=0; i<rGeometry.size(); ++i)
 	      {
 		if( rGeometry[i].IsNot(BOUNDARY) ){
 		  is_full_boundary = false;
@@ -240,37 +240,37 @@ private:
 	    if( is_full_boundary ){
 	      rBoundaryEdgedElements.push_back(*(i_elem.base()));
 	      i_elem->Set(TO_SPLIT,true);
-	      for(unsigned int i=0; i<rGeometry.size(); i++)
+	      for(unsigned int i=0; i<rGeometry.size(); ++i)
 		{
 		  rGeometry[i].Set(TO_SPLIT,true);
 		}
 
 	    }
-	    
+
 	  }
 
 	for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin();
-	    i_cond != rModelPart.ConditionsEnd(); i_cond++)
+	    i_cond != rModelPart.ConditionsEnd(); ++i_cond)
 	  {
 	    if( i_cond->Is(BOUNDARY) ){
-		
+
 	      Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
-	      is_full_boundary = true;	    
-	      for(unsigned int i=0; i<rGeometry.size(); i++)
+	      is_full_boundary = true;
+	      for(unsigned int i=0; i<rGeometry.size(); ++i)
 		{
 		  if( rGeometry[i].IsNot(TO_SPLIT) ){
 		    is_full_boundary = false;
 		    break;
 		  }
 		}
-	      
+
 	      if( is_full_boundary )
 		rBoundaryEdgedConditions.push_back(*(i_cond.base()));
-	      
+
 	    }
 
 	  }
-  
+
       KRATOS_CATCH( "" )
     }
 
@@ -289,26 +289,26 @@ private:
         DenseVector<unsigned int> lnofa; //number of points defining faces
 
 	for(ModelPart::ConditionsContainerType::iterator i_cond = rBoundaryEdgedConditions.begin();
-	    i_cond != rBoundaryEdgedConditions.end(); i_cond++)
-	  {    
+	    i_cond != rBoundaryEdgedConditions.end(); ++i_cond)
+	  {
 	    i_cond->Set(VISITED,false);
 	  }
-	
-	
+
+
 	for(ModelPart::ElementsContainerType::iterator i_elem = rBoundaryEdgedElements.begin();
-	    i_elem != rBoundaryEdgedElements.end(); i_elem++)
-	  {	    
+	    i_elem != rBoundaryEdgedElements.end(); ++i_elem)
+	  {
 	    Geometry< Node<3> >& rGeometry = i_elem->GetGeometry();
-	    
+
 	    rGeometry.NodesInFaces(lpofa);
 	    rGeometry.NumberNodesInFaces(lnofa);
 
 	    bool condition_found = false;
-	    for(unsigned int i_face=0; i_face < rGeometry.FacesNumber(); i_face++)
+	    for(unsigned int i_face=0; i_face < rGeometry.FacesNumber(); ++i_face)
 	      {
 		condition_found = false;
 		for(ModelPart::ConditionsContainerType::iterator i_cond = rBoundaryEdgedConditions.begin();
-		    i_cond != rBoundaryEdgedConditions.end(); i_cond++)
+		    i_cond != rBoundaryEdgedConditions.end(); ++i_cond)
 		  {
 		    if( i_cond->IsNot(VISITED) ){
 
@@ -317,41 +317,41 @@ private:
 
 		      MesherUtilities MesherUtils;
 		      condition_found = MesherUtils.FindCondition(rConditionGeometry,rGeometry,lpofa,lnofa,i_face);
-		    
+
 		      if( condition_found ){
 			i_cond->Set(VISITED,true);
 			break;
 		      }
-		      
+
 		    }
 
 		  }
-		
+
 		if( condition_found == false ){
 
 		  unsigned int NumberNodesInFace = lnofa[i_face];
 		  Condition::NodesArrayType    FaceNodes;
 		  FaceNodes.reserve(NumberNodesInFace);
 
-		  for(unsigned int j=1; j<=NumberNodesInFace; j++)
+		  for(unsigned int j=1; j<=NumberNodesInFace; ++j)
 		    {
 		      FaceNodes.push_back(rGeometry(lpofa(j,i_face)));
 		    }
-		  
+
 		  Geometry<Node<3> > InsideFace(FaceNodes);
 		  rListOfFacesToSplit.push_back(InsideFace);
 		  break;
 		}
-		
+
 	      }
 	  }
 
 	std::cout<<" rEdgeElements "<< rBoundaryEdgedElements.size()<<std::endl;
 	std::cout<<" rEdgeConditions "<< rBoundaryEdgedConditions.size()<<std::endl;
  	std::cout<<" FacesToSplit "<<rListOfFacesToSplit.size()<<std::endl;
-	
+
 	for(ModelPart::ConditionsContainerType::iterator i_cond = rBoundaryEdgedConditions.begin();
-		i_cond != rBoundaryEdgedConditions.end(); i_cond++)
+		i_cond != rBoundaryEdgedConditions.end(); ++i_cond)
 	  {
 	    if( i_cond->Is(VISITED) )
 	      i_cond->Set(VISITED,false);
@@ -359,7 +359,7 @@ private:
 	      std::cout<<" Some Edge Conditions Not VISITED :: something is wrong "<<std::endl;
 	  }
 
-    
+
       KRATOS_CATCH( "" )
     }
 
@@ -375,14 +375,14 @@ private:
       //ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
       MeshDataTransferUtilities DataTransferUtilities;
-      
+
       Node<3>::Pointer pNode;
 
       //center
       double xc = 0;
       double yc = 0;
       double zc = 0;
-      
+
       //radius
       double radius = 0;
 
@@ -391,9 +391,9 @@ private:
 
       VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 
-      
+
       std::vector<double> ShapeFunctionsN;
-      
+
       unsigned int id = MesherUtilities::GetMaxNodeId(*(rModelPart.GetParentModelPart())) + 1;
 
       unsigned int size  = 0;
@@ -401,42 +401,42 @@ private:
 
       for (std::vector<Geometry<Node<3> > >::iterator i_face = rListOfFacesToSplit.begin() ; i_face != rListOfFacesToSplit.end(); ++i_face)
 	{
-	  
-	  size = i_face->size();	           
+
+	  size = i_face->size();
 
 	  ShapeFunctionsN.resize(size);
-	      
-	  
-	  if( size == 2 )	      	
-	    DataTransferUtilities.CalculateCenterAndSearchRadius( (*i_face)[0].X(), (*i_face)[0].Y(), 
+
+
+	  if( size == 2 )
+	    DataTransferUtilities.CalculateCenterAndSearchRadius( (*i_face)[0].X(), (*i_face)[0].Y(),
 								  (*i_face)[1].X(), (*i_face)[1].Y(),
 								  xc,yc,radius);
-	  
-	  
+
+
 	  if( size == 3 )
 	    DataTransferUtilities.CalculateCenterAndSearchRadius( (*i_face)[0].X(), (*i_face)[0].Y(), (*i_face)[0].Z(),
 								  (*i_face)[1].X(), (*i_face)[1].Y(), (*i_face)[1].Z(),
 								  (*i_face)[2].X(), (*i_face)[2].Y(), (*i_face)[2].Z(),
 								  xc,yc,zc,radius);
 
-	      
+
 	  //create a new node
 	  pNode = Kratos::make_shared< Node<3> >( id, xc, yc, zc );
 
 	  //giving model part variables list to the node
 	  pNode->SetSolutionStepVariablesList(&VariablesList);
-	      
+
 	  //set buffer size
 	  pNode->SetBufferSize(rModelPart.GetBufferSize());
-	  
+
 	  //generating the dofs
-	  for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); i_dof++)
+	  for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
 		{
 		  Node<3>::DofType& rDof = *i_dof;
 		  Node<3>::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
 
 		  count = 0;
-		  for( unsigned int i = 0; i<size; i++ )
+		  for( unsigned int i = 0; i<size; ++i )
 		    {
 		      if((*i_face)[i].IsFixed(rDof.GetVariable()))
 			count++;
@@ -447,8 +447,8 @@ private:
 		  else
 		    (pNewDof)->FreeDof();
 		}
-	      
-	      std::fill(ShapeFunctionsN.begin(), ShapeFunctionsN.end(), 1.0/double(size));            
+
+	      std::fill(ShapeFunctionsN.begin(), ShapeFunctionsN.end(), 1.0/double(size));
 
 	      double alpha = 1;
 	      DataTransferUtilities.Interpolate( (*i_face), ShapeFunctionsN, VariablesList, pNode, alpha );
@@ -458,13 +458,13 @@ private:
 
 	      //set variables
 	      this->SetNewNodeVariables(rModelPart, pNode);
-	      	          
+
 	      rListOfNewNodes.push_back(pNode);
 
-	      
-	      id++;     
+
+	      id++;
 	    }
-			      
+
       KRATOS_CATCH( "" )
     }
 
@@ -475,30 +475,30 @@ private:
     void SetNewNodeVariables(ModelPart& rModelPart, Node<3>::Pointer& pNode)
     {
       KRATOS_TRY
-	           	          	
+
       //set model part
       pNode->SetValue(MODEL_PART_NAME,rModelPart.Name());
 
       //set nodal_h
       pNode->FastGetSolutionStepValue(NODAL_H) = mrRemesh.Refine->CriticalSide*2.0;
-            
+
       //set original position
       const array_1d<double,3>& Displacement = pNode->FastGetSolutionStepValue(DISPLACEMENT);
       pNode->X0() = pNode->X() - Displacement[0];
       pNode->Y0() = pNode->Y() - Displacement[1];
       pNode->Z0() = pNode->Z() - Displacement[2];
-      
+
       //reset contact force
       pNode->FastGetSolutionStepValue(CONTACT_FORCE).clear();
 
-      
+
       KRATOS_CATCH( "" )
     }
 
-  
+
     //*******************************************************************************************
     //*******************************************************************************************
- 
+
     void SetNodesToModelPart(ModelPart& rModelPart,
 			     std::vector<Node<3>::Pointer>& rListOfNewNodes)
     {
@@ -507,15 +507,15 @@ private:
       if(rListOfNewNodes.size()){
 
 	//add new conditions: ( SOLID body model part )
-	for(std::vector<Node<3>::Pointer>::iterator i_node = rListOfNewNodes.begin(); i_node!= rListOfNewNodes.end(); i_node++)
+	for(std::vector<Node<3>::Pointer>::iterator i_node = rListOfNewNodes.begin(); i_node!= rListOfNewNodes.end(); ++i_node)
 	  {
 	    rModelPart.Nodes().push_back(*(i_node));
 	  }
-	
+
       }
 
       KRATOS_CATCH( "" )
-    }  
+    }
 
 
     /// Assignment operator.
@@ -563,6 +563,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REFINE_ELEMENTS_IN_EDGES_MESHER_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_REFINE_ELEMENTS_IN_EDGES_MESHER_PROCESS_H_INCLUDED  defined

@@ -37,7 +37,7 @@ typedef  ModelPart::NodesContainerType                      NodesContainerType;
 typedef  ModelPart::ElementsContainerType                ElementsContainerType;
 typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
- 
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -71,7 +71,7 @@ class AdaptiveTimeIntervalProcess
   AdaptiveTimeIntervalProcess(ModelPart& rModelPart,
                               int EchoLevel)
       : mrModelPart(rModelPart)
-  { 
+  {
     mEchoLevel = EchoLevel;
   }
 
@@ -97,18 +97,18 @@ class AdaptiveTimeIntervalProcess
 
         ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
-    const double initialTimeInterval = rCurrentProcessInfo[INITIAL_DELTA_TIME];	
+    const double initialTimeInterval = rCurrentProcessInfo[INITIAL_DELTA_TIME];
     const double currentTimeInterval = rCurrentProcessInfo[CURRENT_DELTA_TIME];
-      
+
     double updatedTime               = rCurrentProcessInfo[TIME];
     double updatedTimeInterval       = rCurrentProcessInfo[DELTA_TIME];
-      
+
     double deltaTimeToNewMilestone   = initialTimeInterval;
     double minimumTimeInterval       = initialTimeInterval*0.0001;
 
     rCurrentProcessInfo.SetValue(PREVIOUS_DELTA_TIME,currentTimeInterval);
     rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,false);
-	    
+
     bool milestoneTimeReached=true;
     bool increaseTimeInterval=true;
     bool timeIntervalReduced=false;
@@ -119,14 +119,14 @@ class AdaptiveTimeIntervalProcess
     deltaTimeToNewMilestone=initialTimeInterval*(previousMilestoneStep+1)-updatedTime;
 
     updatedTimeInterval =currentTimeInterval;
-      
+
     bool badVelocityConvergence=rCurrentProcessInfo[BAD_VELOCITY_CONVERGENCE];
     bool badPressureConvergence=rCurrentProcessInfo[BAD_PRESSURE_CONVERGENCE];
- 
+
     if(updatedTimeInterval<2.0*minimumTimeInterval && mEchoLevel > 0 && mrModelPart.GetCommunicator().MyPID() == 0){
       std::cout<<"ATTENTION! time step much smaller than initial time step, I'll not reduce it"<<std::endl;
     }
-      
+
     if((badPressureConvergence==true || badVelocityConvergence==true) && updatedTimeInterval>(2.0*minimumTimeInterval)){
       updatedTimeInterval *=0.5;
       /* std::cout<<"reducing time step (bad convergence at the previous step)"<<updatedTimeInterval<<std::endl; */
@@ -148,7 +148,7 @@ class AdaptiveTimeIntervalProcess
     }
 
     if(timeIntervalReduced==false){
-        
+
       if(updatedTimeInterval>(2.0*minimumTimeInterval)){
 
         const unsigned int dimension =  mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -172,7 +172,7 @@ class AdaptiveTimeIntervalProcess
 
     double newTimeInterval = rCurrentProcessInfo[DELTA_TIME];
     double milestoneGap=fabs(newTimeInterval-deltaTimeToNewMilestone);
-      
+
     if(milestoneGap<0.49*newTimeInterval && milestoneTimeReached==false){
       /* std::cout<<"the milestone is very close, I add "<<milestoneGap<<" to "<<newTimeInterval<<std::endl;*/
       newTimeInterval+=milestoneGap;
@@ -197,7 +197,7 @@ class AdaptiveTimeIntervalProcess
       std::cout<<"current time "<<updatedTime<<" time step: new  "<<newTimeInterval<<" previous "<<currentTimeInterval<<" initial  "<<initialTimeInterval<<"\n"<<std::endl;
     }
 
-    
+
     KRATOS_CATCH("");
 
   };
@@ -210,7 +210,7 @@ class AdaptiveTimeIntervalProcess
 
     ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
-#pragma omp parallel 
+#pragma omp parallel
     {
       ModelPart::NodeIterator NodeBegin;
       ModelPart::NodeIterator NodeEnd;
@@ -226,7 +226,7 @@ class AdaptiveTimeIntervalProcess
           double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
           double unsafetyFactor=0;
           WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-          for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
+          for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
           {
             array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-nn->Coordinates();
             double squaredDistance=0;
@@ -280,12 +280,12 @@ class AdaptiveTimeIntervalProcess
           currentElementalArea =  (itElem)->GetGeometry().Area();
           Geometry<Node<3> >  updatedElementCoordinates;
           bool solidElement=false;
-          for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+          for(unsigned int i=0; i<itElem->GetGeometry().size(); ++i)
           {
             if(itElem->GetGeometry()[i].Is(SOLID) || itElem->GetGeometry()[i].Is(TO_ERASE) || itElem->IsNot(ACTIVE)){
               solidElement=true;
             }
-	
+
             const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
             Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
             updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
@@ -308,7 +308,7 @@ class AdaptiveTimeIntervalProcess
 
           if(newArea<0.001*currentElementalArea && currentElementalArea>0){
             double reducedTimeInterval=0.5*temporaryTimeInterval;
-	      
+
             if(reducedTimeInterval<temporaryTimeInterval){
               rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
               /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
@@ -319,7 +319,7 @@ class AdaptiveTimeIntervalProcess
           }else{
             Geometry<Node<3> >  updatedEnlargedElementCoordinates;
 
-            for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+            for(unsigned int i=0; i<itElem->GetGeometry().size(); ++i)
             {
               const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
               Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
@@ -348,7 +348,7 @@ class AdaptiveTimeIntervalProcess
           double currentElementalVolume =  (itElem)->GetGeometry().Volume();
           Geometry<Node<3> >  updatedElementCoordinates;
           bool solidElement=false;
-          for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+          for(unsigned int i=0; i<itElem->GetGeometry().size(); ++i)
           {
             if(itElem->GetGeometry()[i].Is(SOLID) || itElem->IsNot(ACTIVE)){
               solidElement=true;
@@ -375,7 +375,7 @@ class AdaptiveTimeIntervalProcess
 
           if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
             double reducedTimeInterval=0.5*temporaryTimeInterval;
-	      
+
             if(reducedTimeInterval<temporaryTimeInterval){
               rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
               /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
@@ -386,7 +386,7 @@ class AdaptiveTimeIntervalProcess
           }else{
             Geometry<Node<3> >  updatedEnlargedElementCoordinates;
 
-            for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+            for(unsigned int i=0; i<itElem->GetGeometry().size(); ++i)
             {
               const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
               Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
@@ -414,7 +414,7 @@ class AdaptiveTimeIntervalProcess
 
 
         }
-		
+
       }
 
     }
@@ -426,9 +426,9 @@ class AdaptiveTimeIntervalProcess
                             bool &increaseTimeInterval)
   {
     ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-      
+
     double increasedTimeInterval = 2.0 * updatedTimeInterval;
-      
+
     if(increasedTimeInterval<deltaTimeToNewMilestone*(1.0+tolerance))
     {
       rCurrentProcessInfo.SetValue(DELTA_TIME,increasedTimeInterval);
@@ -437,14 +437,14 @@ class AdaptiveTimeIntervalProcess
     else{
       increaseTimeInterval=false;
     }
-      
+
   }
 
 
 
   ///@}
   ///@name Operators
-  ///@{ 
+  ///@{
 
   ///@}
   ///@name Access
@@ -482,7 +482,7 @@ class AdaptiveTimeIntervalProcess
   ///@name Protected member Variables
   ///@{
 
- 
+
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -583,5 +583,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADAPTIVE_TIME_INTERVAL_PROCESS_H_INCLUDED  defined 
-
+#endif // KRATOS_ADAPTIVE_TIME_INTERVAL_PROCESS_H_INCLUDED  defined

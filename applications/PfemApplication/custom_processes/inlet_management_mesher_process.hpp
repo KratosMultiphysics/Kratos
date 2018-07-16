@@ -16,19 +16,19 @@
 
 // System includes
 
-// Project includes 
+// Project includes
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
 #include "custom_utilities/mesher_utilities.hpp"
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:      
+//Data:
 //StepData: CONTACT_FORCE, DISPLACEMENT
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -64,7 +64,7 @@ class InletManagementMesherProcess
   /// Default constructor.
   InletManagementMesherProcess(ModelPart& rModelPart,
                          MesherUtilities::MeshingParameters& rRemeshingParameters,
-                         int EchoLevel) 
+                         int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
   {
@@ -101,7 +101,7 @@ class InletManagementMesherProcess
 
     if( mrModelPart.Name() != mrRemesh.SubModelPartName )
       std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
-      
+
     const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
     double currentTime = rCurrentProcessInfo[TIME];
     double timeInterval = rCurrentProcessInfo[DELTA_TIME];
@@ -163,10 +163,10 @@ class InletManagementMesherProcess
   ///@name Static Member Variables
   ///@{
   ModelPart& mrModelPart;
- 
+
   MesherUtilities::MeshingParameters& mrRemesh;
 
-  MesherUtilities mMesherUtilities;  
+  MesherUtilities mMesherUtilities;
 
   int mEchoLevel;
 
@@ -190,7 +190,7 @@ class InletManagementMesherProcess
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     double maxSeparation=mrRemesh.Refine->CriticalRadius;
 
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
     {
       // if(i_node->Is(RIGID) && i_node->IsNot(SOLID) && i_node->Is(INLET) ){
       if(i_node->Is(INLET) ){
@@ -201,7 +201,7 @@ class InletManagementMesherProcess
         if((neighb_elems.size()==0 && rN.size()==0) || i_node->Is(RIGID)){
 
           const array_1d<double,3>& inletDisplacement = i_node->FastGetSolutionStepValue(DISPLACEMENT);
-          double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] + 
+          double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
                                          inletDisplacement[1]*inletDisplacement[1]);
           if(dimension==3){
             distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
@@ -224,12 +224,12 @@ class InletManagementMesherProcess
           }
 
         }
-	 
+
       }
 
     }
 
-    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
+    for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ++ic)
     {
 
       Geometry< Node<3> >& rGeometry = ic->GetGeometry();
@@ -240,7 +240,7 @@ class InletManagementMesherProcess
         if(rGeometry[n].Is(INLET) && rGeometry[n].IsNot(RIGID)){
 
           const array_1d<double,3>& inletDisplacement =rGeometry[n].FastGetSolutionStepValue(DISPLACEMENT);
-          double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] + 
+          double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
                                          inletDisplacement[1]*inletDisplacement[1]);
           if(dimension==3){
             distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
@@ -309,16 +309,16 @@ class InletManagementMesherProcess
               rGeometry[n].FastGetSolutionStepValue(ACCELERATION_Z,0)=0;
               rGeometry[n].FastGetSolutionStepValue(ACCELERATION_Z,1)=0;
             }
-	
+
 
           }
-	 
+
         }
       }
 
 
     }
- 
+
     KRATOS_CATCH( "" )
         }
 
@@ -331,7 +331,7 @@ class InletManagementMesherProcess
         std::cout<<" SET INLET NODES "<<std::endl;
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
     {
       if(i_node->Is(RIGID) && i_node->IsNot(SOLID) ){
         double velocityX= i_node->FastGetSolutionStepValue(VELOCITY_X);
@@ -346,14 +346,14 @@ class InletManagementMesherProcess
 
       }
     }
- 
+
     KRATOS_CATCH( "" )
         }
 
 
 
 
- 
+
 
   ///@}
   ///@name Private  Access
@@ -415,6 +415,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INLET_MANAGEMENT_MESHER_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_INLET_MANAGEMENT_MESHER_PROCESS_H_INCLUDED  defined
