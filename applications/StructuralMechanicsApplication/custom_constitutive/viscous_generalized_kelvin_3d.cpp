@@ -52,6 +52,7 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponseCauchy(ConstitutiveLaw
     const ProcessInfo &ProcessInfo = rValues.GetProcessInfo();
     const double time_step = ProcessInfo[DELTA_TIME];
     const double delay_time = rMaterialProperties[DELAY_TIME];
+    const Flags &ConstitutiveLawOptions = rValues.GetOptions();
 
     // Elastic Matrix
     Matrix C, InvC;
@@ -71,19 +72,18 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponseCauchy(ConstitutiveLaw
     Vector elastic_strain;
     for (int i = 0; i < number_sub_increments; i++)
     {
-
         aux = (std::exp(-dt / delay_time) * prod(InvC, aux_stress_vector)) / delay_time;
         inelastic_strain = std::exp(-dt / delay_time) * inelastic_strain + aux;
         elastic_strain = strain_vector - inelastic_strain;
         noalias(aux_stress_vector) = prod(C, elastic_strain);
     }
-
     noalias(IntegratedStressVector) = aux_stress_vector;
-    noalias(TangentTensor) = C;
-
-    this->SetNonConvPreviousStressVector(IntegratedStressVector);
-    this->SetNonConvPreviousInelasticStrainVector(inelastic_strain);
-
+    if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true)
+    {
+        noalias(TangentTensor) = C;
+        this->SetNonConvPreviousStressVector(IntegratedStressVector);
+        this->SetNonConvPreviousInelasticStrainVector(inelastic_strain);
+    }
 } // End CalculateMaterialResponseCauchy
 
 /***********************************************************************************/

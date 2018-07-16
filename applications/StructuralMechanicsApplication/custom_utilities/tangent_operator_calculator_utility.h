@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "processes/process.h"
 #include "includes/constitutive_law.h"
 #include <vector>
 
@@ -70,30 +69,30 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
         ConstitutiveLaw *pConstitutiveLaw)
     {
         // Converged values to be storaged
-        const Vector StrainVectorGP = rValues.GetStrainVector();
-        const Vector StressVectorGP = rValues.GetStressVector();
+        const Vector strain_vector_gp = rValues.GetStrainVector();
+        const Vector stress_vector_gp = rValues.GetStressVector();
 
-        Matrix &TangentTensor = rValues.GetConstitutiveMatrix();
-        TangentTensor.clear();
+        Matrix &tangent_tensor = rValues.GetConstitutiveMatrix();
+        tangent_tensor.clear();
 
-        const std::size_t NumComp = StrainVectorGP.size();
+        const std::size_t num_components = strain_vector_gp.size();
         // Loop over components of the strain
-        for (std::size_t Component = 0; Component < NumComp; Component++)
+        for (std::size_t Component = 0; Component < num_components; Component++)
         {
-            Vector &PerturbedStrain = rValues.GetStrainVector();
+            Vector &perturbed_strain = rValues.GetStrainVector();
 
             double Perturbation;
-            CalculatePerturbation(PerturbedStrain, Component, Perturbation);
-            PerturbateStrainVector(PerturbedStrain, StrainVectorGP, Perturbation, Component);
+            CalculatePerturbation(perturbed_strain, Component, Perturbation);
+            PerturbateStrainVector(perturbed_strain, strain_vector_gp, Perturbation, Component);
             IntegratePerturbedStrain(rValues, pConstitutiveLaw);
 
-            Vector &PerturbedIntegratedStress = rValues.GetStressVector(); // now integrated
-            const Vector &DeltaStress = PerturbedIntegratedStress - StressVectorGP;
-            AssignComponentsToTangentTensor(TangentTensor, DeltaStress, Perturbation, Component);
+            Vector &perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
+            const Vector &delta_stress = perturbed_integrated_stress - stress_vector_gp;
+            AssignComponentsToTangentTensor(tangent_tensor, delta_stress, Perturbation, Component);
 
             // Reset the values to the initial ones
-            noalias(PerturbedStrain) = StrainVectorGP;
-            noalias(PerturbedIntegratedStress) = StressVectorGP;
+            noalias(perturbed_strain) = strain_vector_gp;
+            noalias(perturbed_integrated_stress) = stress_vector_gp;
         }
     }
 
@@ -121,11 +120,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
 
     static void PerturbateStrainVector(
         Vector &PerturbedStrainVector,
-        const Vector &StrainVectorGP,
+        const Vector &strain_vector_gp,
         const double Perturbation,
         const int Component)
     {
-        PerturbedStrainVector = StrainVectorGP;
+        PerturbedStrainVector = strain_vector_gp;
         PerturbedStrainVector[Component] += Perturbation;
     }
 
@@ -133,9 +132,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
         ConstitutiveLaw::Parameters &rValues,
         ConstitutiveLaw *pConstitutiveLaw)
     {
-        Flags &ConstitutiveLawOptions = rValues.GetOptions();
+        Flags &cl_options = rValues.GetOptions();
         // In order to avoid recursivity...
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         pConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
     }
