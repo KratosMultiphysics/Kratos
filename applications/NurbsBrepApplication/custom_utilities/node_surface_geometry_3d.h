@@ -25,6 +25,11 @@
 
 namespace Kratos {
 
+/// Spatial NURBS surface geometry with Kratos Nodes as control points.
+/** Unlike the ANurbs::SurfaceGeometry, this class does not use static Points as
+ *  control points but Finite Element Nodes. That means that the Geometry
+ *  changes whenever the Nodes are moving.
+ */
 class NodeSurfaceGeometry3D
     : public ANurbs::SurfaceGeometryBase<double, Kratos::array_1d<double, 3>>
 {
@@ -42,6 +47,13 @@ protected:
     ANurbs::Grid<NodePointer> mNodes;
 
 public:
+    /** Creates a new NodeSurfaceGeometry3D.
+     *
+     *  \param DegreeU Degree in u direction
+     *  \param DegreeV Degree in v direction
+     *  \param NumberOfNodesU Number of nodes in u direction
+     *  \param NumberOfNodesU Number of nodes in v direction
+     */
     NodeSurfaceGeometry3D(
         const int DegreeU,
         const int DegreeV,
@@ -53,6 +65,13 @@ public:
     {
     }
 
+    /** Gets the Kratos node at a given index.
+     * 
+     * \param IndexU Index in u direction
+     * \param IndexV Index in v direction
+     * 
+     * @return Kratos node at the given index.
+     */
     NodePointer
     Node(
         const int IndexU,
@@ -66,6 +85,11 @@ public:
         return mNodes(IndexU, IndexV);
     }
 
+    /** Sets the Kratos node at a given index.
+     * 
+     * \param IndexU Index in u direction
+     * \param IndexV Index in v direction
+     */
     void
     SetNode(
         const int IndexU,
@@ -80,6 +104,13 @@ public:
         mNodes.SetValue(IndexU, IndexV, Value);
     }
 
+    /** Gets the location of the Kratos node at a given index.
+     * 
+     * \param IndexU Index in u direction
+     * \param IndexV Index in v direction
+     * 
+     * @return Location of the Kratos node at the given index.
+     */
     VectorType
     Pole(
         const int IndexU,
@@ -95,6 +126,12 @@ public:
         return pole;
     }
 
+    /** Sets the location of the Kratos node at a given index.
+     * 
+     * \param IndexU Index in u direction
+     * \param IndexV Index in v direction
+     * \param Value New location of the Kratos node
+     */
     void
     SetPole(
         const int IndexU,
@@ -108,12 +145,23 @@ public:
         node[2] = Value[2];
     }
 
+    /** Gets a value indicating whether or not the NURBS surface is rational.
+     * 
+     * @return True whether the surface is rational, otherwise false.
+     */
     bool
     IsRational() const override
     {
         return true;
     }
 
+    /** Gets the weight of the Kratos node at a given index.
+     * 
+     * \param IndexU Index in u direction
+     * \param IndexV Index in v direction
+     * 
+     * @return Weight of the Kratos node at the given index.
+     */
     ScalarType
     Weight(
         const int IndexU,
@@ -124,6 +172,12 @@ public:
         return node->GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
     }
 
+    /** Sets the weight of the Kratos node at a given index.
+     * 
+     * \param IndexU Index in u direction
+     * \param IndexV Index in v direction
+     * \param Value New weight of the Kratos node
+     */
     void
     SetWeight(
         const int IndexU,
@@ -135,6 +189,14 @@ public:
         node->SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
     }
 
+    /** Gets the value of a nodal Kratos variable on a point at the surface.
+     * 
+     * \param Variable Kratos variable
+     * \param U Surface parameter in u direction
+     * \param V Surface parameter in v direction
+     * 
+     * @return The value of the variable at the given surface point.
+     */
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
     TDataType
     ValueAt(
@@ -147,6 +209,17 @@ public:
         }, U, V);
     }
 
+    /** Gets the value and the derivatives of a nodal Kratos variable on a point
+     * at the surface.
+     * 
+     * \param Variable Kratos variable
+     * \param U Surface parameter in u direction
+     * \param V Surface parameter in v direction
+     * \param Order Order of the highest derivative to compute
+     * 
+     * @return The value and the derivatives of the variable at the given
+     * surface point.
+     */
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
     std::vector<TDataType>
     ValueAt(

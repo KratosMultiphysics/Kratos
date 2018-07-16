@@ -25,6 +25,11 @@
 
 namespace Kratos {
 
+/// Spatial NURBS curve geometry with Kratos Nodes as control points.
+/** Unlike the ANurbs::CurveGeometry, this class does not use static Points as
+ *  control points but Finite Element Nodes. That means that the Geometry
+ *  changes whenever the Nodes are moving.
+ */
 class NodeCurveGeometry3D
     : public ANurbs::CurveGeometryBase<double, Kratos::array_1d<double, 3>>
 {
@@ -42,6 +47,11 @@ protected:
     std::vector<NodePointer> mNodes;
 
 public:
+    /** Creates a new NodeCurveGeometry3D.
+     *
+     *  \param Degree Degree of the curve
+     *  \param NumberOfNodes Number of nodes
+     */
     NodeCurveGeometry3D(
         const int Degree,
         const int NumberOfNodes)
@@ -50,6 +60,12 @@ public:
     {
     }
 
+    /** Gets the Kratos node at a given index.
+     * 
+     * \param Index Index of the node
+     * 
+     * @return Kratos node at the given index.
+     */
     NodePointer
     Node(
         const int Index
@@ -61,6 +77,10 @@ public:
         return mNodes[Index];
     }
 
+    /** Sets the Kratos node at a given index.
+     * 
+     * \param Index Index of the node
+     */
     void
     SetNode(
         const int Index,
@@ -73,6 +93,12 @@ public:
         mNodes[Index] = Value;
     }
 
+    /** Gets the location of the Kratos node at a given index.
+     * 
+     * \param Index Index of the node
+     * 
+     * @return Location of the Kratos node at the given index.
+     */
     VectorType
     Pole(
         const int Index) const override
@@ -87,6 +113,11 @@ public:
         return pole;
     }
 
+    /** Sets the location of the Kratos node at a given index.
+     * 
+     * \param Index Index of the node
+     * \param Value New location of the Kratos node
+     */
     void
     SetPole(
         const int Index,
@@ -99,12 +130,22 @@ public:
         node[2] = Value[2];
     }
 
+    /** Gets a value indicating whether or not the NURBS curve is rational.
+     * 
+     * @return True whether the curve is rational, otherwise false.
+     */
     bool
     IsRational() const override
     {
         return true;
     }
- 
+
+    /** Gets the weight of the Kratos node at a given index.
+     * 
+     * \param Index Index of the node
+     * 
+     * @return Weight of the Kratos node at the given index.
+     */
     ScalarType
     Weight(
         const int Index) const override
@@ -114,6 +155,11 @@ public:
         return node->GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
     }
 
+    /** Sets the weight of the Kratos node at a given index.
+     * 
+     * \param Index Index of the node
+     * \param Value New weight of the Kratos node
+     */
     void
     SetWeight(
         const int Index,
@@ -124,6 +170,13 @@ public:
         node->SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
     }
 
+    /** Gets the value of a nodal Kratos variable on a point at the curve.
+     * 
+     * \param Variable Kratos variable
+     * \param T Curve parameter
+     * 
+     * @return The value of the variable at the given curve point.
+     */
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
     TDataType
     ValueAt(
@@ -135,6 +188,16 @@ public:
         }, T);
     }
 
+    /** Gets the value and the derivatives of a nodal Kratos variable on a point
+     * at the curve.
+     * 
+     * \param Variable Kratos variable
+     * \param T Curve parameter
+     * \param Order Order of the highest derivative to compute
+     * 
+     * @return The value and the derivatives of the variable at the given
+     * curve point.
+     */
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
     std::vector<TDataType>
     ValueAt(
