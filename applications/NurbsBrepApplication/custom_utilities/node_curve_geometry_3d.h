@@ -150,9 +150,9 @@ public:
     Weight(
         const int Index) const override
     {
-        auto node = Node(Index);
+        auto& node = *Node(Index);
  
-        return node->GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
     }
 
     /** Sets the weight of the Kratos node at a given index.
@@ -165,9 +165,9 @@ public:
         const int Index,
         const ScalarType Value) override
     {
-        auto node = Node(Index);
+        auto& node = *Node(Index);
 
-        node->SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
+        node.SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
     }
 
     /** Gets the value of a nodal Kratos variable on a point at the curve.
