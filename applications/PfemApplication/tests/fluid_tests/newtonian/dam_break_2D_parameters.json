@@ -1,7 +1,7 @@
 {
     "time_settings" : {
         "time_step"  : 0.001,
-        "end_time"   : 0.5
+        "end_time"   : 0.15
     },
     "model_settings"           : {
 	"model_name"     : "main_domain",
@@ -321,7 +321,7 @@
             }
         }
     ],
-    "_json_output_process"  : [
+    "check_process_list"  : [
     {
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
@@ -334,7 +334,7 @@
         }
     }
     ],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",

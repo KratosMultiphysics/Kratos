@@ -19,7 +19,7 @@
         "processes_parts_list"  : ["VELOCITY_Velocity"]
     },
     "problem_data"        : {
-	"echo_level"      : 1,
+	"echo_level"      : 0,
         "threads"         : 1,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
@@ -251,7 +251,7 @@
             }
         }
     ],
-    "_json_output_process"  : [
+    "check_process_list": [
     {
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
@@ -264,7 +264,7 @@
         }
     }
     ],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",

@@ -229,7 +229,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     if(iteration_number >= MaxIterationNumber)
     {
       if( this->GetEchoLevel() >= 0 )
-        KRATOS_WARNING("  [The iterative loop interrupted] ") << "[" << iteration_number << " iterations performed] \n";
+        KRATOS_INFO("  [The iterative loop interrupted] ") << "[" << iteration_number << " iterations performed] \n";
     }
 
     return (this->Is(LocalFlagType::CONVERGED));
@@ -261,7 +261,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     bool convergence = std::all_of(convergences.begin(), convergences.end(), [](bool const n){return n == true;});
     if(convergence == true){
       if( this->GetEchoLevel() >= 0 )
-        KRATOS_WARNING("  [Convergence Achieved] ") << "[" << this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << " iterations performed]\n";
+        KRATOS_INFO("  [Convergence Achieved] ") << "[" << this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << " iterations performed]\n";
     }
     
     return (convergence);
