@@ -341,7 +341,11 @@ class SolutionScheme:
 
             self.dof_derivatives = self.dof_derivatives + ['FLUID_PRESSURE_VELOCITY','FLUID_PRESSURE_ACCELERATION']
 
-            
+        # Ass thermal variables
+        if self._check_input_dof("TEMPERATURE"):
+            self.dof_variables = self.dof_variables + ['TEMPERATURE']
+            self.dof_reactions = self.dof_reactions + ['TEMPERATURE_REACTION']
+    
         # Add contat variables
         if self._check_input_dof("LAGRANGE_MULTIPLIER"):
             # Add specific variables for the problem (contact dofs)
