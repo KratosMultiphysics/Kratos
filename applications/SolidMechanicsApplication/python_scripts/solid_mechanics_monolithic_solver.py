@@ -76,7 +76,6 @@ class MonolithicSolver(object):
                 "scaling": false,
                 "verbosity": 1
             },
-            "flags": [],
             "processes": []
         }
         """)
@@ -209,37 +208,7 @@ class MonolithicSolver(object):
         # Process information
         self.process_info = self.main_model_part.ProcessInfo
 
-        
-    def _create_computing_sub_model_part(self, computing_model_part, counter):
-
-        void_flags  = []
-        check_flags = []
-        
-        name = "computing"
-        if(flags_list.size() != 0):
-            flags_list = self.settings["flags"]
-            for i in range(flags_list.size()):
-                name = name + " " + i
-                if i == "FLUID":
-                    check_flags.Append(KratosMultiphysics.FLUID)
-                if i == "SOLID":
-                    check_flags.Append(KratosMultiphysics.SOLID)
-                if i == "THERMAL":
-                    check_flags.Append(KratosMultiphysics.THERMAL)
-
-        name = name + "_" + str(counter)
-        computing_sub_model_part = computing_model_part.CreateSubModelPart(name)
-        entity_type = "Nodes"
-        transfer_process = KratosSolid.TransferEntitiesProcess(computing_sub_model_part,computing_model_part,entity_type)
-        transfer_process.Execute()
-        entity_type = "Elements"
-        transfer_process = KratosSolid.TransferEntitiesProcess(computing_sub_model_part,computing_model_part,entity_type,check_flags,void_flags)
-        transfer_process.Execute()
-        entity_type = "Conditions"
-        transfer_process = KratosSolid.TransferEntitiesProcess(computing_sub_model_part,computing_model_part,entity_type,check_flags,void_flags)
-        transfer_process.Execute()
-
-        
+               
     def _set_integration_parameters(self):
         # Add dofs
         if( self._is_not_restarted() ):

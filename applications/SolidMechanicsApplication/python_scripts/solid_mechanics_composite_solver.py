@@ -26,41 +26,60 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
 
         super(CompositeSolver, self).__init__(custom_settings)
 
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "solvers":[],
+            "computing_parts": [],
+            "processes":[]
+        }
+        """)
+
+        # Overwrite the default settings with user-provided parameters
+        self.settings = custom_settings
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
+        # Create solvers list
+        self.solvers = []
+        solvers_list = self.settings["solvers"]
+        for i in range(solvers_list.size()):
+            solver_module = __import__(solvers_list[i]["solver_type"].GetString())
+            self.solvers.append(solver_module.CreateSolver(solvers_list[i]["Parameters"]))
+
+        # Computing parts (must be defined for each solver)
+        if(solvers_list.size() != computing_parts.size() ):
+            raise Exception( "Computing parts and solvers list must have the same size in a Composite Solver" )
+
         # Composite solver counter
         self.solver_counter = 0
 
+        # Echo level
+        self.echo_level = 0
+
         # Solver processes
         self.processes = []
- 
-        
+
+
     def SetComputingModelPart(self, computing_model_part):
         self.model_part = computing_model_part
+           
+        for create_part in self.create_parts:
+            solver.SetComputingModelPart(self.model_part.GetSubModelPart(create_part["Parameters"]["model_part_name"].GetString()))           
 
-        counter = 0
-        for solver in self.solvers:
-            solver.SetComputingModelPart(solver._create_computing_sub_model_part(computing_model_part,counter))
-            counter+=1
-
-        for i in range(0,process_list.size()):
-            self.processes.append(self._construct_process(process_list[i]))
-
-            
     def ExecuteInitialize(self):
+        self._create_computing_sub_parts()
         super(CompositeSolver, self).ExecuteInitialize()
-        self._processes_execute_initialize()
-        
+
     #### Solve loop methods ####
 
     def Solve(self):
-        self._processes_execute_initialize_solution_step()
+        self._create_computing_sub_parts()
         for solver in self.solvers:
             solver.Solve()
-        self._processes_execute_finalize_solution_step()
 
     # step by step:
 
     def InitializeSolutionStep(self):
-        self._processes_execute_initialize_solution_step()
+        self._create_computing_sub_parts()
         self.solvers[self.solver_counter].InitializeSolutionStep()
 
     def SolveSolutionStep(self):
@@ -73,27 +92,17 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
             self.solver_counter = 0
         else:
             self.solver_counter += 1
-            
-        self._processes_execute_finalize_solution_step()
+
 
     #### Solver internal methods ####
-    #
-    def _construct_process(self, process):        
-        kratos_module = __import__(process["kratos_module"].GetString())
-        python_module = __import__(process["python_module"].GetString())
-        return(python_module.Factory(process, self.model_part))
 
     #
-    def _processes_execute_initialize(self):
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
+    def _create_computing_parts_process(self):
+        for i in range(0,computing_parts.size()):
+            create_computing_part = KratosSolid.ComputingModelPartTransferProcess(self.model_part,computing_parts["Parameters"])
+            self.create_parts.append(create_computing_part)
 
     #
-    def _processes_execute_initialize_solution_step(self):
-        for process in self.list_of_processes:
-            process.ExecuteInitializeSolutionStep()
-
-    #
-    def _processes_execute_finalize_solution_step(self):
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
+    def _create_computing_sub_parts(self):
+        for create_part in self.create_parts:
+            create_part.Execute()

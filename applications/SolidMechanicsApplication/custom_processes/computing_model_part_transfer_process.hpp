@@ -15,9 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-#include "processes/process.h"
+#include "processes/transfer_entitites_between_model_parts_process.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -49,16 +47,36 @@ public:
 
         Parameters default_parameters( R"(
             {
-               "reference_element_type": "Element2D3N",
-               "reference_contact_condition_type": "CompositeCondition2D2N"
+               "model_part_name": "computing_sub_model_part",
+               "element_transfer_flags": [],
+               "composite_boundary_conditions": True,
+               "create_new_entities": False,
+               "creation_options" :{
+                     "entity_creation_flags" [],
+                     "reference_element_type": "ElementType",
+                     "reference_contact_condition_type": "ContactConditionType"
+               }
             }  )" );
 
 
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mpReferenceElement = &(KratosComponents<Element>::Get(rParameters["reference_element_type"].GetString()));
-        mpReferenceContactCondition = &(KratosComponents<Condition>::Get(rParameters["reference_contact_condition_type"].GetString()));
+        for(unsigned int i=0; i<rParameters["element_transfer_flags"].size(); ++i)
+        {
+          mTransferFlags.push_back(rParameters["element_transfer_flags"][i].GetString());
+        }
+
+        mCompositeConditions = rParameters["composite_boundary_conditions"].GetBool();
+        mCreateNewEntities = rParameters["create_new_entitites"].GetBool();
+        if( mCreateNewEntities ){
+          for(unsigned int i=0; i<rParameters["creation_options"]["entity_creation_flags"].size(); ++i)
+          {
+            mCreationFlags.push_back(rParameters["creation_options"]["entity_creation_flags"][i].GetString());
+          }
+          mpReferenceElement = &(KratosComponents<Element>::Get(rParameters["creation_options"]["reference_element_type"].GetString()));
+          mpReferenceContactCondition = &(KratosComponents<Condition>::Get(rParameters["creation_options"]["reference_contact_condition_type"].GetString()));
+        }
 
         KRATOS_CATCH("")
     }
@@ -87,58 +105,16 @@ public:
     /// Execute method is used to execute the ComputingModelPartTransferProcess algorithms.
     void Execute() override
     {
-    }
-
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    void ExecuteInitialize() override
-    {
-      KRATOS_TRY
-          
-      this->CreateAndTransferEntities(mrModelPart->GetParentModelPart(), mrModelPart, *mpReferenceElement, *mpReferenceContactConditions);
- 
-      KRATOS_CATCH("")
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    void ExecuteBeforeSolutionLoop() override
-    {
-    }
-
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
-    {
       KRATOS_TRY
 
-      this->CreateAndTransferEntities(mrModelPart->GetParentModelPart(), mrModelPart, *mpReferenceElement, *mpReferenceContactConditions);
+      if( mCreateNewEntities ){
+        this->CreateAndTransferEntities(mrModelPart->GetParentModelPart(), mrModelPart, mTransferFlags, mCreationFlags, *mpReferenceElement, *mpReferenceContactConditions);
+      }
+      else{
+        this->TransferEntities(mrModelPart->GetParentModelPart(), mrModelPart, mTransferFlags);
+      }
 
       KRATOS_CATCH("")
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
-    {
-    }
-
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    void ExecuteBeforeOutputStep() override
-    {
-    }
-
-
-    /// this function will be executed at every time step AFTER writing the output
-    void ExecuteAfterOutputStep() override
-    {
-    }
-
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    void ExecuteFinalize() override
-    {
     }
 
 
@@ -216,11 +192,19 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-  
+
     const Element* mpReferenceElement;
 
     const Condition* mpReferenceContactCondition;
 
+    bool mCreateNewEntities;
+
+    bool mCompositeConditions;
+  
+    const std::vector<Flags> mTransferFlags;
+  
+    const std::vector<Flags> mCreationFlags;
+  
     ///@}
     ///@name Private Operators
     ///@{
@@ -230,89 +214,162 @@ private:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    ///This function fills the @param DestinationModelPart using the data obtained from @param  OriginModelPart
-    ///the elements and conditions of the DestinationModelPart part use the same connectivity (and id) as the
+    ///This function fills the @param DestinationModelPart using the data obtained from @param rOriginModelPart
+    ///the elements and conditions of the rDestinationModelPart part use the same connectivity (and id) as the
     ///OriginModelPart but their type is determined by @param rReferenceElement and @param rReferenceBoundaryCondition
 
-    void CreateAndTransferEntities(ModelPart& OriginModelPart,
-                                   ModelPart& DestinationModelPart,
+    void CreateAndTransferEntities(ModelPart& rOriginModelPart,
+                                   ModelPart& rDestinationModelPart,
+                                   const std::vector<Flags>& rTransferFlags,
+                                   const std::vector<Flags>& rCreationFlags,
                                    Element const& rReferenceElement,
-                                   Condition const& rReferenceContactCondition)
+                                   Condition const& rReferenceContactCondition,
+                                   bool& rCompositeConditions)
     {
         KRATOS_TRY
 
-        //nodes and conditions previously assigned:
-        if(DestinationModelPart.Nodes().size() == 0)
-          KRATOS_ERROR << " Destination model part with no nodes " << std::endl;
-        
-        //clear presious conditions
-        DestinationModelPart.Conditions().clear();
-        
-        //clear previous elements
-        DestinationModelPart.Elements().clear();
+        //clear previous nodes
+        std::string Nodes = "Nodes";
+        rDestinationModelPart.Nodes().clear();
+        TransferEntitiesBetweenModelPartsProcess NodesTransferProcess = TransferEntitiesBetweenModelPartsProcess(rDestinationModelPart, rOriginModelPart, Nodes);
+        NodesTransferProcess.Execute();
 
-        //assigning Properties
-        DestinationModelPart.SetProperties( OriginModelPart.pProperties() );
+        //clear previous elements
+        rDestinationModelPart.Elements().clear();
 
         //generating the elements
-        for (ModelPart::ElementsContainerType::iterator ie = OriginModelPart.ElementsBegin(); ie != OriginModelPart.ElementsEnd(); ie++)
+        for (ModelPart::ElementsContainerType::iterator ie = rOriginModelPart.ElementsBegin(); ie != rOriginModelPart.ElementsEnd(); ++ie)
         {
-	  if( ie->GetGeometry().size()>2 && ie->IsNot(RIGID) ){
-	  
-            Properties::Pointer properties = ie->pGetProperties();
-            Element::Pointer p_element = rReferenceElement.Create(ie->Id(), ie->GetGeometry(), properties);
-	        
-	    p_element->Set(THERMAL);
-	    
-	    //set mechanical element as pointer
+          if (this->MatchFlags(*(ie.base()),rCreationFlags))
+          {
+            Properties::Pointer pProperties = ie->pGetProperties();
+            Element::Pointer pElement = rReferenceElement.Create(ie->Id(), ie->GetGeometry(), pProperties);
+
+	    //set origin element as pointer
 	    WeakPointerVector< Element > MasterElements;
 	    MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
 
-	    p_element->SetValue(MASTER_ELEMENTS, MasterElements);
+	    pElement->SetValue(MASTER_ELEMENTS, MasterElements);
 
-            DestinationModelPart.Elements().push_back(p_element);
-	    
+            rDestinationModelPart.Elements().push_back(pElement);
 	  }
         }
 
-        //generating the conditions
-        for (ModelPart::ConditionsContainerType::iterator ic = OriginModelPart.ConditionsBegin(); ic != OriginModelPart.ConditionsEnd(); ic++)
+
+        //clear previous conditions
+        std::string Conditions = "Conditions";
+        rDestinationModelPart.Conditions().clear();
+
+        if( rCompositeConditions ){
+          this->TransferBoundaryConditions(rOriginModelPart, rDestinationModelPart);
+        }
+        else{
+          TransferEntitiesBetweenModelPartsProcess ConditionsTransferProcess = TransferEntitiesBetweenModelPartsProcess(rDestinationModelPart, rOriginModelPart, Conditions, rTransferFlags);
+          ConditionsTransferProcess.Execute();
+        }
+        
+        //generating contact conditions
+        for (ModelPart::ConditionsContainerType::iterator ic = rOriginModelPart.ConditionsBegin(); ic != rOriginModelPart.ConditionsEnd(); ++ic)
         {
           if(ic->Is(CONTACT))
           {
+            Properties::Pointer pProperties = ic->pGetProperties();
+            Condition::Pointer pCondition = rReferenceContactCondition.Create(ic->Id(), ic->GetGeometry(), pProperties);
 
-            if( ic->GetGeometry().size() >= 2 ){
-		
-              Properties::Pointer properties = ic->pGetProperties();
-		  
-              Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(ic->Id(), ic->GetGeometry(), properties);
-		  
-              //set mechanical variables to contact conditions:
-              p_condition->AssignFlags( *ic ); //it overwrites THERMAL and CONTACT
-              p_condition->Data() = ic->Data();
-		  
-              p_condition->Set(ACTIVE);
-              p_condition->Set(THERMAL);
-		  	  
-              DestinationModelPart.Conditions().push_back(p_condition);
-		  
-              //set only thermal conditions from skin boundary conditions:
-            }
-		
+            //set mechanical variables to contact conditions:
+            pCondition->Data() = ic->Data();
+
+            rDestinationModelPart.Conditions().push_back(pCondition);
           }
-
         }
-        
-        //generating tables
-	DestinationModelPart.Tables() = OriginModelPart.Tables();
+               
+        //assigning Properties
+        rDestinationModelPart.SetProperties( rOriginModelPart.pProperties() );
 
+        //assigning Tables
+	rDestinationModelPart.Tables() = rOriginModelPart.Tables();
+ 
         Communicator::Pointer pComm = OriginModelPart.GetCommunicator().Create();
-        DestinationModelPart.SetCommunicator(pComm);
+        rDestinationModelPart.SetCommunicator(pComm);
 
 	if( GetEchoLevel() >= 1 )
-	  std::cout<<" DestinationModelPart "<<DestinationModelPart<<std::endl;
+	  std::cout<<" DestinationModelPart "<<rDestinationModelPart<<std::endl;
 
         KRATOS_CATCH("")
+    }
+
+
+    void TransferEntities(ModelPart& rOriginModelPart,
+                          ModelPart& rDestinationModelPart,
+                          const std::vector<Flags>& rTransferFlags,
+                          bool& rCompositeConditions)
+    {
+        KRATOS_TRY
+
+        //clear previous nodes
+        std::string Nodes = "Nodes";
+        rDestinationModelPart.Nodes().clear();
+        TransferEntitiesBetweenModelPartsProcess NodesTransferProcess = TransferEntitiesBetweenModelPartsProcess(rDestinationModelPart, rOriginModelPart, Nodes);
+        NodesTransferProcess.Execute();
+
+        //clear previous elements
+        std::string Elements = "Elements";
+        rDestinationModelPart.Elements().clear();
+        TransferEntitiesBetweenModelPartsProcess ElementsTransferProcess = TransferEntitiesBetweenModelPartsProcess(rDestinationModelPart, rOriginModelPart, Elements, rTransferFlags);
+        ElementsTransferProcess.Execute();
+
+        //clear previous conditions
+        std::string Conditions = "Conditions";
+        rDestinationModelPart.Conditions().clear();
+        if( rCompositeConditions ){
+          this->TransferBoundaryConditions(rOriginModelPart, rDestinationModelPart);
+        }
+        else{
+          TransferEntitiesBetweenModelPartsProcess ConditionsTransferProcess = TransferEntitiesBetweenModelPartsProcess(rDestinationModelPart, rOriginModelPart, Conditions, rTransferFlags);
+          ConditionsTransferProcess.Execute();
+        }
+
+        //assigning Properties
+        rDestinationModelPart.SetProperties( rOriginModelPart.pProperties() );
+
+        //assigning Tables
+	rDestinationModelPart.Tables() = rOriginModelPart.Tables();
+
+        Communicator::Pointer pComm = rOriginModelPart.GetCommunicator().Create();
+        rDestinationModelPart.SetCommunicator(pComm);
+
+	if( GetEchoLevel() >= 1 )
+	  std::cout<<" DestinationModelPart "<<rDestinationModelPart<<std::endl;
+        
+        KRATOS_CATCH("")
+    }
+
+
+    void TransferBoundaryConditions(ModelPart& rOriginModelPart,
+                                    ModelPart& rDestinationModelPart)
+    {
+        KRATOS_TRY
+
+        std::vector<Flags> BoundaryFlags;
+        BoundaryFlags.push_back(BOUNDARY);
+        std::string Conditions = "Conditions";
+        TransferEntitiesBetweenModelPartsProcess ConditionsTransferProcess = TransferEntitiesBetweenModelPartsProcess(rDestinationModelPart, rOriginModelPart, Conditions, BoundaryFlags);
+        ConditionsTransferProcess.Execute();
+
+        KRATOS_CATCH("")
+    }
+
+  
+    bool MatchFlags(const Element::Pointer& pElement, const std::vector<Flags>& rFlags)
+    {
+
+      for(unsigned int i = 0; i<rFlags.size(); i++)
+	{
+	  if( pElement->IsNot(rFlags[i]) )
+	    return false;
+	}
+
+      return true;	  
     }
   
     ///@}
