@@ -14,6 +14,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
@@ -115,8 +116,8 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateM
             this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
         }
     }
-    else
-    { // Plastic case
+    else // Plastic case
+    { 
         // while loop backward euler
         /* Inside "IntegrateStressVector" the PredictiveStressVector
             is updated to verify the yield criterion */
@@ -134,8 +135,8 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateM
             noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
             this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
         }
-        //KRATOS_WATCH(this->GetNonConvPlasticStrain())
     }
+    // this->SetValue(INTEGRATED_STRESS_TENSOR, MathUtils<double>::StressVectorToTensor(IntegratedStressVector), rValues.GetProcessInfo());
 } // End CalculateMaterialResponseCauchy
 
 /***********************************************************************************/
@@ -158,7 +159,6 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::FinalizeSo
     const Vector &rShapeFunctionsValues,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    //KRATOS_WATCH(this->GetNonConvPlasticStrain())
     this->SetPlasticDissipation(this->GetNonConvPlasticDissipation());
     this->SetThreshold(this->GetNonConvThreshold());
     this->SetPlasticStrain(this->GetNonConvPlasticStrain());
@@ -416,7 +416,7 @@ Matrix &GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::GetValu
 
 template <class ConstLawIntegratorType>
 double &GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateValue(
-    Parameters &rParameterValues,
+    ConstitutiveLaw::Parameters &rParameterValues,
     const Variable<double> &rThisVariable,
     double &rValue)
 {
@@ -428,11 +428,18 @@ double &GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::Calcula
 
 template <class ConstLawIntegratorType>
 Matrix &GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateValue(
-    Parameters &rParameterValues,
+    ConstitutiveLaw::Parameters &rParameterValues,
     const Variable<Matrix> &rThisVariable,
     Matrix &rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    if (rThisVariable == INTEGRATED_STRESS_TENSOR)
+    {
+        // todo
+    }
+    else
+    {
+        return this->GetValue(rThisVariable, rValue);
+    }
 }
 
 /***********************************************************************************/

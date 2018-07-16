@@ -256,7 +256,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
      * @param rValue output: the value of the specified variable
      */
     double &CalculateValue(
-        Parameters &rParameterValues,
+        ConstitutiveLaw::Parameters &rParameterValues,
         const Variable<double> &rThisVariable,
         double &rValue) override;
 
@@ -265,7 +265,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
         Matrix &rValue) override;
 
     Matrix &CalculateValue(
-        Parameters &rParameterValues,
+        ConstitutiveLaw::Parameters &rParameterValues,
         const Variable<Matrix> &rThisVariable,
         Matrix &rValue) override;
     ///@}
