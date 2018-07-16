@@ -48,35 +48,35 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(Constitutiv
 void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
     // Integrate Stress Damage
-    const Properties &rMaterialProperties = rValues.GetMaterialProperties();
-    Vector &IntegratedStressVector = rValues.GetStressVector(); // To be updated
-    const Vector &StrainVector = rValues.GetStrainVector();
-    Matrix &TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const ProcessInfo &ProcessInfo = rValues.GetProcessInfo();
-    const double TimeStep = ProcessInfo[DELTA_TIME];
+    const Properties &material_props = rValues.GetMaterialProperties();
+    Vector &integrated_stress_vector = rValues.GetStressVector(); // To be updated
+    const Vector &strain_vector = rValues.GetStrainVector();
+    Matrix &tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+    const ProcessInfo &process_info = rValues.GetProcessInfo();
+    const double time_step = process_info[DELTA_TIME];
     const Flags &ConstitutiveLawOptions = rValues.GetOptions();
 
-    const double Kvisco = rMaterialProperties[VISCOUS_PARAMETER]; //  C1/Cinf
-    const double DelayTime = rMaterialProperties[DELAY_TIME];
+    const double viscous_parameter = material_props[VISCOUS_PARAMETER]; //  C1/Cinf
+    const double delay_time = material_props[DELAY_TIME];
 
     // Elastic Matrix
     Matrix C;
-    this->CalculateElasticMatrix(C, rMaterialProperties);
+    this->CalculateElasticMatrix(C, material_props);
 
     const Vector &PreviousStrain = this->GetPreviousStrainVector();
     const Vector &PreviousStress = this->GetPreviousStressVector();
-    const Vector &StrainIncrement = StrainVector - PreviousStrain;
+    const Vector &strain_increment = strain_vector - PreviousStrain;
 
-    const double coef = Kvisco * TimeStep / ((1.0 + Kvisco) * 2.0 * DelayTime);
-    const Vector &Aux = -(StrainVector - StrainIncrement) * std::exp(-TimeStep / DelayTime) * (1.0 + coef) + StrainVector * (1.0 - coef);
+    const double coef = viscous_parameter * time_step / ((1.0 + viscous_parameter) * 2.0 * delay_time);
+    const Vector &Aux = -(strain_vector - strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + strain_vector * (1.0 - coef);
 
-    noalias(IntegratedStressVector) = PreviousStress * std::exp(-TimeStep / DelayTime) + prod(C, Aux);
+    noalias(integrated_stress_vector) = PreviousStress * std::exp(-time_step / delay_time) + prod(C, Aux);
 
     if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true)
     {
-        noalias(TangentTensor) = C;
-        this->SetNonConvPreviousStressVector(IntegratedStressVector);
-        this->SetNonConvPreviousStrainVector(StrainVector);
+        noalias(tangent_tensor) = C;
+        this->SetNonConvPreviousStressVector(integrated_stress_vector);
+        this->SetNonConvPreviousStrainVector(strain_vector);
     }
 } // End CalculateMaterialResponseCauchy
 
