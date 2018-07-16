@@ -54,6 +54,7 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLa
     Matrix &TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const ProcessInfo &ProcessInfo = rValues.GetProcessInfo();
     const double TimeStep = ProcessInfo[DELTA_TIME];
+    const Flags &ConstitutiveLawOptions = rValues.GetOptions();
 
     const double Kvisco = rMaterialProperties[VISCOUS_PARAMETER]; //  C1/Cinf
     const double DelayTime = rMaterialProperties[DELAY_TIME];
@@ -70,11 +71,13 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLa
     const Vector &Aux = -(StrainVector - StrainIncrement) * std::exp(-TimeStep / DelayTime) * (1.0 + coef) + StrainVector * (1.0 - coef);
 
     noalias(IntegratedStressVector) = PreviousStress * std::exp(-TimeStep / DelayTime) + prod(C, Aux);
-    noalias(TangentTensor) = C;
 
-    this->SetNonConvPreviousStressVector(IntegratedStressVector);
-    this->SetNonConvPreviousStrainVector(StrainVector);
-
+    if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true)
+    {
+        noalias(TangentTensor) = C;
+        this->SetNonConvPreviousStressVector(IntegratedStressVector);
+        this->SetNonConvPreviousStrainVector(StrainVector);
+    }
 } // End CalculateMaterialResponseCauchy
 
 /***********************************************************************************/
