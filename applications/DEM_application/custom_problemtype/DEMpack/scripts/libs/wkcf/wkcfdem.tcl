@@ -1952,8 +1952,8 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
 
 	if {!$pick_individual_forces_option} { # Maxey-Riley
 	    if {!$include_faxen_terms_option} {
-		set drag_force_type 10
-		set virtual_mass_force_type 10
+		set drag_force_type 2
+		set virtual_mass_force_type 0
 	    } else {
 		set drag_force_type 11
 		set virtual_mass_force_type 11
@@ -1962,6 +1962,8 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
 	    set magnus_force_type 0
 	    set hydro_torque_type 0
 	    set drag_modifier_type $MR_drag_modifier_type
+
+		set buoyancy_force_type 2
 	}
 
 	puts $fileid ""
@@ -2505,8 +2507,8 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 
 	if {!$pick_individual_forces_option} { # Maxey-Riley
 	    if {!$include_faxen_terms_option} {
-		set drag_force_type 10
-		set virtual_mass_force_type 10
+		set drag_force_type 2
+		set virtual_mass_force_type 0
 	    } else {
 		set drag_force_type 11
 		set virtual_mass_force_type 11

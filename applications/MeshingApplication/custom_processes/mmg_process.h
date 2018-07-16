@@ -672,7 +672,7 @@ private:
      */
 
     void SetMetricVector(
-        const array_1d<double, 3>& Metric,
+        const array_1d<double, TDim>& Metric,
         const IndexType NodeId 
         );
     

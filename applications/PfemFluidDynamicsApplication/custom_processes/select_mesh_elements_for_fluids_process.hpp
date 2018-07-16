@@ -377,6 +377,30 @@ public:
 	      	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
 	      	    double Volume = tetrahedron->Volume();
 	      	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
+
+		    if(CriticalVolume==0){
+		      array_1d<double,3> CoorDifference= vertices[0].Coordinates() - vertices[1].Coordinates();
+		      double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      double meanLength=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[0].Coordinates() - vertices[2].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[0].Coordinates() - vertices[3].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[1].Coordinates() - vertices[2].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[1].Coordinates() - vertices[3].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[2].Coordinates() - vertices[3].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      double regularTetrahedronVolume=pow(meanLength,3)*sqrt(2)/12.0;
+		      CriticalVolume=0.00001*regularTetrahedronVolume;
+		    }
+
 		    // std::cout<<"riticalVolume "<<Volume<<std::endl;
 	      	    if(Volume<CriticalVolume){
 	      	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
