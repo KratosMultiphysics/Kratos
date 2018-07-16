@@ -55,6 +55,7 @@ namespace Kratos
             rBaseVector.resize(3);
         rBaseVector = ZeroVector(3);
 
+        // this is valid for all parameter edges
         if (Has(TANGENTS))
         {
             GetBoundaryEdgeBaseVector(rDN_De, GetValue(TANGENTS), rBaseVector);
