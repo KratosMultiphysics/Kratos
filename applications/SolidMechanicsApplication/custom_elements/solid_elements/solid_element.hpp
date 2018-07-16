@@ -64,7 +64,7 @@ public:
 
     /// Counted pointer of SolidElement
     KRATOS_CLASS_POINTER_DEFINITION( SolidElement );
-  
+
 protected:
 
     /**
@@ -74,7 +74,7 @@ protected:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
     KRATOS_DEFINE_LOCAL_FLAG( FINALIZED_STEP );
-    
+
     /**
      * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
      */
@@ -91,24 +91,24 @@ protected:
       public:
 
         StressMeasureType StressMeasure;
-      
+
         double  Tau;
         double  IntegrationWeight;
-      
+
         //for axisymmetric use only
         double  CurrentRadius;
         double  ReferenceRadius;
 
         //general variables for large displacement use
-        double  detF; 
-        double  detF0; 
+        double  detF;
+        double  detF0;
         double  detH; //Wildcard ( detF(0 to n+1) )
         double  detJ;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
         Matrix  B;
-        Matrix  H;    //Wildcard ( Displacement Gradient, F(0 to n+1), B-bar, Velocity Gradient...) 
+        Matrix  H;    //Wildcard ( Displacement Gradient, F(0 to n+1), B-bar, Velocity Gradient...)
         Matrix  F;    //Incremental Deformation Gradient (n to n+1)
         Matrix  F0;   //Historical Deformation Gradient  (0 to n)
         Matrix  DN_DX;
@@ -157,19 +157,19 @@ protected:
         {
             return *pProcessInfo;
         };
-      
-        void Initialize( const unsigned int& voigt_size, 
-			 const unsigned int& dimension, 
+
+        void Initialize( const unsigned int& voigt_size,
+			 const unsigned int& dimension,
 			 const unsigned int& number_of_nodes )
         {
 	  StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
 
           //stabilization
           Tau = 0;
-          
+
           //time step
           IntegrationWeight = 1;
-          
+
           //radius
 	  CurrentRadius = 0;
 	  ReferenceRadius = 0;
@@ -183,7 +183,7 @@ protected:
           //vectors
 	  StrainVector.resize(voigt_size,false);
           StressVector.resize(voigt_size,false);
-	  N.resize(number_of_nodes,false);	  
+	  N.resize(number_of_nodes,false);
 	  noalias(StrainVector) = ZeroVector(voigt_size);
 	  noalias(StressVector) = ZeroVector(voigt_size);
 	  noalias(N) = ZeroVector(number_of_nodes);
@@ -198,9 +198,9 @@ protected:
 	  DeltaPosition.resize(number_of_nodes, dimension,false);
 
 	  noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-	  noalias(H)  = IdentityMatrix(dimension);
-	  noalias(F)  = IdentityMatrix(dimension);
-	  noalias(F0) = IdentityMatrix(dimension);
+	  noalias(H)  = IdentityMatrix(dimension,dimension);
+	  noalias(F)  = IdentityMatrix(dimension,dimension);
+	  noalias(F0) = IdentityMatrix(dimension,dimension);
 	  noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
 	  noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
 	  noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
@@ -216,6 +216,7 @@ protected:
           //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;
+          pProcessInfo = NULL;
 	}
 
     };
@@ -231,11 +232,11 @@ protected:
     struct LocalSystemComponents
     {
     private:
-      
-      //for calculation local system with compacted LHS and RHS 
+
+      //for calculation local system with compacted LHS and RHS
       MatrixType *mpLeftHandSideMatrix;
       VectorType *mpRightHandSideVector;
-   
+
     public:
 
       //calculation flags
@@ -248,14 +249,14 @@ protected:
 
       void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
 
- 
+
       /**
        * returns the value of a specified pointer variable
        */
       MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
 
       VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
- 
+
     };
 
 
@@ -450,8 +451,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-			      VectorType& rRightHandSideVector, 
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+			      VectorType& rRightHandSideVector,
 			      ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -461,7 +462,7 @@ public:
       * @param rRightHandSideVector: the elemental right hand side vector
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
 				ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -471,7 +472,7 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, 
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
 				ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -487,7 +488,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the second derivatives contributions for the LHS and RHS 
+     * to calculate the second derivatives contributions for the LHS and RHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
@@ -521,7 +522,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
 		    ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -530,7 +531,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
 		    ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -540,12 +541,12 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */      
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, 
-					 const Variable<VectorType>& rRHSVariable, 
-					 Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    virtual void AddExplicitContribution(const VectorType& rRHSVector,
+					 const Variable<VectorType>& rRHSVariable,
+					 Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
     //on integration points:
@@ -627,7 +628,7 @@ protected:
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -643,13 +644,13 @@ protected:
      */
     void IncreaseIntegrationMethod(IntegrationMethod& rThisIntegrationMethod,
 				   unsigned int increment) const;
- 
+
     /**
      * Calculates the elemental contributions
      */
     virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
                                           ProcessInfo& rCurrentProcessInfo);
-    
+
     /**
      * Calculates the elemental dynamic contributions
      */
@@ -665,7 +666,7 @@ protected:
     /**
      * Calculation of the tangent via perturbation of the dofs variables : testing purposes
      */
-    void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix, 
+    void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix,
 					 ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -691,18 +692,18 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
-					   ElementDataType& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo, 
+    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
+					   ElementDataType& rVariables,
+					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
-					   ElementDataType& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo, 
+    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
+					   ElementDataType& rVariables,
+					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight);
 
 
@@ -750,10 +751,10 @@ protected:
 
     /**
      * Get element size from the dofs
-     */    
+     */
     virtual unsigned int GetDofsSize();
 
-    
+
     /**
      * Initialize System Matrices
      */
@@ -792,23 +793,23 @@ protected:
      */
     virtual void CalculateKinetics(ElementDataType& rVariables,
 				   const double& rPointNumber);
-    
+
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType & rVariables, 
+    virtual void InitializeElementData(ElementDataType & rVariables,
 					    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Transform Element General Variables
      */
-    virtual void TransformElementData(ElementDataType & rVariables, 
+    virtual void TransformElementData(ElementDataType & rVariables,
 					   const double& rPointNumber);
 
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementDataType & rVariables, 
+    virtual void FinalizeStepVariables(ElementDataType & rVariables,
 				       const double& rPointNumber);
 
 
@@ -833,7 +834,7 @@ protected:
      */
     virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
-    
+
     /**
      * Calculation of the Volume Change of the Element
      */
@@ -910,4 +911,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SOLID_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SOLID_ELEMENT_H_INCLUDED  defined

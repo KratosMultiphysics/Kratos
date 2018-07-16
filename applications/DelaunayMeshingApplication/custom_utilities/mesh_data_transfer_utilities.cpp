@@ -1343,6 +1343,10 @@ namespace Kratos
 		//***************************************************
 		// CREATE ELEMENT WITH THE TRANSFERED VALUES :: START
 
+                //check size and id
+                if( (*i_center)->Id()-1 >= list_of_new_vertices.size() )
+                  KRATOS_ERROR << "list of new vertices out of bounds " << (*i_center)->Id()-1 << " > " <<list_of_new_vertices.size()<<std::endl;
+
 		// inside of the loop create the element, set the variables, and push_back the new element to the model part
 		Element::Pointer new_element = PreviousElement->Clone((*i_center)->Id(), list_of_new_vertices[(*i_center)->Id()-1]);
 
