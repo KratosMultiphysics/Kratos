@@ -55,6 +55,10 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thick_element_3D4N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thin_element_3D3N.cpp
 
+	# Thermal elements
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_elements/thermal_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_elements/axisymmetric_thermal_element.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/boundary_condition.cpp
 
 	# Load conditions
@@ -79,6 +83,9 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/axisymmetric_point_elastic_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/axisymmetric_line_elastic_condition.cpp
 
+	# Thermal conditions
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_conditions/line_heat_flux_condition.cpp
+	
 	# Utilites
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 
@@ -89,16 +96,21 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.cpp
-
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_thermal_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/johnson_cook_thermal_hardening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/baker_johnson_cook_thermal_hardening_law.cpp
+	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/modified_mises_yield_criterion.cpp
-
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/mises_huber_thermal_yield_criterion.cpp
+	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.cpp
-
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_linear_rate_dependent_plastic_flow_rule.cpp
+	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_axisym_2D_law.cpp
@@ -142,6 +154,17 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_thermal_J2_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_thermal_johnson_cook_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_thermal_baker_johnson_cook_plane_strain_2D_law.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_thermal_U_P_J2_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_thermal_U_P_J2_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_thermal_U_P_J2_axisym_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_thermal_U_P_johnson_cook_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_thermal_U_P_johnson_cook_axisym_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_thermal_U_P_baker_johnson_cook_plane_strain_2D_law.cpp
 
 	## DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION ##
 )

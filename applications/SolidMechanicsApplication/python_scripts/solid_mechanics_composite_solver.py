@@ -99,7 +99,7 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
     #
     def _create_computing_parts_process(self):
         for i in range(0,computing_parts.size()):
-            create_computing_part = KratosSolid.ComputingModelPartTransferProcess(self.model_part,computing_parts["Parameters"])
+            create_computing_part = KratosSolid.TransferComputingModelPartProcess(self.model_part,computing_parts["Parameters"])
             self.create_parts.append(create_computing_part)
 
     #

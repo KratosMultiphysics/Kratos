@@ -28,7 +28,10 @@ namespace Kratos {
     mContactDomainLMCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mContactDomainPenaltyCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymContactDomainLMCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mAxisymContactDomainPenaltyCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
+    mAxisymContactDomainPenaltyCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mThermalContactDomainPenaltyCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymThermalContactDomainPenaltyCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
+    
   {}
 
   void KratosContactMechanicsApplication::Register() {
@@ -58,6 +61,9 @@ namespace Kratos {
       KRATOS_REGISTER_CONDITION( "AxisymContactDomainLMCondition2D3N", mAxisymContactDomainLMCondition2D3N )
       KRATOS_REGISTER_CONDITION( "AxisymContactDomainPenaltyCondition2D3N", mAxisymContactDomainPenaltyCondition2D3N )     	
 
+      KRATOS_REGISTER_CONDITION( "ThermalContactDomainPenaltyCondition2D3N", mThermalContactDomainPenaltyCondition2D3N )
+      KRATOS_REGISTER_CONDITION( "AxisymThermalContactDomainPenaltyCondition2D3N", mAxisymThermalContactDomainPenaltyCondition2D3N )
+          
       Serializer::Register( "PointRigidContactPenalty2DCondition", mPointRigidContactPenalty2DCondition);
       Serializer::Register( "PointRigidContactPenalty3DCondition", mPointRigidContactPenalty3DCondition);
       Serializer::Register( "AxisymPointRigidContactPenalty2DCondition", mAxisymPointRigidContactPenalty2DCondition);
@@ -100,7 +106,10 @@ namespace Kratos {
       KRATOS_REGISTER_VARIABLE( CONTACT_FRICTION_ANGLE )
       KRATOS_REGISTER_VARIABLE( TANGENTIAL_PENALTY_RATIO )
       KRATOS_REGISTER_VARIABLE( CONTACT_PLASTIC_SLIP )
-
+          
+      //thermal properties
+      KRATOS_REGISTER_VARIABLE(HEAT_CONDUCTIVITY)
+          
       }
 
 }  // namespace Kratos.

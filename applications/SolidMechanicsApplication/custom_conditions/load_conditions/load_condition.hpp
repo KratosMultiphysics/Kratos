@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_conditions/boundary_condition.hpp"
 #include "includes/variables.h"
+#include "includes/kratos_flags.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 namespace Kratos

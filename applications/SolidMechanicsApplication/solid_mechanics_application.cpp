@@ -346,6 +346,16 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
               Element::GeometryType::PointsArrayType(3))),
           true),
 
+      mThermalElement2D3N(0,
+           Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(
+               Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+      mThermalElement3D4N(0,
+           Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(
+               Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+      mAxisymThermalElement2D3N(0,
+           Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(
+               Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+      
       mPointLoadCondition3D1N(
           0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(
                  Condition::GeometryType::PointsArrayType(1)))),
@@ -470,7 +480,10 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
                  Condition::GeometryType::PointsArrayType(8)))),
       mSurfaceElasticCondition3D9N(
           0, Condition::GeometryType::Pointer(new Quadrilateral3D9<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(9))))
+                 Condition::GeometryType::PointsArrayType(9)))),
+      mLineHeatFluxCondition2D2N(
+          0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(
+                 Condition::GeometryType::PointsArrayType( 2 ) ) ) )
 
 {}
 
@@ -565,7 +578,10 @@ void KratosSolidMechanicsApplication::Register() {
     //elastic pressures
     KRATOS_REGISTER_VARIABLE(BALLAST_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(BALLAST_COEFFICIENT_VECTOR)
-      
+
+    //heat fluxes
+    KRATOS_REGISTER_VARIABLE(FACE_HEAT_FLUX_VECTOR)
+    
     //element
     KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS)
 
@@ -574,7 +590,8 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ROTATION_REACTION)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_REACTION)        
     KRATOS_REGISTER_VARIABLE(PRESSURE_REACTION)
-
+    KRATOS_REGISTER_VARIABLE(TEMPERATURE_REACTION)
+        
     //explicit beam
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_MOMENT)
 
@@ -604,7 +621,22 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(YOUNGxINERTIA_Y)
     KRATOS_REGISTER_VARIABLE(SHEARxREDUCED_AREA)
     KRATOS_REGISTER_VARIABLE(SHEARxPOLAR_INERTIA)
+        
+    //boundary definition
+    KRATOS_REGISTER_VARIABLE(MASTER_ELEMENTS)
 
+    //thermal properties
+    KRATOS_REGISTER_VARIABLE(HEAT_CAPACITY)
+    KRATOS_REGISTER_VARIABLE(HEAT_CONDUCTIVITY)
+    KRATOS_REGISTER_VARIABLE(HEAT_SOURCE)
+
+    KRATOS_REGISTER_VARIABLE(TEMPERATURE_DEPENDENT)
+    KRATOS_REGISTER_VARIABLE(HEAT_CAPACITY_A)
+    KRATOS_REGISTER_VARIABLE(HEAT_CAPACITY_B)
+    KRATOS_REGISTER_VARIABLE(HEAT_CONDUCTIVITY_A)
+    KRATOS_REGISTER_VARIABLE(HEAT_CONDUCTIVITY_B)
+
+        
     //Register Elements
 
     //Register solids
@@ -808,6 +840,12 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT(
         "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
 
+    // Register thermal elements
+    KRATOS_REGISTER_ELEMENT( "ThermalElement2D3N", mThermalElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "ThermalElement3D4N", mThermalElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "AxisymThermalElement2D3N", mAxisymThermalElement2D3N )
+
+        
     //Register Conditions
     KRATOS_REGISTER_CONDITION("PointLoadCondition3D1N", mPointLoadCondition3D1N)
     KRATOS_REGISTER_CONDITION("PointLoadCondition2D1N", mPointLoadCondition2D1N)
@@ -890,6 +928,9 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION(
         "SurfaceElasticCondition3D9N", mSurfaceElasticCondition3D9N)
 
+    KRATOS_REGISTER_CONDITION(
+        "LineHeatFluxCondition2D2N", mLineHeatFluxCondition2D2N )
+        
     //Register Constitutive Laws with KRATOS_REGISTER to the Kernel
     //Linear Elastic laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mLinearElastic3DLaw);
@@ -911,38 +952,49 @@ void KratosSolidMechanicsApplication::Register() {
     //Hyperelastic Plastic J2 specilization laws U-P
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2PlaneStrain2DLaw",mHyperElasticPlasticUPJ2PlaneStrain2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2Axisym2DLaw",mHyperElasticPlasticUPJ2Axisym2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2Axisym2DLaw", mHyperElasticPlasticUPJ2Axisym2DLaw);
     //Isotropic Damage laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJu3DLaw", mIsotropicDamageSimoJu3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStrain2DLaw",mIsotropicDamageSimoJuPlaneStrain2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStress2DLaw",mIsotropicDamageSimoJuPlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStrain2DLaw", mIsotropicDamageSimoJuPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStress2DLaw", mIsotropicDamageSimoJuPlaneStress2DLaw);
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMises3DLaw",mIsotropicDamageModifiedMises3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStrain2DLaw",mIsotropicDamageModifiedMisesPlaneStrain2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStress2DLaw",mIsotropicDamageModifiedMisesPlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMises3DLaw", mIsotropicDamageModifiedMises3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStrain2DLaw", mIsotropicDamageModifiedMisesPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStress2DLaw", mIsotropicDamageModifiedMisesPlaneStress2DLaw);
 
+    //Thermo-Mechanical laws
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalJ2PlaneStrain2DLaw", mHyperElasticPlasticThermalJ2PlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalJohnsonCookPlaneStrain2DLaw", mHyperElasticPlasticThermalJohnsonCookPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalBakerJohnsonCookPlaneStrain2DLaw", mHyperElasticPlasticThermalBakerJohnsonCookPlaneStrain2DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJ23DLaw", mHyperElasticPlasticThermalUPJ23DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJ2PlaneStrain2DLaw", mHyperElasticPlasticThermalUPJ2PlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJ2Axisym2DLaw", mHyperElasticPlasticThermalUPJ2Axisym2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw", mHyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw", mHyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPBakerJohnsonCookPlaneStrain2DLaw", mHyperElasticPlasticThermalUPBakerJohnsonCookPlaneStrain2DLaw);
+    
     //Flow Rules
-    Serializer::Register("NonLinearAssociativePlasticFlowRule",
-        mNonLinearAssociativePlasticFlowRule);
-    Serializer::Register(
-        "LinearAssociativePlasticFlowRule", mLinearAssociativePlasticFlowRule);
+    Serializer::Register("NonLinearAssociativePlasticFlowRule", mNonLinearAssociativePlasticFlowRule);
+    Serializer::Register("LinearAssociativePlasticFlowRule", mLinearAssociativePlasticFlowRule);
     Serializer::Register("IsotropicDamageFlowRule", mIsotropicDamageFlowRule);
+    Serializer::Register("NonLinearRateDependentPlasticFlowRule",mNonLinearRateDependentPlasticFlowRule);
 
     //Yield Criteria
     Serializer::Register("MisesHuberYieldCriterion", mMisesHuberYieldCriterion);
     Serializer::Register("SimoJuYieldCriterion", mSimoJuYieldCriterion);
-    Serializer::Register(
-        "ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion);
+    Serializer::Register("ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion);
+    Serializer::Register("MisesHuberThermalYieldCriterion", mMisesHuberThermalYieldCriterion);
 
     //Hardening Laws
-    Serializer::Register("NonLinearIsotropicKinematicHardeningLaw",
-        mNonLinearIsotropicKinematicHardeningLaw);
-    Serializer::Register("LinearIsotropicKinematicHardeningLaw",
-        mLinearIsotropicKinematicHardeningLaw);
-    Serializer::Register(
-        "ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw);
-    Serializer::Register("ModifiedExponentialDamageHardeningLaw",
-        mModifiedExponentialDamageHardeningLaw);
+    Serializer::Register("NonLinearIsotropicKinematicHardeningLaw", mNonLinearIsotropicKinematicHardeningLaw);
+    Serializer::Register("LinearIsotropicKinematicHardeningLaw", mLinearIsotropicKinematicHardeningLaw);
+    Serializer::Register("ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw);
+    Serializer::Register("ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw);
+    Serializer::Register("NonLinearIsotropicKinematicThermalHardeningLaw", mNonLinearIsotropicKinematicThermalHardeningLaw);
+    Serializer::Register("JohnsonCookThermalHardeningLaw", mJohnsonCookThermalHardeningLaw);
+    Serializer::Register("BakerJohnsonCookThermalHardeningLaw", mBakerJohnsonCookThermalHardeningLaw);
+
 }
 
 }  // namespace Kratos.

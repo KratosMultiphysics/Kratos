@@ -45,6 +45,9 @@
 #include "custom_conditions/axisym_contact_domain_LM_2D_condition.hpp"
 #include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
 
+#include "custom_conditions/thermal_contact_domain_penalty_2D_condition.hpp"
+#include "custom_conditions/axisym_thermal_contact_domain_penalty_2D_condition.hpp"
+
 #include "custom_conditions/point_rigid_contact_condition.hpp"
 #include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
 #include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
@@ -232,6 +235,9 @@ private:
 	const AxisymContactDomainLM2DCondition           mAxisymContactDomainLMCondition2D3N;
 	const AxisymContactDomainPenalty2DCondition mAxisymContactDomainPenaltyCondition2D3N;
 
+        const ThermalContactDomainPenalty2DCondition  mThermalContactDomainPenaltyCondition2D3N;
+        const AxisymThermalContactDomainPenalty2DCondition  mAxisymThermalContactDomainPenaltyCondition2D3N;
+  
 	const PointRigidContactPenalty2DCondition       mPointRigidContactPenalty2DCondition;
 	const PointRigidContactPenalty3DCondition       mPointRigidContactPenalty3DCondition;
 	const AxisymPointRigidContactPenalty2DCondition mAxisymPointRigidContactPenalty2DCondition;
@@ -239,8 +245,9 @@ private:
 	const EPPointRigidContactPenalty2DCondition       mEPPointRigidContactPenalty2DCondition;
 	const EPPointRigidContactPenalty3DCondition       mEPPointRigidContactPenalty3DCondition;
 	const EPAxisymPointRigidContactPenalty2DCondition mEPAxisymPointRigidContactPenalty2DCondition;
-   const HydraulicRigidContactPenalty3DCondition mHydraulicRigidContactPenalty3DCondition;
-   const HydraulicAxisymRigidContactPenalty2DCondition mHydraulicAxisymRigidContactPenalty2DCondition;
+
+        const HydraulicRigidContactPenalty3DCondition mHydraulicRigidContactPenalty3DCondition;
+        const HydraulicAxisymRigidContactPenalty2DCondition mHydraulicAxisymRigidContactPenalty2DCondition;
 
 	//friction laws
 	const FrictionLaw                                                       mFrictionLaw;

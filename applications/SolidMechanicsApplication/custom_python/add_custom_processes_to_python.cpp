@@ -27,7 +27,7 @@
 #include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.hpp"
 #include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.hpp"
 #include "custom_processes/build_string_skin_process.hpp"
-#include "custom_processes/computing_model_part_transfer_process.hpp"
+#include "custom_processes/transfer_computing_model_part_entities_process.hpp"
 
 // Solver Processes
 #include "custom_processes/solver_process.hpp"
@@ -62,7 +62,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute)
       ;
 
-  class_<ComputingModelPartTransferProcess, ComputingModelPartTransferProcess::Pointer, Process>(m,"ComputingModelPartTransferProcess")
+  class_<TransferComputingModelPartEntitiesProcess, TransferComputingModelPartEntitiesProcess::Pointer, Process>(m,"TransferComputingModelPartProcess")
       .def(init<ModelPart&, Parameters>())
       .def(init<ModelPart&, Parameters& >())
       ;
