@@ -16,7 +16,7 @@ from SmallTests import Shell_Bending_Test_Lagrange as TShell_Bending_Test_Lagran
 
 
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -63,4 +63,4 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
