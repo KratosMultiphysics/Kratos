@@ -188,8 +188,7 @@ public:
         }, T);
     }
 
-    /** Gets the value and the derivatives of a nodal Kratos variable on a point
-     * at the curve.
+    /** Gets the derivatives of a nodal Kratos variable on a point at the curve.
      * 
      * \param Variable Kratos variable
      * \param T Curve parameter

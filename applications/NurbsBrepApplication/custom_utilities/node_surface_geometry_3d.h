@@ -209,8 +209,8 @@ public:
         }, U, V);
     }
 
-    /** Gets the value and the derivatives of a nodal Kratos variable on a point
-     * at the surface.
+    /** Gets the derivatives of a nodal Kratos variable on a point at the
+     * surface.
      * 
      * \param Variable Kratos variable
      * \param U Surface parameter in u direction
