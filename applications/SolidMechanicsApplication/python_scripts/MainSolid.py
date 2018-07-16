@@ -334,8 +334,6 @@ class Solution(object):
 
             constitutive_law.Initialize();
 
-            problem_path = os.getcwd()
-
             self.model.CleanModel()
 
             print("::[-----Material------]:: Reading file: materials.py ")

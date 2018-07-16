@@ -612,7 +612,7 @@ namespace Kratos
 	{
 	  if( i_model_part->IsNot(BOUNDARY) &&  i_model_part->IsNot(ACTIVE) && i_model_part->IsNot(RIGID) ){
 
-	    for(ModelPart::NodesContainerType::iterator i_node = i_model_part->NodesBegin() ; i_node != i_model_part->NodesEnd(); i_node++ )
+	    for(ModelPart::NodesContainerType::iterator i_node = i_model_part->NodesBegin() ; i_node != i_model_part->NodesEnd(); ++i_node)
 	      {
 
 		if( i_node->Is(BOUNDARY) && i_node->Is(NEW_ENTITY) ){

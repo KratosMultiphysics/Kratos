@@ -308,7 +308,7 @@
     }],
     "loads_process_list"       : [],
     "output_process_list"      : [],
-    "_check_process_list" : [
+    "check_process_list" : [
         {
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
@@ -321,7 +321,7 @@
             }
         }
     ],
-    "check_process_list"  : [
+    "_check_process_list"  : [
     {
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",

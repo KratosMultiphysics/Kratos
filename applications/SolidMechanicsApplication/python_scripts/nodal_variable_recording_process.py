@@ -162,9 +162,9 @@ class NodalVariableRecordingProcess(KratosMultiphysics.Process):
                 self.truncate_file_in_line(line_number,file_path)
 
 
-     #
-     @classmethod
-     def truncate_file_in_line(self, line_number, file_path):
+    #
+    @classmethod
+    def truncate_file_in_line(self, line_number, file_path):
 
         source  = open(file_path, "r+")
 

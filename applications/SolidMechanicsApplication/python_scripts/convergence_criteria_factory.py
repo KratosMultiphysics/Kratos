@@ -75,7 +75,7 @@ class ConvergenceCriterion:
         elif(self.settings["convergence_criterion"].GetString() == "And_criterion"):
             Variable = KratosSolid.DofsCriterion(kratos_variable,V_RT,V_AT)
             Variable.SetEchoLevel(echo_level)
-            #Variable.Set(KratosSolid.CriterionLocalFlags.INCREMENTAL) //smaller reference value 
+            #Variable.Set(KratosSolid.CriterionLocalFlags.INCREMENTAL) //smaller reference value
             Residual = KratosSolid.ResidualCriterion(kratos_variable,R_RT,R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosSolid.CompositeCriterion(Residual,Variable)

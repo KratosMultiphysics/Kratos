@@ -49,7 +49,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
     def ExecuteInitialize(self):
         for solver in self.solvers:
             solver._set_model_info()
-            
+
         super(SegregatedSolver, self).ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
@@ -57,7 +57,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
             solver.ExecuteBeforeSolutionLoop()
 
         self.SetEchoLevel(self.echo_level)
-        
+
     def GetMinimumBufferSize(self):
         buffer_size = 2
         for solver in self.solvers:
@@ -85,7 +85,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
     def Clear(self):
         for solver in self.solvers:
             solver.Clear()
-        
+
     #### Solver internal methods ####
 
     def _check_initialized(self):
@@ -122,7 +122,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
 
         return dof_variables, dof_reactions
 
-    
+
     def _add_dofs(self):
         dof_variables, dof_reactions = self._get_dofs()
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, dof_variables, dof_reactions)
@@ -130,7 +130,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
         if( self.echo_level > 1 ):
             print(dof_variables + dof_reactions)
             print("::[-------Solver------]:: DOF's ADDED")
-    
+
     #
     def _get_time_integration_methods(self):
         scalar_integration_methods = {}
@@ -141,4 +141,3 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
             component_integration_methods.update(solver_component_integration_methods)
 
         return scalar_integration_methods, component_integration_methods
-    

@@ -176,9 +176,6 @@ protected:
 	  StrainVector.resize(voigt_size,false);
           StressVector.resize(voigt_size,false);
 	  N.resize(number_of_nodes,false);
-	  noalias(StrainVector) = ZeroVector(voigt_size);
-	  noalias(StressVector) = ZeroVector(voigt_size);
-	  noalias(N) = ZeroVector(number_of_nodes);
 
 	  //matrices
 	  B.resize(voigt_size, dimension*number_of_nodes,false);
@@ -188,26 +185,33 @@ protected:
 	  ConstitutiveMatrix.resize(voigt_size, voigt_size,false);
 	  DeltaPosition.resize(number_of_nodes, dimension,false);
 
-	  noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-	  noalias(L)  = ZeroMatrix(dimension,dimension);
-	  noalias(F)  = IdentityMatrix(dimension,dimension);
-
-	  noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
-	  noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
-	  noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-
           //others
 	  J.resize(1,false);
 	  j.resize(1,false);
 	  J[0].resize(dimension,dimension,false);
 	  j[0].resize(dimension,dimension,false);
-	  noalias(J[0]) = ZeroMatrix(dimension,dimension);
-	  noalias(j[0]) = ZeroMatrix(dimension,dimension);
 
           //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;
           pProcessInfo = NULL;
+
+          //fill containters
+          // noalias(StrainVector) = ZeroVector(voigt_size);
+	  // noalias(StressVector) = ZeroVector(voigt_size);
+	  // noalias(N) = ZeroVector(number_of_nodes);
+
+	  // noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
+	  // noalias(L)  = ZeroMatrix(dimension,dimension);
+	  // noalias(F)  = IdentityMatrix(dimension,dimension);
+
+	  // noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
+	  // noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
+	  // noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
+
+          // noalias(J[0]) = ZeroMatrix(dimension,dimension);
+	  // noalias(j[0]) = ZeroMatrix(dimension,dimension);
+
 	}
 
     };

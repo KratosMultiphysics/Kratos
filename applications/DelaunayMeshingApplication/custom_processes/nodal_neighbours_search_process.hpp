@@ -263,7 +263,7 @@ namespace Kratos
       typename WeakPointerVector< TDataType >::iterator endit = v.end();
       while ( i != endit && (i)->Id() != (candidate.lock())->Id())
 	{
-	  i++;
+	  ++i;
 	}
       if( i == endit )
 	{

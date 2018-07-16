@@ -25,11 +25,11 @@
 
 ///VARIABLES used:
 //Data:     NEIGHBOUR_ELEMENTS(set)
-//StepData: 
+//StepData:
 //Flags:    (checked) BOUNDARY
 //          (set)     BOUNDARY(set)
-//          (modified)  
-//          (reset)   
+//          (modified)
+//          (reset)
 // (set):=(set in this process)
 
 namespace Kratos
@@ -117,7 +117,7 @@ namespace Kratos
       int method = 0;  //Kratos or Lohner method
 
       double begin_time = OpenMPUtils::GetCurrentTime();
-      
+
       if(method==0)
         {
 	  //std::cout<<" Kratos Search "<<std::endl;
@@ -140,10 +140,10 @@ namespace Kratos
             double end_time = OpenMPUtils::GetCurrentTime();
             std::cout<<"  Neighbour Elements Search time = "<<end_time-begin_time<<std::endl;
           }
-	  //PrintElementNeighbours();	       
+	  //PrintElementNeighbours();
         }
 
-      
+
     };
 
 
@@ -265,7 +265,7 @@ namespace Kratos
       typename WeakPointerVector< TDataType >::iterator endit = v.end();
       while ( i != endit && (i)->Id() != (candidate.lock())->Id())
         {
-	  i++;
+	  ++i;
         }
       if( i == endit )
         {
@@ -298,7 +298,7 @@ namespace Kratos
       return *(elem.base());
     }
 
-    
+
     Element::WeakPointer CheckForNeighbourElems2D (unsigned int Id_1, unsigned int Id_2, WeakPointerVector< Element >& neighbour_elem, ElementsContainerType::iterator elem)
     {
       //look for the faces around node Id_1
@@ -365,7 +365,7 @@ namespace Kratos
     {
 
       KRATOS_TRY
-	
+
       NodesContainerType&    rNodes = mrModelPart.Nodes();
       ElementsContainerType& rElems = mrModelPart.Elements();
 
@@ -377,9 +377,9 @@ namespace Kratos
         {
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end() );
-	  
+
 	  (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mAverageElements);
-	  
+
 	  ResetFlagOptions(*in);
         }
 
@@ -388,12 +388,12 @@ namespace Kratos
         {
 	  Element::GeometryType& pGeom = ie->GetGeometry();
 	  int size= pGeom.FacesNumber();
-  
+
 	  WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end() );
 
 	  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(size);
-	  
+
 	  ResetFlagOptions(*ie);
         }
 
@@ -404,7 +404,7 @@ namespace Kratos
     void PrintElementNeighbours()
     {
       KRATOS_TRY
-      
+
       NodesContainerType& rNodes = mrModelPart.Nodes();
       ElementsContainerType& rElems = mrModelPart.Elements();
 
@@ -449,7 +449,7 @@ namespace Kratos
     {
 
       KRATOS_TRY
-	
+
       ElementsContainerType& rElems = mrModelPart.Elements();
 
       //first of all the neighbour nodes and neighbour elements arrays are initialized to the guessed size
@@ -469,12 +469,12 @@ namespace Kratos
             (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
           }
         }
-            
+
       //*************  Neigbours of elements  *********//
       //add the neighbour elements to all the elements in the mesh
 
       unsigned int search_performed = false;
-      
+
       //loop over faces
       if (mDimension==2)
         {
@@ -488,7 +488,7 @@ namespace Kratos
 		//vector of the 3 faces around the given face
 		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 3 )
 		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-                
+
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
@@ -507,17 +507,17 @@ namespace Kratos
 		      {
 
 			ie->Set(BOUNDARY);
-		
+
 			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
-			
+
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
 			  {
                             rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
 			  }
-			
+
 		      }
-                   
+
 		    iface++;
 		  }
 
@@ -527,7 +527,7 @@ namespace Kratos
 		//vector of the 2 faces around the given face
 		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 2 )
 		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(2);
-		
+
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
@@ -544,25 +544,25 @@ namespace Kratos
 		      {
 
 			ie->Set(BOUNDARY);
-			
+
 			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
-			
+
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
 			  {
                             rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
 			  }
-			
+
 		      }
-		    
+
 		    iface++;
 		  }
 	      }
             }
-	  
+
   	  search_performed = true;
        }
-      
+
       if (mDimension==3)
         {
 	  for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ++ie)
@@ -571,11 +571,11 @@ namespace Kratos
 	      Geometry<Node<3> >& rGeometry = (ie)->GetGeometry();
 
 	      if( rGeometry.FacesNumber() == 4 ){
-			
+
 		//vector of the 4 faces around the given element (3D tetrahedron)
 		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 4 )
 		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
-		
+
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
@@ -589,18 +589,18 @@ namespace Kratos
 		// neighbour element over face 0-1-2 of element ic;
 		neighb_elems(3) = CheckForNeighbourElems3D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
-		
+
 		unsigned int iface=0;
 		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
 		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
                     {
-		
+
                       ie->Set(BOUNDARY);
 
                       DenseMatrix<unsigned int> lpofa; //points that define the faces
                       rGeometry.NodesInFaces(lpofa);
-			
+
                       for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
                       {
                         rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
@@ -617,7 +617,7 @@ namespace Kratos
 		//vector of the 3 faces around the given element (3D triangle)
 		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 3 )
 		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-		
+
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
@@ -638,29 +638,29 @@ namespace Kratos
 			ie->Set(BOUNDARY);
 
 			Geometry<Node<3> >& rGeometry = (ie)->GetGeometry();
-			
+
 			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
-			
+
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
 			  {
                             rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
 			  }
-			
+
 		      }
-		    
+
 		    iface++;
 		  }
 
 
-	      }	  
-	      
+	      }
+
 	    }
-	  
+
 	  search_performed = true;
         }
-      
-      
+
+
       if( mrModelPart.NumberOfElements()>0 && search_performed )
 	return true;
       else
@@ -893,6 +893,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ELEMENTAL_NEIGHBOURS_SEARCH_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_ELEMENTAL_NEIGHBOURS_SEARCH_PROCESS_H_INCLUDED  defined
