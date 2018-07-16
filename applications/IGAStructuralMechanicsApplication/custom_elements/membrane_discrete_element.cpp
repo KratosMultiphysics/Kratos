@@ -28,6 +28,23 @@
 
 namespace Kratos
 {
+    void MembraneDiscreteElement::Initialize()
+    {
+        KRATOS_TRY
+
+        //Constitutive Law initialisation
+        SurfaceBaseDiscreteElement::Initialize();
+
+        if (!GetProperties().Has(MEMBRANE_PRESTRESS_TENSOR_PK2))
+        {
+            Vector Prestress = ZeroVector(3);
+            GetProperties()[MEMBRANE_PRESTRESS_TENSOR_PK2] = Prestress;
+        }
+
+
+        KRATOS_CATCH("")
+    }
+
     //************************************************************************************
     //************************************************************************************
     void MembraneDiscreteElement::CalculateAll(
@@ -195,9 +212,9 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
-        if (rStresses.size() != 5)
-            rStresses.resize(5);
-        noalias(rStresses) = ZeroVector(5); //resetting LHS
+        if (rStresses.size() != 3)
+            rStresses.resize(3);
+        noalias(rStresses) = ZeroVector(3); //resetting LHS
         
 
         const int number_of_control_points = GetGeometry().size();
@@ -233,8 +250,8 @@ namespace Kratos
     {
         rPrestressTensor.resize(3);
 
-        const Vector prestress_variable = this->GetValue(MEMBRANE_PRESTRESS_TENSOR_PK2);
-        const double thickness = this->GetValue(THICKNESS);
+        const Vector prestress_variable = GetProperties()[MEMBRANE_PRESTRESS_TENSOR_PK2];
+        const double thickness = GetProperties()[THICKNESS];
 
         rPrestressTensor = prestress_variable;
     }

@@ -59,6 +59,13 @@ public:
     ///@{
 
     /**
+    * Called to initialize the element.
+    * Must be called before any calculation is done
+    */
+    void Initialize() override;
+
+
+    /**
     * This functions calculates both the RHS and the LHS
     * @param rLeftHandSideMatrix: The LHS
     * @param rRightHandSideVector: The RHS
