@@ -31,6 +31,8 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	##ELEMENTS
 	# Adding the meshless base element
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_discrete_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_surface_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_shell_kl_element.cpp

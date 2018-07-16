@@ -72,21 +72,26 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
 
                 file.write("End Values\n")
 
-            for i in range(self.params["integration_point_results"].size()):
-                out = self.params["integration_point_results"][i]
-                variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
+            #for i in range(self.params["integration_point_results"].size()):
+            #    out = self.params["integration_point_results"][i]
+            #    variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
 
-                file.write("Result \"" + out.GetString() + "\" \"Load Case\" 0  Scalar OnGaussPoints\n")
-                file.write("Values\n")
-                for element in self.sub_model_part.Elements:
-                    print("something")
-                    value = element.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
+            #    value = self.sub_model_part.Elements[0].Calculate(variable, self.sub_model_part.ProcessInfo)
+            #    if isinstance(value,float):
+            #        type = "Scalar"
+            #    else:
+            #        type = "Vector"
 
-                    if isinstance(value,float):
-                        file.write(str(element.Id) + "  " + str(value[0]))
-                    else: # It is a vector
-                        file.write(str(element.Id) + "  " + str(value[0][0]) + "  " + str(value[0][1]) + "  " + str(value[0][2]) + "\n")
-                file.write("End Values\n")
+            #    file.write("Result \"" + out.GetString() + "\" \"Load Case\" 0  " + type + " OnGaussPoints\n")
+            #    file.write("Values\n")
+            #    for element in self.sub_model_part.Elements:
+            #        value = 0.0#element.Calculate(variable, self.sub_model_part.ProcessInfo)
+
+            #        if isinstance(value,float):
+            #            file.write(str(element.Id) + "  " + str(value) + "\n")
+            #        else: # It is a vector
+            #            file.write(str(element.Id) + "  " + str(value[0]) + "  " + str(value[1]) + "  " + str(value[2]) + "\n")
+            #    file.write("End Values\n")
 
         #if(self.params.Has("write_points")):
         #    with open(self.params["write_points"]["output_file_name"].GetString(), 'w') as convergence_file:
@@ -118,7 +123,7 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                     for node in self.sub_model_part.Nodes:
                         value = node.GetSolutionStepValue(variable, 0)
                         if isinstance(value,float):
-                            file.write(str(node.Id) + "  " + str(value))
+                            file.write(str(node.Id) + "  " + str(value) + "\n")
                         else: # It is a vector
                             file.write(str(node.Id) + "  " + str(value[0]) + "  " + str(value[1]) + "  " + str(value[2]) + "\n")
 
@@ -128,15 +133,24 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                     out = self.params["integration_point_results"][i]
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
 
-                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " Scalar OnGaussPoints\n")
+                    value = self.sub_model_part.Elements[100].Calculate(variable, self.sub_model_part.ProcessInfo)
+                    if isinstance(value,float):
+                        type = "Scalar"
+                    else:
+                        type = "Vector"
+
+                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " " + type + " OnGaussPoints\n")
                     file.write("Values\n")
+
                     for element in self.sub_model_part.Elements:
-                        value = element.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
+                        #elementList = self.sub_model_part.ElementsArray(0)
+                        #element = elementList[i]
+                        value = element.Calculate(variable, self.sub_model_part.ProcessInfo)
 
                         if isinstance(value,float):
-                            file.write(str(element.Id) + "  " + str(value[0]))
+                            file.write(str(element.Id) + "  " + str(value) + "\n")
                         else: # It is a vector
-                            file.write(str(element.Id) + "  " + str(value[0][0]) + "  " + str(value[0][1]) + "  " + str(value[0][2]) + "\n")
+                            file.write(str(element.Id) + "  " + str(value[0]) + "  " + str(value[1]) + "  " + str(value[2]) + "\n")
                     file.write("End Values\n")
 
         if(self.params.Has("write_points")):
@@ -145,8 +159,8 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                     check_model_part = self.model_part[self.params["model_part_name"].GetString()].GetSubModelPart(self.params["write_points"]["sub_model_part_name"][i].GetString())
                     convergence_file.write(str(self.sub_model_part.NumberOfElements()) + "  " + str(self.sub_model_part.NumberOfNodes()) + "  ")
                     for condition in check_model_part.Conditions:
-                        disp = condition.CalculateOnIntegrationPoints(KratosMultiphysics.DISPLACEMENT, check_model_part.ProcessInfo)
-                        convergence_file.write(str(disp[0][0]) + "  " + str(disp[0][1]) + "  " + str(disp[0][2]) + "  ")
+                        disp = condition.Calculate(KratosMultiphysics.DISPLACEMENT, check_model_part.ProcessInfo)
+                        convergence_file.write(str(disp[0]) + "  " + str(disp[1]) + "  " + str(disp[2]) + "  ")
                     convergence_file.write("\n")
 
     def ExecuteBeforeOutputStep(self):
