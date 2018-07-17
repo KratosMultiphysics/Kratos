@@ -413,10 +413,6 @@ namespace Kratos
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
     
-    //for ULF (surface_tension) application:
-    KRATOS_DEFINE_VARIABLE(double, TRIPLE_POINT)
-    KRATOS_DEFINE_VARIABLE(double, CONTACT_ANGLE)
-
     //for General kratos application:
 
     //for Structural application:

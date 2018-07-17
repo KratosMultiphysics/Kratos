@@ -68,18 +68,3 @@ kratos/includes/kratos_version.h
 *.cpp~
 
 applications/python_scripts/beam_profiles\.csv
-
-applications/FluidDynamicsApplication/test_examples/cyl_bench/cyl_benchFluid\.post\.bin
-
-applications/ULFapplication/test_examples/lagrangian_droplet_test/convergence_info\.txt
-
-applications/ULFapplication/test_examples/fluid_structure_interaction/convergence_info\.txt
-
-applications/ULFapplication/test_examples/bottle_blowing/convergence_info\.txt
-
-applications/ULFapplication/test_examples/bottle_blowing/distance_to_wall\.out
-
-applications/fluid_rve_lagrange_multipliers_application/test_examples/simple_square_domain/caso_email_2905_visc0625_den1_grad40_with_reytensor_noanti\.post\.bin
-
-/home/pavel/Kratos/applications/fluid_rve_lagrange_multipliers_application
-/home/pavel/Kratos/applications/fluid_rve_lagrange_multipliers_application/*.*
