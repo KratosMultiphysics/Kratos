@@ -19,6 +19,7 @@ domain_size = 2
 #importing applications
 from KratosMultiphysics import *
 from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
 #from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ULFApplication import *
 						                  

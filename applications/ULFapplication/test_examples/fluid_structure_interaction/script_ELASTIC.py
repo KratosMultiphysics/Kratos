@@ -16,7 +16,8 @@ import sys
 sys.path.append(fluid_ulf_var.kratos_path)
 from KratosMultiphysics import *
 #from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
+#from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *

@@ -22,6 +22,7 @@ from KratosMultiphysics.MeshingApplication import *
 #from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");
