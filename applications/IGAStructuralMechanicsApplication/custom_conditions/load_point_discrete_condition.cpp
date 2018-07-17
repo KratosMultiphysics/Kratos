@@ -51,12 +51,7 @@ namespace Kratos
             rRightHandSideVector.resize(mat_size, false);
         rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
 
-        const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
         const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
-        const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-
-        Vector g3 = ZeroVector(3);
-        CalculateBaseVector(g3, DN_De);
 
         // Point loads
         if (this->Has(POINT_LOAD))
@@ -75,16 +70,25 @@ namespace Kratos
         // Pressure loads
         if (this->Has(PRESSURE))
         {
+            const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+            const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+
+            Vector g3 = ZeroVector(3);
+            CalculateBaseVector(g3, DN_De);
+
+            const double dArea = norm_2(g3);
+            const double integration_weight_area = integration_weight * dArea;
+
             double pressure = this->GetValue(PRESSURE);
 
-            array_1d<double, 3> direction = g3 / norm_2(g3);
+            array_1d<double, 3> direction = g3 / dArea;
 
             for (int i = 0; i < number_of_control_points; i++)
             {
                 int index = 3 * i;
-                fLoads[index]     = - direction[0] * pressure * N[i];
-                fLoads[index + 1] = - direction[1] * pressure * N[i];
-                fLoads[index + 2] = - direction[2] * pressure * N[i];
+                fLoads[index] = -direction[0] * pressure * integration_weight_area * N[i];
+                fLoads[index + 1] = -direction[1] * pressure * integration_weight_area * N[i];
+                fLoads[index + 2] = -direction[2] * pressure * integration_weight_area * N[i];
             }
         }
 
