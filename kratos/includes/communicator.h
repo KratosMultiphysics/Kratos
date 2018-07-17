@@ -35,6 +35,7 @@
 #include "includes/mesh.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/master_slave_constraint.h"
 
 
 namespace Kratos
@@ -88,10 +89,11 @@ public:
     typedef Element ElementType;
 
     typedef Condition ConditionType;
+    typedef MasterSlaveConstraint MasterSlaveConstraintType;
 
     typedef vector<int> NeighbourIndicesContainerType;
 
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType, MasterSlaveConstraintType> MeshType;
 
     typedef PointerVector<MeshType> MeshesContainerType;
 

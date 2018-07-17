@@ -21,6 +21,7 @@
 #include "includes/properties.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/master_slave_constraint.h"
 #include "python/containers_interface.h"
 #include "python/add_mesh_to_python.h"
 
@@ -129,7 +130,7 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 
 void  AddNodeToPython(pybind11::module& m)
 {
-    typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+    typedef Mesh<Node<3>, Properties, Element, Condition, MasterSlaveConstraint> MeshType;
 
     typedef MeshType::NodeType NodeType;
 

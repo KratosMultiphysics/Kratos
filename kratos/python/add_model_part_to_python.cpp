@@ -497,6 +497,11 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint3(Mo
     return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
 }
 
+void ModelPartAddMasterSlaveConstraint(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType::Pointer pMasterSlaveConstraint)
+{
+    rModelPart.AddMasterSlaveConstraint(pMasterSlaveConstraint);
+}
+
 void AddMasterSlaveConstraintsByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ConstraintIds )
 {
     rModelPart.AddMasterSlaveConstraints(ConstraintIds);
@@ -508,7 +513,7 @@ const ModelPart::MasterSlaveConstraintContainerType& ModelPartGetMasterSlaveCons
     return rModelPart.MasterSlaveConstraints();
 }
 
-void ModelPartSetMasterSlaveConstraints1(ModelPart& rModelPart, const ModelPart::MasterSlaveConstraintContainerType& pOtherMasterSlaveConstraints)
+void ModelPartSetMasterSlaveConstraints1(ModelPart& rModelPart, const ModelPart::MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
 {
     rModelPart.SetMasterSlaveConstraints(pOtherMasterSlaveConstraints);
 }
@@ -543,10 +548,6 @@ void ModelPartRemoveMasterSlaveConstraintFromAllLevels2(ModelPart& rModelPart, M
 	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(rMasterSlaveConstraint);
 }
 
-// void ModelPartRemoveMasterSlaveConstraintFromAllLevels3(ModelPart& rModelPart, Flags identifier_flag)
-// {
-// 	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(identifier_flag);
-// }
 
 
 // Communicator
@@ -879,7 +880,7 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels1)
         .def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels2)
         // .def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels3)
-        .def("AddMasterSlaveConstraint", &ModelPart::AddMasterSlaveConstraint)
+        .def("AddMasterSlaveConstraint", ModelPartAddMasterSlaveConstraint)
         .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintsByIds)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, return_value_policy::reference_internal)

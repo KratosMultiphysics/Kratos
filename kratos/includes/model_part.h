@@ -126,8 +126,9 @@ public:
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;
+    typedef MasterSlaveConstraint MasterSlaveConstraintType;
 
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType, MasterSlaveConstraintType> MeshType;
 
     typedef PointerVector<MeshType> MeshesContainerType;
 
@@ -221,23 +222,20 @@ public:
     /**
      *
      */
-    // Defining the constraint base type
-    typedef MasterSlaveConstraint MasterSlaveConstraintType;
-
     /// The container of the constraints
-    typedef PointerVectorSet<MasterSlaveConstraintType, IndexedObject> MasterSlaveConstraintContainerType;
+    typedef MeshType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
 
     /** Iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
     MasterSlaveConstraint by * operator and not a pointer for more convenient
     usage. */
-    typedef MasterSlaveConstraintContainerType::iterator MasterSlaveConstraintIteratorType;
+    typedef MeshType::MasterSlaveConstraintIteratorType MasterSlaveConstraintIteratorType;
 
     /** Const iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
     Table by * operator and not a pointer for more convenient
     usage. */
-    typedef MasterSlaveConstraintContainerType::const_iterator MasterSlaveConstraintConstantIteratorType;
+    typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
 
     /// The container of the sub model parts. A hash table is used.
     /**
@@ -618,55 +616,55 @@ public:
     ///@name MasterSlaveConstraints
     ///@{
 
-    SizeType NumberOfMasterSlaveConstraints() const
+    SizeType NumberOfMasterSlaveConstraints(IndexType ThisIndex = 0) const
     {
-        return mMasterSlaveConstraints.size();
+        return GetMesh(ThisIndex).NumberOfMasterSlaveConstraints();
     }
 
-    MasterSlaveConstraintContainerType& MasterSlaveConstraints()
+    MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0)
     {
-        return mMasterSlaveConstraints;
+        return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
 
-    const MasterSlaveConstraintContainerType& MasterSlaveConstraints() const 
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const 
     {
-        return mMasterSlaveConstraints;
+        return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
 
-    void SetMasterSlaveConstraints(const MasterSlaveConstraintContainerType& rOtherMasterSlaveConstraints)
+    void SetMasterSlaveConstraints(MasterSlaveConstraintContainerType::Pointer rOtherMasterSlaveConstraints, IndexType ThisIndex = 0)
     {
-        mMasterSlaveConstraints = rOtherMasterSlaveConstraints;
+        GetMesh(ThisIndex).SetMasterSlaveConstraints(rOtherMasterSlaveConstraints);
     }
 
-    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin() const
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin(IndexType ThisIndex = 0) const
     {
-        return mMasterSlaveConstraints.begin();
+        return GetMesh(ThisIndex).MasterSlaveConstraintsBegin();
     }
 
-    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsEnd() const
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsEnd(IndexType ThisIndex = 0) const
     {
-        return mMasterSlaveConstraints.end();
+        return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
     }
 
-    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsBegin()
+    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsBegin(IndexType ThisIndex = 0)
     {
-        return mMasterSlaveConstraints.begin();
+        return GetMesh(ThisIndex).MasterSlaveConstraintsBegin();
     }
 
-    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsEnd()
+    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsEnd(IndexType ThisIndex = 0)
     {
-        return mMasterSlaveConstraints.end();
+        return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
     }
 
 
 
     /** Inserts a master-slave constraint in the current modelpart.
      */
-    void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint);
+    void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, IndexType ThisIndex = 0);
 
     /** Inserts a list of master-slave constraints to a submodelpart provided their Id. Does nothing if applied to the top model part
      */
-    void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds);
+    void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, IndexType ThisIndex = 0);
 
     /** Inserts a list of pointers to Master-Slave constraints
      */
@@ -723,7 +721,8 @@ public:
                                                                                     DofsVectorType& rMasterDofsVector,
                                                                                     DofsVectorType& rSlaveDofsVector,
                                                                                     const MatrixType& RelationMatrix,
-                                                                                    const VectorType& ConstantVector);
+                                                                                    const VectorType& ConstantVector,
+                                                                                    IndexType ThisIndex = 0);
 
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
                                                                                     IndexType Id, 
@@ -732,7 +731,8 @@ public:
                                                                                     NodeType& rSlaveNode,
                                                                                     const DoubleVariableType& rSlaveVariable,
                                                                                     const double Weight,
-                                                                                    const double Constant);
+                                                                                    const double Constant,
+                                                                                    IndexType ThisIndex = 0);
 
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
                                                                                     IndexType Id, 
@@ -741,31 +741,32 @@ public:
                                                                                     NodeType& rSlaveNode,
                                                                                     const VariableComponentType& rSlaveVariable,
                                                                                     double Weight,
-                                                                                    double Constant);
+                                                                                    double Constant,
+                                                                                    IndexType ThisIndex = 0);
 
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
-    void RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId);
+    void RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
 
     /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
     */
-    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint);
+    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
 
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
     */
-    void RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId);
+    void RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
 
     /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
     */
-    void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint);
+    void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
 
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
-    MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId);
+    MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId, IndexType ThisIndex = 0);
 
     /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
-    MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId);
+    MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
     /** Returns a const reference MasterSlaveConstraint corresponding to it's identifier */
-    const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId) const ;
+    const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0) const ;
 
 
     ///@}
@@ -1529,8 +1530,6 @@ private:
     ModelPart* mpParentModelPart;
 
     SubModelPartsContainerType mSubModelParts;
-
-    MasterSlaveConstraintContainerType mMasterSlaveConstraints;
 
     ///@}
     ///@name Private Operators
