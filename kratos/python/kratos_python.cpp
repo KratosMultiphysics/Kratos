@@ -150,6 +150,7 @@ PYBIND11_MODULE(Kratos, m)
     #undef KRATOS_MAKE_STRING
     #undef INTERNAL_KRATOS_MAKE_STRING
     m.attr("KRATOS_BUILD_TYPE") = build_type;
+    m.attr("KRATOS_VERSION") = KRATOS_VERSION;
 }
 
 
