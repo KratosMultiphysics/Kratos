@@ -109,7 +109,7 @@ public:
 
     //*******************************************************************************************
     //*******************************************************************************************
-    void ReGenerateMeshDROPLET(
+    void ReGenerateMeshDroplet(
         ModelPart& ThisModelPart ,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition,
