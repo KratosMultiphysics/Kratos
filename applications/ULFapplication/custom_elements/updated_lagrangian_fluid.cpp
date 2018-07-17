@@ -77,7 +77,7 @@ void UpdatedLagrangianFluid::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     double K = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS)+
                             GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS) +
                             GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS));
-//		double K = GetProperties()[BULK_MODULUS];
+
     K *= density;
 
     unsigned int dim = 2;
@@ -101,14 +101,14 @@ void UpdatedLagrangianFluid::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 
     for(unsigned int i = 0; i<number_of_nodes; i++)
     {
-        rRightHandSideVector[i*2] = body_force[0]* density * mA0 * 0.3333333333333;
-        rRightHandSideVector[i*2+1] = body_force[1] * density * mA0 * 0.3333333333333;
-//			rRightHandSideVector[i*2] = body_force[0]* density * current_area * 0.3333333333333;
-        //rRightHandSideVector[i*2+1] = body_force[1] * density * current_area * 0.3333333333333;
+        //rRightHandSideVector[i*2] = body_force[0]* density * mA0 * 0.3333333333333;
+        //rRightHandSideVector[i*2+1] = body_force[1] * density * mA0 * 0.3333333333333;
+	rRightHandSideVector[i*2] = body_force[0]* density * current_area * 0.3333333333333;
+        rRightHandSideVector[i*2+1] = body_force[1] * density * current_area * 0.3333333333333;
     }
 
-    //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
-    // rLeftHandSideMatrix += Laplacian * nu;
+    //VOLUMETRIC CONTRIBUTION TO THE STIFFNESS MATRIX
+    // rLeftHandSideMatrix += Kappa BT*C*B;
     //filling matrix B
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
@@ -132,7 +132,6 @@ void UpdatedLagrangianFluid::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     ms_constitutive_matrix(2,1) = 0.0;
     ms_constitutive_matrix(2,2) = 0.0;
 
-    //calculating viscous contributions
     ms_temp = prod( ms_constitutive_matrix , msB);
     noalias(rLeftHandSideMatrix) = prod( trans(msB) , ms_temp);
     rLeftHandSideMatrix *= -current_area;
@@ -196,14 +195,11 @@ void UpdatedLagrangianFluid::CalculateRightHandSide(VectorType& rRightHandSideVe
     //const array_1d<double,3>& body_force = GetProperties()[BODY_FORCE];
     for(unsigned int i = 0; i<number_of_nodes; i++)
     {
-        rRightHandSideVector[i*2] = body_force[0]* density * mA0 * 0.3333333333333;
-        rRightHandSideVector[i*2+1] = body_force[1] * density * mA0 * 0.3333333333333;
-        //rRightHandSideVector[i*2] = body_force[0]* density * current_area * 0.3333333333333;
-        //rRightHandSideVector[i*2+1] = body_force[1] * density * current_area * 0.3333333333333;
+        //rRightHandSideVector[i*2] = body_force[0]* density * mA0 * 0.3333333333333;
+        //rRightHandSideVector[i*2+1] = body_force[1] * density * mA0 * 0.3333333333333;
+        rRightHandSideVector[i*2] = body_force[0]* density * current_area * 0.3333333333333;
+        rRightHandSideVector[i*2+1] = body_force[1] * density * current_area * 0.3333333333333;
     }
-
-
-
 
 
     //get the old pressure
@@ -287,8 +283,7 @@ void UpdatedLagrangianFluid::CalculateDampingMatrix(MatrixType& rDampingMatrix, 
     const double& nu = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY)+
                                     GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY) +
                                     GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY));
-    //double nu = GetProperties()[VISCOSITY];
-    //double density = GetProperties()[DENSITY];
+
     const double& density = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
                                          GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
                                          GetGeometry()[2].FastGetSolutionStepValue(DENSITY));
