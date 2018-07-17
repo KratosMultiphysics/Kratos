@@ -88,7 +88,7 @@ public:
     virtual void CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo)
+                                   const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -104,7 +104,7 @@ public:
     virtual void CalculateGradient(const Condition& rAdjointCondition,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo)
+                                   const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -120,7 +120,7 @@ public:
     virtual void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
                                                    const Matrix& rResidualGradient,
                                                    Vector& rResponseGradient,
-                                                   ProcessInfo& rProcessInfo)
+                                                   const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -136,7 +136,7 @@ public:
     virtual void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
                                                    const Matrix& rResidualGradient,
                                                    Vector& rResponseGradient,
-                                                   ProcessInfo& rProcessInfo)
+                                                   const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -152,7 +152,7 @@ public:
     virtual void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
                                                     const Matrix& rResidualGradient,
                                                     Vector& rResponseGradient,
-                                                    ProcessInfo& rProcessInfo)
+                                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -168,7 +168,7 @@ public:
     virtual void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
                                                     const Matrix& rResidualGradient,
                                                     Vector& rResponseGradient,
-                                                    ProcessInfo& rProcessInfo)
+                                                    const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -186,7 +186,7 @@ public:
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
-                                             ProcessInfo& rProcessInfo)
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -204,7 +204,7 @@ public:
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
-                                             ProcessInfo& rProcessInfo)
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -222,7 +222,7 @@ public:
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
-                                             ProcessInfo& rProcessInfo)
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -240,7 +240,7 @@ public:
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
-                                             ProcessInfo& rProcessInfo)
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
