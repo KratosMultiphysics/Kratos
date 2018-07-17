@@ -429,6 +429,7 @@ class Solution(object):
             used_time = time_fp - time_ip
             print(self._class_prefix()+" [ %.2f" % round(used_time,2),"s", process," ] ")
 
+    @classmethod
     def _class_prefix(self):
         header = "::[---KSM Simulation--]::"
         return header

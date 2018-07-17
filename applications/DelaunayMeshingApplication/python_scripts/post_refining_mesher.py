@@ -76,6 +76,7 @@ class PostRefiningMesher(mesher.Mesher):
         pass
 
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[---Post Refining---]::"
         return header

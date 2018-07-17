@@ -137,6 +137,7 @@ class PfemSolution(MainSolid.Solution):
 
         return problem_processes
 
+    @classmethod
     def _class_prefix(self):
         header = "::[--PFEM Simulation--]::"
         return header

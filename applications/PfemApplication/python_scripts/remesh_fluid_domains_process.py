@@ -38,6 +38,7 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
         return KratosPfem.FluidModelStructure(self.main_model_part, meshing_options, self.echo_level)
 
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[---Meshing_Fluid---]::"
         return header

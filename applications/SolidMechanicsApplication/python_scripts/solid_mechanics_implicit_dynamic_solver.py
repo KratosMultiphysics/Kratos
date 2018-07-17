@@ -131,7 +131,7 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
         return KratosSolid.NewtonRaphsonStrategy(self.model_part, solution_scheme, builder_and_solver, convergence_criterion,
                                                  options, self.settings["solving_strategy_settings"]["max_iteration"].GetInt())
 
-
+    @classmethod
     def _class_prefix(self):
         header = "::[--Implicit_Solver--]::"
         return header

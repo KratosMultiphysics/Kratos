@@ -63,6 +63,7 @@ class TransferMesher(mesher.Mesher):
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[--Transfer Mesher--]::"
         return header

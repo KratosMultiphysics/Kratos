@@ -125,6 +125,7 @@ class FluidRefiningMesher(mesher.Mesher):
 
 
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[--Refining Mesher--]::"
         return header

@@ -85,6 +85,7 @@ class ReconnectMesher(mesher.Mesher):
         self.MeshingParameters.FinalizeMeshing()
 
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[--Reconnect Mesher-]::"
         return header

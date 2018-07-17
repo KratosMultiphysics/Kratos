@@ -72,6 +72,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
 
         return KratosSolid.LinearStrategy(self.model_part, solution_scheme, builder_and_solver, options)
 
+    @classmethod
     def _class_prefix(self):
         header = "::[---Static_Solver---]::"
         return header

@@ -145,6 +145,7 @@ class PreRefiningMesher(mesher.Mesher):
         self.MeshingParameters.InitializeMeshing() # select tessellation elements is going to be performed again
 
     #
+    @classmethod
     def _class_prefix(self):
         header = "::[----Pre Refining---]::"
         return header
