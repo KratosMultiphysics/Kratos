@@ -1156,6 +1156,14 @@ ModelPart::MasterSlaveConstraintType& ModelPart::GetMasterSlaveConstraint(ModelP
         return *i;
 }
 
+const ModelPart::MasterSlaveConstraintType& ModelPart::GetMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId) const
+{
+        auto i = mMasterSlaveConstraints.find(MasterSlaveConstraintId);
+        KRATOS_ERROR_IF(i == mMasterSlaveConstraints.end()) << " constraint index not found: " << MasterSlaveConstraintId << ".";
+        return *i;
+}
+
+
 
 /** Inserts a condition in the mesh with ThisIndex.
 */

@@ -764,6 +764,8 @@ public:
 
     /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
     MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId);
+    /** Returns a const reference MasterSlaveConstraint corresponding to it's identifier */
+    const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId) const ;
 
 
     ///@}
