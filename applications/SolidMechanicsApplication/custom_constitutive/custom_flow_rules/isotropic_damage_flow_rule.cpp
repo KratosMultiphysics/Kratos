@@ -60,8 +60,7 @@ IsotropicDamageFlowRule::IsotropicDamageFlowRule(IsotropicDamageFlowRule const& 
 
 FlowRule::Pointer IsotropicDamageFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new IsotropicDamageFlowRule(*this));
-  return p_clone;
+  return Kratos::make_shared<IsotropicDamageFlowRule>(*this);
 }
 
 //********************************DESTRUCTOR******************************************

@@ -64,8 +64,7 @@ MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion(MisesHuberTherm
 
 YieldCriterion::Pointer MisesHuberThermalYieldCriterion::Clone() const
 {
-  YieldCriterion::Pointer p_clone(new MisesHuberThermalYieldCriterion(*this));
-  return p_clone;
+  return Kratos::make_shared<MisesHuberThermalYieldCriterion>(*this);
 }
 
 //********************************DESTRUCTOR******************************************

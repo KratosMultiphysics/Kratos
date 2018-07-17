@@ -44,7 +44,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class JohnsonCookThermalHardeningLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) JohnsonCookThermalHardeningLaw
 	: public HardeningLaw
 {
 public:
@@ -87,7 +87,7 @@ public:
     ///@{
 
     double& CalculateHardening(double &rHardening, const Parameters& rValues);
-  
+
     double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues);
 
     double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues);
@@ -144,7 +144,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-        
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -250,6 +250,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_JOHNSON_COOK_THERMAL_HARDENING_LAW_H_INCLUDED  defined 
-
-
+#endif // KRATOS_JOHNSON_COOK_THERMAL_HARDENING_LAW_H_INCLUDED  defined

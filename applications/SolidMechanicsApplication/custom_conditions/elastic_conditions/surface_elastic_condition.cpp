@@ -45,7 +45,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer SurfaceElasticCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new SurfaceElasticCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<SurfaceElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -58,8 +58,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new SurfaceElasticCondition(NewCondition) );
+    return Kratos::make_shared<SurfaceElasticCondition>(NewCondition);
   }
 
 
@@ -76,9 +75,9 @@ namespace Kratos
   void SurfaceElasticCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-      
+
     ElasticCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
-  
+
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
@@ -94,10 +93,10 @@ namespace Kratos
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_0/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
-    KRATOS_CATCH( "" )   
+    KRATOS_CATCH( "" )
   }
 
-  
+
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
@@ -112,7 +111,7 @@ namespace Kratos
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
-    
+
     //get first vector of the plane
     rVariables.Tangent1[0] = rVariables.J[rPointNumber](0, 0);
     rVariables.Tangent1[1] = rVariables.J[rPointNumber](1, 0);
@@ -168,7 +167,7 @@ namespace Kratos
 
     //Get external stiffness
     this->CalculateExternalStiffness(rVariables);
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -183,7 +182,7 @@ namespace Kratos
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
-    
+
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
@@ -201,27 +200,27 @@ namespace Kratos
     }
 
 
-    //defined on condition nodes  
+    //defined on condition nodes
     if( this->Has( BALLAST_COEFFICIENT_VECTOR ) ){
       Vector& BallastCoefficient = this->GetValue( BALLAST_COEFFICIENT_VECTOR );
       for ( SizeType i = 0; i < number_of_nodes; i++ )
-	{	  
-	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs(BallastCoefficient[i]); 
+	{
+	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs(BallastCoefficient[i]);
 	}
     }
 
-    
+
     //defined on geometry nodes
     for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( BALLAST_COEFFICIENT ) ) 
-	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs( GetGeometry()[i].FastGetSolutionStepValue( BALLAST_COEFFICIENT ) );     
+	if( GetGeometry()[i].SolutionStepsDataHas( BALLAST_COEFFICIENT ) )
+	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs( GetGeometry()[i].FastGetSolutionStepValue( BALLAST_COEFFICIENT ) );
       }
-    
+
     rVariables.ExternalVectorValue *= rVariables.ExternalScalarValue;
-    
+
     //STIFFNESS CONDITION:
-    
+
     //defined on condition
     if( this->Has( ELASTIC_LOAD ) ){
       array_1d<double, 3 > & SurfaceStiffness = this->GetValue( ELASTIC_LOAD );
@@ -245,7 +244,7 @@ namespace Kratos
 	    }
 	}
     }
-        
+
     //defined on geometry nodes
     for (SizeType i = 0; i < number_of_nodes; i++)
       {
@@ -276,7 +275,7 @@ namespace Kratos
       else
 	{
 	  ElasticCondition::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
-	  
+
 	  BoundedMatrix<double, 3, 3 > Kij;
 	  BoundedMatrix<double, 3, 3 > Cross_ge;
 	  BoundedMatrix<double, 3, 3 > Cross_gn;
@@ -300,12 +299,12 @@ namespace Kratos
 		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 0) * rIntegrationWeight;
 
 		  noalias(Kij) = coeff * Cross_gn;
-		  
+
 		  coeff = rVariables.ExternalScalarValue
                       * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
 		  noalias(Kij) -= coeff * Cross_ge;
 
-		  
+
 		  BeamMathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 		}
 	    }
@@ -314,7 +313,7 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  
+
 
   //***********************************************************************************
   //***********************************************************************************
@@ -327,14 +326,14 @@ namespace Kratos
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
-      
+
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT);
     KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT_VECTOR);
-    
+
     KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD);
     KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD_VECTOR);
-        
+
     return ErrorCode;
 
     KRATOS_CATCH( "" )

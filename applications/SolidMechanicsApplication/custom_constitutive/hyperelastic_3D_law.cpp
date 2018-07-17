@@ -46,8 +46,7 @@ HyperElastic3DLaw::HyperElastic3DLaw(const HyperElastic3DLaw& rOther)
 
 ConstitutiveLaw::Pointer HyperElastic3DLaw::Clone() const
 {
-    HyperElastic3DLaw::Pointer p_clone(new HyperElastic3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElastic3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

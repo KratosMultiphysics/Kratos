@@ -60,8 +60,7 @@ LinearAssociativePlasticFlowRule::LinearAssociativePlasticFlowRule(LinearAssocia
 
 FlowRule::Pointer LinearAssociativePlasticFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new LinearAssociativePlasticFlowRule(*this));
-  return p_clone;
+  return Kratos::make_shared<LinearAssociativePlasticFlowRule>(*this);
 }
 
 //********************************DESTRUCTOR******************************************

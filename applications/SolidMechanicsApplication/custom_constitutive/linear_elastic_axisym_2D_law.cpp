@@ -40,8 +40,7 @@ LinearElasticAxisym2DLaw::LinearElasticAxisym2DLaw(const LinearElasticAxisym2DLa
 
 ConstitutiveLaw::Pointer LinearElasticAxisym2DLaw::Clone() const
 {
-    LinearElasticAxisym2DLaw::Pointer p_clone(new LinearElasticAxisym2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearElasticAxisym2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

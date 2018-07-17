@@ -213,7 +213,7 @@ void ShellThinElement3D3N::Initialize()
     }
     else
     {
-      theSection = ShellCrossSection::Pointer(new ShellCrossSection());
+      theSection = Kratos::make_shared<ShellCrossSection>();
       theSection->BeginStack();
       theSection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
       theSection->EndStack();
@@ -360,7 +360,7 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     if(props[THICKNESS] <= 0.0)
       KRATOS_THROW_ERROR(std::logic_error, "wrong THICKNESS value provided for element ", this->Id());
 
-    ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
+    ShellCrossSection::Pointer dummySection = Kratos::make_shared<ShellCrossSection>();
     dummySection->BeginStack();
     dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
     dummySection->EndStack();

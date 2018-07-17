@@ -5,7 +5,7 @@
 //   Date:                $Date:        October 2013 $
 //   Revision:            $Revision:             0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_THERMAL_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED )
 #define  KRATOS_THERMAL_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED
@@ -35,7 +35,7 @@ namespace Kratos
 ///@{
 
 
-class ThermalContactDomainPenalty2DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ThermalContactDomainPenalty2DCondition
     : public ThermalContactDomainCondition
 {
 public:
@@ -55,7 +55,7 @@ public:
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
-	
+
 
     ///Tensor order 1 definition
     typedef ContactDomainUtilities::PointType               PointType;
@@ -107,7 +107,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
     //************************************************************************************
@@ -119,7 +119,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
 
@@ -134,8 +134,8 @@ public:
     ///@name Input and output
     ///@{
 
-      /// Turn back information as a string.
-    virtual std::string Info() const
+    /// Turn back information as a string.
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Thermal Contact Domain Penalty 2D Condition #" << Id();
@@ -143,13 +143,13 @@ public:
 
     }
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Thermal Contact Domain Penalty 2D Condition #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -172,14 +172,14 @@ protected:
     /**
      * Calculation of the Contact Master Nodes and Mechanical variables
      */
-    virtual void SetMasterGeometry();
+    void SetMasterGeometry() override;
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, 
-				     ProcessInfo& rCurrentProcessInfo, 
-				     const unsigned int& rPointNumber);
+    void CalculateKinematics(GeneralVariables& rVariables,
+                             ProcessInfo& rCurrentProcessInfo,
+                             const unsigned int& rPointNumber) override;
 
     /**
      * Calculate Contact Element Projections
@@ -189,25 +189,25 @@ protected:
     /**
      * Calculate Integration Weight:
      */
-    double& CalculateIntegrationWeight(double& rIntegrationWeight);
+    double& CalculateIntegrationWeight(double& rIntegrationWeight) override;
 
 
     /**
      * Force construction methods:
      */
-    void CalculateThermalFrictionForce(double &F, GeneralVariables& rVariables, unsigned int& ndi);
+    void CalculateThermalFrictionForce(double &F, GeneralVariables& rVariables, unsigned int& ndi) override;
 
 
     /**
      * Force construction methods:
      */
-    void CalculateThermalConductionForce(double &F, GeneralVariables& rVariables, unsigned int& ndi);
+    void CalculateThermalConductionForce(double &F, GeneralVariables& rVariables, unsigned int& ndi) override;
 
 
     /**
      * Calculate current tangent vector
      */
-    PointType & CalculateCurrentTangent(PointType &rTangent);
+    PointType & CalculateCurrentTangent(PointType &rTangent) override;
 
     ///@}
     ///@name Protected Operations
@@ -220,9 +220,9 @@ protected:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Protected Inquiry
@@ -271,4 +271,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_THERMAL_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_THERMAL_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED  defined

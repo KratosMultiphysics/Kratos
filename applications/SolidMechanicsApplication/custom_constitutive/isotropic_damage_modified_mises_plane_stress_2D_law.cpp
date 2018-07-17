@@ -55,8 +55,7 @@ IsotropicDamageModifiedMisesPlaneStress2DLaw::IsotropicDamageModifiedMisesPlaneS
 
 ConstitutiveLaw::Pointer IsotropicDamageModifiedMisesPlaneStress2DLaw::Clone() const
 {
-    IsotropicDamageModifiedMisesPlaneStress2DLaw::Pointer p_clone(new IsotropicDamageModifiedMisesPlaneStress2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<IsotropicDamageModifiedMisesPlaneStress2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

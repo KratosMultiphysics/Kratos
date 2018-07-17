@@ -61,8 +61,7 @@ SimoJuYieldCriterion::SimoJuYieldCriterion(SimoJuYieldCriterion const& rOther)
 
 YieldCriterion::Pointer SimoJuYieldCriterion::Clone() const
 {
-  YieldCriterion::Pointer p_clone(new SimoJuYieldCriterion(*this));
-  return p_clone;
+  return Kratos::make_shared<SimoJuYieldCriterion>(*this);
 }
 
 //********************************DESTRUCTOR******************************************

@@ -449,7 +449,7 @@ void ShellThickElement3D4N::Initialize() {
     if (props.Has(SHELL_CROSS_SECTION)) {
       theSection = props[SHELL_CROSS_SECTION];
     } else {
-      theSection = ShellCrossSection::Pointer(new ShellCrossSection());
+      theSection = Kratos::make_shared<ShellCrossSection>();
       theSection->BeginStack();
       theSection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
       theSection->EndStack();
@@ -643,8 +643,7 @@ int ShellThickElement3D4N::Check(const ProcessInfo &rCurrentProcessInfo) {
                          "wrong THICKNESS value provided for element ",
                          this->Id());
 
-    ShellCrossSection::Pointer dummySection =
-        ShellCrossSection::Pointer(new ShellCrossSection());
+    ShellCrossSection::Pointer dummySection = Kratos::make_shared<ShellCrossSection>();
     dummySection->BeginStack();
     dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
     dummySection->EndStack();

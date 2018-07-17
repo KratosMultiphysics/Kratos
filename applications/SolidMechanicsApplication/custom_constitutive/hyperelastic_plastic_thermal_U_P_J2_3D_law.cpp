@@ -61,8 +61,7 @@ namespace Kratos
 
   ConstitutiveLaw::Pointer HyperElasticPlasticThermalUPJ23DLaw::Clone() const
   {
-    HyperElasticPlasticThermalUPJ23DLaw::Pointer p_clone(new HyperElasticPlasticThermalUPJ23DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticThermalUPJ23DLaw>(*this);
   }
 
   //*******************************DESTRUCTOR*******************************************

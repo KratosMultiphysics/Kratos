@@ -61,8 +61,7 @@ namespace Kratos
 
   ConstitutiveLaw::Pointer HyperElasticPlasticThermalJ2PlaneStrain2DLaw::Clone() const
   {
-    HyperElasticPlasticThermalJ2PlaneStrain2DLaw::Pointer p_clone(new HyperElasticPlasticThermalJ2PlaneStrain2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticThermalJ2PlaneStrain2DLaw>(*this);
   }
 
   //*******************************DESTRUCTOR*******************************************

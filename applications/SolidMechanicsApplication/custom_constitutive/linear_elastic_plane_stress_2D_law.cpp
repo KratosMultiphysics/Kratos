@@ -40,8 +40,7 @@ LinearElasticPlaneStress2DLaw::LinearElasticPlaneStress2DLaw(const LinearElastic
 
 ConstitutiveLaw::Pointer LinearElasticPlaneStress2DLaw::Clone() const
 {
-    LinearElasticPlaneStress2DLaw::Pointer p_clone(new LinearElasticPlaneStress2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearElasticPlaneStress2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

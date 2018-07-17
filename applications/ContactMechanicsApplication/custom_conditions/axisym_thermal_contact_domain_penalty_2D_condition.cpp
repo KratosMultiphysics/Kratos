@@ -5,7 +5,7 @@
 //   Date:                $Date:                  July 2016 $
 //   Revision:            $Revision:                    0.0 $
 //
-// 
+//
 
 // System includes
 
@@ -28,7 +28,7 @@ AxisymThermalContactDomainPenalty2DCondition::AxisymThermalContactDomainPenalty2
     : ThermalContactDomainPenalty2DCondition( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
- 
+
 }
 
 
@@ -67,7 +67,15 @@ AxisymThermalContactDomainPenalty2DCondition&  AxisymThermalContactDomainPenalty
 
 Condition::Pointer AxisymThermalContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Condition::Pointer(new AxisymThermalContactDomainPenalty2DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+  return Kratos::make_shared<AxisymThermalContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+}
+
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Condition::Pointer AxisymThermalContactDomainPenalty2DCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
+{
+  return this->Create(NewId, ThisNodes, pGetProperties());
 }
 
 
@@ -92,7 +100,7 @@ AxisymThermalContactDomainPenalty2DCondition::~AxisymThermalContactDomainPenalty
 void AxisymThermalContactDomainPenalty2DCondition::CalculateRadius(double & rCurrentRadius,
 						       double & rReferenceRadius,
 						       const Vector& rN)
-							  
+
 
 {
 
@@ -101,21 +109,21 @@ void AxisymThermalContactDomainPenalty2DCondition::CalculateRadius(double & rCur
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
+
     rCurrentRadius=0;
     rReferenceRadius=0;
 
     if ( dimension == 2 )
-    {	
+    {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             //Displacement from the reference to the current configuration
             array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;  
+            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
 	    array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
 	    array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
-	    
+
 	    rCurrentRadius   += CurrentPosition[0]*rN[i];
 	    rReferenceRadius += ReferencePosition[0]*rN[i];
             //std::cout<<" node "<<i<<" -> DeltaDisplacement : "<<DeltaDisplacement<<std::endl;
@@ -135,15 +143,15 @@ void AxisymThermalContactDomainPenalty2DCondition::CalculateRadius(double & rCur
 //************************************************************************************
 
 
-void AxisymThermalContactDomainPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables, 
-						    ProcessInfo& rCurrentProcessInfo, 
+void AxisymThermalContactDomainPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables,
+						    ProcessInfo& rCurrentProcessInfo,
 						    const unsigned int& rPointNumber)
 {
     KRATOS_TRY
 
     //reading shape functions
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
- 
+
     //Set Shape Functions Values for this integration point
     Vector N = row( Ncontainer, rPointNumber);
 
@@ -168,9 +176,9 @@ void AxisymThermalContactDomainPenalty2DCondition::CalculateAndAddLHS(MatrixType
 
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
-  if ( GetProperties()[THICKNESS]>0 ) 
+  if ( GetProperties()[THICKNESS]>0 )
       IntegrationWeight /= GetProperties()[THICKNESS];
-      
+
 
   //contributions to stiffness matrix calculated on the reference config
   this->CalculateAndAddThermalKm( rLeftHandSideMatrix, rVariables, IntegrationWeight );
@@ -186,7 +194,7 @@ void AxisymThermalContactDomainPenalty2DCondition::CalculateAndAddRHS(VectorType
 {
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
-  if ( GetProperties()[THICKNESS]>0 ) 
+  if ( GetProperties()[THICKNESS]>0 )
       IntegrationWeight /= GetProperties()[THICKNESS];
 
 
@@ -232,5 +240,3 @@ void AxisymThermalContactDomainPenalty2DCondition::load( Serializer& rSerializer
 
 
 } // Namespace Kratos
-
-

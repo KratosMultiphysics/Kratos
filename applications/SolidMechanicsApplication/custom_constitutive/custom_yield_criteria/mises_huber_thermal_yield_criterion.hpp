@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2018 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_MISES_HUBER_THERMAL_YIELD_CRITERION_H_INCLUDED )
 #define  KRATOS_MISES_HUBER_THERMAL_YIELD_CRITERION_H_INCLUDED
@@ -44,7 +44,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class MisesHuberThermalYieldCriterion
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberThermalYieldCriterion
 	: public MisesHuberYieldCriterion
 {
     public:
@@ -101,7 +101,7 @@ class MisesHuberThermalYieldCriterion
         ///@}
         ///@name Access
         ///@{
-        
+
 
         ///@}
         ///@name Inquiry
@@ -137,8 +137,8 @@ class MisesHuberThermalYieldCriterion
         ///@}
         ///@name Protected member Variables
         ///@{
-	
-	
+
+
         ///@}
         ///@name Protected Operators
         ///@{
@@ -190,7 +190,7 @@ class MisesHuberThermalYieldCriterion
         ///@name Private  Access
         ///@{
 
-	
+
 	///@}
 	///@name Serialization
 	///@{
@@ -246,6 +246,4 @@ class MisesHuberThermalYieldCriterion
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MISES_HUBER_THERMAL_YIELD_CRITERION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MISES_HUBER_THERMAL_YIELD_CRITERION_H_INCLUDED  defined

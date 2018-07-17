@@ -42,7 +42,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class KRATOS_API(FLUID_MECHANICS_APPLICATION) FluidElement
+class KRATOS_API(PFEM_APPLICATION) FluidElement
     : public Element
 {
 public:
@@ -726,6 +726,13 @@ protected:
                                 ConstitutiveLaw::Parameters& rValues,
                                 const int & rPointNumber);
 
+
+    /**
+     * Set Parameters for the Constitutive Law and Calculate Material Response
+     */
+    virtual void CalculateMaterialResponse(ElementDataType& rVariables,
+                                           ConstitutiveLaw::Parameters& rValues,
+                                           const int & rPointNumber);
 
     /**
      * Get element size from the dofs

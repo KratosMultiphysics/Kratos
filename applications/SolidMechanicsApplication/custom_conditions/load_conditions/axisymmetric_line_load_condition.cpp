@@ -37,7 +37,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   AxisymmetricLineLoadCondition::AxisymmetricLineLoadCondition( AxisymmetricLineLoadCondition const& rOther )
-    : LineLoadCondition(rOther)     
+    : LineLoadCondition(rOther)
   {
   }
 
@@ -45,7 +45,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer AxisymmetricLineLoadCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new AxisymmetricLineLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<AxisymmetricLineLoadCondition> (NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -58,8 +58,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new AxisymmetricLineLoadCondition(NewCondition) );
+    return Kratos::make_shared<AxisymmetricLineLoadCondition>(NewCondition);
   }
 
 
@@ -87,7 +86,7 @@ namespace Kratos
 
     rVariables.Normal[0] = -rVariables.j[rPointNumber](1, 0); //-x_2,e
     rVariables.Normal[1] =  rVariables.j[rPointNumber](0, 0); // x_1,e
-    
+
     //Jacobian to the deformed configuration
     rVariables.Jacobian = norm_2(rVariables.Normal);
 
@@ -111,10 +110,10 @@ namespace Kratos
 
     //Get external load
     this->CalculateExternalLoad(rVariables);
-    
+
     //Calculate radius
     CalculateRadius ( rVariables.CurrentRadius,  rVariables.ReferenceRadius, rVariables.N);
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -209,7 +208,7 @@ namespace Kratos
     ErrorCode = LineLoadCondition::Check(rCurrentProcessInfo);
 
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

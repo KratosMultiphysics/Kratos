@@ -745,10 +745,15 @@ protected:
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     virtual void SetElementData(ElementDataType& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues,
-                                     const int & rPointNumber);
+                                ConstitutiveLaw::Parameters& rValues,
+                                const int & rPointNumber);
 
-
+    /**
+     * Set Parameters for the Constitutive Law and Calculate Material Response
+     */
+    virtual void CalculateMaterialResponse(ElementDataType& rVariables,
+                                           ConstitutiveLaw::Parameters& rValues,
+                                           const int & rPointNumber);
     /**
      * Get element size from the dofs
      */

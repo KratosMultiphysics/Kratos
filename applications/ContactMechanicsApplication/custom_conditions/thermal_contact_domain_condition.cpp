@@ -86,7 +86,7 @@ ThermalContactDomainCondition&  ThermalContactDomainCondition::operator=(Thermal
 
 Condition::Pointer ThermalContactDomainCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Condition::Pointer(new ThermalContactDomainCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+  return Kratos::make_shared<ThermalContactDomainCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -95,8 +95,6 @@ Condition::Pointer ThermalContactDomainCondition::Create( IndexType NewId, Nodes
 
 Condition::Pointer ThermalContactDomainCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
 {
-  KRATOS_THROW_ERROR( std::logic_error, "calling the default constructor for a thermal contact domain condition ... illegal operation!!", "" )
-      
   return this->Create(NewId, ThisNodes, pGetProperties());
 }
 
@@ -368,7 +366,7 @@ void ThermalContactDomainCondition::CalculateHeatConductivity()
 
     // unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
     // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS)[vsize-1];
-    Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();  
+    Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
 
     //Look at the nodes, get the slave and get the Emin
 
@@ -387,7 +385,7 @@ void ThermalContactDomainCondition::CalculateHeatConductivity()
     else{
       Kmin*= 1e-4;
     }
-    
+
     //std::cout<<" Kslave "<<Kslave<<" Kmin "<<Kmin<<std::endl;
 
     mContactVariables.StabilizationFactor= alpha_stab/Kmin;
@@ -396,7 +394,7 @@ void ThermalContactDomainCondition::CalculateHeatConductivity()
     double HeatTransferCoeffitient = 5.0e6;
     mContactVariables.StabilizationFactor= alpha_stab * HeatTransferCoeffitient;
 
-    
+
 }
 
 
@@ -510,11 +508,11 @@ void ThermalContactDomainCondition::CalculateConditionalSystem( MatrixType& rLef
     KRATOS_TRY
 
     GeneralVariables Variables;
-    
+
     for ( unsigned int PointNumber = 0; PointNumber < 1 ; PointNumber++ )
     {
 	this->CalculateKinematics(Variables, rCurrentProcessInfo, PointNumber);
-	
+
         double IntegrationWeight = 1 ;  //all components are multiplied by this
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
@@ -537,7 +535,7 @@ void ThermalContactDomainCondition::CalculateConditionalSystem( MatrixType& rLef
 
 
         }
- 
+
     }
 
 
@@ -591,24 +589,24 @@ inline void ThermalContactDomainCondition::CalculateAndAddThermalContactForces(V
 
     Vector ThermalConductionForce = ZeroVector(3);
     Vector ThermalFrictionForce   = ZeroVector(3);
-    
+
     for (unsigned int ndi=0; ndi<size; ndi++)
     {
         this->CalculateThermalFrictionForce(ThermalFrictionForce[ndi], rVariables, ndi);
 
 	this->CalculateThermalConductionForce(ThermalConductionForce[ndi], rVariables, ndi);
 
-	
+
 	rRightHandSideVector[ndi] -=(ThermalConductionForce[ndi] + ThermalFrictionForce[ndi]);
     }
-    
+
     rRightHandSideVector  *=  rIntegrationWeight;
 
     // std::cout<<std::endl;
     // std::cout<<" ThermalConductionForce "<<ThermalConductionForce*rIntegrationWeight<<" tauk "<<mContactVariables.StabilizationFactor<<" gap Th "<<rVariables.ThermalGap<<" Projections Vector "<< rVariables.ProjectionsVector<<std::endl;
     // std::cout<<" ThermalFrictionForce "<<ThermalFrictionForce*rIntegrationWeight<<std::endl;
     // std::cout<<" Ftherm_contact "<<rRightHandSideVector<<std::endl;
-    
+
 
     KRATOS_CATCH( "" )
 }
@@ -622,7 +620,7 @@ inline void ThermalContactDomainCondition::CalculateAndAddThermalContactForces(V
 void ThermalContactDomainCondition::CalculateAndAddThermalKm(MatrixType& rLeftHandSideMatrix,
 							     GeneralVariables& rVariables,
 							     double& rIntegrationWeight)
-	
+
 {    KRATOS_TRY
 
     //contributions to stiffness matrix calculated on the reference config
@@ -655,7 +653,7 @@ void ThermalContactDomainCondition::CalculateOnIntegrationPoints( const Variable
 
 
     KRATOS_CATCH( "" )
-   
+
 }
 
 //************************************************************************************
@@ -720,14 +718,14 @@ void ThermalContactDomainCondition::CalculateRelativeVelocity(GeneralVariables& 
     CalculateRelativeDisplacement(rVariables, CurrentVelocity,rCurrentProcessInfo);
 
     if( norm_2(TangentVelocity)>0 ){
-      
+
       if(norm_2(TangentVelocity)<1e-2*(norm_2(CurrentVelocity)/norm_2(TangentVelocity)))
 	{
 	  TangentVelocity.clear();
 	}
     }
     else{
-      
+
       TangentVelocity = CurrentVelocity;
     }
 }
@@ -754,7 +752,7 @@ void ThermalContactDomainCondition::CalculateRelativeDisplacement(GeneralVariabl
 
         TangentDisplacement+=CurrentDisplacement;
     }
-    
+
     //Relative tangent movement of the slave if the master is fixed (the direction is implicit in the method)
     TangentDisplacement = rVariables.CurrentSurface.Tangent*(inner_prod(TangentDisplacement,rVariables.CurrentSurface.Tangent));
 
@@ -808,5 +806,3 @@ void ThermalContactDomainCondition::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

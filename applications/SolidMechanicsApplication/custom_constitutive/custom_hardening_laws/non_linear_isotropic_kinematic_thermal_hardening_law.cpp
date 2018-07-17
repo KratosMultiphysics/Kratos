@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2018 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 // System includes
 #include <string>
@@ -29,7 +29,7 @@ namespace Kratos
 NonLinearIsotropicKinematicThermalHardeningLaw::NonLinearIsotropicKinematicThermalHardeningLaw()
 	:NonLinearIsotropicKinematicHardeningLaw()
 {
-   
+
 }
 
 
@@ -56,8 +56,7 @@ NonLinearIsotropicKinematicThermalHardeningLaw::NonLinearIsotropicKinematicTherm
 
 HardeningLaw::Pointer NonLinearIsotropicKinematicThermalHardeningLaw::Clone() const
 {
-  HardeningLaw::Pointer p_clone(new NonLinearIsotropicKinematicThermalHardeningLaw(*this));
-  return p_clone;
+  return Kratos::make_shared<NonLinearIsotropicKinematicThermalHardeningLaw>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
@@ -79,7 +78,7 @@ double NonLinearIsotropicKinematicThermalHardeningLaw::CalculateThermalReference
 
 	//parameters for the thermal solution
 	const double& ReferenceConductivity = GetProperties()[REFERENCE_CONDUCTIVITY];
-	const double& ReferenceTemperature  = GetProperties()[REFERENCE_TEMPERATURE];       
+	const double& ReferenceTemperature  = GetProperties()[REFERENCE_TEMPERATURE];
 
 	//thermal effect in the initial parameters
 	double reference_temp_effect = ( 1.0 - ReferenceConductivity * (rTemperature - ReferenceTemperature) );
@@ -95,9 +94,9 @@ double NonLinearIsotropicKinematicThermalHardeningLaw::CalculateThermalCurrentEf
 
 	//parameters for the thermal solution
 	const double& HardnessConductivity  = GetProperties()[HARDNESS_CONDUCTIVITY];
-	const double& ReferenceTemperature  = GetProperties()[REFERENCE_TEMPERATURE];       
+	const double& ReferenceTemperature  = GetProperties()[REFERENCE_TEMPERATURE];
 
-	//thermal effect in the final parameters	
+	//thermal effect in the final parameters
 	double current_temp_effect   = ( 1.0 - HardnessConductivity * (rTemperature - ReferenceTemperature) );
 
 	return current_temp_effect;
@@ -115,7 +114,7 @@ double& NonLinearIsotropicKinematicThermalHardeningLaw::CalculateDeltaThermalHar
         //linear hardening properties
 	double  YieldStress                 =  GetProperties()[YIELD_STRESS];
 	double  KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
-	
+
 	//exponential saturation properties
    	double  K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
 	double  K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
@@ -129,10 +128,10 @@ double& NonLinearIsotropicKinematicThermalHardeningLaw::CalculateDeltaThermalHar
 
 	//Linear Hardening law: (mTheta = 1)
 	rDeltaThermalHardening  = ( YieldStress * ReferenceConductivity + this->mTheta * KinematicHardeningConstant * HardnessConductivity * rEquivalentPlasticStrain );
-	
+
 	//Exponential Saturation:
 	rDeltaThermalHardening += ( K_infinity * HardnessConductivity -K_reference * ReferenceConductivity ) * (1.0 - exp( (-1.0) * Delta * rEquivalentPlasticStrain ) );
-	
+
 	return rDeltaThermalHardening;
 }
 

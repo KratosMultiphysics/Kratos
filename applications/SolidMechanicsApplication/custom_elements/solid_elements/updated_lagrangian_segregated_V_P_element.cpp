@@ -216,28 +216,94 @@ void UpdatedLagrangianSegregatedVPElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
+void UpdatedLagrangianSegregatedVPElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
+{
+    //update internal (historical) variables
+    mDeterminantF0[rPointNumber] = rVariables.detF * rVariables.detF0;
+    noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
 void UpdatedLagrangianSegregatedVPElement::InitializeElementData (ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    LargeDisplacementSegregatedVPElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
-    //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        SolidElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
-    //set variables including all integration points values
+        break;
+      }
+    case PRESSURE_STEP:
+      {
 
-    //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+        //initialize element variables
+        rVariables.N.resize(number_of_nodes,false);
+        rVariables.H.resize(dimension,dimension,false);
+        rVariables.F.resize(dimension,dimension,false);
+        rVariables.DN_DX.resize(number_of_nodes, dimension,false);
+        rVariables.DeltaPosition.resize(number_of_nodes, dimension,false);
+
+        //reading shape functions
+        rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+
+        //reading shape functions local gradients
+        rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+
+        //set process info
+        rVariables.SetProcessInfo(rCurrentProcessInfo);
+
+        //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
+        rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
+
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+
+  //Calculate Delta Position
+  rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+
+  //set variables including all integration points values
+
+  //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+  rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedVPElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
+void UpdatedLagrangianSegregatedVPElement::CalculateMaterialResponse(ElementDataType& rVariables,
+                                                                     ConstitutiveLaw::Parameters& rValues,
+                                                                     const int & rPointNumber)
 {
-    //update internal (historical) variables
-    mDeterminantF0[rPointNumber] = rVariables.detF * rVariables.detF0;
-    noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
+    KRATOS_TRY
+
+    switch( mStepVariable )
+    {
+      case VELOCITY_STEP:
+        {
+          SolidElement::CalculateMaterialResponse(rVariables,rValues,rPointNumber);
+          break;
+        }
+      case PRESSURE_STEP:
+        {
+          break;
+        }
+      default:
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+    }
+
+    KRATOS_CATCH( "" )
 }
 
 
@@ -257,15 +323,10 @@ void UpdatedLagrangianSegregatedVPElement::CalculateKinematics(ElementDataType& 
     //Set Shape Functions Values for this integration point
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
-    //Parent to reference configuration
-    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
-
-    //Compute cartesian derivatives [dN/dx_n]
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Deformation Gradient F [dx_n+1/dx_n] to be updated
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
@@ -282,14 +343,40 @@ void UpdatedLagrangianSegregatedVPElement::CalculateKinematics(ElementDataType& 
 
     //Determinant of the Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
-    rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
-    //Compute the deformation matrix B
-    const GeometryType& rGeometry = GetGeometry();
-    ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B,rGeometry,rVariables.DN_DX);
+    switch(mStepVariable)
+    {
+      case VELOCITY_STEP:
+        {
+
+          //Parent to reference configuration
+          rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+
+          //Deformation Gradient F0
+          rVariables.F0    = mDeformationGradientF0[rPointNumber];
+
+          //Compute the deformation matrix B
+          const GeometryType& rGeometry = GetGeometry();
+          ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B,rGeometry,rVariables.DN_DX);
+
+          break;
+        }
+      case PRESSURE_STEP:
+        {
+
+          GeometryType&  rGeometry = GetGeometry();
+          //Calculate velocity gradient matrix
+          ElementUtilities::CalculateVelocityGradient( rVariables.H, rGeometry, rVariables.DN_DX );
+
+          break;
+        }
+      default:
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+    }
 
     KRATOS_CATCH( "" )
 }
+
 
 
 //*********************************COMPUTE KINETICS***********************************
@@ -433,7 +520,6 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddKpp(MatrixType& rLeftH
     }
   }
 
-
   KRATOS_CATCH( "" )
 }
 
@@ -478,10 +564,9 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
     const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
 
     //h_n (normal h)
-    Matrix L(dimension,dimension);
-    ElementUtilities::CalculateVelocityGradient( L, rGeometry, rVariables.DN_DX );
+    Matrix D(dimension,dimension);
+    noalias(D) = 0.5 * (trans(rVariables.H)+rVariables.H);
 
-    Matrix D = 0.5 * (trans(L)+L);
 
     for( SizeType i=0; i<Faces.size(); ++i ){
 
@@ -529,14 +614,11 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
 
   }
 
-  Matrix L(dimension,dimension);
-  ElementUtilities::CalculateVelocityGradient( L, rGeometry, rVariables.DN_DX );
-
   // Add Divergence and volume acceleration vector
   double TraceVelocityGradient = 0;
   for (SizeType i = 0; i < dimension; i++)
   {
-    TraceVelocityGradient += L(i,i);
+    TraceVelocityGradient += rVariables.H(i,i);
   }
 
   Vector VolumeForce(dimension);
@@ -604,6 +686,7 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
       }
     }
   }
+
 
   KRATOS_CATCH( "" )
 }

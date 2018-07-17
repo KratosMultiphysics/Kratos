@@ -47,7 +47,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class ThermalContactDomainCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ThermalContactDomainCondition
     : public Condition
 {
 public:
@@ -68,7 +68,7 @@ public:
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
-	
+
 
     ///Tensor order 1 definition
     typedef ContactDomainUtilities::PointType               PointType;
@@ -101,7 +101,7 @@ protected:
 
         std::vector<BaseLengths>   CurrentBase;    //Current Base Lengths variables
         std::vector<BaseLengths>   ReferenceBase;  //Reference Base Lengths variables
- 
+
 
         //Axisymmetric
         double  CurrentRadius;
@@ -137,19 +137,19 @@ protected:
          * sets the value of a specified pointer variable
 	 */
 
-	void SetMasterGeometry  (GeometryType& rGeometry){ mpMasterGeometry = &rGeometry; } 
-        void SetMasterElement   (ElementType& rElement){ mpMasterElement = &rElement; } 
-        void SetMasterCondition (ConditionType& rCondition){ mpMasterCondition = &rCondition; } 
-        void SetMasterNode      (NodeType& rNode){ mpMasterNode = &rNode; } 
+	void SetMasterGeometry  (GeometryType& rGeometry){ mpMasterGeometry = &rGeometry; }
+        void SetMasterElement   (ElementType& rElement){ mpMasterElement = &rElement; }
+        void SetMasterCondition (ConditionType& rCondition){ mpMasterCondition = &rCondition; }
+        void SetMasterNode      (NodeType& rNode){ mpMasterNode = &rNode; }
 
 	/**
          * returns the value of a specified pointer variable
          */
 
-        GeometryType& GetMasterGeometry()   { return (*mpMasterGeometry); } 
-	ElementType& GetMasterElement()     { return (*mpMasterElement); } 
-	ConditionType& GetMasterCondition() { return (*mpMasterCondition); } 
-	NodeType& GetMasterNode()           { return (*mpMasterNode); } 
+        GeometryType& GetMasterGeometry()   { return (*mpMasterGeometry); }
+	ElementType& GetMasterElement()     { return (*mpMasterElement); }
+	ConditionType& GetMasterCondition() { return (*mpMasterCondition); }
+	NodeType& GetMasterNode()           { return (*mpMasterNode); }
 
 
     } ContactVariables;
@@ -199,7 +199,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -208,7 +208,7 @@ public:
      * @param ThisNodes: the nodes of the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************* GETTING METHODS
 
@@ -216,32 +216,32 @@ public:
      * Returns the currently selected integration method
      * @return current integration method selected
      */
-    IntegrationMethod GetIntegrationMethod();
+    IntegrationMethod GetIntegrationMethod() override;
 
     /**
      * Sets on rConditionalDofList the degrees of freedom of the considered condition geometry
      */
-    void GetDofList(DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rResult the ID's of the condition degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
 
@@ -261,32 +261,32 @@ public:
     /**
      * Set a double Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
     /**
      * Set a Vector Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set a Matrix Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     //GET:
     /**
      * Set on rVariable a double Value from the Condition Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set on rVariable a Vector Value from the Condition Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set on rVariable a Matrix Value from the Condition Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -296,23 +296,23 @@ public:
      * Called to initialize the condition.
      * Must be called before any calculation is done
      */
-    void Initialize();
+    void Initialize() override;
 
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
 
 
@@ -327,7 +327,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -335,7 +335,7 @@ public:
      * @param rRightHandSideVector: the conditional right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -343,24 +343,24 @@ public:
      * @param rLeftHandSideVector: the conditional left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 
     //on integration points:
     /**
      * Calculate a double Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Vector Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Matrix Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -373,7 +373,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
 
@@ -389,7 +389,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Thermal Contact Domain Condition #" << Id();
@@ -397,13 +397,13 @@ public:
 
     }
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Thermal Contact Domain Condition #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -438,7 +438,7 @@ protected:
 
 
     /**
-     * Contact Domain Utilities 
+     * Contact Domain Utilities
      */
     ContactDomainUtilities  mContactUtilities;
 
@@ -450,10 +450,9 @@ protected:
      * Calculation of the Contact Master Nodes and Mechanical variables
      */
     virtual void SetMasterGeometry()
-	{
-		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
-
-	};
+    {
+      KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
+    };
 
     /**
      * Calculate Thermal Conductivity
@@ -474,13 +473,12 @@ protected:
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, 
-				     ProcessInfo& rCurrentProcessInfo, 
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
+				     ProcessInfo& rCurrentProcessInfo,
 				     const unsigned int& rPointNumber)
-	{
-		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
-
-	};
+    {
+      KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
+    };
 
 
 
@@ -502,16 +500,16 @@ protected:
     /**
      * Calculate LHS
      */
-    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, 
-				    GeneralVariables& rVariables, 
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+				    GeneralVariables& rVariables,
 				    double& rIntegrationWeight);
 
     /**
      * Calculate RHS
      */
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
-				    GeneralVariables& rVariables, 
-				    double& rIntegrationWeight);
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
 
     /**
      * Calculation of the Material Stiffness Matrix. Ktherm =  TauK * ([proj] * [proj]T)
@@ -586,9 +584,9 @@ protected:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Protected Inquiry
@@ -637,4 +635,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_THERMAL_CONTACT_DOMAIN_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_THERMAL_CONTACT_DOMAIN_CONDITION_H_INCLUDED  defined

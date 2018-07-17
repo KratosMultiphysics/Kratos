@@ -61,8 +61,7 @@ MisesHuberYieldCriterion::MisesHuberYieldCriterion(MisesHuberYieldCriterion cons
 
 YieldCriterion::Pointer MisesHuberYieldCriterion::Clone() const
 {
-  YieldCriterion::Pointer p_clone(new MisesHuberYieldCriterion(*this));
-  return p_clone;
+  return Kratos::make_shared<MisesHuberYieldCriterion>(*this);
 }
 
 //********************************DESTRUCTOR******************************************

@@ -61,8 +61,7 @@ ModifiedMisesYieldCriterion::ModifiedMisesYieldCriterion(ModifiedMisesYieldCrite
 
 YieldCriterion::Pointer ModifiedMisesYieldCriterion::Clone() const
 {
-  YieldCriterion::Pointer p_clone(new ModifiedMisesYieldCriterion(*this));
-  return p_clone;
+  return Kratos::make_shared<ModifiedMisesYieldCriterion>(*this);
 }
 
 //********************************DESTRUCTOR******************************************

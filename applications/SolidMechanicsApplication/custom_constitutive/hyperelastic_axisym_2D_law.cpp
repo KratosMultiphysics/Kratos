@@ -32,8 +32,7 @@ HyperElasticAxisym2DLaw::HyperElasticAxisym2DLaw(const HyperElasticAxisym2DLaw& 
 
 ConstitutiveLaw::Pointer HyperElasticAxisym2DLaw::Clone() const
 {
-    HyperElasticAxisym2DLaw::Pointer p_clone(new HyperElasticAxisym2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticAxisym2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

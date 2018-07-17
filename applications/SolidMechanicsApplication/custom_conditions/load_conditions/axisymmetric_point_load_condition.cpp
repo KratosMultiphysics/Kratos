@@ -38,7 +38,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   AxisymmetricPointLoadCondition::AxisymmetricPointLoadCondition( AxisymmetricPointLoadCondition const& rOther )
-    : PointLoadCondition(rOther)     
+    : PointLoadCondition(rOther)
   {
   }
 
@@ -48,7 +48,7 @@ namespace Kratos
 							    NodesArrayType const& ThisNodes,
 							    PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new AxisymmetricPointLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<AxisymmetricPointLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -62,8 +62,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new AxisymmetricPointLoadCondition(NewCondition) );
+    return Kratos::make_shared<AxisymmetricPointLoadCondition>(NewCondition);
   }
 
 
@@ -88,11 +87,11 @@ namespace Kratos
     KRATOS_TRY
 
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius);
-    
+
     rVariables.Jacobian = 1.0;
 
     this->CalculateExternalLoad(rVariables);
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -164,7 +163,7 @@ namespace Kratos
     ErrorCode = PointLoadCondition::Check(rCurrentProcessInfo);
 
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

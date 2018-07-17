@@ -123,10 +123,10 @@ Element::Pointer SolidElement::Clone( IndexType NewId, NodesArrayType const& rTh
       {
 	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
       }
-    
+
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-    
+
     return Kratos::make_shared< SolidElement >(NewElement);
 }
 
@@ -657,6 +657,26 @@ void SolidElement::SetElementData(ElementDataType& rVariables,
 
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+void SolidElement::CalculateMaterialResponse(ElementDataType& rVariables,
+                                             ConstitutiveLaw::Parameters& rValues,
+                                             const int & rPointNumber)
+{
+    KRATOS_TRY
+
+    //set general variables to constitutivelaw parameters
+    this->SetElementData(rVariables,rValues,rPointNumber);
+
+    //compute stresses and constitutive parameters
+    mConstitutiveLawVector[rPointNumber]->CalculateMaterialResponse(rValues, rVariables.StressMeasure);
+
+    KRATOS_CATCH( "" )
+}
+
+
 //************************************************************************************
 //************************************************************************************
 
@@ -691,11 +711,8 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
         //compute element kinematic variables B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
-        //set general variables to constitutivelaw parameters
-        this->SetElementData(Variables,Values,PointNumber);
-
-        //compute stresses and constitutive parameters
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
+        //calculate material response
+        this->CalculateMaterialResponse(Variables,Values,PointNumber);
 
 	//some transformation of the configuration can be needed (UL element specially)
         this->TransformElementData(Variables,PointNumber);
@@ -1468,11 +1485,11 @@ void SolidElement::CalculateKinematics(ElementDataType& rVariables, const double
 Matrix& SolidElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
-        
+
     const GeometryType& rGeometry = GetGeometry();
 
     ElementUtilities::CalculateDeltaPosition(rDeltaPosition,rGeometry);
-    
+
     return rDeltaPosition;
 
     KRATOS_CATCH( "" )
@@ -1891,7 +1908,7 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
 
     noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
-    
+
     //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) ){
@@ -1910,7 +1927,7 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
     }
 
     if( alpha != 0 || beta != 0){
-      
+
       //1.-Calculate StiffnessMatrix:
 
       MatrixType StiffnessMatrix  = Matrix();
@@ -1928,7 +1945,7 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
       //Rayleigh Damping Matrix: alpha*M + beta*K
       rDampingMatrix  = alpha * MassMatrix;
       rDampingMatrix += beta  * StiffnessMatrix;
-      
+
     }
 
     KRATOS_CATCH( "" )

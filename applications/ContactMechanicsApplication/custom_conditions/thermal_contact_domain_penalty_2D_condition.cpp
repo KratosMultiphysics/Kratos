@@ -5,7 +5,7 @@
 //   Date:                $Date:                  July 2016 $
 //   Revision:            $Revision:                    0.0 $
 //
-// 
+//
 
 // System includes
 
@@ -66,7 +66,7 @@ ThermalContactDomainPenalty2DCondition&  ThermalContactDomainPenalty2DCondition:
 
 Condition::Pointer ThermalContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Condition::Pointer(new ThermalContactDomainPenalty2DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+  return Kratos::make_shared<ThermalContactDomainPenalty2DCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 
@@ -105,7 +105,7 @@ void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
         if(MasterNode.Id()==MasterElement.GetGeometry()[i].Id())
         {
 	    slave=i;
-	    
+
         }
     }
 
@@ -115,7 +115,7 @@ void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
 
         NodesArrayType vertex;
 	mContactVariables.order.resize(GetGeometry().PointsNumber(),false);
-	
+
         for(unsigned int i=0; i<GetGeometry().PointsNumber(); i++)
         {
             bool iset=false;
@@ -150,13 +150,13 @@ void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
 
 	//Permute
 	std::vector<unsigned int> permute (5);
-	
-	permute[0]=0; 
+
+	permute[0]=0;
 	permute[1]=1;
 	permute[2]=2;
 	permute[3]=0;
 	permute[4]=1;
-	
+
 	//reorder counter-clock-wise
 	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
 	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
@@ -168,8 +168,8 @@ void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
 	// }
 	// mpMasterGeometry= GetGeometry().Create(vertex);
 
-	mContactVariables.SetMasterGeometry( MasterElement.GetGeometry() ); 
-       
+	mContactVariables.SetMasterGeometry( MasterElement.GetGeometry() );
+
     }
     else
     {
@@ -177,19 +177,19 @@ void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
 
     }
 
-    
+
 }
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
 
-void ThermalContactDomainPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables, 
-						    ProcessInfo& rCurrentProcessInfo, 
+void ThermalContactDomainPenalty2DCondition::CalculateKinematics(GeneralVariables& rVariables,
+						    ProcessInfo& rCurrentProcessInfo,
 						    const unsigned int& rPointNumber)
 {
     KRATOS_TRY
- 
+
     //Calculate Current Contact Projections
     this->CalcProjections(rVariables,rCurrentProcessInfo);
 
@@ -206,7 +206,7 @@ void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & 
 
     //Contact face segment node1-node2
     unsigned int node1=mContactVariables.nodes[0];
-    unsigned int node2=mContactVariables.nodes[1];    
+    unsigned int node2=mContactVariables.nodes[1];
     unsigned int slave=mContactVariables.slaves.back();
 
     //a.- Compute the Reference Normal and Tangent
@@ -219,7 +219,7 @@ void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & 
 
     rVariables.ReferenceSurface.Normal=mContactUtilities.CalculateFaceNormal(rVariables.ReferenceSurface.Normal,PP1,PP2);
 
-    
+
     //Set Reference Tangent
     rVariables.ReferenceSurface.Tangent=mContactUtilities.CalculateFaceTangent(rVariables.ReferenceSurface.Tangent,rVariables.ReferenceSurface.Normal);
 
@@ -281,7 +281,7 @@ void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & 
     mContactUtilities.CalculateBaseDistances (rVariables.ReferenceBase[0],P1,P2,PS,rVariables.ReferenceSurface.Normal);
 
     //d.-obtain the (thermal_gap)
-    
+
     double& TS  =  GetGeometry()[slave].FastGetSolutionStepValue(TEMPERATURE);
     double& T1  =  GetGeometry()[node1].FastGetSolutionStepValue(TEMPERATURE);
     double& T2  =  GetGeometry()[node2].FastGetSolutionStepValue(TEMPERATURE);
@@ -289,16 +289,16 @@ void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & 
     rVariables.ThermalGap  = TS * rVariables.ProjectionsVector[slave];
     rVariables.ThermalGap += T1 * rVariables.ProjectionsVector[node1];
     rVariables.ThermalGap += T2 * rVariables.ProjectionsVector[node2];
-    
+
 
     //CHECK IF THE ELEMENT IS ACTIVE and THERE IS FRICTION:
 
     //Check if is active checking the mechanical force component
     rVariables.Options.Set(ACTIVE,false);
 
-    
+
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    
+
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -308,11 +308,11 @@ void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & 
 	    break;
 	}
     }
-    
+
 
     //Check if is stick or slip checking RelativeTangent Velocity and the Friction (Tangent) force component
     rVariables.Options.Set(SLIP,false); //impose stick
-    
+
     PointType TangentVelocity (3,0.0);
     CalculateRelativeVelocity(rVariables, TangentVelocity, rCurrentProcessInfo);
 
@@ -322,7 +322,7 @@ void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & 
 
     PointType TangentForce = ContactForce;
     TangentForce -= (inner_prod(ContactForce,rVariables.CurrentSurface.Normal)) * ContactForce;
- 
+
     rVariables.FrictionForceNorm    = norm_2(TangentForce);
 
 
@@ -337,10 +337,10 @@ void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & 
 
 double& ThermalContactDomainPenalty2DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
-    
+
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if ( dimension == 2 ){   
+    if ( dimension == 2 ){
       ElementType& MasterElement = mContactVariables.GetMasterElement();
       rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
     }
@@ -367,27 +367,27 @@ void ThermalContactDomainPenalty2DCondition::CalculateThermalConductionForce (do
 void ThermalContactDomainPenalty2DCondition::CalculateThermalFrictionForce (double &F, GeneralVariables& rVariables, unsigned int& ndi)
 {
 
- 
+
     PointType & ContactForce = GetGeometry()[ndi].FastGetSolutionStepValue(CONTACT_FORCE);
 
     PointType TangentForce = ContactForce;
     TangentForce -= (inner_prod(ContactForce,rVariables.CurrentSurface.Normal)) * ContactForce;
- 
+
     double FrictionForceNorm = norm_2(TangentForce);
 
     //this must be introduced as a property
     double HeatWorkFraction = 0.9;
 
-    
+
     F=0.0;
     if( rVariables.Options.Is(SLIP) )
-    {    
+    {
       F = rVariables.CurrentSurface.Tangent[ndi] * FrictionForceNorm * rVariables.RelativeVelocityNorm * 0.5 * HeatWorkFraction;
     }
 
-    
+
     //std::cout<<" Thermal Friction Force [friction_norm: "<<FrictionForceNorm<<" velocity_norm: "<<rVariables.RelativeVelocityNorm<<" F "<<F<<"]"<<std::endl;
-    
+
 }
 
 
@@ -403,10 +403,10 @@ ContactDomainUtilities::PointType & ThermalContactDomainPenalty2DCondition::Calc
 
 	PointType P1  =  GetGeometry()[node1].Coordinates();
 	PointType P2  =  GetGeometry()[node2].Coordinates();
-  
+
 	//Set Reference Tangent
 	rTangent = mContactUtilities.CalculateFaceTangent(rTangent,P1,P2);
-  
+
 	return rTangent;
 
 }
@@ -445,5 +445,3 @@ void ThermalContactDomainPenalty2DCondition::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

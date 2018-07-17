@@ -90,9 +90,9 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
   this->Set(BOUNDARY);
 
   this->SetValue(CHILDREN_CONDITIONS, mChildConditions);
-  
+
   mInitializedChildren = rOther.mInitializedChildren;
-  
+
   return *this;
 }
 
@@ -100,10 +100,10 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
 //*********************************CREATE*********************************************
 //************************************************************************************
 
-Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, 
+Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,
 					       PropertiesType::Pointer pProperties ) const
 {
-  return Condition::Pointer(new CompositeCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+  return Kratos::make_shared<CompositeCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 
@@ -114,8 +114,8 @@ Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType c
 Condition::Pointer CompositeCondition::Create( IndexType NewId, GeometryType::Pointer pGeom,
 					       PropertiesType::Pointer pProperties) const
 {
-  
-  return Condition::Pointer(new CompositeCondition( NewId, pGeom, pProperties ) );
+
+  return Kratos::make_shared<CompositeCondition>( NewId, pGeom, pProperties );
 }
 
 
@@ -124,12 +124,12 @@ Condition::Pointer CompositeCondition::Create( IndexType NewId, GeometryType::Po
 
 Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  
+
   CompositeCondition NewCompositeCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
   if( this->mChildConditions.size() )
     NewCompositeCondition.mInitializedChildren = true;
-  
+
   for (ConditionConstantIterator cn = this->mChildConditions.begin(); cn != this->mChildConditions.end(); ++cn)
     {
       Condition::Pointer pNewChildCondition;
@@ -141,7 +141,7 @@ Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType co
 
   NewCompositeCondition.SetData(this->GetData());
   NewCompositeCondition.SetFlags(this->GetFlags());
-  
+
   return Kratos::make_shared< CompositeCondition > (NewCompositeCondition);
 }
 
@@ -160,11 +160,11 @@ CompositeCondition::~CompositeCondition()
 //************************************************************************************
 //************************************************************************************
 
-  
+
 void CompositeCondition::AddChild(ConditionType::Pointer pNewChildCondition)
 {
   bool set = false;
-      
+
   if( pNewChildCondition->Is(BOUNDARY) ){ //not add composite conditions as child conditions
     set = true;
   }
@@ -175,7 +175,7 @@ void CompositeCondition::AddChild(ConditionType::Pointer pNewChildCondition)
 	  set=true;
       }
   }
-	
+
   if(!set)
     mChildConditions.insert(mChildConditions.begin(), pNewChildCondition);
 }
@@ -191,7 +191,7 @@ CompositeCondition::IntegrationMethod CompositeCondition::GetIntegrationMethod()
     {
       return cn->GetIntegrationMethod();
     }
-  
+
   return Condition::GetIntegrationMethod();
 }
 
@@ -211,15 +211,15 @@ void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, Proces
       if( IsActive(cn, rCurrentProcessInfo) ){
 
 	cn->GetDofList(LocalConditionalDofList,rCurrentProcessInfo);
-	
+
 	for(unsigned int i=0; i<LocalConditionalDofList.size(); i++)
 	  {
 	    rConditionalDofList.push_back(LocalConditionalDofList[i]);
 	  }
       }
-      
+
     }
-  
+
 }
 
 //************************************************************************************
@@ -227,12 +227,12 @@ void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, Proces
 
 void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
-  
+
   rResult.clear();
   rResult.resize(0);
 
   EquationIdVectorType LocalResult;
-   
+
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn, rCurrentProcessInfo) ){
@@ -244,9 +244,9 @@ void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult, Proces
 	    rResult.push_back(LocalResult[i]);
 	  }
       }
-      
+
     }
-  
+
 }
 
 
@@ -260,7 +260,7 @@ bool CompositeCondition::IsActive(ConditionIterator iChildCondition, const Proce
 
   if(rCurrentProcessInfo.IsNot(THERMAL) && iChildCondition->IsNot(THERMAL))
     return true;
-  
+
   return false;
 }
 
@@ -278,7 +278,7 @@ void CompositeCondition::GetValuesVector( Vector& rValues, int Step )
       cn->GetValuesVector(LocalValues,Step);
       if(LocalValues.size() != rValues.size())
 	rValues.resize(LocalValues.size(),false);
-      
+
       rValues+=LocalValues;
   }
 }
@@ -381,14 +381,14 @@ void CompositeCondition::GetValueOnIntegrationPoints( const Variable<Vector>& rV
       rValues.resize(LocalValues.size());
 
     for(unsigned int i=0; i<LocalValues.size(); i++)
-      {     
+      {
 	if ( LocalValues[i].size() != rValues[i].size() )
 	  rValues[i].resize( LocalValues[i].size(), false );
       }
 
     for(unsigned int i=0; i<LocalValues.size(); i++)
       rValues[i] += LocalValues[i];
- 
+
   }
 }
 
@@ -396,7 +396,7 @@ void CompositeCondition::GetValueOnIntegrationPoints( const Variable<Vector>& rV
 //************************************************************************************
 
 void CompositeCondition::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-							 std::vector<Matrix>& rValues, 
+							 std::vector<Matrix>& rValues,
 							 const ProcessInfo& rCurrentProcessInfo )
 {
   std::vector< Matrix > LocalValues;
@@ -408,7 +408,7 @@ void CompositeCondition::GetValueOnIntegrationPoints( const Variable<Matrix>& rV
       rValues.resize(LocalValues.size());
 
     for(unsigned int i=0; i<LocalValues.size(); i++)
-      {     
+      {
 	if ( LocalValues[i].size2() != rValues[i].size2() )
 	  rValues[i].resize( LocalValues[i].size1(), LocalValues[i].size2(), false );
       }
@@ -430,53 +430,53 @@ void CompositeCondition::Initialize()
 
    if(mInitializedChildren == false)
      this->InitializeChildren();
-     
+
    for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       SetValueToChildren(MASTER_ELEMENTS);
       SetValueToChildren(MASTER_NODES);
-	
+
       cn->Initialize();
     }
- 
+
 
    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
 //************************************************************************************
-  
+
 void CompositeCondition::InitializeChildren()
 {
   KRATOS_TRY
 
   if(!this->Has(CHILDREN_CONDITIONS)){
-    
+
     this->SetValue(CHILDREN_CONDITIONS, mChildConditions);
-    
+
   }
   else{
 
     if( mChildConditions.size() == 0 ){
-    
+
       ConditionContainerType& ChildConditions = this->GetValue(CHILDREN_CONDITIONS);
-      
+
       for (ConditionIterator cn = ChildConditions.begin() ; cn != ChildConditions.end(); ++cn)
 	{
 	  AddChild(*(cn.base()));
 	}
-      
+
       this->SetValue(CHILDREN_CONDITIONS, mChildConditions);
     }
     else{
 
       this->SetValue(CHILDREN_CONDITIONS, mChildConditions);
     }
-    
+
   }
-  
+
   mInitializedChildren = true;
-  
+
   KRATOS_CATCH("")
 }
 
@@ -512,9 +512,9 @@ void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
 	}
 
 	if( set_geometry ){
-	  
+
 	  std::cout<<" Set Geometry ( Something is wrong with children conditions ) "<<std::endl;
-	  
+
 	  std::cout<<" Master "<<this->Id()<<" Geometry ["<<this->GetGeometry()[0].Id()<<", "<<this->GetGeometry()[1].Id()<<"] "<<std::endl;
 
 	  std::cout<<" Pre Child "<<cn->Id()<<" Geometry ["<<cn->GetGeometry()[0].Id()<<", "<<cn->GetGeometry()[1].Id()<<"] "<<std::endl;
@@ -524,10 +524,10 @@ void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
 	  // (cn->GetGeometry().Points()).swap(GeometryPoints);
 
 	  // std::cout<<" Post Child "<<cn->Id()<<" Geometry ["<<cn->GetGeometry()[0].Id()<<", "<<cn->GetGeometry()[1].Id()<<"] "<<std::endl;
- 
+
 	}
 
-	
+
 	cn->InitializeSolutionStep(rCurrentProcessInfo);
 
       }
@@ -565,9 +565,9 @@ void CompositeCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::AddExplicitContribution(const VectorType& rRHS, 
-						 const Variable<VectorType>& rRHSVariable, 
-						 Variable<array_1d<double,3> >& rDestinationVariable, 
+void CompositeCondition::AddExplicitContribution(const VectorType& rRHS,
+						 const Variable<VectorType>& rRHSVariable,
+						 Variable<array_1d<double,3> >& rDestinationVariable,
 						 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -576,7 +576,7 @@ void CompositeCondition::AddExplicitContribution(const VectorType& rRHS,
       {
 	cn->AddExplicitContribution(rRHS, rRHSVariable, rDestinationVariable, rCurrentProcessInfo);
       }
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -605,7 +605,7 @@ void CompositeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
-	
+
 	cn->CalculateLocalSystem(LocalLeftHandSideMatrix,LocalRightHandSideVector,rCurrentProcessInfo);
 	//std::cout<<" LocalRightHandSideVector "<<LocalRightHandSideVector<<std::endl;
 
@@ -631,21 +631,21 @@ void CompositeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 	      }
 	    indexi++;
 	  }
-    
+
 	//resizing as needed the RHS
 	GlobalSize1 = rRightHandSideVector.size();
 	LocalSize1  = LocalRightHandSideVector.size();
 	MatSize1    = GlobalSize1+LocalSize1;
-    
+
 	rRightHandSideVector.resize( MatSize1, true );
-    
+
 	indexi = 0;
 	for(unsigned int i=GlobalSize1; i<MatSize1; i++)
 	  {
 	    rRightHandSideVector[i]=LocalRightHandSideVector[indexi];
 	    indexi++;
 	  }
-    
+
       }
     }
 
@@ -668,16 +668,16 @@ void CompositeCondition::CalculateRightHandSide( VectorType& rRightHandSideVecto
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
-	
+
 	cn->CalculateRightHandSide(LocalRightHandSideVector,rCurrentProcessInfo);
 
 	//resizing as needed the RHS
 	unsigned int GlobalSize  = rRightHandSideVector.size();
 	unsigned int LocalSize   = LocalRightHandSideVector.size();
 	unsigned int MatSize     = GlobalSize+LocalSize;
-    
+
 	rRightHandSideVector.resize( MatSize, true );
-    
+
 	unsigned int indexi = 0;
 	for(unsigned int i=GlobalSize; i<MatSize; i++)
 	  {
@@ -704,7 +704,7 @@ void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
-	
+
 	cn->CalculateLeftHandSide(LocalLeftHandSideMatrix,rCurrentProcessInfo);
 
 	//resizing as needed the LHS
@@ -782,7 +782,7 @@ void CompositeCondition::CalculateOnIntegrationPoints( const Variable<double>& r
 	rOutput.resize(LocalOutput.size(),true);
 
       for(unsigned int i=0; i<LocalOutput.size(); i++)
-	{     
+	{
 	  rOutput[i]+=LocalOutput[i];
 	}
 
@@ -804,13 +804,13 @@ void CompositeCondition::CalculateOnIntegrationPoints( const Variable<Vector>& r
 	rOutput.resize(LocalOutput.size());
 
       for(unsigned int i=0; i<LocalOutput.size(); i++)
-	{     
+	{
 	  if ( LocalOutput[i].size() != rOutput[i].size() )
 	    rOutput[i].resize( LocalOutput[i].size(), false );
 	}
 
       for(unsigned int i=0; i<LocalOutput.size(); i++)
-	{     
+	{
 	  rOutput[i]+=LocalOutput[i];
 	}
     }
@@ -830,17 +830,17 @@ void CompositeCondition::CalculateOnIntegrationPoints( const Variable<Matrix >& 
 	rOutput.resize(LocalOutput.size());
 
       for(unsigned int i=0; i<LocalOutput.size(); i++)
-	{     
+	{
 	  if ( LocalOutput[i].size2() != rOutput[i].size2() )
 	    rOutput[i].resize( LocalOutput[i].size1(), LocalOutput[i].size2(), false );
 	}
 
       for(unsigned int i=0; i<LocalOutput.size(); i++)
-	{     
+	{
 	  rOutput[i]+=LocalOutput[i];
 	}
     }
- 
+
 }
 
 
@@ -855,7 +855,7 @@ void CompositeCondition::Calculate( const Variable<double>& rVariable, double& r
       cn->Calculate(rVariable,LocalOutput,rCurrentProcessInfo);
       rOutput+=LocalOutput;
     }
-  
+
 }
 
 
@@ -879,7 +879,7 @@ int  CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo )
       if(child_check == 0)
 	check = 0;
     }
-    
+
   return check;
 }
 
@@ -901,5 +901,3 @@ void CompositeCondition::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

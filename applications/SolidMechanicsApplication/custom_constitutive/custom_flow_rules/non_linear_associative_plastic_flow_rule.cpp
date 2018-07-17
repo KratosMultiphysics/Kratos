@@ -60,8 +60,7 @@ NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule(NonLine
 
 FlowRule::Pointer NonLinearAssociativePlasticFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new NonLinearAssociativePlasticFlowRule(*this));
-  return p_clone;
+  return Kratos::make_shared<NonLinearAssociativePlasticFlowRule>(*this);
 }
 
 //********************************DESTRUCTOR******************************************

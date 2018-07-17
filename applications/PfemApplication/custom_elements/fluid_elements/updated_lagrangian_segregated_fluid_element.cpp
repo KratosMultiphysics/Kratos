@@ -414,17 +414,85 @@ void UpdatedLagrangianSegregatedFluidElement::GetSecondDerivativesVector( Vector
 
 void UpdatedLagrangianSegregatedFluidElement::InitializeElementData (ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    FluidElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
-    //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        FluidElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
-    //set variables including all integration points values
+        break;
+      }
+    case PRESSURE_STEP:
+      {
 
-    //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+        //initialize element variables
+        rVariables.N.resize(number_of_nodes,false);
+        rVariables.L.resize(dimension,dimension,false);
+        rVariables.F.resize(dimension,dimension,false);
+        rVariables.DN_DX.resize(number_of_nodes, dimension,false);
+        rVariables.DeltaPosition.resize(number_of_nodes, dimension,false);
+
+        //reading shape functions
+        rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+
+        //reading shape functions local gradients
+        rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+
+        //set process info
+        rVariables.SetProcessInfo(rCurrentProcessInfo);
+
+        //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
+        rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
+
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+
+  //Calculate Delta Position
+  rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+
+  //set variables including all integration points values
+
+  //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+  rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
 }
+
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateMaterialResponse(ElementDataType& rVariables,
+                                                                        ConstitutiveLaw::Parameters& rValues,
+                                                                        const int & rPointNumber)
+{
+    KRATOS_TRY
+
+    switch( mStepVariable )
+    {
+      case VELOCITY_STEP:
+        {
+          FluidElement::CalculateMaterialResponse(rVariables,rValues,rPointNumber);
+          break;
+        }
+      case PRESSURE_STEP:
+        {
+          break;
+        }
+      default:
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+    }
+
+
+    KRATOS_CATCH( "" )
+}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -459,6 +527,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataTyp
 {
     KRATOS_TRY
 
+
     //Get integration point Alpha parameter
     GetStepAlpha(rVariables.Alpha);
 
@@ -471,15 +540,9 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataTyp
     //Set Shape Functions Values for this integration point
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
-    //Parent to reference configuration
-    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
-
-    //Compute cartesian derivatives [dN/dx_n]
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Deformation Gradient F [dx_n+1/dx_n] to be updated
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
@@ -493,18 +556,40 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataTyp
 
     //Compute cartesian derivatives [dN/dx_n+1]
     noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+    switch(mStepVariable)
+    {
+      case VELOCITY_STEP:
+        {
+          //Parent to reference configuration
+          rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
-    GeometryType&  rGeometry = GetGeometry();
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+          GeometryType&  rGeometry = GetGeometry();
+          const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
-    //Compute the deformation matrix B
-    ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B, rGeometry, rVariables.DN_DX);
+          //Compute the deformation matrix B
+          ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B, rGeometry, rVariables.DN_DX);
 
-    //Calculate velocity gradient matrix
-    ElementUtilities::CalculateVelocityGradient( rVariables.L, rGeometry, rVariables.DN_DX, rVariables.Alpha );
+          //Calculate velocity gradient matrix
+          ElementUtilities::CalculateVelocityGradient( rVariables.L, rGeometry, rVariables.DN_DX, rVariables.Alpha );
 
-    //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
-    ElementUtilities::CalculateSymmetricVelocityGradientVector( rVariables.L, rVariables.StrainVector, dimension );
+          //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
+          ElementUtilities::CalculateSymmetricVelocityGradientVector( rVariables.L, rVariables.StrainVector, dimension );
+
+          break;
+        }
+      case PRESSURE_STEP:
+        {
+
+          GeometryType&  rGeometry = GetGeometry();
+          //Calculate velocity gradient matrix
+          ElementUtilities::CalculateVelocityGradient( rVariables.L, rGeometry, rVariables.DN_DX, rVariables.Alpha );
+
+          break;
+        }
+      default:
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+    }
+
 
     KRATOS_CATCH( "" )
 }
@@ -567,7 +652,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddLHS(LocalSystemComp
         this->CalculateAndAddKvvm( rLeftHandSideMatrix, rVariables );
 
         // operation performed: add Kg to the rLefsHandSideMatrix
-        this->CalculateAndAddKvvg( rLeftHandSideMatrix, rVariables );
+        // this->CalculateAndAddKvvg( rLeftHandSideMatrix, rVariables );
 
         break;
       }
@@ -1074,7 +1159,8 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
     const double& Density   = GetProperties()[DENSITY];
 
     //h_n (normal h)
-    Matrix D = 0.5 * (trans(rVariables.L)+rVariables.L);
+    Matrix D(dimension,dimension);
+    noalias(D) = 0.5 * (trans(rVariables.L)+rVariables.L);
 
     for( SizeType i=0; i<Faces.size(); ++i ){
 
@@ -1433,6 +1519,20 @@ void UpdatedLagrangianSegregatedFluidElement::GetFaceNormal(const std::vector<Si
   }
 
   KRATOS_CATCH( "" )
+}
+
+//************************************CALCULATE VOLUME CHANGE*************************
+//************************************************************************************
+
+double& UpdatedLagrangianSegregatedFluidElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
+{
+    KRATOS_TRY
+
+    rVolumeChange = 1.0 / (rVariables.detF);
+
+    return rVolumeChange;
+
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************

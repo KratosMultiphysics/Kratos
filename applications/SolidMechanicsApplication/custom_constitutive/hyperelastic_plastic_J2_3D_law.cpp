@@ -59,8 +59,7 @@ HyperElasticPlasticJ23DLaw::HyperElasticPlasticJ23DLaw(const HyperElasticPlastic
 
 ConstitutiveLaw::Pointer HyperElasticPlasticJ23DLaw::Clone() const
 {
-    HyperElasticPlasticJ23DLaw::Pointer p_clone(new HyperElasticPlasticJ23DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticJ23DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

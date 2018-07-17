@@ -121,12 +121,12 @@ public:
    * Called at the beginning of each solution step
    */
   void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-  
+
   /**
    * Called at the end of eahc solution step
    */
   void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-  
+
   /**
    * this is called for non-linear analysis at the beginning of the iteration process
    */
@@ -163,6 +163,27 @@ public:
    * Sets on rValues the nodal accelerations
    */
   void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental mass matrix
+   * @param rMassMatrix: the elemental mass matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  void CalculateMassMatrix(MatrixType& rMassMatrix,
+                           ProcessInfo& rCurrentProcessInfo) override;
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental damping matrix
+   * @param rDampingMatrix: the elemental damping matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+                              ProcessInfo& rCurrentProcessInfo) override;
+
+
 
   //************************************************************************************
   //************************************************************************************
@@ -233,14 +254,14 @@ protected:
   /**
    * Initialize Element General Variables
    */
-  void InitializeElementData(ElementDataType & rVariables, 
+  void InitializeElementData(ElementDataType & rVariables,
                              const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Calculate Integration Step Alpha
    */
   void GetStepAlpha(double& rAlpha);
-  
+
   /**
    * Calculate Element Kinematics
    */
@@ -276,14 +297,14 @@ protected:
    */
   void CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
                            ElementDataType& rVariables) override;
-  
+
   /**
    * Calculation of the Regularized Material Stiffness Matrix.
    */
   void CalculateRegularizedKvvm(MatrixType& rLeftHandSideMatrix,
                                 ElementDataType& rVariables);
 
-  
+
   /**
    * Calculation of the Pressure Stiffness Matrix. Kpp
    */
@@ -301,27 +322,27 @@ protected:
    */
   void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
                                      ElementDataType & rVariables);
-  
+
   /**
    * Add volumetric part to Stress Vector
-   */  
+   */
   void AddVolumetricPart(Vector& rStressVector, double& rMeanPressure);
 
   /**
    * Remove volumetric part from Stress Vector
-   */  
+   */
   void RemoveVolumetricPart(Vector& rStressVector, double& rMeanPressure);
-  
+
   /**
    * Add volumetric part to Constitutive Matrix
-   */  
+   */
   void AddVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor);
 
   /**
    * Remove volumetric part from Constitutive Matrix
-   */  
+   */
   void RemoveVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor);
-  
+
   /**
    * Calculation of the Mean value considering a Dense Matrix.
    */
@@ -332,7 +353,7 @@ protected:
    */
   void CalculateLumpedMatrixMeanValue(MatrixType& rMatrix, double& rMeanValue);
 
-  
+
 
   /**
    * Set Variables of the Element to the Parameters of the Constitutive Law
@@ -340,6 +361,13 @@ protected:
   void SetElementData(ElementDataType& rVariables,
                       ConstitutiveLaw::Parameters& rValues,
                       const int & rPointNumber) override;
+
+  /**
+   * Set Parameters for the Constitutive Law and Calculate Material Response
+   */
+  void CalculateMaterialResponse(ElementDataType& rVariables,
+                                 ConstitutiveLaw::Parameters& rValues,
+                                 const int & rPointNumber) override;
 
   /**
    * Calculate stabilization factor
@@ -360,30 +388,19 @@ protected:
    * Get Face weight
    */
   void GetFaceWeight(const std::vector<SizeType>& rFace, const ElementDataType & rVariables, double& rWeight, double& rNormalSize);
-  
+
   /**
    * Get Face normal
    */
   void GetFaceNormal(const std::vector<SizeType>& rFace, Vector& rNormal);
 
-  /**
-   * this is called during the assembling process in order
-   * to calculate the elemental mass matrix
-   * @param rMassMatrix: the elemental mass matrix
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void CalculateMassMatrix(MatrixType& rMassMatrix,
-                           ProcessInfo& rCurrentProcessInfo) override;
 
   /**
-   * this is called during the assembling process in order
-   * to calculate the elemental damping matrix
-   * @param rDampingMatrix: the elemental damping matrix
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                              ProcessInfo& rCurrentProcessInfo) override;
- 
+   * Calculation of the Volume Change of the Element
+     */
+  double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
+
+
   ///@}
   ///@name Protected  Access
   ///@{

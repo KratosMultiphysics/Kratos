@@ -51,8 +51,7 @@ HyperElasticPlasticUPPlaneStrain2DLaw::HyperElasticPlasticUPPlaneStrain2DLaw(con
 
 ConstitutiveLaw::Pointer HyperElasticPlasticUPPlaneStrain2DLaw::Clone() const
 {
-    HyperElasticPlasticUPPlaneStrain2DLaw::Pointer p_clone(new HyperElasticPlasticUPPlaneStrain2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticUPPlaneStrain2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

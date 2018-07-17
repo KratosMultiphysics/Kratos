@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_AXISYMMETRIC_THERMAL_ELEMENT_H_INCLUDED )
 #define  KRATOS_AXISYMMETRIC_THERMAL_ELEMENT_H_INCLUDED
@@ -35,11 +35,11 @@ namespace Kratos
 
 ///@}
 ///@name Kratos Classes
-///@{ 
+///@{
 
 
 
-class AxisymmetricThermalElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AxisymmetricThermalElement
     : public ThermalElement
 {
 public:
@@ -106,11 +106,11 @@ public:
      */
     //Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
- 
+
 
     //************* STARTING - ENDING  METHODS
 
- 
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -179,7 +179,7 @@ private:
    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
 			   GeneralVariables& rVariables,
 			   double& rIntegrationWeight);
-  
+
     /**
      * Calculation and addition of the vectors of the RHS
      */
@@ -194,7 +194,7 @@ private:
      */
     void CalculateKinematics(GeneralVariables& rVariables,
 			   const double& rPointNumber);
-  
+
     /**
      * Calculate Radius in the current and deformed geometry
      */
@@ -204,7 +204,7 @@ private:
 
 
 
-                                
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -248,4 +248,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYMMETRIC_THERMAL_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYMMETRIC_THERMAL_ELEMENT_H_INCLUDED  defined

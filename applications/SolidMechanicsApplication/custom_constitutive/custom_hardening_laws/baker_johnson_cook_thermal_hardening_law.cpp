@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2018 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 // System includes
 #include <string>
@@ -29,7 +29,7 @@ namespace Kratos
 BakerJohnsonCookThermalHardeningLaw::BakerJohnsonCookThermalHardeningLaw()
 	:HardeningLaw()
 {
-   
+
 }
 
 
@@ -56,8 +56,7 @@ BakerJohnsonCookThermalHardeningLaw::BakerJohnsonCookThermalHardeningLaw(BakerJo
 
 HardeningLaw::Pointer BakerJohnsonCookThermalHardeningLaw::Clone() const
 {
-  HardeningLaw::Pointer p_clone(new BakerJohnsonCookThermalHardeningLaw(*this));
-  return p_clone;
+  return Kratos::make_shared<BakerJohnsonCookThermalHardeningLaw>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
@@ -81,7 +80,7 @@ double& BakerJohnsonCookThermalHardeningLaw::CalculateHardening(double &rHardeni
 	const double& rDeltaGamma              = rValues.GetDeltaGamma();
 	const double& rDeltaTime               = rValues.GetDeltaTime();
 
-	//Constant Parameters of the -- Johnson and Cook --: 
+	//Constant Parameters of the -- Johnson and Cook --:
 	double K = GetProperties()[JC_PARAMETER_K];
 	double C = GetProperties()[JC_PARAMETER_C];
 
@@ -94,9 +93,9 @@ double& BakerJohnsonCookThermalHardeningLaw::CalculateHardening(double &rHardeni
 
 	if(rTemperature - ReferenceTemperature < 0){
 		std::cout<<" Initial Temperature conditions not defined properly ("<<rTemperature<<" < "<<ReferenceTemperature<<")"<<std::endl;
-	
+
 	}
-	
+
 	double NormalizedTemperature =  pow( (rTemperature)/(MeldTemperature), m );
 
 	double Kv = K * exp((-1)*NormalizedTemperature);
@@ -104,20 +103,20 @@ double& BakerJohnsonCookThermalHardeningLaw::CalculateHardening(double &rHardeni
 
 
 	rHardening   = ( Kv * pow(rEquivalentPlasticStrain, nv) );
-	
+
 	if( rRateFactor != 0 ){
 
 	  if( rDeltaGamma == 0 )
 	    std::cout<<" Something is wrong in the Johnson_Cook_hardening variables supplied "<<std::endl;
 
-	  rHardening  *= (1.0 + rRateFactor * C * std::log( (rDeltaGamma * sqrt(2.0/3.0))/(PlasticStrainRate * rDeltaTime) ) ); 
+	  rHardening  *= (1.0 + rRateFactor * C * std::log( (rDeltaGamma * sqrt(2.0/3.0))/(PlasticStrainRate * rDeltaTime) ) );
 
 	}
 
 	return rHardening;
 
 }
-  
+
 //*******************************CALCULATE ISOTROPIC HARDENING************************
 //************************************************************************************
 
@@ -153,7 +152,7 @@ double& BakerJohnsonCookThermalHardeningLaw::CalculateDeltaHardening(double &rDe
 	const double& rDeltaGamma                 = rValues.GetDeltaGamma();
 	const double& rDeltaTime                  = rValues.GetDeltaTime();
 
-	//Constant Parameters of the -- Johnson and Cook --: 
+	//Constant Parameters of the -- Johnson and Cook --:
 	double K = GetProperties()[JC_PARAMETER_K];
 	double C = GetProperties()[JC_PARAMETER_C];
 
@@ -166,9 +165,9 @@ double& BakerJohnsonCookThermalHardeningLaw::CalculateDeltaHardening(double &rDe
 
 	if(rTemperature - ReferenceTemperature < 0){
 		std::cout<<" Initial Temperature conditions not defined properly ("<<rTemperature<<" < "<<ReferenceTemperature<<")"<<std::endl;
-	
+
 	}
-	
+
 	double NormalizedTemperature =  pow( (rTemperature)/(MeldTemperature), m );
 
 	double Kv = K * exp((-1)*NormalizedTemperature);
@@ -187,7 +186,7 @@ double& BakerJohnsonCookThermalHardeningLaw::CalculateDeltaHardening(double &rDe
 	  rDeltaHardening += rRateFactor * ( sqrt(3.0/2.0) * ( Kv * pow( rEquivalentPlasticStrain, nv ) ) * C / rDeltaGamma );
 	}
 
-	return rDeltaHardening;	
+	return rDeltaHardening;
 }
 
 //***************************CALCULATE ISOTROPIC HARDENING DERIVATIVE*****************
@@ -219,7 +218,7 @@ double& BakerJohnsonCookThermalHardeningLaw::CalculateDeltaKinematicHardening(do
 
 
 double& BakerJohnsonCookThermalHardeningLaw::CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const Parameters& rValues)
-{       
+{
 	//get values
 	const double& rRateFactor                 = rValues.GetRateFactor();
 	const double& rEquivalentPlasticStrain    = rValues.GetEquivalentPlasticStrain();
@@ -227,7 +226,7 @@ double& BakerJohnsonCookThermalHardeningLaw::CalculateDeltaThermalHardening(doub
 	const double& rDeltaGamma                 = rValues.GetDeltaGamma();
 	const double& rDeltaTime                  = rValues.GetDeltaTime();
 
-	//Constant Parameters of the -- Johnson and Cook --: 
+	//Constant Parameters of the -- Johnson and Cook --:
 	double K = GetProperties()[JC_PARAMETER_K];
 	double C = GetProperties()[JC_PARAMETER_C];
 
@@ -240,28 +239,28 @@ double& BakerJohnsonCookThermalHardeningLaw::CalculateDeltaThermalHardening(doub
 
 	if(rTemperature - ReferenceTemperature < 0){
 		std::cout<<" Initial Temperature conditions not defined properly ("<<rTemperature<<" < "<<ReferenceTemperature<<")"<<std::endl;
-	
+
 	}
-	
+
 	double NormalizedTemperature =  pow( (rTemperature)/(MeldTemperature), m );
 
 	double Kv = K * exp((-1)*NormalizedTemperature);
 	double nv = n * exp((-1)*NormalizedTemperature);
 
-	
+
 	double DeltaNormalizedTemperature = (m / MeldTemperature) * pow( (rTemperature/MeldTemperature), m-1 );
 
         rDeltaThermalHardening  = (1 + nv *std::log( rEquivalentPlasticStrain ) );
 
 	rDeltaThermalHardening *= ( Kv * pow ( rEquivalentPlasticStrain, nv) * DeltaNormalizedTemperature );
-		
+
 	if( rRateFactor != 0 ){
 
 	  if( rDeltaGamma == 0 )
 	    std::cout<<" Something is wrong in the Johnson_Cook_hardening variables supplied "<<std::endl;
-	  rDeltaThermalHardening *= ( 1.0 + rRateFactor * C * std::log( (rDeltaGamma * sqrt(2.0/3.0))/(PlasticStrainRate * rDeltaTime) ) ); 
+	  rDeltaThermalHardening *= ( 1.0 + rRateFactor * C * std::log( (rDeltaGamma * sqrt(2.0/3.0))/(PlasticStrainRate * rDeltaTime) ) );
 	}
- 
+
 	return rDeltaThermalHardening;
 }
 

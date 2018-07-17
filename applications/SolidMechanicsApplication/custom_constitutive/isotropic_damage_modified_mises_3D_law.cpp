@@ -55,8 +55,7 @@ IsotropicDamageModifiedMises3DLaw::IsotropicDamageModifiedMises3DLaw(const Isotr
 
 ConstitutiveLaw::Pointer IsotropicDamageModifiedMises3DLaw::Clone() const
 {
-    IsotropicDamageModifiedMises3DLaw::Pointer p_clone(new IsotropicDamageModifiedMises3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<IsotropicDamageModifiedMises3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

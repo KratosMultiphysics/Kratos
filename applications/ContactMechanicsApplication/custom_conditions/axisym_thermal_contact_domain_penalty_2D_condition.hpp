@@ -5,7 +5,7 @@
 //   Date:                $Date:        October 2013 $
 //   Revision:            $Revision:             0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_AXISYM_THERMAL_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED )
 #define  KRATOS_AXISYM_THERMAL_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED
@@ -35,7 +35,7 @@ namespace Kratos
 ///@{
 
 
-class AxisymThermalContactDomainPenalty2DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) AxisymThermalContactDomainPenalty2DCondition
     : public ThermalContactDomainPenalty2DCondition
 {
 public:
@@ -55,7 +55,7 @@ public:
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
-	
+
 
     ///Tensor order 1 definition
     typedef ContactDomainUtilities::PointType               PointType;
@@ -107,8 +107,16 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************************************************************************************
     //************************************************************************************
@@ -119,7 +127,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
 
@@ -160,9 +168,9 @@ protected:
     /**
      * Calculate Condition Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables, 
-			     ProcessInfo& rCurrentProcessInfo, 
-			     const unsigned int& rPointNumber);
+    void CalculateKinematics(GeneralVariables& rVariables,
+			     ProcessInfo& rCurrentProcessInfo,
+			     const unsigned int& rPointNumber) override;
 
     /**
      * Calculate Radius:
@@ -174,16 +182,16 @@ protected:
     /**
      * Calculate LHS
      */
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, 
-			    GeneralVariables& rVariables, 
-			    double& rIntegrationWeight);
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+			    GeneralVariables& rVariables,
+			    double& rIntegrationWeight) override;
 
     /**
      * Calculate RHS
      */
     void CalculateAndAddRHS(VectorType& rRightHandSideVector,
-			    GeneralVariables& rVariables, 
-			    double& rIntegrationWeight);
+			    GeneralVariables& rVariables,
+			    double& rIntegrationWeight) override;
 
 
     ///@}
@@ -197,9 +205,9 @@ protected:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Protected Inquiry
@@ -262,4 +270,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_THERMAL_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_THERMAL_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED  defined

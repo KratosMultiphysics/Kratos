@@ -22,14 +22,14 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic thermal isotropic constitutive law J2 3D 
+ * Defines a hyperelastic-plastic thermal isotropic constitutive law J2 3D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
-class HyperElasticPlasticThermalUPJ23DLaw : public HyperElasticPlasticUP3DLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) HyperElasticPlasticThermalUPJ23DLaw : public HyperElasticPlasticUP3DLaw
 {
 public:
     /**
@@ -60,7 +60,7 @@ public:
     HyperElasticPlasticThermalUPJ23DLaw();
 
 
-    HyperElasticPlasticThermalUPJ23DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HyperElasticPlasticThermalUPJ23DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -142,7 +142,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     ///@}
     ///@name Protected Operators
     ///@{

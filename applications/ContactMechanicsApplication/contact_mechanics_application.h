@@ -1,9 +1,9 @@
 //-------------------------------------------------------------
-//          ___         _           _   
-//  KRATOS / __|___ _ _| |_ __ _ __| |_ 
+//          ___         _           _
+//  KRATOS / __|___ _ _| |_ __ _ __| |_
 //        | (__/ _ \ ' \  _/ _` / _|  _|
 //         \___\___/_||_\__\__,_\__|\__|MECHANICS
-//                                            
+//
 //  License:(BSD)    ContactMechanicsApplication/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
@@ -94,7 +94,8 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosContactMechanicsApplication : public KratosApplication {
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) KratosContactMechanicsApplication : public KratosApplication
+{
 public:
 	///@name Type Definitions
 	///@{
@@ -228,7 +229,7 @@ private:
 
 	//conditions
 	const ContactDomainLM3DCondition                       mContactDomainLMCondition3D4N;
-	
+
 	const ContactDomainLM2DCondition                       mContactDomainLMCondition2D3N;
 	const ContactDomainPenalty2DCondition             mContactDomainPenaltyCondition2D3N;
 
@@ -237,7 +238,7 @@ private:
 
         const ThermalContactDomainPenalty2DCondition  mThermalContactDomainPenaltyCondition2D3N;
         const AxisymThermalContactDomainPenalty2DCondition  mAxisymThermalContactDomainPenaltyCondition2D3N;
-  
+
 	const PointRigidContactPenalty2DCondition       mPointRigidContactPenalty2DCondition;
 	const PointRigidContactPenalty3DCondition       mPointRigidContactPenalty3DCondition;
 	const AxisymPointRigidContactPenalty2DCondition mAxisymPointRigidContactPenalty2DCondition;

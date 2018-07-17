@@ -119,20 +119,20 @@ public:
    * Set a double  Value on the Element Constitutive Law
    */
   void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-  
+
   //GET:
   /**
    * Get on rVariable a double Value from the Element Constitutive Law
    */
   void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-  
-  //************* STARTING - ENDING  METHODS  
+
+  //************* STARTING - ENDING  METHODS
   /**
    * Called to initialize the element.
    * Must be called before any calculation is done
    */
   void Initialize() override;
-  
+
   //************************************************************************************
   //************************************************************************************
   /**
@@ -184,17 +184,17 @@ protected:
   ///@}
   ///@name Protected member Variables
   ///@{
-  
+
   /**
    * Container for historical total elastic deformation measure F0 = dx/dX
    */
   std::vector< Matrix > mDeformationGradientF0;
-  
+
   /**
    * Container for the total deformation gradient determinants
    */
   Vector mDeterminantF0;
-    
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -203,17 +203,17 @@ protected:
   ///@{
 
   /**
-   * Initialize Element General Variables
-   */
-  void InitializeElementData(ElementDataType& rVariables, 
-                             const ProcessInfo& rCurrentProcessInfo) override;
-     
-  /**
    * Finalize Element Internal Variables
    */
-  void FinalizeStepVariables(ElementDataType & rVariables, 
+  void FinalizeStepVariables(ElementDataType & rVariables,
                              const double& rPointNumber ) override;
-  
+
+  /**
+   * Initialize Element General Variables
+   */
+  void InitializeElementData(ElementDataType & rVariables,
+                             const ProcessInfo& rCurrentProcessInfo) override;
+
   /**
    * Calculate Element Kinematics
    */
@@ -225,7 +225,14 @@ protected:
    */
   void CalculateKinetics(ElementDataType& rVariables,
                          const double& rPointNumber) override;
-  
+
+  /**
+   * Set Parameters for the Constitutive Law and Calculate Material Response
+   */
+  void CalculateMaterialResponse(ElementDataType& rVariables,
+                                 ConstitutiveLaw::Parameters& rValues,
+                                 const int & rPointNumber) override;
+
   /**
    * Calculation of the Pressure Stiffness Matrix. Kpp
    */
@@ -257,7 +264,7 @@ protected:
    * Get Face weight
    */
   void GetFaceWeight(const std::vector<SizeType>& rFace, const ElementDataType & rVariables, double& rWeight, double& rNormalSize);
-  
+
   /**
    * Get Face normal
    */
@@ -267,14 +274,14 @@ protected:
   /**
    * Get the Historical Deformation Gradient to calculate after finalize the step
    */
-  void GetHistoricalVariables( ElementDataType& rVariables, 
+  void GetHistoricalVariables( ElementDataType& rVariables,
                                const double& rPointNumber ) override;
-  
+
   /**
    * Calculation of the Volume Change of the Element
    */
   double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
-  
+
   ///@}
   ///@name Protected  Access
   ///@{

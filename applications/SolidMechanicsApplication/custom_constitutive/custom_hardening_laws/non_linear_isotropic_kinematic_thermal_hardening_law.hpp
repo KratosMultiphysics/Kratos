@@ -44,7 +44,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class NonLinearIsotropicKinematicThermalHardeningLaw 
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) NonLinearIsotropicKinematicThermalHardeningLaw
 	: public NonLinearIsotropicKinematicHardeningLaw
 {
 public:
@@ -133,7 +133,7 @@ protected:
     ///@{
 
     double CalculateThermalReferenceEffect(const double &rTemperature);
-   
+
     double CalculateThermalCurrentEffect(const double &rTemperature);
 
 
@@ -238,6 +238,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_THERMAL_HARDENING_LAW_H_INCLUDED  defined 
-
-
+#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_THERMAL_HARDENING_LAW_H_INCLUDED  defined

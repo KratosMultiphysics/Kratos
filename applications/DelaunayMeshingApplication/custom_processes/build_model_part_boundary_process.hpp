@@ -689,22 +689,22 @@ namespace Kratos
 
 		    if( NumberNodesInFace == 2 ){
 		      if( dimension == 2 )
-			ConditionVertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(FaceNodes) );
+			ConditionVertices = Kratos::make_shared< Line2D2< Node<3> > >(FaceNodes);
 		      else
-			ConditionVertices = Condition::GeometryType::Pointer(new Line3D2< Node<3> >(FaceNodes) );
+			ConditionVertices = Kratos::make_shared< Line3D2< Node<3> > >(FaceNodes);
 
 		    }
 		    else if ( NumberNodesInFace == 3 ){
 		      if( dimension == 2 )
-			ConditionVertices = Condition::GeometryType::Pointer(new Line2D3< Node<3> >(FaceNodes) );
+			ConditionVertices = Kratos::make_shared< Line2D3< Node<3> > >(FaceNodes);
 		      else
-			ConditionVertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(FaceNodes) );
+			ConditionVertices = Kratos::make_shared< Triangle3D3< Node<3> > >(FaceNodes);
 		    }
 
 		    rConditionId +=1;
 
 		    //Create a composite condition
-		    CompositeCondition::Pointer p_cond = CompositeCondition::Pointer(new CompositeCondition(rConditionId,ConditionVertices,properties) );
+		    CompositeCondition::Pointer p_cond = Kratos::make_shared< CompositeCondition >(rConditionId,ConditionVertices,properties);
 
 		    bool condition_found = false;
 		    bool point_condition = false;

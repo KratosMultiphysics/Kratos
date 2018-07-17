@@ -63,8 +63,7 @@ NonLinearRateDependentPlasticFlowRule::NonLinearRateDependentPlasticFlowRule(Non
 
 FlowRule::Pointer NonLinearRateDependentPlasticFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new NonLinearRateDependentPlasticFlowRule(*this));
-  return p_clone;
+  return Kratos::make_shared<NonLinearRateDependentPlasticFlowRule>(*this);
 }
 
 

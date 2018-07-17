@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2018 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 #if !defined (KRATOS_HYPERELASTIC_PLASTIC_THERMAL_U_P_JOHNSON_COOK_AXISYM_2D_LAW_H_INCLUDED)
 #define  KRATOS_HYPERELASTIC_PLASTIC_THERMAL_U_P_JOHNSON_COOK_AXISYM_2D_LAW_H_INCLUDED
@@ -22,14 +22,14 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic thermal isotropic constitutive law JohnsonCook in plane strain 2D 
+ * Defines a hyperelastic-plastic thermal isotropic constitutive law JohnsonCook in plane strain 2D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
-class HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw : public HyperElasticPlasticUPAxisym2DLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw : public HyperElasticPlasticUPAxisym2DLaw
 {
 public:
     /**
@@ -60,7 +60,7 @@ public:
     HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw();
 
 
-    HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -142,7 +142,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     ///@}
     ///@name Protected Operators
     ///@{

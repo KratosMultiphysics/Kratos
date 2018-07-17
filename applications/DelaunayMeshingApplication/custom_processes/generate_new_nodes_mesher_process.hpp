@@ -217,7 +217,7 @@ private:
       //assign data to dofs
       NodeType::DofsContainerType& ReferenceDofs = rModelPart.Nodes().front().GetDofs();
 
-      VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
+      VariablesList& rVariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 
       unsigned int id = MesherUtilities::GetMaxNodeId(rModelPart) + 1;
 
@@ -254,7 +254,7 @@ private:
 	      }
 
 	      //giving model part variables list to the node
-	      pNode->SetSolutionStepVariablesList(&VariablesList);
+	      pNode->SetSolutionStepVariablesList(&rVariablesList);
 
 	      //set buffer size
 	      pNode->SetBufferSize(rModelPart.GetBufferSize());
@@ -312,7 +312,7 @@ private:
       std::vector<double> ShapeFunctionsN;
       std::vector<VariablesListDataValueContainer> VariablesListVector(list_of_new_nodes.size());
 
-      VariablesList&  variables_list = rModelPart.GetNodalSolutionStepVariablesList();
+      VariablesList&  rVariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 
       //find the center and "radius" of the element
       double  radius = 0;
@@ -371,7 +371,7 @@ private:
 	      if(is_inside == true)
 		{
 		  double alpha = 1; //1 to interpolate, 0 to leave the original data
-		  DataTransferUtilities.Interpolate( ie->GetGeometry(), ShapeFunctionsN, variables_list, *(it_found), alpha );
+		  DataTransferUtilities.Interpolate( ie->GetGeometry(), ShapeFunctionsN, rVariablesList, *(it_found), alpha );
 		}
 	    }
 	}

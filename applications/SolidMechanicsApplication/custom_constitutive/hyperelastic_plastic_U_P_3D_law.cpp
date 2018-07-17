@@ -52,8 +52,7 @@ HyperElasticPlasticUP3DLaw::HyperElasticPlasticUP3DLaw(const HyperElasticPlastic
 
 ConstitutiveLaw::Pointer HyperElasticPlasticUP3DLaw::Clone() const
 {
-    HyperElasticPlasticUP3DLaw::Pointer p_clone(new HyperElasticPlasticUP3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticUP3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

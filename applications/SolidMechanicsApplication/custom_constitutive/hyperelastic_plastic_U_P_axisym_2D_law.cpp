@@ -51,8 +51,7 @@ HyperElasticPlasticUPAxisym2DLaw::HyperElasticPlasticUPAxisym2DLaw(const HyperEl
 
 ConstitutiveLaw::Pointer HyperElasticPlasticUPAxisym2DLaw::Clone() const
 {
-    HyperElasticPlasticUPAxisym2DLaw::Pointer p_clone(new HyperElasticPlasticUPAxisym2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticUPAxisym2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

@@ -372,7 +372,7 @@ namespace Kratos
 	std::fill( UniquePosition.begin(), UniquePosition.end(), 0 );
 
 	//unsigned int  step_data_size = rModelPart.GetNodalSolutionStepDataSize();
-	VariablesList&  variables_list = rModelPart.GetNodalSolutionStepVariablesList();
+	VariablesList&  rVariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 
 	//find the center and "radius" of the element
 	double  radius = 0;
@@ -443,7 +443,7 @@ namespace Kratos
 			double alpha = 0.25; //[0,1] //smoothing level of the interpolation
 
 			MeshDataTransferUtilities DataTransferUtilities;
-			VariablesListVector[(*it_found)->Id()] = DataTransferUtilities.InterpolateVariables( ie->GetGeometry(), ShapeFunctionsN, variables_list, (*it_found), alpha );
+			VariablesListVector[(*it_found)->Id()] = DataTransferUtilities.InterpolateVariables( ie->GetGeometry(), ShapeFunctionsN, rVariablesList, (*it_found), alpha );
 
 		      }
 		      else{

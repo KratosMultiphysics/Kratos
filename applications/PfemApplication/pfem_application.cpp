@@ -30,8 +30,8 @@ namespace Kratos
 
   KratosPfemApplication    ::KratosPfemApplication    ():
       KratosApplication("PfemApplication"),
-      mUpdatedLagrangianSegregatedFluidElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mUpdatedLagrangianSegregatedFluidElement3D4N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
+      mUpdatedLagrangianSegregatedFluidElement2D3N(0, Kratos::make_shared< Triangle2D3<Node<3> > >(Element::GeometryType::PointsArrayType(3))),
+      mUpdatedLagrangianSegregatedFluidElement3D4N(0, Kratos::make_shared< Triangle2D3<Node<3> > >(Element::GeometryType::PointsArrayType(3)))
   {}
 
   void KratosPfemApplication    ::Register()
@@ -50,7 +50,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( FLUID_PRESSURE_VELOCITY )
     KRATOS_REGISTER_VARIABLE( FLUID_PRESSURE_ACCELERATION )
     KRATOS_REGISTER_VARIABLE( FLUID_PRESSURE_REACTION )
-        
+
     KRATOS_REGISTER_VARIABLE( PROPERTIES_VECTOR )
     KRATOS_REGISTER_VARIABLE( MATERIAL_PERCENTAGE )
 

@@ -52,8 +52,7 @@ LinearElasticPlastic3DLaw::LinearElasticPlastic3DLaw(const LinearElasticPlastic3
 
 ConstitutiveLaw::Pointer LinearElasticPlastic3DLaw::Clone() const
 {
-    LinearElasticPlastic3DLaw::Pointer p_clone(new LinearElasticPlastic3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearElasticPlastic3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

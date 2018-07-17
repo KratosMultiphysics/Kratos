@@ -655,7 +655,7 @@ class InsertNewNodesMesherProcess
     }
 
     //assign data to dofs
-    VariablesList& VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
+    VariablesList& rVariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
 
     for(unsigned int nn= 0; nn< NewPositions.size(); ++nn)
     {
@@ -680,7 +680,7 @@ class InsertNewNodesMesherProcess
       }
 
       //giving model part variables list to the node
-      pnode->SetSolutionStepVariablesList(&VariablesList);
+      pnode->SetSolutionStepVariablesList(&rVariablesList);
 
       //set buffer size
       pnode->SetBufferSize(mrModelPart.GetBufferSize());
@@ -708,7 +708,7 @@ class InsertNewNodesMesherProcess
       ShapeFunctionsN[1] = 0.5;
 
       MeshDataTransferUtilities DataTransferUtilities;
-      DataTransferUtilities.Interpolate2Nodes( LineGeometry, ShapeFunctionsN, VariablesList, *pnode);
+      DataTransferUtilities.Interpolate2Nodes( LineGeometry, ShapeFunctionsN, rVariablesList, *pnode);
 
     }
 

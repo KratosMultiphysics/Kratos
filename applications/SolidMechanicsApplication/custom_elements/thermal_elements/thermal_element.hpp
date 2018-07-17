@@ -36,11 +36,11 @@ namespace Kratos
 
 ///@}
 ///@name Kratos Classes
-///@{ 
+///@{
 
 
 
-class ThermalElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
     : public Element
 {
  public:
@@ -445,14 +445,14 @@ class ThermalElement
                                        );
 
   /**
-   * Calculation of the Material Stiffness Matrix. H = Ni * Nj * h 
+   * Calculation of the Material Stiffness Matrix. H = Ni * Nj * h
    */
   virtual void CalculateAndAddHthermal(MatrixType& rK,
                                        GeneralVariables & rVariables,
                                        double& rIntegrationWeight
                                        );
 
- 
+
   /**
    * Calculation of the Material Stiffness Matrix. Mthermal = Ni * Nj * c * 1/Delta_t
    */
@@ -588,4 +588,4 @@ class ThermalElement
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_THERMAL_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_THERMAL_ELEMENT_H_INCLUDED  defined

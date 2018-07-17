@@ -18,12 +18,12 @@
 #include "custom_meshers/triangular_mesh_2D_mesher.hpp"
 
 ///VARIABLES used:
-//Data:    
-//(props)   
-//StepData: 
-//Flags:    (checked)  
-//          (set)      
-//          (modified)  
+//Data:
+//(props)
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
 //          (reset)
 
 
@@ -51,26 +51,26 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class ContactDomain2DMesher 
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ContactDomain2DMesher
   : public TriangularMesh2DMesher
 {
 protected:
 
     struct ContactVariables
     {
-      double  OffsetFactor;  
+      double  OffsetFactor;
       double  PenaltyParameter;
       double  StabilityParameter;
       double  StaticFrictionCoefficient;
       double  DynamicFrictionCoefficient;
-      
+
       unsigned int    FrictionFlag;
       unsigned int    PenaltyContactFlag;
     };
 
 public:
 
- 
+
     ///@name Type Definitions
     ///@{
 
@@ -199,7 +199,7 @@ private:
     ///@name Private Operations
     ///@{
 
-     
+
     //set nodes to a mesh
     void SetNodes(ModelPart& rModelPart,
 		  MeshingParametersType& rMeshingVariables) override;
@@ -223,7 +223,7 @@ private:
     ///@}
     ///@name Unaccessible methods
     ///@{
-  
+
     ///@}
 
 }; // Class ContactDomain2DMesher
@@ -258,6 +258,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONTACT_DOMAIN_2D_MESHER_H_INCLUDED  defined 
-
-
+#endif // KRATOS_CONTACT_DOMAIN_2D_MESHER_H_INCLUDED  defined
