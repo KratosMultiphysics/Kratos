@@ -30,6 +30,13 @@
 
 namespace Kratos
 {
+    void TrussDiscreteElement::Initialize()
+    {
+        KRATOS_TRY
+
+        KRATOS_CATCH("")
+    }
+
     //************************************************************************************
     //************************************************************************************
     void TrussDiscreteElement::CalculateAll(
