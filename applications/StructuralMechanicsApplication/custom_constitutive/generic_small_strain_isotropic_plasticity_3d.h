@@ -164,10 +164,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
      * @see Parameters
      * @see StressMeasures
      */
-    //  void FinalizeMaterialResponse (
-    //      Parameters& rValues,
-    //      const StressMeasure& rStressMeasure
-    //      ) override;
+    void FinalizeMaterialResponse(ConstitutiveLaw::Parameters &rValues, const StressMeasure &rStressMeasure); //override;
 
     /**
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
