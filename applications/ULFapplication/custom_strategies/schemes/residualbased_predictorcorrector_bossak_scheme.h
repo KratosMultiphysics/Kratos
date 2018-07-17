@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pavel Ryzhakov
+//  Main authors:    Riccardo Rossi
 
 
 #if !defined(KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_BOSSAK_SCHEME )
@@ -133,15 +133,6 @@ public:
         macc.resize(NumThreads);
         maccold.resize(NumThreads);
 
-        //sizing work matrices
-        //mMass.resize(10,10);
-        //mDamp.resize(10,10);
-
-        //mvel.resize(10,false);
-        //macc.resize(10,false);
-        //maccold.resize(10,false);
-
-
         std::cout << "using the Bossak Time Integration Scheme" << std::endl;
     }
 
@@ -195,19 +186,9 @@ public:
 
             array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
             array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-            //KRATOS_WATCH("IN UNPDATE");
-            //KRATOS_WATCH((i)->FastGetSolutionStepValue(DISPLACEMENT));
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
-
             UpdateAcceleration(CurrentAcceleration, DeltaDisp, OldVelocity, OldAcceleration);
-            //KRATOS_WATCH((i)->FastGetSolutionStepValue(DISPLACEMENT));
-            //KRATOS_WATCH((i)->FastGetSolutionStepValue(DISPLACEMENT,1));
-            //KRATOS_WATCH(DeltaDisp);
-            //KRATOS_WATCH(OldVelocity);
-            //KRATOS_WATCH(CurrentVelocity);
-            //std::cout << "after update" << std::endl;
 
-            //std::cout  << std::endl;
 
         }
 
@@ -247,10 +228,7 @@ public:
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)
         {
-            //KRATOS_WATCH(i->Id())
-            //KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT))
-            //KRATOS_WATCH(i->FastGetSolutionStepValue(VELOCITY))
-            //KRATOS_WATCH(i->FastGetSolutionStepValue(ACCELERATION))
+
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
             array_1d<double, 3 > & OldDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
             //predicting displacement = OldDisplacement + OldVelocity * DeltaTime;
@@ -271,15 +249,10 @@ public:
             //can not be consistently fixed separately
             noalias(DeltaDisp) = CurrentDisp - OldDisp;
             array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-            //KRATOS_WATCH(DeltaDisp)
 
             array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
-            //KRATOS_WATCH(CurrentVelocity)
-            //KRATOS_WATCH(CurrentAcceleration)
 
-            //KRATOS_WATCH(CurrentVelocity);
-            //KRATOS_WATCH(OldVelocity);
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
 
             UpdateAcceleration(CurrentAcceleration, DeltaDisp, OldVelocity, OldAcceleration);
@@ -327,18 +300,12 @@ public:
 
         (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
 
-        //KRATOS_WATCH(LHS_Contribution);
-        //KRATOS_WATCH("ADDED ELEMENT CONTRIBUTION");
-        //KRATOS_WATCH(RHS_Contribution);
-        //KRATOS_WATCH(mMass);
-        //KRATOS_WATCH(mDamp);
         //adding the dynamic contributions (statics is already included)
 
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
         AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
-        //KRATOS_WATCH("ADDED DYNAMIC CONTRIBUTION");
-        //KRATOS_WATCH(RHS_Contribution);
+
 
         KRATOS_CATCH("")
 
