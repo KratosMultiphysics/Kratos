@@ -1,9 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-10-02 10:47:21 $
-//   Revision:            $Revision: 1.8 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pavel Ryzhakov
+
 //  this process save structural elements in a separate list
 
 #if !defined(KRATOS_SAVE_STRUCTURE_MODEL_PART_PROCESS_INCLUDED )

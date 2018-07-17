@@ -1,10 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2007-11-06 12:34:26 $
-//   Revision:            $Revision: 1.4 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//  this process save structural elements in a separate list
+//  Main authors:    Pavel Ryzhakov
 
 #if !defined(KRATOS_MERGE_MODEL_PARTS_PROCESS_INCLUDED )
 #define  KRATOS_MERGE_MODEL_PARTS_PROCESS_INCLUDED

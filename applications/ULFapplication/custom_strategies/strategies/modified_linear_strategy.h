@@ -1,10 +1,13 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2008-11-10 14:23:32 $
-*   Revision:            $Revision: 1.12 $
-*
-* ***********************************************************/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pavel Ryzhakov
 
 
 #if !defined(KRATOS_LAP_MODIFIED_LINEAR_STRATEGY)

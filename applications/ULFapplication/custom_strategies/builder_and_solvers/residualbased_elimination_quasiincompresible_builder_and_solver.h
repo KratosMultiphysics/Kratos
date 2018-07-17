@@ -1,10 +1,13 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: anonymous $
-*   Date:                $Date: 2009-01-15 14:50:24 $
-*   Revision:            $Revision: 1.12 $
-*
-* ***********************************************************/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pavel Ryzhakov
 
 
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_QUASI_INCOMPRESSIBLE_BUILDER_AND_SOLVER )

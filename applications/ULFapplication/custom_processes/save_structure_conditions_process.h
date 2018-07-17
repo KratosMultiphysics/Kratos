@@ -1,10 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-10-02 15:38:16 $
-//   Revision:            $Revision: 1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//  this process save structural elements in a separate list
+//  Main authors:    Pavel Ryzhakov
+//  this process save structural conditions in a separate list
 
 #if !defined(KRATOS_SAVE_STRUCTURE_CONDITIONS_PROCESS_INCLUDED )
 #define  KRATOS_SAVE_STRUCTURE_CONDITIONS_PROCESS_INCLUDED
