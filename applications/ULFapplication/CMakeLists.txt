@@ -3,6 +3,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosULFApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/ULFApplication )
+#ADDED AS WE ARE DERIVING ONE SCHEME FROM THE VELOCITY_BOSSAK SCHEME OF FLUID DYNAMICS APPLICATION
+include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_ULF_APPLICATION_SOURCES     
@@ -27,6 +30,7 @@ set( KRATOS_ULF_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann3D.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann_Axisym.cpp         
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_tension.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/hypo_elastic_solid2d.cpp
 
     #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_frac2d_swimming.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_frac3d_swimming.cpp
@@ -35,7 +39,7 @@ set( KRATOS_ULF_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosULFApplication MODULE ${KRATOS_ULF_APPLICATION_SOURCES} )
-target_link_libraries(KratosULFApplication PRIVATE KratosCore )
+target_link_libraries(KratosULFApplication PUBLIC KratosCore KratosFluidDynamicsCore)
 set_target_properties(KratosULFApplication PROPERTIES PREFIX "")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

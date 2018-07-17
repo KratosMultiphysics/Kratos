@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_ale_fsi.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -114,6 +115,13 @@ class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpace
                     (m, "ResidualBasedPredictorCorrectorBossakScheme")
                     .def(init< double >()
                     );
+
+    class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeAleFsi< SparseSpaceType, LocalSpaceType >,
+            typename ResidualBasedPredictorCorrectorVelocityBossakSchemeAleFsi< SparseSpaceType, LocalSpaceType >::Pointer,
+           ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>  >
+            (m,"ResidualBasedPredictorCorrectorVelocityBossakSchemeAleFsi")
+            .def(init<double,double,unsigned int >())// constructor without a turbulence model
+            ;
 
 
     class_< ResidualBasedIncompressibleBuilderType2D, ResidualBasedIncompressibleBuilderType2D::Pointer, BuilderAndSolverType > (m, "ResidualBasedIncompressibleBuilder2D")

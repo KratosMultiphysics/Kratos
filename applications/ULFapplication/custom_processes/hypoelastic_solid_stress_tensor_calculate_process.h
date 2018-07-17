@@ -1,55 +1,15 @@
-/*
-==============================================================================
-KratosULFApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-05-16 13:59:01 $
-//   Revision:            $Revision: 1.4 $ 12 November 2007 - 3D added
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pavel Ryzhakov
 //
-// THIS PROCESS is INVENTED in order to CALCULATE THE PRESSURE and
-//STORE it node-wise.
-//THIS IS FOR THE METHOD, where we do not calculate pressure force...
+
 
 #if !defined(KRATOS_HYPOELASTIC_CALCULATE_PROCESS_INCLUDED )
 #define  KRATOS_HYPOELASTIC_CALCULATE_PROCESS_INCLUDED
@@ -149,19 +109,35 @@ public:
         KRATOS_TRY
 
         ProcessInfo& proc_info = mr_model_part.GetProcessInfo();
-        double dummy;
+        Matrix dummy=ZeroMatrix(2,2);
 	
 	//THIS SHOULD BE EXECUTED ONLY FOR THOSE ELEMENTS OF THE MONOLITHIC MODEL THAT ARE IDENTIFIED TO BELONG TO THE SOLID domain
 	//THIS CAN BE DONE BY USING SOME FLAG... TO DO... now it is applied to all elements
-        //first initialize the pressure force to the old value
-
-        //set the pressure to the old value
-        for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
-                im != mr_model_part.ElementsEnd() ; ++im)
-        {
-            im->Calculate(CAUCHY_STRESS_TENSOR,dummy,proc_info);
-        }
         
+	//before the first step we initialize Cauchy stress to zero
+	//KRATOS_WATCH(proc_info[TIME])
+	
+	if (proc_info[TIME]==0.0)
+	{
+          for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
+                im != mr_model_part.ElementsEnd() ; ++im)
+          {
+	  //IN A MONOLITHIC FLUID-SOLID MODEL WE WANT TO EXCEUTE THIS FUNCTION ONLY FOR THE SOLID ELEMENTS
+          if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[0].Is(STRUCTURE))
+            im->SetValue(CAUCHY_STRESS_TENSOR, dummy);
+          }
+	}
+	//and now we actually compute it
+	else
+	{          
+          for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
+                im != mr_model_part.ElementsEnd() ; ++im)
+          {
+	  //IN A MONOLITHIC FLUID-SOLID MODEL WE WANT TO EXCEUTE THIS FUNCTION ONLY FOR THE SOLID ELEMENTS
+          if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[0].Is(STRUCTURE))
+            im->Calculate(CAUCHY_STRESS_TENSOR,dummy,proc_info);
+          }
+	}
         KRATOS_WATCH("Executed of Cauchy stress tensor computation of the hypoelastic element");
         
 
