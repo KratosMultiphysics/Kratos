@@ -302,7 +302,7 @@ class STMonolithicSolver:
         h_factor=0.25;
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMeshDroplet("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
 
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
