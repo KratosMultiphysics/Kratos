@@ -1,11 +1,13 @@
-
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-04-01 10:25:52 $
-//   Revision:            $Revision: 1.7 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-
+//  Main authors:    Pavel Ryzhakov
 
 #if !defined(KRATOS_KRATOS_ULF_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_ULF_APPLICATION_H_INCLUDED

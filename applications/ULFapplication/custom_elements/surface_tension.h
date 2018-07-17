@@ -1,16 +1,13 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:    Jordi Cotela
-//  author     :    Alex Jarauta
-//
-
+//  Main authors:    Elaf Mahrous and Alex Jarauta
 
 
 #if !defined(KRATOS_SURFACE_TENSION_H_INCLUDED)
