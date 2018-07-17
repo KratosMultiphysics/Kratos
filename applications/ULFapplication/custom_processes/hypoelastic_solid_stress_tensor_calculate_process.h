@@ -42,14 +42,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-10-23 12:50:01 $
-//   Revision:            $Revision: 1.4 $
+//   Last Modified by:    $Author: rrossi $
+//   Date:                $Date: 2007-05-16 13:59:01 $
+//   Revision:            $Revision: 1.4 $ 12 November 2007 - 3D added
 //
-//  this process save structural elements in a separate list
+//
+// THIS PROCESS is INVENTED in order to CALCULATE THE PRESSURE and
+//STORE it node-wise.
+//THIS IS FOR THE METHOD, where we do not calculate pressure force...
 
-#if !defined(KRATOS_ULF_APPLY_BC_PROCESS_INCLUDED )
-#define  KRATOS_ULF_APPLY_BC_PROCESS_INCLUDED
+#if !defined(KRATOS_HYPOELASTIC_CALCULATE_PROCESS_INCLUDED )
+#define  KRATOS_HYPOELASTIC_CALCULATE_PROCESS_INCLUDED
 
 
 
@@ -67,8 +70,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-//#include "custom_utilities/geometry_utilities2D.h"
-#include "custom_elements/updated_lagrangian_fluid.h"
+#include "utilities/geometry_utilities.h"
+#include "ULF_application.h"
 
 
 namespace Kratos
@@ -101,29 +104,29 @@ namespace Kratos
 
 */
 
-class UlfApplyBCProcess
+class HypoelasticStressCalculateProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of PushStructureProcess
-    KRATOS_CLASS_POINTER_DEFINITION(UlfApplyBCProcess);
+    /// Pointer definition of HypoelasticStressCalculateProcess
+    KRATOS_CLASS_POINTER_DEFINITION(HypoelasticStressCalculateProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    UlfApplyBCProcess(ModelPart& model_part)
-        : mr_model_part(model_part)
+    HypoelasticStressCalculateProcess(ModelPart& model_part, unsigned int domain_size)
+        : mr_model_part(model_part),mdomain_size(domain_size)
     {
     }
 
     /// Destructor.
-    virtual ~UlfApplyBCProcess()
-    {
+    ~HypoelasticStressCalculateProcess() override
+    { 
     }
 
 
@@ -141,38 +144,26 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_TRY
-        for(ModelPart::NodesContainerType::const_iterator in = mr_model_part.NodesBegin(); in!=mr_model_part.NodesEnd(); in++)
-        {
-            //marking wet nodes
-            /*					if(in->FastGetSolutionStepValue(IS_STRUCTURE) )
-            						if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
-            							in->FastGetSolutionStepValue(IS_FLUID) = 1.0;
-            						else //it is not anymore of fluid
-            							in->FastGetSolutionStepValue(IS_FLUID) = 0.0;
-            					//marking as free surface the lonely nodes
-            					else
-            */						if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0)
-                in->FastGetSolutionStepValue(IS_BOUNDARY) = 1.0;
-        }
 
-        //identify the free surface
-        for(ModelPart::NodeIterator i = mr_model_part.NodesBegin() ;
-                i != mr_model_part.NodesEnd() ; ++i)
-        {
-            //reset the free surface
-            i->FastGetSolutionStepValue(IS_FREE_SURFACE) = 0;
-            //identify the free surface and fix the pressure accordingly
-            if( i->FastGetSolutionStepValue(IS_BOUNDARY) != 0
-                    &&
-                    i->FastGetSolutionStepValue(IS_STRUCTURE) == 0)
-            {
-                i->FastGetSolutionStepValue(IS_FREE_SURFACE) = 1;
-            }
-        }
+        ProcessInfo& proc_info = mr_model_part.GetProcessInfo();
+        double dummy;
+	
+	//THIS SHOULD BE EXECUTED ONLY FOR THOSE ELEMENTS OF THE MONOLITHIC MODEL THAT ARE IDENTIFIED TO BELONG TO THE SOLID domain
+	//THIS CAN BE DONE BY USING SOME FLAG... TO DO... now it is applied to all elements
+        //first initialize the pressure force to the old value
 
+        //set the pressure to the old value
+        for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
+                im != mr_model_part.ElementsEnd() ; ++im)
+        {
+            im->Calculate(CAUCHY_STRESS_TENSOR,dummy,proc_info);
+        }
+        
+        KRATOS_WATCH("Executed of Cauchy stress tensor computation of the hypoelastic element");
+        
 
         KRATOS_CATCH("")
     }
@@ -193,19 +184,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
-        return "UlfApplyBCProcess";
+        return "HypoelasticStressCalculateProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "UlfApplyBCProcess";
+        rOStream << "HypoelasticStressCalculateProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -263,6 +254,9 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mr_model_part;
+    double m_min_h;
+    unsigned int mdomain_size;
+
 
     ///@}
     ///@name Private Operators
@@ -289,15 +283,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//		UlfApplyBCProcess& operator=(UlfApplyBCProcess const& rOther);
+//		HypoelasticStressCalculateProcess& operator=(HypoelasticStressCalculateProcess const& rOther);
 
     /// Copy constructor.
-//		UlfApplyBCProcess(UlfApplyBCProcess const& rOther);
+//		HypoelasticStressCalculateProcess(HypoelasticStressCalculateProcess const& rOther);
 
 
     ///@}
 
-}; // Class UlfApplyBCProcess
+}; // Class HypoelasticStressCalculateProcess
 
 ///@}
 
@@ -312,11 +306,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  UlfApplyBCProcess& rThis);
+                                  HypoelasticStressCalculateProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const UlfApplyBCProcess& rThis)
+                                  const HypoelasticStressCalculateProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -329,6 +323,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ULF_APPLY_BC_PROCESS_INCLUDED  defined 
+#endif // KRATOS_HYPOELASTIC_CALCULATE_PROCESS_INCLUDED  defined 
 
 
