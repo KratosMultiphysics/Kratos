@@ -12,8 +12,6 @@
 #if !defined(KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED )
 #define  KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED
 
-// TODO: Add rotational stiffness
-
 // System includes
 
 // External includes
@@ -38,28 +36,59 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Concentrated nodal for 3D and 2D points
-
-class NodalConcentratedElement
+/**
+ * @class NodalConcentratedElement
+ * @ingroup StructuralMechanicsApplication
+ * @brief Concentrated nodal for 3D and 2D points
+ * @details The element can consider both the displacement and rotational stiffness, and both the mass and the inertia
+ * @author Vicente Mataix Ferrandiz
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NodalConcentratedElement
     : public Element
 {
 public:
 
     ///@name Type Definitions
     ///@{
+
+    /// Definition of the node type
+    typedef Node<3> NodeType;
+
+    /// Definition of the geometry
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Definition of the base type
+    typedef Element BaseType;
+
+    /// Definition of the index type
+    typedef std::size_t IndexType;
+
+    /// Definition of the size type
+    typedef std::size_t SizeType;
+
     /// Counted pointer of NodalConcentratedElement
     KRATOS_CLASS_POINTER_DEFINITION( NodalConcentratedElement);
+
+     /**
+     * @brief Flags related to the element computation
+     */
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_DISPLACEMENT_STIFFNESS );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_NODAL_MASS );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ROTATIONAL_STIFFNESS );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_NODAL_INERTIA );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_DAMPING_RATIO );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ROTATIONAL_DAMPING_RATIO );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RAYLEIGH_DAMPING );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ACTIVE_NODE_FLAG );
+
     ///@}
-
-public:
-
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, bool UseRayleighDamping = false);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, const bool UseRayleighDamping = false, const bool ComputeActiveNodeFlag = true);
 
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, bool UseRayleighDamping = false);
+    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const bool UseRayleighDamping = false, const bool ComputeActiveNodeFlag = true);
 
     ///Copy constructor
     NodalConcentratedElement(NodalConcentratedElement const& rOther);
@@ -269,7 +298,7 @@ protected:
     ///@{
     ///@}
 
-    bool mUseRayleighDamping;
+    Flags mELementalFlags; /// Elemental flags
 
     ///@name Protected Operators
     ///@{
@@ -281,40 +310,47 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
     /**
-     * Calculation of the Delta Position
+     * @brief This method computes the actual size of the system of equations
+     * @return This method returns the size of the system of equations
      */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
+    std::size_t ComputeSizeOfSystem();
 
     ///@}
     ///@name Protected  Access
     ///@{
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
+
     ///@}
 
 private:
 
     ///@name Static Member Variables
     ///@{
+
     ///@}
     ///@name Member Variables
     ///@{
+
     ///@}
     ///@name Private Operators
     ///@{
+
     ///@}
     ///@name Private Operations
     ///@{
+
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
+
     ///@}
     ///@name Serialization
     ///@{
