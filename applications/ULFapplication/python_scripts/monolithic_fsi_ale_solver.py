@@ -102,7 +102,7 @@ class FsiAleMonolithicSolver:
 
         # default settings
         self.echo_level = 0
-        self.compute_reactions = True
+        self.compute_reactions = False
         self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = True
@@ -116,7 +116,10 @@ class FsiAleMonolithicSolver:
         self.use_des = False
         self.Cdes = 1.0
         self.wall_nodes = list()
-        self.spalart_allmaras_linear_solver = None
+        #self.spalart_allmaras_linear_solver = None
+        
+        pDiagPrecond = DiagonalPreconditioner()
+        self.linear_solver = BICGSTABSolver(1e-9, 5000, pDiagPrecond)
 
         self.divergence_clearance_steps = 0
 
@@ -130,7 +133,10 @@ class FsiAleMonolithicSolver:
         self.mark_outer_nodes_process = MarkOuterNodesProcess(model_part);
         self.node_erase_process = NodeEraseProcess(self.model_part);
 
-        self.neigh_finder = FindNodalNeighboursProcess(self.model_part,9,18)
+        if (self.domain_size==2):
+            self.neigh_finder = FindNodalNeighboursProcess(self.model_part,9,18)
+        elif (domain_size == 3):
+            self.neigh_finder = FindNodalNeighboursProcess(self.model_part,20,30)
         #this is needed if we want to also store the conditions a node belongs to
         #self.cond_neigh_finder = FindConditionsNeighboursProcess(self.model_part,2, 10)
 
@@ -168,6 +174,7 @@ class FsiAleMonolithicSolver:
         (self.neigh_finder).Execute();       
         #initializes Cachy stress to zero
         self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
+        print("Lalalal")
 # print "Initialization monolithic solver finished"
     #
     def Solve(self):
@@ -177,6 +184,7 @@ class FsiAleMonolithicSolver:
         (self.UlfUtils).CalculateNodalArea(self.model_part, self.domain_size);
         #self.pressure_calculate_process.Execute()
         self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
+        print("Lalalal222222222222222")
 
 
 
@@ -220,9 +228,9 @@ def CreateSolver(model_part, config): #FOR 3D!
     if(hasattr(config, "divergence_cleareance_step")):
         fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
 
-    import linear_solver_factory
-    if(hasattr(config, "linear_solver_config")):
-        fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(
-            config.linear_solver_config)
+    #import linear_solver_factory
+    #if(hasattr(config, "linear_solver_config")):
+    #    fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(
+    #        config.linear_solver_config)
 
     return fluid_solver

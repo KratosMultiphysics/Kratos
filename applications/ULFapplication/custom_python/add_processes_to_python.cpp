@@ -42,6 +42,7 @@
 #include "custom_processes/calculate_nodal_length.h"
 #include "custom_processes/find_nodal_neighbours_surface_process.h"
 #include "custom_processes/mark_free_surface_process.h"
+#include "custom_processes/hypoelastic_solid_stress_tensor_calculate_process.h"
 
 #include "includes/node.h"
 
@@ -67,35 +68,9 @@ void  AddProcessesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    /*	  class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
-    		 init<ModelPart&>())
-    		 ;
-    */
-    /*
-    	  class_<ActOnWallsNodalProcess, bases<Process> >("ActOnWallsNodalProcess",
-    		 init<ModelPart&>())
-    		 ;
-    */
-    /*	  class_<MoveMeshProcess, bases<Process> >("MoveMeshProcess",
-    		 init<ModelPart&>())
-    		 ;
-    */
-    /*	  class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
-    		 init<ModelPart&, double>())
-    		 ;
-    */
-    /*
-    	  class_<CoordinateLaplacianSmootherProcess, bases<Process> >("CoordinateLaplacianSmootherProcess",
-    		 init<ModelPart&, int>())
-    		 ;
-    */
-    /*
-    class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
-    	 init<ModelPart&>())
-    	 ;
-     */
-
-
+    class_<HypoelasticStressCalculateProcess, HypoelasticStressCalculateProcess::Pointer, Process >(m,"HypoelasticStressCalculateProcess")
+    .def(init<ModelPart&, unsigned int>())
+    ;
 
     class_<PressureCalculateProcess, PressureCalculateProcess::Pointer, Process >(m,"PressureCalculateProcess")
     .def(init<ModelPart&, unsigned int>())

@@ -60,7 +60,8 @@ KratosULFApplication::KratosULFApplication():
     mSurfaceTension2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
-    mHypoElasticSolid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
+    mHypoElasticSolid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mHypoElasticSolid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
 
 {}
 
@@ -137,6 +138,7 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_ELEMENT("SurfaceTension2D",mSurfaceTension2D);
     KRATOS_REGISTER_ELEMENT("SurfaceTension3D",mSurfaceTension3D);
     KRATOS_REGISTER_ELEMENT("HypoElasticSolid2D",mHypoElasticSolid2D);
+    KRATOS_REGISTER_ELEMENT("HypoElasticSolid3D",mHypoElasticSolid3D);
 
 
 }

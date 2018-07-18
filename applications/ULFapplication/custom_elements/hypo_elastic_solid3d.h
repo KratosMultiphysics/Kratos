@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_HYPO_ELASTIC_SOLID_H_INCLUDED )
-#define  KRATOS_HYPO_ELASTIC_SOLID_H_INCLUDED
+#if !defined(KRATOS_HYPO_ELASTIC_SOLID3D_H_INCLUDED )
+#define  KRATOS_HYPO_ELASTIC_SOLID3D_H_INCLUDED
 
 
 
@@ -55,26 +55,26 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class HypoElasticSolid2D
+class HypoElasticSolid3D
     : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of HypoElasticSolid2D
-    KRATOS_CLASS_POINTER_DEFINITION(HypoElasticSolid2D);
+    /// Counted pointer of HypoElasticSolid3D
+    KRATOS_CLASS_POINTER_DEFINITION(HypoElasticSolid3D);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HypoElasticSolid2D(IndexType NewId, GeometryType::Pointer pGeometry);
-    HypoElasticSolid2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    HypoElasticSolid3D(IndexType NewId, GeometryType::Pointer pGeometry);
+    HypoElasticSolid3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~HypoElasticSolid2D() override;
+    ~HypoElasticSolid3D() override;
 
 
     ///@}
@@ -127,7 +127,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "HypoElasticSolid2D #" ;
+        return "HypoElasticSolid3D #" ;
     }
 
     /// Print information about this object.
@@ -192,7 +192,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    double mA0; //stores area at the beginning of time-step
+    double mV0; //stores area at the beginning of time-step
 
     ///@}
     ///@name Serialization
@@ -200,7 +200,7 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    HypoElasticSolid2D() : Element()
+    HypoElasticSolid3D() : Element()
     {
     }
 
@@ -242,15 +242,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //HypoElasticSolid2D& operator=(const HypoElasticSolid2D& rOther);
+    //HypoElasticSolid3D& operator=(const HypoElasticSolid3D& rOther);
 
     /// Copy constructor.
-    //HypoElasticSolid2D(const HypoElasticSolid2D& rOther);
+    //HypoElasticSolid3D(const HypoElasticSolid3D& rOther);
 
 
     ///@}
 
-}; // Class HypoElasticSolid2D
+}; // Class HypoElasticSolid3D
 
 ///@}
 
@@ -265,11 +265,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    HypoElasticSolid2D& rThis);
+				    HypoElasticSolid3D& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const HypoElasticSolid2D& rThis)
+				    const HypoElasticSolid3D& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -281,6 +281,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HYPO_ELASTIC_SOLID_H_INCLUDED   defined 
+#endif // KRATOS_HYPO_ELASTIC_SOLID3D_H_INCLUDED   defined 
 
 

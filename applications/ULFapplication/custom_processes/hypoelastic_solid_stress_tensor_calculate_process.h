@@ -109,38 +109,62 @@ public:
         KRATOS_TRY
 
         ProcessInfo& proc_info = mr_model_part.GetProcessInfo();
-        Matrix dummy=ZeroMatrix(2,2);
+	if (mdomain_size==2)
+	   {
+           Matrix dummy=ZeroMatrix(2,2);
+           //THIS SHOULD BE EXECUTED ONLY FOR THOSE ELEMENTS OF THE MONOLITHIC MODEL THAT ARE IDENTIFIED TO BELONG TO THE SOLID domain
+	   //before the first step we initialize Cauchy stress to zero
+	   if (proc_info[TIME]==0.0)
+ 	      {
+              for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
+                  im != mr_model_part.ElementsEnd() ; ++im)
+                  {
+    	          //IN A MONOLITHIC FLUID-SOLID MODEL WE WANT TO EXCEUTE THIS FUNCTION ONLY FOR THE SOLID ELEMENTS
+                  if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[1].Is(STRUCTURE) && im->GetGeometry()[2].Is(STRUCTURE))
+                      im->SetValue(CAUCHY_STRESS_TENSOR, dummy);
+                  }
+	      }
+	   //and now we actually compute it
+	   else
+	     {          
+             for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
+                 im != mr_model_part.ElementsEnd() ; ++im)
+                 {
+	         //IN A MONOLITHIC FLUID-SOLID MODEL WE WANT TO EXCEUTE THIS FUNCTION ONLY FOR THE SOLID ELEMENTS
+                 if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[1].Is(STRUCTURE) && im->GetGeometry()[2].Is(STRUCTURE))
+                    im->Calculate(CAUCHY_STRESS_TENSOR,dummy,proc_info);
+                 }
+	      }
+           }
+	else if (mdomain_size==3)
+           {
+           Matrix dummy=ZeroMatrix(3,3);
+           //first, we initialize CAUCHY_STRESS_TENSOR to zero
+	   if (proc_info[TIME]==0.0)
+ 	      {
+              for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
+                  im != mr_model_part.ElementsEnd() ; ++im)
+                  {
+                  if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[1].Is(STRUCTURE) && im->GetGeometry()[2].Is(STRUCTURE) && im->GetGeometry()[3].Is(STRUCTURE))
+                      im->SetValue(CAUCHY_STRESS_TENSOR, dummy);
+                  }
+	      }
+	   //and now we actually compute it
+	   else
+	     {          
+             for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
+                 im != mr_model_part.ElementsEnd() ; ++im)
+                 {
+                 if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[1].Is(STRUCTURE) && im->GetGeometry()[2].Is(STRUCTURE) && im->GetGeometry()[3].Is(STRUCTURE))
+                    im->Calculate(CAUCHY_STRESS_TENSOR,dummy,proc_info);
+                 }
+	      }
+
+
+           }
 	
-	//THIS SHOULD BE EXECUTED ONLY FOR THOSE ELEMENTS OF THE MONOLITHIC MODEL THAT ARE IDENTIFIED TO BELONG TO THE SOLID domain
-	//THIS CAN BE DONE BY USING SOME FLAG... TO DO... now it is applied to all elements
-        
-	//before the first step we initialize Cauchy stress to zero
-	//KRATOS_WATCH(proc_info[TIME])
-	
-	if (proc_info[TIME]==0.0)
-	{
-          for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
-                im != mr_model_part.ElementsEnd() ; ++im)
-          {
-	  //IN A MONOLITHIC FLUID-SOLID MODEL WE WANT TO EXCEUTE THIS FUNCTION ONLY FOR THE SOLID ELEMENTS
-          if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[0].Is(STRUCTURE))
-            im->SetValue(CAUCHY_STRESS_TENSOR, dummy);
-          }
-	}
-	//and now we actually compute it
-	else
-	{          
-          for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
-                im != mr_model_part.ElementsEnd() ; ++im)
-          {
-	  //IN A MONOLITHIC FLUID-SOLID MODEL WE WANT TO EXCEUTE THIS FUNCTION ONLY FOR THE SOLID ELEMENTS
-          if(im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[0].Is(STRUCTURE) && im->GetGeometry()[0].Is(STRUCTURE))
-            im->Calculate(CAUCHY_STRESS_TENSOR,dummy,proc_info);
-          }
-	}
         KRATOS_WATCH("Executed of Cauchy stress tensor computation of the hypoelastic element");
         
-
         KRATOS_CATCH("")
     }
 
@@ -230,7 +254,6 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mr_model_part;
-    double m_min_h;
     unsigned int mdomain_size;
 
 
