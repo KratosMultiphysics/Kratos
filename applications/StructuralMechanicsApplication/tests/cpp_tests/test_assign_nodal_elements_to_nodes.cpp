@@ -64,6 +64,8 @@ namespace Kratos
             AssignNodalElementsToNodes assign_nodal_elements_to_nodes = AssignNodalElementsToNodes(this_model_part, parameters);
             assign_nodal_elements_to_nodes.Execute();
 
+            KRATOS_CHECK_EQUAL(this_model_part.Elements().size(), this_model_part.Nodes().size());
+
             for (auto& elem : this_model_part.Elements()) {
                 KRATOS_CHECK_EQUAL(elem.GetProperties()[NODAL_MASS], 1.0);
                 KRATOS_CHECK_EQUAL(elem.GetProperties()[NODAL_STIFFNESS][0], 1.0);
@@ -100,6 +102,8 @@ namespace Kratos
 
             AssignNodalElementsToNodes assign_nodal_elements_to_nodes = AssignNodalElementsToNodes(this_model_part, parameters);
             assign_nodal_elements_to_nodes.Execute();
+
+            KRATOS_CHECK_EQUAL(this_model_part.Elements().size(), this_model_part.Nodes().size());
 
             for (auto& elem : this_model_part.Elements()) {
                 KRATOS_CHECK_EQUAL(elem.GetProperties()[NODAL_MASS], 1.0);
