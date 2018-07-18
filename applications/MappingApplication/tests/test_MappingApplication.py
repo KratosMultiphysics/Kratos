@@ -12,7 +12,7 @@ from SmallTests import NearestElementTest2D_1 as TNearestElementTest2D_1
 from SmallTests import MapperTests as TMapperTests
 
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -51,4 +51,4 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())

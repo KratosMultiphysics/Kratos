@@ -240,44 +240,44 @@ private:
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     double maxSeparation=mrRemesh.Refine->CriticalRadius;
 
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
-      {
-    	// if(i_node->Is(RIGID) && i_node->IsNot(SOLID) && i_node->Is(INLET) ){
-    	if(i_node->Is(INLET) ){
+    // for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+    //   {
+    // 	// if(i_node->Is(RIGID) && i_node->IsNot(SOLID) && i_node->Is(INLET) ){
+    // 	if(i_node->Is(INLET) ){
 
-	  WeakPointerVector<Element >& neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
-	  WeakPointerVector<Node<3> >& rN = i_node->GetValue(NEIGHBOUR_NODES);
+    // 	  WeakPointerVector<Element >& neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
+    // 	  WeakPointerVector<Node<3> >& rN = i_node->GetValue(NEIGHBOUR_NODES);
 
-	  if((neighb_elems.size()==0 && rN.size()==0) || i_node->Is(RIGID)){
+    // 	  if((neighb_elems.size()==0 && rN.size()==0) || i_node->Is(RIGID)){
 
-	    const array_1d<double,3>& inletDisplacement = i_node->FastGetSolutionStepValue(DISPLACEMENT);
-	    double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
-					   inletDisplacement[1]*inletDisplacement[1]);
-	    if(dimension==3){
-	      distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
-				      inletDisplacement[1]*inletDisplacement[1] +
-				      inletDisplacement[2]*inletDisplacement[2]);
-	    }
+    // 	    const array_1d<double,3>& inletDisplacement = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+    // 	    double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
+    // 					   inletDisplacement[1]*inletDisplacement[1]);
+    // 	    if(dimension==3){
+    // 	      distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
+    // 				      inletDisplacement[1]*inletDisplacement[1] +
+    // 				      inletDisplacement[2]*inletDisplacement[2]);
+    // 	    }
 
-	    if(distanceFromOrigin> maxSeparation){
-    	      i_node->X() = i_node->X0();
-    	      i_node->Y() = i_node->Y0();
-    	      i_node->FastGetSolutionStepValue(DISPLACEMENT_X,0)=0;
-    	      i_node->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0;
-    	      i_node->FastGetSolutionStepValue(DISPLACEMENT_X,1)=0;
-    	      i_node->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0;
-    	      if(dimension==3){
-    		i_node->Z() = i_node->Z0();
-    		i_node->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0;
-    		i_node->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0;
-    	      }
-    	    }
+    // 	    if(distanceFromOrigin> maxSeparation){
+    // 	      i_node->X() = i_node->X0();
+    // 	      i_node->Y() = i_node->Y0();
+    // 	      i_node->FastGetSolutionStepValue(DISPLACEMENT_X,0)=0;
+    // 	      i_node->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0;
+    // 	      i_node->FastGetSolutionStepValue(DISPLACEMENT_X,1)=0;
+    // 	      i_node->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0;
+    // 	      if(dimension==3){
+    // 		i_node->Z() = i_node->Z0();
+    // 		i_node->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0;
+    // 		i_node->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0;
+    // 	      }
+    // 	    }
 
-    	  }
+    // 	  }
 
-    	}
+    // 	}
 
-      }
+    //   }
 
     for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
       {
@@ -286,8 +286,8 @@ private:
     	unsigned int NumNodes=rGeometry.size();
     	for (unsigned int n = 0; n < NumNodes; ++n)
     	  {
-    	    // if(rGeometry[n].Is(RIGID) && rGeometry[n].IsNot(SOLID) && rGeometry[n].Is(INLET) ){
-    	    if(rGeometry[n].Is(INLET) && rGeometry[n].IsNot(RIGID)){
+    	    if(rGeometry[n].Is(RIGID) && rGeometry[n].IsNot(SOLID) && rGeometry[n].Is(INLET) ){
+    	    // if(rGeometry[n].Is(INLET) && rGeometry[n].IsNot(RIGID)){
 
     	      const array_1d<double,3>& inletDisplacement =rGeometry[n].FastGetSolutionStepValue(DISPLACEMENT);
     	      double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
