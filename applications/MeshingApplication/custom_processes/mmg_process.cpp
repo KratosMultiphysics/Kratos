@@ -2154,22 +2154,22 @@ void MmgProcess<3>::SetMetricTensor(
 template<SizeType TDim>
 void MmgProcess<TDim>::CreateAuxiliarSubModelPartForFlags()
 {
-    ModelPart* p_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+    ModelPart& r_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
     const auto& flags = KratosComponents<Flags>::GetComponents();
 
     for (auto& flag : flags) {
         const std::string name_sub_model = "FLAG_"+flag.first;
         if (name_sub_model.find("NOT") == std::string::npos) { // Avoiding inactive flags
-            p_auxiliar_model_part->CreateSubModelPart(name_sub_model);
-            ModelPart& auxiliar_sub_model_part = p_auxiliar_model_part->GetSubModelPart(name_sub_model);
+            r_auxiliar_model_part.CreateSubModelPart(name_sub_model);
+            ModelPart& auxiliar_sub_model_part = r_auxiliar_model_part.GetSubModelPart(name_sub_model);
             FastTransferBetweenModelPartsProcess transfer_process = FastTransferBetweenModelPartsProcess(auxiliar_sub_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(flag.second));
             transfer_process.Execute();
             // If the number of elements transfered is 0 we remove the model part
             if (auxiliar_sub_model_part.NumberOfNodes() == 0
             && auxiliar_sub_model_part.NumberOfElements() == 0
             && auxiliar_sub_model_part.NumberOfConditions() == 0) {
-                p_auxiliar_model_part->RemoveSubModelPart(name_sub_model);
+                r_auxiliar_model_part.RemoveSubModelPart(name_sub_model);
             }
         }
     }
