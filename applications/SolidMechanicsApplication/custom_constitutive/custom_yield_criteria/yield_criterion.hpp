@@ -58,7 +58,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 	  HardeningLaw::Parameters HardeningParameters;
 
 	public:
-    
+
 	  //Set Parameters
 	  void SetStressNorm  (const double& rStressNorm)  { mpStressNorm = &rStressNorm; };
 
@@ -71,12 +71,12 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 	  void SetLameMu_bar  (const double& rLameMu_bar)  { HardeningParameters.SetLameMu_bar(rLameMu_bar);   };
 	  void SetDeltaTime   (const double& rDeltaTime)   { HardeningParameters.SetDeltaTime(rDeltaTime);     };
 	  void SetTemperature (const double& rTemperature) { HardeningParameters.SetTemperature(rTemperature); };
-		
+
 	  void SetEquivalentPlasticStrain       (const double& rEquivalentPlasticStrain)       {  HardeningParameters.SetEquivalentPlasticStrain(rEquivalentPlasticStrain);       };
 	  void SetEquivalentPlasticStrainOld    (const double& rEquivalentPlasticStrainOld)    {  HardeningParameters.SetEquivalentPlasticStrainOld(rEquivalentPlasticStrainOld); };
 
 	  void SetCharacteristicSize (const double& rCharacteristicSize) {HardeningParameters.SetCharacteristicSize(rCharacteristicSize);}
-        
+
 	  void SetStrainMatrix (const Matrix& rStrainMatrix) { HardeningParameters.SetStrainMatrix(rStrainMatrix); }
 	  void SetStressMatrix (const Matrix& rStressMatrix) { HardeningParameters.SetStressMatrix(rStressMatrix); }
 
@@ -86,14 +86,14 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 	  const double& GetLameMu_bar  () const { return HardeningParameters.GetLameMu_bar();   };
 	  const double& GetDeltaTime   () const { return HardeningParameters.GetDeltaTime();    };
 	  const double& GetTemperature () const { return HardeningParameters.GetTemperature();  };
-		
+
 	  const double& GetEquivalentPlasticStrain       () const { return HardeningParameters.GetEquivalentPlasticStrain();    };
 	  const double& GetEquivalentPlasticStrainOld    () const { return HardeningParameters.GetEquivalentPlasticStrainOld(); };
-		
+
 	  const HardeningLaw::Parameters& GetHardeningParameters  () const { return HardeningParameters; };
 
 	  const double& GetCharacteristicSize () const {return HardeningParameters.GetCharacteristicSize();}
-        
+
 	  const Matrix& GetStrainMatrix () const { return HardeningParameters.GetStrainMatrix(); }
 	  const Matrix& GetStressMatrix () const { return HardeningParameters.GetStressMatrix(); }
 	};
@@ -151,8 +151,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 	 */
         virtual YieldCriterion::Pointer Clone() const
         {
-	  YieldCriterion::Pointer p_clone(new YieldCriterion(*this));
-	  return p_clone;
+          return Kratos::make_shared<YieldCriterion>(*this);
 	}
 
 
@@ -167,26 +166,26 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 
 
         void SetHardeningLaw(HardeningLaw& rHardeningLaw)
-        {      
+        {
 	  mpHardeningLaw = (HardeningLawPointer) (&rHardeningLaw);
         }
 
         void pSetHardeningLaw(HardeningLawPointer& pHardeningLaw)
-        {      
+        {
 	  mpHardeningLaw = pHardeningLaw;
         }
 
         HardeningLaw& GetHardeningLaw()
-        {      
+        {
 	  return *mpHardeningLaw;
         }
 
         HardeningLawPointer pGetHardeningLaw()
-        {      
+        {
 	  return mpHardeningLaw;
         }
 
- 
+
         virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
 	{
 		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
@@ -248,7 +247,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
         };
-   
+
 	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha)
 	{
 		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
@@ -263,7 +262,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
         ///@}
         ///@name Access
         ///@{
-        
+
 
         ///@}
         ///@name Inquiry
@@ -299,9 +298,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
         ///@}
         ///@name Protected member Variables
         ///@{
-	
+
 	HardeningLawPointer mpHardeningLaw;
-	
+
         ///@}
         ///@name Protected Operators
         ///@{
@@ -337,7 +336,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
         ///@}
         ///@name Member Variables
         ///@{
-	
+
 
         ///@}
         ///@name Private Operators
@@ -353,7 +352,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
         ///@name Private  Access
         ///@{
 
-	
+
 	///@}
 	///@name Serialization
 	///@{
@@ -415,6 +414,4 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 
 }  // namespace Kratos.
 
-#endif // KRATOS_YIELD_CRITERION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_YIELD_CRITERION_H_INCLUDED  defined

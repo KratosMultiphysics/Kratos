@@ -138,7 +138,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
                  typename SchemeType::Pointer pScheme,
                  typename LinearSolverType::Pointer pLinearSolver,
                  Flags& rOptions)
-      : LinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, typename BuilderAndSolverType::Pointer(new BlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pLinearSolver)), rOptions)
+      : LinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, Kratos::make_shared<BlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver), rOptions)
   {}
 
 

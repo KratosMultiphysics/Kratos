@@ -60,7 +60,7 @@ namespace Kratos
 
     /// Default constructor.
     IncompressibleHypoElasticModel() : IsochoricHypoElasticModel() {}
-    
+
     /// Copy constructor.
     IncompressibleHypoElasticModel(IncompressibleHypoElasticModel const& rOther) : IsochoricHypoElasticModel(rOther) {}
 
@@ -74,9 +74,9 @@ namespace Kratos
     /// Clone.
     ConstitutiveModel::Pointer Clone() const override
     {
-      return ( IncompressibleHypoElasticModel::Pointer(new IncompressibleHypoElasticModel(*this)) );      
+      return Kratos::make_shared<IncompressibleHypoElasticModel>(*this);
     }
- 
+
     /// Destructor.
     virtual ~IncompressibleHypoElasticModel() {}
 
@@ -89,7 +89,7 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-  
+
 
     // Simplyfied methods must be implemented for performance purposes
 
@@ -111,18 +111,18 @@ namespace Kratos
         if( nu < -0.999 && nu > -1.01 )
           KRATOS_ERROR << "POISSON_RATIO has an invalid value" << std::endl;
       }
-      	
+
       return 0;
 
-	  
+
       KRATOS_CATCH(" ")
     }
 
- 
+
     ///@}
     ///@name Access
     ///@{
-        
+
     /**
      * method to ask the constitutive model the list of variables (dofs) needed from the domain
      * @param rScalarVariables : list of scalar dofs
@@ -136,10 +136,10 @@ namespace Kratos
       HypoElasticModel::GetDomainVariablesList(rScalarVariables, rComponentVariables);
 
       rScalarVariables.push_back(PRESSURE);
- 	
+
       KRATOS_CATCH(" ")
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -177,11 +177,11 @@ namespace Kratos
     ///@}
 
   protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -191,7 +191,7 @@ namespace Kratos
     ///@name Protected Operators
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -201,24 +201,24 @@ namespace Kratos
       KRATOS_TRY
 
       const ModelDataType& rValues = rVariables.GetModelData();
-      
+
       //volumetric stress
       const double& Pressure = rValues.GetPressure();
       for(unsigned int i = 0; i < 3; i++)
         rStressVector[i] += Pressure;
-      
+
       KRATOS_CATCH(" ")
     }
 
 
     // set the default volumetric function for the incompressible case
-    
+
     void CalculateAndAddVolumetricStrainEnergy(ElasticDataType& rVariables, double& rVolumetricDensityFunction) override
     {
       KRATOS_TRY
-          
+
       KRATOS_ERROR << "calling the class function in IncompressibleHypoElasticModel ... illegal operation" << std::endl;
- 	
+
       KRATOS_CATCH(" ")
     }
 
@@ -241,15 +241,15 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -265,7 +265,7 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
@@ -279,7 +279,7 @@ namespace Kratos
 
     void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HypoElasticModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HypoElasticModel )
     }
 
     ///@}
@@ -312,6 +312,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INCOMPRESSIBLE_HYPO_ELASTIC_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_INCOMPRESSIBLE_HYPO_ELASTIC_MODEL_H_INCLUDED  defined

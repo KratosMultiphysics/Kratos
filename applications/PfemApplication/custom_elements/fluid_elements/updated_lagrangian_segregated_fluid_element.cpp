@@ -87,8 +87,6 @@ Element::Pointer UpdatedLagrangianSegregatedFluidElement::Clone( IndexType NewId
 
   UpdatedLagrangianSegregatedFluidElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
-  //-----------//
-
   NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
 
 
@@ -454,8 +452,9 @@ void UpdatedLagrangianSegregatedFluidElement::InitializeElementData (ElementData
       KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
   }
 
+  const GeometryType&  rGeometry = GetGeometry();
   //Calculate Delta Position
-  rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+  ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,rGeometry);
 
   //set variables including all integration points values
 
@@ -563,7 +562,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataTyp
           //Parent to reference configuration
           rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
-          GeometryType&  rGeometry = GetGeometry();
+          const GeometryType&  rGeometry = GetGeometry();
           const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
           //Compute the deformation matrix B
@@ -580,7 +579,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataTyp
       case PRESSURE_STEP:
         {
 
-          GeometryType&  rGeometry = GetGeometry();
+          const GeometryType&  rGeometry = GetGeometry();
           //Calculate velocity gradient matrix
           ElementUtilities::CalculateVelocityGradient( rVariables.L, rGeometry, rVariables.DN_DX, rVariables.Alpha );
 

@@ -56,7 +56,7 @@ namespace Kratos
     typedef YieldCriterion::Pointer    YieldCriterionPointer;
     typedef HardeningLaw::Pointer        HardeningLawPointer;
     typedef const Properties*              PropertiesPointer;
-    
+
 
     KRATOS_DEFINE_LOCAL_FLAG( IMPLEX_ACTIVE );
     KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_REGION );
@@ -70,7 +70,7 @@ namespace Kratos
       double Beta1;
       double Beta2;
       double Beta3;
-      double Beta4;	   
+      double Beta4;
 
       Matrix  Normal;
       Matrix  Dev_Normal;
@@ -101,7 +101,7 @@ namespace Kratos
       friend class Serializer;
 
       // A private default constructor necessary for serialization
-      
+
       void save(Serializer& rSerializer) const
       {
 	rSerializer.save("PlasticDissipation",PlasticDissipation);
@@ -130,21 +130,21 @@ namespace Kratos
       double LameMu_bar;
       double DeltaTime;
 
-      double IncrementalPlasticShearStrain; 
+      double IncrementalPlasticShearStrain;
 
       double Temperature;
-      
+
       double CharacteristicSize;
-      
+
       Matrix TrialIsoStressMatrix;
-    
+
       Matrix StrainMatrix;
       Matrix MainDirections;
 
       ThermalVariables Thermal;
 
     public:
-      
+
       void clear()
         {
 	  NormIsochoricStress = 0;
@@ -157,7 +157,7 @@ namespace Kratos
 	  DeltaTime   = 1;
 	  Temperature = 0;
 	}
-      
+
 
       void initialize()
         {
@@ -179,7 +179,7 @@ namespace Kratos
         //needed in IMPLEX calculation
         double EquivalentPlasticStrainOld;
 
-        
+
     public:
 
         void clear()
@@ -203,7 +203,7 @@ namespace Kratos
       friend class Serializer;
 
       // A private default constructor necessary for serialization
-      
+
       void save(Serializer& rSerializer) const
       {
 	rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
@@ -251,15 +251,15 @@ namespace Kratos
 
 
     /// Assignment operator.
-    FlowRule& operator=(FlowRule const& rOther) 
-    { 
+    FlowRule& operator=(FlowRule const& rOther)
+    {
        mInternalVariables = rOther.mInternalVariables;
        mThermalVariables  = rOther.mThermalVariables;
        mpYieldCriterion   = rOther.mpYieldCriterion;
        //mpHardeningLaw     = rOther.mpHardeningLaw;
        //mpProperties       = rOther.mpProperties;
 
-       return *this; 
+       return *this;
     };
 
     /// Destructor.
@@ -277,8 +277,7 @@ namespace Kratos
      */
     virtual FlowRule::Pointer Clone() const
     {
-      FlowRule::Pointer p_clone(new FlowRule(*this));
-      return p_clone;
+      return Kratos::make_shared<FlowRule>(*this);
     }
 
 
@@ -290,7 +289,7 @@ namespace Kratos
     {
       //set yield criterion
       mpYieldCriterion = pYieldCriterion;
-      mpYieldCriterion->InitializeMaterial(pHardeningLaw, rMaterialProperties);	
+      mpYieldCriterion->InitializeMaterial(pHardeningLaw, rMaterialProperties);
 
       //initialize material variables
       mInternalVariables.clear();
@@ -301,7 +300,7 @@ namespace Kratos
     virtual void InitializeMaterial (const Properties& rMaterialProperties)
     {
 
-      mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rMaterialProperties);	
+      mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rMaterialProperties);
 
       //initialize material variables
       mInternalVariables.clear();
@@ -313,17 +312,17 @@ namespace Kratos
     {
         return mpYieldCriterion->GetHardeningLaw().GetProperties();
     };
-	
+
     const InternalVariables& GetInternalVariables()
     {
         return mInternalVariables;
     };
-    
+
     InternalVariables& SetInternalVariables()
     {
         return mInternalVariables;
     };
-	
+
     const ThermalVariables& GetThermalVariables()
     {
       return mThermalVariables;
@@ -340,7 +339,7 @@ namespace Kratos
 	    KRATOS_ERROR <<  "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
 
     };
- 
+
     virtual void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticMatrix)
     {
 	    KRATOS_ERROR <<  "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
@@ -351,7 +350,7 @@ namespace Kratos
     {
 	    KRATOS_ERROR << "Calling the base class function in FlowRule ... illegal operation!!" << std::endl;
     };
-    
+
 
     virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
     {
@@ -409,7 +408,7 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     InternalVariables   mInternalVariables;
     ThermalVariables    mThermalVariables;
 
@@ -417,7 +416,7 @@ namespace Kratos
 
     //HardeningLawPointer     mpHardeningLaw;
     //PropertiesPointer       mpProperties;
-	  
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -461,8 +460,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -560,6 +559,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FLOW_RULE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_FLOW_RULE_H_INCLUDED  defined

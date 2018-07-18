@@ -416,9 +416,7 @@ Element::Pointer
 ShellThickElement3D4N::Create(IndexType NewId, NodesArrayType const &ThisNodes,
                               PropertiesType::Pointer pProperties) const {
   GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
-  return Element::Pointer(
-      new ShellThickElement3D4N(NewId, newGeom, pProperties,
-                                mpCoordinateTransformation->Create(newGeom)));
+  return Kratos::make_shared<ShellThickElement3D4N>(NewId, newGeom, pProperties,mpCoordinateTransformation->Create(newGeom));
 }
 
 void ShellThickElement3D4N::Initialize() {

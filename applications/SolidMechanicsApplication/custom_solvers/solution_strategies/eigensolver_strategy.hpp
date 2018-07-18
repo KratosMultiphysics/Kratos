@@ -59,7 +59,7 @@ class EigensolverStrategy
   typedef SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>          BaseType;
 
   typedef typename BaseType::LocalFlagType                               LocalFlagType;
-  
+
   typedef typename BaseType::BuilderAndSolverType                 BuilderAndSolverType;
 
   typedef typename BaseType::SchemeType                                     SchemeType;
@@ -71,7 +71,7 @@ class EigensolverStrategy
   typedef TSparseSpace SparseSpaceType;
 
   typedef typename TSparseSpace::VectorPointerType             SparseVectorPointerType;
-    
+
   typedef typename TSparseSpace::MatrixPointerType             SparseMatrixPointerType;
 
   typedef typename TSparseSpace::MatrixType                           SparseMatrixType;
@@ -98,12 +98,12 @@ class EigensolverStrategy
 
     // set if modal contribution is computed
     mComputeModalContribution = ComputeModalContribution;
-	        
-    mpMassMatrix = Kratos::shared_ptr<SparseMatrixType>(new SparseMatrixType);
-    mpStiffnessMatrix = Kratos::shared_ptr<SparseMatrixType>(new SparseMatrixType);
+
+    mpMassMatrix = Kratos::make_shared<SparseMatrixType>(0,0);
+    mpStiffnessMatrix = Kratos::make_shared<SparseMatrixType>(0,0);
 
     mpBuilderAndSolver->SetEchoLevel(this->mEchoLevel);
-    
+
     KRATOS_CATCH("")
   }
 
@@ -127,7 +127,7 @@ class EigensolverStrategy
   ///@{
 
   /**
-   * Performs all the required operations that should be done (for each step) 
+   * Performs all the required operations that should be done (for each step)
    * before solving the solution step.
    * A member variable should be used as a flag to make sure this function is called only once per step.
    */
@@ -146,7 +146,7 @@ class EigensolverStrategy
 
     //set system sizes
     this->SetSystemMatrices(pDx,pb);
-    
+
     //initial operations ... things that are constant over the Solution Step
     mpBuilderAndSolver->InitializeSolutionStep(mpScheme, BaseType::GetModelPart(), mpStiffnessMatrix, pDx, pb);
 
@@ -156,33 +156,33 @@ class EigensolverStrategy
 
     KRATOS_CATCH("")
   }
-  
+
   /**
    * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-   */   
+   */
   bool SolveSolutionStep() override
   {
     KRATOS_TRY
-        
+
     // Initialize dummy rhs vector
     SparseVectorPointerType pb  = SparseSpaceType::CreateEmptyVectorPointer(); //dummy
     SparseSpaceType::Resize((*pb),SparseSpaceType::Size1((*mpMassMatrix)));
     SparseSpaceType::Set((*pb),0.0);
-    
+
     // Generate lhs matrix. the factor 1 is chosen to preserve
     // SPD property
     this->GetModelPart().GetProcessInfo()[BUILD_LEVEL] = 1;
     TSparseSpace::SetToZero((*mpMassMatrix));
     mpBuilderAndSolver->Build(mpScheme,this->GetModelPart(),(*mpMassMatrix),(*pb));
     this->ApplyDirichletConditions((*mpMassMatrix), 1.0);
-    
+
     // Generate rhs matrix. the factor -1 is chosen to make
     // Eigenvalues corresponding to fixed dofs negative
     this->GetModelPart().GetProcessInfo()[BUILD_LEVEL] = 2;
     TSparseSpace::SetToZero((*mpStiffnessMatrix));
     mpBuilderAndSolver->Build(mpScheme,this->GetModelPart(),(*mpStiffnessMatrix),(*pb));
     ApplyDirichletConditions((*mpStiffnessMatrix), -1.0);
-    
+
     // Eigenvector matrix and eigenvalue vector are initialized by the solver
     DenseVectorType Eigenvalues;
     DenseMatrixType Eigenvectors;
@@ -192,7 +192,7 @@ class EigensolverStrategy
                                                        (*mpMassMatrix),
                                                        Eigenvalues,
                                                        Eigenvectors);
-    
+
     this->AssignVariables(Eigenvalues,Eigenvectors);
 
     if( mComputeModalContribution == true )
@@ -222,14 +222,14 @@ class EigensolverStrategy
     {
       this->pGetStiffnessMatrix() = nullptr;
     }
-        
+
     mpBuilderAndSolver->Clear();
 
     mpScheme->Clear();
 
     KRATOS_CATCH("")
   }
-  
+
   /**
    * Function to perform expensive checks.
    * It is designed to be called ONCE to verify that the input is correct.
@@ -263,7 +263,7 @@ class EigensolverStrategy
 
   /* @brief This sets the level of echo for the solving strategy
    * @param Level of echo for the solving strategy
-   * @details 
+   * @details
    * {
    * 0 -> Mute... no echo at all
    * 1 -> Printing time and basic informations
@@ -274,10 +274,10 @@ class EigensolverStrategy
   void SetEchoLevel(const int Level) override
   {
     BaseType::SetEchoLevel(Level);
-    mpBuilderAndSolver->SetEchoLevel(Level);        
+    mpBuilderAndSolver->SetEchoLevel(Level);
   }
 
-  
+
   void SetScheme(typename SchemeType::Pointer pScheme)
   {
     mpScheme = pScheme;
@@ -343,14 +343,14 @@ class EigensolverStrategy
   ///@}
   ///@name Protected Operations
   ///@{
-  
+
   /**
    * Initialization to be performed once before using the strategy.
    */
   void Initialize() override
   {
     KRATOS_TRY
-            
+
     //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
     if(mpScheme->IsNot(LocalFlagType::INITIALIZED))
       mpScheme->Initialize(this->GetModelPart());
@@ -362,7 +362,7 @@ class EigensolverStrategy
 
     KRATOS_CATCH("")
   }
-  
+
   ///@}
   ///@name Protected  Access
   ///@{
@@ -390,11 +390,11 @@ class EigensolverStrategy
   typename BuilderAndSolverType::Pointer mpBuilderAndSolver;
 
   SparseMatrixPointerType                      mpMassMatrix;
- 
+
   SparseMatrixPointerType                 mpStiffnessMatrix;
 
   bool                            mComputeModalContribution;
-  
+
   ///@}
   ///@name Private Operators
   ///@{
@@ -405,14 +405,14 @@ class EigensolverStrategy
 
   /**
    * @brief Performs all the required operations to resize system matrices and vectors
-   */  
+   */
   void SetSystemMatrices(SparseVectorPointerType& pDx, SparseVectorPointerType& pb)
   {
     KRATOS_TRY
-               
+
     // Mass matrix
     mpBuilderAndSolver->SetUpSystemMatrices(mpScheme, this->GetModelPart(), mpMassMatrix, pDx, pb);
-  
+
     // Stiffness matrix
     mpBuilderAndSolver->SetUpSystemMatrices(mpScheme, this->GetModelPart(), mpStiffnessMatrix, pDx, pb);
 
@@ -421,23 +421,23 @@ class EigensolverStrategy
 
   /**
    * @brief Performs all the required operations to reform dofs
-   */  
+   */
   void SetSystemDofs()
   {
     KRATOS_TRY
-    
+
     if (this->mEchoLevel >= 2)
       KRATOS_INFO(" Reform Dofs ") << " Flag = " <<this->mOptions.Is(LocalFlagType::REFORM_DOFS) << std::endl;
-                                                                                        
+
     //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
-        
+
     //setting up the list of the DOFs to be solved
     double begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpDofSet(mpScheme, this->GetModelPart());
     double end_time = OpenMPUtils::GetCurrentTime();
     if (this->mEchoLevel >= 2)
       KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
-      
+
     //shaping correctly the system
     begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpSystem();
@@ -528,8 +528,8 @@ class EigensolverStrategy
   /// Assign eigenvalues and eigenvectors to kratos variables.
   void AssignVariables(DenseVectorType& rEigenvalues, DenseMatrixType& rEigenvectors)
   {
-    KRATOS_TRY 
- 
+    KRATOS_TRY
+
     const std::size_t NumEigenvalues = rEigenvalues.size();
 
     // store eigenvalues in process info
@@ -565,53 +565,53 @@ class EigensolverStrategy
   }
 
   /// Compute nodal contributions
-  void ComputeModalContribution(SparseMatrixType& rMassMatrix, DenseVectorType& rEigenValues, DenseMatrixType& rEigenVectors) 
-  { 
-    KRATOS_TRY 
-         
-    //Computing modal contribution 
-    const auto num_eigen_values = rEigenValues.size(); 
-    const auto system_size = rMassMatrix.size1(); 
-    Matrix mass(num_eigen_values,num_eigen_values); 
-    noalias(mass) = ZeroMatrix(num_eigen_values,num_eigen_values); 
+  void ComputeModalContribution(SparseMatrixType& rMassMatrix, DenseVectorType& rEigenValues, DenseMatrixType& rEigenVectors)
+  {
+    KRATOS_TRY
+
+    //Computing modal contribution
+    const auto num_eigen_values = rEigenValues.size();
+    const auto system_size = rMassMatrix.size1();
+    Matrix mass(num_eigen_values,num_eigen_values);
+    noalias(mass) = ZeroMatrix(num_eigen_values,num_eigen_values);
     Vector mode_contribution(num_eigen_values);
-    noalias(mode_contribution)= ZeroVector(num_eigen_values); 
+    noalias(mode_contribution)= ZeroVector(num_eigen_values);
     Vector ratio_mass_mode_contribution(num_eigen_values);
     noalias(ratio_mass_mode_contribution) = ZeroVector(num_eigen_values);
     Matrix eigen_contribution(num_eigen_values, system_size);
-    noalias(eigen_contribution)= ZeroMatrix(num_eigen_values, system_size); 
- 
-    double total_mass= 0.0; 
-    for (std::size_t i = 0; i < system_size; i++) 
-    { 
-      for (std::size_t j = 0; j < system_size; j++) 
-      { 
-        total_mass += rMassMatrix(i,j); 
-      } 
-    } 
- 
-    noalias(eigen_contribution) = prod(rEigenVectors,rMassMatrix); 
-    noalias(mass) = prod(eigen_contribution,trans(rEigenVectors)); 
-    double total_mass_contribution =0.0; 
- 
-    for (std::size_t i = 0; i < num_eigen_values; i++) 
-    { 
-      for (std::size_t j = 0; j < system_size; j++) 
-      { 
-        mode_contribution[i] += eigen_contribution(i,j); 
-      } 
- 
-      ratio_mass_mode_contribution[i] = (mode_contribution[i]*mode_contribution[i])/(mass(i,i)*total_mass)*100.0; 
-      total_mass_contribution += ratio_mass_mode_contribution[i]; 
+    noalias(eigen_contribution)= ZeroMatrix(num_eigen_values, system_size);
+
+    double total_mass= 0.0;
+    for (std::size_t i = 0; i < system_size; i++)
+    {
+      for (std::size_t j = 0; j < system_size; j++)
+      {
+        total_mass += rMassMatrix(i,j);
+      }
     }
-    
+
+    noalias(eigen_contribution) = prod(rEigenVectors,rMassMatrix);
+    noalias(mass) = prod(eigen_contribution,trans(rEigenVectors));
+    double total_mass_contribution =0.0;
+
+    for (std::size_t i = 0; i < num_eigen_values; i++)
+    {
+      for (std::size_t j = 0; j < system_size; j++)
+      {
+        mode_contribution[i] += eigen_contribution(i,j);
+      }
+
+      ratio_mass_mode_contribution[i] = (mode_contribution[i]*mode_contribution[i])/(mass(i,i)*total_mass)*100.0;
+      total_mass_contribution += ratio_mass_mode_contribution[i];
+    }
+
     if (this->mEchoLevel >= 1){
       KRATOS_INFO(" eigen_ratio") << " ::EIGEN_CONTRIBUTION:: (Mode/Mass) RATIO [" <<ratio_mass_mode_contribution << "]\n" << LoggerMessage::Category::STATUS;
       KRATOS_INFO(" eigen_total") << " ::EIGEN_CONTRIBUTION:: (Mode/Mass) TOTAL [" << total_mass_contribution<< "]\n" << LoggerMessage::Category::STATUS;
     }
-    
-    KRATOS_CATCH("") 
-  } 
+
+    KRATOS_CATCH("")
+  }
 
 
   ///@}
@@ -636,8 +636,7 @@ class EigensolverStrategy
 ///@}
 
 ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_EIGENSOLVER_STRATEGY_H_INCLUDED  defined
-

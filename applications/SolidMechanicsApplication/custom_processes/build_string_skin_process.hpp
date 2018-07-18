@@ -35,7 +35,7 @@ namespace Kratos
      set of beam nodes which define the beam generatrix
      radius: define the walls of the tube respect to the generatrix
 */
-  
+
 class BuildStringSkinProcess : public Process
 {
 public:
@@ -56,7 +56,7 @@ public:
 
     typedef BeamMathUtils<double>                   BeamMathUtilsType;
     typedef Quaternion<double>                         QuaternionType;
-  
+
     /// Pointer definition of BuildStringSkinProcess
     KRATOS_CLASS_POINTER_DEFINITION(BuildStringSkinProcess);
 
@@ -69,9 +69,9 @@ public:
 			   ) : Process() , mrModelPart(rModelPart), mSides(sides), mRadius(radius)
     {
         KRATOS_TRY
-	  	  
-	mMaxId = GetMaxNodeId(*(mrModelPart.GetParentModelPart()));       
-      	
+
+	mMaxId = GetMaxNodeId(*(mrModelPart.GetParentModelPart()));
+
         KRATOS_CATCH("")
     }
 
@@ -103,7 +103,7 @@ public:
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     void ExecuteInitialize() override
-    {      
+    {
         KRATOS_TRY
 
 	CreateGeneratrix();
@@ -111,7 +111,7 @@ public:
 	CreateSkinElements();
 
 	TransferSkinToOutput();
-	
+
 	// set nodes to RIGID and ACTIVE
 	for (ModelPart::NodeIterator i = mrModelPart.NodesBegin(); i != mrModelPart.NodesEnd(); ++i)
 	{
@@ -125,14 +125,14 @@ public:
 	  (i)->Set(RIGID,true);
 	  (i)->Set(ACTIVE,true);
 	}
-	
+
         KRATOS_CATCH("")
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
     void ExecuteBeforeSolutionLoop() override
-    {      
+    {
     }
 
 
@@ -141,9 +141,9 @@ public:
     {
 
         KRATOS_TRY
-      
+
 	SetInActiveFlag(mrModelPart);
-	
+
 	KRATOS_CATCH("")
 
     }
@@ -151,7 +151,7 @@ public:
     /// this function will be executed at every time step AFTER performing the solve phase
     void ExecuteFinalizeSolutionStep() override
     {
-      
+
         KRATOS_TRY
 
 	MoveSkinNodes();
@@ -168,7 +168,7 @@ public:
         KRATOS_TRY
 
 	SetActiveFlag(mrModelPart);
-	  
+
         KRATOS_CATCH("")
     }
 
@@ -181,7 +181,7 @@ public:
 
         KRATOS_CATCH("")
     }
-      
+
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
@@ -270,24 +270,24 @@ private:
     unsigned int mSides;
 
     unsigned int mMaxId;
-    
+
     double mRadius;
-    
+
     ///@}
     ///@name Private Operators
-    ///@{   
+    ///@{
     ///@}
     ///@name Private Operations
     ///@{
 
-    
+
     //************************************************************************************
     //************************************************************************************
 
     void CreateGeneratrix()
     {
       KRATOS_TRY
-	
+
       //Set generatrix control points for a given set of two noded line conditions
       //unsigned int id = 0; //start with 0;
 
@@ -301,7 +301,7 @@ private:
 	  WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
 	  if( rN.size() <= 1 )
 	    Starter = *(in.base());
-	  
+
 	}
 
       //SEARCH CONSECUTIVE NODES
@@ -310,7 +310,7 @@ private:
       Element::Pointer  CurrentElement;
       for(unsigned int i=0; i<mrModelPart.NumberOfNodes(); i++)
 	{
-	  
+
 	  //std::cout<<" Node ("<<Starter->Id()<<") "<<std::endl;
 
 	  current_id = Starter->Id();
@@ -318,7 +318,7 @@ private:
 	  mGeneratrixNodes.push_back( Starter );
 
 	  WeakPointerVector<Element>& rE = Starter->GetValue(NEIGHBOUR_ELEMENTS);
- 
+
           for(unsigned int ie=0; ie<rE.size(); ie++)
 	    {
 	      Element::GeometryType& pGeometry = rE[ie].GetGeometry();
@@ -327,24 +327,24 @@ private:
 	      for(unsigned int j = 0; j < pGeometry.size(); j++)
 		{
 		  if( pGeometry[j].Id() == previous_id )
-		    { 
+		    {
 		      selected = false;
 		    }
 		}
-	      
+
 	      if( selected ){
-		
+
 		for(unsigned int j = 0; j < pGeometry.size(); j++)
 		  {
 		    if( pGeometry[j].Id() != current_id )
-		      { 
+		      {
 			previous_id = Starter->Id();
 			Starter = pGeometry(j);
 		      }
 		  }
 	      }
 
-	    }	  
+	    }
 
 	}
 
@@ -357,8 +357,8 @@ private:
 	  //set radius to nodes
 	  PropertiesType& Properties = ie->GetProperties();
 	  Radius = Properties[MEAN_RADIUS];
-	  
-	  Vertices(0)->SetValue(MEAN_RADIUS, Radius);	  
+
+	  Vertices(0)->SetValue(MEAN_RADIUS, Radius);
 	}
 
       ElementsContainerType::iterator LastElement = mrModelPart.ElementsEnd()-1;
@@ -376,9 +376,9 @@ private:
 
       mrModelPart.RemoveNodes();
       mrModelPart.RemoveElements();
-            
+
       std::cout<<"  [String_builder] [Defined by "<<mGeneratrixNodes.size()<<" control points]"<<std::endl;
- 
+
       KRATOS_CATCH( "" )
     }
 
@@ -390,7 +390,7 @@ private:
       KRATOS_TRY
 
       unsigned int node_id = mMaxId;
-      
+
       PointType Point0     = ZeroVector(3);
       PointType Point      = ZeroVector(3);
       PointType BasePoint  = ZeroVector(3);
@@ -410,11 +410,11 @@ private:
 	  Point0[0] = (nodes_begin+i)->X0();
 	  Point0[1] = (nodes_begin+i)->Y0();
 	  Point0[2] = (nodes_begin+i)->Z0();
-	  
+
 	  Point[0] = (nodes_begin+i)->X();
 	  Point[1] = (nodes_begin+i)->Y();
 	  Point[2] = (nodes_begin+i)->Z();
-         	    
+
 	  // rotations
 	  double alpha = 0;
 	  Matrix Q = ZeroMatrix(3,3); //rotation along the local axis X
@@ -422,14 +422,14 @@ private:
 	  //vector of beam section rotation
 	  array_1d<double,3>& NodeRotation = (nodes_begin+i)->FastGetSolutionStepValue( ROTATION );
 
-	  PointType SectionRotation = ZeroVector(3);	  
+	  PointType SectionRotation = ZeroVector(3);
 
 	  for( unsigned int j=0; j<3; j++ )
 	    {
 	      SectionRotation[j] = NodeRotation[j];
 	    }
 
-	  QuaternionType SectionQuaternion;	  
+	  QuaternionType SectionQuaternion;
 	  SectionQuaternion = QuaternionType::FromRotationVector(SectionRotation);
 
 	  QuaternionType RotationQuaternion;
@@ -446,7 +446,7 @@ private:
 	    BasePoint[0] = (nodes_begin+(i-1))->X0();
 	    BasePoint[1] = (nodes_begin+(i-1))->Y0();
 	    BasePoint[2] = (nodes_begin+(i-1))->Z0();
-	    DirectionZ = Point0 - BasePoint;	    
+	    DirectionZ = Point0 - BasePoint;
 	  }
 	  else if( i == 0 ){
 	    BasePoint[0] = (nodes_begin+(i+1))->X0();
@@ -461,7 +461,7 @@ private:
 
 	    DirectionZ1  = (Point0 - BasePoint);
 	    DirectionZ1 /= norm_2(DirectionZ1);
-	    
+
 	    BasePoint[0] = (nodes_begin+(i+1))->X0();
 	    BasePoint[1] = (nodes_begin+(i+1))->Y0();
 	    BasePoint[2] = (nodes_begin+(i+1))->Z0();
@@ -480,7 +480,7 @@ private:
 
 	    if(norm_2(DirectionEllipse))
 	      DirectionEllipse/=norm_2(DirectionEllipse);
-	    
+
 	    RadiusCorrection  = inner_prod(DirectionZ,DirectionZ1);
 	    RadiusCorrection += inner_prod(DirectionZ,DirectionZ2);
 	    RadiusCorrection *= 0.5;
@@ -490,9 +490,9 @@ private:
 	      RadiusCorrection  = 1.0;
 	  }
 
-	  
+
 	  BeamMathUtilsType::CalculateLocalAxesVectors(DirectionZ,DirectionX,DirectionY);
-	    
+
 	  if( DirectionZ[0] == 0 && DirectionZ[1] == 0 && DirectionZ[2] == 1){ //if e3 change the orthornormal base
 	    PointType Temp  =  DirectionX;
 	    DirectionX = DirectionY;
@@ -502,18 +502,18 @@ private:
 	  double EllipsoidalCorrection = 1;
 
 	  for(unsigned int k=0; k<mSides; k++)
-	    {		  
+	    {
               alpha = (2.0 * Globals::Pi * k)/double(mSides) + 0.25 * Globals::Pi;
-	      
+
 	      //vector of rotation
 	      RotationAxis = DirectionZ * alpha;
 
 	      RotationQuaternion = QuaternionType::FromRotationVector(RotationAxis);
-	      
+
 	      RotatedDirectionX = DirectionX;
 
 	      RotationQuaternion.RotateVector3(RotatedDirectionX);
-		  
+
 
 	      EllipsoidalCorrection = inner_prod(DirectionEllipse,RotatedDirectionX);
 	      EllipsoidalCorrection = 1 + ( RadiusCorrection - 1 ) * (EllipsoidalCorrection * EllipsoidalCorrection);
@@ -527,7 +527,7 @@ private:
 	      BasePoint =  Radius * EllipsoidalCorrection * RotatedDirectionX;
 
 	      SectionQuaternion.RotateVector3(BasePoint);
-	      
+
 	      BasePoint += Point;
 
 	      // std::cout<<" DirectionZ "<<DirectionZ<<std::endl;
@@ -538,16 +538,16 @@ private:
 	      // std::cout<<" Base Point ["<<node_id<<"]"<<BasePoint<<std::endl;
 
 	      mrModelPart.AddNode(this->CreateNode(*(mrModelPart.GetParentModelPart()), BasePoint, node_id));
-              	      
+
 	    }
-	  
-	  
+
+
 	}
-      
+
       KRATOS_CATCH( "" )
 
     }
-   
+
     //************************************************************************************
     //************************************************************************************
     void MoveSkinNodes()
@@ -558,7 +558,7 @@ private:
       //set new nodes position:
 
       int number_of_angles = mSides; //number of lines in radius
-      
+
       PointType Point0     = ZeroVector(3);
       PointType Point      = ZeroVector(3);
       PointType BasePoint  = ZeroVector(3);
@@ -570,16 +570,16 @@ private:
       PointType RotatedDirectionX = ZeroVector(3);
 
       ModelPart::NodesContainerType::iterator nodes_begin = mGeneratrixNodes.begin();
-      
+
       ModelPart::NodesContainerType::iterator skin_nodes_begin = mrModelPart.NodesBegin();
- 
+
       //std::cout<<" Number of Nodes "<<mrModelPart.NumberOfNodes()<<std::endl;
 
       int counter = 0;
       double Radius = 0;
       for(unsigned int i=0; i<mGeneratrixNodes.size(); i++)
 	{
-	  
+
 	  Point0[0] = (nodes_begin+i)->X0();
 	  Point0[1] = (nodes_begin+i)->Y0();
 	  Point0[2] = (nodes_begin+i)->Z0();
@@ -587,7 +587,7 @@ private:
 	  Point[0] = (nodes_begin+i)->X();
 	  Point[1] = (nodes_begin+i)->Y();
 	  Point[2] = (nodes_begin+i)->Z();
-          	    
+
 	  // rotations
 	  double alpha = 0;
 	  Matrix Q(3,3);
@@ -596,14 +596,14 @@ private:
 	  //vector of beam section rotation
 	  PointType& NodeRotation = (nodes_begin+i)->FastGetSolutionStepValue( ROTATION );
 
-	  PointType SectionRotation = ZeroVector(3);	  
+	  PointType SectionRotation = ZeroVector(3);
 
 	  for( unsigned int j=0; j<3; j++ )
 	    {
 	      SectionRotation[j] = NodeRotation[j];
 	    }
 
-	  QuaternionType SectionQuaternion;	  
+	  QuaternionType SectionQuaternion;
 	  SectionQuaternion = QuaternionType::FromRotationVector(SectionRotation);
 
 	  QuaternionType RotationQuaternion;
@@ -619,7 +619,7 @@ private:
 	    BasePoint[0] = (nodes_begin+(i-1))->X0();
 	    BasePoint[1] = (nodes_begin+(i-1))->Y0();
 	    BasePoint[2] = (nodes_begin+(i-1))->Z0();
-	    DirectionZ = Point0 - BasePoint;	    
+	    DirectionZ = Point0 - BasePoint;
 	  }
 	  else if( i == 0 ){
 	    BasePoint[0] = (nodes_begin+(i+1))->X0();
@@ -634,7 +634,7 @@ private:
 
 	    DirectionZ1  = (Point0 - BasePoint);
 	    DirectionZ1 /= norm_2(DirectionZ1);
-	    
+
 	    BasePoint[0] = (nodes_begin+(i+1))->X0();
 	    BasePoint[1] = (nodes_begin+(i+1))->Y0();
 	    BasePoint[2] = (nodes_begin+(i+1))->Z0();
@@ -649,18 +649,18 @@ private:
 
 	    if(norm_2(DirectionEllipse))
 	      DirectionEllipse/=norm_2(DirectionEllipse);
-	    
+
 	    RadiusCorrection  = inner_prod(DirectionZ,DirectionZ1);
 	    RadiusCorrection += inner_prod(DirectionZ,DirectionZ2);
 	    RadiusCorrection *= 0.5;
 	    RadiusCorrection  = 1.0/RadiusCorrection;
 	  }
 
-	  
+
 	  //std::cout<<" DirectionZ "<<DirectionZ<<std::endl;
 
 	  BeamMathUtilsType::CalculateLocalAxesVectors(DirectionZ,DirectionX,DirectionY);
-	    
+
 	  if( DirectionZ[0] == 0 && DirectionZ[1] == 0 && DirectionZ[2] == 1){ //if e3 change the orthornormal base
 	    PointType Temp  =  DirectionX;
 	    DirectionX = DirectionY;
@@ -672,29 +672,29 @@ private:
 	  double EllipsoidalCorrection = 1;
 
 	  for(int k=0; k<number_of_angles; k++)
-	    {		  
+	    {
 	      alpha = (2.0 * Globals::Pi * k)/double(number_of_angles) + 0.25 * Globals::Pi;
-	      
+
 	      //vector of rotation
 	      RotationAxis = DirectionZ * alpha;
-	      
+
 	      RotationQuaternion = QuaternionType::FromRotationVector(RotationAxis);
-		  	
+
 	      RotatedDirectionX = DirectionX;
 
 	      RotationQuaternion.RotateVector3(RotatedDirectionX);
-		  
+
 	      //std::cout<<" alpha "<<alpha<<"  cos "<<Q(1,1)<<std::endl;
 	      //std::cout<<" Rotated "<<RotatedDirectionX<<" alpha "<<alpha<<std::endl;
-		
+
 	      EllipsoidalCorrection = inner_prod(DirectionEllipse,RotatedDirectionX);
 	      EllipsoidalCorrection = 1 + ( RadiusCorrection - 1 ) * (EllipsoidalCorrection * EllipsoidalCorrection);
 
 	      //Add four points along the circular base of the tube
 	      //Radius = (nodes_begin+i)->GetValue(MEAN_RADIUS);
 	      Radius = mRadius;
-	      
-	      BasePoint = Radius * EllipsoidalCorrection * RotatedDirectionX; 
+
+	      BasePoint = Radius * EllipsoidalCorrection * RotatedDirectionX;
 
 	      SectionQuaternion.RotateVector3(BasePoint);
 
@@ -703,7 +703,7 @@ private:
 	      RadiusVector[0] = BasePoint[0];
 	      RadiusVector[1] = BasePoint[1];
 	      RadiusVector[2] = BasePoint[2];
-  
+
 	      //get coordinates
 	      PointType PreviousPosition = ZeroVector(3);
 	      PreviousPosition[0] = (skin_nodes_begin+counter)->X0();
@@ -711,10 +711,10 @@ private:
 	      PreviousPosition[2] = (skin_nodes_begin+counter)->Z0();
 
 	      BasePoint += Point;
-	      
+
 	      (skin_nodes_begin+counter)->X() = BasePoint[0];
 	      (skin_nodes_begin+counter)->Y() = BasePoint[1];
-	      (skin_nodes_begin+counter)->Z() = BasePoint[2];              
+	      (skin_nodes_begin+counter)->Z() = BasePoint[2];
 
 
 	      PointType& Displacement = (skin_nodes_begin+counter)->FastGetSolutionStepValue(DISPLACEMENT);
@@ -739,16 +739,16 @@ private:
 		//********************
 		//compute the skewsymmmetric tensor of the angular velocity
 		BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVelocity, SkewSymVariable);
-	      
+
 		//compute the contribution of the angular velocity to the velocity v = Wxr
 		Variable = prod(SkewSymVariable,RadiusVector);
-     
+
 		(skin_nodes_begin+counter)->FastGetSolutionStepValue(VELOCITY) = Velocity + Variable;
 
 		//********************
-	      
+
 		//centripetal acceleration:
-		
+
 		//compute the skewsymmmetric tensor of the angular velocity
 		BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVelocity, SkewSymVariable);
 
@@ -756,7 +756,7 @@ private:
 
 		//compute the skewsymmmetric tensor of the angular acceleration
 		BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularAcceleration, SkewSymVariable);
-	      
+
 		//compute the contribution of the angular velocity to the velocity a = Axr
 		Variable = prod(SkewSymVariable,RadiusVector);
 
@@ -767,27 +767,27 @@ private:
 
 	      counter++;
 	    }
-	  
-	  
-	} 
-      
-      KRATOS_CATCH( "" )      
+
+
+	}
+
+      KRATOS_CATCH( "" )
 
     }
 
    //************************************************************************************
    //************************************************************************************
 
- 
+
     void CreateSkinElements()
     {
       KRATOS_TRY
 
       //return this->CreateSkinTriangles();
       return this->CreateSkinQuadrilaterals();
-      
-      KRATOS_CATCH( "" )      
-      
+
+      KRATOS_CATCH( "" )
+
     }
 
 
@@ -797,17 +797,17 @@ private:
     void CreateSkinTriangles()
     {
       KRATOS_TRY
-  
+
       unsigned int number_of_angles = mSides; //number of lines in radius x 2
 
       unsigned int wall_nodes_number_id = mMaxId; //used in the creation of the tube surface conditions
-     
+
       //Triangles:
 
       // Create surface of the tube with triangular shell conditions
       unsigned int number_of_elements = (mrModelPart.Nodes().back().Id() - wall_nodes_number_id) - (number_of_angles - 1);
 
-      //GEOMETRY:      
+      //GEOMETRY:
       GeometryType::Pointer  pFace;
       ConditionType::Pointer pSkinCondition;
 
@@ -818,20 +818,20 @@ private:
 
       //Properties 0 in order to change the Id to 0 and then write tube elements in another layer
       /* ModelPart::PropertiesContainerType::ContainerType& PropertiesArray = mrModelPart.PropertiesArray(); */
-      /* PropertiesArray[0] = PropertiesType::Pointer(new PropertiesType(0)); */
+      /* PropertiesArray[0] = Kratos::make_shared<PropertiesType>(0); */
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
-	
+
       unsigned int condition_id = GetMaxConditionId(*(mrModelPart.GetParentModelPart()));
 
       unsigned int counter = 1;
-      
+
       std::vector<int> FaceNodesIds(3);
-	
+
       for(unsigned int i=1; i<number_of_elements; i++)
 	{
 	  condition_id += 1;
-	  
+
 	  if( counter < number_of_angles ){
 
 	    //triangle 1
@@ -841,7 +841,7 @@ private:
 
 	    GeometryType::PointsArrayType FaceNodes1;
 	    FaceNodes1.reserve(3);
-	      
+
 	    //NOTE: when creating a PointsArrayType
 	    //important ask for pGetNode, if you ask for GetNode a copy is created
 	    //if a copy is created a segmentation fault occurs when the node destructor is called
@@ -849,12 +849,12 @@ private:
 	    for(unsigned int j=0; j<3; j++)
 	      FaceNodes1.push_back(mrModelPart.pGetNode(FaceNodesIds[j]));
 
-	    pFace = GeometryType::Pointer(new Triangle3DType( FaceNodes1 ));
-	      
-	    pSkinCondition = ConditionType::Pointer(new ConditionType( condition_id, pFace, pProperties));
+	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes1);
+
+	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
 
 	    pSkinCondition->Set(ACTIVE,false);
-	      
+
 	    //set to beam tube mesh
 	    mrModelPart.AddCondition(pSkinCondition);
 
@@ -868,7 +868,7 @@ private:
 	    GeometryType::PointsArrayType FaceNodes2;
 	    FaceNodes2.reserve(3);
 
-	      
+
 	    //NOTE: when creating a PointsArrayType
 	    //important ask for pGetNode, if you ask for GetNode a copy is created
 	    //if a copy is created a segmentation fault occurs when the node destructor is called
@@ -876,12 +876,12 @@ private:
 	    for(unsigned int j=0; j<3; j++)
 	      FaceNodes2.push_back(mrModelPart.pGetNode(FaceNodesIds[j]));
 
-	    pFace = GeometryType::Pointer(new Triangle3DType( FaceNodes2 ));
-	      
-	    pSkinCondition = ConditionType::Pointer(new ConditionType( condition_id, pFace, pProperties));
-				       
+	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes2);
+
+	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+
 	    pSkinCondition->Set(ACTIVE,false);
-      
+
 	    //set to beam tube mesh
 	    mrModelPart.AddCondition(pSkinCondition);
 
@@ -901,17 +901,17 @@ private:
 	    for(unsigned int j=0; j<3; j++)
 	      FaceNodes1.push_back(mrModelPart.pGetNode(FaceNodesIds[j]));
 
-	    pFace = GeometryType::Pointer(new Triangle3DType( FaceNodes1 ));
-	      
-	    pSkinCondition = ConditionType::Pointer(new ConditionType( condition_id, pFace, pProperties));
-				       
+	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes1);
+
+	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+
 	    pSkinCondition->Set(ACTIVE,false);
 
 	    //set to beam tube mesh
 	    mrModelPart.AddCondition(pSkinCondition);
 
 	    condition_id += 1;
- 
+
 	    //triangle 2
 	    FaceNodesIds[0] = wall_nodes_number_id + i ;
 	    FaceNodesIds[1] = wall_nodes_number_id + i + 1;
@@ -923,10 +923,10 @@ private:
 	    for(unsigned int j=0; j<3; j++)
 	      FaceNodes2.push_back(mrModelPart.pGetNode(FaceNodesIds[j]));
 
-	    pFace = GeometryType::Pointer(new Triangle3DType( FaceNodes2 ));
-	      
-	    pSkinCondition = ConditionType::Pointer(new ConditionType( condition_id, pFace, pProperties));
-				       
+	    pFace = Kratos::make_shared<Triangle3DType>(FaceNodes2);
+
+	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+
 	    pSkinCondition->Set(ACTIVE,false);
 
 	    //set to beam tube mesh
@@ -935,50 +935,50 @@ private:
 	    counter = 1;
 	  }
 
-	  
+
 	}
 
 
-      KRATOS_CATCH( "" )           
+      KRATOS_CATCH( "" )
     }
-    
+
     //************************************************************************************
     //************************************************************************************
 
     void CreateSkinQuadrilaterals()
     {
       KRATOS_TRY
-  
+
       unsigned int number_of_angles = mSides; //number of lines in radius x 2
 
       unsigned int wall_nodes_number_id = mMaxId; //used in the creation of the tube surface conditions
-     
+
       //Quadrilaterals:
 
       // Create surface of the tube with quadrilateral shell conditions
       unsigned int number_of_elements = (mrModelPart.Nodes().back().Id() - wall_nodes_number_id) - (number_of_angles - 1);
 
-      //GEOMETRY:      
+      //GEOMETRY:
       GeometryType::Pointer  pFace;
       ConditionType::Pointer pSkinCondition;
-      
+
       //PROPERTIES:
       //int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
       //Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
       Properties::Pointer pProperties = mrModelPart.GetParentModelPart()->pGetProperties(0);
-	
+
       //Properties 0 in order to change the Id to 0 and then write tube elements in another layer
       /* ModelPart::PropertiesContainerType::ContainerType& PropertiesArray = mrModelPart.PropertiesArray(); */
-      /* PropertiesArray[0] = PropertiesType::Pointer(new PropertiesType(0)); */
+      /* PropertiesArray[0] = Kratos::make_shared<PropertiesType>(0); */
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
-	
+
       unsigned int condition_id = GetMaxConditionId(*(mrModelPart.GetParentModelPart()));
 
       unsigned int counter = 1;
-      
+
       std::vector<int> FaceNodesIds(4);
-	
+
 
       for(unsigned int i=1; i<number_of_elements; i++)
 	{
@@ -993,7 +993,7 @@ private:
 
 	    GeometryType::PointsArrayType FaceNodes;
 	    FaceNodes.reserve(4);
-	      
+
 	    //NOTE: when creating a PointsArrayType
 	    //important ask for pGetNode, if you ask for GetNode a copy is created
 	    //if a copy is created a segmentation fault occurs when the node destructor is called
@@ -1001,10 +1001,10 @@ private:
 	    for(unsigned int j=0; j<4; j++)
 	      FaceNodes.push_back(mrModelPart.pGetNode(FaceNodesIds[j]));
 
-	    pFace = GeometryType::Pointer(new Quadrilateral3DType( FaceNodes ));
-	      
-	    pSkinCondition = ConditionType::Pointer(new ConditionType( condition_id, pFace, pProperties));
-				       
+	    pFace = Kratos::make_shared<Quadrilateral3DType>(FaceNodes);
+
+	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+
 	    pSkinCondition->Set(ACTIVE,false);
 
 	    //set to beam tube mesh
@@ -1026,10 +1026,10 @@ private:
 	    for(unsigned int j=0; j<4; j++)
 	      FaceNodes.push_back(mrModelPart.pGetNode(FaceNodesIds[j]));
 
-	    pFace = GeometryType::Pointer(new Quadrilateral3DType( FaceNodes ));
-	      
-	    pSkinCondition = ConditionType::Pointer(new ConditionType( condition_id, pFace, pProperties));
-				       
+	    pFace = Kratos::make_shared<Quadrilateral3DType>(FaceNodes);
+
+	    pSkinCondition = Kratos::make_shared<ConditionType>(condition_id, pFace, pProperties);
+
 	    pSkinCondition->Set(ACTIVE,false);
 
 	    //set to beam tube mesh
@@ -1038,21 +1038,21 @@ private:
 	    counter = 1;
 	  }
 
-	  
+
 	}
 
-      KRATOS_CATCH( "" )           
+      KRATOS_CATCH( "" )
     }
-    
+
     //*******************************************************************************************
     //*******************************************************************************************
-  
+
     static inline unsigned int GetMaxNodeId(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
       unsigned int max_id = rModelPart.Nodes().back().Id();
-	
+
       for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node!= rModelPart.NodesEnd(); i_node++)
 	{
 	  if(i_node->Id() > max_id)
@@ -1060,20 +1060,20 @@ private:
 	}
 
       return max_id;
-      
+
       KRATOS_CATCH( "" )
     }
 
     //*******************************************************************************************
     //*******************************************************************************************
-  
+
     static inline unsigned int GetMaxElementId(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
       if( rModelPart.NumberOfElements() == 0 )
 	return 0;
-	
+
       unsigned int max_id = rModelPart.Elements().back().Id();
 
       for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(); i_elem!= rModelPart.ElementsEnd(); i_elem++)
@@ -1083,21 +1083,21 @@ private:
 	}
 
       return max_id;
-      
+
       KRATOS_CATCH( "" )
     }
 
 
     //*******************************************************************************************
     //*******************************************************************************************
-  
+
     static inline unsigned int GetMaxConditionId(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
       if( rModelPart.NumberOfConditions() == 0 )
 	return 0;
-	
+
       unsigned int max_id = rModelPart.Conditions().back().Id();
 
       for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
@@ -1107,24 +1107,24 @@ private:
 	}
 
       return max_id;
-      
+
       KRATOS_CATCH( "" )
     }
-    
+
     //************************************************************************************
     //************************************************************************************
-    
+
     NodeType::Pointer CreateNode (ModelPart& rModelPart, PointType& rPoint, const unsigned int& rNodeId)
     {
 
       KRATOS_TRY
-	
-      NodeType::Pointer Node = rModelPart.CreateNewNode( rNodeId, rPoint[0], rPoint[1], rPoint[2]);  	  
+
+      NodeType::Pointer Node = rModelPart.CreateNewNode( rNodeId, rPoint[0], rPoint[1], rPoint[2]);
 
       //generating the dofs
       NodeType::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
-      
-     
+
+
       for(NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
       	{
       	  NodeType::DofType& rDof = *iii;
@@ -1133,7 +1133,7 @@ private:
 
       //set fix dofs:
       NodeType::DofsContainerType& new_dofs = Node->GetDofs();
-           
+
       for(NodeType::DofsContainerType::iterator iii = new_dofs.begin(); iii != new_dofs.end(); iii++)
       	{
       	  NodeType::DofType& rDof = *iii;
@@ -1155,11 +1155,11 @@ private:
       	    }
       	}
       */
-      
+
       return Node;
-      
+
       KRATOS_CATCH( "" )
-	      
+
     }
 
     //************************************************************************************
@@ -1169,7 +1169,7 @@ private:
     {
 
       KRATOS_TRY
-	
+
       NodesContainerType&    rNodes = mrModelPart.Nodes();
       ElementsContainerType& rElems = mrModelPart.Elements();
 
@@ -1186,12 +1186,12 @@ private:
 	  WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
 	  rN.erase(rN.begin(),rN.end() );
 	  (in->GetValue(NEIGHBOUR_NODES)).reserve(AverageNodes);
-	  
+
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end() );
-	  
+
 	  (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(AverageElements);
-	  
+
         }
 
       //************* Erase old element neighbours ************//
@@ -1199,12 +1199,12 @@ private:
         {
 	  Element::GeometryType& pGeom = ie->GetGeometry();
 	  int size= pGeom.FacesNumber();
-  
+
 	  WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end() );
 
 	  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(size);
-	  
+
         }
 
       KRATOS_CATCH( "" )
@@ -1229,7 +1229,7 @@ private:
 
     }
 
-    
+
     //************************************************************************************
     //************************************************************************************
 
@@ -1253,18 +1253,18 @@ private:
         }
       return *(elem.base());
     }
-    
-    
+
+
     //************************************************************************************
     //************************************************************************************
 
     void SearchNeighbours()
     {
       KRATOS_TRY
-	
+
       ElementsContainerType& rElems = mrModelPart.Elements();
       NodesContainerType& rNodes = mrModelPart.Nodes();
-      
+
       //first of all the neighbour nodes and neighbour elements arrays are initialized to the guessed size
       //this cleans the old entries:
 
@@ -1293,20 +1293,20 @@ private:
 	      for(unsigned int i = 0; i < pGeom.size(); i++)
 		{
 		  if( pGeom[i].Id() != in->Id() )
-		    {              
+		    {
 		      Element::NodeType::WeakPointer temp = pGeom(i);
 		      WeakPointerVector< Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
 		      AddUniqueWeakPointer< Node<3> >(rN, temp);
-		    }	    
+		    }
 
 		}
 	    }
 	}
 
-      
+
       //*************  Neigbours of elements  *********//
       //add the neighbour elements to all the elements in the mesh
-      
+
       //loop over faces
       for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
 	{
@@ -1317,13 +1317,13 @@ private:
 	    //vector of the 2 faces around the given face
 	    if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 2 )
 	      (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(2);
-		
+
 	    WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 	    //neighb_face is the vector containing pointers to the three faces around ic:
 
 	    unsigned int size = rGeometry.size();
-	    
+
 	    // neighbour element over edge 0 of element ic;
 	    neighb_elems(0) = CheckForNeighbourElems1D(rGeometry[0].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 	    // neighbour element over edge 1 of element ic;
@@ -1331,8 +1331,8 @@ private:
 
 	  }
 	}
-     
-  
+
+
       KRATOS_CATCH( "" )
     }
 
@@ -1355,15 +1355,15 @@ private:
 	{
           ConditionIds.push_back(i->Id());
 	}
-	
+
 	rOutputModelPart.AddNodes(NodeIds);
-	rOutputModelPart.AddConditions(ConditionIds);	
+	rOutputModelPart.AddConditions(ConditionIds);
 
 	SetInActiveFlag(rOutputModelPart,TO_ERASE);
-	
+
         KRATOS_CATCH("")
     }
-    
+
     ModelPart& GetOutputModelPart()
     {
         KRATOS_TRY
@@ -1375,7 +1375,7 @@ private:
 	  if( i_mp->Is(ACTIVE) )
 	    OutputModelPartName = i_mp->Name();
 	}
-	
+
 	return (rMainModelPart.GetSubModelPart(OutputModelPartName));
 
         KRATOS_CATCH("")
@@ -1422,7 +1422,7 @@ private:
 
         KRATOS_CATCH("")
     }
-    
+
     ///@}
     ///@name Private  Access
     ///@{
