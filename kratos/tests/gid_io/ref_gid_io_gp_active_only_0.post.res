@@ -33,6 +33,13 @@ Result "NORMAL" "Kratos" 0 Vector OnGaussPoints "tet1_element_gp"
 Values
 1 0 0 0
 End Values
+Result "PRESSURE" "Kratos" 0 Scalar OnGaussPoints "tri1_element_gp"
+Values
+End Values
+Result "PRESSURE" "Kratos" 0 Scalar OnGaussPoints "tet1_element_gp"
+Values
+1 1
+End Values
 Result "ACTIVE" "Kratos" 0 Scalar OnGaussPoints "tri1_element_gp"
 Values
 1 0
