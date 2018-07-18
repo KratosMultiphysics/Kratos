@@ -49,7 +49,7 @@ public:
                "model_part_name": "computing_sub_model_part",
                "transfer_flags": [],
                "composite_conditions": False,
-               "generate_entities": []                  
+               "generate_entities": []
             }  )" );
 
 
@@ -63,13 +63,13 @@ public:
 
         mCompositeConditions = rParameters["composite_conditions"].GetBool();
 
-        
+
         for(unsigned int i=0; i<rParameters["generate_entities"].size(); ++i)
         {
           Parameters EntitiesGeneration = rParameters["generate_entities"][i];
           this->AddToEntitiesGenerationList(EntitiesGeneration);
         }
-   
+
         KRATOS_CATCH("")
     }
 
@@ -107,7 +107,7 @@ public:
       }
 
       KRATOS_CATCH("")
-      
+
     }
 
 
@@ -178,13 +178,13 @@ protected:
 
 private:
 
-      
+
     template<class EntityType>
     class EntityGeneration
     {
      private:
-      // member variables      
-      const EntityType* mpEntityType;     
+      // member variables
+      const EntityType* mpEntityType;
 
      public:
 
@@ -193,14 +193,14 @@ private:
 
       // set methods
       void SetEntityType(const std::string& rName) {mpEntityType = &(KratosComponents<EntityType>::Get(rName));};
-      
+
       void SetEntityType(const EntityType& rEntityType) { mpEntityType = &rEntityType; };
 
       // get methods
       const EntityType& GetEntityType() const { return *mpEntityType; };
     };
 
-  
+
     ///@name Static Member Variables
     ///@{
     ///@}
@@ -210,14 +210,14 @@ private:
     ModelPart& mrModelPart;
 
     bool mCompositeConditions;
-  
+
     std::vector<Flags>  mTransferFlags;
 
     std::vector<EntityGeneration<Element> >  mElementGenerationList;
-  
+
     std::vector<EntityGeneration<Condition> >  mConditionGenerationList;
-  
-   
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -228,7 +228,7 @@ private:
 
     //**********************************************************************************************
     //**********************************************************************************************
-  
+
     void AddToEntitiesGenerationList(Parameters& rParameters)
     {
         Parameters default_parameters( R"(
@@ -244,7 +244,7 @@ private:
 
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
-        
+
         if( rParameters["entity_type"].GetString() == "Element" ){
           EntityGeneration<Element> Entity;
           for(unsigned int i=0; i<rParameters["creation_options"]["original_flags"].size(); ++i)
@@ -262,9 +262,9 @@ private:
           }
           Entity.SetEntityType(rParameters["creation_options"]["entity_kratos_type"].GetString());
           mConditionGenerationList.push_back( Entity );
-        }         
+        }
     }
-  
+
     //**********************************************************************************************
     //**********************************************************************************************
 
@@ -327,21 +327,21 @@ private:
             {
               Properties::Pointer pProperties = ic->pGetProperties();
               Condition::Pointer pCondition = cg->GetEntityType().Create(ic->Id(), ic->GetGeometry(), pProperties);
-              
+
               //set mechanical variables to contact conditions:
               pCondition->Data() = ic->Data();
-              
+
               rDestinationModelPart.Conditions().push_back(pCondition);
             }
           }
         }
-               
+
         //assigning Properties
         rDestinationModelPart.SetProperties( rOriginModelPart.pProperties() );
 
         //assigning Tables
 	rDestinationModelPart.Tables() = rOriginModelPart.Tables();
- 
+
         Communicator::Pointer pComm = rOriginModelPart.GetCommunicator().Create();
         rDestinationModelPart.SetCommunicator(pComm);
 
@@ -387,7 +387,7 @@ private:
 
         Communicator::Pointer pComm = rOriginModelPart.GetCommunicator().Create();
         rDestinationModelPart.SetCommunicator(pComm);
-      
+
         KRATOS_CATCH("")
     }
 
@@ -406,7 +406,7 @@ private:
         KRATOS_CATCH("")
     }
 
-  
+
     bool MatchFlags(const Element::Pointer& pElement, const std::vector<Flags>& rFlags)
     {
 
@@ -416,7 +416,7 @@ private:
 	    return false;
 	}
 
-      return true;	  
+      return true;
     }
 
 
@@ -429,7 +429,7 @@ private:
 	    return false;
 	}
 
-      return true;	  
+      return true;
     }
 
     ///@}

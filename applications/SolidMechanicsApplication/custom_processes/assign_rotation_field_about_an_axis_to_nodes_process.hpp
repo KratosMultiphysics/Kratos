@@ -48,7 +48,7 @@ public:
 				       ) : AssignRotationAboutAnAxisToNodesProcess(model_part)
     {
         KRATOS_TRY
-	
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
@@ -63,11 +63,11 @@ public:
 
         mvariable_name  = rParameters["variable_name"].GetString();
 
-	mPyObject      =  rPyObject;	
+	mPyObject      =  rPyObject;
 	mPyMethodName  =  rPyMethodName;
 
 	mIsSpatialField = SpatialFieldFunction;
-	
+
 	for( unsigned int i=0; i<3; i++)
 	  {
 	    mdirection[i] = rParameters["direction"][i].GetDouble();
@@ -108,29 +108,29 @@ public:
     {
 
         KRATOS_TRY;
-	
+
 	if( ! mIsSpatialField ){
 
 	  const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 	  const double& rCurrentTime  = rCurrentProcessInfo[TIME];
 	  const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();
 	  const double& rPreviousTime = rPreviousProcessInfo[TIME];
-	  
+
 	  this->CallTimeFunction(rPreviousTime, mprevious_value);
 	  this->CallTimeFunction(rCurrentTime, mvalue);
-	  
+
 	  AssignRotationAboutAnAxisToNodesProcess::Execute();
 
 	}
 	else{
-	  
+
 	  AssignRotationAboutAnAxis();
 	}
 
         KRATOS_CATCH("");
 
     }
-    
+
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     void ExecuteInitialize() override
@@ -247,9 +247,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    pybind11::object mPyObject;  
+    pybind11::object mPyObject;
     std::string mPyMethodName;
-   
+
     bool mIsSpatialField;
 
     ///@}
@@ -257,41 +257,41 @@ private:
     ///@{
 
     void CallFunction(const Node<3>::Pointer& pNode, const double& time, double& rValue)
-    {      
+    {
       KRATOS_TRY
-	
+
       if( mIsSpatialField ){
 
 	double x = pNode->X(), y = pNode->Y(), z = pNode->Z();
 	rValue = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
-        
+
       }
       else{
 
         rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
-        
+
       }
-      
+
      KRATOS_CATCH( "" )
-      
+
     }
 
     void CallTimeFunction(const double& time, double& rValue)
     {
-      
+
       KRATOS_TRY
-	
+
       rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
-      
+
       KRATOS_CATCH( "" )
-      
+
     }
 
-    
+
     void AssignRotationAboutAnAxis()
     {
       KRATOS_TRY
-   
+
       const int nnodes = mrModelPart.GetMesh().Nodes().size();
 
       if(nnodes != 0)
@@ -316,7 +316,7 @@ private:
 	  const double& rCurrentTime = rCurrentProcessInfo[TIME];
 	  const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();
 	  const double& rPreviousTime = rPreviousProcessInfo[TIME];
-	  
+
 	  array_1d<double,3> angular_velocity;
 	  angular_velocity.clear();
 	  array_1d<double,3> angular_acceleration;
@@ -326,13 +326,13 @@ private:
 	  if(mvariable_name == "ROTATION"){
 
 	    time_factor = 1.0;
-	    
+
 	  }
 	  else if(mvariable_name == "ANGULAR_VELOCITY"){
-	    
+
 	    dynamic_angular_velocity = true;
 	    time_factor = rDeltaTime;
-	      
+
 	  }
 	  else if(mvariable_name == "ANGULAR_ACCELERATION"){
 
@@ -345,36 +345,36 @@ private:
 	  for(int i = 0; i<nnodes; i++)
             {
 	      ModelPart::NodesContainerType::iterator it = it_begin + i;
-	      
+
 	      this->CallFunction(*(it.base()), rCurrentTime, value);
-      
+
 	      rotation = value * mdirection;
-	      
+
 	      rotation *= time_factor;
-	      
+
 	      if( dynamic_angular_velocity ){
 
 		this->CallFunction(*(it.base()), rPreviousTime, value);
-		delta_rotation  = rotation - time_factor * value * mdirection;	
-		
+		delta_rotation  = rotation - time_factor * value * mdirection;
+
 		angular_velocity = delta_rotation / rDeltaTime;
 		if( dynamic_angular_acceleration ){
 		  angular_acceleration = angular_velocity / rDeltaTime;
 		}
 	      }
-	      
+
 	      //Get rotation matrix
 	      total_quaternion = Quaternion<double>::FromRotationVector<array_1d<double,3> >(rotation);
 
 	      distance = it->GetInitialPosition() - mcenter;
-	      
+
 	      total_quaternion.ToRotationMatrix(rotation_matrix);
 
 	      noalias(radius) = prod(rotation_matrix, distance);
 
 	      array_1d<double,3>& displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
 	      displacement =  radius - distance; //(mcenter + radius) - it->GetInitialPosition();
-	      
+
 	      if( dynamic_angular_velocity ){
 
 		//compute the skewsymmmetric tensor of the angular velocity
@@ -384,18 +384,18 @@ private:
 		array_1d<double,3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
 		velocity = prod(rotation_matrix,radius);
 
-		if( dynamic_angular_acceleration ){ 
+		if( dynamic_angular_acceleration ){
 		  //compute the contribution of the centripetal acceleration ac = Wx(Wxr)
 		  array_1d<double,3>& acceleration = it->FastGetSolutionStepValue(ACCELERATION);
 		  acceleration = prod(rotation_matrix,velocity);
-		  
+
 		  //compute the contribution of the angular acceleration to the acceleration a = Axr
 		  BeamMathUtils<double>::VectorToSkewSymmetricTensor(angular_acceleration, rotation_matrix);
-		  acceleration += prod(rotation_matrix,radius);	
+		  acceleration += prod(rotation_matrix,radius);
 		}
 	      }
 	    }
- 
+
 	}
 
       KRATOS_CATCH( "" )

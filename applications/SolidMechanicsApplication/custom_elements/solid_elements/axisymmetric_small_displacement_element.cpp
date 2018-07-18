@@ -74,11 +74,11 @@ Element::Pointer AxisymmetricSmallDisplacementElement::Clone( IndexType NewId, N
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
       {
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
+
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
 	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
       }
-    
+
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
@@ -106,7 +106,7 @@ void AxisymmetricSmallDisplacementElement::InitializeElementData (ElementDataTyp
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const unsigned int voigt_size      = 4;
-    
+
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
     //needed parameters for consistency with the general constitutive law: small displacements
@@ -140,11 +140,11 @@ void AxisymmetricSmallDisplacementElement::InitializeElementData (ElementDataTyp
 
 void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
-  
+
     double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.ReferenceRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
-  
+
     //contributions to stiffness matrix calculated on the reference config
     SmallDisplacementElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
@@ -157,7 +157,7 @@ void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemCompone
 
 void AxisymmetricSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
- 
+
     double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.ReferenceRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
@@ -187,11 +187,11 @@ double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotal
       {
 	//compute element kinematics
 	this->CalculateKinematics(Variables,PointNumber);
-	
+
 	//getting informations for integration
         double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight() * 2.0 * Globals::Pi * Variables.ReferenceRadius;
 
-	//compute point volume changes	
+	//compute point volume changes
 	rTotalMass += GetProperties()[DENSITY] * IntegrationWeight;
       }
 
@@ -210,7 +210,7 @@ void AxisymmetricSmallDisplacementElement::CalculateKinematics(ElementDataType& 
 
 {
     KRATOS_TRY
-      
+
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
     //Get the shape functions for the order of the integration method [N]
@@ -270,7 +270,7 @@ void AxisymmetricSmallDisplacementElement::CalculateRadius(double & rRadius,
             //array_1d<double, 3 > & ReferencePosition = GetGeometry()[i].Coordinates();
             //rRadius   += ReferencePosition[0]*rN[i];
 
-           rRadius += rN[i] * GetGeometry()[i].X0(); 
+           rRadius += rN[i] * GetGeometry()[i].X0();
         }
     }
 
@@ -428,14 +428,14 @@ void AxisymmetricSmallDisplacementElement::CalculateInfinitesimalStrain(const Ma
 
 //************************************************************************************
 //************************************************************************************
-  
+
 int AxisymmetricSmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     // Perform base element checks
     int ErrorCode = 0;
-    ErrorCode = SmallDisplacementElement::Check(rCurrentProcessInfo);     
+    ErrorCode = SmallDisplacementElement::Check(rCurrentProcessInfo);
 
     return ErrorCode;
 

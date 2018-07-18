@@ -74,7 +74,7 @@ LargeDisplacementUPElement&  LargeDisplacementUPElement::operator=(LargeDisplace
 
 Element::Pointer LargeDisplacementUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared< LargeDisplacementUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);    
+    return Kratos::make_shared< LargeDisplacementUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -750,7 +750,7 @@ void LargeDisplacementUPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMa
 
     Matrix Kuu(size,size);
     noalias(Kuu) = ZeroMatrix(size,size);
-    
+
     MathUtils<double>::ExpandAndAddReducedMatrix( Kuu, ReducedKg, dimension );
 
     // MatrixType Kh=rLeftHandSideMatrix;

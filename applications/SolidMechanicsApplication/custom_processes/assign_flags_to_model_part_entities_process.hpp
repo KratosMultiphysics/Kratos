@@ -41,13 +41,13 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
-    
+
+
     AssignFlagsToModelPartEntitiesProcess(ModelPart& rModelPart, const std::string EntityType,
                                           const std::vector<Flags>& rAssignFlags) : Process(Flags()) , mrModelPart(rModelPart), mEntityType(EntityType), mrTransferFlags(std::vector<Flags>()), mrAssignFlags(rAssignFlags)
     {
         KRATOS_TRY
-	  
+
         KRATOS_CATCH("");
     }
 
@@ -56,7 +56,7 @@ public:
                                           const std::vector<Flags>& rTransferFlags) : Process(Flags()) , mrModelPart(rModelPart), mEntityType(EntityType), mrTransferFlags(rTransferFlags), mrAssignFlags(rAssignFlags)
     {
         KRATOS_TRY
-			 	
+
         KRATOS_CATCH("");
     }
 
@@ -94,8 +94,8 @@ public:
             {
                 ModelPart::NodesContainerType::iterator it_begin =
                     mrModelPart.NodesBegin();
-                
-                #pragma omp parallel for  
+
+                #pragma omp parallel for
                 for (int i = 0; i < nnodes; i++)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -115,7 +115,7 @@ public:
             {
                 ModelPart::ElementsContainerType::iterator it_begin =
                     mrModelPart.ElementsBegin();
-                
+
                 #pragma omp parallel for
                 for (int i = 0; i < nelements; i++)
                 {
@@ -136,7 +136,7 @@ public:
             {
                 ModelPart::ConditionsContainerType::iterator it_begin =
                     mrModelPart.ConditionsBegin();
-                
+
                 //#pragma omp parallel for
                 for (int i = 0; i < nconditions; i++)
                 {
@@ -272,10 +272,10 @@ private:
     ModelPart& mrModelPart;
 
     const std::string mEntityType;
-    
+
     const std::vector<Flags> mrTransferFlags;
     const std::vector<Flags> mrAssignFlags;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -290,7 +290,7 @@ private:
 	}
 
       return true;
-	  
+
     }
 
     void AssignFlags(const Node<3>::Pointer& pNode)
@@ -298,7 +298,7 @@ private:
 
       for(unsigned int i = 0; i<mrAssignFlags.size(); i++)
 	pNode->Set(mrAssignFlags[i]);
-	  
+
     }
 
 
@@ -312,7 +312,7 @@ private:
 	}
 
       return true;
-	  
+
     }
 
     void AssignFlags(const Element::Pointer& pElement)
@@ -320,7 +320,7 @@ private:
 
       for(unsigned int i = 0; i<mrAssignFlags.size(); i++)
 	pElement->Set(mrAssignFlags[i]);
-	  
+
     }
 
 
@@ -334,7 +334,7 @@ private:
 	}
 
       return true;
-	  
+
     }
 
     void AssignFlags(const Condition::Pointer& pCondition)
@@ -342,9 +342,9 @@ private:
 
       for(unsigned int i = 0; i<mrAssignFlags.size(); i++)
 	pCondition->Set(mrAssignFlags[i]);
-	  
+
     }
-    
+
     ///@}
     ///@name Private Operations
     ///@{

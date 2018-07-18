@@ -110,7 +110,7 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-  
+
     // //************* GETTING METHODS
 
     //SET
@@ -211,7 +211,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType& rVariables, 
+    virtual void InitializeElementData(ElementDataType& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -219,7 +219,7 @@ protected:
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementDataType & rVariables, 
+    virtual void FinalizeStepVariables(ElementDataType & rVariables,
 				       const double& rPointNumber ) override;
 
 
@@ -235,9 +235,9 @@ protected:
      */
     void CalculateKinetics(ElementDataType& rVariables,
 			   const double& rPointNumber) override;
-    
 
-    
+
+
     /**
      * Calculation of the Deformation Gradient F
      */
@@ -249,7 +249,7 @@ protected:
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementDataType& rVariables, 
+    void GetHistoricalVariables( ElementDataType& rVariables,
 				 const double& rPointNumber ) override;
 
     /**
@@ -313,4 +313,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined

@@ -7,9 +7,9 @@
 //
 //
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
@@ -46,10 +46,10 @@
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
- 
+
 typedef Process::Pointer                           ProcessPointer;
 typedef MesherProcess::Pointer               MesherProcessPointer;
 typedef std::vector<MesherProcessPointer>  MesherProcessContainer;
@@ -59,32 +59,32 @@ void Push_Back_Process( MesherProcessContainer& ThisProcessContainer,
 {
   ThisProcessContainer.push_back( ThisProcess );
 }
-  	
+
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
   using namespace pybind11;
 
   //**********MESHER PROCESS*********//
-  
+
   //mesher process container
   class_<MesherProcessContainer>(m,"MesherProcessContainer")
       .def( init<>() )
       .def( "PushBack", Push_Back_Process )
       ;
-  
+
   class_<MesherProcess, MesherProcess::Pointer, Process>(m,"MesherProcess")
       .def(init<>())
       ;
-  
+
   //***************NEIGHBOURS**************//
-      
+
   class_<NodalNeighboursSearchProcess, NodalNeighboursSearchProcess::Pointer, MesherProcess>
       (m,"NodalNeighboursSearch")
       .def(init<ModelPart&, int, int, int>())
       .def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
       ;
-      
+
   class_<ElementalNeighboursSearchProcess, ElementalNeighboursSearchProcess::Pointer, MesherProcess>
       (m,"ElementalNeighboursSearch")
       .def(init<ModelPart&, int, int, int>())
@@ -109,11 +109,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("ExecuteInitialize", &SettleModelStructureProcess::ExecuteInitialize)
       .def("ExecuteFinalize", &SettleModelStructureProcess::ExecuteFinalize)
       ;
-  
+
 
   //**********MESHER PROCESSES*********//
 
-  
+
   class_<RefineElementsOnThresholdMesherProcess, RefineElementsOnThresholdMesherProcess::Pointer, MesherProcess>
       (m,"RefineElementsOnThreshold")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
@@ -123,12 +123,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m,"RefineElementsOnSize")
       .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
-  
+
   class_<RefineElementsInEdgesMesherProcess, RefineElementsInEdgesMesherProcess::Pointer, MesherProcess>
       (m,"RefineElementsInEdges")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
-  
+
   class_<RefineConditionsMesherProcess, RefineConditionsMesherProcess::Pointer, MesherProcess>
       (m,"RefineConditions")
       .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
@@ -163,7 +163,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m,"PrintMeshOutput")
       .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, std::string, int>())
       ;
-      
+
 
   //********MODEL VOLUME CALCULATION*********//
 
@@ -173,18 +173,18 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
       .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
       ;
-      
+
   //********CONSTANT ROTATION CALCULATION*********//
 
   class_<ConstantRotationProcess, ConstantRotationProcess::Pointer, Process>
       (m,"ConstantRotationProcess")
-      .def(init<ModelPart&, const double, const double, const double, const double, const double, const double>())	 
+      .def(init<ModelPart&, const double, const double, const double, const double, const double, const double>())
       .def(init< ModelPart&, Parameters& >())
       ;
-      
-      
+
+
 }
- 
+
 }  // namespace Python.
 
 } // Namespace Kratos

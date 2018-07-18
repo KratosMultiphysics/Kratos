@@ -425,7 +425,7 @@ int TotalLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     if( correct_strain_measure == false )
       KRATOS_ERROR <<  "Large Displacement element with no Deformation Gradient strain measure" << std::endl;
-    
+
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {

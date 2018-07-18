@@ -238,7 +238,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<>())
       .def_readonly_static("PREDICT_PRIMARY_VARIABLE", &TimeIntegrationLocalFlags::PREDICT_PRIMARY_VARIABLE)
       ;
-  
+
   //*************************STRATEGY CLASSES***************************
 
   // Solid Mechanics Base Solution Strategy
@@ -375,9 +375,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<TimeVectorIntegrationMethods&, Flags&>())
       .def(init<TimeVectorIntegrationMethods&>())
       .def(init<TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeScalarIntegrationMethods&>())      
+      .def(init<TimeScalarIntegrationMethods&>())
       .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())      
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
       ;
 
   // Dynamic Scheme Type
@@ -385,9 +385,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<TimeVectorIntegrationMethods&, Flags&>())
       .def(init<TimeVectorIntegrationMethods&>())
       .def(init<TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeScalarIntegrationMethods&>())      
+      .def(init<TimeScalarIntegrationMethods&>())
       .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())      
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
       ;
 
   // Explicit scheme: Central differences

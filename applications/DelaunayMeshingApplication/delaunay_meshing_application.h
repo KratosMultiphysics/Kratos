@@ -4,7 +4,7 @@
 //        | |) / -_| / _` | || | ' \/ _` | || |            .
 //        |___/\___|_\__,_|\_,_|_||_\__,_|\_, |MESHING     .
 //                                        |__/             .
-//                                                         .    
+//                                                         .
 //  License:(BSD)   DelaunayMeshingApplication/license.txt .
 //  Main authors:   Josep Maria Carbonell                  .
 //                        ..                               .
@@ -23,7 +23,7 @@
 
 // System includes
 
-// External includes 
+// External includes
 
 // Project includes
 
@@ -42,18 +42,18 @@ namespace Kratos
   ///@{
 
   ///@name Kratos Globals
-  ///@{ 
+  ///@{
 
-  ///@} 
+  ///@}
   ///@name Type Definitions
-  ///@{ 
+  ///@{
 
-  ///@} 
+  ///@}
   ///@name  Enum's
   ///@{
 
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
 
   ///@}
@@ -71,12 +71,12 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of KratosDelaunayMeshingApplication    
+    /// Pointer definition of KratosDelaunayMeshingApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosDelaunayMeshingApplication);
 
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
+    ///@name Life Cycle
+    ///@{
 
     /// Default constructor.
     KratosDelaunayMeshingApplication();
@@ -86,7 +86,7 @@ namespace Kratos
 
 
     ///@}
-    ///@name Operators 
+    ///@name Operators
     ///@{
     ///@}
     ///@name Operations
@@ -96,11 +96,11 @@ namespace Kratos
 
     ///@}
     ///@name Access
-    ///@{ 
+    ///@{
     ///@}
     ///@name Inquiry
     ///@{
-    ///@}      
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -120,7 +120,7 @@ namespace Kratos
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-      KRATOS_WATCH( "in KratosDelaunayMeshingApplication" ) 
+      KRATOS_WATCH( "in KratosDelaunayMeshingApplication" )
       KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
       rOStream << "Variables:" << std::endl;
       KratosComponents<VariableData>().PrintData(rOStream);
@@ -130,7 +130,7 @@ namespace Kratos
     }
 
 
-    ///@}      
+    ///@}
     ///@name Friends
     ///@{
 
@@ -138,53 +138,53 @@ namespace Kratos
     ///@}
 
   protected:
-    ///@name Protected static Member Variables 
-    ///@{ 
-    ///@} 
-    ///@name Protected member Variables 
-    ///@{ 
-    ///@} 
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    ///@}
     ///@name Protected Operators
-    ///@{ 
-    ///@} 
+    ///@{
+    ///@}
     ///@name Protected Operations
-    ///@{ 
-    ///@} 
-    ///@name Protected  Access 
-    ///@{ 
-    ///@}      
-    ///@name Protected Inquiry 
-    ///@{ 
-    ///@}    
-    ///@name Protected LifeCycle 
-    ///@{ 
+    ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
     ///@}
 
   private:
-    ///@name Static Member Variables 
-    ///@{ 
-    ///@} 
-    ///@name Member Variables 
-    ///@{ 
+    ///@name Static Member Variables
+    ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     const CompositeCondition mCompositeCondition2D2N;
     const CompositeCondition mCompositeCondition3D3N;
 
-    ///@} 
+    ///@}
     ///@name Private Operators
-    ///@{ 
-    ///@} 
+    ///@{
+    ///@}
     ///@name Private Operations
-    ///@{ 
-    ///@} 
-    ///@name Private  Access 
-    ///@{ 
-    ///@}    
-    ///@name Private Inquiry 
-    ///@{ 
-    ///@}    
-    ///@name Un accessible methods 
-    ///@{ 
+    ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
     /// Assignment operator.
     KratosDelaunayMeshingApplication& operator=(KratosDelaunayMeshingApplication const& rOther);
@@ -192,23 +192,23 @@ namespace Kratos
     /// Copy constructor.
     KratosDelaunayMeshingApplication(KratosDelaunayMeshingApplication const& rOther);
 
-    ///@}    
+    ///@}
 
-  }; // Class KratosDelaunayMeshingApplication     
+  }; // Class KratosDelaunayMeshingApplication
 
-  ///@} 
+  ///@}
 
 
-  ///@name Type Definitions       
-  ///@{ 
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-  ///@} 
+  ///@name Type Definitions
+  ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
+  ///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DELAUNAY_MESHING_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_DELAUNAY_MESHING_APPLICATION_H_INCLUDED  defined
 
 

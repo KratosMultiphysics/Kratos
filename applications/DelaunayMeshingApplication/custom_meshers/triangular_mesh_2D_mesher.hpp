@@ -11,7 +11,7 @@
 #define  KRATOS_TRIANGULAR_MESH_2D_MESHER_H_INCLUDED
 
 // If SINGLE is defined when triangle.o is compiled, it should also be defined here
-// If SINGLE is NOT defined in compilation, it should not be defined here.         
+// If SINGLE is NOT defined in compilation, it should not be defined here.
 // #define SINGLE
 
 #ifdef   SINGLE
@@ -25,8 +25,8 @@
 #define TRILIBRARY
 #endif
 
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED) 
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED 
+#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
+#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
 #include "triangle.h"
 #endif
 
@@ -37,11 +37,11 @@
 #include "custom_meshers/mesher.hpp"
 
 ///VARIABLES used:
-//Data:    
-//StepData: 
-//Flags:    (checked)  
-//          (set)      
-//          (modified)  
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
 //          (reset)
 
 
@@ -90,7 +90,7 @@ public:
 
     /// Pointer definition of TriGenCDT
     KRATOS_CLASS_POINTER_DEFINITION( TriangularMesh2DMesher );
- 
+
     typedef MesherUtilities::MeshingInfoParameters              InfoParametersType;
     typedef MesherUtilities::MeshingParameters               MeshingParametersType;
     typedef MesherUtilities::RefiningParameters               RefineParametersType;
@@ -117,7 +117,7 @@ public:
     ///@name Operations
     ///@{
 
- 
+
 
     ///@}
     ///@name Access
@@ -162,7 +162,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -178,7 +178,7 @@ protected:
 
     //generate the Delaunay Tesselation
     int  GenerateTessellation(MeshingParametersType& rMeshingVariables, struct triangulateio& in, struct triangulateio& out);
-  
+
 
     ///@}
     ///@name Protected  Access
@@ -205,7 +205,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
- 
+
 
     ///@}
     ///@name Private Operators
@@ -220,7 +220,7 @@ private:
 
     //build the input for the mesher
     void BuildInput ( ModelPart &rModelPart, MeshingParametersType & rMeshingVariables, struct triangulateio &in);
- 
+
     //set and get from mesh container in meshing variables
     void GetFromContainer(MesherUtilities::MeshContainer& rMesh, struct triangulateio& tr);
 
@@ -235,7 +235,7 @@ private:
 
     //set faces in the triangulateio before the Delaunay Tesselation
     virtual void SetFaces ( ModelPart &rModelPart, MeshingParametersType & rMeshingVariables, struct triangulateio &in );
-    
+
 
     //print methods
     void WriteTriangles      ( struct triangulateio& tr );
@@ -247,7 +247,7 @@ private:
     void ClearTrianglesList  ( struct triangulateio& tr );
 
     void DeleteTrianglesList ( struct triangulateio& tr );
-    
+
     void DeletePointsList    ( struct triangulateio& tr );
 
     ///@}
@@ -263,7 +263,7 @@ private:
     ///@}
     ///@name Unaccessible methods
     ///@{
-  
+
     ///@}
 
 }; // Class TriangularMesh2DMesher
@@ -298,7 +298,7 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGULAR_MESH_2D_MESHER_H_INCLUDED  defined 
+#endif // KRATOS_TRIANGULAR_MESH_2D_MESHER_H_INCLUDED  defined
 
 
 

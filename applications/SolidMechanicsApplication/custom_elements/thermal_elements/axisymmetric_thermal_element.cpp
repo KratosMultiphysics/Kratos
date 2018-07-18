@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 // System includes
 
@@ -112,14 +112,14 @@ void AxisymmetricThermalElement::CalculateKinematics(GeneralVariables& rVariable
 
     //Calculate IntegrationPoint radius
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
- 
+
     Matrix Invj;
     //Calculating the inverse of the jacobian and the parameters needed
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ 
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives
-    rVariables.DN_DX = prod( DN_De[rPointNumber] , Invj ); //overwrites DX now is the current position 
-    
+    rVariables.DN_DX = prod( DN_De[rPointNumber] , Invj ); //overwrites DX now is the current position
+
 
 
     KRATOS_CATCH( "" )
@@ -134,25 +134,25 @@ void AxisymmetricThermalElement::CalculateRadius(double & rCurrentRadius,
 {
 
     KRATOS_TRY
-    
+
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
+
     rCurrentRadius=0;
     rReferenceRadius=0;
 
     if ( dimension == 2 )
-    {	
+    {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             //Displacement from the reference to the current configuration
             array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;  
+            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
 	    array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
 	    array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
-	    
+
 	    rCurrentRadius   += CurrentPosition[0]*rN[i];
 	    rReferenceRadius += ReferencePosition[0]*rN[i];
             //std::cout<<" node "<<i<<" -> DeltaDisplacement : "<<DeltaDisplacement<<std::endl;
@@ -179,11 +179,11 @@ void AxisymmetricThermalElement::CalculateRadius(double & rCurrentRadius,
 void AxisymmetricThermalElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
-  
+
   //contributions to stiffness matrix calculated on the reference config
 
   ThermalElement::CalculateAndAddLHS( rLeftHandSideMatrix, rVariables, IntegrationWeight );
-  
+
 }
 
 

@@ -35,7 +35,7 @@ class ElementUtilities
 
   ///definition of the geometry type with given NodeType
   typedef Geometry<NodeType> GeometryType;
-  ///@} 
+  ///@}
 
 
   /**
@@ -51,7 +51,7 @@ class ElementUtilities
 
     if(rDeltaPosition.size1() != number_of_nodes || rDeltaPosition.size2() !=  dimension)
       rDeltaPosition.resize(number_of_nodes,dimension,false);
-    
+
     //noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
 
     for ( SizeType i = 0; i < number_of_nodes; i++ )
@@ -79,7 +79,7 @@ class ElementUtilities
 
     if(rDeltaPosition.size1() != number_of_nodes || rDeltaPosition.size2() !=  dimension)
       rDeltaPosition.resize(number_of_nodes,dimension,false);
-    
+
     //noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
 
     for ( SizeType i = 0; i < number_of_nodes; i++ )
@@ -94,13 +94,13 @@ class ElementUtilities
 
   }
 
-  
+
   /**
    * @brief Calculate Norm of stresses.VelocityGradient
    * @param rVelocityGradient, matrix form of the velocity gradient, returned parameter
    * @param rGeometry, geometry where the gradient is calculated
    * @param rDN_DX, shape functions derivatives
-   * @param Alpha, parameter to change the step calculation [0,1] 
+   * @param Alpha, parameter to change the step calculation [0,1]
    */
   static inline void CalculateVelocityGradient(Matrix& rVelocityGradient, const GeometryType& rGeometry,
                                                const Matrix& rDN_DX, const double Alpha = 1.0)
@@ -113,13 +113,13 @@ class ElementUtilities
       rVelocityGradient.resize(dimension,dimension);
 
     noalias(rVelocityGradient) = ZeroMatrix(dimension,dimension);
-    
+
     if( Alpha != 1.0 ){
-      
+
       array_1d<double,3> Velocity;
       for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
-        
+
         const array_1d<double,3>& rPreviousVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY,1);
         const array_1d<double,3>& rCurrentVelocity  = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
 
@@ -131,9 +131,9 @@ class ElementUtilities
           {
             rVelocityGradient ( j , k ) += Velocity[j] * rDN_DX ( i , k );
           }
-          
+
         }
-        
+
       }
 
     }
@@ -149,9 +149,9 @@ class ElementUtilities
           {
             rVelocityGradient ( j , k ) += rCurrentVelocity[j] * rDN_DX ( i , k );
           }
-          
+
         }
-        
+
       }
 
     }
@@ -163,7 +163,7 @@ class ElementUtilities
    * @param rVelocityGradient, matrix form for the deformation gradient, returned parameter
    * @param rGeometry, geometry where the gradient is calculated
    * @param rDN_DX, shape functions derivatives
-   * @param rDeltaPosition, matrix containing increment of position 
+   * @param rDeltaPosition, matrix containing increment of position
    */
   static inline void CalculateDeformationGradient(Matrix& rDeformationGradient, const GeometryType& rGeometry,
                                                   const Matrix& rDN_DX, const Matrix& rDeltaPosition)
@@ -206,15 +206,15 @@ class ElementUtilities
     {
       KRATOS_ERROR << " something is wrong with the dimension when computing the Deformation Gradient " << std::endl;
     }
-   
+
   }
-  
+
   /**
    * @brief Calculate the VelocityGradient vector (no voigt form)
    * @param rVelocityGradient, vector form of the non symmetric velocity gradient, returned parameter
    * @param rGeometry, geometry where the gradient is calculated
    * @param rDN_DX, shape functions derivatives
-   * @param Alpha, parameter to change the step calculation [0,1] 
+   * @param Alpha, parameter to change the step calculation [0,1]
    */
   static inline void CalculateVelocityGradientVector(Vector& rVelocityGradient, const GeometryType& rGeometry,
                                                      const Matrix& rDN_DX, const double Alpha = 1.0)
@@ -225,9 +225,9 @@ class ElementUtilities
 
     if( rVelocityGradient.size() != dimension*dimension )
       rVelocityGradient.resize(dimension*dimension);
-      
+
     noalias(rVelocityGradient) = ZeroVector(dimension * dimension);
-    
+
     array_1d<double,3> Velocity;
     if( dimension == 2 )
     {
@@ -275,7 +275,7 @@ class ElementUtilities
 
 
   }
-  
+
   /**
    * @brief Calculate the symmetric VelocityGradient vector
    * @param rVelocityGradientMatrix, matrix form of the velocity gradient
@@ -285,7 +285,7 @@ class ElementUtilities
                                                               Vector& rSymmetricVelocityGradientVector,
                                                               const SizeType& rDimension)
   {
-    
+
     if( rDimension == 2 )
     {
       if ( rSymmetricVelocityGradientVector.size() != 3 ) rSymmetricVelocityGradientVector.resize( 3, false );
@@ -323,7 +323,7 @@ class ElementUtilities
                                                                   Vector& rSkewSymmetricVelocityGradientVector,
                                                                   const SizeType& rDimension)
   {
-    
+
     if( rDimension == 2 )
     {
       if ( rSkewSymmetricVelocityGradientVector.size() != 3 ) rSkewSymmetricVelocityGradientVector.resize( 3, false );
@@ -365,11 +365,11 @@ class ElementUtilities
     const SizeType number_of_nodes  = rGeometry.PointsNumber();
     const SizeType dimension        = rGeometry.WorkingSpaceDimension();
     unsigned int voigt_size         = dimension * (dimension +1) * 0.5;
-    
+
     if ( rDeformationMatrix.size1() != voigt_size || rDeformationMatrix.size2() != dimension*number_of_nodes )
       rDeformationMatrix.resize(voigt_size, dimension*number_of_nodes, false );
-    
-    
+
+
     if( dimension == 2 )
     {
 
@@ -395,7 +395,7 @@ class ElementUtilities
         rDeformationMatrix( 0, index + 0 ) = rDN_DX( i, 0 );
         rDeformationMatrix( 0, index + 1 ) = 0.0;
         rDeformationMatrix( 0, index + 2 ) = 0.0;
-        
+
         rDeformationMatrix( 1, index + 0 ) = 0.0;
         rDeformationMatrix( 1, index + 1 ) = rDN_DX( i, 1 );
         rDeformationMatrix( 1, index + 2 ) = 0.0;
@@ -425,7 +425,7 @@ class ElementUtilities
 
   }
 
-  
+
   /**
    * @brief Calculate Norm of stresses.
    * @param rStressVector, the stress tensor in voigt form
@@ -455,14 +455,14 @@ class ElementUtilities
 
   };
 
-  
+
   /**
    * @brief Calculate VonMises stress.
    * @param rStressVector, the stress tensor in voigt form
    * @return VonMisesStress, the von mises stress
    */
   static inline double CalculateVonMises(const Vector& rStressVector)
-  {  
+  {
     Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
 
     Matrix StressTensor(3,3); //3D stress tensor
@@ -495,7 +495,7 @@ class ElementUtilities
    * @return VonMisesStress, the von mises stress
    */
   static inline double CalculateVonMisesUsingPrincipalStresses(const Vector& rStressVector)
-  {  
+  {
 
     //in principal stresses:
 
@@ -511,7 +511,7 @@ class ElementUtilities
       }
     }
 
-    
+
     double tolerance  = 1e-10;
     double zero       = 1e-10;
     double NormStress = 0.00;
@@ -524,7 +524,7 @@ class ElementUtilities
     NormStress =SolidMechanicsMathUtilities<double>::NormTensor(StressTensor);
 
     Vector MainStresses(3);
-    noalias(MainStresses) = ZeroVector(3);	
+    noalias(MainStresses) = ZeroVector(3);
 
     bool main_tensor = CheckPrincipalStresses( StressTensor );
 
@@ -551,7 +551,7 @@ class ElementUtilities
 
     for(unsigned int i=0; i<MainStresses.size(); i++)
       PrincipalStress[i]=MainStresses[i];
-	
+
 
     double SigmaEquivalent =  (0.5)*((PrincipalStress[0]-PrincipalStress[1])*(PrincipalStress[0]-PrincipalStress[1]) +
                                      (PrincipalStress[1]-PrincipalStress[2])*(PrincipalStress[1]-PrincipalStress[2]) +
@@ -564,11 +564,11 @@ class ElementUtilities
   }
 
 
-  
 
-  
+
+
  protected:
-  
+
   /**
    * @brief Check and correct diagonal terms in the stress tensor
    * @param rStressTensor, the stress tensor in matrix form

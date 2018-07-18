@@ -38,7 +38,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AssignVectorFieldToEntitiesProcess);
 
     typedef AssignScalarFieldToEntitiesProcess   BaseType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -47,10 +47,10 @@ public:
                                        const std::string& rPyMethodName,
                                        const bool SpatialFieldFunction,
                                        Parameters rParameters
-                                       ) : BaseType(rModelPart, rPyObject, rPyMethodName, SpatialFieldFunction) 
+                                       ) : BaseType(rModelPart, rPyObject, rPyMethodName, SpatialFieldFunction)
     {
         KRATOS_TRY
-			 
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
@@ -66,10 +66,10 @@ public:
 
         this->mvariable_name = rParameters["variable_name"].GetString();
 
-	// Admissible values for local axes, are "empty" or 
+	// Admissible values for local axes, are "empty" or
         //"local_axes" :{
         //    "origin" : [0.0, 0.0, 0.0]
-        //    "axes"   : [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ] 
+        //    "axes"   : [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
         //    }
 
 	this->mHasLocalOrigin = false;
@@ -109,11 +109,11 @@ public:
           {
             KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
           }
-            
+
         }
         else{
           KRATOS_ERROR << " Assignment to " << mEntity << " not implemented "<< std::endl;
-        }        
+        }
 
         mvector_value[0] = rParameters["value"][0].GetDouble();
         mvector_value[1] = rParameters["value"][1].GetDouble();
@@ -164,7 +164,7 @@ public:
         {
 
 	  array_1d<double,3> Value;
-	  //KratosComponents< Variable<array_1d<double,3> > >,array_1d<double,3> 
+	  //KratosComponents< Variable<array_1d<double,3> > >,array_1d<double,3>
 	  AssignValueToConditions<>(KratosComponents< Variable<array_1d<double,3> > >::Get(this->mvariable_name), Value, rCurrentTime);
 
         }
@@ -172,7 +172,7 @@ public:
 	{
 	  KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << this->mvariable_name << std::endl;
         }
-	
+
 
         KRATOS_CATCH("");
 
@@ -222,7 +222,7 @@ public:
         KRATOS_TRY
 
         if( this->mEntity == CONDITIONS ){
-          
+
           if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
           {
 
@@ -321,7 +321,7 @@ private:
     ///@{
 
     array_1d<double,3> mvector_value;
-      
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -334,9 +334,9 @@ private:
       unsigned int size = rConditionGeometry.size();
       double value = 0;
       unsigned int counter = 0;
-      
+
       rValue.resize(size*3,false);
-      
+
       if( mIsSpatialField ){
 
 	double x = 0.0, y = 0.0, z = 0.0;
@@ -346,14 +346,14 @@ private:
 	    this->LocalAxesTransform(rConditionGeometry[i].X(), rConditionGeometry[i].Y(), rConditionGeometry[i].Z(), x, y, z);
 
             value = mPyObject.attr(this->mPyMethodName.c_str())(x,y,z,time).cast<double>();
-            
+
 	    for(unsigned int j=0; j<3; j++)
 	      {
 		rValue[counter] = value * mvector_value[j];
 		counter++;
 	      }
 	  }
-	
+
       }
       else{
 
@@ -367,9 +367,9 @@ private:
 	      }
 	  }
 
-	
+
       }
-      
+
     }
 
 
@@ -377,7 +377,7 @@ private:
     void AssignValueToConditions(TVarType& rVariable, TDataType& Value, const double& rTime )
     {
         const int nconditions = mrModelPart.GetMesh().Conditions().size();
-	
+
         if(nconditions != 0)
         {
             ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
@@ -388,14 +388,14 @@ private:
                 ModelPart::ConditionsContainerType::iterator it = it_begin + i;
 
 		this->CallFunction<TDataType>(*(it.base()), rTime, Value);
-		
+
                 it->SetValue(rVariable, Value);
             }
         }
 
     }
 
-    
+
     ///@}
     ///@name Private Operations
     ///@{

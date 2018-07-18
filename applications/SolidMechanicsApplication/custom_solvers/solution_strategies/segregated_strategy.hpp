@@ -249,7 +249,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     //convergence vector
     std::vector<bool> convergences(mStrategies.size());
     std::fill(convergences.begin(), convergences.end(), false);
-        
+
     int counter = 0;
     for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
@@ -263,7 +263,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
       if( this->GetEchoLevel() >= 0 )
         KRATOS_INFO("  [Convergence Achieved] ") << "[" << this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << " iterations performed]\n";
     }
-    
+
     return (convergence);
 
     KRATOS_CATCH("")

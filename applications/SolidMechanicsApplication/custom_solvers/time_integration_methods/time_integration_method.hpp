@@ -69,7 +69,7 @@ namespace Kratos
     typedef void (TimeIntegrationMethod::*MethodPointer) (NodeType& rNode);
 
     typedef double& (TimeIntegrationMethod::*MethodFactorPointer) (double& rParameter);
-    
+
     KRATOS_CLASS_POINTER_DEFINITION( TimeIntegrationMethod );
 
     typedef typename TimeIntegrationMethod::Pointer   TimeIntegrationMethodPointer;
@@ -136,7 +136,7 @@ namespace Kratos
 
     /// Copy Constructor.
     TimeIntegrationMethod(TimeIntegrationMethod& rOther)
-      :Flags(rOther)   
+      :Flags(rOther)
       ,mpVariable(rOther.mpVariable)
       ,mpFirstDerivative(rOther.mpFirstDerivative)
       ,mpSecondDerivative(rOther.mpSecondDerivative)
@@ -333,7 +333,7 @@ namespace Kratos
       KRATOS_CATCH("")
     }
 
-    
+
     // get parameters for matrices (LHS)
     virtual double& GetFirstDerivativeInertialFactor(double& rParameter)
     {
@@ -367,7 +367,7 @@ namespace Kratos
     {
       Flags::operator=(rThisFlags);
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -414,7 +414,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    
+
     // method variables and derivatives
 
     VariablePointer mpVariable;
@@ -442,7 +442,7 @@ namespace Kratos
     MethodPointer mpUpdate;
 
     // dynamic integration method pointers
-    
+
     MethodFactorPointer mpFirstDerivativeKineticFactor;
     MethodFactorPointer mpSecondDerivativeKineticFactor;
 
@@ -466,7 +466,7 @@ namespace Kratos
           if( *this->mpPrimaryVariable == *this->mpVariable ){
             mpPredict = &TimeIntegrationMethod::PredictFromVariable;
             mpUpdate  = &TimeIntegrationMethod::UpdateFromVariable;
-            
+
             mpFirstDerivativeKineticFactor = &TimeIntegrationMethod::GetFirstDerivativeKineticParameter;
             mpSecondDerivativeKineticFactor = &TimeIntegrationMethod::GetSecondDerivativeKineticParameter;
 
@@ -477,7 +477,7 @@ namespace Kratos
             if( *this->mpPrimaryVariable == *this->mpFirstDerivative ){
               mpPredict = &TimeIntegrationMethod::PredictFromFirstDerivative;
               mpUpdate  = &TimeIntegrationMethod::UpdateFromFirstDerivative;
-              
+
               mpFirstDerivativeKineticFactor = &TimeIntegrationMethod::GetKineticParameter;
               mpSecondDerivativeKineticFactor = &TimeIntegrationMethod::GetFirstDerivativeKineticParameter;
 
@@ -491,7 +491,7 @@ namespace Kratos
 
                 mpFirstDerivativeKineticFactor = &TimeIntegrationMethod::GetKineticParameter;
                 mpSecondDerivativeKineticFactor = &TimeIntegrationMethod::GetKineticParameter;
-                
+
                 mpFirstDerivativeInertialFactor = &TimeIntegrationMethod::GetInertialParameter;
                 mpSecondDerivativeInertialFactor = &TimeIntegrationMethod::GetInertialParameter;
               }
@@ -501,7 +501,7 @@ namespace Kratos
       }
 
     }
-       
+
     // set methods from input variable
     void SetPointerAssignMethod()
     {
@@ -627,7 +627,7 @@ namespace Kratos
       rParameter = 0.0;
       return rParameter;
     }
-    
+
     virtual double& GetFirstDerivativeKineticParameter(double& rParameter)
     {
       rParameter = 0.0;
@@ -647,7 +647,7 @@ namespace Kratos
       rParameter = 1.0;
       return rParameter;
     }
-    
+
     virtual double& GetFirstDerivativeInertialParameter(double& rParameter)
     {
       rParameter = 1.0;

@@ -61,7 +61,7 @@ public:
     typedef GeometryData::SizeType SizeType;
     ///Type for element variables
     typedef LargeDisplacementElement::ElementDataType ElementDataType;
- 
+
     /// Counted pointer of LargeDisplacementVElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementVElement );
     ///@}
@@ -129,7 +129,7 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
 
- 
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -177,10 +177,10 @@ protected:
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                             ElementDataType& rVariables,
                             double& rIntegrationWeight) override;
-    
+
     /**
      * Get element size from the dofs
-     */    
+     */
     unsigned int GetDofsSize() override;
 
     /**
@@ -189,7 +189,7 @@ protected:
     void SetElementData(ElementDataType& rVariables,
                         ConstitutiveLaw::Parameters& rValues,
                         const int & rPointNumber) override;
-    
+
 
     ///@}
     ///@name Protected  Access
@@ -249,4 +249,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_V_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_DISPLACEMENT_V_ELEMENT_H_INCLUDED  defined

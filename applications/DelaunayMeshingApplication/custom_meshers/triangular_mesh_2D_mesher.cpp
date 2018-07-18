@@ -20,7 +20,7 @@
 
 namespace Kratos
 {
-  
+
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -29,16 +29,16 @@ namespace Kratos
   {
 
     KRATOS_TRY
- 
+
     this->StartEcho(rModelPart,"DELAUNAY Remesh");
-    
+
     //*********************************************************************
 
     ////////////////////////////////////////////////////////////
-    this->ExecutePreMeshingProcesses();   
+    this->ExecutePreMeshingProcesses();
     ////////////////////////////////////////////////////////////
 
-    //*********************************************************************      
+    //*********************************************************************
 
     //Creating the containers for the input and output
     struct triangulateio in;
@@ -46,18 +46,18 @@ namespace Kratos
     ClearTrianglesList(out);
 
     BuildInput(rModelPart,rMeshingVariables,in);
-    
+
     //*********************************************************************
 
     double begin_time = OpenMPUtils::GetCurrentTime();
-    
+
     //Generate Mesh
     ////////////////////////////////////////////////////////////
     int fail = GenerateTessellation(rMeshingVariables,in,out);
     ////////////////////////////////////////////////////////////
 
     // if(fail){
-    //   if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::CONSTRAINED) ){	
+    //   if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::CONSTRAINED) ){
     // 	rMeshingVariables.ExecutionOptions.Reset(MesherUtilities::CONSTRAINED);
     // 	////////////////////////////////////////////////////////////
     // 	fail = GenerateTessellation(rMeshingVariables,in, out);
@@ -72,7 +72,7 @@ namespace Kratos
 
     //Print out the mesh generation time
     if( this->GetEchoLevel() > 0 ){
-      double end_time = OpenMPUtils::GetCurrentTime(); 
+      double end_time = OpenMPUtils::GetCurrentTime();
       std::cout<<" [ MESH GENERATION (TIME = "<<end_time-begin_time<<") ] "<<std::endl;
     }
 
@@ -82,11 +82,11 @@ namespace Kratos
     SetToContainer(rMeshingVariables.OutMesh,out);
 
     //*********************************************************************
-    
+
     ////////////////////////////////////////////////////////////
     this->ExecutePostMeshingProcesses();
     ////////////////////////////////////////////////////////////
-    
+
 
     //*********************************************************************
 
@@ -102,7 +102,7 @@ namespace Kratos
     if(rMeshingVariables.Options.Is(MesherUtilities::REMESH))
        DeleteOutContainer(rMeshingVariables.OutMesh,out);
 
-    
+
     this->EndEcho(rModelPart,"DELAUNAY Remesh");
 
     KRATOS_CATCH( "" )
@@ -154,7 +154,7 @@ namespace Kratos
     try {
       triangulate(meshing_options,&in,&out,&vorout);
     }
-    
+
     catch( int error_code ){
 
       switch(TriangleErrors(error_code))
@@ -172,14 +172,14 @@ namespace Kratos
 	  break;
 	}
     }
-      
+
     delete [] meshing_options;
 
     if(rMeshingVariables.Options.IsNot(MesherUtilities::REFINE) && in.numberofpoints<out.numberofpoints){
       fail=3;
       std::cout<<"  fail error: [NODES ADDED] something is wrong with the geometry "<<std::endl;
     }
-    
+
     if( this->GetEchoLevel() > 0 ){
       std::cout<<"  -( "<<rMeshingVariables.TessellationInfo<<" )- "<<std::endl;
       std::cout<<"  (out ELEMENTS "<<out.numberoftriangles<<") "<<std::endl;
@@ -188,7 +188,7 @@ namespace Kratos
     }
 
     return fail;
-   
+
     KRATOS_CATCH( "" )
 
   }
@@ -200,7 +200,7 @@ namespace Kratos
   void TriangularMesh2DMesher::BuildInput(ModelPart& rModelPart,
 					   MeshingParametersType& rMeshingVariables,
 					   struct triangulateio& in)
-					   
+
   {
     KRATOS_TRY
 
@@ -209,18 +209,18 @@ namespace Kratos
       //Set Nodes
       if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::TRANSFER_KRATOS_NODES_TO_MESHER) )
 	this->SetNodes(rModelPart,rMeshingVariables);
-      
+
       //Set Elements
       if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::TRANSFER_KRATOS_ELEMENTS_TO_MESHER) )
 	this->SetElements(rModelPart,rMeshingVariables);
-      
+
       //Set Neighbours
       if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER) )
 	this->SetNeighbours(rModelPart,rMeshingVariables);
 
       rMeshingVariables.InputInitializedFlag = true;
     }
-    
+
     ClearTrianglesList(in);
     GetFromContainer(rMeshingVariables.InMesh,in);
 
@@ -233,7 +233,7 @@ namespace Kratos
     if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::TRANSFER_KRATOS_FACES_TO_MESHER) )
       this->SetFaces(rModelPart,rMeshingVariables, in);
 
-   
+
 
     KRATOS_CATCH( "" )
   }
@@ -272,11 +272,11 @@ namespace Kratos
      in.numberofsegments           = rModelPart.NumberOfConditions();
      in.segmentmarkerlist          = new int[in.numberofsegments];
      in.segmentlist                = new int[in.numberofsegments*2];
-     
-     
+
+
       ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
-      
-      
+
+
       int base = 0;
       for(unsigned int i = 0; i<rModelPart.Conditions().size(); i++)
 	{
@@ -286,9 +286,9 @@ namespace Kratos
 	  Geometry< Node<3> >& rGeometry = (conditions_begin + i)->GetGeometry();
 	  in.segmentlist[base]   = rGeometry[0].Id();
 	  in.segmentlist[base+1] = rGeometry[1].Id();
-	      
+
 	  base+=2;
-	}  
+	}
 
       //PART 3: (area) hole list
 
@@ -304,11 +304,11 @@ namespace Kratos
       double inside_factor = 2;
       Geometry< Node<3> >& rGeometry = (conditions_begin)->GetGeometry();
 
-      array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL); 
+      array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL);
       double NormNormal = norm_2(Normal);
 
-      double Shrink = rGeometry[0].FastGetSolutionStepValue(SHRINK_FACTOR); 
-      
+      double Shrink = rGeometry[0].FastGetSolutionStepValue(SHRINK_FACTOR);
+
       if( NormNormal != 0)
 	Normal /= NormNormal;
 
@@ -318,9 +318,9 @@ namespace Kratos
 
       // std::cout<<" region list point [x:"<<rGeometry[0][0]<<",y:"<<rGeometry[0][1]<<"]"<<std::endl;
       // std::cout<<" region list [x:"<<in.regionlist[0]<<",y:"<<in.regionlist[1]<<"]"<<std::endl;
-      
+
       //region attribute (regional attribute or marker "A" must be switched)
-      in.regionlist[2] = 0; 
+      in.regionlist[2] = 0;
 
       //region maximum volume attribute (maximum area attribute "a" (with no number following) must be switched)
       in.regionlist[3] = -1;
@@ -337,16 +337,16 @@ namespace Kratos
   {
 
     KRATOS_TRY
-      
+
     //get pointers
     tr.pointlist        = rMesh.GetPointList();
     tr.trianglelist     = rMesh.GetElementList();
     tr.trianglearealist = rMesh.GetElementSizeList();
-    tr.neighborlist     = rMesh.GetElementNeighbourList();      
-    
+    tr.neighborlist     = rMesh.GetElementNeighbourList();
+
     if( rMesh.GetNumberOfPoints() != 0 )
       tr.numberofpoints = rMesh.GetNumberOfPoints();
-      
+
     if( rMesh.GetNumberOfElements() != 0 )
       tr.numberoftriangles = rMesh.GetNumberOfElements();
 
@@ -368,7 +368,7 @@ namespace Kratos
     rMesh.SetElementSizeList(tr.trianglearealist);
     rMesh.SetElementNeighbourList(tr.neighborlist);
 
-    // copy the numbers 
+    // copy the numbers
     if( tr.numberofpoints != 0 ){
       rMesh.SetNumberOfPoints(tr.numberofpoints);
     }
@@ -376,7 +376,7 @@ namespace Kratos
     if( tr.numberoftriangles != 0 ){
       rMesh.SetNumberOfElements(tr.numberoftriangles);
     }
-    
+
     KRATOS_CATCH( "" )
 
   }
@@ -393,7 +393,7 @@ namespace Kratos
     ClearTrianglesList(tr);
 
     //delete mesher container
-    rMesh.Finalize();    
+    rMesh.Finalize();
 
     KRATOS_CATCH( "" )
   }
@@ -411,7 +411,7 @@ namespace Kratos
     ClearTrianglesList(tr);
 
     //delete mesher container
-    rMesh.Finalize();    
+    rMesh.Finalize();
 
     KRATOS_CATCH( "" )
   }
@@ -421,7 +421,7 @@ namespace Kratos
   //*******************************************************************************************
 
   void TriangularMesh2DMesher::WriteTriangles(struct triangulateio& tr)
-  { 
+  {
     KRATOS_TRY
 
     for(int el = 0; el< tr.numberoftriangles; el++)
@@ -433,7 +433,7 @@ namespace Kratos
 	  }
 	//std::cout<<" ]   Area: "<<tr.trianglearealist[el]<<std::endl;
 	std::cout<<" ] "<<std::endl;
-      }   
+      }
 
     KRATOS_CATCH(" ")
   }
@@ -442,7 +442,7 @@ namespace Kratos
   //*******************************************************************************************
 
   void TriangularMesh2DMesher::WritePoints(struct triangulateio& tr)
-  { 
+  {
     KRATOS_TRY
 
     int base=0;
@@ -522,8 +522,8 @@ namespace Kratos
     if(tr.edgelist) trifree(tr.edgelist);
     if(tr.edgemarkerlist) trifree(tr.edgemarkerlist);
     if(tr.normlist) trifree(tr.normlist);
-      
-       
+
+
     KRATOS_CATCH(" ")
   }
 

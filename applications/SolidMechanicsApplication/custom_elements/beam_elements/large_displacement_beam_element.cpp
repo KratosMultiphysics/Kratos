@@ -207,7 +207,7 @@ namespace Kratos
     KRATOS_TRY
 
     BeamElement::InitializeSolutionStep(rCurrentProcessInfo);
-    
+
     //predict is done after initialize solution step -- perform this operations in initialize to write results correctly --
 
 
@@ -312,7 +312,7 @@ namespace Kratos
       }
 
     BeamElement::FinalizeSolutionStep(rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -575,9 +575,9 @@ namespace Kratos
 
     Matrix ExponentialRotationMatrix(3,3);
     noalias(ExponentialRotationMatrix) = ZeroMatrix(3,3);
-    
+
     BeamMathUtilsType::ExponentialTransform( CurrentStepRotationVector, ExponentialRotationMatrix );
-    
+
     rVariables.CurrentRotationMatrix = prod(ExponentialRotationMatrix, rVariables.PreviousRotationMatrix);
 
 
@@ -605,7 +605,7 @@ namespace Kratos
     //     NodeQuaternions.push_back(QuaternionValue);
 
     //   }
-    
+
     // QuaternionValue = (NodeQuaternions.front()).conjugate() * (NodeQuaternions.back());
 
     // QuaternionValue.ToRotationVector(CurrentValueVector);
@@ -654,7 +654,7 @@ namespace Kratos
     mThisIntegrationMethod = mFullIntegrationMethod;
 
     this->InitializeElementData(Variables,rCurrentProcessInfo);
-    
+
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     // initialize variables short version:
@@ -767,7 +767,7 @@ namespace Kratos
 
     Vector StrainResultants = rVariables.CurrentAxisPositionDerivatives;
     Vector StrainCouples    = rVariables.CurrentCurvatureVector;
-    
+
     //Reference frame given by the Frame Rotation
     StrainResultants = prod( trans(rVariables.CurrentRotationMatrix), StrainResultants );
     StrainCouples    = prod( trans(rVariables.CurrentRotationMatrix), StrainCouples );
@@ -793,7 +793,7 @@ namespace Kratos
     rVariables.StressVector = prod( ConstitutiveMatrix, rVariables.StrainVector );
 
     //std::cout<<" Stress "<<rVariables.StressVector<<" Strain "<<rVariables.StrainVector<<std::endl;
-    
+
     Vector StressResultants(3);
     noalias(StressResultants) = ZeroVector(dimension);
     Vector StressCouples(3);
@@ -1216,7 +1216,7 @@ namespace Kratos
     rDiscreteOperator( 5, 8 ) =  rVariables.N[ rNode ];
 
     //std::cout<<" DiscreteOperator "<<rDiscreteOperator<<std::endl;
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -1236,7 +1236,7 @@ namespace Kratos
     noalias(rBmatrix) = ZeroMatrix(9,9);
 
     Vector StressResultants(3);
-    Vector StressCouples(3);    
+    Vector StressCouples(3);
     for ( unsigned int i = 0; i < 3; i++ )
       {
 	StressResultants[i] = rVariables.StressVector[i];
@@ -1246,7 +1246,7 @@ namespace Kratos
     //NOTE: avoid Kuug noise in plane ploblems
     if( fabs(inner_prod(StressResultants,StressCouples)) < 1e-15 )
       noalias(StressResultants) = ZeroVector(3);
-    
+
     //locate stress resultants in skew-symmetric form
     Matrix SkewSymStressResultants(3,3);
     noalias(SkewSymStressResultants) = ZeroMatrix(3,3);
@@ -1341,7 +1341,7 @@ namespace Kratos
     // 	    std::cout<<rBmatrix(i,j)<<", ";
     // 	  }
     // 	std::cout<<rBmatrix(i,rBmatrix.size2()-1)<<" ]"<<std::endl;
-        
+
     //   }
 
     KRATOS_CATCH( "" )
@@ -2540,7 +2540,7 @@ namespace Kratos
       mThisIntegrationMethod = mFullIntegrationMethod;
 
       this->InitializeElementData(Variables,rCurrentProcessInfo);
-      
+
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
       // initialize variables short version:

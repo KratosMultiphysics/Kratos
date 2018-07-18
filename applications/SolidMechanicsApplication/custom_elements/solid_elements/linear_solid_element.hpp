@@ -55,7 +55,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     ///Type for size
     typedef GeometryData::SizeType SizeType;
-     
+
     /// Counted pointer of LinearSolidElement
     KRATOS_CLASS_POINTER_DEFINITION( LinearSolidElement );
     ///@}
@@ -194,8 +194,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-			      VectorType& rRightHandSideVector, 
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+			      VectorType& rRightHandSideVector,
 			      ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -205,7 +205,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
 		    ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -214,7 +214,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
 		    ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -224,12 +224,12 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */      
-    void AddExplicitContribution(const VectorType& rRHSVector, 
-                                 const Variable<VectorType>& rRHSVariable, 
-                                 Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                 const Variable<VectorType>& rRHSVariable,
+                                 Variable<array_1d<double,3> >& rDestinationVariable,
                                  const ProcessInfo& rCurrentProcessInfo) override;
 
     //on integration points:
@@ -380,4 +380,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LINEAR_SOLID_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_SOLID_ELEMENT_H_INCLUDED  defined

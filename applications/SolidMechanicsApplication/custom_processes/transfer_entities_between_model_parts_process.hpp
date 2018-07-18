@@ -42,18 +42,18 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     TransferEntitiesBetweenModelPartsProcess(ModelPart& rHostModelPart,
 					     ModelPart& rGuestModelPart,
 					     const std::string EntityType
 					     ) : Process(Flags()) , mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart), mEntityType(EntityType), mrTransferFlags(std::vector<Flags>()), mrAssignFlags(std::vector<Flags>())
     {
         KRATOS_TRY
-			 	
+
         KRATOS_CATCH("");
     }
 
-    
+
     TransferEntitiesBetweenModelPartsProcess(ModelPart& rHostModelPart,
 					     ModelPart& rGuestModelPart,
 					     const std::string EntityType,
@@ -61,8 +61,8 @@ public:
 					     ) : Process(Flags()) , mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart), mEntityType(EntityType), mrTransferFlags(rTransferFlags), mrAssignFlags(std::vector<Flags>() )
     {
         KRATOS_TRY
-	  
-	  
+
+
         KRATOS_CATCH("");
     }
 
@@ -75,7 +75,7 @@ public:
 					     ) : Process(Flags()) , mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart), mEntityType(EntityType), mrTransferFlags(rTransferFlags), mrAssignFlags(rAssignFlags)
     {
         KRATOS_TRY
-			 	
+
         KRATOS_CATCH("");
     }
 
@@ -305,10 +305,10 @@ private:
     ModelPart& mrGuestModelPart;
 
     const std::string mEntityType;
-    
+
     const std::vector<Flags> mrTransferFlags;
     const std::vector<Flags> mrAssignFlags;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -323,7 +323,7 @@ private:
 	}
 
       return true;
-	  
+
     }
 
     void AssignFlags(const Node<3>::Pointer& pNode)
@@ -331,7 +331,7 @@ private:
 
       for(unsigned int i = 0; i<mrAssignFlags.size(); i++)
 	pNode->Set(mrAssignFlags[i]);
-	  
+
     }
 
 
@@ -345,7 +345,7 @@ private:
 	}
 
       return true;
-	  
+
     }
 
     void AssignFlags(const Element::Pointer& pElement)
@@ -353,7 +353,7 @@ private:
 
       for(unsigned int i = 0; i<mrAssignFlags.size(); i++)
 	pElement->Set(mrAssignFlags[i]);
-	  
+
     }
 
 
@@ -367,7 +367,7 @@ private:
 	}
 
       return true;
-	  
+
     }
 
     void AssignFlags(const Condition::Pointer& pCondition)
@@ -375,9 +375,9 @@ private:
 
       for(unsigned int i = 0; i<mrAssignFlags.size(); i++)
 	pCondition->Set(mrAssignFlags[i]);
-	  
+
     }
-    
+
     ///@}
     ///@name Private Operations
     ///@{

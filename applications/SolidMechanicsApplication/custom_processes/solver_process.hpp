@@ -45,13 +45,13 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{ç
-  
+
     /// Default constructor.
     SolverProcess() : Process() {}
 
     /// Constructor.
     SolverProcess(Flags options) : Process( options ) {}
-  
+
     /// Destructor.
     virtual ~SolverProcess() {}
 
@@ -73,7 +73,7 @@ public:
 
     /// Execute method is used to execute the SolverProcess algorithms.
     void Execute()  override
-    {      
+    {
     }
 
     /// this function is designed for being called at the beginning of the computations
@@ -104,7 +104,7 @@ public:
     {
     }
 
-  
+
     /// this function will be executed at every time step AFTER performing the solve phase
     void ExecuteFinalizeSolutionStep() override
     {

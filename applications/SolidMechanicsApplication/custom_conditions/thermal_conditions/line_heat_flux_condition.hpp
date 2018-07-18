@@ -141,13 +141,13 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     void CalculateElementalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
                                    ProcessInfo& rCurrentProcessInfo,
                                    bool CalculateStiffnessMatrixFlag,
                                    bool CalculateResidualVectorFlag);
 
-  
+
     void CalculateAndSubKheatflux(Matrix& rK,
                                   const Matrix& rDN_De,
                                   const Vector& rN,
@@ -160,7 +160,7 @@ private:
                                       Vector& rNormal,
                                       double rFlux,
                                       double rIntegrationWeight );
- 
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -221,6 +221,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_HEAT_FLUX_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_LINE_HEAT_FLUX_CONDITION_H_INCLUDED  defined
 
 

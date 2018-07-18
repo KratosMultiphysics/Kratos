@@ -30,34 +30,34 @@ namespace Kratos
   {
 
     KRATOS_TRY
-     
+
     this->StartEcho(rModelPart,"DELAUNAY Remesh");
-    
+
     //*********************************************************************
 
     ////////////////////////////////////////////////////////////
-    this->ExecutePreMeshingProcesses();   
+    this->ExecutePreMeshingProcesses();
     ////////////////////////////////////////////////////////////
 
-    //*********************************************************************      
+    //*********************************************************************
 
     //Creating the containers for the input and output
     tetgenio in;
     tetgenio out;
-    
-    BuildInput(rModelPart,rMeshingVariables,in);    
+
+    BuildInput(rModelPart,rMeshingVariables,in);
 
     //*********************************************************************
 
     double begin_time = OpenMPUtils::GetCurrentTime();
-    
+
     //Generate Mesh
     ////////////////////////////////////////////////////////////
     int fail = GenerateTessellation(rMeshingVariables,in,out);
     ////////////////////////////////////////////////////////////
 
     // if(fail){
-    //   if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::CONSTRAINED) ){	
+    //   if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::CONSTRAINED) ){
     // 	rMeshingVariables.ExecutionOptions.Reset(MesherUtilities::CONSTRAINED);
     // 	////////////////////////////////////////////////////////////
     // 	fail = GenerateTessellation(rMeshingVariables,in, out);
@@ -72,12 +72,12 @@ namespace Kratos
 
     //print out the mesh generation time
     if( this->GetEchoLevel() > 0 ){
-      double end_time = OpenMPUtils::GetCurrentTime(); 
+      double end_time = OpenMPUtils::GetCurrentTime();
       std::cout<<" [ MESH GENERATION (TIME = "<<end_time-begin_time<<") ] "<<std::endl;
     }
 
     //*********************************************************************
-    
+
     //GetOutput
     SetToContainer(rMeshingVariables.OutMesh,out);
 
@@ -101,8 +101,8 @@ namespace Kratos
     //Free output memory
     if(rMeshingVariables.Options.Is(MesherUtilities::REMESH))
       DeleteOutContainer(rMeshingVariables.OutMesh,out);
-    
-    
+
+
     this->EndEcho(rModelPart,"DELAUNAY Remesh");
 
     KRATOS_CATCH( "" )
@@ -167,7 +167,7 @@ namespace Kratos
 	}
     }
 
-    delete [] meshing_options;    
+    delete [] meshing_options;
 
     //this->CheckInOutPoints(in, out);
     //this->WritePoints(out);
@@ -186,7 +186,7 @@ namespace Kratos
     }
 
     return fail;
-   
+
     KRATOS_CATCH( "" )
 
   }
@@ -197,28 +197,28 @@ namespace Kratos
   void TetrahedralMesh3DMesher::BuildInput(ModelPart& rModelPart,
 					    MeshingParametersType& rMeshingVariables,
 					    tetgenio& in)
-    
+
   {
     KRATOS_TRY
-      
-      
+
+
     if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::INITIALIZE_MESHER_INPUT) ){
 
       //Set Nodes
       if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::TRANSFER_KRATOS_NODES_TO_MESHER) )
 	this->SetNodes(rModelPart,rMeshingVariables);
-      
+
       //Set Elements
       if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::TRANSFER_KRATOS_ELEMENTS_TO_MESHER) )
 	this->SetElements(rModelPart,rMeshingVariables);
-      
+
       //Set Neighbours
       if( rMeshingVariables.ExecutionOptions.Is(MesherUtilities::TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER) )
 	this->SetNeighbours(rModelPart,rMeshingVariables);
 
       rMeshingVariables.InputInitializedFlag = true;
     }
-    
+
     //input mesh: NODES
     in.firstnumber    = 1;
     in.mesh_dim       = 3;
@@ -229,11 +229,11 @@ namespace Kratos
       this->SetFaces(rModelPart,rMeshingVariables, in);
 
     //std::cout<<" InMesh [nodes:"<<rMeshingVariables.InMesh.GetNumberOfPoints()<<", elements:"<<rMeshingVariables.InMesh.GetNumberOfElements()<<"]"<<std::endl;
-    
+
     //Print input mesh
     //PrintOutputMeshProcess print_output = PrintOutputMeshProcess(rModelPart,rMeshingVariables,"input",1);
     //print_output.Execute();
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -250,101 +250,101 @@ namespace Kratos
 
     if(in.facetlist){
       delete [] in.facetlist;
-      in.numberoffacets = 0;       
+      in.numberoffacets = 0;
     }
-    
+
     if(in.facetmarkerlist){
       delete [] in.facetmarkerlist;
     }
-    
+
     if(in.holelist){
       delete [] in.holelist;
       in.numberofholes = 0;
     }
-    
+
     if(in.regionlist){
       delete [] in.regionlist;
       in.numberofregions = 0;
     }
-    
+
 
     //PART 2: facet list (we can have holes in facets != volume holes)
-    
+
     in.numberoffacets           = rModelPart.NumberOfConditions();
     in.facetmarkerlist          = new int[in.numberoffacets];
     in.facetlist                = new tetgenio::facet[in.numberoffacets];
 
 
     ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
-    
+
     //facets
     tetgenio::facet   *f;
     tetgenio::polygon *p;
-    
+
     for(int fc=0; fc<in.numberoffacets; fc++)
       {
 	f = &in.facetlist[fc];
-	
+
 	f->numberofpolygons = 1;
-	f->polygonlist      = new tetgenio::polygon[f->numberofpolygons];	
+	f->polygonlist      = new tetgenio::polygon[f->numberofpolygons];
 	f->numberofholes    = 0;
-	f->holelist         = NULL;            
+	f->holelist         = NULL;
 	p = &f->polygonlist[0];
 	p->numberofvertices = 3; //face is a triangle
 	p->vertexlist       = new int[p->numberofvertices];
-	  
+
 
 	if( (conditions_begin + fc)->Is(TO_ERASE) )
 	  std::cout<<" ERROR: condition to erase present "<<std::endl;
 
 	Geometry< Node<3> >& rGeometry = (conditions_begin + fc)->GetGeometry();
-	  
+
 	for (int nd=0;nd<3;nd++)
 	  {
 	    p->vertexlist[nd] = rGeometry[nd].Id();
-	  }      
+	  }
 
 	in.facetmarkerlist[fc] = 0;
-	
+
       }
-    
+
     //PART 3: (volume) hole list
-    
+
     //holes
     in.numberofholes            = 0;
     in.holelist                 = (REAL*) NULL;
-    
+
     //PART 4: region attributes list
-    
+
     //regions
     in.numberofregions          = 1;
     in.regionlist               = new REAL[in.numberofregions * 5];
-    
-    
+
+
     double inside_factor = 2;
     Geometry< Node<3> >& rGeometry = (conditions_begin)->GetGeometry();
     array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL);
 
     std::cout<<" Normal [NodeId= "<<rGeometry[0].Id()<<"] "<<Normal<<std::endl;
-    
+
     double NormNormal = norm_2(Normal);
     if( NormNormal != 0)
       Normal /= NormNormal;
-    
+
     //inside point of the region:
     in.regionlist[0] = rGeometry[0][0]-(Normal[0]*rMeshingVariables.OffsetFactor*inside_factor);
     in.regionlist[1] = rGeometry[0][1]-(Normal[1]*rMeshingVariables.OffsetFactor*inside_factor);
     in.regionlist[2] = rGeometry[0][2]-(Normal[2]*rMeshingVariables.OffsetFactor*inside_factor);
-    
+
     //region attribute (regional attribute or marker "A" must be switched)
     in.regionlist[3] = 0;
-    
+
     //region maximum volume attribute (maximum volume attribute "a" (with no number following) must be switched)
     in.regionlist[4] = -1;
 
     std::cout<<" Number of facets "<<in.numberoffacets<<" region ("<<in.regionlist[0]<<", "<<in.regionlist[1]<<", "<<in.regionlist[2]<<") normal:"<<Normal<<" Offset "<<rMeshingVariables.OffsetFactor*inside_factor<<std::endl;
-    
-   
+
+
     KRATOS_CATCH( "" )
 
   }
@@ -360,11 +360,11 @@ namespace Kratos
     tr.pointlist             = rMesh.GetPointList();
     tr.tetrahedronlist       = rMesh.GetElementList();
     tr.tetrahedronvolumelist = rMesh.GetElementSizeList();
-    tr.neighborlist          = rMesh.GetElementNeighbourList();      
-    
+    tr.neighborlist          = rMesh.GetElementNeighbourList();
+
     if( rMesh.GetNumberOfPoints() != 0 )
       tr.numberofpoints = rMesh.GetNumberOfPoints();
-      
+
     if( rMesh.GetNumberOfElements() != 0 )
       tr.numberoftetrahedra = rMesh.GetNumberOfElements();
 
@@ -385,7 +385,7 @@ namespace Kratos
     rMesh.SetElementSizeList(tr.tetrahedronvolumelist);
     rMesh.SetElementNeighbourList(tr.neighborlist);
 
-    // copy the numbers 
+    // copy the numbers
     if( tr.numberofpoints != 0 ){
       rMesh.SetNumberOfPoints(tr.numberofpoints);
     }
@@ -393,7 +393,7 @@ namespace Kratos
     if( tr.numberoftetrahedra != 0 ){
       rMesh.SetNumberOfElements(tr.numberoftetrahedra);
     }
-    
+
     KRATOS_CATCH( "" )
 
   }
@@ -408,8 +408,8 @@ namespace Kratos
     //delete mesher container
     rMesh.Finalize();
     ClearTetgenIO(tr); // blocks tetgen automatic destructor deletetion of a NULL pointer []
-    
-         
+
+
     KRATOS_CATCH( "" )
   }
 
@@ -421,11 +421,11 @@ namespace Kratos
     KRATOS_TRY
 
     //delete mesher container
-    // rMesh.Finalize();   
+    // rMesh.Finalize();
     // ClearTetgenIO(tr); // blocks tetgen automatic destructor deletetion of a NULL pointer []
     tr.deinitialize();
     tr.initialize();
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -434,7 +434,7 @@ namespace Kratos
   //*******************************************************************************************
 
   void TetrahedralMesh3DMesher::WriteTetrahedra(tetgenio& tr)
-  { 
+  {
     KRATOS_TRY
 
     std::cout<<" Write Tetrahedra "<<std::endl;
@@ -446,7 +446,7 @@ namespace Kratos
 	    std::cout<<tr.tetrahedronlist[el*4+pn]<<"_";
 	  }
 	std::cout<<" ] "<<std::endl; //  Volume: "<<tr.tetrahedronvolumelist[el]<<std::endl;
-      }   
+      }
 
     KRATOS_CATCH(" ")
   }
@@ -455,7 +455,7 @@ namespace Kratos
   //*******************************************************************************************
 
   void TetrahedralMesh3DMesher::WritePoints(tetgenio& tr)
-  { 
+  {
     KRATOS_TRY
 
     int base=0;
@@ -474,12 +474,12 @@ namespace Kratos
   //*******************************************************************************************
 
   void TetrahedralMesh3DMesher::CheckInOutPoints(tetgenio& in,tetgenio& out)
-  { 
+  {
     KRATOS_TRY
 
     if( in.numberofpoints != out.numberofpoints )
       std::cout<<"  Input and Output points amount is not the same : [in:"<<in.numberofpoints<<",out:"<<out.numberofpoints<<"]"<<std::endl;
-    
+
     int base=0;
     bool coincide = true;
     for(int nd = 0; nd< in.numberofpoints; nd++)
@@ -494,7 +494,7 @@ namespace Kratos
 	  coincide = false;
 	if( fabs(in.pointlist[base+2]-out.pointlist[base+2])>1e-8 )
 	  coincide = false;
-	
+
 	base+=3;
       }
 
@@ -510,11 +510,11 @@ namespace Kratos
   void TetrahedralMesh3DMesher::ClearTetgenIO(tetgenio& tr)
   {
     KRATOS_TRY
-    
+
     tr.pointlist                     = (REAL*) NULL;
     tr.numberofpoints                = 0;
     tr.numberofpointattributes       = 0;
-    
+
     tr.tetrahedronlist               = (int*) NULL;
     tr.tetrahedronvolumelist         = (REAL*) NULL;
     tr.neighborlist                  = (int*) NULL;

@@ -243,7 +243,7 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementData (ElementDataTyp
     rVariables.F0 = IdentityMatrix(3);
 
     rVariables.H.resize(3,3,false);
-    
+
     //set variables including all integration points values
 
     //reading shape functions

@@ -25,7 +25,7 @@ namespace Kratos
 ModifiedMisesYieldCriterion::ModifiedMisesYieldCriterion()
 	:YieldCriterion()
 {
-   
+
 }
 
 
@@ -35,7 +35,7 @@ ModifiedMisesYieldCriterion::ModifiedMisesYieldCriterion()
 ModifiedMisesYieldCriterion::ModifiedMisesYieldCriterion(HardeningLawPointer pHardeningLaw)
 	:YieldCriterion(pHardeningLaw)
 {
-   
+
 }
 
 //*******************************ASSIGMENT OPERATOR***********************************
@@ -83,41 +83,41 @@ double& ModifiedMisesYieldCriterion::CalculateYieldCondition(double& rStateFunct
     const Matrix& StrainMatrix = rVariables.GetStrainMatrix();
     const unsigned int Dim = StrainMatrix.size1();
     double I1 = 0.0;
-    
+
     for(unsigned int i = 0; i < Dim; i++)
     {
         I1 += StrainMatrix(i,i);
     }
-    
+
     // Compute J2
     Matrix DeviatoricStrain(Dim,Dim);
     noalias(DeviatoricStrain) = StrainMatrix;
-    
+
     for(unsigned int i = 0; i < Dim; i++)
     {
         DeviatoricStrain(i,i) -= I1/Dim;
     }
-    
+
     Matrix Auxiliar(Dim,Dim);
     noalias(Auxiliar) = prod(DeviatoricStrain,DeviatoricStrain);
     double J2 = 0.0;
-    
+
     for(unsigned int i = 0; i < Dim; i++)
     {
         J2 += Auxiliar(i,i);
     }
-    
+
     J2 *= 0.5;
-    
+
     // Compute Equivalent Strain (rStateFunction)
     const Properties& MaterialProperties = mpHardeningLaw->GetProperties();
     const double& StrengthRatio = MaterialProperties[STRENGTH_RATIO];
     const double& PoissonRatio = MaterialProperties[POISSON_RATIO];
-    
+
     rStateFunction = I1*(StrengthRatio-1.0)/(2.0*StrengthRatio*(1.0-2.0*PoissonRatio)) +
                     sqrt( I1*I1*(StrengthRatio-1.0)*(StrengthRatio-1.0)/((1.0-2.0*PoissonRatio)*(1.0-2.0*PoissonRatio)) +
                           J2*12.0*StrengthRatio/((1.0+PoissonRatio)*(1.0+PoissonRatio)) )/(2.0*StrengthRatio);
-    
+
     return rStateFunction;
 }
 
@@ -126,11 +126,11 @@ double& ModifiedMisesYieldCriterion::CalculateYieldCondition(double& rStateFunct
 //************************************************************************************
 
 double& ModifiedMisesYieldCriterion::CalculateStateFunction(double& rStateFunction, const Parameters& rVariables)
-{    
+{
     const HardeningLaw::Parameters& HardeningLawParameters = rVariables.GetHardeningParameters();
-    
+
     mpHardeningLaw->CalculateHardening(rStateFunction, HardeningLawParameters);
-    
+
 	return rStateFunction;
 }
 
@@ -141,9 +141,9 @@ double& ModifiedMisesYieldCriterion::CalculateStateFunction(double& rStateFuncti
 double& ModifiedMisesYieldCriterion::CalculateDeltaStateFunction(double& rDeltaStateFunction, const Parameters& rVariables)
 {
     const HardeningLaw::Parameters& HardeningLawParameters = rVariables.GetHardeningParameters();
-    
+
     mpHardeningLaw->CalculateDeltaHardening(rDeltaStateFunction, HardeningLawParameters);
-    
+
 	return rDeltaStateFunction;
 }
 

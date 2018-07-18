@@ -67,7 +67,7 @@ public:
     ///@}
 
     enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};
-    
+
     ///@name Life Cycle
     ///@{
 
@@ -129,18 +129,18 @@ public:
      * Called at the end of eahc solution step
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-    
+
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-    
+
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     //************* GETTING METHODS
 
     /**
@@ -170,7 +170,7 @@ public:
 
 
     //************* COMPUTING  METHODS
-    
+
     /**
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
@@ -179,9 +179,9 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-                              VectorType& rRightHandSideVector, 
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
     /**
      * this is called during the assembling process in order
@@ -189,7 +189,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
     /**
      * this is called during the assembling process in order
@@ -197,9 +197,9 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, 
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
                               ProcessInfo& rCurrentProcessInfo) override;
-    
+
     /**
      * this is called during the assembling process in order
      * to calculate the elemental mass matrix
@@ -208,7 +208,7 @@ public:
      */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
                              ProcessInfo& rCurrentProcessInfo) override;
-    
+
     /**
      * this is called during the assembling process in order
      * to calculate the elemental damping matrix
@@ -217,8 +217,8 @@ public:
      */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                 ProcessInfo& rCurrentProcessInfo) override;
-    
- 
+
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -294,12 +294,12 @@ protected:
      */
     virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
                                                ElementDataType & rVariables);
-    
+
     /**
      * Get element size from the dofs
-     */    
+     */
     unsigned int GetDofsSize() override;
-   
+
 
     ///@}
     ///@name Protected  Access
@@ -359,4 +359,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_SEGREGATED_V_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_DISPLACEMENT_SEGREGATED_V_P_ELEMENT_H_INCLUDED  defined

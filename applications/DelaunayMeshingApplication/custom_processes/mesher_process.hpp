@@ -45,13 +45,13 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{ç
-  
+
     /// Default constructor.
     MesherProcess() : Process() {}
 
     /// Constructor.
     MesherProcess(Flags options) : Process( options ) {}
-  
+
     /// Destructor.
     virtual ~MesherProcess() {}
 
@@ -97,7 +97,7 @@ public:
       KRATOS_WARNING(" MesherProcess ") << " method not available " << std::endl;
     }
 
-  
+
     /// this function will be executed at every time step AFTER performing the solve phase
     void ExecuteFinalizeSolutionStep() final
     {

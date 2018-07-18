@@ -4,7 +4,7 @@
 //        | |) / -_| / _` | || | ' \/ _` | || |            .
 //        |___/\___|_\__,_|\_,_|_||_\__,_|\_, |MESHING     .
 //                                        |__/             .
-//                                                         .    
+//                                                         .
 //  License:(BSD)   DelaunayMeshingApplication/license.txt .
 //  Main authors:   Josep Maria Carbonell                  .
 //                        ..                               .
@@ -64,7 +64,7 @@ namespace Kratos
 
   //condition variables
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, ConditionContainerType, CHILDREN_CONDITIONS)
-    
+
   //mesher criteria
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, double, MEAN_ERROR )
 

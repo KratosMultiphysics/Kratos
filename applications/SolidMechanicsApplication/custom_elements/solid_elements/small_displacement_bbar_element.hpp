@@ -45,7 +45,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementBbarElement
   : public SmallDisplacementElement
 {
 public:
-  
+
     ///@name Type Definitions
     ///@{
     /// Reference type definition for constitutive laws

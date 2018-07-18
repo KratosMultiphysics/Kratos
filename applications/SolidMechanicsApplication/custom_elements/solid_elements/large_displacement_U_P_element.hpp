@@ -227,20 +227,20 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
-                                   ElementDataType& rVariables, 
-                                   ProcessInfo& rCurrentProcessInfo, 
+    void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
+                                   ElementDataType& rVariables,
+                                   ProcessInfo& rCurrentProcessInfo,
                                    double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
-                                   ElementDataType& rVariables, 
-                                   ProcessInfo& rCurrentProcessInfo, 
+    void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
+                                   ElementDataType& rVariables,
+                                   ProcessInfo& rCurrentProcessInfo,
                                    double& rIntegrationWeight) override;
-    
+
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
      */
@@ -330,7 +330,7 @@ protected:
 
     /**
      * Get element size from the dofs
-     */    
+     */
     virtual unsigned int GetDofsSize() override;
 
 
@@ -409,4 +409,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED  defined

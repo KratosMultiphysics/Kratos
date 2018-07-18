@@ -24,11 +24,11 @@
 
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set) 
-//          (modified)  
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
 //          (reset)
 
 namespace Kratos
@@ -68,7 +68,7 @@ public:
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
-  
+
     typedef MesherUtilities::MeshingInfoParameters  InfoParametersType;
     typedef MesherUtilities::MeshingParameters   MeshingParametersType;
     typedef MesherUtilities::RefiningParameters   RefineParametersType;
@@ -111,8 +111,8 @@ public:
      * Must be called before any calculation is done
      */
     void Initialize();
-  
-    
+
+
     /**
      * level of echo for the mesh mesher
      */
@@ -148,7 +148,7 @@ public:
      * Utilities for the mesher are given to the mesher
      */
     void SetMesherUtilities( MesherUtilities::Pointer rMesherUtilities );
-  
+
     /**
      * Transfer utilities are given to the mesher
      */
@@ -162,18 +162,18 @@ public:
      * Mesher :: Initilize
      */
     virtual void InitializeMesher(ModelPart& rModelPart);
-  
+
 
     /**
      * Mesh Generation :: Remesh all ModelPart
      */
     virtual void ExecuteMeshing(ModelPart& rModelPart);
-       
+
     /**
      * Mesher :: Finalize
      */
     virtual void FinalizeMesher(ModelPart& rModelPart);
- 
+
     ///@}
     ///@name Access
     ///@{
@@ -223,13 +223,13 @@ protected:
     ///@{
 
     MeshingParametersType::Pointer          mpMeshingVariables;
-  
+
     std::vector<MesherProcess::Pointer>   mPreMeshingProcesses;
     std::vector<MesherProcess::Pointer>  mPostMeshingProcesses;
-    
+
     MesherUtilities::Pointer                 mpMesherUtilities;
 
-    MeshDataTransferUtilities::Pointer mpDataTransferUtilities;  
+    MeshDataTransferUtilities::Pointer mpDataTransferUtilities;
 
     int mEchoLevel;
 
@@ -276,7 +276,7 @@ protected:
      */
     virtual void SetNeighbours(ModelPart& rModelPart,
 			       MeshingParametersType& rMeshingVariables);
-  
+
 
     /**
      * Mesher :: Process to be done at the begining of the Generation
@@ -288,7 +288,7 @@ protected:
      * Mesher :: Process to be done at the end of the Generation
      */
     virtual void ExecutePostMeshingProcesses();
-  
+
 
 
     /**
@@ -301,13 +301,13 @@ protected:
     /**
      * Mesher :: Set Element Neighbours
      */
-    virtual void SetElementNeighbours(ModelPart& rModelPart, 
+    virtual void SetElementNeighbours(ModelPart& rModelPart,
 				      MeshingParametersType& rMeshingVariables);
 
     /**
      * Mesher :: Recover Boundary Position
      */
-    virtual void RecoverBoundaryPosition(ModelPart& rModelPart, 
+    virtual void RecoverBoundaryPosition(ModelPart& rModelPart,
 					 MeshingParametersType& rMeshingVariables);
 
 
@@ -396,6 +396,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHER_H_INCLUDED  defined 
+#endif // KRATOS_MESHER_H_INCLUDED  defined
 
 

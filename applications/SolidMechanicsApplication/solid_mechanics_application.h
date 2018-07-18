@@ -445,7 +445,7 @@ typedef array_1d<double,6> Vector6;
 
    const AxisymmetricThermalElement mAxisymThermalElement2D3N;
 
-   
+
    //conditions
    const PointLoadCondition                    mPointLoadCondition3D1N;
    const PointLoadCondition                    mPointLoadCondition2D1N;
@@ -497,7 +497,7 @@ typedef array_1d<double,6> Vector6;
 
    const LineHeatFluxCondition                    mLineHeatFluxCondition2D2N;
 
-   
+
    //constitutive laws
 
    //Hyperelastic laws
@@ -547,7 +547,7 @@ typedef array_1d<double,6> Vector6;
    const HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw mHyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw;
    const HyperElasticPlasticThermalUPBakerJohnsonCookPlaneStrain2DLaw mHyperElasticPlasticThermalUPBakerJohnsonCookPlaneStrain2DLaw;
 
-   
+
    //Flow Rules
    const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
    const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
@@ -559,13 +559,13 @@ typedef array_1d<double,6> Vector6;
    const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
    const ModifiedMisesYieldCriterion             mModifiedMisesYieldCriterion;
    const MisesHuberThermalYieldCriterion         mMisesHuberThermalYieldCriterion;
-   
+
    //Hardening Laws
    const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
    const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
    const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
    const ModifiedExponentialDamageHardeningLaw   mModifiedExponentialDamageHardeningLaw;
-   
+
    const NonLinearIsotropicKinematicThermalHardeningLaw mNonLinearIsotropicKinematicThermalHardeningLaw;
    const JohnsonCookThermalHardeningLaw                 mJohnsonCookThermalHardeningLaw;
    const BakerJohnsonCookThermalHardeningLaw            mBakerJohnsonCookThermalHardeningLaw;

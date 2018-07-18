@@ -19,13 +19,13 @@ class controlledExecutionScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
-# General test factory        
+# General test factory
 class TestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             if( self.file_parameters == None ):
-                self.file_parameters = self.file_name + "_parameters.json"            
+                self.file_parameters = self.file_name + "_parameters.json"
             self.test = MainSolid.Solution(self.file_parameters,self.file_name)
 
     def test_execution(self):

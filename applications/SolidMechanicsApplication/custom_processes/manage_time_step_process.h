@@ -41,8 +41,8 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
-    
+
+
     ManageTimeStepProcess(ModelPart& rModelPart,
                           double& rMinDeltaTime, double& rMaxDeltaTime,
                           double& rReductionFactor, double& rIncreaseFactor,
@@ -52,11 +52,11 @@ public:
     }
 
     ManageTimeStepProcess( ModelPart& rModelPart,
-                           Parameters CustomParameters ) 
+                           Parameters CustomParameters )
       : mrModelPart(rModelPart)
     {
       KRATOS_TRY
- 	   
+
       Parameters DefaultParameters( R"(
             {
                  "time_step": 1.0,
@@ -74,14 +74,14 @@ public:
                  }
             }  )" );
 
-      
+
       mAdaptiveTimeStep = false;
       if( CustomParameters.Has("adaptive_time_step") )
         mAdaptiveTimeStep = true;
-      
+
       //validate against defaults -- this also ensures no type mismatch
       CustomParameters.ValidateAndAssignDefaults(DefaultParameters);
-      
+
       ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
       bool restarted = false;
@@ -93,7 +93,7 @@ public:
 
       if( !restarted ){
         rCurrentProcessInfo.SetValue(DELTA_TIME, CustomParameters["time_step"].GetDouble());
-        rCurrentProcessInfo.SetValue(TIME, CustomParameters["start_time"].GetDouble());  
+        rCurrentProcessInfo.SetValue(TIME, CustomParameters["start_time"].GetDouble());
       }
 
       mTime = rCurrentProcessInfo[TIME];
@@ -102,11 +102,11 @@ public:
 
       if( mAdaptiveTimeStep )
         SetAdaptiveTimeParameters(CustomParameters["adaptive_time_step"]);
-      
+
       KRATOS_CATCH(" ")
 
     }
-  
+
     /// Destructor.
     virtual ~ManageTimeStepProcess() {}
 
@@ -133,12 +133,12 @@ public:
         KRATOS_TRY;
 
 //         const int nelements = mrModelPart.Elements().size();
-        
+
 //         if (nelements != 0)
 //         {
 //           ModelPart::ElementsContainerType::iterator it_begin =
 //               mrModelPart.ElementsBegin();
-                
+
 // #pragma omp parallel for
 //           for (int i = 0; i < nelements; i++)
 //           {
@@ -151,15 +151,15 @@ public:
 //           }
 //         }
 
-        
-        
+
+
         KRATOS_CATCH("");
     }
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     void ExecuteInitialize() override
-    {      
+    {
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
@@ -176,11 +176,11 @@ public:
 
       if( mAdaptiveTimeStep )
         PredictTimeStep();
-        
+
       double mTime = rCurrentProcessInfo[TIME] + rCurrentProcessInfo[DELTA_TIME];
-      
+
       mrModelPart.ProcessInfo[STEP] = (++mStep);
-      
+
       mrModelPart.CloneTimeStep(mTime);
     }
 
@@ -285,11 +285,11 @@ private:
     ModelPart& mrModelPart;
 
     bool mAdaptiveTimStep;
-  
+
     double mTime;
     double mStep;
     double mEndTime;
-  
+
     double mMinDeltaTime;
     double mMaxDeltaTime;
 
@@ -301,15 +301,15 @@ private:
     unsigned int mMinIterations;
     unsigned int mMaxIterations;
     unsigned int mNumberOfConstantSteps;
-  
+
     ///@}
     ///@name Private Operators
-    ///@{  
+    ///@{
     ///@}
     ///@name Private Operations
     ///@{
 
-    void SetAdaptiveTimeParameters(Parameters CustomParameters) 
+    void SetAdaptiveTimeParameters(Parameters CustomParameters)
     {
       KRATOS_TRY
 
@@ -328,21 +328,21 @@ private:
       //validate against defaults -- this also ensures no type mismatch
       CustomParameters.ValidateAndAssignDefaults(DefaultParameters);
 
-      
+
       mMinDeltaTime = CustomParameters["minimum_time_step"].GetDouble();
       mMaxDeltaTime = CustomParameters["maximum_time_step"].GetDouble();
 
       mReductionFactor = CustomParameters["reduction_factor"].GetDouble();
       mIncreaseFactor = CustomParameters["increase_factor"].GetDouble();
-    
+
       mErrorTolerance = CustomParameters["error_tolerance"].GetDouble();
 
       mMinIterations = CustomParameters["minimum_iterations"].GetInt();
       mMaxIterations = CustomParameters["maximum_iterations"].GetInt();
       mNumberOfConstantSteps = CustomParameters["number_constant_steps"].GetInt();
-            
+
       KRATOS_CATCH(" ")
-    }  
+    }
     ///@}
     ///@name Private  Access
     ///@{

@@ -28,7 +28,7 @@ namespace Kratos
 MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion()
 	:MisesHuberYieldCriterion()
 {
-   
+
 }
 
 
@@ -38,7 +38,7 @@ MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion()
 MisesHuberThermalYieldCriterion::MisesHuberThermalYieldCriterion(HardeningLawPointer pHardeningLaw)
 	:MisesHuberYieldCriterion(pHardeningLaw)
 {
-   
+
 }
 
 //*******************************ASSIGMENT OPERATOR***********************************
@@ -88,19 +88,19 @@ double& MisesHuberThermalYieldCriterion::CalculatePlasticDissipation(double & rP
 	const HardeningLaw::Parameters& rHardeningParameters = rValues.GetHardeningParameters();
 
 	double Hardening = 0;
-	
+
 	//std::cout<<" dissipation "<<std::endl;
 	//rHardeningParameters.print();
-	
+
 	Hardening = mpHardeningLaw->CalculateHardening( Hardening, rHardeningParameters );
 
 
 	double EquivalentStress =  sqrt(2.0/3.0) * ( Hardening );
-		
+
 	rPlasticDissipation = 0.9 * EquivalentStress * rDeltaGamma * ( 1.0/rDeltaTime );
 
 	//std::cout<<"  Hardening  "<<Hardening<<" rDeltaGamma "<<rDeltaGamma<<" EquivalentStress "<<EquivalentStress<<" PlasticDissipation "<<rPlasticDissipation<<std::endl;
-	
+
 
 	return rPlasticDissipation;
 }
@@ -122,28 +122,28 @@ double& MisesHuberThermalYieldCriterion::CalculateDeltaPlasticDissipation(double
 
 	// std::cout<<" delta dissipation A "<<std::endl;
 	// rHardeningParameters.print();
-	
+
 	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, rHardeningParameters );
 
 	double Hardening = 0;
 
-	
+
 	// std::cout<<" delta dissipation B "<<std::endl;
 	Hardening = mpHardeningLaw->CalculateHardening( Hardening, rHardeningParameters );
-	
+
 	double EquivalentStress =  sqrt(2.0/3.0) * ( Hardening );
 
        	double DeltaThermalHardening = 0;
 
 	// std::cout<<" delta dissipation C "<<std::endl;
 	//rHardeningParameters.print();
-		
+
 	DeltaThermalHardening = mpHardeningLaw->CalculateDeltaThermalHardening( DeltaThermalHardening, rHardeningParameters );
 
 	// std::cout<<"  DeltaHardening  "<<DeltaHardening<<" DeltaThermalHardening "<<DeltaThermalHardening<<std::endl;
 	// std::cout<<"  EquivalentStress  "<<EquivalentStress<<" DeltaGamma "<<rDeltaGamma<<std::endl;
 
-	rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime); 
+	rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime);
 
 	rDeltaPlasticDissipation *= ( (-1) * DeltaThermalHardening );
 
@@ -156,8 +156,8 @@ double& MisesHuberThermalYieldCriterion::CalculateDeltaPlasticDissipation(double
 
 	// //Revise Dissipation in Johnson-Cook	material
 
-	// //----Dependent plastic rate 
-	// rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime); 
+	// //----Dependent plastic rate
+	// rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime);
 	// rDeltaPlasticDissipation *= (-1) * rDeltaThermalHardening;
 	// rDeltaPlasticDissipation *= ( rDeltaGamma - (EquivalentStress + (2.0/3.0) * (rDeltaGamma) * DeltaHardening)/ (2.0 * LameMu_bar + (2.0/3.0) * DeltaHardening);
 
@@ -170,11 +170,11 @@ double& MisesHuberThermalYieldCriterion::CalculateDeltaPlasticDissipation(double
 
         // //Revise Dissipation in Baker Johnson-Cook	material
 	// //----Dependent plastic rate  and //----Independent plastic rate
-	// rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime); 
+	// rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime);
 	// rDeltaPlasticDissipation *= (-1) * rDeltaThermalHardening;
-	
+
 	// rDeltaPlasticDissipation *= ( rDeltaGamma - (EquivalentStress + (2.0/3.0) * (rDeltaGamma) * DeltaHardening)/ (2.0 * LameMu_bar + (2.0/3.0) * DeltaHardening);
-		 
+
 
 	return rDeltaPlasticDissipation;
 }
@@ -187,7 +187,7 @@ double& MisesHuberThermalYieldCriterion::CalculateDeltaPlasticDissipation(double
 
 double& MisesHuberThermalYieldCriterion::CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rValues)
 {
-	
+
 	const double& rDeltaGamma = rValues.GetDeltaGamma();
 	const double& rDeltaTime  = rValues.GetDeltaTime();
 
@@ -199,7 +199,7 @@ double& MisesHuberThermalYieldCriterion::CalculateImplexPlasticDissipation(doubl
 
 	//PENDENT(change the definition of this stress Hardening has a different expression  !!!!)
 	double EquivalentStress =  sqrt(2.0/3.0) * ( Hardening );
-		
+
 	rPlasticDissipation = 0.9 * EquivalentStress * rDeltaGamma * ( 1.0/rDeltaTime );
 
 	return rPlasticDissipation;
@@ -211,7 +211,7 @@ double& MisesHuberThermalYieldCriterion::CalculateImplexPlasticDissipation(doubl
 
 double& MisesHuberThermalYieldCriterion::CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues)
 {
-       
+
 	double DeltaThermalHardening = 0;
 
 	const double& rDeltaGamma = rValues.GetDeltaGamma();
@@ -223,11 +223,11 @@ double& MisesHuberThermalYieldCriterion::CalculateImplexDeltaPlasticDissipation(
 	DeltaThermalHardening = mpHardeningLaw->CalculateDeltaThermalHardening( DeltaThermalHardening, rHardeningParameters );
 
 
-	rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime); 
+	rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime);
 
 	rDeltaPlasticDissipation *= ( (-1) * DeltaThermalHardening );
 
-	rDeltaPlasticDissipation *= rDeltaGamma;	
+	rDeltaPlasticDissipation *= rDeltaGamma;
 
 	return rDeltaPlasticDissipation;
 }

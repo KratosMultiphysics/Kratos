@@ -136,9 +136,9 @@ protected:
     ///@name Protected Operators
     ///@{
     SmallDisplacementBeamElement() {};
-    
+
     //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -148,45 +148,45 @@ protected:
      */
     virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**   
+    /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
-    /**   
+    /**
      * Calculate Deformation Matrix
      */
     virtual void CalculateDeformationMatrix(Matrix& rB, const Vector& rN, const Matrix& rDN_DX);
 
 
-    /**   
+    /**
      * Calculate Element Constitutive Matrix
-     */ 
+     */
     virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
 
-     /**   
+     /**
      * Calculate Element Stress Resultants and Couples
-     */ 
+     */
     virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
- 
+
     /**
      * Calculation of the Rotation tensor
      */
     void CalculateTransformationMatrix(Matrix& RotationMatrix);
 
-  
+
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
-     */    
+     */
     virtual void MapLocalToGlobal(ElementDataType& rVariables, Matrix& rVariable) override;
 
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
-     */    
+     */
     virtual void MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector) override;
-  
+
 
 
     /**
@@ -211,7 +211,7 @@ protected:
 					       ElementDataType & rVariables,
 					       double& rIntegrationWeight) override;
 
-  
+
    ///@}
     ///@name Protected  Access
     ///@{

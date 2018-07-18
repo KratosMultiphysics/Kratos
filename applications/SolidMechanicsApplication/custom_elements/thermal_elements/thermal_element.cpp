@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 // System includes
 
@@ -210,7 +210,7 @@ void ThermalElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVaria
         const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-	
+
     KRATOS_CATCH( "" )
 }
 
@@ -271,10 +271,10 @@ void ThermalElement::Initialize()
 
 void ThermalElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-  
+
   const unsigned int number_of_nodes = GetGeometry().size();
   const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
- 
+
 
   rVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
@@ -360,11 +360,11 @@ void ThermalElement::CalculateKinematics(GeneralVariables& rVariables,
 
     Matrix Invj;
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ 
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives
-    rVariables.DN_DX = prod( DN_De[rPointNumber] , Invj ); //overwrites DX now is the current position 
-    
+    rVariables.DN_DX = prod( DN_De[rPointNumber] , Invj ); //overwrites DX now is the current position
+
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber );
 
@@ -417,12 +417,12 @@ void ThermalElement::CalculateThermalProperties(GeneralVariables& rVariables)
 	double NodalTemperature = GetGeometry()[j].FastGetSolutionStepValue(TEMPERATURE);
 	ElementTemperature += rVariables.N[j] * NodalTemperature;
       }
-  
+
     if( (ElementTemperature - 273.15) < 0 ){
       ElementTemperature = 273.15;
       std::cout<<" Temperature error on linear thermal properties "<<std::endl;
     }
-    
+
     double HeatCapacity_a = GetProperties()[HEAT_CAPACITY_A] * GetProperties()[DENSITY];
     double HeatCapacity_b = GetProperties()[HEAT_CAPACITY_B] * GetProperties()[DENSITY];
 
@@ -492,26 +492,26 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
     //mechanical evaluation of the material response (add a Element::Pointer as a member to increase speed)
     bool thermo_mechanical = false;
-    
+
     std::vector<Vector> StressVector;
 
     std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector;
-    
+
     if( Has(MASTER_ELEMENTS) ){
 
       thermo_mechanical = true;
 
-      Element::ElementType& MechanicalElement = GetValue(MASTER_ELEMENTS).back();  
-      
+      Element::ElementType& MechanicalElement = GetValue(MASTER_ELEMENTS).back();
+
       MechanicalElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
-      
+
       MechanicalElement.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, ConstitutiveLawVector, rCurrentProcessInfo);
 
     }
     else {
 
       std::cout<<" NO master element for this thermal element "<<this->Id()<<std::endl;
-      
+
       thermo_mechanical = false;
 
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -523,7 +523,7 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
       ConstitutiveLawVector.resize( integration_points.size() );
       StressVector.resize( integration_points.size() );
-      
+
       for ( unsigned int i = 0; i < integration_points.size(); i++ )
 	{
 	  StressVector[i] = ZeroVector(voigtsize);
@@ -547,7 +547,7 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 	    Variables.DeltaPlasticDissipation=0;
 	    if( thermo_mechanical ){
 	      if( ConstitutiveLawVector[PointNumber]->Has(DELTA_PLASTIC_DISSIPATION) )
-		ConstitutiveLawVector[PointNumber]->GetValue(DELTA_PLASTIC_DISSIPATION,Variables.DeltaPlasticDissipation);     
+		ConstitutiveLawVector[PointNumber]->GetValue(DELTA_PLASTIC_DISSIPATION,Variables.DeltaPlasticDissipation);
 	    }
 
             //contributions to stiffness matrix calculated on the reference config
@@ -560,14 +560,14 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
             HeatSource = GetProperties()[HEAT_SOURCE];
 
 	    // std::cout<<" HeatSource "<<HeatSource<<std::endl;
-	    
+
 	    Variables.PlasticDissipation=0;
 	    if( thermo_mechanical ){
-		      
+
 	      if( ConstitutiveLawVector[PointNumber]->Has(PLASTIC_DISSIPATION) )
-		ConstitutiveLawVector[PointNumber]->GetValue(PLASTIC_DISSIPATION,Variables.PlasticDissipation);	      
+		ConstitutiveLawVector[PointNumber]->GetValue(PLASTIC_DISSIPATION,Variables.PlasticDissipation);
 	    }
-            
+
 	    this->CalculateAndAddRHS ( rRightHandSideVector, Variables, HeatSource, IntegrationWeight );
 
         }
@@ -582,7 +582,7 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
     // 	std::cout<<" K "<<rLeftHandSideMatrix<<std::endl;
     // 	std::cout<<" F "<<rRightHandSideVector<<std::endl;
     //   }
-	
+
 
     KRATOS_CATCH( "" )
 }
@@ -597,13 +597,13 @@ void ThermalElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, General
 {
   //constant during the step
   this->CalculateAndAddKthermal( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-  
+
   //constant during the step
   this->CalculateAndAddMthermal( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-  
+
   //changes during the step
   this->CalculateAndAddHthermal( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-  
+
 }
 
 
@@ -615,7 +615,7 @@ void ThermalElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, Genera
 
   // operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
   this->CalculateAndAddExternalForces( rVariables, rRightHandSideVector, rHeatSource, rIntegrationWeight );
-  
+
   // operation performed: rRightHandSideVector -= ThermalForce*IntegrationWeight
   this->CalculateAndAddThermalForces( rVariables, rRightHandSideVector, rIntegrationWeight );
 
@@ -717,12 +717,12 @@ double& ThermalElement::CalculateIntegrationWeight( double& rIntegrationWeight )
 
     return rIntegrationWeight;
 }
- 
+
 //************************************************************************************
 //************************************************************************************
 
-void ThermalElement::CalculateAndAddExternalForces(GeneralVariables& rVariables,			  
-    VectorType& rRightHandSideVector,    
+void ThermalElement::CalculateAndAddExternalForces(GeneralVariables& rVariables,
+    VectorType& rRightHandSideVector,
     double& rHeatSource,
     double& rIntegrationWeight)
 {
@@ -751,23 +751,23 @@ void ThermalElement::CalculateAndAddExternalForces(GeneralVariables& rVariables,
 inline void ThermalElement::CalculateAndAddThermalForces(GeneralVariables & rVariables,
 							 VectorType& rRightHandSideVector,
 							 double& rIntegrationWeight)
-    
+
 {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-      
+
     VectorType Fh=rRightHandSideVector;
-    
+
 
     double DeltaTemperature = 0;
     double NodalTemperature = 0;
-    
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	DeltaTemperature = GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) - GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE,1);
-	
+
 	rRightHandSideVector[i] += rVariables.N[i] * rVariables.PlasticDissipation * rIntegrationWeight;
 	rRightHandSideVector[i] -= rVariables.N[i] * rVariables.HeatCapacity * ( DeltaTemperature ) * (1.0/rVariables.DeltaTime) * rIntegrationWeight;
 
@@ -777,19 +777,19 @@ inline void ThermalElement::CalculateAndAddThermalForces(GeneralVariables & rVar
 
 	  for ( unsigned int k= 0; k < dimension; k++ )
 	    {
-	      
+
 	      rRightHandSideVector[i] -= rVariables.HeatConductivity * NodalTemperature * ( rVariables.DN_DX(i,k)*rVariables.DN_DX(j,k) ) * rIntegrationWeight;
-	      
+
 	    }
 
 
 	}
-										  
+
     }
 
     // std::cout<<std::endl;
     // std::cout<<" Fint ["<<GetValue(MASTER_ELEMENTS).back().Id()<<"] "<<rRightHandSideVector-Fh<<" [ Dissipation: "<<rVariables.PlasticDissipation<<" , HeatConductivity: "<<rVariables.HeatConductivity<<" , HeatCapacity: "<<rVariables.HeatCapacity<<" ]"<<std::endl;
-    
+
     // if( rVariables.PlasticDissipation > 0 ){
     //   std::cout<<" ThermalElement Id["<<this->Id()<<"] Dissipation "<<rVariables.PlasticDissipation<<" Fint "<<rRightHandSideVector-Fh<<std::endl;
     //   for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -809,10 +809,10 @@ inline void ThermalElement::CalculateAndAddThermalForces(GeneralVariables & rVar
 void ThermalElement::CalculateAndAddHthermal(MatrixType& rH,
 					     GeneralVariables& rVariables,
 					     double& rIntegrationWeight)
-    
+
 {
     KRATOS_TRY
-    
+
     //assemble into rk the material uu contribution:
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
@@ -824,7 +824,7 @@ void ThermalElement::CalculateAndAddHthermal(MatrixType& rH,
 	      {
 		rH(i,j) += rVariables.DeltaPlasticDissipation * rIntegrationWeight * rVariables.N[i] * rVariables.N[j];
 	      }
-	    
+
       }
 
    // std::cout<<std::endl;
@@ -840,14 +840,14 @@ void ThermalElement::CalculateAndAddHthermal(MatrixType& rH,
 void ThermalElement::CalculateAndAddKthermal(MatrixType& rK,
 					     GeneralVariables& rVariables,
 					     double& rIntegrationWeight)
-    
+
 {
     KRATOS_TRY
-    
+
     //assemble into rk the material uu contribution:
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    
+
     //double HeatConductivity = GetProperties()[HEAT_CONDUCTIVITY];
 
 
@@ -858,8 +858,8 @@ void ThermalElement::CalculateAndAddKthermal(MatrixType& rK,
 	    for ( unsigned int k = 0; k < dimension; k++ )
 	      {
 		rK(i,j)+= rVariables.HeatConductivity * ( rVariables.DN_DX(i,k)*rVariables.DN_DX(j,k) ) * rIntegrationWeight;
-	      }	    
-	  }	    
+	      }
+	  }
     }
 
     // std::cout<<std::endl;
@@ -875,10 +875,10 @@ void ThermalElement::CalculateAndAddKthermal(MatrixType& rK,
 void ThermalElement::CalculateAndAddMthermal(MatrixType& rM,
 					     GeneralVariables& rVariables,
 					     double& rIntegrationWeight)
-    
+
 {
     KRATOS_TRY
-    
+
     //assemble into rk the material uu contribution:
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -897,10 +897,10 @@ void ThermalElement::CalculateAndAddMthermal(MatrixType& rM,
 	    else
 	      consistent = 4;
 	  }
-	  
+
 	  rM(i,j)+= consistent * rVariables.HeatCapacity * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight * (1.0/rVariables.DeltaTime);
 	}
-	    
+
       }
 
     // std::cout<<std::endl;
@@ -967,7 +967,7 @@ int  ThermalElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
 //     if( correct_strain_measure == false )
 // 	    KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Large Displacements " );
-	  
+
 
 //     //verify that the variables are correctly initialized
 

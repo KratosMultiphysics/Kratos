@@ -135,7 +135,7 @@ namespace Kratos {
   public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of KratosConstitutiveModelsApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosConstitutiveModelsApplication);
 
@@ -247,16 +247,16 @@ namespace Kratos {
     ///@name Static Member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Member Variables
     ///@{
 
     //outfitted python laws
     //const PythonOutfittedConstitutiveLaw           mPythonOutfittedConstitutiveLaw;
-    
+
     //general constitutive laws
-    
+
     //small strain laws
     const SmallStrain3DLaw                         mSmallStrain3DLaw;
     const SmallStrainOrthotropic3DLaw              mSmallStrainOrthotropic3DLaw;
@@ -292,7 +292,7 @@ namespace Kratos {
     const HypoElasticModel                         mHypoElasticModel;
     const IsochoricHypoElasticModel                mIsochoricHypoElasticModel;
     const IncompressibleHypoElasticModel           mIncompressibleHypoElasticModel;
-    
+
     //plasticity models
     const VonMisesLinearElasticPlasticityModel     mVonMisesLinearElasticPlasticityModel;
     const VonMisesNeoHookeanPlasticityModel        mVonMisesNeoHookeanPlasticityModel;
@@ -303,14 +303,14 @@ namespace Kratos {
     const CamClayModel                             mCamClayModel;
     const SimoJuExponentialDamageModel             mSimoJuExponentialDamageModel;
     const SimoJuExponentialDamageModel             mSimoJuModifiedExponentialDamageModel;
-    
+
     //yield criteria
     const MisesHuberYieldSurface<HardeningRule>         mMisesHuberYieldSurface;
     const MisesHuberThermalYieldSurface<HardeningRule>  mMisesHuberThermalYieldSurface;
     const SimoJuYieldSurface<HardeningRule>             mSimoJuYieldSurface;
     const ModifiedMisesYieldSurface<HardeningRule>      mModifiedMisesYieldSurface;
     const ModifiedCamClayYieldSurface<HardeningRule>    mModifiedCamClayYieldSurface;
-    
+
     //hardening rules
     const SimoExponentialHardeningRule              mSimoExponentialHardeningRule;
     const SimoLinearHardeningRule                   mSimoLinearHardeningRule;
@@ -320,8 +320,8 @@ namespace Kratos {
     const ExponentialDamageHardeningRule            mExponentialDamageHardeningRule;
     const ModifiedExponentialDamageHardeningRule    mModifiedExponentialDamageHardeningRule;
     const CamClayHardeningRule                      mCamClayHardeningRule;
-      
-       
+
+
     ///@}
     ///@name Private Operators
     ///@{

@@ -95,11 +95,11 @@ double &  HyperElasticPlasticUP3DLaw::CalculateVolumetricPressure (const Materia
 
 Vector&  HyperElasticPlasticUP3DLaw::CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
 							      Vector & rFactors)
-							      
+
 {
     double Pressure = 0;
     Pressure = this->CalculateVolumetricPressure( rElasticVariables, Pressure );
-  
+
     if(rFactors.size()!=3) rFactors.resize(3);
 
     rFactors[0] =  1.0;
@@ -123,7 +123,7 @@ void HyperElasticPlasticUP3DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 

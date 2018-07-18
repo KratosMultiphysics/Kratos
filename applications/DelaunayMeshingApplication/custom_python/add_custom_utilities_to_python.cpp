@@ -7,9 +7,9 @@
 //
 //
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -20,18 +20,18 @@
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
 // refining methods
-    
+
 void SetRefiningParameters(MesherUtilities::RefiningParameters& rRefiningParameters, double AlphaParameter, double CriticalRadius, double CriticalSide)
 {
   rRefiningParameters.SetParameters(AlphaParameter, CriticalRadius, CriticalSide);
 }
-    
-    
+
+
 void SetThresholdVariable(MesherUtilities::RefiningParameters& rRefiningParameters, const Variable<double>& rVariable)
 {
   rRefiningParameters.SetThresholdVariable(rVariable);
@@ -70,17 +70,17 @@ void SetDoubleVariable( MeshDataTransferUtilities::TransferParameters& rTransfer
 {
   rTransferParameters.SetVariable( rVariable );
 }
-    
+
 void SetArray1DVariable( MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<array_1d<double,3> >& rVariable )
 {
   rTransferParameters.SetVariable( rVariable );
 }
-    
+
 void SetVectorVariable( MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<Vector>& rVariable )
 {
   rTransferParameters.SetVariable( rVariable );
 }
-    
+
 void SetMatrixVariable( MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<Matrix>& rVariable )
 {
   rTransferParameters.SetVariable( rVariable );
@@ -92,7 +92,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
   using namespace  pybind11;
 
- 
+
   //***************DOMAIN SET**************//
   class_<MesherUtilities>(m,"MesherUtilities")
       .def(init<>())
@@ -100,7 +100,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("SetModelPartNameToNodes",&MesherUtilities::SetModelPartNameToNodes)
       .def("CheckCriticalRadius",&MesherUtilities::CheckCriticalRadius)
       .def("ComputeModelPartVolume",&MesherUtilities::ComputeModelPartVolume)
-	
+
       .def_readonly_static("REMESH",&MesherUtilities::REMESH)
       .def_readonly_static("REFINE",&MesherUtilities::REFINE)
       .def_readonly_static("RECONNECT",&MesherUtilities::RECONNECT)
@@ -109,7 +109,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def_readonly_static("CONTACT_SEARCH",&MesherUtilities::CONTACT_SEARCH)
       .def_readonly_static("MESH_SMOOTHING",&MesherUtilities::MESH_SMOOTHING)
       .def_readonly_static("VARIABLES_SMOOTHING",&MesherUtilities::VARIABLES_SMOOTHING)
-	
+
       .def_readonly_static("REMOVE_NODES",&MesherUtilities::REMOVE_NODES)
       .def_readonly_static("REMOVE_NODES_ON_DISTANCE",&MesherUtilities::REMOVE_NODES_ON_DISTANCE)
       .def_readonly_static("REMOVE_NODES_ON_ERROR",&MesherUtilities::REMOVE_NODES_ON_ERROR)
@@ -118,7 +118,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def_readonly_static("REMOVE_BOUNDARY_NODES_ON_DISTANCE",&MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)
       .def_readonly_static("REMOVE_BOUNDARY_NODES_ON_ERROR",&MesherUtilities::REMOVE_BOUNDARY_NODES_ON_ERROR)
       .def_readonly_static("REMOVE_BOUNDARY_NODES_ON_THRESHOLD",&MesherUtilities::REMOVE_BOUNDARY_NODES_ON_THRESHOLD)
-	
+
       .def_readonly_static("REFINE_ADD_NODES",&MesherUtilities::REFINE_ADD_NODES)
       .def_readonly_static("REFINE_INSERT_NODES",&MesherUtilities::REFINE_INSERT_NODES)
       .def_readonly_static("REFINE_ELEMENTS",&MesherUtilities::REFINE_ELEMENTS)
@@ -140,8 +140,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def_readonly_static("SELECT_TESSELLATION_ELEMENTS",&MesherUtilities::SELECT_TESSELLATION_ELEMENTS)
       .def_readonly_static("KEEP_ISOLATED_NODES",&MesherUtilities::KEEP_ISOLATED_NODES)
       ;
-        
-        
+
+
   //***************NORMALS**************//
 
   class_<BoundaryNormalsCalculationUtilities>(m,"BoundaryNormalsCalculation")
@@ -149,7 +149,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("CalculateWeightedBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateWeightedBoundaryNormals)
       .def("CalculateUnitBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateUnitBoundaryNormals)
       ;
-      
+
   //***************TRANSFER UTILITIES**************//
 
   typedef  void (MeshDataTransferUtilities::*TransferElementalValuesToNodes)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&);
@@ -178,7 +178,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
   // Remeshing mesher information parameters
   class_< MeshDataTransferUtilities::TransferParameters, typename MeshDataTransferUtilities::TransferParameters::Pointer>
       (m,"TransferParameters")
-      .def(init<>())    
+      .def(init<>())
       .def("Set",&MeshDataTransferUtilities::TransferParameters::Set)
       .def("Reset",&MeshDataTransferUtilities::TransferParameters::Reset)
       .def("SetOptions",&MeshDataTransferUtilities::TransferParameters::SetOptions)
@@ -194,7 +194,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
   // Remeshing mesher information parameters
   class_< MesherUtilities::MeshingInfoParameters, typename MesherUtilities::MeshingInfoParameters::Pointer>
       (m,"MeshingInfoParameters")
-      .def(init<>())    
+      .def(init<>())
       .def("Initialize",&MesherUtilities::MeshingInfoParameters::Initialize)
       .def("CheckMechanicalSmoothing",&MesherUtilities::MeshingInfoParameters::CheckMechanicalSmoothing)
       .def("SetNumberOfNodes",&MesherUtilities::MeshingInfoParameters::SetNumberOfNodes)

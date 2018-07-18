@@ -82,7 +82,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
   class_< HyperElastic3DLaw, typename HyperElastic3DLaw::Pointer, ConstitutiveLaw >
       (m, "HyperElastic3DLaw").def(init<>() )
       ;
-    
+
   class_< HyperElasticPlaneStrain2DLaw, typename HyperElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
       (m, "HyperElasticPlaneStrain2DLaw").def(init<>() )
       ;
@@ -108,7 +108,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       ;
 
 
-  // Hyperelastic Plastic J2 specilization laws 
+  // Hyperelastic Plastic J2 specilization laws
 
   class_<HyperElasticPlasticJ23DLaw, typename HyperElasticPlasticJ23DLaw::Pointer, ConstitutiveLaw >
       (m, "HyperElasticPlasticJ23DLaw").def(init<>() )
@@ -137,7 +137,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       ;
 
 
-  // Isotropic Damage laws 
+  // Isotropic Damage laws
 
   class_<IsotropicDamageSimoJu3DLaw, typename IsotropicDamageSimoJu3DLaw::Pointer, ConstitutiveLaw >
       (m, "IsotropicDamageSimoJu3DLaw").def(init<>() )

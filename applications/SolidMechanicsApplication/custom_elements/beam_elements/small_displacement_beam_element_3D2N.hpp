@@ -52,7 +52,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     ///Type for size
     typedef GeometryData::SizeType SizeType;
- 
+
     /// Counted pointer of SmallDisplacementBeamElement3D2N
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementBeamElement3D2N );
 
@@ -85,8 +85,8 @@ protected:
     struct LocalSystemComponents
     {
     private:
-      
-      //for calculation local system with compacted LHS and RHS 
+
+      //for calculation local system with compacted LHS and RHS
       MatrixType *mpLeftHandSideMatrix;
       VectorType *mpRightHandSideVector;
 
@@ -111,7 +111,7 @@ protected:
       MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
 
       VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
- 
+
     };
 
 
@@ -147,7 +147,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
 
-  
+
 
     //************* GETTING METHODS
 
@@ -211,7 +211,7 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize() override;
-  
+
       /**
      * Called at the beginning of each solution step
      */
@@ -282,7 +282,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -341,12 +341,12 @@ protected:
      * Beam element length
      */
     double mLength;                          // Length of the beam element
-  
+
     ///@}
     ///@name Protected Operators
     ///@{
     SmallDisplacementBeamElement3D2N() {};
-    
+
     //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
 
     ///@}
@@ -359,7 +359,7 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-  
+
     void CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
 				   ProcessInfo& rCurrentProcessInfo );
 
@@ -390,13 +390,13 @@ protected:
      * Calculation of the Material Stiffness Matrix
      */
     void CalculateLocalStiffnessMatrix(Matrix& LocalMatrix);
- 
+
 
     /**
      * Calculation of the Rotation tensor
      */
     void CalculateTransformationMatrix(Matrix& RotationMatrix);
-  
+
 
     /**
      * Calculation of the Volume Force of the Element

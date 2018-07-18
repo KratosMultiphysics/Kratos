@@ -40,7 +40,7 @@ void  AddCustomMeshersToPython(pybind11::module& m)
       (m,"ContactDomain2DMesher")
       .def(init< >())
       ;
-     
+
 }
 
 }  // namespace Python.

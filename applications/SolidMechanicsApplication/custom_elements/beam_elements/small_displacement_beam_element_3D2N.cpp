@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 // System includes
 
@@ -35,7 +35,7 @@ SmallDisplacementBeamElement3D2N::SmallDisplacementBeamElement3D2N(IndexType New
     : Element(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
-    
+
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -135,7 +135,7 @@ void SmallDisplacementBeamElement3D2N::EquationIdVector(EquationIdVectorType& rR
       rResult[index+4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
       rResult[index+5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
     }
- 
+
 }
 
 
@@ -312,9 +312,9 @@ void SmallDisplacementBeamElement3D2N::InitializeSystemMatrices(MatrixType& rLef
     {
         if ( rRightHandSideVector.size() != MatSize )
 	    rRightHandSideVector.resize( MatSize, false );
-      
+
 	rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
-	  
+
     }
 
     KRATOS_CATCH( "" )
@@ -386,7 +386,7 @@ void SmallDisplacementBeamElement3D2N::CalculateElementalSystem( LocalSystemComp
     rLocalSystem.RotationMatrix     = ZeroMatrix(MatSize,MatSize);
 
     if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBeamElement3D2N::COMPUTE_LHS_MATRIX) || rLocalSystem.CalculationFlags.Is(SmallDisplacementBeamElement3D2N::COMPUTE_RHS_VECTOR) ) {
-    
+
       //Local to Global Transformation Matrix
       this->CalculateTransformationMatrix(rLocalSystem.RotationMatrix);
     }
@@ -396,7 +396,7 @@ void SmallDisplacementBeamElement3D2N::CalculateElementalSystem( LocalSystemComp
 
 
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-    
+
     //auxiliary terms
     Vector VolumeForce;
 
@@ -439,7 +439,7 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddLHS(LocalSystemComponents&
 
     //Initialize Local Matrices
     Matrix LocalStiffnessMatrix = ZeroMatrix(MatSize,MatSize);
-    
+
     //Local Stiffness Matrix
     CalculateLocalStiffnessMatrix(LocalStiffnessMatrix);
 
@@ -464,8 +464,8 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
 {
     KRATOS_TRY
 
-    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
-  
+    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const unsigned int MatSize         = rRightHandSideVector.size();
@@ -555,7 +555,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHa
     //create local system components
     LocalSystemComponents LocalSystem;
 
-    //calculation flags   
+    //calculation flags
     LocalSystem.CalculationFlags.Set(SmallDisplacementBeamElement3D2N::COMPUTE_LHS_MATRIX);
 
     VectorType RightHandSideVector = Vector();
@@ -584,7 +584,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHan
     //create local system components
     LocalSystemComponents LocalSystem;
 
-    //calculation flags 
+    //calculation flags
     LocalSystem.CalculationFlags.Set(SmallDisplacementBeamElement3D2N::COMPUTE_RHS_VECTOR);
     LocalSystem.CalculationFlags.Set(SmallDisplacementBeamElement3D2N::COMPUTE_LHS_MATRIX);
 
@@ -704,17 +704,17 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
     Vector DirectionVectorX     = ZeroVector(3);
     Vector ReferenceCoordinates = ZeroVector(size);
 
-    
+
     ReferenceCoordinates[0] = GetGeometry()[0].X();
     ReferenceCoordinates[1] = GetGeometry()[0].Y();
-    ReferenceCoordinates[2] = GetGeometry()[0].Z();     
+    ReferenceCoordinates[2] = GetGeometry()[0].Z();
 
     int k = number_of_nodes - 1 ;
 
     ReferenceCoordinates[3] = GetGeometry()[k].X();
     ReferenceCoordinates[4] = GetGeometry()[k].Y();
-    ReferenceCoordinates[5] = GetGeometry()[k].Z();     
-   
+    ReferenceCoordinates[5] = GetGeometry()[k].Z();
+
     for( SizeType i = 0; i < dimension; i++ )
     {
       DirectionVectorX[i]  = (ReferenceCoordinates[i+3] - ReferenceCoordinates[i]);
@@ -724,7 +724,7 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
     double VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
     if( VectorNorm != 0)
       DirectionVectorX /= VectorNorm;
-    
+
     // local y-axis (e2_local) (in GID is e1_local)
     Vector DirectionVectorY = ZeroVector(3);
 
@@ -748,13 +748,13 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
     if( VectorNorm != 0 )
       DirectionVectorZ /= VectorNorm;
 
-      
-    //Transformation matrix T = [e1_local, e2_local, e3_local] 
+
+    //Transformation matrix T = [e1_local, e2_local, e3_local]
     Matrix AuxRotationMatrix;
-    
+
     if( AuxRotationMatrix.size1() != dimension )
       AuxRotationMatrix.resize(dimension, dimension, false);
-    
+
     // std::cout<<" Xlocal "<<DirectionVectorX<<std::endl;
     // std::cout<<" Ylocal "<<DirectionVectorY<<std::endl;
     // std::cout<<" Zlocal "<<DirectionVectorZ<<std::endl;
@@ -765,13 +765,13 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
 	AuxRotationMatrix(i,1) = DirectionVectorY[i];
 	AuxRotationMatrix(i,2) = DirectionVectorZ[i];
       }
-      
+
 
     if( rRotationMatrix.size1() != MatSize )
       rRotationMatrix.resize(MatSize, MatSize, false);
 
     rRotationMatrix = ZeroMatrix(MatSize,MatSize);
- 
+
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += dimension)
     {
@@ -825,7 +825,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
     // External force vector calculation
     // external forces are uniformely distributed
     // must be located somewhere else
-      
+
     Vector Weight = rVolumeForce * mSection.Area;
 
     array_1d<double, 6 > ReferenceCoordinates;
@@ -909,7 +909,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
     }
 
 
-    //Load Z : horizontal section direction 
+    //Load Z : horizontal section direction
     //***********************************
     if(Weight[2]!=0.00)
     {
@@ -943,7 +943,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
 
         Cargas_Z[0]=  -(Load[0]*mLength)*0.5;              // Fuerza en X;
         Cargas_Z[1]=   0.00;                               // Fuerza en Y;
-        Cargas_Z[2]=  -(Load[1]*mLength)*0.5;              // Fuerza en Z; gravity	  		 
+        Cargas_Z[2]=  -(Load[1]*mLength)*0.5;              // Fuerza en Z; gravity
 	Cargas_Z[3]=   0.00;			           // Torsional Moment X;
         Cargas_Z[4]=  -(Load[1])*mLength*mLength/12.00;    // Moment Y;
         Cargas_Z[5]=   0.00;                               // Moment Z;
@@ -958,7 +958,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalBodyForce( Vector& rLocalFo
 
     }
 
-    //Load Y : vertical section direction 
+    //Load Y : vertical section direction
     //***********************************
     if(Weight[1]!=0.00)
     {
@@ -1024,7 +1024,7 @@ void SmallDisplacementBeamElement3D2N::CalculateGlobalBodyForce( Vector& rGlobal
     // External force vector calculation
     // external forces are uniformely distributed
     // must be located somewhere else
-       
+
     Vector Weight = rVolumeForce * mSection.Area;
 
     array_1d<double, 6 > ReferenceCoordinates;
@@ -1052,14 +1052,14 @@ void SmallDisplacementBeamElement3D2N::CalculateGlobalBodyForce( Vector& rGlobal
     rGlobalForceVector[2]=   Weight[2]*mLength*0.5;  // Load in Z
     rGlobalForceVector[3]=   0.00;		     // Torsional Moment X;
     rGlobalForceVector[4]=   0.00;		     // Moment Y;
-    rGlobalForceVector[5]=   0.00;                   // Moment Z; 
-    rGlobalForceVector[6]=   Weight[0]*mLength*0.5;  // Load in X; 
-    rGlobalForceVector[7]=   Weight[1]*mLength*0.5;  // Load in Y; gravity 
-    rGlobalForceVector[8]=   Weight[2]*mLength*0.5;  // Load in Z; 
+    rGlobalForceVector[5]=   0.00;                   // Moment Z;
+    rGlobalForceVector[6]=   Weight[0]*mLength*0.5;  // Load in X;
+    rGlobalForceVector[7]=   Weight[1]*mLength*0.5;  // Load in Y; gravity
+    rGlobalForceVector[8]=   Weight[2]*mLength*0.5;  // Load in Z;
     rGlobalForceVector[9]=   0.00;                   // Torsional Moment X;
     rGlobalForceVector[10]=  0.00;                   // Moment Y;
     rGlobalForceVector[11]=  0.00;                   // Moment Z;
-    
+
 
     KRATOS_CATCH( "" )
 
@@ -1085,7 +1085,7 @@ void SmallDisplacementBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatr
     double TotalMass = 0;
     TotalMass = ( mSection.Area * mLength ) * GetProperties()[DENSITY];
 
-    Vector LumpFact = ZeroVector(number_of_nodes); 
+    Vector LumpFact = ZeroVector(number_of_nodes);
 
     LumpFact = GetGeometry().LumpingFactors(LumpFact);
 
@@ -1249,7 +1249,7 @@ void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int D
 //************************************************************************************
 
 void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Variable<array_1d<double, 3 > >& rVariable,
-								      std::vector< array_1d<double, 3 > >& rOutput, 
+								      std::vector< array_1d<double, 3 > >& rOutput,
 								      const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -1257,21 +1257,21 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     const SizeType dimension                      = GetGeometry().WorkingSpaceDimension();
-   
+
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-    
+
     Vector Stress;
     std::vector<Vector> Load(dimension);
-    
+
     //auxiliary terms
     int factor = 1;
-    
+
     //(in fact is the two nodes beam element, only one integration point)
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
-	
+
 	Vector N = matrix_row<const Matrix>( Ncontainer, PointNumber);
-	
+
 	//contribution to external forces
 	Vector VolumeForce;
 	VolumeForce = this->CalculateVolumeForce( VolumeForce, N );
@@ -1284,15 +1284,15 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
         Stress = prod(Rotation, Stress);
 
 	//std::cout<<" Stress "<<Stress<<std::endl;
-    
+
 
 	//dangerous:
 	for(unsigned int i = 0; i<Stress.size(); i++)
 	  {
 	    if( std::fabs(Stress[i])< 1E-6) Stress[i] = 0.00;
 	  }
-	
-	
+
+
 	double x_tolerance     = GetGeometry()[1].X0() - GetGeometry()[0].X0();
 	double y_tolerance     = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
 	const double tolerance = 1E-6;
@@ -1311,7 +1311,7 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 	  {
 	    factor = 1; //-1;
 	  }
-	
+
 	// for( SizeType i= 0; i< dimension; i++ )
 	//   CalculateDistributedBodyForce(i, Load[i], VolumeForce);
 
@@ -1325,20 +1325,20 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 
     //it is written in 3 integration points instead of 1
     const unsigned int&  write_points_number = GetGeometry().IntegrationPointsNumber( GetIntegrationMethod() );
-      
+
      if ( rOutput.size() != write_points_number )
       rOutput.resize( write_points_number );
-  
+
     //only moment in z axis (global ?)
     if(rVariable==MOMENT)
       {
 	//internal moment in not using the given load
-   
+
 	/// Punto Inical
 	rOutput[0][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[0][1], 0.25);  //Stress[3];
 	rOutput[0][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[0][1], 0.25);  //Stress[4];
 	rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[0][1], 0.25);  //Stress[5];
-        //rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[0][1], mLength * 0.25); 
+        //rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[0][1], mLength * 0.25);
 
 
         rOutput[1][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[0][1],  0.5);
@@ -1357,7 +1357,7 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
     //only force in x and y axis (global?)
     if(rVariable==FORCE)
     {
-   
+
         rOutput[0][0] = factor * CalculateInternalAxil(Stress[0], Load[0][0], mLength * 0.25);
         rOutput[0][1] = factor * CalculateInternalShear(Stress[1], Load[0][1], mLength * 0.25);
         rOutput[0][2] = factor * CalculateInternalShear(Stress[2], Load[0][2], mLength * 0.25);
@@ -1443,8 +1443,8 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalNodalStress(Vector& Stress,
       Stress.resize(12, false);
 
     // K·u - fext = fint; where fint is named: Local Stress
-    noalias(Stress) = prod(LocalMatrix, LocalDisplacement); 
-    Stress -= LocalForceVector; 
+    noalias(Stress) = prod(LocalMatrix, LocalDisplacement);
+    Stress -= LocalForceVector;
 
 
     KRATOS_CATCH( "" )
@@ -1478,12 +1478,12 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
     KRATOS_CHECK_VARIABLE_KEY(ROTATION);
     KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
-      
+
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
     KRATOS_CHECK_VARIABLE_KEY(CROSS_SECTION_AREA);
     KRATOS_CHECK_VARIABLE_KEY(LOCAL_INERTIA_TENSOR);
     //KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
-    
+
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
       {
@@ -1491,7 +1491,7 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
 	Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,rNode);
-	
+
 	// Nodal dofs
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rNode);
@@ -1504,7 +1504,7 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
 	  KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y,rNode);
 	}
       }
-    
+
     //verify that the area is given by properties
     if ( this->GetProperties().Has(CROSS_SECTION_AREA) == false )
       {
@@ -1516,7 +1516,7 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
       {
         if( this->GetProperties()[LOCAL_INERTIA_TENSOR](1,1) == 0.0 )
 	  KRATOS_ERROR << "LOCAL_INERTIA_TENSOR not provided for this element " << this->Id() << std::endl;
-		  
+
 	// if ( LOCAL_CONSTITUTIVE_MATRIX.Key() == 0)
 	//   KRATOS_ERROR <<  "LOCAL_CONSTITUTIVE_MATRIX has Key zero! (check if the application is correctly registered)" << std::endl;
 
@@ -1527,9 +1527,9 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
       KRATOS_THROW_ERROR( std::invalid_argument, "This element works only in 3D and with 2 noded linear elements", "")
     }
 
-    
+
     return ErrorCode;
-    
+
 
     KRATOS_CATCH( "" )
 }

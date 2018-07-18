@@ -10,7 +10,7 @@
 #if !defined(KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED)
 #define  KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
 
-// System includes 
+// System includes
 
 // External includes
 
@@ -117,7 +117,7 @@ public:
 
 
     //on integration points:
-    
+
     /**
      * Calculate a double Variable on the Element Constitutive Law
      */
@@ -133,7 +133,7 @@ public:
      */
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -179,7 +179,7 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix
      */
-    
+
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                              ElementDataType& rVariables,
                              double& rIntegrationWeight) override;
@@ -201,7 +201,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementData(ElementDataType & rVariables, 
+    void InitializeElementData(ElementDataType & rVariables,
                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -283,4 +283,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined

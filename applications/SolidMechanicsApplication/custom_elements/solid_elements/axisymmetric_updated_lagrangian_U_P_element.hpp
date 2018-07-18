@@ -147,7 +147,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
 			     ProcessInfo& rCurrentProcessInfo) override;
     //************************************************************************************
     //************************************************************************************
@@ -289,7 +289,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType & rVariables, 
+    virtual void InitializeElementData(ElementDataType & rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -297,7 +297,7 @@ protected:
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementDataType & rVariables, 
+    virtual void FinalizeStepVariables(ElementDataType & rVariables,
 				       const double& rPointNumber ) override;
 
     /**
@@ -334,7 +334,7 @@ protected:
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementDataType& rVariables, 
+    void GetHistoricalVariables( ElementDataType& rVariables,
 				 const double& rPointNumber ) override;
 
 
@@ -421,4 +421,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined

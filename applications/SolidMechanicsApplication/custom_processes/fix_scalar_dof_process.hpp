@@ -47,7 +47,7 @@ public:
 			) : Process() , mrModelPart(model_part)
     {
         KRATOS_TRY
-			 
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
@@ -186,7 +186,7 @@ public:
     {
 
         KRATOS_TRY;
- 
+
         if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
         {
             typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;

@@ -103,7 +103,7 @@ Element::Pointer SmallDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
 
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-    
+
     return Kratos::make_shared< SmallDisplacementElement >(NewElement);
 }
 
@@ -428,7 +428,7 @@ int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if( correct_strain_measure == false )
       KRATOS_ERROR <<  "constitutive law is not compatible with the small displacements element type" << std::endl;
 
-    // Check that the constitutive law has the correct dimension 
+    // Check that the constitutive law has the correct dimension
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     if( dimension == 2 )
     {

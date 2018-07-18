@@ -60,7 +60,7 @@ public:
     typedef GeometryData::IntegrationMethod           IntegrationMethod;
     ///Type definition for beam utilities
     typedef BeamMathUtils<double>                     BeamMathUtilsType;
-    ///Type definition for quaternion 
+    ///Type definition for quaternion
     typedef Quaternion<double>                           QuaternionType;
     ///Type for size
     typedef GeometryData::SizeType                             SizeType;
@@ -108,7 +108,7 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize() override;
-  
+
       /**
      * Called at the beginning of each solution step
      */
@@ -125,7 +125,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -198,7 +198,7 @@ protected:
     */
     std::vector<Matrix> mPreviousLocalDirectorsVelocities;
 
- 
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -213,7 +213,7 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-  
+
     void CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
 				   ProcessInfo& rCurrentProcessInfo ) override;
 
@@ -233,18 +233,18 @@ protected:
 
 
 
-    /**   
+    /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
-    /**   
+    /**
      * Calculate Element Constitutive Matrix
-     */ 
+     */
     virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
-    /**   
+    /**
      * Calculate Element Frame
      */
     virtual void CalculateFrameMapping(ElementDataType& rVariables,
@@ -253,37 +253,37 @@ protected:
 
     /**
      * Update rotation current member variables
-     */    
-    void UpdateRotationVariables(ElementDataType& rVariables, 
+     */
+    void UpdateRotationVariables(ElementDataType& rVariables,
 				 const unsigned int& rPointNumber);
 
-    /**   
+    /**
      * Calculate Directors to Rotations Mapping
      */
     virtual void CalculateDirectorsMappingTensor(Matrix& rMappingTensor,
 						 ElementDataType& rVariables,
-						 const int& rNode, 
+						 const int& rNode,
 						 double alpha);
 
- 
-    /**   
+
+    /**
      * Calculate current strain resultants vector
      */
-    virtual void CalculateCurrentStrainResultantsVector(ElementDataType& rVariables, 
+    virtual void CalculateCurrentStrainResultantsVector(ElementDataType& rVariables,
 							Vector& rCurrentStrainResultantsVector,
 							double Alpha) override;
 
-    /**   
+    /**
      * Calculate current curvature vector
      */
-    virtual void CalculateCurrentCurvatureVector(ElementDataType& rVariables, 
+    virtual void CalculateCurrentCurvatureVector(ElementDataType& rVariables,
 						 Vector& rCurrentCurvatureVector,
 						 double Alpha) override;
 
 
-    /**   
+    /**
      * Calculate Element Stress Resultants and Couples
-     */ 
+     */
     void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
 
@@ -410,10 +410,10 @@ protected:
     /**
      * Calculation Complementary Method : Algorithmic Inertia
      */
-    void CalculateAlgorithmicInertia(Matrix & rAlgorithmicInertia, 
-				     const Matrix& rInertiaDyadic, 
+    void CalculateAlgorithmicInertia(Matrix & rAlgorithmicInertia,
+				     const Matrix& rInertiaDyadic,
 				     ElementDataType & rVariables,
-				     const int& NodeJ, 
+				     const int& NodeJ,
 				     const int& NodeI,
 				     double alpha);
 

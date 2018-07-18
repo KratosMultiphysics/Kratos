@@ -46,7 +46,7 @@ public:
 					    Parameters rParameters) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
-			 
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
@@ -72,7 +72,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    
+
     AssignVectorVariableToConditionsProcess(ModelPart& model_part,
 					    const Variable<array_1d<double,3> >& rVariable,
 					    const array_1d<double,3>& rvector_value) : Process() , mr_model_part(model_part), mvector_value(rvector_value)
@@ -113,7 +113,7 @@ public:
     {
 
         KRATOS_TRY
- 
+
 	InternalAssignValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name), mvector_value);
 
         KRATOS_CATCH("")
@@ -214,7 +214,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-   
+
     /// Copy constructor.
     AssignVectorVariableToConditionsProcess(AssignVectorVariableToConditionsProcess const& rOther);
 
@@ -243,11 +243,11 @@ private:
     ModelPart& mr_model_part;
     std::string mvariable_name;
     array_1d<double,3> mvector_value;
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     void InternalAssignValue(const Variable<array_1d<double,3> >& rVariable,
 			     const array_1d<double,3>& rvector_value)
     {
@@ -266,7 +266,7 @@ private:
             }
         }
     }
-			     
+
     ///@}
     ///@name Private Operations
     ///@{

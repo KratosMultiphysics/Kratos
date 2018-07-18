@@ -130,7 +130,7 @@ void LineHeatFluxCondition::CalculateElementalSystem( MatrixType& rLeftHandSideM
 
     double IntegrationWeight = integration_points[PointNumber].Weight() * norm_2(TangentVector);
 
-    if ( dimension == 2 && GetProperties()[THICKNESS]>0 ) 
+    if ( dimension == 2 && GetProperties()[THICKNESS]>0 )
       IntegrationWeight *= GetProperties()[THICKNESS];
 
     //calculating normal
@@ -236,7 +236,7 @@ void LineHeatFluxCondition::EquationIdVector( EquationIdVectorType& rResult, Pro
   int number_of_nodes     = GetGeometry().PointsNumber(); //=Geometry().size();
 
   unsigned int conditiondimension = number_of_nodes;
- 
+
   if ( rResult.size() != conditiondimension )
     rResult.resize( conditiondimension, false );
 

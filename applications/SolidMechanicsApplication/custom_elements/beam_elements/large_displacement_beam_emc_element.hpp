@@ -5,7 +5,7 @@
 //   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_LARGE_DISPLACEMENT_BEAM_EMC_ELEMENT_H_INCLUDED)
 #define  KRATOS_LARGE_DISPLACEMENT_BEAM_EMC_ELEMENT_H_INCLUDED
@@ -61,7 +61,7 @@ public:
     typedef GeometryData::IntegrationMethod           IntegrationMethod;
     ///Type definition for beam utilities
     typedef BeamMathUtils<double>                     BeamMathUtilsType;
-    ///Type definition for quaternion 
+    ///Type definition for quaternion
     typedef Quaternion<double>                           QuaternionType;
     ///Type for size
     typedef GeometryData::SizeType                             SizeType;
@@ -100,7 +100,7 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
- 
+
 
     //************* STARTING - ENDING  METHODS
 
@@ -109,7 +109,7 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize() override;
-  
+
       /**
      * Called at the beginning of each solution step
      */
@@ -126,7 +126,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -194,17 +194,17 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType & rVariables, 
+    virtual void InitializeElementData(ElementDataType & rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Transform Vector Variable form Material Frame to the Spatial Frame
-     */    
+     */
     virtual void MapToSpatialFrame(const ElementDataType& rVariables, Matrix& rVariable) override;
 
 
-    /**   
+    /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(ElementDataType& rVariables,
@@ -215,8 +215,8 @@ protected:
      */
     Matrix& CalculatePreviousDeltaPosition(Matrix & rDeltaPosition);
 
-  
-    /**   
+
+    /**
      * Calculate Element Frame
      */
     virtual void CalculateFrameMapping(ElementDataType& rVariables,
@@ -225,12 +225,12 @@ protected:
 
     /**
      * Update strain current member variables
-     */ 
-    virtual void UpdateStrainVariables(ElementDataType& rVariables, 
+     */
+    virtual void UpdateStrainVariables(ElementDataType& rVariables,
 				       const unsigned int& rPointNumber) override;
 
 
-    /**   
+    /**
      * Calculate AlphaRotationMatrix and AlphaRotationMatrixAsterisk
      */
     void CalculateAlphaRotationMatrix( const Matrix& rPreviousRotationMatrix,
@@ -240,39 +240,39 @@ protected:
 				       double Alpha);
 
 
-    /**   
+    /**
      * Calculate current strain resultants vector
      */
-    virtual void CalculateCurrentStrainResultantsVector(ElementDataType& rVariables, 
+    virtual void CalculateCurrentStrainResultantsVector(ElementDataType& rVariables,
 							Vector& rCurrentStrainResultantsVector,
 							double Alpha);
 
-    /**   
+    /**
      * Calculate current curvature vector
      */
-    virtual void CalculateCurrentCurvatureVector(ElementDataType& rVariables, 
+    virtual void CalculateCurrentCurvatureVector(ElementDataType& rVariables,
 						 Vector& rCurrentCurvatureVector,
 						 double Alpha);
 
-    /**   
+    /**
      * Calculate Element Constitutive Matrix
-     */ 
+     */
     virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
-    /**   
+    /**
      * Calculate Element Strain Resultants
-     */ 
+     */
     virtual void CalculateStrainResultants(Vector& rStrainResultants, ElementDataType& rVariables, double alpha);
 
-    /**   
+    /**
      * Calculate Element Strain Couples
-     */ 
+     */
     virtual void CalculateStrainCouples(Vector& rStrainCouples, ElementDataType& rVariables, double alpha);
 
 
-    /**   
+    /**
      * Calculate Element Stress Resultants and Couples
-     */ 
+     */
     virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
 

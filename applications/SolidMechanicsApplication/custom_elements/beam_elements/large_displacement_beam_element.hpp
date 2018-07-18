@@ -5,7 +5,7 @@
 //   Date:                $Date:            November 2015 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_LARGE_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED)
 #define  KRATOS_LARGE_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED
@@ -49,7 +49,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) LargeDisplacementBeamElement
 public:
 
     ///@name Type Definitions
-    ///@{    
+    ///@{
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw                         ConstitutiveLawType;
     ///Pointer type for constitutive laws
@@ -60,7 +60,7 @@ public:
     typedef GeometryData::IntegrationMethod           IntegrationMethod;
     ///Type definition for beam utilities
     typedef BeamMathUtils<double>                     BeamMathUtilsType;
-    ///Type definition for quaternion 
+    ///Type definition for quaternion
     typedef Quaternion<double>                           QuaternionType;
     ///Type for size
     typedef GeometryData::SizeType                             SizeType;
@@ -106,7 +106,7 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize() override;
-  
+
       /**
      * Called at the beginning of each solution step
      */
@@ -145,11 +145,11 @@ public:
     /**
      * Calculate a double Variable on the Element Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
-				      std::vector<double>& rOutput, 
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+				      std::vector<double>& rOutput,
 				      const ProcessInfo& rCurrentProcessInfo) override;
 
- 
+
     /**
      * Calculate a double Variable on the Element Constitutive Law
      */
@@ -168,7 +168,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -178,7 +178,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-  
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -198,7 +198,7 @@ public:
     {
       GetGeometry().PrintData(rOStream);
     }
-  
+
     ///@}
     ///@name Friends
     ///@{
@@ -221,27 +221,27 @@ protected:
      * Currently selected full integration method
      */
     IntegrationMethod mFullIntegrationMethod;
-  
+
     /**
      * Iteration counter
      */
-    int  mIterationCounter;  
+    int  mIterationCounter;
 
     /**
-     * Container for historical total Jacobians 
+     * Container for historical total Jacobians
      */
     double mInvJ0;
-  
+
     /**
      * Elemental current curvature vectors for each integration point
      */
     std::vector<Vector>  mCurrentCurvatureVectors;
-  
+
     /**
      * Elemental previous curvature vectors for each integration point
      */
     std::vector<Vector>  mPreviousCurvatureVectors;
-  
+
     /**
      *  Quaternion of the frame for reduced integration points
      */
@@ -282,23 +282,23 @@ protected:
 
     /**
      * Transform Vector Variable form Material Frame to the Spatial Frame
-     */    
+     */
     virtual void MapToSpatialFrame(const ElementDataType& rVariables, Matrix& rVariable);
 
 
-    /**   
+    /**
      * Calculate current curvature
      */
     virtual void CalculateCurrentCurvature(ElementDataType& rVariables, const Variable<array_1d<double, 3 > >& rVariable);
 
 
-    /**   
+    /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
-    /**   
+    /**
      * Calculate Element Frame
      */
     virtual void CalculateFrameMapping(ElementDataType& rVariables,
@@ -307,20 +307,20 @@ protected:
 
     /**
      * Update strain current member variables
-     */ 
-    virtual void UpdateStrainVariables(ElementDataType& rVariables, 
+     */
+    virtual void UpdateStrainVariables(ElementDataType& rVariables,
 				       const unsigned int& rPointNumber);
 
 
-    /**   
+    /**
      * Calculate Element Constitutive Matrix
-     */ 
+     */
     virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
 
-    /**   
+    /**
      * Calculate Element Stress Resultants and Couples
-     */ 
+     */
     virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
     /**
@@ -426,7 +426,7 @@ protected:
 
     /**
      * Calculation of Element Mass
-     */ 
+     */
     double& CalculateTotalMass( SectionProperties& Section, double& rTotalMass );
 
     /**
@@ -466,12 +466,12 @@ protected:
      */
     virtual void CalculateInternalForcesEnergy(double& rEnergy, ElementDataType& rVariables, double& rIntegrationWeight);
 
-  
+
    /**
      * Get Element Strain/Stress for energy computation
      */
     virtual void CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
-  
+
     /**
      * Get Element Mass/Inertia Matrix for energy computation
      */

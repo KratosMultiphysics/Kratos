@@ -22,12 +22,12 @@
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -43,7 +43,7 @@ typedef  ModelPart::NodesContainerType                      NodesContainerType;
 typedef  ModelPart::ElementsContainerType                ElementsContainerType;
 typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
- 
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -127,7 +127,7 @@ class SetActiveFlagProcess
           if(doNotSetNullPressure==false)
             itElem->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) = 0;
         }
-		
+
       }
       unsigned int elementRigidNodes=0;
       for(unsigned int i=0; i<numNodes; i++)
@@ -136,7 +136,7 @@ class SetActiveFlagProcess
           elementRigidNodes++;
         }
       }
-		
+
       if(elementRigidNodes==numNodes){
         Geometry<Node<3> > wallElementNodes=itElem->GetGeometry();
         this->SetPressureToIsolatedWallNodes(wallElementNodes);
@@ -148,12 +148,12 @@ class SetActiveFlagProcess
 
 
 }
-    KRATOS_CATCH(" ")    
+    KRATOS_CATCH(" ")
   }
 
   ///@}
   ///@name Operators
-  ///@{ 
+  ///@{
 
   ///@}
   ///@name Access
@@ -184,7 +184,7 @@ class SetActiveFlagProcess
   /// Print object's data.
   void PrintData(std::ostream& rOStream) const override
   {
-  }   
+  }
 
 protected:
 ///@name Protected static Member Variables
@@ -195,12 +195,12 @@ ModelPart& mrModelPart;
 int mEchoLevel;
 bool mUnactivePeakElements;
 bool mUnactiveSliverElements;
-  
+
 ///@}
 ///@name Protected member Variables
 ///@{
 
-    
+
 void SetPressureToIsolatedWallNodes(Geometry<Node<3> > & wallElementNodes)
 {
   KRATOS_TRY
@@ -261,7 +261,7 @@ void SetPressureToIsolatedWallNodes(Geometry<Node<3> > & wallElementNodes)
 private:
 ///@name Static Member Variables
 ///@{
-  
+
 
 ///@}
 ///@name Member Variables
@@ -333,5 +333,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SET_ACTIVE_FLAG_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_SET_ACTIVE_FLAG_PROCESS_H_INCLUDED  defined
 

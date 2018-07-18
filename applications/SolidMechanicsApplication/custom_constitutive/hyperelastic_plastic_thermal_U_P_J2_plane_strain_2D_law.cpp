@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2018 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 // System includes
 #include <iostream>
@@ -78,14 +78,14 @@ namespace Kratos
   double &  HyperElasticPlasticThermalUPJ2PlaneStrain2DLaw::CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
 										      double & rTemperature)
   {
-  
+
     //1.-Temperature from nodes
     const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
     const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
     const unsigned int number_of_nodes = DomainGeometry.size();
-    
+
     rTemperature=0;
-       
+
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
       {
      	rTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
@@ -105,7 +105,7 @@ namespace Kratos
   {
     if(rThisVariable == DELTA_PLASTIC_DISSIPATION || rThisVariable == PLASTIC_DISSIPATION )
       return true;
-       
+
     return false;
   }
 
@@ -119,26 +119,26 @@ namespace Kratos
 	const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
 	rValue=InternalVariables.EquivalentPlasticStrain;
       }
-  
+
     if (rThisVariable==DELTA_PLASTIC_STRAIN)
       {
 	const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
 	rValue=InternalVariables.DeltaPlasticStrain;
       }
 
-       
+
     if (rThisVariable==PLASTIC_DISSIPATION)
       {
 	const FlowRule::ThermalVariables& ThermalVariables = mpFlowRule->GetThermalVariables();
 	rValue=ThermalVariables.PlasticDissipation;
       }
-       
+
     if (rThisVariable==DELTA_PLASTIC_DISSIPATION)
       {
 	const FlowRule::ThermalVariables& ThermalVariables = mpFlowRule->GetThermalVariables();
 	rValue=ThermalVariables.DeltaPlasticDissipation;
       }
-       
+
     return( rValue );
   }
 

@@ -44,17 +44,17 @@ namespace Kratos
     typedef ConstitutiveModelData::MatrixType                          MatrixType;
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
     typedef ConstitutiveModelData::ConstitutiveLawData                LawDataType;
-    
+
     /// Pointer definition of Constitutive3DLaw
     KRATOS_CLASS_POINTER_DEFINITION( Constitutive3DLaw );
-	
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     Constitutive3DLaw();
-   
+
     /// Copy constructor.
     Constitutive3DLaw(const Constitutive3DLaw& rOther);
 
@@ -71,7 +71,7 @@ namespace Kratos
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -133,7 +133,7 @@ namespace Kratos
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
 
-    
+
     /**
      * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
@@ -158,7 +158,7 @@ namespace Kratos
      */
     void InitializeMaterialResponseCauchy (Parameters& rValues) override;
 
-       
+
     /**
      * Updates the material response:
      * Cauchy stresses and Internal Variables
@@ -213,39 +213,39 @@ namespace Kratos
     ///@}
     ///@name Access
     ///@{
-        
+
     /**
      * Has Values
-     */   
+     */
     bool Has(const Variable<double>& rThisVariable) override;
-    
+
     bool Has(const Variable<Vector>& rThisVariable) override;
-    
+
     bool Has(const Variable<Matrix>& rThisVariable) override;
 
     bool Has(const Variable<array_1d<double,3> >& rThisVariable) override;
 
     bool Has(const Variable<array_1d<double,6> >& rThisVariable) override;
-    
+
     /**
      * Set Values
      */
     void SetValue(const Variable<double>& rVariable,
                   const double& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void SetValue(const Variable<Vector>& rThisVariable,
                   const Vector& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void SetValue(const Variable<Matrix>& rThisVariable,
                   const Matrix& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void SetValue(const Variable<array_1d<double,3> >& rThisVariable,
                   const array_1d<double,3>& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void SetValue(const Variable<array_1d<double,6> >& rThisVariable,
                   const array_1d<double,6>& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
@@ -254,7 +254,7 @@ namespace Kratos
      * Get Values
      */
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
@@ -269,20 +269,20 @@ namespace Kratos
     int& CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue) override;
 
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-  
+
     Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
-    
+
     Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
-    
+
     array_1d<double, 3 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,3> >& rVariable, array_1d<double,3> & rValue) override;
-    
+
     array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,6> >& rVariable, array_1d<double,6> & rValue) override;
 
-    
+
     ///@}
     ///@name Inquiry
     ///@{
-    
+
     /**
      * Dimension of the law:
      */
@@ -299,7 +299,7 @@ namespace Kratos
       return 6;
     };
 
-    
+
     ///@}
     ///@name Input and output
     ///@{
@@ -332,20 +332,20 @@ namespace Kratos
 
     ///@}
 
-    
+
   protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -357,7 +357,7 @@ namespace Kratos
      * @param rModelValues
      */
     virtual void CalculateValue (Parameters & rValues, ModelDataType& rModelValues);
-    
+
     /**
      * Computes the material response with model data:
      * PK1 stresses and algorithmic ConstitutiveMatrix
@@ -394,9 +394,9 @@ namespace Kratos
      * @param rModelValues
      */
     virtual void CalculateMaterialResponseCauchy (Parameters & rValues, ModelDataType& rModelValues);
-   
 
-    
+
+
     /**
      * Get voigt index tensor:
      */
@@ -408,13 +408,13 @@ namespace Kratos
     /**
      * Initialize ModelData type:
      */
-    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues);	
+    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues);
 
     /**
      * Finalize ModelData type:
      */
     virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues);
-    
+
     /**
      * Calculates the variables of the domain (element)
      * @param rValues
@@ -423,7 +423,7 @@ namespace Kratos
      * @see   ConstitutiveLawData
      */
     virtual void CalculateDomainVariables(Parameters& rValues, ModelDataType& rModelValues);
-    
+
     /**
      * Calculates the Pressure of the domain (element)
      * @param rValues
@@ -432,7 +432,7 @@ namespace Kratos
      */
     virtual double& CalculateDomainVariable(Parameters& rValues, const Variable<double>& rThisVariable, double& rVariable);
 
-    
+
     /**
      * Calculates the Temperature of the domain (element)
      * @param rValues
@@ -465,7 +465,7 @@ namespace Kratos
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -473,7 +473,7 @@ namespace Kratos
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     using ConstitutiveLaw::CalculateValue;
 
     ///@}
@@ -525,6 +525,6 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
-#endif // KRATOS_ELASTIC_CONSTITUTIVE_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_ELASTIC_CONSTITUTIVE_3D_LAW_H_INCLUDED  defined

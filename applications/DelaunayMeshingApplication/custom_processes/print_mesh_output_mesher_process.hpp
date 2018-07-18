@@ -51,7 +51,7 @@ namespace Kratos
     PrintMeshOutputMesherProcess(ModelPart& rModelPart,
 			   MesherUtilities::MeshingParameters& rRemeshingParameters,
 			   std::string FileName,
-			   int EchoLevel) 
+			   int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
@@ -91,11 +91,11 @@ namespace Kratos
       }
 
       PrintPointsXYZ();
-      
+
       PrintMesh();
-      
-      std::cout<<"   PRINT IN/OUT MESHER ]; "<<std::endl;	
-      
+
+      std::cout<<"   PRINT IN/OUT MESHER ]; "<<std::endl;
+
 
       KRATOS_CATCH(" ")
     }
@@ -148,11 +148,11 @@ namespace Kratos
     ///@name Static Member Variables
     ///@{
     ModelPart& mrModelPart;
- 
+
     MesherUtilities::MeshingParameters& mrRemesh;
 
     std::string mFileName;
-     
+
     int mEchoLevel;
 
     ///@}
@@ -165,9 +165,9 @@ namespace Kratos
       KRATOS_TRY
 
       const int& step = mrModelPart.GetProcessInfo()[STEP];
-      
+
       const unsigned int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
-      
+
       std::string FileName;
       FileName += mrModelPart.Name();
       FileName += "_points_";
@@ -175,11 +175,11 @@ namespace Kratos
       FileName += "_";
       FileName += std::to_string(step);
       FileName += ".txt";
-      
+
       std::ofstream File;
 
       File.open(FileName);
-	
+
       double* PointList;
       unsigned int NumberOfPoints;
       if( mFileName == "input" ){
@@ -190,13 +190,13 @@ namespace Kratos
 	  PointList = mrRemesh.OutMesh.GetPointList();
 	  NumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
       }
-      
+
       unsigned int base = 0;
       for(unsigned int pn=0; pn<NumberOfPoints; pn++)
 	{
 	  std::string Point;
 	  for(unsigned int i=0; i<dimension; i++)
-	    {	      
+	    {
 	      Point += " ";
 	      Point += std::to_string(PointList[base]);
 	      base++;
@@ -208,7 +208,7 @@ namespace Kratos
 	}
 
       File.close();
-      
+
       KRATOS_CATCH(" ")
     }
 
@@ -226,19 +226,19 @@ namespace Kratos
       FileName += "_";
       FileName += std::to_string(step);
       FileName += ".msh";
-      
+
       std::ofstream File;
 
       File.open(FileName);
-	
+
       const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
-      
+
       if( dimension == 3 ) //number of nodes of a tetrahedron
 	File <<  "mesh dimension 3 elemtype tetrahedra nnode 4 \n";
       else if( dimension == 2 ) //number of nodes of a triangle
 	File <<  "mesh dimension 2 elemtype triangle nnode 3 \n";
 
-      
+
       // write node coordinates
       PrintNodes(File);
 
@@ -246,15 +246,15 @@ namespace Kratos
       PrintElements(File);
 
       File.close();
-	
+
       KRATOS_CATCH(" ")
     }
 
-    
+
     void PrintNodes(std::ofstream& File)
     {
       KRATOS_TRY
-	
+
       File << "\n";
       File << "coordinates  \n";
       File << "\n";
@@ -269,16 +269,16 @@ namespace Kratos
 	  PointList = mrRemesh.OutMesh.GetPointList();
 	  NumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
       }
-      
+
       const unsigned int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
-      
+
       unsigned int base = 0;
       for(unsigned int pn=0; pn<NumberOfPoints; pn++)
 	{
 	  std::string Point(std::to_string( pn+1 ));
-	  
+
 	  for(unsigned int i=0; i<dimension; i++)
-	    {	      
+	    {
 	      Point += " ";
 	      Point += std::to_string(PointList[base]);
 	      base++;
@@ -293,7 +293,7 @@ namespace Kratos
       File << "\n";
       File << "end coordinates  \n";
       File << "\n";
-         
+
       KRATOS_CATCH(" ")
     }
 
@@ -305,7 +305,7 @@ namespace Kratos
       File << "\n";
       File << "elements  \n";
       File << "\n";
-      
+
       int* ElementList;
       unsigned int NumberOfElements;
       if( mFileName == "input" ){
@@ -316,19 +316,19 @@ namespace Kratos
 	  ElementList = mrRemesh.OutMesh.GetElementList();
 	  NumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
       }
-      
-      
+
+
       const unsigned int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
 
       unsigned int nds = 3; //number of nodes of a triangle
       if( dimension == 3 ) //number of nodes of a tetrahedron
 	nds = 4;
 
-      
+
       for(unsigned int el=0; el<NumberOfElements; el++)
 	{
 	  std::string Element(std::to_string( el+1 ));
-	  
+
 	  for(unsigned int pn=0; pn<nds; pn++)
 	    {
 	      Element += " ";
@@ -344,10 +344,10 @@ namespace Kratos
       File << "\n";
       File << "end elements  \n";
       File << "\n";
-	
+
       KRATOS_CATCH(" ")
     }
-  
+
     /// Assignment operator.
     PrintMeshOutputMesherProcess& operator=(PrintMeshOutputMesherProcess const& rOther);
 
@@ -393,6 +393,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PRINT_OUTPUT_MESH_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_PRINT_OUTPUT_MESH_PROCESS_H_INCLUDED  defined
 
 

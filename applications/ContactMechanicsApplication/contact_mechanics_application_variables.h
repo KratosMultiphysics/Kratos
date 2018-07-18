@@ -1,9 +1,9 @@
 //-------------------------------------------------------------
-//          ___         _           _   
-//  KRATOS / __|___ _ _| |_ __ _ __| |_ 
+//          ___         _           _
+//  KRATOS / __|___ _ _| |_ __ _ __| |_
 //        | (__/ _ \ ' \  _/ _` / _|  _|
 //         \___\___/_||_\__\__,_\__|\__|MECHANICS
-//                                            
+//
 //  License:(BSD)    ContactMechanicsApplication/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
@@ -58,7 +58,7 @@ namespace Kratos
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, double, CONTACT_FRICTION_ANGLE )
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, double, TANGENTIAL_PENALTY_RATIO )
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, double, CONTACT_PLASTIC_SLIP )
-   
+
    //thermal properties
    KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_MECHANICS_APPLICATION, double, HEAT_CONDUCTIVITY )
 }

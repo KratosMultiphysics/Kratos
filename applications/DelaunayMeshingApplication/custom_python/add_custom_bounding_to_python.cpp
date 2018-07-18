@@ -44,8 +44,8 @@ void  AddCustomBoundingToPython(pybind11::module& m)
       ;
 
   //spatial bounding box
-  class_<SpatialBoundingBox, typename SpatialBoundingBox::Pointer> 
-      (m, "SpatialBoundingBox") 
+  class_<SpatialBoundingBox, typename SpatialBoundingBox::Pointer>
+      (m, "SpatialBoundingBox")
       .def( init<Vector, Vector>() )
       .def(init< Parameters >())
       .def(init< Parameters& >())
@@ -56,7 +56,7 @@ void  AddCustomBoundingToPython(pybind11::module& m)
       .def("SetRigidBodyCenter",&SpatialBoundingBox::SetRigidBodyCenter)
       .def("CreateBoundingBoxBoundaryMesh",&SpatialBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
-     
+
 }
 
 }  // namespace Python.

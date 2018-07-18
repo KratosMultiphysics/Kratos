@@ -109,7 +109,7 @@ namespace Kratos
     {
     }
 
-    
+
     /// Constructor.
     DynamicScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                   IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,

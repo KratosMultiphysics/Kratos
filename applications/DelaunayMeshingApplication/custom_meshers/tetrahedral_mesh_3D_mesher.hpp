@@ -91,7 +91,7 @@ public:
     ///@name Operations
     ///@{
 
- 
+
 
     ///@}
     ///@name Access
@@ -136,7 +136,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -178,7 +178,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
- 
+
 
     ///@}
     ///@name Private Operators
@@ -219,7 +219,7 @@ private:
 
     //free memory of the mesher
     void ClearTetgenIO ( tetgenio& tr );
-  
+
     // void DeleteTetrahedraList ( tetgenio& tr );
 
     // void DeletePointsList ( tetgenio& tr );
@@ -237,7 +237,7 @@ private:
     ///@}
     ///@name Unaccessible methods
     ///@{
-   
+
     ///@}
 
 }; // Class TetrahedralMesh3DMesher
@@ -272,7 +272,7 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TETRAHEDRAL_MESH_3D_MESHER_H_INCLUDED  defined 
+#endif // KRATOS_TETRAHEDRAL_MESH_3D_MESHER_H_INCLUDED  defined
 
 
 

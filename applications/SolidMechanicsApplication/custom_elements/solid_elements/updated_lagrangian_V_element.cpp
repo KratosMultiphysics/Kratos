@@ -263,7 +263,7 @@ void UpdatedLagrangianVElement::CalculateKinematics(ElementDataType& rVariables,
 
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
-    
+
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
@@ -300,7 +300,7 @@ void UpdatedLagrangianVElement::CalculateKinematics(ElementDataType& rVariables,
     const GeometryType& rGeometry = GetGeometry();
     //Compute the deformation matrix B
     ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B,rGeometry,rVariables.DN_DX);
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -404,7 +404,7 @@ int UpdatedLagrangianVElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if( correct_strain_measure == false )
       KRATOS_ERROR <<  "Large Displacement element with no Deformation Gradient/Velocity Gradient strain measure" << std::endl;
 
-    
+
     return ErrorCode;
 
     KRATOS_CATCH( "" );

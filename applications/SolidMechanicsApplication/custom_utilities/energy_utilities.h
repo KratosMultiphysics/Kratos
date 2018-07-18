@@ -283,7 +283,7 @@ namespace Kratos
 
     void CalculateNodalMass(ModelPart::NodesContainerType& pNodes, ModelPart::ElementsContainerType& pElements, ProcessInfo& rCurrentProcessInfo)
     {
-         
+
       KRATOS_TRY
       #ifdef _OPENMP
               int number_of_threads = omp_get_max_threads();
@@ -354,8 +354,8 @@ namespace Kratos
       KRATOS_CATCH( "" )
 
     } //CalculateNodalMass
-    
- 
+
+
 
     //**************************************************************************
     //**************************************************************************

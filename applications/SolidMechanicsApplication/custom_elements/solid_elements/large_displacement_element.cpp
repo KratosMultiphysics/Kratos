@@ -98,7 +98,7 @@ Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< LargeDisplacementElement >(NewElement);    
+    return Kratos::make_shared< LargeDisplacementElement >(NewElement);
 }
 
 

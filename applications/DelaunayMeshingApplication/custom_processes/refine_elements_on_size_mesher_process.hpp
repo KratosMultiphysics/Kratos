@@ -24,12 +24,12 @@
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     
+//Data:
 //StepData: NODAL_H, CONTACT_FORCE
 //Flags:    (checked) TO_REFOME, BOUNDARY, NEW_ENTITY
-//          (set)     
-//          (modified)  
-//          (reset)   
+//          (set)
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -41,7 +41,7 @@ namespace Kratos
 /// Refine Mesh Elements Process 2D and 3D
 /** The process labels the elements to be refined in the mesher
     it applies a size constraint to elements that must be refined.
-    
+
 */
 class RefineElementsOnSizeMesherProcess
   : public MesherProcess
@@ -64,7 +64,7 @@ public:
     /// Default constructor.
     RefineElementsOnSizeMesherProcess(ModelPart& rModelPart,
 				    MesherUtilities::MeshingParameters& rRemeshingParameters,
-				    int EchoLevel) 
+				    int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
@@ -101,41 +101,41 @@ public:
 	std::cout<<" [ SELECT ELEMENTS TO REFINE : "<<std::endl;
 	//std::cout<<"   refine selection "<<std::endl;
       }
-      
 
-      //***SIZES :::: parameters do define the tolerance in mesh size: 
+
+      //***SIZES :::: parameters do define the tolerance in mesh size:
       double size_for_inside_elements   = 0.75 * mrRemesh.Refine->CriticalRadius;
-      double size_for_boundary_elements = 1.50 * mrRemesh.Refine->CriticalRadius; 
-      
+      double size_for_boundary_elements = 1.50 * mrRemesh.Refine->CriticalRadius;
+
       double nodal_h_refining_factor     = 0.75;
       double nodal_h_non_refining_factor = 2.00;
-      
+
       ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
       unsigned int refine_on_size      = 0;
       unsigned int refine_on_threshold = 0;
-      
-      int id = 0; 
+
+      int id = 0;
       if(mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_ELEMENTS)
 	 && mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_ADD_NODES) )
 	{
-	  
+
 	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-	  
+
 	  unsigned int nds = (*element_begin).GetGeometry().size();
-	  
+
 	  MesherUtilities::MeshContainer& InMesh = mrRemesh.InMesh;
 
 	  InMesh.CreateElementList(mrRemesh.Info->NumberOfElements, nds); //number of preserved elements
 	  InMesh.CreateElementSizeList(mrRemesh.Info->NumberOfElements);
 
 	  int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
-	  
+
 	  int* InElementList        = mrRemesh.InMesh.GetElementList();
 	  double* InElementSizeList = mrRemesh.InMesh.GetElementSizeList();
 
 	  int* OutElementList       = mrRemesh.OutMesh.GetElementList();
-	  
+
 	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
 
 	  //PREPARE THE NODAL_H as a variable to control the automatic point insertion
@@ -167,7 +167,7 @@ public:
 	  //SET THE REFINED ELEMENTS AND THE AREA (NODAL_H)
 	  //*********************************************************************
 	  mrRemesh.Info->CriticalElements = 0;
-	    
+
 	  for(int el = 0; el< OutNumberOfElements; el++)
 	    {
 	      if(mrRemesh.PreservedElements[el])
@@ -186,22 +186,22 @@ public:
 
 		  for(unsigned int pn=0; pn<nds; pn++)
 		    {
-		      
+
 		      InElementList[id*nds+pn]= OutElementList[el*nds+pn];
-		      
+
 		      vertices.push_back(*(nodes_begin + OutElementList[el*nds+pn]-1).base());
 
 		      prescribed_h += (nodes_begin + OutElementList[el*nds+pn]-1)->FastGetSolutionStepValue(NODAL_H);
-		      
+
 		      if((nodes_begin + OutElementList[el*nds+pn]-1)->Is(TO_REFINE))
 			count_dissipative+=1;
 
 		      if((nodes_begin + OutElementList[el*nds+pn]-1)->Is(BOUNDARY)){
-			
+
 			count_boundary+=1;
 
 			if((nodes_begin + OutElementList[el*nds+pn]-1)->Is(NEW_ENTITY))
-			  count_boundary_inserted+=1;	      
+			  count_boundary_inserted+=1;
 
 
 			if( (nodes_begin + OutElementList[el*nds+pn]-1)->SolutionStepsDataHas(CONTACT_FORCE) ){
@@ -209,26 +209,26 @@ public:
 			  if( norm_2(ContactForceNormal) )
 			    count_contact_boundary+=1;
 			}
-			
+
 		      }
-		    
+
 		    }
-		    
+
 		  // if(count_dissipative>0)
 		  //   std::cout<<" Count REFINE nodes "<<count_dissipative<<std::endl;
 		  // std::cout<<"   prescribed_h (el:"<<el<<") = "<<prescribed_h<<std::endl;
-		
+
 		  bool refine_candidate = true;
 		  if (mrRemesh.Refine->RefiningBoxSetFlag == true ){
 		    refine_candidate = mMesherUtilities.CheckVerticesInBox(vertices,*(mrRemesh.Refine->RefiningBox),CurrentProcessInfo);
 		  }
-		  
 
-		  		  
+
+
 		  double element_size = 0;
 		  double element_radius = mMesherUtilities.CalculateElementRadius(vertices, element_size);
-		  
-	
+
+
 		  //calculate the prescribed h
 		  prescribed_h *= 0.3333;
 
@@ -236,14 +236,14 @@ public:
 		  double element_ideal_radius = 0;
 		  if( nds == 3 ){ //if h is the height of a equilateral triangle, the area is sqrt(3)*h*h/4
 		    element_ideal_radius = sqrt(3.0) * 0.25 * ( h * h );
-		  }		  
+		  }
 
 		  if( nds == 4 ){//if h is the height of a regular tetrahedron, the volume is h*h*h/(6*sqrt(2))
 		    //element_ideal_radius = (27.0/16.0)* sqrt(1.0/108.0) * ( h * h* h );
 		    element_ideal_radius = ( h * h * h )/( 6.0 * sqrt(2.0) );
 		  }
 
-		
+
 		  //std::cout<<"   prescribed_h (el:"<<el<<") = "<<prescribed_h<<std::endl;
 
 		  if( refine_candidate ){
@@ -272,7 +272,7 @@ public:
 		      refine_size = true;
 		    }
 
-		    
+
 		    //Also a criteria for the CriticalDissipation (set in nodes)
 		    if(mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_ELEMENTS_ON_THRESHOLD)
 		       && mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_ELEMENTS_ON_DISTANCE))
@@ -298,7 +298,7 @@ public:
 			    if( count_boundary_inserted && count_contact_boundary){
 
 			      InElementSizeList[id] = nodal_h_refining_factor * element_ideal_radius;
-			      
+
 			      std::cout<<" count boundary inserted-contact on "<<std::endl;
 			    }
 
@@ -307,7 +307,7 @@ public:
 
 			  }
 			else{
-			
+
 			  InElementSizeList[id] = nodal_h_non_refining_factor * element_size;
 			  //std::cout<<" Area Factor Refine NO :"<<InElementSizeList[id]<<std::endl;
 			}
@@ -317,7 +317,7 @@ public:
 		      }
 		    else if(mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_ELEMENTS_ON_DISTANCE))
 		      {
-					    
+
 			//********* SIZE REFINEMENT CRITERION (B)
 			if( refine_size == true ){
 
@@ -331,12 +331,12 @@ public:
 
 		      }
 		    else{
-		    
+
 		      //InElementSizeList[id] = element_ideal_radius;
 		      InElementSizeList[id] = nodal_h_non_refining_factor * element_size;
-		    
+
 		    }
-	    
+
 
 		    //std::cout<<"   mod_prescribed_h (el:"<<el<<") = "<<prescribed_h<<" [ Triangle Area: "<<InElementSizeList[id]<<" ]"<<std::endl;
 
@@ -349,12 +349,12 @@ public:
 		  }
 
 
-		  id += 1;					
-		  	  
+		  id += 1;
+
 		}
 
 
-	      
+
 	    }
 
 
@@ -386,24 +386,24 @@ public:
       else{
 
 	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-	
+
 	  unsigned int nds = (*element_begin).GetGeometry().size();
-	  
+
 	  MesherUtilities::MeshContainer& InMesh = mrRemesh.InMesh;
-	  
+
 	  InMesh.CreateElementList(mrRemesh.Info->NumberOfElements, nds); //number of preserved elements
 	  InMesh.CreateElementSizeList(mrRemesh.Info->NumberOfElements);
-	  
+
 	  int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
-	  
+
 	  int* InElementList        = mrRemesh.InMesh.GetElementList();
 	  double* InElementSizeList = mrRemesh.InMesh.GetElementSizeList();
-	  
+
 	  int* OutElementList       = mrRemesh.OutMesh.GetElementList();
 
-	  	  
-	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();	  
-	    
+
+	  ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
+
 	  for(int el = 0; el< OutNumberOfElements; el++)
 	    {
 	      if(mrRemesh.PreservedElements[el])
@@ -411,14 +411,14 @@ public:
 		  Geometry<Node<3> > vertices;
 		  for(unsigned int pn=0; pn<nds; pn++)
 		    {
-		      
+
 		      InElementList[id*nds+pn]= OutElementList[el*nds+pn];
-		      vertices.push_back(*(nodes_begin + OutElementList[el*nds+pn]-1).base());		  
+		      vertices.push_back(*(nodes_begin + OutElementList[el*nds+pn]-1).base());
 		    }
 
 		  double element_size = 0;
 		  mMesherUtilities.CalculateElementRadius(vertices, element_size);
-		  
+
 		  InElementSizeList[id] = nodal_h_non_refining_factor * element_size;
 
 		  id++;
@@ -427,14 +427,14 @@ public:
 	    }
 
       }
-	
-      
+
+
       if( mEchoLevel > 0 ){
 	std::cout<<"   Visited Elements: "<<id<<" [threshold:"<<refine_on_threshold<<"/size:"<<refine_on_size<<"]"<<std::endl;
 	std::cout<<"   SELECT ELEMENTS TO REFINE ]; "<<std::endl;
       }
 
-      
+
       KRATOS_CATCH(" ")
     }
 
@@ -486,10 +486,10 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart& mrModelPart;
- 
+
     MesherUtilities::MeshingParameters& mrRemesh;
 
-    MesherUtilities mMesherUtilities;  
+    MesherUtilities mMesherUtilities;
 
     int mEchoLevel;
 
@@ -546,5 +546,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REFINE_ELEMENTS_ON_SIZE_MEHSER_PROCESS_H_INCLUDED defined 
+#endif // KRATOS_REFINE_ELEMENTS_ON_SIZE_MEHSER_PROCESS_H_INCLUDED defined
 

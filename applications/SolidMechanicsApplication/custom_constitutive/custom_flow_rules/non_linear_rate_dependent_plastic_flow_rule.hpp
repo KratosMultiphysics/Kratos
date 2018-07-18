@@ -5,7 +5,7 @@
 //   Date:                $Date:                July 2018 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_NON_LINEAR_RATE_DEPENDENT_PLASTIC_FLOW_RULE_H_INCLUDED )
 #define  KRATOS_NON_LINEAR_RATE_DEPENDENT_PLASTIC_FLOW_RULE_H_INCLUDED
@@ -70,7 +70,7 @@ namespace Kratos
 
     /// Assignment operator.
     NonLinearRateDependentPlasticFlowRule& operator=(NonLinearRateDependentPlasticFlowRule const& rOther);
-	
+
     /// Destructor.
     virtual ~NonLinearRateDependentPlasticFlowRule();
 
@@ -89,7 +89,7 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-       
+
 
     ///@}
     ///@name Access
@@ -131,7 +131,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -153,7 +153,7 @@ namespace Kratos
     //implex protected methods
 
     void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix );
- 
+
 
     ///@}
     ///@name Protected  Access
@@ -180,8 +180,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -262,6 +262,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_RATE_DEPENDENT_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_NON_LINEAR_RATE_DEPENDENT_PLASTIC_FLOW_RULE_H_INCLUDED  defined
 
 

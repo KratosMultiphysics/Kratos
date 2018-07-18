@@ -236,7 +236,7 @@ public:
           }
 
         }
-        
+
         KRATOS_CATCH("");
 
     }
@@ -451,7 +451,7 @@ private:
                 it->SetValue(rVar, value);
             }
         }
-    } 
+    }
 
     ///@}
     ///@name Private Operations

@@ -75,7 +75,7 @@ void LinearElasticPlasticPlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix&
         const double& PoissonCoefficient )
 {
     rLinearElasticMatrix.clear();
-    
+
     // Plane stress constitutive matrix
     rLinearElasticMatrix ( 0 , 0 ) = (YoungModulus)/(1.0-PoissonCoefficient*PoissonCoefficient);
     rLinearElasticMatrix ( 1 , 1 ) = rLinearElasticMatrix ( 0 , 0 );

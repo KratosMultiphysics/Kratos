@@ -226,7 +226,7 @@ namespace Kratos
               //i_node->PrintInfo(std::cout);
               //std::cout<<std::endl;
               i_node->Reset(FREE_SURFACE);
-              
+
 
               if(i_node->Is(BLOCKED) || i_node->Is(RIGID))
               {
@@ -235,7 +235,7 @@ namespace Kratos
                   if(i_mp->Is(FLUID))
                     i_node->Reset(FLUID);   //reset isolated in isolated node
                 }
-                
+
                 i_node->Reset(ISOLATED);   //reset isolated
                 i_node->Reset(NEW_ENTITY); //reset if was new
                 i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
@@ -255,7 +255,7 @@ namespace Kratos
 
                 if( i_node->IsNot(SOLID) )
                   i_node->Set(ISOLATED);
-                
+
                 i_node->Reset(NEW_ENTITY); //reset if was new
                 i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
                 i_node->Reset(BLOCKED);
@@ -263,7 +263,7 @@ namespace Kratos
                 if( mOptions.Is(MesherUtilities::KEEP_ISOLATED_NODES) && i_node->IsNot(TO_ERASE) ){
                   if( i_node->IsNot(SOLID) )
                     i_node->FastGetSolutionStepValue(PRESSURE) = 0;
-                  
+
                   (i_mp->Nodes()).push_back(*(i_node.base()));
                   (rModelPart.Nodes()).push_back(*(i_node.base()));
                   rModelPart.Nodes().back().SetId(nodeId);
@@ -368,7 +368,7 @@ namespace Kratos
       // unsigned int consecutive_index = 1;
       // for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin() ; in != rModelPart.NodesEnd() ; ++in)
       //   in->SetId(++consecutive_index);
-      
+
       // consecutive_index = 1;
       // for(ModelPart::ElementsContainerType::iterator ie = rModelPart.ElementsBegin() ; ie != rModelPart.ElementsEnd() ; ++ie)
       //   ie->SetId(++consecutive_index);

@@ -48,7 +48,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-  
+
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
     ///Pointer type for constitutive laws
@@ -142,7 +142,7 @@ public:
      * Calculate a Matrix Variable on the Element Constitutive Law
      */
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
 
 
     //************************************************************************************
@@ -199,7 +199,7 @@ protected:
     ///@{
     ///@}
     ///@name Protected Operators
-    ///@{   
+    ///@{
     ///@}
     ///@name Protected Operations
     ///@{
@@ -217,11 +217,11 @@ protected:
     void SetElementData(ElementDataType& rVariables,
                              ConstitutiveLaw::Parameters& rValues,
                              const int & rPointNumber) override;
-    
+
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    virtual void GetHistoricalVariables(ElementDataType& rVariables, 
+    virtual void GetHistoricalVariables(ElementDataType& rVariables,
 					const double& rPointNumber );
 
     /**
@@ -302,4 +302,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED  defined

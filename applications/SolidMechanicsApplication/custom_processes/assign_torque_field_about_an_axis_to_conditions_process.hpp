@@ -40,7 +40,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     AssignTorqueFieldAboutAnAxisToConditionsProcess(ModelPart& model_part,
 						    pybind11::object& pPyObject,
 						    const std::string& pPyMethodName,
@@ -49,7 +49,7 @@ public:
 	                                         ) : AssignTorqueAboutAnAxisToConditionsProcess(model_part)
     {
         KRATOS_TRY
-			 
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
@@ -68,25 +68,25 @@ public:
 	if( KratosComponents< Variable<array_1d<double, 3> > >::Has( mvariable_name ) ) //case of array_1d variable
         {
 
-	    mPyObject      =  pPyObject;	
+	    mPyObject      =  pPyObject;
 	    mPyMethodName  =  pPyMethodName;
 
 	    mIsSpatialField = SpatialFieldFunction;
 
-	
+
 	    for( unsigned int i=0; i<3; i++)
 	    {
 		mdirection[i] = rParameters["direction"][i].GetDouble();
 		mcenter[i] = rParameters["center"][i].GetDouble();
 	    }
-	
+
 	    double norm = norm_2(mdirection);
 	    if(norm!=0)
 	    mdirection/=norm;
 	}
 	else //case of other variable type
         {
-	  KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name <<std::endl;	  
+	  KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name <<std::endl;
 	}
 
         KRATOS_CATCH("");
@@ -124,18 +124,18 @@ public:
 
 	  const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 	  const double& rCurrentTime  = rCurrentProcessInfo[TIME];
-	  
+
 	  this->CallTimeFunction(rCurrentTime, mvalue);
-	  
+
 	  AssignTorqueAboutAnAxisToConditionsProcess::Execute();
 
 	}
 	else //no spatial fields accepted (it have to be implemented if needed
         {
-	  KRATOS_ERROR << "trying to set an spatial field....not implemented" << mvariable_name <<std::endl;	  
+	  KRATOS_ERROR << "trying to set an spatial field....not implemented" << mvariable_name <<std::endl;
 	}
 
-	
+
         KRATOS_CATCH("");
 
     }
@@ -180,7 +180,7 @@ public:
     /// right after reading the model and the groups
     void ExecuteFinalize() override
     {
-	AssignTorqueAboutAnAxisToConditionsProcess::ExecuteFinalize();	
+	AssignTorqueAboutAnAxisToConditionsProcess::ExecuteFinalize();
     }
 
 
@@ -229,9 +229,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    pybind11::object mPyObject;  
+    pybind11::object mPyObject;
     std::string mPyMethodName;
-   
+
     bool mIsSpatialField;
 
     ///@}
@@ -270,33 +270,33 @@ private:
 
 
     void CallFunction(const Node<3>::Pointer& pNode, const double& time, double& rValue)
-    {      
+    {
       KRATOS_TRY
-	
+
       if( mIsSpatialField ){
 
 	double x = pNode->X(), y = pNode->Y(), z = pNode->Z();
-	   
+
        rValue = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
       }
       else{
-	
+
         rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
       }
-      
+
      KRATOS_CATCH( "" )
-      
+
     }
 
     void CallTimeFunction(const double& time, double& rValue)
     {
-      
+
       KRATOS_TRY
-	
+
       rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
-      
+
       KRATOS_CATCH( "" )
-      
+
     }
 
 
