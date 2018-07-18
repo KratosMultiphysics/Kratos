@@ -69,7 +69,7 @@ namespace Kratos
       : mNumberOfLines(1)
       , mOptions(Options)
     {
-        // nullptr test can be confusing with Kratos::shared_ptr. Commented until we move to std::shared_ptr
+        // Check if the pointer is valid
         if (Stream == nullptr)
            KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
