@@ -773,7 +773,7 @@ protected:
      * @param D The constitutive matrix
      * @param IntegrationWeight The integration weight of the corresponding Gauss point
      */
-    void CalculateAndAddKm(
+    virtual void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& B,
         const Matrix& D,
@@ -803,7 +803,7 @@ protected:
      * @param rStressVector The vector containing the stress components
      * @param IntegrationWeight The integration weight of the corresponding Gauss point
      */
-    void CalculateAndAddResidualVector(
+    virtual void CalculateAndAddResidualVector(
         VectorType& rRightHandSideVector,
         const KinematicVariables& rThisKinematicVariables,
         const ProcessInfo& rCurrentProcessInfo,

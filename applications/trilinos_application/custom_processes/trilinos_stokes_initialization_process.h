@@ -70,33 +70,34 @@ public:
     ///@{
 
     TrilinosStokesInitializationProcess(Epetra_MpiComm& rComm,
-                                        const ModelPart::Pointer pModelPart,
+                                        ModelPart& rModelPart,
                                         typename TLinearSolver::Pointer pLinearSolver,
                                         unsigned int DomainSize,
                                         const Variable<int>& PeriodicPairIndicesVar):
-        BaseType(pModelPart,pLinearSolver,DomainSize,this),
+        BaseType(rModelPart,pLinearSolver,DomainSize,this),
         mrComm(rComm),
         mrPeriodicVar(PeriodicPairIndicesVar)
     {
         KRATOS_TRY;
 
-        const ModelPart::Pointer& pReferenceModelPart = BaseType::mpReferenceModelPart;
+        ModelPart& rReferenceModelPart = BaseType::mrReferenceModelPart;
         typename TLinearSolver::Pointer& pLinearSolver = BaseType::mpLinearSolver;
         unsigned int DomainSize = BaseType::mDomainSize;
-        ModelPart::Pointer& pStokesModelPart = BaseType::mpStokesModelPart;
+        auto& pStokesModelPart = BaseType::mpStokesModelPart;
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)
-        pStokesModelPart = Kratos::make_shared<ModelPart>("StokesModelPart");
-        pStokesModelPart->GetNodalSolutionStepVariablesList() = pReferenceModelPart->GetNodalSolutionStepVariablesList();
+        auto tmp  = Kratos::make_unique<ModelPart>("StokesModelPart");
+        pStokesModelPart.swap(tmp);
+        pStokesModelPart->GetNodalSolutionStepVariablesList() = rReferenceModelPart.GetNodalSolutionStepVariablesList();
         pStokesModelPart->SetBufferSize(1);
-        pStokesModelPart->SetNodes( pReferenceModelPart->pNodes() );
-        pStokesModelPart->SetProcessInfo( pReferenceModelPart->pGetProcessInfo() );
-        pStokesModelPart->SetProperties( pReferenceModelPart->pProperties() );
+        pStokesModelPart->SetNodes( rReferenceModelPart.pNodes() );
+        pStokesModelPart->SetProcessInfo( rReferenceModelPart.pGetProcessInfo() );
+        pStokesModelPart->SetProperties( rReferenceModelPart.pProperties() );
 
         // Create a communicator for the new model part and copy the partition information about nodes.
-        Communicator& rReferenceComm = pReferenceModelPart->GetCommunicator();
-        typename Communicator::Pointer pStokesMPIComm = Kratos::make_shared<MPICommunicator>( &(pReferenceModelPart->GetNodalSolutionStepVariablesList()) );
+        Communicator& rReferenceComm = rReferenceModelPart.GetCommunicator();
+        typename Communicator::Pointer pStokesMPIComm = Kratos::make_shared<MPICommunicator>( &(rReferenceModelPart.GetNodalSolutionStepVariablesList()) );
         pStokesMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
         pStokesMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
         pStokesMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
@@ -120,7 +121,7 @@ public:
         const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
 
         // Generate Stokes elements
-        for (ModelPart::ElementsContainerType::iterator itElem = pReferenceModelPart->ElementsBegin(); itElem != pReferenceModelPart->ElementsEnd(); itElem++)
+        for (ModelPart::ElementsContainerType::iterator itElem = rReferenceModelPart.ElementsBegin(); itElem != rReferenceModelPart.ElementsEnd(); itElem++)
         {
             Element::Pointer pElem = rReferenceElement.Create(itElem->Id(), itElem->GetGeometry(), itElem->pGetProperties() );
             pStokesModelPart->Elements().push_back(pElem);
