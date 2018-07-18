@@ -1564,6 +1564,128 @@ void WriteClusterMesh( MeshType& rThisMesh )
         KRATOS_CATCH("");
     }
 
+    /**
+     * Prints non-historical variables of type double on gauss points of the complete mesh
+     * @param rVariable the given variable name
+     * @param rModelPart the current model part
+     */
+    virtual void PrintNonHistoricalOnGaussPoints(
+        const Variable<double>& rVariable,
+        ModelPart& rModelPart,
+        double SolutionTag,
+        int ValueIndex = 0
+        )
+    {
+        KRATOS_TRY;
+
+        Timer::Start("Writing Non-Historical Results");
+
+        for ( auto it =  mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
+            it->PrintNonHistoricalResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+        }
+
+        Timer::Stop("Writing Non-Historical Results");
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Prints non-historical variables of type int on gauss points of the complete mesh
+     * @param rVariable the given variable name
+     * @param rModelPart the current model part
+     */
+    virtual void PrintNonHistoricalOnGaussPoints(
+        const Variable<int>& rVariable,
+        ModelPart& rModelPart,
+        double SolutionTag,
+        int ValueIndex = 0
+        )
+    {
+        KRATOS_TRY;
+
+        Timer::Start("Writing Non-Historical Results");
+
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
+            it->PrintNonHistoricalResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+        }
+
+        Timer::Stop("Writing Non-Historical Results");
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Prints non-historical variables of type double on gauss points of the complete mesh
+     * @param rVariable the given variable name
+     * @param rModelPart the current model part
+     */
+    virtual void PrintNonHistoricalOnGaussPoints(
+        const Variable<array_1d<double,3> >& rVariable,
+        ModelPart& rModelPart,
+        double SolutionTag,
+        int ValueIndex = 0
+        )
+    {
+        KRATOS_TRY;
+
+        Timer::Start("Writing Non-Historical Results");
+
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
+            it->PrintNonHistoricalResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+        }
+
+        Timer::Stop("Writing Non-Historical Results");
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Prints non-historical variables of type double on gauss points of the complete mesh
+     * @param rVariable the given variable name
+     * @param rModelPart the current model part
+     */
+    virtual void PrintNonHistoricalOnGaussPoints(
+        const Variable<Vector>& rVariable,
+        ModelPart& rModelPart,
+        double SolutionTag,
+        int ValueIndex = 0
+        )
+    {
+        KRATOS_TRY;
+        Timer::Start("Writing Non-Historical Results");
+
+        for ( auto it =  mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
+            it->PrintNonHistoricalResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+        }
+
+        Timer::Stop("Writing Non-Historical Results");
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Prints non-historical variables of type double on gauss points of the complete mesh
+     * @param rVariable the given variable name
+     * @param rModelPart the current model part
+     */
+    virtual void PrintNonHistoricalOnGaussPoints(
+        const Variable<Matrix>& rVariable,
+        ModelPart& rModelPart,
+        double SolutionTag,
+        int ValueIndex = 0
+        )
+    {
+        KRATOS_TRY;
+        Timer::Start("Writing Non-Historical Results");
+        for ( auto it =  mGidGaussPointContainers.begin();  it != mGidGaussPointContainers.end(); it++ ) {
+            it->PrintNonHistoricalResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+        }
+
+        Timer::Stop("Writing Non-Historical Results");
+
+        KRATOS_CATCH("");
+    }
+
 protected:
     /**
      * File names
