@@ -222,6 +222,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicDa
         const Variable<double> &rThisVariable,
         double &rValue) override;
 
+
+    Matrix &CalculateValue(
+        ConstitutiveLaw::Parameters &rParameterValues,
+        const Variable<Matrix> &rThisVariable,
+        Matrix &rValue) override;
     ///@}
     ///@name Access
     ///@{

@@ -315,6 +315,48 @@ double &GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateVa
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <class ConstLawIntegratorType>
+Matrix &GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateValue(
+    ConstitutiveLaw::Parameters &rParameterValues,
+    const Variable<Matrix> &rThisVariable,
+    Matrix &rValue)
+{
+    if (rThisVariable == INTEGRATED_STRESS_TENSOR)
+    {
+        //1.-Compute total deformation gradient
+        const Matrix &DeformationGradientF = rParameterValues.GetDeformationGradientF();
+        //2.-Right Cauchy-Green tensor C
+        Matrix right_cauchy_green = prod(trans(DeformationGradientF), DeformationGradientF);
+        Vector strain_vector = ZeroVector(6);
+
+        //E= 0.5*(FT*F-1) or E = 0.5*(C-1)
+        strain_vector[0] = 0.5 * (right_cauchy_green(0, 0) - 1.00);
+        strain_vector[1] = 0.5 * (right_cauchy_green(1, 1) - 1.00);
+        strain_vector[2] = 0.5 * (right_cauchy_green(2, 2) - 1.00);
+        strain_vector[3] = right_cauchy_green(0, 1); // xy
+        strain_vector[4] = right_cauchy_green(1, 2); // yz
+        strain_vector[5] = right_cauchy_green(0, 2); // xz
+
+        Matrix C;
+        const Properties &MaterialProperties = rParameterValues.GetMaterialProperties();
+        this->CalculateElasticMatrix(C, MaterialProperties);
+
+        Vector stress = prod(C, strain_vector);
+        stress *= (1.0 - mDamage);
+        rValue =  MathUtils<double>::StressVectorToTensor(stress);
+        return rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+
+
+
+
+
 template class GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential>>>;
 template class GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
 template class GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>;
