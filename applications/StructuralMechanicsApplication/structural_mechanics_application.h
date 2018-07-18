@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //    Co-authors:    Vicente Mataix Ferrándiz
@@ -45,7 +45,10 @@
 #include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_thick_element_3D3N.hpp"
-#include "custom_elements/nodal_concentrated_element.hpp"
+
+/* Springs elements */
+#include "custom_elements/nodal_concentrated_element.h"
+#include "custom_elements/nodal_concentrated_with_constitutive_behaviour_element.h"
 
 /* Adding the spring damper element */
 #include "custom_elements/spring_damper_element_3D2N.hpp"
@@ -273,7 +276,7 @@ private:
     const ShellThinElement3D4N   mShellThinCorotationalElement3D4N;
     const ShellThinElement3D3N mShellThinElement3D3N;
     const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
-	const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
+    const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
 
     // Adding the membrane element
     const PrestressMembraneElement mPreStressMembraneElement3D3N;
@@ -287,6 +290,10 @@ private:
     const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
     const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
+    const NodalConcentratedWithConstitutiveBehaviourElement mNodalConcentratedWithConstitutiveBehaviourElement2D1N;
+    const NodalConcentratedWithConstitutiveBehaviourElement mNodalConcentratedWithConstitutiveBehaviourDampedElement2D1N;
+    const NodalConcentratedWithConstitutiveBehaviourElement mNodalConcentratedWithConstitutiveBehaviourElement3D1N;
+    const NodalConcentratedWithConstitutiveBehaviourElement mNodalConcentratedWithConstitutiveBehaviourDampedElement3D1N;
 
     // Linear kinematic elements
     const SmallDisplacement mSmallDisplacement2D3N;
