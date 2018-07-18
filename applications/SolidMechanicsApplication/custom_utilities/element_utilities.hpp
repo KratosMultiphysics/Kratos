@@ -94,7 +94,6 @@ class ElementUtilities
 
   }
 
-
   /**
    * @brief Calculate Norm of stresses.VelocityGradient
    * @param rVelocityGradient, matrix form of the velocity gradient, returned parameter
@@ -116,44 +115,67 @@ class ElementUtilities
 
     if( Alpha != 1.0 ){
 
-      array_1d<double,3> Velocity;
-      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      if( dimension == 2 )
       {
-
-        const array_1d<double,3>& rPreviousVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY,1);
-        const array_1d<double,3>& rCurrentVelocity  = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
-
-        Velocity = rCurrentVelocity * Alpha + rPreviousVelocity * (1.0-Alpha);
-
-        for ( SizeType j = 0; j < dimension; j++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
-          for ( SizeType k = 0; k < dimension; k++ )
-          {
-            rVelocityGradient ( j , k ) += Velocity[j] * rDN_DX ( i , k );
-          }
-
+          const array_1d<double,3>& rPreviousVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY,1);
+          const array_1d<double,3>& rCurrentVelocity  = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+          rVelocityGradient ( 0 , 0 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 0 , 1 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 1 );
+          rVelocityGradient ( 1 , 0 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 1 , 1 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 1 );
         }
-
+      }
+      else if( dimension == 3)
+      {
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          const array_1d<double,3>& rPreviousVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY,1);
+          const array_1d<double,3>& rCurrentVelocity  = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+          rVelocityGradient ( 0 , 0 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 0 , 1 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 1 );
+          rVelocityGradient ( 0 , 2 ) += (rCurrentVelocity[0] * Alpha + rPreviousVelocity[0]* (1.0-Alpha))*rDN_DX ( i , 2 );
+          rVelocityGradient ( 1 , 0 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 1 , 1 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 1 );
+          rVelocityGradient ( 1 , 2 ) += (rCurrentVelocity[1] * Alpha + rPreviousVelocity[1]* (1.0-Alpha))*rDN_DX ( i , 2 );
+          rVelocityGradient ( 2 , 0 ) += (rCurrentVelocity[2] * Alpha + rPreviousVelocity[2]* (1.0-Alpha))*rDN_DX ( i , 0 );
+          rVelocityGradient ( 2 , 1 ) += (rCurrentVelocity[2] * Alpha + rPreviousVelocity[2]* (1.0-Alpha))*rDN_DX ( i , 1 );
+          rVelocityGradient ( 2 , 2 ) += (rCurrentVelocity[2] * Alpha + rPreviousVelocity[2]* (1.0-Alpha))*rDN_DX ( i , 2 );
+        }
       }
 
     }
     else{
 
-      array_1d<double,3> Velocity;
-      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      if( dimension == 2 )
       {
-        const array_1d<double,3>& rCurrentVelocity  = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
-        for ( SizeType j = 0; j < dimension; j++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
-          for ( SizeType k = 0; k < dimension; k++ )
-          {
-            rVelocityGradient ( j , k ) += rCurrentVelocity[j] * rDN_DX ( i , k );
-          }
-
+          const array_1d<double,3>& rCurrentVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+          rVelocityGradient ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+          rVelocityGradient ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
         }
 
       }
-
+      else if( dimension == 3)
+      {
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          const array_1d<double,3>& rCurrentVelocity = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+          rVelocityGradient ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+          rVelocityGradient ( 0 , 2 ) += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+          rVelocityGradient ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+          rVelocityGradient ( 1 , 2 ) += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+          rVelocityGradient ( 2 , 0 ) += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+          rVelocityGradient ( 2 , 1 ) += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+          rVelocityGradient ( 2 , 2 ) += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+        }
+      }
     }
 
   }
@@ -615,4 +637,3 @@ class ElementUtilities
 } // namespace Kratos.
 
 #endif // KRATOS_ELELMENT_UTILITIES_H_INCLUDED
-
