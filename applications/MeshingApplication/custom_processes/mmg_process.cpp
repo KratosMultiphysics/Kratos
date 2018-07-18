@@ -280,6 +280,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     CreateAuxiliarSubModelPartForFlags();
 
     // First we compute the colors
+    mColors.clear();
     ColorsMapType nodes_colors, cond_colors, elem_colors;
     SubModelPartsListUtility sub_model_parts_list(mrThisModelPart);
     sub_model_parts_list.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, mColors);
