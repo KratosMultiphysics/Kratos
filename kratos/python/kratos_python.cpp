@@ -143,10 +143,6 @@ PYBIND11_MODULE(Kratos, m)
      // #endif
 
      m.def("Hello", greet);
-
-    std::string build_type(KRATOS_BUILD_TYPE);
-    m.attr("KRATOS_BUILD_TYPE") = build_type;
-    m.attr("KRATOS_VERSION") = KRATOS_VERSION;
 }
 
 
