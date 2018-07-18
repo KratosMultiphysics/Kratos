@@ -324,8 +324,8 @@ public:
 
 #ifdef KRATOS_DEBUG
         // Print the partitions in debug mode
-        std::ofstream* p_ofstream = new std::ofstream("debug_modelpart_"+std::to_string(mpi_rank)+".mpda");
-        (*p_ofstream) << stringbufs[mpi_rank].str() << std::endl;
+        std::ofstream debug_ofstream("debug_modelpart_"+std::to_string(mpi_rank)+".mpda");
+        debug_ofstream << stringbufs[mpi_rank].str() << std::endl;
 #endif
 
         // TODO: Try to come up with a better way to change the buffer.
