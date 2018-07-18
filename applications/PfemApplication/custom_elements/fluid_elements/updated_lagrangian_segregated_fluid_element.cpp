@@ -887,7 +887,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvm(MatrixType& rL
 
   //b. Alternative calculation:
   this->CalculateLumpedMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
-
+  StiffnessFactor *= 0.75;
 
   // 2.- Estimate the bulk correction coefficient and the new tangent
 
