@@ -56,7 +56,7 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
     
     // In case we have isotropic remeshing (default values)
     if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
-        mRatioReferenceVariable = "DISTANCE";
+        mRatioReferenceVariable = default_parameters["hessian_strategy_parameters"]["reference_variable_name"].GetString();
         mEstimateInterpError = default_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"].GetBool();
         mInterpError = default_parameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
         mMeshConstant = default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
@@ -110,7 +110,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
         double ratio = 1.0;
 
         if (it_node->SolutionStepsDataHas(reference_var)) {
-            const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var); // TODO: This should be changed for the variable of interest in the future. This means that the value of the boundary value would be changed to a threshold value instead
+            const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
             ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);
         }
         
