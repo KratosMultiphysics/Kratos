@@ -32,7 +32,7 @@ class NodeSurfaceGeometry3DTests(KratosUnittest.TestCase):
         node_20.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
         node_21.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
         node_22.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        
+
         # create a nurbs surface
         surface = NodeSurfaceGeometry3D(DegreeU=2, DegreeV=2, NumberOfNodesU=3,
             NumberOfNodesV=3)
@@ -127,13 +127,13 @@ class NodeSurfaceGeometry3DTests(KratosUnittest.TestCase):
 
     def testNodeIndexOutOfRange(self):
         with self.assertRaises(Exception):
-            invalid_node = self.surface.Node(IndexU=-1, IndexV=0)
+            self.surface.Node(IndexU=-1, IndexV=0)
 
         with self.assertRaises(Exception):
-            invalid_node = self.surface.Node(IndexU=3, IndexV=0)
+            self.surface.Node(IndexU=3, IndexV=0)
 
         with self.assertRaises(Exception):
-            invalid_node = self.surface.Node(IndexU=0, IndexV=-1)
+            self.surface.Node(IndexU=0, IndexV=-1)
 
         with self.assertRaises(Exception):
-            invalid_node = self.surface.Node(IndexU=0, IndexV=3)
+            self.surface.Node(IndexU=0, IndexV=3)

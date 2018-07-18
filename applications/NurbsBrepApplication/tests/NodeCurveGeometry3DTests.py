@@ -20,7 +20,7 @@ class NodeCurveGeometry3DTests(KratosUnittest.TestCase):
         node_0.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
         node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
         node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        
+
         # create a nurbs curve
         curve = NodeCurveGeometry3D(Degree=2, NumberOfNodes=3)
 
@@ -100,7 +100,7 @@ class NodeCurveGeometry3DTests(KratosUnittest.TestCase):
 
     def testNodeIndexOutOfRange(self):
         with self.assertRaises(Exception):
-            invalid_node = self.curve.Node(Index=-1)
+            self.curve.Node(Index=-1)
 
         with self.assertRaises(Exception):
-            invalid_node = self.curve.Node(Index=3)
+            self.curve.Node(Index=3)
