@@ -43,7 +43,7 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
         "anisotropy_parameters":
         {
             "reference_variable_name"              : "DISTANCE",
-            "hmin_over_hmax_anisotropic_ratio"     : 1.0, 
+            "hmin_over_hmax_anisotropic_ratio"     : 1.0,
             "boundary_layer_max_distance"          : 1.0, 
             "interpolation"                        : "Linear"
         }
@@ -56,10 +56,10 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
     
     // In case we have isotropic remeshing (default values)
     if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
-        mRatioReferenceVariable = default_parameters["hessian_strategy_parameters"]["reference_variable_name"].GetString();
         mEstimateInterpError = default_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"].GetBool();
         mInterpError = default_parameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
         mMeshConstant = default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
+        mRatioReferenceVariable = default_parameters["anisotropy_parameters"]["reference_variable_name"].GetString();
         mAnisotropicRatio = default_parameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = default_parameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(default_parameters["anisotropy_parameters"]["interpolation"].GetString());
