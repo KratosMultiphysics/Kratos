@@ -65,6 +65,8 @@ public:
 
     typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
+    using SizeType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -125,6 +127,8 @@ public:
 
     void ResetConstitutiveLaw() override;
 
+    void Initialize() override;
+
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
@@ -132,6 +136,9 @@ public:
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
 	                            ProcessInfo& rCurrentProcessInfo) override;
@@ -215,9 +222,9 @@ protected:
     {
     }
 
-    std::size_t GetNumberOfDofs();
+    SizeType GetNumberOfDofs();
 
-    std::size_t GetNumberOfGPs();
+    SizeType GetNumberOfGPs();
 
     void SetBaseMembers();
 

@@ -96,7 +96,7 @@ public:
 
 
     /// Execute method is used to execute the Process algorithms.
-    virtual void Execute()
+    void Execute() override
     {
       KRATOS_TRY
 
@@ -278,6 +278,9 @@ public:
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
 		}
+		else{
+		  Alpha*=1.04;
+		}
 
 	      }else  if(dimension==3){
 		if(numfreesurf==nds || (numisolated+numfreesurf)==nds){
@@ -374,6 +377,30 @@ public:
 	      	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
 	      	    double Volume = tetrahedron->Volume();
 	      	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
+
+		    if(CriticalVolume==0){
+		      array_1d<double,3> CoorDifference= vertices[0].Coordinates() - vertices[1].Coordinates();
+		      double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      double meanLength=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[0].Coordinates() - vertices[2].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[0].Coordinates() - vertices[3].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[1].Coordinates() - vertices[2].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[1].Coordinates() - vertices[3].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[2].Coordinates() - vertices[3].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      double regularTetrahedronVolume=pow(meanLength,3)*sqrt(2)/12.0;
+		      CriticalVolume=0.00001*regularTetrahedronVolume;
+		    }
+
 		    // std::cout<<"riticalVolume "<<Volume<<std::endl;
 	      	    if(Volume<CriticalVolume){
 	      	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
@@ -500,45 +527,6 @@ public:
     }
 
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
-    {
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
-    {	
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
-    {
-    }
-
-    /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
-    {
-    }
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
-    {
-    }
-
-
     ///@}
     ///@name Access
     ///@{
@@ -554,19 +542,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "SelectMeshElementsForFluidsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SelectMeshElementsForFluidsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

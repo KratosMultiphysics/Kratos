@@ -25,7 +25,7 @@ class HDF5SerialFileFactory(FileFactory):
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "file_access_mode" : "truncate",
+                "file_access_mode" : "exclusive",
                 "file_driver" : "sec2",
                 "echo_level" : 0
             }
@@ -44,7 +44,7 @@ class HDF5ParallelFileFactory(FileFactory):
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "file_access_mode" : "truncate",
+                "file_access_mode" : "exclusive",
                 "file_driver" : "mpio",
                 "echo_level" : 0
             }
@@ -183,7 +183,7 @@ class TemporalOutputProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self._model_part = model_part
         self._hdf5_file_factory = hdf5_file_factory
-        self._time_step_file_name = settings["file_name"].GetString() + "-" + self._model_part.Name
+        self._time_step_file_name = settings["file_name"].GetString()
         self._initial_output = StaticOutputProcess(model_part, hdf5_file_factory, self._time_step_file_name)
         for output in list_of_initial_outputs:
             self._initial_output.AddOutput(output)
@@ -234,7 +234,7 @@ class TemporalInputProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self._model_part = model_part
         self._hdf5_file_factory = hdf5_file_factory
-        self._time_step_file_name = settings["file_name"].GetString() + "-" + self._model_part.Name
+        self._time_step_file_name = settings["file_name"].GetString()
         self._time_tag_precision = settings["time_tag_precision"].GetInt()
         self._list_of_inputs = []
 

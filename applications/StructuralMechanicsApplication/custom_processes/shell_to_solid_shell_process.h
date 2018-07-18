@@ -34,7 +34,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    // The size definition
+    /// The size definition
     typedef std::size_t SizeType;
 
 ///@}
@@ -64,11 +64,14 @@ public:
     /// Pointer definition of ShellToSolidShellProcess
     KRATOS_CLASS_POINTER_DEFINITION(ShellToSolidShellProcess);
     
-    // Geometric type definitions
+    /// The index definition
+    typedef std::size_t                                     IndexType;
+
+    /// Geometric type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
 
-    // The definition of the containers
+    /// The definition of the containers
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
     typedef ModelPart::ElementsContainerType        ElementsArrayType;
@@ -218,8 +221,9 @@ private:
 
     /**
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
+     * @param ReorderAccordingShellConnectivity True if we reorder using the shell connectivity as reference
      */
-    void ReorderAllIds();
+    void ReorderAllIds(const bool ReorderAccordingShellConnectivity = false);
 
     /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements
@@ -231,6 +235,16 @@ private:
      * @brief It computes the mean of the normal on the elements in all the nodes (non historical version)
      */
     inline void ComputeNodesMeanNormalModelPartNonHistorical();
+
+    /**
+     * @brief It copies the variable list to the node
+     * @param pNodeNew The new node pointer
+     * @param pNodeNew The old node pointer
+     */
+    inline void CopyVariablesList(
+        NodeType::Pointer pNodeNew,
+        NodeType::Pointer pNodeOld
+        );
 
     ///@}
     ///@name Private  Access

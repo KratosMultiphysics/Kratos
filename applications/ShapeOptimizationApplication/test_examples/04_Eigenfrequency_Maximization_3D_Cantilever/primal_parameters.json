@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "solid_cantilever",
-        "model_part_name" : "structure",
+        "model_part_name" : "solid_cantilever",
         "domain_size"     : 3,
         "time_step"       : 1.0,
         "parallel_type"   : "OpenMP",
@@ -38,7 +38,7 @@
         "process_name"        : "AssignVectorVariableProcess",
         "Parameters"          : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_fixed_support",
+            "model_part_name" : "solid_cantilever.DISPLACEMENT_fixed_support",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0]
@@ -53,7 +53,7 @@
             "process_name"          : "PostProcessEigenvaluesProcess",
             "Parameters"            : {
                 "result_file_name" : "solid_cantilever_freq",
-                "computing_model_part_name"   : "structure",
+                "computing_model_part_name"   : "solid_cantilever",
                 "animation_steps"   :  6,
                 "result_file_format_use_ascii" : false
             }

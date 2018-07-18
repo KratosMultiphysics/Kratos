@@ -61,6 +61,13 @@ Flags FlagsOr(const Flags& Left, const Flags& Right )
     return (Left|Right);
 }
 
+Flags FlagsAnd(const Flags& Left, const Flags& Right )
+{
+    KRATOS_WARNING("Kratos::Flags Python interface") << "Using deprecated flag & operation, which internally perfms a union (bitwise or)." << std::endl
+                 << "Please use | instead, since this behaviour will be soon deprecated." << std::endl;
+    return (Left|Right);
+}
+
 void FlagsSet1(Flags& ThisFlag, const Flags& OtherFlag )
 {
     ThisFlag.Set(OtherFlag);
@@ -192,10 +199,12 @@ void  AddContainersToPython(pybind11::module& m)
     ;
     class_<VariableComponent<VectorComponentAdaptor<vector<double> > >,VariableData>(m, "VectorComponentVariable")
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<vector<double> > >::Info )
+    // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<vector<double> > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::Info )
+    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::GetSourceVariable )
     ;
 
     class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
@@ -275,7 +284,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Flip", &Flags::Flip)
     .def("Clear", &Flags::Clear)
     .def("__or__", FlagsOr)
-    .def("__and__", FlagsOr) // this is not an error, the and and or are considered both as add. Pooyan.
+    .def("__and__", FlagsAnd)
     .def("__repr__", &Flags::Info )
     ;
 
@@ -503,6 +512,11 @@ void  AddContainersToPython(pybind11::module& m)
     // For MeshingApplication
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_ERROR )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NODAL_ERROR_COMPONENTS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_ERROR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_H )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RECOVERED_STRESS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ERROR_INTEGRATION_POINT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_PRESSURE )
 
     // For explicit time integration
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RESIDUAL_VECTOR )

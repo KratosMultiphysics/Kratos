@@ -681,9 +681,7 @@ public:
     void ResizeAndInitializeVectors( typename TSchemeType::Pointer pScheme,TSystemMatrixPointerType& pA,
                                     TSystemVectorPointerType& pDx,
                                     TSystemVectorPointerType& pb,
-                                    ElementsArrayType& rElements,
-                                    ConditionsArrayType& rConditions,
-                                    ProcessInfo& CurrentProcessInfo)
+                                    ModelPart& rModelPart)
     {
         KRATOS_TRY
         if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
@@ -715,7 +713,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, A, rModelPart.Elements(), rModelPart.Conditions(), rModelPart.GetProcessInfo());
         }
         else
         {
@@ -723,7 +721,7 @@ public:
             {
                 KRATOS_WATCH( "it should not come here!!!!!!!! ... this is SLOW" )
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
+                ConstructMatrixStructure(pScheme, A, rModelPart.Elements(), rModelPart.Conditions(), rModelPart.GetProcessInfo());
             }
         }
         if (Dx.size() != BaseType::mEquationSystemSize)
@@ -799,15 +797,13 @@ public:
 protected:
 
     virtual void ConstructMatrixStructure( typename TSchemeType::Pointer pScheme,TSystemMatrixType& A,
-                                          ElementsContainerType& rElements,
-                                          ConditionsArrayType& rConditions,
-                                          ProcessInfo& CurrentProcessInfo)
+                                          ModelPart& rModelPart)
     {
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
 
         Element::EquationIdVectorType ids(3, 0);
-        for (typename ElementsContainerType::iterator i_element = rElements.begin(); i_element != rElements.end(); i_element++)
+        for (typename ElementsContainerType::iterator i_element = rModelPart.ElementsBegin(); i_element != rModelPart.ElementsEnd(); i_element++)
         {
 
             pScheme->EquationId( *(i_element.base()) , ids, CurrentProcessInfo);
@@ -824,7 +820,7 @@ protected:
 
         }
 
-        for (typename ConditionsArrayType::iterator i_condition = rConditions.begin(); i_condition != rConditions.end(); i_condition++)
+        for (typename ConditionsArrayType::iterator i_condition = rModelPart.ConditionsBegin(); i_condition != rModelPart.ConditionsEnd(); i_condition++)
         {
 
             pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);

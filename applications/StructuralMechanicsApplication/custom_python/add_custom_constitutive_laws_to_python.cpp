@@ -11,15 +11,14 @@
 
 
 // System includes
-#include <pybind11/stl.h>
 
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
-#include "includes/constitutive_law.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+
 #include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
@@ -32,7 +31,6 @@
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
-
 #include "custom_constitutive/linear_j2_plasticity_3d.h"
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
@@ -52,6 +50,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "TrussConstitutiveLaw").def(init<>() )
     ;
 
+    class_< TrussPlasticityConstitutiveLaw, typename TrussPlasticityConstitutiveLaw::Pointer, ConstitutiveLaw >
+    (m, "TrussPlasticityConstitutiveLaw").def(init<>() )
+    ;
+
     class_< BeamConstitutiveLaw, typename BeamConstitutiveLaw::Pointer, ConstitutiveLaw >
     (m, "BeamConstitutiveLaw").def(init<>() )
     ;
@@ -59,7 +61,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     class_< LinearPlaneStress, typename LinearPlaneStress::Pointer, ConstitutiveLaw >
     (m, "LinearElasticPlaneStress2DLaw").def(init<>() )
     ;
-    
+
     class_< LinearPlaneStrain, typename LinearPlaneStrain::Pointer, ConstitutiveLaw >
     (m, "LinearElasticPlaneStrain2DLaw").def(init<>() )
     ;
@@ -91,7 +93,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     class_< HyperElasticIsotropicNeoHookean3D, typename HyperElasticIsotropicNeoHookean3D::Pointer, ConstitutiveLaw >
     (m, "HyperElastic3DLaw").def(init<>() )
     ;
-    
+
     class_< HyperElasticIsotropicNeoHookeanPlaneStrain2D, typename HyperElasticIsotropicNeoHookeanPlaneStrain2D::Pointer, ConstitutiveLaw >
     (m, "HyperElasticPlaneStrain2DLaw").def(init<>() )
     ;

@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class ThermalLocalDamage3DLaw : public LocalDamage3DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalLocalDamage3DLaw : public LocalDamage3DLaw
 {
 
 public:
