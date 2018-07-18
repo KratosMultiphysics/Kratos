@@ -143,8 +143,12 @@ class SelectFluidElementsMesherProcess
         std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
 
       ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-      const unsigned int nds = element_begin->GetGeometry().size();
+
       const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+
+      unsigned int nds = 3;  //linear triangle
+      if(dimension==3) //linear tetrahedron
+        nds = 4;
 
       int* OutElementList = mrRemesh.OutMesh.GetElementList();
 
@@ -349,16 +353,16 @@ class SelectFluidElementsMesherProcess
         }
 
         //5.- to control that the element has a good shape
-        if(accepted && (numfreesurf>0 || numrigid==nds))
+        if(accepted && (numfreesurf>0 || numboundary == nds || numboundary-(numrigid+numsolid) > 0))
         {
 
           if(dimension==3 && nds==4){
             Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
             double Volume = tetrahedron->Volume();
             double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
-            // std::cout<<"riticalVolume "<<Volume<<std::endl;
+            //std::cout<<"CriticalVolume "<<Volume<<" MeanVolume "<<std::endl;
             if(Volume<CriticalVolume){
-              std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
+              KRATOS_INFO("SLIVER")<<" Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
               accepted = false;
               number_of_slivers++;
             }

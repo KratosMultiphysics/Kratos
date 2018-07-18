@@ -221,7 +221,9 @@ namespace Kratos
 
 	  Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
 
-	  if( rElementGeometry.FacesNumber() >= 3 ){ //3 or 4
+          const unsigned int dimension = rElementGeometry.WorkingSpaceDimension();
+
+	  if( rElementGeometry.FacesNumber() >= (dimension+1) ){ //3 or 4
 
 	    /*each face is opposite to the corresponding node number so in 2D triangle
 	      0 ----- 1 2

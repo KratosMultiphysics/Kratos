@@ -1115,8 +1115,8 @@ namespace Kratos
 		  KRATOS_THROW_ERROR( std::logic_error, "Wrong Number of Nodes for the Element in Transfer",*this );
 		}
 
-		int id= ie->Id();
-		PointPointerType p_center =  Kratos::make_shared< PointType >(id,xc,yc,zc);
+		unsigned int id= ie->Id();
+		PointPointerType p_center =  Kratos::make_shared<PointType>(id,xc,yc,zc);
 
 		// if ((*ie.base())->GetOptions().Is(Element::THERMAL))
 		//   std::cout<<" is thermal "<<std::endl;

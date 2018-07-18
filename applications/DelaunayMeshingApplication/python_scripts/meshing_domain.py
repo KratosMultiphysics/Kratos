@@ -286,6 +286,20 @@ class MeshingDomain(object):
         self.RefiningParameters.SetCriticalRadius(critical_mesh_size)
         self.RefiningParameters.SetCriticalSide(critical_mesh_side)
 
+        #set mean area or mean volume
+        MesherUtils   = KratosDelaunay.MesherUtilities();
+        domain_volume = MesherUtils.ComputeModelPartVolume(self.main_model_part)
+
+        number_of_elements =  self.main_model_part.NumberOfElements()
+        dimension =  self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
+
+        factor = float(number_of_elements*(dimension+1))
+        mean_volume = critical_mesh_size**dimension
+        if(factor != 0):
+            mean_volume = domain_volume/factor
+
+        self.RefiningParameters.SetMeanVolume(mean_volume)
+
     #
     def Check(self):
 

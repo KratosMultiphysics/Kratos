@@ -179,15 +179,23 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
     rConstitutiveMatrix ( 2 , 1 ) = side_component;
 
     //initialize to zero other values
-    for(unsigned int i=0; i<3; i++)
+    for(unsigned int i=0; i<3; ++i)
     {
-          for(unsigned int j=3; i<6; i++)
-          {
-            rConstitutiveMatrix ( i , j ) = 0;
-            rConstitutiveMatrix ( j , i ) = 0;
-          }
+      for(unsigned int j=3; j<6; ++j)
+      {
+        rConstitutiveMatrix ( i , j ) = 0;
+        rConstitutiveMatrix ( j , i ) = 0;
+      }
 
     }
+
+    rConstitutiveMatrix ( 3 , 4 ) = 0.0;
+    rConstitutiveMatrix ( 3 , 5 ) = 0.0;
+    rConstitutiveMatrix ( 4 , 5 ) = 0.0;
+
+    rConstitutiveMatrix ( 4 , 3 ) = 0.0;
+    rConstitutiveMatrix ( 5 , 3 ) = 0.0;
+    rConstitutiveMatrix ( 5 , 4 ) = 0.0;
 
     KRATOS_CATCH(" ")
   }

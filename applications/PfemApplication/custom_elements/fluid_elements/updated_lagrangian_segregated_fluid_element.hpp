@@ -298,12 +298,6 @@ protected:
   void CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
                            ElementDataType& rVariables) override;
 
-  /**
-   * Calculation of the Regularized Material Stiffness Matrix.
-   */
-  void CalculateRegularizedKvvm(MatrixType& rLeftHandSideMatrix,
-                                ElementDataType& rVariables);
-
 
   /**
    * Calculation of the Pressure Stiffness Matrix. Kpp

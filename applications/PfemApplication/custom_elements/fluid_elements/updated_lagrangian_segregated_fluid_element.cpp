@@ -161,6 +161,8 @@ void UpdatedLagrangianSegregatedFluidElement::GetDofList( DofsVectorType& rEleme
 
 void UpdatedLagrangianSegregatedFluidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
+  this->SetProcessInformation(rCurrentProcessInfo);
+
   const SizeType number_of_nodes = GetGeometry().size();
   const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
   unsigned int   dofs_size       = GetDofsSize();
@@ -168,7 +170,7 @@ void UpdatedLagrangianSegregatedFluidElement::EquationIdVector( EquationIdVector
   if ( rResult.size() != dofs_size )
     rResult.resize( dofs_size, false );
 
-  switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+  switch(mStepVariable)
   {
     case VELOCITY_STEP:
       {
@@ -204,9 +206,11 @@ void UpdatedLagrangianSegregatedFluidElement::InitializeSolutionStep( ProcessInf
 {
     KRATOS_TRY
 
+    this->SetProcessInformation(rCurrentProcessInfo);
+
     FluidElement::InitializeExplicitContributions();
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    switch(mStepVariable)
     {
       case VELOCITY_STEP:
         {
@@ -261,7 +265,9 @@ void UpdatedLagrangianSegregatedFluidElement::FinalizeSolutionStep( ProcessInfo&
 {
     KRATOS_TRY
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    this->SetProcessInformation(rCurrentProcessInfo);
+
+    switch(mStepVariable)
     {
       case VELOCITY_STEP:
         {
@@ -270,6 +276,8 @@ void UpdatedLagrangianSegregatedFluidElement::FinalizeSolutionStep( ProcessInfo&
         }
       case PRESSURE_STEP:
         {
+          //set as VELOCITY STEP for gauss point calculations:
+          mStepVariable = VELOCITY_STEP;
           break;
         }
       default:
@@ -431,8 +439,8 @@ void UpdatedLagrangianSegregatedFluidElement::InitializeElementData (ElementData
         rVariables.N.resize(number_of_nodes,false);
         rVariables.L.resize(dimension,dimension,false);
         rVariables.F.resize(dimension,dimension,false);
-        rVariables.DN_DX.resize(number_of_nodes, dimension,false);
-        rVariables.DeltaPosition.resize(number_of_nodes, dimension,false);
+        rVariables.DN_DX.resize(number_of_nodes,dimension,false);
+        rVariables.DeltaPosition.resize(number_of_nodes,dimension,false);
 
         //reading shape functions
         rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
@@ -555,6 +563,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataTyp
 
     //Compute cartesian derivatives [dN/dx_n+1]
     noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+
     switch(mStepVariable)
     {
       case VELOCITY_STEP:
@@ -849,10 +858,18 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvm(MatrixType& rL
 {
   KRATOS_TRY
 
-  // Add volumetric part to the constitutive tensor to compute Kvvm = Kdev + Kvol(quasi incompressible)
+  SizeType number_of_nodes = GetGeometry().PointsNumber();
 
-  // add fluid bulk modulus for quasi-incompressibility (must be implemented in a ConstituiveModel for Quasi-Incompressible Newtonian Fluid.
+  // 1.- Calculate Stiffness Matrix to get the bulk correction
   const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
+
+  double StiffnessFactor = 0.0;
+
+  // Add volumetric part to the constitutive tensor to compute:
+  // Kvvm = Kdev + Kvol(quasi incompressible)
+  // add fluid bulk modulus for quasi-incompressibility
+  // (can be implemented in a ConstituiveModel for Quasi-Incompressible Newtonian Fluid.
+
   double BulkFactor = GetProperties()[BULK_MODULUS] * TimeStep;
 
   // add fluid bulk modulus
@@ -865,34 +882,18 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvm(MatrixType& rL
   //remove fluid bulk modulus
   this->RemoveVolumetricPart(rVariables.ConstitutiveMatrix,BulkFactor);
 
-  // operation performed: set regularized stiffness term matrix to rLeftHandSideMatrix
-  this->CalculateRegularizedKvvm( rLeftHandSideMatrix, rVariables );
+  //a. Proposed calculation:
+  //this->CalculateDenseMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
+
+  //b. Alternative calculation:
+  this->CalculateLumpedMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
 
 
-  KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianSegregatedFluidElement::CalculateRegularizedKvvm(MatrixType& rLeftHandSideMatrix,
-                                                                       ElementDataType& rVariables)
-{
-  KRATOS_TRY
-
-  SizeType number_of_nodes = GetGeometry().PointsNumber();
-
-  double StiffnessFactor = 0.0;
-  this->CalculateDenseMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
-
-  // Alternative calculation:
-  // this->CalculateLumpedMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
+  // 2.- Estimate the bulk correction coefficient and the new tangent
 
   double MassFactor = GetGeometry().DomainSize() * GetProperties()[DENSITY] / double(number_of_nodes);
 
-  const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
-  double BulkFactor = 0.0;
+  BulkFactor = 0.0;
   if(StiffnessFactor!=0 && MassFactor!=0)
     BulkFactor = GetProperties()[BULK_MODULUS] * TimeStep * ( MassFactor * 2.0 / (TimeStep * StiffnessFactor) );
 

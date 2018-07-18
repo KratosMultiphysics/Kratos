@@ -87,6 +87,14 @@ namespace Kratos
      */
     void FinalizeMaterialResponseCauchy(Parameters & rValues) override;
 
+
+    /// Law Dimension
+    SizeType WorkingSpaceDimension() override { return 3; }
+
+    /// Law Voigt Strain Size
+    SizeType GetStrainSize() override { return 6; }
+
+
     /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures

@@ -166,6 +166,9 @@ void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementa
 
 void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
+
+    this->SetProcessInformation(rCurrentProcessInfo);
+
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int   dofs_size        = GetDofsSize();
@@ -173,7 +176,7 @@ void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorTyp
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    switch(mStepVariable)
     {
       case VELOCITY_STEP:
         {
@@ -210,9 +213,11 @@ void LargeDisplacementSegregatedVPElement::InitializeSolutionStep( ProcessInfo& 
 {
     KRATOS_TRY
 
+    this->SetProcessInformation(rCurrentProcessInfo);
+
     SolidElement::InitializeExplicitContributions();
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    switch(mStepVariable)
     {
       case VELOCITY_STEP:
         {
@@ -267,7 +272,9 @@ void LargeDisplacementSegregatedVPElement::FinalizeSolutionStep( ProcessInfo& rC
 {
     KRATOS_TRY
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    this->SetProcessInformation(rCurrentProcessInfo);
+
+    switch(mStepVariable)
     {
       case VELOCITY_STEP:
         {
@@ -276,6 +283,8 @@ void LargeDisplacementSegregatedVPElement::FinalizeSolutionStep( ProcessInfo& rC
         }
       case PRESSURE_STEP:
         {
+          //set as VELOCITY STEP for gauss point calculations:
+          mStepVariable = VELOCITY_STEP;
           break;
         }
       default:
@@ -723,5 +732,3 @@ void LargeDisplacementSegregatedVPElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

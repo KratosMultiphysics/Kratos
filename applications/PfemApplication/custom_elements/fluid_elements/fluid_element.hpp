@@ -178,12 +178,12 @@ protected:
 	  N.resize(number_of_nodes,false);
 
 	  //matrices
-	  B.resize(voigt_size, dimension*number_of_nodes,false);
+	  B.resize(voigt_size,dimension*number_of_nodes,false);
 	  L.resize(dimension,dimension,false);
 	  F.resize(dimension,dimension,false);
-	  DN_DX.resize(number_of_nodes, dimension,false);
-	  ConstitutiveMatrix.resize(voigt_size, voigt_size,false);
-	  DeltaPosition.resize(number_of_nodes, dimension,false);
+	  DN_DX.resize(number_of_nodes,dimension,false);
+	  ConstitutiveMatrix.resize(voigt_size,voigt_size,false);
+	  DeltaPosition.resize(number_of_nodes,dimension,false);
 
           //others
 	  J.resize(1,false);
