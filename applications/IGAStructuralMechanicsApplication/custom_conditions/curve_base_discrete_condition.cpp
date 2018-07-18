@@ -72,6 +72,34 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
+    void CurveBaseDiscreteCondition::CalculateNormalVector(
+        Vector& rNormalVector,
+        const Matrix& rDN_De
+    )
+    {
+        if (rNormalVector.size() != 3)
+            rNormalVector.resize(3);
+        rNormalVector = ZeroVector(3);
+
+        Matrix J;
+        CalculateJacobian(rDN_De, J);
+
+        //basis vectors g1 and g2
+        array_1d<double, 3> g1;
+        array_1d<double, 3> g2;
+
+        g1[0] = J(0, 0);
+        g2[0] = J(0, 1);
+        g1[1] = J(1, 0);
+        g2[1] = J(1, 1);
+        g1[2] = J(2, 0);
+        g2[2] = J(2, 1);
+
+        MathUtils<double>::CrossProduct(rNormalVector, g1, g2);
+    }
+
+    //************************************************************************************
+    //************************************************************************************
     void CurveBaseDiscreteCondition::GetBoundaryEdgeBaseVector(
         const Matrix& DN_De,
         const array_1d<double, 2>& Tangents,

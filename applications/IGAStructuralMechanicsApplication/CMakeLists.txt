@@ -29,10 +29,15 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/NurbsShapeFunctionModeler.cpp
 
 	##ELEMENTS
-	# Adding the meshless base element
+	# Adding the discrete base elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/curve_base_discrete_element.cpp
+
+	# Adding the discrete elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_discrete_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_discrete_element.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_surface_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_shell_kl_element.cpp
@@ -40,12 +45,21 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_membrane_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_laplace_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_shell_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/curve_base_discrete_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_discrete_element.cpp
 
-	##CONDITIONS  ContinuityConditionPenalty
+	##CONDITIONS
+	# Adding the discrete base conditions
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_discrete_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_base_discrete_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/curve_base_discrete_condition.cpp
+
+	# Adding the discrete conditions
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_base_discrete_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_surface_discrete_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_curve_discrete_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_point_discrete_condition.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_base_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_load_condition.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_force_interface_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_support_rotation_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_surface_support_condition.cpp
@@ -54,7 +68,6 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_lagrange_coupling_condition_2.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_penalty_coupling_rotation_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_penalty_coupling_crack_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_point_condition.cpp
 
 
 	# ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_tc_plane_stress_2d_law.cpp

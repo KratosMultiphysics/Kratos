@@ -105,6 +105,11 @@ protected:
         const array_1d<double, 2>& Tangents,
         Vector& rBaseVector);
 
+    void CalculateNormalVector(
+        Vector& rNormalVector,
+        const Matrix& rDN_De
+    );
+
 private:
     ///@name Operations
     ///@{

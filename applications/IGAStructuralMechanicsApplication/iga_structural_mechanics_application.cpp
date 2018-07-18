@@ -45,17 +45,18 @@ KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication
 	mMeshlessShellKLThickElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	//mMeshlessShellKLElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	//mContinuityConditionLagrange(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mLoadPointDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mLoadCurveDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mLoadSurfaceDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessLagrangeCouplingCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessLagrangeCouplingCondition2(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	//mContinuityConditionPenalty(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	//mLoadCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	//mSupportCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-	mMeshlessLoadCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
  	mMeshlessSupportRotationCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessSurfaceSupportCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessPenaltyCouplingRotationCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessPenaltyCouplingCrackCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-	mMeshlessPointCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessForceInterfaceCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1))))
 {}
 
@@ -114,16 +115,18 @@ KRATOS_REGISTER_ELEMENT("MeshlessShellKLThickElement", mMeshlessShellKLThickElem
 KRATOS_REGISTER_ELEMENT("TrussDiscreteElement", mTrussDiscreteElement)
 KRATOS_REGISTER_ELEMENT("MembraneDiscreteElement", mMembraneDiscreteElement)
 
+// Register discrete integration point conditions
+KRATOS_REGISTER_CONDITION("LoadPointDiscreteCondition", mLoadPointDiscreteCondition)
+KRATOS_REGISTER_CONDITION("LoadCurveDiscreteCondition", mLoadCurveDiscreteCondition)
+KRATOS_REGISTER_CONDITION("LoadSurfaceDiscreteCondition", mLoadSurfaceDiscreteCondition)
 
 // Register meshless condition
 KRATOS_REGISTER_CONDITION("MeshlessSupportRotationCondition", mMeshlessSupportRotationCondition)
 KRATOS_REGISTER_CONDITION("MeshlessSurfaceSupportCondition", mMeshlessSurfaceSupportCondition)
-KRATOS_REGISTER_CONDITION("MeshlessLoadCondition", mMeshlessLoadCondition)
 KRATOS_REGISTER_CONDITION("MeshlessLagrangeCouplingCondition", mMeshlessLagrangeCouplingCondition)
 KRATOS_REGISTER_CONDITION("MeshlessLagrangeCouplingCondition2", mMeshlessLagrangeCouplingCondition2)
 KRATOS_REGISTER_CONDITION("MeshlessPenaltyCouplingRotationCondition", mMeshlessPenaltyCouplingRotationCondition)
 KRATOS_REGISTER_CONDITION("MeshlessPenaltyCouplingCrackCondition", mMeshlessPenaltyCouplingCrackCondition)
-KRATOS_REGISTER_CONDITION("MeshlessPointCondition", mMeshlessPointCondition)
 KRATOS_REGISTER_CONDITION("MeshlessForceInterfaceCondition", mMeshlessForceInterfaceCondition)
 		
 

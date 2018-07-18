@@ -115,16 +115,17 @@ namespace Kratos
                     rLeftHandSideMatrix(r, s) = E * area * epsilon_var_dof[r] * epsilon_var_dof[s] + S11_membrane * epsilon_var_2_dof(r, s);
                 }
             }
+
+            rLeftHandSideMatrix = rLeftHandSideMatrix * integration_weight;
         }
 
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
             rRightHandSideVector = -S11_membrane * epsilon_var_dof;
-        }
 
-        rLeftHandSideMatrix = rLeftHandSideMatrix * integration_weight;
-        rRightHandSideVector = rRightHandSideVector * integration_weight;
+            rRightHandSideVector = rRightHandSideVector * integration_weight;
+        }
 
         KRATOS_CATCH("");
     }
