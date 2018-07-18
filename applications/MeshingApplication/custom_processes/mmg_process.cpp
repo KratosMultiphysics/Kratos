@@ -568,7 +568,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     int ref, is_required;
 
     /* NODES */ // TODO: ADD OMP
-    for (IndexType i_node = 1; i_node <= n_nodes; ++i_node) {
+    for (IndexType i_node = 1; i_node <= number_of_nodes; ++i_node) {
         NodeType::Pointer p_node = CreateNode(i_node, ref, is_required);
         
         // Set the DOFs in the nodes 
@@ -682,7 +682,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
             for (auto sub_model_part_name : color_list.second) {      
                 ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
-                
+
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
                 if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
                 if (color_cond_1.find(key) != color_cond_1.end()) r_sub_model_part.AddConditions(color_cond_1[key]);
