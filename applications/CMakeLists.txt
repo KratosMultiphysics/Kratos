@@ -310,10 +310,6 @@ if(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
   add_subdirectory(FluidTransportApplication)
 endif(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
 
-if(${NURBS_BREP_APPLICATION} MATCHES ON)
-  add_subdirectory(NurbsBrepApplication)
-endif(${NURBS_BREP_APPLICATION} MATCHES ON)
-
 if(${IGA_APPLICATION} MATCHES ON)
   add_subdirectory(IgaApplication)
 endif(${IGA_APPLICATION} MATCHES ON)
