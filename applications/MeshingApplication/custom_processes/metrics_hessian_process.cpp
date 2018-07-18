@@ -56,7 +56,7 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
     
     // In case we have isotropic remeshing (default values)
     if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
-        mRatioReferenceVariable = DISTANCE;
+        mRatioReferenceVariable = "DISTANCE";
         mEstimateInterpError = default_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"].GetBool();
         mInterpError = default_parameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
         mMeshConstant = default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
@@ -100,12 +100,11 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
 
         const Vector& hessian = it_node->GetValue(AUXILIAR_HESSIAN);
 
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
         const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);            
         
-        double element_min_size = mMinSize;
-        if ((element_min_size > nodal_h) && mEnforceCurrent) element_min_size = nodal_h;
-        double element_max_size = mMaxSize;
-        if ((element_max_size > nodal_h) && mEnforceCurrent) element_max_size = nodal_h;
+        const double element_min_size = ((element_min_size > nodal_h) && mEnforceCurrent) ? nodal_h : mMinSize;
+        const double element_max_size = ((element_max_size > nodal_h) && mEnforceCurrent) ? nodal_h : mMaxSize;
 
         // Isotropic by default
         double ratio = 1.0;
