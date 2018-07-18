@@ -17,7 +17,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
 
