@@ -4,7 +4,7 @@ namespace Kratos
 {
     /* Public functions *******************************************************/
     BoussinesqForceProcess::BoussinesqForceProcess(
-        ModelPart* pModelPart,
+        ModelPart::Pointer pModelPart,
         Parameters& rParameters):
     mpModelPart(pModelPart),
     mrGravity(array_1d<double,3>(3,0.0))

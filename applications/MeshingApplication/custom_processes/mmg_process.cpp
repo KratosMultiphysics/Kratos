@@ -2154,7 +2154,7 @@ void MmgProcess<3>::SetMetricTensor(
 template<SizeType TDim>
 void MmgProcess<TDim>::CreateAuxiliarSubModelPartForFlags()
 {
-    ModelPart* p_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+    ModelPart::Pointer p_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
     const auto& flags = KratosComponents<Flags>::GetComponents();
 

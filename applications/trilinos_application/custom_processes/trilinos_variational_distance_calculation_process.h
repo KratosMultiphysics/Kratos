@@ -199,8 +199,9 @@ protected:
         KRATOS_TRY
 
         // Generate distance model part
-        Kratos::unique_ptr<ModelPart> pAuxModelPart = Kratos::make_unique<ModelPart>("DistancePart");
-        auto& p_distance_model_part = this->mp_distance_model_part;
+        ModelPart::UniquePointer pAuxModelPart = Kratos::make_unique<ModelPart>("DistancePart");
+
+        ModelPart::UniquePointer& p_distance_model_part = this->mp_distance_model_part;
         p_distance_model_part.swap(pAuxModelPart);
 
         p_distance_model_part->Nodes().clear();

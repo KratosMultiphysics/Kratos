@@ -394,7 +394,7 @@ protected:
 
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
-    Kratos::unique_ptr<ModelPart> mp_distance_model_part;
+    ModelPart::UniquePointer mp_distance_model_part;
     ModelPart& mr_base_model_part;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
@@ -412,8 +412,9 @@ protected:
         KRATOS_TRY
 
         // Generate
-        mp_distance_model_part = Kratos::make_unique<ModelPart>("DistancePart",1);
- 
+        ModelPart::UniquePointer pAuxModelPart = Kratos::make_unique<ModelPart>("DistancePart",1);
+        mp_distance_model_part.swap(pAuxModelPart);
+
         mp_distance_model_part->Nodes().clear();
         mp_distance_model_part->Conditions().clear();
         mp_distance_model_part->Elements().clear();

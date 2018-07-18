@@ -1092,18 +1092,17 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags identifier_flag)
 }
 
 
-ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart::Pointer  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        Kratos::shared_ptr<ModelPart>  p_model_part = Kratos::make_shared<ModelPart>(NewSubModelPartName);
+        ModelPart::Pointer p_model_part(new ModelPart(NewSubModelPartName));
         p_model_part->SetParentModelPart(this);
         delete p_model_part->mpVariablesList;
         p_model_part->mpVariablesList = mpVariablesList;
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
-        mSubModelParts.insert(p_model_part);
-        return *p_model_part;
+        return mSubModelParts.insert(p_model_part).base()->second;
     }
     else
         KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)
@@ -1111,9 +1110,19 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
         //KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
     }
 
-void ModelPart::AddSubModelPart(Kratos::shared_ptr<ModelPart> pThisSubModelPart)
+void ModelPart::AddSubModelPart(ModelPart::Pointer pThisSubModelPart)
 {
-   KRATOS_ERROR << "cannot add a submodelpart, since submodelparts are univocally owned by their father " << std::endl;
+    if (mSubModelParts.find(pThisSubModelPart->Name()) != mSubModelParts.end())
+        // Here a warning would be enough. To be disscussed. Pooyan.
+        KRATOS_ERROR << "There is an already existing sub model part with name \"" << pThisSubModelPart->Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
+
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->AddSubModelPart(pThisSubModelPart);
+        return;
+    }
+
+    pThisSubModelPart->SetParentModelPart(this);
 }
 /** Remove a sub modelpart with given name.
 */

@@ -407,7 +407,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    Kratos::unique_ptr<ModelPart> mpConvectionModelPart;
+    ModelPart::Pointer mpConvectionModelPart;
     typename BaseType::Pointer mstep1;
     double mOldDt;
     int mdimension;
@@ -426,8 +426,7 @@ private:
 
   void GenerateMeshPart(int dimension)
   {
-    auto tmp = Kratos::make_unique<ModelPart>("ConvectionPart",1);
-    mpConvectionModelPart.swap(tmp); 
+    mpConvectionModelPart = ModelPart::Pointer( new ModelPart("ConvectionPart",1) );
 
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());

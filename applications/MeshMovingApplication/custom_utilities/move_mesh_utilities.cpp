@@ -43,7 +43,7 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 //******************************************************************************
 //******************************************************************************
 
-void CalculateMeshVelocities(ModelPart* pMeshModelPart,
+void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart,
                              const int TimeOrder, const double DeltaTime) {
 
     CalculateMeshVelocities(*pMeshModelPart, TimeOrder, DeltaTime);
@@ -124,11 +124,12 @@ void SetMeshToInitialConfiguration(
 
 //******************************************************************************
 //******************************************************************************
-std::unique_ptr<ModelPart> GenerateMeshPart(ModelPart &rModelPart,
+ModelPart::Pointer GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName) {
   KRATOS_TRY;
 
-  std::unique_ptr<ModelPart> pmesh_model_part = Kratos::make_unique<ModelPart>("MeshPart", 1);
+  ModelPart::Pointer pmesh_model_part;
+  pmesh_model_part = Kratos::make_shared<ModelPart>("MeshPart", 1);
 
   // initializing mesh nodes and variables
   pmesh_model_part->Nodes() = rModelPart.Nodes();
@@ -148,7 +149,7 @@ std::unique_ptr<ModelPart> GenerateMeshPart(ModelPart &rModelPart,
     rmesh_elements.push_back(p_element);
   }
 
-  return std::move(pmesh_model_part);
+  return pmesh_model_part;
 
   KRATOS_CATCH("");
 }

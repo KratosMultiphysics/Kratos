@@ -37,14 +37,14 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 void CalculateMeshVelocities(ModelPart &rMeshModelPart,
                              const int TimeOrder, const double DeltaTime);
 
-void CalculateMeshVelocities(ModelPart* pMeshModelPart,
+void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart,
                              const int TimeOrder, const double DeltaTime);
 
 void MoveMesh(const ModelPart::NodesContainerType &rNodes);
 
 void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType &rNodes);
 
-std::unique_ptr<ModelPart> GenerateMeshPart(ModelPart &rModelPart,
+ModelPart::Pointer GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
 void UpdateReferenceMesh(ModelPart &rModelPart);

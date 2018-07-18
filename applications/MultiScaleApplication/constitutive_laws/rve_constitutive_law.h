@@ -180,7 +180,7 @@ public:
 
 	// New methods of this class
 
-	inline const ModelPart* GetModelPart()const
+	inline const ModelPart::Pointer GetModelPart()const
 	{
         return MyBase::mpAdaptee->GetModelPart();
 	}

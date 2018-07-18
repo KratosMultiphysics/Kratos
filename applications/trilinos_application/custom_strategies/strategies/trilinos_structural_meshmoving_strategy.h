@@ -302,7 +302,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    Kratos::unique_ptr<ModelPart> mpmesh_model_part;
+    ModelPart::Pointer mpmesh_model_part;
 
     typename BaseType::Pointer mstrategy;
 
@@ -323,8 +323,7 @@ private:
     void GenerateMeshPart()
     {
         // Initialize auxiliary model part storing the mesh elements
-        auto tmp = Kratos::make_unique<ModelPart>("MeshPart", 1);
-        mpmesh_model_part.swap(tmp);
+        mpmesh_model_part = ModelPart::Pointer(new ModelPart("MeshPart", 1));
 
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();
