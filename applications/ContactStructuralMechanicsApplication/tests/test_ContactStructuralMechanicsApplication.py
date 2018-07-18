@@ -108,7 +108,7 @@ from ValidationTests import ComponentsALMLargeDisplacementPatchTestTetra as TCom
 from ValidationTests import ComponentsALMLargeDisplacementPatchTestHexa as TComponentsALMLargeDisplacementPatchTestHexa
 from ValidationTests import ComponentsALMMultiLayerContactTest as TComponentsALMMultiLayerContactTest
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -316,5 +316,5 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
     run_cpp_unit_tests.run()

@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -28,7 +28,10 @@
 
 namespace Kratos {
 
+/// Definition of 3 components array
 typedef array_1d<double, 3> Vector3;
+/// Definition of the Node
+typedef Node<3> NodeType;
 
 KRATOS_CREATE_VARIABLE(double, AVERAGE_NODAL_ERROR); // The average nodal error
 KRATOS_CREATE_VARIABLE(double, ANISOTROPIC_RATIO);   // The anisotropic aspect ratio
@@ -37,12 +40,15 @@ KRATOS_CREATE_VARIABLE(Vector, AUXILIAR_HESSIAN);    // An auxiliar hessian need
 KRATOS_CREATE_VARIABLE(Vector, MMG_METRIC);          // The condensed metric used to remesh with MMG utility
 KRATOS_CREATE_VARIABLE(double, ERROR_ESTIMATE);      // The nodal error estimate calculated by superconvergent patch recovery
 KRATOS_CREATE_VARIABLE(bool, EXECUTE_REMESHING);     // Variable which determines if the remeshing loop is left
-
+  
+// For ULF (surface_tension) application:
+KRATOS_CREATE_VARIABLE(double, TRIPLE_POINT)
+KRATOS_CREATE_VARIABLE(double, CONTACT_ANGLE)
 
 KratosMeshingApplication::KratosMeshingApplication()
     : KratosApplication("MeshingApplication"),
-      mTestElement2D( 0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType(3)))),
-      mTestElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType(4)))) {}
+      mTestElement2D( 0, Element::GeometryType::Pointer(new Triangle2D3<NodeType>( Element::GeometryType::PointsArrayType(3)))),
+      mTestElement3D( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType>( Element::GeometryType::PointsArrayType(4)))) {}
 
 void KratosMeshingApplication::Register() {
     // calling base class register to register Kratos components
@@ -56,6 +62,10 @@ void KratosMeshingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(MMG_METRIC);          // The condensed metric used to remesh with MMG utility
     KRATOS_REGISTER_VARIABLE(ERROR_ESTIMATE);      // The nodal error estimate calculated by superconvergent patch recovery
     KRATOS_REGISTER_VARIABLE(EXECUTE_REMESHING);   // Variable which determines if the remeshing loop is left
+  
+    // For ULF (surface_tension) application:
+    KRATOS_CREATE_VARIABLE(double, TRIPLE_POINT)
+    KRATOS_CREATE_VARIABLE(double, CONTACT_ANGLE)
 
     KRATOS_REGISTER_ELEMENT("TestElement2D", mTestElement2D);
     KRATOS_REGISTER_ELEMENT("TestElement3D", mTestElement3D);

@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED )
@@ -37,6 +37,7 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
+/// Definition of a 3 components array
 typedef array_1d<double,3> Vector3;
     
 // Variables definition
@@ -47,6 +48,11 @@ KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);     // An auxiliar hessian ne
 KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);           // The condensed metric used to remesh with MMG utility
 KRATOS_DEFINE_VARIABLE(double, ERROR_ESTIMATE);        // The nodal error estimate calculated by superconvergent patch recovery
 KRATOS_DEFINE_VARIABLE(bool, EXECUTE_REMESHING);       // Variable which determines if the remeshing loop is left
+
+// For ULF (surface_tension) application:
+KRATOS_DEFINE_VARIABLE(double, TRIPLE_POINT)
+KRATOS_DEFINE_VARIABLE(double, CONTACT_ANGLE)
+
 
 ///@}
 ///@name Type Definitions
