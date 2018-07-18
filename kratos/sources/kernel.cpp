@@ -75,4 +75,18 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     for (auto it = application_list.begin(); it != application_list.end(); ++it)
         rOStream << "  " << *it << std::endl;
 }
+
+std::string Kernel::BuildType() {
+    #define INTERNAL_KRATOS_MAKE_STRING(arg) #arg
+    #define KRATOS_MAKE_STRING(arg) INTERNAL_KRATOS_MAKE_STRING(arg)
+    std::string build_type(KRATOS_MAKE_STRING(KRATOS_BUILD_TYPE));
+    #undef KRATOS_MAKE_STRING
+    #undef INTERNAL_KRATOS_MAKE_STRING
+    return build_type;
+}
+
+std::string Kernel::Version() {
+    return KRATOS_VERSION;
+}
+
 }
