@@ -105,7 +105,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    Quadrature& operator=(Quadrature const& rOther) {}
+    Quadrature& operator=(Quadrature const& rOther) { return *this; }
 
 
     ///@}
