@@ -99,8 +99,8 @@ class NodeCurveGeometry3DTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_y_at_t, 2.0 * t - 2.0 * t**2)
 
     def testNodeIndexOutOfRange(self):
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Exception):
             invalid_node = self.curve.Node(Index=-1)
 
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Exception):
             invalid_node = self.curve.Node(Index=3)
