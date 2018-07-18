@@ -144,6 +144,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 
     void PrintInfo() const
     {
+        std::cout<<std::endl;
         std::cout << "------------------------------" << std::endl;
         std::cout << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
         std::cout << "Constant :: " << mConstant << std::endl;
