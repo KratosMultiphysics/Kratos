@@ -6,13 +6,11 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    
+//  Main authors:    Quirin Aumman
 //
 
 #if !defined(KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED )
 #define  KRATOS_SPRING_DAMPER_ELEMENT_3D2N_H_INCLUDED
-
-// TODO: Add rotational stiffness
 
 // System includes
 
