@@ -139,14 +139,6 @@ public:
     bool Has(const Variable<double>& rThisVariable) override;
 
     /**
-     * @brief Returns the value of a specified variable (integer)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
-
-    /**
      * @brief This is to be called at the very beginning of the calculation
      * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
      * @param rMaterialProperties the Properties instance of the current element
@@ -232,6 +224,17 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
+
+    /**
+     * @brief calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    bool& CalculateValue(Parameters& rParameterValues,
+                           const Variable<bool>& rThisVariable,
+                           bool& rValue) override;
 
     /**
      * @brief calculates the value of a specified variable
