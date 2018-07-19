@@ -46,7 +46,9 @@ NodalConcentratedElement::NodalConcentratedElement(
     )
     : Element( NewId, pGeometry )
 {
+    // If we compute the Rayleigh damping or we use the damping ratio instead
     mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, UseRayleighDamping);
+    // If the node is inactive/active the element will be set in correspondance
     mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG, ComputeActiveNodeFlag);
 }
 
