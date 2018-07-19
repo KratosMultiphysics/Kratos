@@ -100,52 +100,52 @@ AssignNodalElementsToNodes::AssignNodalElementsToNodes(
     if (!mThisParameters.Has("nodal_rotational_damping_ratio")) mThisParameters.AddValue("nodal_rotational_damping_ratio", auxiliar_parameters["nodal_rotational_damping_ratio"]);
 
     // We check if there is any string in the values
-    if (!mThisParameters["nodal_mass"].IsNull())
+    if (!mThisParameters["nodal_mass"].IsNull() && mConstantValues)
         if (mThisParameters["nodal_mass"].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_inertia"][0].IsNull())
+    if (!mThisParameters["nodal_inertia"][0].IsNull() && mConstantValues)
         if (mThisParameters["nodal_inertia"][0].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_inertia"][1].IsNull())
+    if (!mThisParameters["nodal_inertia"][1].IsNull() && mConstantValues)
         if (mThisParameters["nodal_inertia"][1].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_inertia"][2].IsNull())
+    if (!mThisParameters["nodal_inertia"][2].IsNull() && mConstantValues)
         if (mThisParameters["nodal_inertia"][2].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_stiffness"][0].IsNull())
+    if (!mThisParameters["nodal_stiffness"][0].IsNull() && mConstantValues)
         if (mThisParameters["nodal_stiffness"][0].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_stiffness"][1].IsNull())
+    if (!mThisParameters["nodal_stiffness"][1].IsNull() && mConstantValues)
         if (mThisParameters["nodal_stiffness"][1].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_stiffness"][2].IsNull())
+    if (!mThisParameters["nodal_stiffness"][2].IsNull() && mConstantValues)
         if (mThisParameters["nodal_stiffness"][2].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_rotational_stiffness"][0].IsNull())
+    if (!mThisParameters["nodal_rotational_stiffness"][0].IsNull() && mConstantValues)
         if (mThisParameters["nodal_rotational_stiffness"][0].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_rotational_stiffness"][1].IsNull())
+    if (!mThisParameters["nodal_rotational_stiffness"][1].IsNull() && mConstantValues)
         if (mThisParameters["nodal_rotational_stiffness"][1].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_rotational_stiffness"][2].IsNull())
+    if (!mThisParameters["nodal_rotational_stiffness"][2].IsNull() && mConstantValues)
         if (mThisParameters["nodal_rotational_stiffness"][2].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_damping_ratio"][0].IsNull())
+    if (!mThisParameters["nodal_damping_ratio"][0].IsNull() && mConstantValues)
         if (mThisParameters["nodal_damping_ratio"][0].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_damping_ratio"][1].IsNull())
+    if (!mThisParameters["nodal_damping_ratio"][1].IsNull() && mConstantValues)
         if (mThisParameters["nodal_damping_ratio"][1].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_damping_ratio"][2].IsNull())
+    if (!mThisParameters["nodal_damping_ratio"][2].IsNull() && mConstantValues)
         if (mThisParameters["nodal_damping_ratio"][2].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_rotational_damping_ratio"][0].IsNull())
+    if (!mThisParameters["nodal_rotational_damping_ratio"][0].IsNull() && mConstantValues)
         if (mThisParameters["nodal_rotational_damping_ratio"][0].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_rotational_damping_ratio"][1].IsNull())
+    if (!mThisParameters["nodal_rotational_damping_ratio"][1].IsNull() && mConstantValues)
         if (mThisParameters["nodal_rotational_damping_ratio"][1].IsString())
             mConstantValues = false;
-    if (!mThisParameters["nodal_rotational_damping_ratio"][2].IsNull())
+    if (!mThisParameters["nodal_rotational_damping_ratio"][2].IsNull() && mConstantValues)
         if (mThisParameters["nodal_rotational_damping_ratio"][2].IsString())
             mConstantValues = false;
 
