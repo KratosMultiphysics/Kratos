@@ -68,6 +68,7 @@ void AddCustomUtilitiesToPython(py::module& m)
             .def(pybind11::init<int, int>(),
                 "Degree"_a,
                 "NumberOfNodes"_a)
+            .def_property_readonly("Degree", &Type::Degree)
             .def("Knot", &Type::Knot,
                 "Index"_a)
             .def("SetKnot", &Type::SetKnot,
@@ -142,6 +143,8 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "DegreeV"_a,
                 "NumberOfNodesU"_a,
                 "NumberOfNodesV"_a)
+            .def_property_readonly("DegreeU", &Type::DegreeU)
+            .def_property_readonly("DegreeV", &Type::DegreeV)
             .def("SetKnotU", &Type::SetKnotU,
                 "Index"_a,
                 "Value"_a)
