@@ -3037,7 +3037,7 @@ namespace Kratos
 
 	void ModelPartIO::WriteSubModelPartBlock(
         ModelPart& rMainModelPart,
-        const std::string InitialTabulation) {
+        const std::string& InitialTabulation) {
 
 		KRATOS_TRY;
 
