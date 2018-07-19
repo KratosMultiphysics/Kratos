@@ -194,7 +194,7 @@ public:
         this->Points().push_back( pPoint6 );
     }
 
-    Prism3D6( const PointsArrayType& ThisPoints )
+    explicit Prism3D6( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 6 )

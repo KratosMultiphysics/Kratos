@@ -20,7 +20,7 @@ class TestClass {
     TestClass() {}
 
   public:
-    TestClass(int MagicNbr) { this->mMagicNbr = MagicNbr; }
+    explicit TestClass(int MagicNbr) { this->mMagicNbr = MagicNbr; }
     TestClass(const TestClass & rOther) { this->mMagicNbr = rOther.mMagicNbr; }
 
     ~TestClass() {}

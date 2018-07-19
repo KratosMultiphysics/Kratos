@@ -51,7 +51,7 @@ namespace Kratos
       /// Default constructor.
 	    Exception();
 
-	    Exception(const std::string& rWhat );
+	    explicit Exception(const std::string& rWhat );
 
       Exception(const std::string& rWhat, const CodeLocation& Location);
 

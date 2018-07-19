@@ -34,7 +34,7 @@ namespace Kratos
 		{
 			template <typename TestType> class RegisterThisTest {
 			public:
-				RegisterThisTest(bool IsDisabled=false)
+				explicit RegisterThisTest(bool IsDisabled=false)
 				{
 					TestType* p_test = new TestType;
 					if (IsDisabled)

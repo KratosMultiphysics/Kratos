@@ -109,7 +109,7 @@ public:
 
     /** Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
-    Point(CoordinatesArrayType const &rOtherCoordinates)
+    explicit Point(CoordinatesArrayType const &rOtherCoordinates)
         : BaseType(rOtherCoordinates) {}
 
     /** Constructor using coordinates stored in given array. Initialize

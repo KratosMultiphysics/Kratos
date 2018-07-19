@@ -113,7 +113,7 @@ namespace Kratos {
 
         /// Default constructor.
 
-        OctreeBinaryCell(char Level = ROOT_LEVEL) : level_(Level), children_(NULL), data_(NULL) {
+        explicit OctreeBinaryCell(char Level = ROOT_LEVEL) : level_(Level), children_(NULL), data_(NULL) {
             for (std::size_t i = 0; i < DIMENSION; i++)
                 min_key_[i] = 0;
         }

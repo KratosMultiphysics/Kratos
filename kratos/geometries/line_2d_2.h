@@ -168,7 +168,7 @@ public:
     }
 
 
-    Line2D2( const PointsArrayType& ThisPoints )
+    explicit Line2D2( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 2 )

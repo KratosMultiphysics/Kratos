@@ -167,7 +167,7 @@ public:
         BaseType::Points().push_back( pThirdPoint );
     }
 
-    Line2D3( const PointsArrayType& ThisPoints )
+    explicit Line2D3( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 3 )

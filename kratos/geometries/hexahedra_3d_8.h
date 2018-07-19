@@ -204,7 +204,7 @@ public:
         this->Points().push_back( pPoint8 );
     }
 
-    Hexahedra3D8( const PointsArrayType& ThisPoints )
+    explicit Hexahedra3D8( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 8 )

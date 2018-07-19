@@ -76,7 +76,7 @@ public:
     ///@{
 
     /// Default constructor.
-    NodeEraseProcess(ModelPart& model_part)
+    explicit NodeEraseProcess(ModelPart& model_part)
         : mr_model_part(model_part)
     {
         KRATOS_TRY

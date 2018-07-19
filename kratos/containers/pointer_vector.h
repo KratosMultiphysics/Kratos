@@ -113,7 +113,7 @@ public:
 
     PointerVector(const PointerVector& rOther) :  mData(rOther.mData) {}
 
-    PointerVector(const TContainerType& rContainer) :  mData(rContainer)
+    explicit PointerVector(const TContainerType& rContainer) :  mData(rContainer)
     {
     }
 

@@ -150,7 +150,7 @@ public:
 
     }
 
-    Node(IndexType NewId )
+    explicit Node(IndexType NewId )
         : BaseType()
         , IndexedObject(NewId)
         , Flags()

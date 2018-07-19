@@ -217,7 +217,7 @@ public:
         this->Points().push_back( pFourthPoint );
     }
 
-    Quadrilateral2D4( const PointsArrayType& ThisPoints )
+    explicit Quadrilateral2D4( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 4 )

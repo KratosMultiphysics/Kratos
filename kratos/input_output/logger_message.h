@@ -78,7 +78,7 @@ namespace Kratos
 			///@{
 
 
-			LoggerMessage(std::string const& TheLabel) 
+			explicit LoggerMessage(std::string const& TheLabel) 
 				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
 
 			LoggerMessage(LoggerMessage const& Other) 

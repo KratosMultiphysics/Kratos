@@ -245,7 +245,7 @@ public:
     ModelPart();
 
     /// Constructor with name
-    ModelPart(std::string const& NewName);
+    explicit ModelPart(std::string const& NewName);
 
     /// Constructor with name and bufferSize
     ModelPart(std::string const& NewName, IndexType NewBufferSize);

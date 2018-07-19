@@ -85,7 +85,7 @@ public:
     }
 
     /// 1d constructor.
-    IntegrationPoint(TDataType const& NewX) : BaseType(NewX), mWeight()
+    explicit IntegrationPoint(TDataType const& NewX) : BaseType(NewX), mWeight()
     {
     }
 

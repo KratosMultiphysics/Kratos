@@ -106,7 +106,7 @@ public:
      * @brief This is the default constructor
      * @param rModelPart The model part of the mesh used in the search
      */
-    BinBasedFastPointLocator(ModelPart& rModelPart)
+    explicit BinBasedFastPointLocator(ModelPart& rModelPart)
         : mrModelPart(rModelPart)
     {
     }
