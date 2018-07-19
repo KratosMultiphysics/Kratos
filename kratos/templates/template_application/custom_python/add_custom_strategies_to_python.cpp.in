@@ -35,10 +35,10 @@
 namespace Kratos {
 namespace Python {
 
-namespace py = pybind11;
-
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
