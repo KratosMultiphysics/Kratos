@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define_python.h"
 #include "mapping_application.h"
-#include "mapping_application_variables.h"
 #include "custom_python/add_custom_mappers_to_python.h"
 
 
