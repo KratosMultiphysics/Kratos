@@ -85,7 +85,7 @@ namespace Kratos {
             rModelPart.CreateNewCondition("NavierStokesWallCondition2D2N", 1, cond_nodes, p_elem_prop);
 
             // Set the drag computation submodelpart
-            ModelPart::Pointer p_sub_model_part = rModelPart.CreateSubModelPart("DragModelPart");
+            ModelPart* p_sub_model_part = &rModelPart.CreateSubModelPart("DragModelPart");
             std::vector<ModelPart::IndexType> sub_model_part_nodes = {1, 2};
             std::vector<ModelPart::IndexType> sub_model_part_conds = {1};
             p_sub_model_part->AddNodes(sub_model_part_nodes);

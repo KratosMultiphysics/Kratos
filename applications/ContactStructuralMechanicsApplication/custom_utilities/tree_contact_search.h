@@ -156,6 +156,11 @@ public:
     void ClearMortarConditions();
       
     /**
+     * @brief This method checks that the contact model part is unique (so the model parts contain unique contact pairs)
+     */
+    void CheckContactModelParts();
+
+    /**
      * @brief This function creates a lists  points ready for the Mortar method
      */
     void CreatePointListMortar();
@@ -266,6 +271,7 @@ private:
     std::string mConditionName;        /// The name of the condition to be created
     bool mCreateAuxiliarConditions;    /// If the auxiliar conditions are created or not
     PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart 
+    bool mMultipleSearchs;             /// If we consider multiple serach or not
     bool mPredefinedMasterSlave;       /// If the master/slave sides are predefined
 
     ///@}
@@ -310,16 +316,6 @@ private:
         double& a,
         double& b
         );
-    
-    /**
-     * @brief This method computes the maximal nodal H
-     */
-    inline double GetMaxNodalH();
-       
-    /**
-     * @brief This method computes the mean nodal H
-     */
-    inline double GetMeanNodalH();
     
     /**
      * @brief It check the conditions if they are correctly detected

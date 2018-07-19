@@ -140,7 +140,7 @@ namespace Kratos
          */
         BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
             ProcessInfo& rCurrentProcessInfo,
-            const bool& rSaveInternalVariables);
+            const bool& rSaveInternalVariables) override;
 
 
 		private:

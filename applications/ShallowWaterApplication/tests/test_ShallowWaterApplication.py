@@ -13,7 +13,7 @@ from SmallTests import Pfem2PrimitiveVariables as TPfem2PrimitiveVariables
 
 ## VALIDATION TESTS
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
@@ -48,4 +48,3 @@ def AssambleTestSuites():
 if __name__ == '__main__':
     run_cpp_unit_tests.run()
     KratosUnittest.runTests(AssambleTestSuites())
-    

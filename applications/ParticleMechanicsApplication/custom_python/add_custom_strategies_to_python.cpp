@@ -76,21 +76,20 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // MPM Residual Based Bossak Scheme Type
     class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
-        .def(init < ModelPart&, unsigned int, double, double>())
+        .def(init < ModelPart&, unsigned int, unsigned int, double, double>())
         .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)
-        .def("IterativeExtrapolation", &MPMResidualBasedBossakSchemeType::IterativeExtrapolation)
         ;
 
     // Strategy Type
     class_< MPMStrategyType2D,typename MPMStrategyType2D::Pointer, BaseSolvingStrategyType >(m,"MPM2D")
-    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool>() )
+    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
     .def( "SearchElement", &MPMStrategyType2D::SearchElement)
     .def( "MP16ShapeFunctions", &MPMStrategyType2D::MP16ShapeFunctions)
     .def( "MP33ShapeFunctions", &MPMStrategyType2D::MP33ShapeFunctions)
     ;
 
     class_< MPMStrategyType3D,typename MPMStrategyType3D::Pointer, BaseSolvingStrategyType >(m,"MPM3D")
-    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool>() )
+    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
     .def( "SearchElement", &MPMStrategyType3D::SearchElement)
     .def( "MP16ShapeFunctions", &MPMStrategyType3D::MP16ShapeFunctions)
     .def( "MP33ShapeFunctions", &MPMStrategyType3D::MP33ShapeFunctions)

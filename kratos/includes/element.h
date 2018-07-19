@@ -262,8 +262,11 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	std::cout<<" Call base class element Clone "<<std::endl;
-        return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+	KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl; 
+        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties()); 
+        p_new_elem->SetData(this->GetData());
+        p_new_elem->Set(Flags(*this)); 
+        return p_new_elem; 
         KRATOS_CATCH("");
     }
 
@@ -747,6 +750,12 @@ public:
     {
     }
 
+    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+					      std::vector<int>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
@@ -789,6 +798,11 @@ public:
      */
 
     //SET ON INTEGRATION POINTS - METHODS
+    virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+					     std::vector<bool>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
     virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
 					     std::vector<int>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
@@ -1284,4 +1298,3 @@ KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
 
 } // namespace Kratos.
 #endif // KRATOS_ELEMENT_H_INCLUDED  defined
-

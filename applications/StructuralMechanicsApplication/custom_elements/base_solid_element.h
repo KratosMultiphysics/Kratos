@@ -121,7 +121,31 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
+
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    ///StressMeasure from constitutive laws
+    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// This is the definition of the node.
+    typedef Node<3> NodeType;
+
+    /// The base element type
+    typedef Element BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_POINTER_DEFINITION( BaseSolidElement );
 
@@ -141,6 +165,12 @@ public:
     BaseSolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Element(NewId,pGeometry,pProperties)
     {};
 
+    // Copy constructor
+    BaseSolidElement(BaseSolidElement const& rOther)
+        :BaseType(rOther)
+        ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
+    {};
+
     // Destructor
     ~BaseSolidElement() override
     {};
@@ -148,7 +178,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -210,6 +239,15 @@ public:
         ) override;
 
     /**
+     * @brief Returns the used integration method
+     * @return default integration method of the used Geometry
+     */
+    IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mThisIntegrationMethod;
+    }
+
+    /**
      * @brief Sets on rValues the nodal displacements
      * @param rValues The values of displacements
      * @param Step The step to be computed
@@ -252,9 +290,15 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
-
+    /**
+     * @brief This is called during the assembling process in order to calculate the elemental left hand side matrix only
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
@@ -299,6 +343,18 @@ public:
         ) override;
 
     /**
+     * @brief Calculate a integer Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained int the integration points
@@ -311,14 +367,26 @@ public:
         ) override;
         
     /**
-     * @brief Calculate a double array_1d on the Element Constitutive Law
+     * @brief Calculate a 3 components array_1d on the Element Constitutive Law
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained int the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable, 
-        std::vector<array_1d<double, 3>>& rOutput, 
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a 6 components array_1d on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        std::vector<array_1d<double, 6>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -343,6 +411,30 @@ public:
     void CalculateOnIntegrationPoints(
         const Variable<Matrix >& rVariable, 
         std::vector< Matrix >& rOutput, 
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+     /**
+      * @brief Set a bool Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+    void SetValueOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+     /**
+      * @brief Set a int Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+    void SetValueOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -382,15 +474,63 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-     /**
+    /**
       * @brief Set a Constitutive Law Value on the Element
       * @param rVariable The variable we want to set
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
       */
-    void SetValueOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
+     void SetValueOnIntegrationPoints(
+         const Variable<ConstitutiveLaw::Pointer>& rVariable,
+         std::vector<ConstitutiveLaw::Pointer>& rValues,
+         const ProcessInfo& rCurrentProcessInfo
+         ) override;
+
+     /**
+      * @brief Set a array of 3 compoenents Value on the Element
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+     void SetValueOnIntegrationPoints(
+         const Variable<array_1d<double, 3 > >& rVariable,
+         std::vector<array_1d<double, 3 > > rValues,
+         const ProcessInfo& rCurrentProcessInfo
+         ) override;
+
+     /**
+      * @brief Set a array of 6 compoenents Value on the Element
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+     void SetValueOnIntegrationPoints(
+         const Variable<array_1d<double, 6 > >& rVariable,
+         std::vector<array_1d<double, 6 > > rValues,
+         const ProcessInfo& rCurrentProcessInfo
+         ) override;
+
+    /**
+     * @brief Get on rVariable a bool Value from the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Get on rVariable a int Value from the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -407,14 +547,26 @@ public:
         ) override;
 
     /**
-     * @brief Get on rVariable a array_1d Value from the Element Constitutive Law
+     * @brief Get on rVariable a 3  components array_1d Value from the Element Constitutive Law
      * @param rVariable The variable we want to get
      * @param rValues The results in the integration points
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetValueOnIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable, 
-        std::vector<array_1d<double, 3>>& rValues, 
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Get on rVariable a 6 components array_1d Value from the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 6>>& rVariable,
+        std::vector<array_1d<double, 6>>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
         
@@ -489,7 +641,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
+    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
+
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     ///@}
@@ -539,7 +693,7 @@ protected:
      */ 
     virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         );
         
@@ -556,7 +710,7 @@ protected:
         KinematicVariables& rThisKinematicVariables, 
         ConstitutiveVariables& rThisConstitutiveVariables, 
         ConstitutiveLaw::Parameters& rValues,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
         );
@@ -581,7 +735,7 @@ protected:
         Matrix& rJ0, 
         Matrix& rInvJ0, 
         Matrix& rDN_DX, 
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
         );
     
@@ -598,7 +752,7 @@ protected:
         Matrix& rJ, 
         Matrix& rInvJ, 
         Matrix& rDN_DX, 
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
         );
     
@@ -609,7 +763,7 @@ protected:
      */ 
     Vector GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
+        const IndexType PointNumber
         ) const;
     
     /**
@@ -619,7 +773,7 @@ protected:
      * @param D The constitutive matrix
      * @param IntegrationWeight The integration weight of the corresponding Gauss point
      */
-    void CalculateAndAddKm(
+    virtual void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& B,
         const Matrix& D,
@@ -649,7 +803,7 @@ protected:
      * @param rStressVector The vector containing the stress components
      * @param IntegrationWeight The integration weight of the corresponding Gauss point
      */
-    void CalculateAndAddResidualVector(
+    virtual void CalculateAndAddResidualVector(
         VectorType& rRightHandSideVector,
         const KinematicVariables& rThisKinematicVariables,
         const ProcessInfo& rCurrentProcessInfo,
@@ -682,7 +836,7 @@ protected:
      */
     virtual double GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const double detJ
         );
 
