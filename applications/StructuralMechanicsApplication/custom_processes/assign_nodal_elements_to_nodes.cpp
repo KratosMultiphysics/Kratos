@@ -182,7 +182,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
     ModelPart& r_model_part = (model_part_name == "") ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
     r_model_part.AddProperties(p_properties);
 
-    // The constitutive law
+    // If the values to assign are functions (constant values) we create a constitutive law
     if (!mConstantValues) {
         const std::string& constitutive_law_name = mThisParameters["constitutive_law_name"].GetString();
         KRATOS_ERROR_IF_NOT(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) << "Please define a constitutive law compatible with the NodalConcentratedWithConstitutiveBehaviourElement" << std::endl;
@@ -200,7 +200,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
         ConstitutiveLaw::Pointer this_constitutive_law = KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Create(constitutive_law_parameters);
 
         p_properties->SetValue(CONSTITUTIVE_LAW, this_constitutive_law);
-    } else {
+    } else { // Otherwise we assign directly
         if (!mThisParameters["nodal_mass"].IsNull())
                 p_properties->SetValue(NODAL_MASS, mThisParameters["nodal_mass"].GetDouble());
         if (!mThisParameters["nodal_inertia"][0].IsNull() || !mThisParameters["nodal_inertia"][1].IsNull() || !mThisParameters["nodal_inertia"][2].IsNull()) {
