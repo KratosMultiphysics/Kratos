@@ -370,6 +370,7 @@ void NodalConcentratedElement::Initialize()
     if (HasProperties()) {
         // We check the nodal stiffness
         if (rconst_this.Has(NODAL_STIFFNESS) || GetProperties().Has(NODAL_STIFFNESS)) {
+            KRATOS_WARNING_IF("NodalConcentratedElement", rconst_this.Has(NODAL_STIFFNESS) && GetProperties().Has(NODAL_STIFFNESS)) << "NODAL_STIFFNESS is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, true);
             this->SetValue(INITIAL_DISPLACEMENT, zero_array);
         } else
@@ -378,35 +379,40 @@ void NodalConcentratedElement::Initialize()
         // We check the nodal rotational stiffness
         if (GetGeometry()[0].SolutionStepsDataHas(ROTATION_X) &&
             (rconst_this.Has(NODAL_ROTATIONAL_STIFFNESS) || GetProperties().Has(NODAL_ROTATIONAL_STIFFNESS))) {
+            KRATOS_WARNING_IF("NodalConcentratedElement", rconst_this.Has(NODAL_ROTATIONAL_STIFFNESS) && GetProperties().Has(NODAL_ROTATIONAL_STIFFNESS)) << "NODAL_ROTATIONAL_STIFFNESS is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, true);
             this->SetValue(INITIAL_ROTATION, zero_array);
         } else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, false);
 
         // We check the nodal mass
-        if (rconst_this.Has(NODAL_MASS) || GetProperties().Has(NODAL_MASS))
+        if (rconst_this.Has(NODAL_MASS) || GetProperties().Has(NODAL_MASS)) {
+            KRATOS_WARNING_IF("NodalConcentratedElement", rconst_this.Has(NODAL_MASS) && GetProperties().Has(NODAL_MASS)) << "NODAL_MASS is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, true);
-        else
+        } else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_MASS, false);
 
         // We check the nodal inertia
         if (GetGeometry()[0].SolutionStepsDataHas(ROTATION_X) &&
-            (rconst_this.Has(NODAL_INERTIA) || GetProperties().Has(NODAL_INERTIA)))
+            (rconst_this.Has(NODAL_INERTIA) || GetProperties().Has(NODAL_INERTIA))) {
+            KRATOS_WARNING_IF("NodalConcentratedElement", rconst_this.Has(NODAL_INERTIA) && GetProperties().Has(NODAL_INERTIA)) << "NODAL_INERTIA is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, true);
-        else
+        } else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_NODAL_INERTIA, false);
 
         // We check the damping ratio
-        if (rconst_this.Has(NODAL_DAMPING_RATIO) || GetProperties().Has(NODAL_DAMPING_RATIO))
+        if (rconst_this.Has(NODAL_DAMPING_RATIO) || GetProperties().Has(NODAL_DAMPING_RATIO)) {
+            KRATOS_WARNING_IF("NodalConcentratedElement", rconst_this.Has(NODAL_DAMPING_RATIO) && GetProperties().Has(NODAL_DAMPING_RATIO)) << "NODAL_DAMPING_RATIO is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, true);
-        else
+        } else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DAMPING_RATIO, false);
 
         // We check the rotational damping ratio
         if (GetGeometry()[0].SolutionStepsDataHas(ROTATION_X) &&
-            (rconst_this.Has(NODAL_ROTATIONAL_DAMPING_RATIO) || GetProperties().Has(NODAL_ROTATIONAL_DAMPING_RATIO)))
+            (rconst_this.Has(NODAL_ROTATIONAL_DAMPING_RATIO) || GetProperties().Has(NODAL_ROTATIONAL_DAMPING_RATIO))) {
+            KRATOS_WARNING_IF("NodalConcentratedElement", rconst_this.Has(NODAL_ROTATIONAL_DAMPING_RATIO) && GetProperties().Has(NODAL_ROTATIONAL_DAMPING_RATIO)) << "NODAL_ROTATIONAL_DAMPING_RATIO is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, true);
-        else
+        } else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
     } else {
         // We check the nodal stiffness
