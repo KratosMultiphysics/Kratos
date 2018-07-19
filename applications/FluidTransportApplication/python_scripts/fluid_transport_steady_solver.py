@@ -138,6 +138,7 @@ class FluidTransportSteadySolver(object):
     def Initialize(self):
 
         # Set ProcessInfo variables
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, 1)
 
         # Get the computing model parts
         self.computing_model_part = self.GetComputingModelPart()
