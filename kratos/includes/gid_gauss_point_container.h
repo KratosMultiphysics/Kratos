@@ -499,10 +499,10 @@ public:
     }
 
     /*******************************************************************************/
-    /*********************PrintNonHistoricalResults*********************************/
+    /*********************PrintLocalDataResults*********************************/
     /*******************************************************************************/
 
-    virtual void PrintNonHistoricalResults(
+    virtual void PrintLocalDataResults(
         GiD_FILE ResultFile,
         Variable<double> rVariable,
         ModelPart& rModelPart,
@@ -539,7 +539,7 @@ public:
         }
     }
 
-    virtual void PrintNonHistoricalResults(
+    virtual void PrintLocalDataResults(
         GiD_FILE ResultFile,
         Variable<int> rVariable,
         ModelPart& rModelPart,
@@ -576,7 +576,7 @@ public:
     }
 
 
-    virtual void PrintNonHistoricalResults(
+    virtual void PrintLocalDataResults(
         GiD_FILE ResultFile,
         Variable<array_1d<double,3> > rVariable,
         ModelPart& rModelPart,
@@ -614,7 +614,7 @@ public:
         }
     }
 
-    virtual void PrintNonHistoricalResults(
+    virtual void PrintLocalDataResults(
         GiD_FILE ResultFile,
         Variable<array_1d<double,6> > rVariable,
         ModelPart& rModelPart,
@@ -657,7 +657,7 @@ public:
     }
 
 
-    virtual void PrintNonHistoricalResults(
+    virtual void PrintLocalDataResults(
         GiD_FILE ResultFile,
         Variable<Vector> rVariable,
         ModelPart& rModelPart,
@@ -702,7 +702,7 @@ public:
         }
     }
 
-    virtual void PrintNonHistoricalResults(
+    virtual void PrintLocalDataResults(
         GiD_FILE ResultFile,
         Variable<Matrix> rVariable,
         ModelPart& rModelPart,

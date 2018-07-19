@@ -1569,7 +1569,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
      * @param rVariable the given variable name
      * @param rModelPart the current model part
      */
-    virtual void PrintNonHistoricalOnGaussPoints(
+    virtual void PrintLocalDataOnGaussPoints(
         const Variable<double>& rVariable,
         ModelPart& rModelPart,
         double SolutionTag,
@@ -1581,7 +1581,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
         Timer::Start("Writing Non-Historical Results");
 
         for ( auto it =  mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
-            it->PrintNonHistoricalResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+            it->PrintLocalDataResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Non-Historical Results");
@@ -1594,7 +1594,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
      * @param rVariable the given variable name
      * @param rModelPart the current model part
      */
-    virtual void PrintNonHistoricalOnGaussPoints(
+    virtual void PrintLocalDataOnGaussPoints(
         const Variable<int>& rVariable,
         ModelPart& rModelPart,
         double SolutionTag,
@@ -1606,7 +1606,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
         Timer::Start("Writing Non-Historical Results");
 
         for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
-            it->PrintNonHistoricalResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+            it->PrintLocalDataResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Non-Historical Results");
@@ -1619,7 +1619,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
      * @param rVariable the given variable name
      * @param rModelPart the current model part
      */
-    virtual void PrintNonHistoricalOnGaussPoints(
+    virtual void PrintLocalDataOnGaussPoints(
         const Variable<array_1d<double,3> >& rVariable,
         ModelPart& rModelPart,
         double SolutionTag,
@@ -1631,7 +1631,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
         Timer::Start("Writing Non-Historical Results");
 
         for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
-            it->PrintNonHistoricalResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+            it->PrintLocalDataResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Non-Historical Results");
@@ -1644,7 +1644,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
      * @param rVariable the given variable name
      * @param rModelPart the current model part
      */
-    virtual void PrintNonHistoricalOnGaussPoints(
+    virtual void PrintLocalDataOnGaussPoints(
         const Variable<Vector>& rVariable,
         ModelPart& rModelPart,
         double SolutionTag,
@@ -1655,7 +1655,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
         Timer::Start("Writing Non-Historical Results");
 
         for ( auto it =  mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
-            it->PrintNonHistoricalResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+            it->PrintLocalDataResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Non-Historical Results");
@@ -1668,7 +1668,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
      * @param rVariable the given variable name
      * @param rModelPart the current model part
      */
-    virtual void PrintNonHistoricalOnGaussPoints(
+    virtual void PrintLocalDataOnGaussPoints(
         const Variable<Matrix>& rVariable,
         ModelPart& rModelPart,
         double SolutionTag,
@@ -1678,7 +1678,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
         KRATOS_TRY;
         Timer::Start("Writing Non-Historical Results");
         for ( auto it =  mGidGaussPointContainers.begin();  it != mGidGaussPointContainers.end(); it++ ) {
-            it->PrintNonHistoricalResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+            it->PrintLocalDataResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Non-Historical Results");

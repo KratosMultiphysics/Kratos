@@ -104,34 +104,34 @@ void MatrixPrintOnGaussPoints( GidIO<>& dummy, const Variable<Matrix>& rVariable
     dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
-void DoublePrintNonHistoricalOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
+void DoublePrintLocalDataOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintNonHistoricalOnGaussPoints( rVariable, rModelPart, SolutionTag );
+    dummy.PrintLocalDataOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
-void IntPrintNonHistoricalOnGaussPoints( GidIO<>& dummy, const Variable<int>& rVariable,
+void IntPrintLocalDataOnGaussPoints( GidIO<>& dummy, const Variable<int>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintNonHistoricalOnGaussPoints( rVariable, rModelPart, SolutionTag );
+    dummy.PrintLocalDataOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
-void Array1DPrintNonHistoricalOnGaussPoints( GidIO<>& dummy, const Variable<array_1d<double,3> >& rVariable,
+void Array1DPrintLocalDataOnGaussPoints( GidIO<>& dummy, const Variable<array_1d<double,3> >& rVariable,
                                 ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintNonHistoricalOnGaussPoints( rVariable, rModelPart, SolutionTag );
+    dummy.PrintLocalDataOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
-void VectorPrintNonHistoricalOnGaussPoints( GidIO<>& dummy, const Variable<Vector>& rVariable,
+void VectorPrintLocalDataOnGaussPoints( GidIO<>& dummy, const Variable<Vector>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintNonHistoricalOnGaussPoints( rVariable, rModelPart, SolutionTag );
+    dummy.PrintLocalDataOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
-void MatrixPrintNonHistoricalOnGaussPoints( GidIO<>& dummy, const Variable<Matrix>& rVariable,
+void MatrixPrintLocalDataOnGaussPoints( GidIO<>& dummy, const Variable<Matrix>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintNonHistoricalOnGaussPoints( rVariable, rModelPart, SolutionTag );
+    dummy.PrintLocalDataOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void (GidIO<>::*pointer_to_bool_write_nodal_results)( Variable<bool> const& rVariable,
@@ -286,11 +286,11 @@ void  AddIOToPython(pybind11::module& m)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)
-    .def("PrintNonHistoricalOnGaussPoints", DoublePrintNonHistoricalOnGaussPoints)
-    .def("PrintNonHistoricalOnGaussPoints", IntPrintNonHistoricalOnGaussPoints)
-    .def("PrintNonHistoricalOnGaussPoints", Array1DPrintNonHistoricalOnGaussPoints)
-    .def("PrintNonHistoricalOnGaussPoints", VectorPrintNonHistoricalOnGaussPoints)
-    .def("PrintNonHistoricalOnGaussPoints", MatrixPrintNonHistoricalOnGaussPoints)
+    .def("PrintLocalDataOnGaussPoints", DoublePrintLocalDataOnGaussPoints)
+    .def("PrintLocalDataOnGaussPoints", IntPrintLocalDataOnGaussPoints)
+    .def("PrintLocalDataOnGaussPoints", Array1DPrintLocalDataOnGaussPoints)
+    .def("PrintLocalDataOnGaussPoints", VectorPrintLocalDataOnGaussPoints)
+    .def("PrintLocalDataOnGaussPoints", MatrixPrintLocalDataOnGaussPoints)
 
 
 //                     .def("PrintOnGaussPoints", pointer_to_vector_print_on_gauss_points)
