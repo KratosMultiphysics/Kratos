@@ -219,6 +219,47 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "Order"_a)
         ;
     }
+
+    // register IntegrationPoint1
+    {
+        using Type = ANurbs::IntegrationPoint1<double>;
+
+        pybind11::class_<Type>(m, "IntegrationPoint1")
+            .def("__iter__", 
+                [](const Type &self) {
+                    return pybind11::make_iterator(&self.t, &self.t + 2);
+                }, pybind11::keep_alive<0, 1>())
+            .def_readwrite("t", &Type::t)
+            .def_readwrite("weight", &Type::weight)
+        ;
+    }
+
+    // register IntegrationPoint2
+    {
+        using Type = ANurbs::IntegrationPoint2<double>;
+
+        pybind11::class_<Type>(m, "IntegrationPoint2")
+            .def_readwrite("u", &Type::u)
+            .def_readwrite("v", &Type::v)
+            .def_readwrite("weight", &Type::weight)
+        ;
+    }
+
+    // register IntegrationPoints
+    {
+        using Type = ANurbs::IntegrationPoints<double>;
+
+        pybind11::class_<Type>(m, "IntegrationPoints")
+            .def_static("Points1", &Type::Points1,
+                "Degree"_a,
+                "Domain"_a)
+            .def_static("Points2", &Type::Points2,
+                "DegreeU"_a,
+                "DegreeV"_a,
+                "DomainU"_a,
+                "DomainV"_a)
+        ;
+    }
 }
 
 } // namespace Python
