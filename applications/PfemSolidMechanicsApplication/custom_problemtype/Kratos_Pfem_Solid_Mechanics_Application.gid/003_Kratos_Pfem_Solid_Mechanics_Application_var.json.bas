@@ -951,6 +951,8 @@
 				      "STRESS_INV_J2",
 				      "STRESS_INV_THETA",
 				      "PLASTIC_STRAIN",
+				      "PS",
+				      "PM",
                                       "INCR_SHEAR_PLASTIC"	
 				    ],
 	    "additional_list_files": [

@@ -114,6 +114,8 @@ namespace Kratos
                   const Vector& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
     
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue )  override;
+
     ///@}
     ///@name Inquiry
     ///@{

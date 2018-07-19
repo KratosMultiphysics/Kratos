@@ -92,6 +92,11 @@ namespace Kratos
          ///@name Inquiry
          ///@{
 
+         ///@}
+         ///@name Access
+         ///@{
+
+         double& GetValue(const Variable<double> & , double& rValue) override;
 
          ///@}
          ///@name Input and output

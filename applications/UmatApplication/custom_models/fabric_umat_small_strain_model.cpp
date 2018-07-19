@@ -104,7 +104,7 @@ namespace Kratos
       rStateVariables(0) = 6.92; // void ratio
       rStateVariables(7) = -1000.0; // PS
       rStateVariables(8) = -1000.0; // PM
-      rStateVariables(9) = -2000.0; // plastic multiplier
+      rStateVariables(9) = -2000.0; // PS+PM == PC
 
       rStateVariables(0) = rMaterialProperties[VOID_RATIO]; // void ratio
       rStateVariables(7) = rMaterialProperties[PS]; // PS
@@ -114,4 +114,23 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
+   double& FabricSmallStrainUmatModel::GetValue(const Variable<double> & rVariable, double& rValue)
+   {
+      KRATOS_TRY
+     
+      if ( rVariable == PS)
+      {
+         rValue = mStateVariablesFinalized[7];
+      } else if ( rVariable == PM ) {
+         rValue = mStateVariablesFinalized[8];
+      } else if ( rVariable == VOID_RATIO) {
+         rValue = mStateVariablesFinalized[9];
+      } else if ( rVariable == PLASTIC_MULTIPLIER) {
+         rValue = mStateVariablesFinalized[0];
+      }
+
+      return rValue;
+      
+      KRATOS_CATCH("")
+   }
 } // Namespace Kratos
