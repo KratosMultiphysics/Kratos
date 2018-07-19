@@ -218,7 +218,6 @@ private:
     
     ModelPart& mrThisModelPart;   /// The main model part
     Parameters mThisParameters;   /// The parameters (can be used for general pourposes)
-    bool mConstantValues = true;  /// If the values to assign are constant or functions
 
     ///@}
     ///@name Private Operators

@@ -19,8 +19,6 @@ class AssignNodalElementsToNodes(KratosMultiphysics.Process):
             "sub_model_part_name"            : "",
             "rayleigh_damping"               : false,
             "assign_active_flag_node"        : true,
-            "constitutive_law_name"          : "SpringConstitutiveLaw",
-            "additional_dependence_variables": [],
             "interval"                       : [0.0, 1e30]
         }
         """
@@ -37,10 +35,6 @@ class AssignNodalElementsToNodes(KratosMultiphysics.Process):
             to_validate_parameters.AddValue("rayleigh_damping", settings["rayleigh_damping"])
         if (settings.Has("assign_active_flag_node")):
             to_validate_parameters.AddValue("assign_active_flag_node", settings["assign_active_flag_node"])
-        if (settings.Has("constitutive_law_name")):
-            to_validate_parameters.AddValue("constitutive_law_name", settings["constitutive_law_name"])
-        if (settings.Has("additional_dependence_variables")):
-            to_validate_parameters.AddValue("additional_dependence_variables", settings["additional_dependence_variables"])
         if (settings.Has("interval")):
             to_validate_parameters.AddValue("interval", settings["interval"])
 
@@ -66,14 +60,6 @@ class AssignNodalElementsToNodes(KratosMultiphysics.Process):
             settings.SetValue("assign_active_flag_node", to_validate_parameters["assign_active_flag_node"])
         else:
             settings.AddValue("assign_active_flag_node", to_validate_parameters["assign_active_flag_node"])
-        if (settings.Has("constitutive_law_name")):
-            settings.SetValue("constitutive_law_name", to_validate_parameters["constitutive_law_name"])
-        else:
-            settings.AddValue("constitutive_law_name", to_validate_parameters["constitutive_law_name"])
-        if (settings.Has("additional_dependence_variables")):
-            settings.SetValue("additional_dependence_variables", to_validate_parameters["additional_dependence_variables"])
-        else:
-            settings.AddValue("additional_dependence_variables", to_validate_parameters["additional_dependence_variables"])
         if (settings.Has("interval")):
             settings.SetValue("interval", to_validate_parameters["interval"])
         else:
@@ -123,7 +109,6 @@ class AssignNodalElementsToNodes(KratosMultiphysics.Process):
         process_parameters.AddValue("nodal_rotational_stiffness", self.settings["nodal_rotational_stiffness"])
         process_parameters.AddValue("nodal_damping_ratio", self.settings["nodal_damping_ratio"])
         process_parameters.AddValue("nodal_rotational_damping_ratio", self.settings["nodal_rotational_damping_ratio"])
-        process_parameters.AddValue("additional_dependence_variables", self.settings["additional_dependence_variables"])
         process_parameters.AddValue("interval", self.settings["interval"])
         self.assign_nodal_elements_to_nodes = StructuralMechanicsApplication.AssignNodalElementsToNodes(self.main_model_part, process_parameters)
 

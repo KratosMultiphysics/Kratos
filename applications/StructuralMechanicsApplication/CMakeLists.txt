@@ -85,7 +85,6 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
 
   # Adding the nodal concentrated element (generalized spring)
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_with_constitutive_behaviour_element.cpp
 
   # Adding the spring + damper element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spring_damper_element_3D2N.cpp

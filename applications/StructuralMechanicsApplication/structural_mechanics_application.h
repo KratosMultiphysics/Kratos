@@ -48,7 +48,6 @@
 
 /* Springs elements */
 #include "custom_elements/nodal_concentrated_element.h"
-#include "custom_elements/nodal_concentrated_with_constitutive_behaviour_element.h"
 
 /* Adding the spring damper element */
 #include "custom_elements/spring_damper_element_3D2N.hpp"
@@ -290,10 +289,6 @@ private:
     const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
     const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
-    const NodalConcentratedWithConstitutiveBehaviourElement mNodalConcentratedWithConstitutiveBehaviourElement2D1N;
-    const NodalConcentratedWithConstitutiveBehaviourElement mNodalConcentratedWithConstitutiveBehaviourDampedElement2D1N;
-    const NodalConcentratedWithConstitutiveBehaviourElement mNodalConcentratedWithConstitutiveBehaviourElement3D1N;
-    const NodalConcentratedWithConstitutiveBehaviourElement mNodalConcentratedWithConstitutiveBehaviourDampedElement3D1N;
 
     // Linear kinematic elements
     const SmallDisplacement mSmallDisplacement2D3N;
