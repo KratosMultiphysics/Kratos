@@ -28,10 +28,11 @@
 namespace Kratos {
 namespace Python {
 
-namespace py = pybind11;
 
 PYBIND11_MODULE(KratosMappingApplication, m)
 {
+    namespace py = pybind11;
+
     py::class_<KratosMappingApplication,
         KratosMappingApplication::Pointer,
         KratosApplication >(m,"KratosMappingApplication")
