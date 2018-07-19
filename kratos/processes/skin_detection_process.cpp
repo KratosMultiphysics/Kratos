@@ -139,8 +139,8 @@ void SkinDetectionProcess<TDim>::Execute()
     if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
     } else {
-        ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
 
+        ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
         auto& nodes_array = r_auxiliar_model_part.Nodes();
     
         #pragma omp parallel for 

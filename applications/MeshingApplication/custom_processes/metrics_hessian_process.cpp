@@ -38,11 +38,12 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
             "estimate_interpolation_error"         : false,
             "interpolation_error"                  : 1.0e-6,  
             "mesh_dependent_constant"              : 0.28125 
-        }, 
+        },
         "anisotropy_remeshing"                : true, 
         "anisotropy_parameters":
         {
-            "hmin_over_hmax_anisotropic_ratio"     : 1.0, 
+            "reference_variable_name"              : "DISTANCE",
+            "hmin_over_hmax_anisotropic_ratio"     : 1.0,
             "boundary_layer_max_distance"          : 1.0, 
             "interpolation"                        : "Linear"
         }
@@ -58,10 +59,12 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
         mEstimateInterpError = default_parameters["hessian_strategy_parameters"]["estimate_interpolation_error"].GetBool();
         mInterpError = default_parameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
         mMeshConstant = default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
+        mRatioReferenceVariable = default_parameters["anisotropy_parameters"]["reference_variable_name"].GetString();
         mAnisotropicRatio = default_parameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = default_parameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(default_parameters["anisotropy_parameters"]["interpolation"].GetString());
     } else {
+        mRatioReferenceVariable = ThisParameters["hessian_strategy_parameters"]["reference_variable_name"].GetString();
         mEstimateInterpError = ThisParameters["hessian_strategy_parameters"]["estimate_interpolation_error"].GetBool();
         mInterpError = ThisParameters["hessian_strategy_parameters"]["interpolation_error"].GetDouble();
         mMeshConstant = ThisParameters["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble();
@@ -87,21 +90,29 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
     VariableUtils().CheckVariableExists(mVariable, nodes_array);
     VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
     
-    #pragma omp parallel for 
+    // Ratio reference variable
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
+    const auto& reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+
+    #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {
         auto it_node = nodes_array.begin() + i;
-        
-        const double distance = it_node->FastGetSolutionStepValue(DISTANCE); // TODO: This should be changed for the varaible of interestin the future. This means that the value of the boundary value would be changed to a threshold value instead
+
         const Vector& hessian = it_node->GetValue(AUXILIAR_HESSIAN);
 
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
         const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);            
         
-        double element_min_size = mMinSize;
-        if ((element_min_size > nodal_h) && (mEnforceCurrent == true)) element_min_size = nodal_h;
-        double element_max_size = mMaxSize;
-        if ((element_max_size > nodal_h) && (mEnforceCurrent == true)) element_max_size = nodal_h;
+        const double element_min_size = ((element_min_size > nodal_h) && mEnforceCurrent) ? nodal_h : mMinSize;
+        const double element_max_size = ((element_max_size > nodal_h) && mEnforceCurrent) ? nodal_h : mMaxSize;
 
-        const double ratio = CalculateAnisotropicRatio(distance, mAnisotropicRatio, mBoundLayer, mInterpolation);
+        // Isotropic by default
+        double ratio = 1.0;
+
+        if (it_node->SolutionStepsDataHas(reference_var)) {
+            const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
+            ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);
+        }
         
         // For postprocess pourposes
         it_node->SetValue(ANISOTROPIC_RATIO, ratio); 
@@ -141,7 +152,7 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     
     // Calculating Metric parameters
     double interpolation_error = mInterpError;
-    if (mEstimateInterpError == true)
+    if (mEstimateInterpError)
             interpolation_error = 2.0/9.0 * MathUtils<double>::Max(ElementMaxSize, ElementMaxSize * norm_frobenius(hessian_matrix));
     
     KRATOS_ERROR_IF(interpolation_error < std::numeric_limits<double>::epsilon()) << "ERROR: YOUR INTERPOLATION ERROR IS NEAR ZERO: " << interpolation_error << std::endl;

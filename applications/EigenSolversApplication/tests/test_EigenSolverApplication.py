@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from test_eigen_direct_solver import TestEigenDirectSolver as TTestEigenDirectSolver
 
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -41,4 +41,4 @@ def AssambleTestSuites():
 
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())

@@ -17,7 +17,7 @@ import test_trilinos_matrix
 import test_trilinos_redistance
 import test_trilinos_levelset_convection
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -56,4 +56,4 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
