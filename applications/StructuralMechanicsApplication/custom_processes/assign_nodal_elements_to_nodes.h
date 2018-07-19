@@ -44,8 +44,8 @@ namespace Kratos
 /** 
  * @class AssignNodalElementsToNodes
  * @ingroup StructuralMechanicsApplication
- * @brief This
- * @details It
+ * @brief This process assign nodal elements to a submodelpart of nodes
+ * @details The nodal elements assigned can be of constant properties or dependent of a CL
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AssignNodalElementsToNodes
