@@ -23,7 +23,6 @@
 #include "includes/properties.h"
 #include "includes/element.h"
 #include "includes/condition.h"
-#include "includes/master_slave_constraint.h"
 #include "python/add_mesh_to_python.h"
 #include "python/containers_interface.h"
 
@@ -51,7 +50,7 @@ typename TVariableType::Type GetValueHelperFunction(TContainerType& el, const TV
     return el.GetValue(rVar);
 }
 
-typedef Mesh<Node<3>, Properties, Element, Condition, MasterSlaveConstraint> MeshType;
+typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
 typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;

@@ -28,7 +28,6 @@
 #include "includes/mesh.h"
 #include "includes/element.h"
 #include "includes/condition.h"
-#include "includes/master_slave_constraint.h"
 #include "includes/model_part.h"
 
 
@@ -76,7 +75,7 @@ public:
 
     typedef Node<3> NodeType;
 
-    typedef Mesh<NodeType, Properties, Element, Condition, MasterSlaveConstraint> MeshType;
+    typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
 
     typedef MeshType::NodesContainerType NodesContainerType;
 

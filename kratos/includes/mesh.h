@@ -35,6 +35,7 @@
 #include "geometries/geometry.h"
 #include "containers/flags.h"
 #include "containers/data_value_container.h"
+#include "includes/master_slave_constraint.h"
 
 
 namespace Kratos
@@ -67,7 +68,7 @@ namespace Kratos
  * procedures like mesh refinement, material optimization, mesh movement or any other procedure which works on entities 
  * without needing additional data for their processes.
 */
-template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType, class TMasterSlaveConstraintType>
+template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
 class Mesh : public DataValueContainer, public Flags
 {
 public:
@@ -93,7 +94,9 @@ public:
 
     typedef TConditionType ConditionType;
 
-    typedef Mesh<TNodeType, TPropertiesType, TElementType, TConditionType, TMasterSlaveConstraintType> MeshType;
+    typedef MasterSlaveConstraint MasterSlaveConstraintType;
+
+    typedef Mesh<TNodeType, TPropertiesType, TElementType, TConditionType> MeshType;
 
     /// Nodes container. Which is a vector set of nodes with their Id's as key.
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
@@ -159,7 +162,6 @@ public:
     typedef typename ConditionsContainerType::const_iterator ConditionConstantIterator;
 
     // Defining the constraint base type
-    typedef TMasterSlaveConstraintType MasterSlaveConstraintType;
 
     /// The container of the constraints
     typedef PointerVectorSet<MasterSlaveConstraintType, IndexedObject> MasterSlaveConstraintContainerType;
@@ -1004,14 +1006,14 @@ private:
 
 
 /// input stream function
-template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType, class TMasterSlaveConstraintType>
+template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  Mesh<TNodeType, TPropertiesType, TElementType, TConditionType, TMasterSlaveConstraintType>& rThis);
+                                  Mesh<TNodeType, TPropertiesType, TElementType, TConditionType>& rThis);
 
 /// output stream function
-template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType, class TMasterSlaveConstraintType>
+template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Mesh<TNodeType, TPropertiesType, TElementType, TConditionType, TMasterSlaveConstraintType>& rThis)
+                                  const Mesh<TNodeType, TPropertiesType, TElementType, TConditionType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

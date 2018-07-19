@@ -126,9 +126,8 @@ public:
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;
-    typedef MasterSlaveConstraint MasterSlaveConstraintType;
 
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType, MasterSlaveConstraintType> MeshType;
+    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
 
     typedef PointerVector<MeshType> MeshesContainerType;
 
@@ -223,6 +222,7 @@ public:
      *
      */
     /// The container of the constraints
+    typedef MeshType::MasterSlaveConstraintType MasterSlaveConstraintType;
     typedef MeshType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
 
     /** Iterator over the constraints. This iterator is an indirect

@@ -23,7 +23,6 @@
 #include "includes/mesh.h"
 #include "includes/element.h"
 #include "includes/condition.h"
-#include "includes/master_slave_constraint.h"
 #include "includes/properties.h"
 #include "includes/constitutive_law.h"
 #include "python/add_mesh_to_python.h"
@@ -35,7 +34,7 @@ namespace Python
 {
 using namespace pybind11;
 
-typedef Mesh<Node<3>, Properties, Element, Condition, MasterSlaveConstraint> MeshType;
+typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 
 
