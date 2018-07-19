@@ -33,8 +33,6 @@
 namespace Kratos {
 namespace Python {
 
-namespace py = pybind11;
-
 // Wrapper functions for taking a default argument for the flags // TODO inline? Jordi
 inline void UpdateInterfaceWithoutArgs(Mapper& dummy)
 {
@@ -89,6 +87,7 @@ inline void InverseMapWithoutOptionsVector(Mapper& dummy,
 
 void  AddCustomMappersToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
 
     void (Mapper::*pMapScalarOptions)(const Variable<double> &,
             const Variable<double> &,
