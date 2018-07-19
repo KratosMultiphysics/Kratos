@@ -26,6 +26,7 @@
 #include "structural_mechanics_application_variables.h"
 
 /* ELEMENTS */
+#include "custom_elements/rocco_ring_element.hpp"
 
 /* Adding truss element */
 #include "custom_elements/truss_element_3D2N.hpp"
@@ -253,6 +254,8 @@ private:
 
 
     /* ELEMENTS */
+
+    const RoccoRingElement mRoccoRingElement3D4N;
 
     // Adding the truss element
     const TrussElement3D2N mTrussElement3D2N;

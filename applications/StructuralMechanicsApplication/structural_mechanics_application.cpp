@@ -55,6 +55,7 @@ namespace Kratos {
 KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
     : KratosApplication("StructuralMechanicsApplication"),
       /* ELEMENTS */
+      mRoccoRingElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       // Adding the truss elements
       mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -323,6 +324,8 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Response function variables
     KRATOS_REGISTER_VARIABLE(RESPONSE_VALUE)
+
+    KRATOS_REGISTER_ELEMENT("RoccoRingElement3D4N", mRoccoRingElement3D4N)
 
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)

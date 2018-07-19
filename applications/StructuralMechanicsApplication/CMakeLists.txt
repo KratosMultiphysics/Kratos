@@ -20,7 +20,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/static_condensation_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/formfinding_io_utility.cpp
-  
+
 
   ## PROCESSES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/postprocess_eigenvalues_process.cpp
@@ -49,6 +49,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
 
   ## ELEMENTS
+
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rocco_ring_element.cpp
+
   #Adding truss element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_linear_3D2N.cpp
