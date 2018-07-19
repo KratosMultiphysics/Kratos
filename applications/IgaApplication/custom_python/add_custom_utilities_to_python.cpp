@@ -56,6 +56,90 @@ void AddCustomUtilitiesToPython(py::module& m)
         ;
     }
 
+    // register CurveShapeEvaluator
+    {
+        using Type = ANurbs::CurveShapeEvaluator<double>;
+
+        pybind11::class_<Type>(m, "CurveShapeEvaluator")
+            .def(pybind11::init<int, int>(),
+                "Degree"_a,
+                "Order"_a)
+            .def("Resize", &Type::Resize,
+                "Degree"_a,
+                "Order"_a)
+            .def_property_readonly("Degree", &Type::Degree)
+            .def_property_readonly("Order", &Type::Order)
+            .def_property_readonly("NumberOfNonzeroPoles",
+                &Type::NbNonzeroPoles)
+            .def_property_readonly("FirstNonzeroPole",
+                &Type::FirstNonzeroPole)
+            .def_property_readonly("LastNonzeroPole",
+                &Type::LastNonzeroPole)
+            .def_property_readonly("NumberOfShapes", &Type::NbShapes)
+            .def("__call__", &Type::Value,
+                "Order"_a,
+                "Pole"_a)
+            .def("Compute", &Type::Compute<std::vector<double>>,
+                "Knots"_a,
+                "T"_a)
+            .def("Compute", &Type::Compute<std::vector<double>,
+                std::vector<double>>,
+                "Knots"_a,
+                "Weights"_a,
+                "T"_a)
+        ;
+    }
+
+    // register CurveShapeEvaluator
+    {
+        using Type = ANurbs::SurfaceShapeEvaluator<double>;
+
+        pybind11::class_<Type>(m, "SurfaceShapeEvaluator")
+            .def(pybind11::init<int, int, int>(),
+                "DegreeU"_a,
+                "DegreeV"_a,
+                "Order"_a)
+            .def("Resize", &Type::Resize,
+                "DegreeU"_a,
+                "DegreeV"_a,
+                "Order"_a)
+            .def_property_readonly("DegreeU", &Type::DegreeU)
+            .def_property_readonly("DegreeV", &Type::DegreeV)
+            .def_property_readonly("Order", &Type::Order)
+            .def_property_readonly("NumberOfShapes", (int (Type::*)(void) const)
+                &Type::NbShapes)
+            .def_property_readonly("NumberOfNonzeroPolesU",
+                &Type::NbNonzeroPolesU)
+            .def_property_readonly("NumberOfNonzeroPolesV",
+                &Type::NbNonzeroPolesV)
+            .def_property_readonly("FirstNonzeroPoleU",
+                &Type::FirstNonzeroPoleU)
+            .def_property_readonly("FirstNonzeroPoleV",
+                &Type::FirstNonzeroPoleV)
+            .def_property_readonly("LastNonzeroPoleU",
+                &Type::LastNonzeroPoleU)
+            .def_property_readonly("LastNonzeroPoleV",
+                &Type::LastNonzeroPoleV)
+            .def("__call__", (double (Type::*)(const int, const int, const int)
+                const) &Type::operator(),
+                "Derivative"_a,
+                "PoleU"_a,
+                "PoleV"_a)
+            .def("Compute", &Type::Compute<std::vector<double>>,
+                "KnotsU"_a,
+                "KnotsV"_a,
+                "U"_a,
+                "V"_a)
+            .def("Compute", &Type::Compute<std::vector<double>,
+                ANurbs::Grid<double>>,
+                "KnotsU"_a,
+                "KnotsV"_a,
+                "Weights"_a,
+                "U"_a,
+                "V"_a)
+        ;
+    }
+
     // register NodeCurveGeometry
     {
         using Type = NodeCurveGeometry3D;
