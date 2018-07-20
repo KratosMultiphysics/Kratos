@@ -1321,7 +1321,7 @@ private:
 	    //getting the data of the solution step
 	    double* step_data = (pnode)->SolutionStepData().Data(step);
 				
-	    if (point1>2 or point1<0 or point2>2 or point2<0 or (point1==point2))
+	    if (point1>2 || point1<0 || point2>2 || point2<0 || (point1==point2))
 	    {
 		KRATOS_WATCH(point1)
 		KRATOS_WATCH(point2)
