@@ -167,7 +167,7 @@ class MmgProcess(KratosMultiphysics.Process):
             mesh_dependent_constant = self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if (mesh_dependent_constant == 0.0):
                 self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
-        elif (self.strategy == "SPR"):
+        elif (self.strategy == "superconvergent_patch_recovery"):
             self.error_threshold = self.settings["spr_set_strategy_parameters"]["error_parameters"]["error_threshold"].GetDouble()
             self.estimated_error = 0
             self.remeshing_cycle = 0
@@ -239,14 +239,14 @@ class MmgProcess(KratosMultiphysics.Process):
                             self.step = 0  # Reset
 
     def ExecuteFinalizeSolutionStep(self):
-        if (self.strategy == "SPR"):
+        if (self.strategy == "superconvergent_patch_recovery"):
             self._ErrorCalculation()
 
     def ExecuteBeforeOutputStep(self):
         pass
 
     def ExecuteAfterOutputStep(self):
-        if (self.strategy == "SPR"):
+        if (self.strategy == "superconvergent_patch_recovery"):
             if (self.model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE] > self.error_threshold):
                 self.__execute_refinement()
             self.remeshing_cycle += 1
@@ -307,7 +307,7 @@ class MmgProcess(KratosMultiphysics.Process):
                             self.model_part,
                             current_metric_variable,
                             hessian_parameters))
-        elif (self.strategy == "SPR"):
+        elif (self.strategy == "superconvergent_patch_recovery"):
             spr_parameters = KratosMultiphysics.Parameters("""{}""")
             spr_parameters.AddValue("minimal_size",self.settings["minimal_size"])
             spr_parameters.AddValue("maximal_size",self.settings["maximal_size"])
