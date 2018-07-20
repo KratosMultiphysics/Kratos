@@ -513,11 +513,6 @@ const ModelPart::MasterSlaveConstraintContainerType& ModelPartGetMasterSlaveCons
     return rModelPart.MasterSlaveConstraints();
 }
 
-void ModelPartSetMasterSlaveConstraints1(ModelPart& rModelPart, const ModelPart::MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
-{
-    rModelPart.SetMasterSlaveConstraints(pOtherMasterSlaveConstraints);
-}
-
 ModelPart::SizeType ModelPartNumberOfMasterSlaveConstraints1(ModelPart& rModelPart)
 {
 	return rModelPart.NumberOfMasterSlaveConstraints();

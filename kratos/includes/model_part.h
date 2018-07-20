@@ -631,11 +631,6 @@ public:
         return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
 
-    void SetMasterSlaveConstraints(MasterSlaveConstraintContainerType::Pointer rOtherMasterSlaveConstraints, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).SetMasterSlaveConstraints(rOtherMasterSlaveConstraints);
-    }
-
     MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).MasterSlaveConstraintsBegin();
