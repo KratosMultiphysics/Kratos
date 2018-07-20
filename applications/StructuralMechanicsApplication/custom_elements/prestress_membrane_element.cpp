@@ -1307,8 +1307,8 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
     this->SetValue(PRESTRESS_AXIS_1, prestress_direction1);
     this->SetValue(PRESTRESS_AXIS_2, prestress_direction2);
 
-    if(GetProperties().Has(PROJECTION_TYPE_COMBO)){
-        if(GetProperties()[PROJECTION_TYPE_COMBO] != "file"){
+    // if(GetProperties().Has(PROJECTION_TYPE_COMBO)){
+    //     if(GetProperties()[PROJECTION_TYPE_COMBO] != "file"){
             if(GetProperties().Has(PRESTRESS_VECTOR)){
                 Matrix& prestress_variable = this->GetValue(MEMBRANE_PRESTRESS);
                 Matrix& prestress_axis_1 = this->GetValue(PRESTRESS_AXIS_1);
@@ -1357,8 +1357,8 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
                     }
                 }
             }
-        }
-    }
+    //     }
+    // }
 }
 
 //***********************************************************************************
