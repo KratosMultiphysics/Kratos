@@ -872,7 +872,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })
 
-		.def_property("MasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1, ModelPartSetMasterSlaveConstraints1)
+		.def_property_readonly("MasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
 		.def("GetMasterSlaveConstraint", ModelPartGetMasterSlaveConstraint1)
 		.def("GetMasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
 		.def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint1)
