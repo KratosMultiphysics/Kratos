@@ -22,8 +22,15 @@ namespace Kratos
 class SmallDisplacementThermoMechanicElement : public SmallDisplacementElement
 {
 
+  
+  
 public:
+  
+    ///Type for element variables
+    typedef SmallDisplacementElement::ElementDataType ElementDataType;
 
+
+  
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementThermoMechanicElement );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

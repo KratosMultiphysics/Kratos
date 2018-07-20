@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoLinearHardeningRule 
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoLinearHardeningRule
     : public SimoExponentialHardeningRule
   {
   public:
@@ -69,8 +69,8 @@ namespace Kratos
     SimoLinearHardeningRule& operator=(SimoLinearHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningRule::Pointer Clone() const override;   
-    
+    virtual HardeningRule::Pointer Clone() const override;
+
     /// Destructor.
     ~SimoLinearHardeningRule();
 
@@ -89,7 +89,7 @@ namespace Kratos
      */
 
     virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
-    
+
 
     ///@}
     ///@name Access
@@ -123,7 +123,7 @@ namespace Kratos
     virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoLinearHardeningRule Data";
-    }    
+    }
 
     ///@}
     ///@name Friends
@@ -141,7 +141,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-     
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -187,7 +187,7 @@ namespace Kratos
     ///@name Member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -216,7 +216,7 @@ namespace Kratos
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SimoExponentialHardeningRule )
     }
- 
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -248,6 +248,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_LINEAR_HARDENING_RULE_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_LINEAR_HARDENING_RULE_H_INCLUDED  defined
 
 
