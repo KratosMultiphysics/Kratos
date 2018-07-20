@@ -105,6 +105,19 @@ public:
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mThisParameters(ThisParameters)
     {
+        /**
+         * error_mesh_tolerance: The tolerance in the convergence criteria of the error
+         * error_mesh_constant: The constant considered in the remeshing process
+         * minimal_size: The minimal size of element for the mesh
+         * maximal_size: The maximum size of element for the mesh
+         * error: The target error
+         * penalty_normal: The penalty used in the normal direction (for the contact patch)
+         * penalty_tangential: The penalty used in the tangent direction (for the contact patch)
+         * echo_level: The verbosity
+         * set_number_of_elements: If the number of elements will be forced or not
+         * number_of_elements: The estimated/desired number of elements
+         * average_nodal_h: If the nodal size to consider will be averaged over the mesh
+         */
         Parameters default_parameters = Parameters(R"(
         {
             "error_mesh_tolerance" : 5.0e-3,
