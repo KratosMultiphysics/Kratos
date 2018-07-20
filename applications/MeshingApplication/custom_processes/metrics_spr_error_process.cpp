@@ -330,8 +330,6 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
 {
     std::vector<Vector> stress_vector(1);
     std::vector<array_1d<double,3>> coordinates_vector(1);
-    Variable<array_1d<double,3>> variable_coordinates = INTEGRATION_COORDINATES;
-    Variable<Vector> variable_stress = CAUCHY_STRESS_VECTOR;
     BoundedMatrix<double, TDim + 1, TDim + 1> A = ZeroMatrix(TDim + 1,TDim + 1);
     BoundedMatrix<double, TDim + 1, SigmaSize> b = ZeroMatrix(TDim + 1,SigmaSize);
     BoundedMatrix<double, 1, TDim + 1> p_k;
@@ -339,8 +337,8 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
         
-        it_elem->GetValueOnIntegrationPoints(variable_stress,stress_vector,mThisModelPart.GetProcessInfo());
-        it_elem->GetValueOnIntegrationPoints(variable_coordinates,coordinates_vector,mThisModelPart.GetProcessInfo());
+        it_elem->GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,stress_vector,mThisModelPart.GetProcessInfo());
+        it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,mThisModelPart.GetProcessInfo());
 
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3)
         << "\tStress: " << stress_vector[0] << std::endl
@@ -402,8 +400,6 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 
     std::vector<Vector> stress_vector(1);
     std::vector<array_1d<double,3>> coordinates_vector(1);
-    const Variable<array_1d<double,3>> variable_coordinates = INTEGRATION_COORDINATES;
-    const Variable<Vector> variable_stress = CAUCHY_STRESS_VECTOR;
 
     CompressedMatrix A(SigmaSize * (TDim + 1), SigmaSize * (TDim + 1), 0.0);
     BoundedMatrix<double, SigmaSize * (TDim+1),1> b = ZeroMatrix(SigmaSize * (TDim+1), 1);
@@ -419,8 +415,8 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
         
         auto& process_info = mThisModelPart.GetProcessInfo();
-        it_elem->GetValueOnIntegrationPoints(variable_stress,stress_vector, process_info);
-        it_elem->GetValueOnIntegrationPoints(variable_coordinates,coordinates_vector, process_info);
+        it_elem->GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,stress_vector, process_info);
+        it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector, process_info);
 
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3)
         << "\tElement: " << it_elem->Id() << std::endl
