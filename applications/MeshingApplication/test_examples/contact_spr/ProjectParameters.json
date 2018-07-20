@@ -3,14 +3,17 @@
         "problem_name"    : "contact_spr",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "domain_size"     : 2,
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
-        "echo_level"      : 1
+        "echo_level"      : 0
     },
     "solver_settings"          : {
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
         "solver_type"                        : "Static",
+        "time_stepping"                      :{
+            "time_step"        : 1.1
+        },
         "echo_level"                         : 1,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
