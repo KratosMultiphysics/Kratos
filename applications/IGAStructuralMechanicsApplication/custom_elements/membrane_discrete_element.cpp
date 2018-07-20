@@ -37,8 +37,8 @@ namespace Kratos
 
         if (!GetProperties().Has(MEMBRANE_PRESTRESS_TENSOR_PK2))
         {
-            Vector Prestress = ZeroVector(3);
-            GetProperties()[MEMBRANE_PRESTRESS_TENSOR_PK2] = Prestress;
+            Vector prestress = ZeroVector(3);
+            GetProperties()[MEMBRANE_PRESTRESS_TENSOR_PK2] = prestress;
         }
 
 
@@ -253,7 +253,7 @@ namespace Kratos
         const Vector prestress_variable = GetProperties()[MEMBRANE_PRESTRESS_TENSOR_PK2];
         const double thickness = GetProperties()[THICKNESS];
 
-        rPrestressTensor = prestress_variable;
+        rPrestressTensor = prestress_variable * thickness;
     }
 
     void MembraneDiscreteElement::CalculateMassMatrix(
@@ -295,7 +295,6 @@ namespace Kratos
     )
     {
         const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-        const Matrix& DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
         Jacobian(DN_De, rMetric.J);
 
@@ -320,12 +319,6 @@ namespace Kratos
         rMetric.gab[1] = pow(rMetric.g2[0], 2) + pow(rMetric.g2[1], 2) + pow(rMetric.g2[2], 2);
         rMetric.gab[2] = rMetric.g1[0] * rMetric.g2[0] + rMetric.g1[1] * rMetric.g2[1] + rMetric.g1[2] * rMetric.g2[2];
 
-        Hessian(rMetric.H, DDN_DDe);
-
-        rMetric.curvature[0] = rMetric.H(0, 0)*n[0] + rMetric.H(1, 0)*n[1] + rMetric.H(2, 0)*n[2];
-        rMetric.curvature[1] = rMetric.H(0, 1)*n[0] + rMetric.H(1, 1)*n[1] + rMetric.H(2, 1)*n[2];
-        rMetric.curvature[2] = rMetric.H(0, 2)*n[0] + rMetric.H(1, 2)*n[1] + rMetric.H(2, 2)*n[2];
-
 
         //contravariant rMetric gab_con and base vectors g_con
         //Vector gab_con = ZeroVector(3);
@@ -334,10 +327,8 @@ namespace Kratos
         rMetric.gab_con[2] = -invdetGab*rMetric.gab[2];
         rMetric.gab_con[1] = invdetGab*rMetric.gab[0];
 
-
         array_1d<double, 3> g_con_1 = rMetric.g1*rMetric.gab_con[0] + rMetric.g2*rMetric.gab_con[2];
         array_1d<double, 3> g_con_2 = rMetric.g1*rMetric.gab_con[2] + rMetric.g2*rMetric.gab_con[1];
-
 
         //local cartesian coordinates
         double lg1 = norm_2(rMetric.g1);
@@ -347,10 +338,10 @@ namespace Kratos
 
         //Matrix T_G_E = ZeroMatrix(3, 3);
         //Transformation matrix T from contravariant to local cartesian basis
-        double eG11 = inner_prod(e1, rMetric.g1);
-        double eG12 = inner_prod(e1, rMetric.g2);
-        double eG21 = inner_prod(e2, rMetric.g1);
-        double eG22 = inner_prod(e2, rMetric.g2);
+        double eG11 = inner_prod(e1, g_con_1);
+        double eG12 = inner_prod(e1, g_con_2);
+        double eG21 = inner_prod(e2, g_con_1);
+        double eG22 = inner_prod(e2, g_con_2);
 
         rMetric.Q = ZeroMatrix(3, 3);
         rMetric.Q(0, 0) = eG11*eG11;
@@ -361,16 +352,16 @@ namespace Kratos
         rMetric.Q(1, 2) = 2.0*eG21*eG22;
         rMetric.Q(2, 0) = 2.0*eG11*eG21;
         rMetric.Q(2, 1) = 2.0*eG12*eG22;
-        rMetric.Q(2, 2) = 2.0*eG11*eG22 + eG12*eG21;
+        rMetric.Q(2, 2) = 2.0*(eG11*eG22 + eG12*eG21);
 
         rMetric.T = ZeroMatrix(3, 3);
         rMetric.T(0, 0) = eG11*eG11;
         rMetric.T(0, 1) = eG21*eG21;
         rMetric.T(0, 2) = 2.0*eG11*eG21;
-        rMetric.T(1, 0) = eG12*eG12;
+        rMetric.T(1, 0) = eG21*eG21;
         rMetric.T(1, 1) = eG22*eG22;
-        rMetric.T(1, 2) = 2.0*eG12*eG22;
-        rMetric.T(2, 0) = eG11*eG12;
+        rMetric.T(1, 2) = 2.0*eG21*eG22;
+        rMetric.T(2, 0) = eG11*eG21;
         rMetric.T(2, 1) = eG21*eG22;
         rMetric.T(2, 2) = eG11*eG22 + eG12*eG21;
     }

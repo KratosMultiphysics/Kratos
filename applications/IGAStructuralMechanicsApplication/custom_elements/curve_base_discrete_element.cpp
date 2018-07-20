@@ -75,6 +75,38 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
+    void CurveBaseDiscreteElement::GetBaseVectorsSurface(
+        const Matrix& DN_De,
+        Vector& g1,
+        Vector& g2,
+        Vector& g3)
+    {
+        Matrix J = ZeroMatrix(3,2);
+        Jacobian(DN_De, J);
+
+        //basis vectors g1 and g2
+        if (g1.size() != 3)
+            g1.resize(3, false);
+        g1 = ZeroVector(3);
+        if (g2.size() != 3)
+            g2.resize(3, false);
+        g2 = ZeroVector(3);
+        if (g3.size() != 3)
+            g3.resize(3, false);
+        g3 = ZeroVector(3);
+
+        g1[0] = J(0, 0);
+        g2[0] = J(0, 1);
+        g1[1] = J(1, 0);
+        g2[1] = J(1, 1);
+        g1[2] = J(2, 0);
+        g2[2] = J(2, 1);
+
+        MathUtils<double>::CrossProduct(g3, g1, g2);
+    }
+
+    //************************************************************************************
+    //************************************************************************************
     void CurveBaseDiscreteElement::GetBoundaryEdgeBaseVector(
         const Matrix& DN_De,
         const array_1d<double, 2>& Tangents,

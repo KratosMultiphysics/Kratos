@@ -45,7 +45,7 @@ class IGAStructuralMechanicsSolver:
             },
 			"problem_domain_sub_model_part_list" : [],
 			"processes_sub_model_part_list"      : [],
-			"rotation_dofs"                      : "false"
+			"rotation_dofs"                      : false
         }""")   
 
         ##overwrite the default settings with user-provided parameters

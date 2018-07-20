@@ -213,6 +213,9 @@ void MeshlessSupportRotationCondition::CalculateLocalSystem(MatrixType& rLeftHan
 
 	const array_1d<double, 3>& support = this->GetValue(DISPLACEMENT);
 
+    //if (support[0] == NULL)
+    //    std::cout << "check proven" << std::endl;
+
 	double Penalty = this->GetValue(PENALTY_FACTOR);
   //KRATOS_WATCH(Penalty)
 	const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);

@@ -93,6 +93,12 @@ protected:
         Vector& rBaseVector, 
         const Matrix& rDN_De);
 
+    void GetBaseVectorsSurface(
+        const Matrix& DN_De,
+        Vector& g1,
+        Vector& g2,
+        Vector& g3);
+
     /**
     * GetBoundaryEdgeBaseVector computes t3 of the boundary edge
     * @param DN_De derivatives of shape functions.

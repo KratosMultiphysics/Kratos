@@ -216,7 +216,7 @@ protected:
     * @param[in] DN_De derivatives of shape functions.
     * @param[out] Hessian calculated Hessian. Is always of size 3x3.
     */
-    void Hessian(
+    void CalculateHessian(
         Matrix& Hessian,
         const Matrix& DDN_DDe,
         const int rDimension = 3);

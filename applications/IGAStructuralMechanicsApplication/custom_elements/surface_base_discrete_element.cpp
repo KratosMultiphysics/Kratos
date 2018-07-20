@@ -161,40 +161,64 @@ namespace Kratos
         Matrix& rB,
         const MetricVariables& metric)
     {
-        KRATOS_TRY
+        const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
+        const int number_of_control_points = GetGeometry().size();
+        const int mat_size = number_of_control_points * 3;
 
-        if (this->Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES))
+        if (rB.size1() != mat_size || rB.size2() != mat_size)
+            rB.resize(mat_size, mat_size);
+        rB = ZeroMatrix(3, mat_size);
+
+        for (int r = 0; r<mat_size; r++)
         {
-            const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+            // local node number kr and dof direction dirr
+            int kr = r / 3;
+            int dirr = r % 3;
 
-            const int number_of_control_points = GetGeometry().size();
-            const int mat_size = number_of_control_points * 3;
+            Vector dE_curvilinear = ZeroVector(3);
+            // strain
+            dE_curvilinear[0] = DN_De(kr, 0)*metric.g1(dirr);
+            dE_curvilinear[1] = DN_De(kr, 1)*metric.g2(dirr);
+            dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*metric.g2(dirr) + metric.g1(dirr)*DN_De(kr, 1));
 
-            if (rB.size1() != mat_size || rB.size2() != mat_size)
-                rB.resize(mat_size, mat_size);
-            rB = ZeroMatrix(mat_size, mat_size);
-
-            Matrix b = ZeroMatrix(3, mat_size);
-
-            for (unsigned int i = 0; i < number_of_control_points; i++)
-            {
-                const int index = 3 * i;
-
-                for (int n = 0; n < 3; ++n)
-                {
-                    b(0, index + n) = DN_De(i, 0) * metric.g1[n];
-                    b(1, index + n) = DN_De(i, 1) * metric.g2[n];
-                    b(2, index + n) = 0.5*(DN_De(i, 1) * metric.g1[n] + DN_De(i, 0) * metric.g2[n]);
-                }
-            }
-            rB = prod(metric.Q, b);
+            rB(0, r) = metric.Q(0, 0)*dE_curvilinear[0] + metric.Q(0, 1)*dE_curvilinear[1] + metric.Q(0, 2)*dE_curvilinear[2];
+            rB(1, r) = metric.Q(1, 0)*dE_curvilinear[0] + metric.Q(1, 1)*dE_curvilinear[1] + metric.Q(1, 2)*dE_curvilinear[2];
+            rB(2, r) = metric.Q(2, 0)*dE_curvilinear[0] + metric.Q(2, 1)*dE_curvilinear[1] + metric.Q(2, 2)*dE_curvilinear[2];
         }
-        else
-        {
-            KRATOS_ERROR << "Element does not provide SHAPE_FUNCTION_LOCAL_DERIVATIVES" << std::endl;
-        }
-        KRATOS_CATCH("")
+
+
+        //if (this->Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES))
+        //{
+        //    const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+
+        //    const int number_of_control_points = GetGeometry().size();
+        //    const int mat_size = number_of_control_points * 3;
+
+        //    if (rB.size1() != mat_size || rB.size2() != mat_size)
+        //        rB.resize(mat_size, mat_size);
+        //    rB = ZeroMatrix(mat_size, mat_size);
+
+        //    Matrix b = ZeroMatrix(3, mat_size);
+
+        //    for (unsigned int i = 0; i < number_of_control_points; i++)
+        //    {
+        //        const int index = 3 * i;
+
+        //        for (int n = 0; n < 3; ++n)
+        //        {
+        //            b(0, index + n) = DN_De(i, 0) * metric.g1[n];
+        //            b(1, index + n) = DN_De(i, 1) * metric.g2[n];
+        //            b(2, index + n) = 0.5*(DN_De(i, 1) * metric.g1[n] + DN_De(i, 0) * metric.g2[n]);
+        //        }
+        //    }
+        //    rB = prod(metric.Q, b);
+        //}
+        //else
+        //{
+        //    KRATOS_ERROR << "Element does not provide SHAPE_FUNCTION_LOCAL_DERIVATIVES" << std::endl;
+        //}
+        //KRATOS_CATCH("")
     }
     //***********************************************************************************
     //***********************************************************************************
@@ -522,7 +546,7 @@ namespace Kratos
 
     //***********************************************************************************
     //***********************************************************************************
-    void SurfaceBaseDiscreteElement::Hessian(Matrix& Hessian, const Matrix& DDN_DDe, const int rDimension)
+    void SurfaceBaseDiscreteElement::CalculateHessian(Matrix& Hessian, const Matrix& DDN_DDe, const int rDimension)
     {
         const unsigned int number_of_points = GetGeometry().size();
 

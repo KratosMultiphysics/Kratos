@@ -60,7 +60,10 @@ namespace Kratos
         {
             CalculateNormalVector(g3, DN_De);
 
-            double integration_weight = integration_weight * norm_2(g3);
+            Vector t2 = ZeroVector(3);
+            CalculateBaseVector(t2, DN_De);
+            integration_weight = integration_weight * norm_2(t2);
+            //KRATOS_WATCH(integration_weight)
         }
         // Edge loads
         if (this->Has(LINE_LOAD))
@@ -80,8 +83,6 @@ namespace Kratos
         if (this->Has(PRESSURE))
         {
             double pressure = this->GetValue(PRESSURE);
-
-            KRATOS_WATCH(pressure)
 
             array_1d<double, 3> direction = g3 / norm_2(g3);
 

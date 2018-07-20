@@ -54,6 +54,7 @@
 #include "custom_conditions/load_point_discrete_condition.h"
 #include "custom_conditions/load_curve_discrete_condition.h"
 #include "custom_conditions/load_surface_discrete_condition.h"
+#include "custom_conditions/support_penalty_curve_discrete_condition.h"
 
 
 #include "custom_conditions/meshless_support_rotation_condition.h"
@@ -269,9 +270,10 @@ private:
     const MembraneDiscreteElement     mMembraneDiscreteElement;
 
     // Meshless Conditions
-    const LoadPointDiscreteCondition     mLoadPointDiscreteCondition;
-    const LoadCurveDiscreteCondition     mLoadCurveDiscreteCondition;
-    const LoadSurfaceDiscreteCondition   mLoadSurfaceDiscreteCondition;
+    const LoadPointDiscreteCondition           mLoadPointDiscreteCondition;
+    const LoadCurveDiscreteCondition           mLoadCurveDiscreteCondition;
+    const LoadSurfaceDiscreteCondition         mLoadSurfaceDiscreteCondition;
+    const SupportPenaltyCurveDiscreteCondition mSupportPenaltyCurveDiscreteCondition;
 
     const MeshlessSupportRotationCondition         mMeshlessSupportRotationCondition;
     const MeshlessSurfaceSupportCondition          mMeshlessSurfaceSupportCondition;
