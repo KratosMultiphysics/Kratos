@@ -184,7 +184,7 @@ namespace Kratos
 
             // Creating the sub model parts
             ModelPart& r_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
-            ModelPart& r_sub_model_part_2 = this_model_part.CreateSubModelPart("SkinSubModelPart");
+//             ModelPart& r_sub_model_part_2 = this_model_part.CreateSubModelPart("SkinSubModelPart");
 
             // Creating the nodes
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
