@@ -61,13 +61,13 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
     (m,"StokesInitializationProcess")
-    .def(init<ModelPart::Pointer, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
+    .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
     .def("SetConditions",&StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>::SetConditions)
     ;
 
     class_<BoussinesqForceProcess, BoussinesqForceProcess::Pointer, Process>
     (m,"BoussinesqForceProcess")
-    .def(init<ModelPart::Pointer, Parameters& >())
+    .def(init<ModelPart*, Parameters& >())
     ;
 
     class_<WindkesselModel, WindkesselModel::Pointer, Process>

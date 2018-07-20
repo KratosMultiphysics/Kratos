@@ -2,7 +2,7 @@
 #define ANALYTIC_PARTICLE_WATCHER_H
 
 // System includes
-
+#include <pybind11/pybind11.h>
 #include <limits>
 #include <iostream>
 #include <iomanip>
@@ -20,9 +20,9 @@
 
 namespace Kratos
 {
-class KRATOS_API(DEM_APPLICATION) AnalyticParticleWatcher {
+class AnalyticParticleWatcher {
 
-public:   
+public:
 
 KRATOS_CLASS_POINTER_DEFINITION(AnalyticParticleWatcher);
 
@@ -65,22 +65,26 @@ class InterParticleImpactDataOfAllParticlesSingleTimeStep  // It holds the histo
         }
     }
 
-    void FillUpPythonLists(std::list<int>& ids,
-                           std::list<int>& neighbour_ids,
-                           std::list<double>& normal_relative_vel,
-                           std::list<double>& tangential_relative_vel)
+    void FillUpPythonLists(pybind11::list& ids,
+                           pybind11::list& neighbour_ids,
+                           pybind11::list& normal_relative_vel,
+                           pybind11::list& tangential_relative_vel)
     {
-        ids.clear();
-        neighbour_ids.clear();
-        normal_relative_vel.clear();
-        tangential_relative_vel.clear();
+        ids.attr("clear")();
+        neighbour_ids.attr("clear")();
+        normal_relative_vel.attr("clear")();
+        tangential_relative_vel.attr("clear")();
 
         for (int i = 0; i < mNImpacts; ++i){
-            ids.push_back(mId1[i]);
-            neighbour_ids.push_back(mId2[i]);
-            normal_relative_vel.push_back(mRelVelNormal[i]);
-            tangential_relative_vel.push_back(mRelVelTangential[i]);
+            //std::copy( mId1.begin(), mId1.end(), pybind11::back_inserter( ids ) );
+            //ids.push_back(mId1[i]);
+
+            ids.append(mId1[i]);
+            neighbour_ids.append(mId2[i]);
+            normal_relative_vel.append(mRelVelNormal[i]);
+            tangential_relative_vel.append(mRelVelTangential[i]);
         }
+
     }
 
     private:
@@ -91,7 +95,7 @@ class InterParticleImpactDataOfAllParticlesSingleTimeStep  // It holds the histo
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
-       
+
 
         bool ImpactIsNew(const int id_2)
         {
@@ -114,24 +118,24 @@ class InterParticleImpactDataOfAllTimeStepsSingleParticle // It holds the histor
             mId2.push_back(id2);
             mRelVelNormal.push_back(normal_vel);
             mRelVelTangential.push_back(tang_vel);
-            mLinearImpulse.push_back(linear_impulse);            
+            mLinearImpulse.push_back(linear_impulse);
         }
 
-        void FillUpPythonLists(std::list<double>& times,
-                               std::list<int32_t>& neighbour_ids,
-                               std::list<double>& normal_relative_vel,
-                               std::list<double>& tangential_relative_vel)
+        void FillUpPythonLists(pybind11::list& times,
+                               pybind11::list& neighbour_ids,
+                               pybind11::list& normal_relative_vel,
+                               pybind11::list& tangential_relative_vel)
         {
-            times.clear();
-            neighbour_ids.clear();
-            normal_relative_vel.clear();
-            tangential_relative_vel.clear();
+            times.attr("clear")();
+            neighbour_ids.attr("clear")();
+            normal_relative_vel.attr("clear")();
+            tangential_relative_vel.attr("clear")();
 
             for (int i = 0; i < mNImpacts; ++i){
-                times.push_back(mTimes[i]);
-                neighbour_ids.push_back(mId2[i]);
-                normal_relative_vel.push_back(mRelVelNormal[i]);
-                tangential_relative_vel.push_back(mRelVelTangential[i]);
+                times.append(mTimes[i]);
+                neighbour_ids.append(mId2[i]);
+                normal_relative_vel.append(mRelVelNormal[i]);
+                tangential_relative_vel.append(mRelVelTangential[i]);
             }
         }
 
@@ -153,11 +157,11 @@ class InterParticleImpactDataOfAllTimeStepsSingleParticle // It holds the histor
         void GetMaxLinearImpulseFromDatabase(double& db_linear_impulse){
             if(mRelVelNormal.size()){
                 db_linear_impulse = std::abs(*(std::max_element(mLinearImpulse.begin(), mLinearImpulse.end())));
-                
+
             }
             else {
                 db_linear_impulse = 0.0;
-                
+
             }
 
         }
@@ -171,7 +175,7 @@ class InterParticleImpactDataOfAllTimeStepsSingleParticle // It holds the histor
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
         std::vector<double> mLinearImpulse;
-        
+
 };
 
 
@@ -209,21 +213,21 @@ class FaceParticleImpactDataOfAllParticlesSingleTimeStep  // It holds the histor
         }
     }
 
-    void FillUpPythonLists(std::list<int>& ids,
-                           std::list<int>& neighbour_ids,
-                           std::list<double>& normal_relative_vel,
-                           std::list<double>& tangential_relative_vel)
+    void FillUpPythonLists(pybind11::list& ids,
+                           pybind11::list& neighbour_ids,
+                           pybind11::list& normal_relative_vel,
+                           pybind11::list& tangential_relative_vel)
     {
-        ids.clear();
-        neighbour_ids.clear();
-        normal_relative_vel.clear();
-        tangential_relative_vel.clear();
+        ids.attr("clear")();
+        neighbour_ids.attr("clear")();
+        normal_relative_vel.attr("clear")();
+        tangential_relative_vel.attr("clear")();
 
         for (int i = 0; i < mNImpacts; ++i){
-            ids.push_back(mId1[i]);
-            neighbour_ids.push_back(mId2[i]);
-            normal_relative_vel.push_back(mRelVelNormal[i]);
-            tangential_relative_vel.push_back(mRelVelTangential[i]);
+            ids.append(mId1[i]);
+            neighbour_ids.append(mId2[i]);
+            normal_relative_vel.append(mRelVelNormal[i]);
+            tangential_relative_vel.append(mRelVelTangential[i]);
         }
     }
 
@@ -259,21 +263,21 @@ class FaceParticleImpactDataOfAllTimeStepsSingleParticle // It holds the histori
             mRelVelTangential.push_back(tang_vel);
         }
 
-        void FillUpPythonLists(std::list<double>& times,
-                               std::list<int>& neighbour_ids,
-                               std::list<double>& normal_relative_vel,
-                               std::list<double>& tangential_relative_vel)
+        void FillUpPythonLists(pybind11::list& times,
+                               pybind11::list& neighbour_ids,
+                               pybind11::list& normal_relative_vel,
+                               pybind11::list& tangential_relative_vel)
         {
-            times.clear();
-            neighbour_ids.clear();
-            normal_relative_vel.clear();
-            tangential_relative_vel.clear();
+            times.attr("clear")();
+            neighbour_ids.attr("clear")();
+            normal_relative_vel.attr("clear")();
+            tangential_relative_vel.attr("clear")();
 
             for (int i = 0; i < mNImpacts; ++i){
-                times.push_back(mTimes[i]);
-                neighbour_ids.push_back(mId2[i]);
-                normal_relative_vel.push_back(mRelVelNormal[i]);
-                tangential_relative_vel.push_back(mRelVelTangential[i]);
+                times.append(mTimes[i]);
+                neighbour_ids.append(mId2[i]);
+                normal_relative_vel.append(mRelVelNormal[i]);
+                tangential_relative_vel.append(mRelVelTangential[i]);
             }
         }
 
@@ -303,24 +307,24 @@ class FaceParticleImpactDataOfAllTimeStepsSingleParticle // It holds the histori
         std::vector<double> mRelVelTangential;
 };
 
-// 
+//
 
 void GetParticleData(int id,
-                     std::list<double> times,
-                     std::list<int> neighbour_ids,
-                     std::list<double> normal_relative_vel,
-                     std::list<double> tangential_relative_vel);
+                     pybind11::list times,
+                     pybind11::list neighbour_ids,
+                     pybind11::list normal_relative_vel,
+                     pybind11::list tangential_relative_vel);
 
 void GetAllParticlesData(ModelPart& analytic_model_part,
-                         std::list<double> times,
-                         std::list<int> neighbour_ids,
-                         std::list<double> normal_relative_vel,
-                         std::list<double> tangential_relative_vel);
+                         pybind11::list& times,
+                         pybind11::list& neighbour_ids,
+                         pybind11::list& normal_relative_vel,
+                         pybind11::list& tangential_relative_vel);
 
-void GetTimeStepsData(std::list<int> ids,
-                      std::list<int> neighbour_ids,
-                      std::list<double> normal_relative_vel,
-                      std::list<double> tangential_relative_vel);
+void GetTimeStepsData(pybind11::list& ids,
+                      pybind11::list& neighbour_ids,
+                      pybind11::list& normal_relative_vel,
+                      pybind11::list& tangential_relative_vel);
 
 virtual void MakeMeasurements(ModelPart &analytic_model_part);
 

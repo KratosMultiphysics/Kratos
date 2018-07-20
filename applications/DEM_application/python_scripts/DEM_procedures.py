@@ -18,7 +18,7 @@ def Flush(a):
 
 def KratosPrint(*args):
     Logger.Print(*args, label="DEM")
-    Flush(sys.stdout)
+    Logger.Flush()
 
 
 def Var_Translator(variable):
@@ -807,11 +807,11 @@ class Procedures(object):
 
         bounding_box_time_limits = []
         if self.DEM_parameters["BoundingBoxOption"].GetBool():
-            self.SetBoundingBox(all_model_parts.Get("SpheresPart"), all_model_parts.Get("ClusterPart"), all_model_parts.Get("RigidFacePart"), creator_destructor)
+            self.SetBoundingBox(all_model_parts.Get("SpheresPart"), all_model_parts.Get("ClusterPart"), all_model_parts.Get("RigidFacePart"), all_model_parts.Get("DEMInletPart"), creator_destructor)
             bounding_box_time_limits = [self.solver.bounding_box_start_time, self.solver.bounding_box_stop_time]
             return bounding_box_time_limits
 
-    def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor):
+    def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, DEM_inlet_model_part, creator_destructor):
 
         b_box_low = Array3()
         b_box_high = Array3()
@@ -823,7 +823,7 @@ class Procedures(object):
         b_box_high[2] = self.b_box_maxZ
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
-        creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
+        creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, DEM_inlet_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
 
     @classmethod
     def DeleteFiles(self):
@@ -860,7 +860,7 @@ class Procedures(object):
 
     def KRATOSprint(self, message):
         Logger.Print(message, label="DEM")
-        self.Flush(sys.stdout)
+        Logger.Flush()
 
 
 class DEMFEMProcedures(object):
@@ -1450,7 +1450,7 @@ class DEMIo(object):
 
     def KRATOSprint(self, message):
         Logger.Print(message,label="DEM")
-        self.Flush(sys.stdout)
+        Logger.Flush()
 
     @classmethod
     def Flush(self, a):
@@ -1817,35 +1817,36 @@ class DEMIo(object):
 
     def ComputeAndPrintBoundingBox(self, spheres_model_part, rigid_face_model_part, contact_model_part, creator_destructor):
 
-        # Creation of bounding box's model part
-        bounding_box_model_part = ModelPart("BoundingBoxPart")
-
-        max_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
-        max_FEM_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
-        max_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(spheres_model_part)
-        max_FEM_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(rigid_face_model_part)
-        max_contact_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(contact_model_part)
-
-        if max_FEM_node_Id > max_node_Id:
-            max_node_Id = max_FEM_node_Id
-
-        if max_FEM_element_Id > max_element_Id:
-            max_element_Id = max_FEM_element_Id
-
-        if max_contact_element_Id > max_element_Id:
-            max_element_Id = max_contact_element_Id
-
-        BBMaxX = creator_destructor.GetHighNode()[0]
-        BBMaxY = creator_destructor.GetHighNode()[1]
-        BBMaxZ = creator_destructor.GetHighNode()[2]
-        BBMinX = creator_destructor.GetLowNode()[0]
-        BBMinY = creator_destructor.GetLowNode()[1]
-        BBMinZ = creator_destructor.GetLowNode()[2]
-
-        self.BuildGraphicalBoundingBox(bounding_box_model_part, max_node_Id, max_element_Id, BBMinX, BBMinY, BBMinZ, BBMaxX, BBMaxY, BBMaxZ)
-
         if self.PostBoundingBox:
+            # Creation of bounding box's model part
+            bounding_box_model_part = ModelPart("BoundingBoxPart")
+
+            max_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
+            max_FEM_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
+            max_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(spheres_model_part)
+            max_FEM_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(rigid_face_model_part)
+            max_contact_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(contact_model_part)
+
+            if max_FEM_node_Id > max_node_Id:
+                max_node_Id = max_FEM_node_Id
+
+            if max_FEM_element_Id > max_element_Id:
+                max_element_Id = max_FEM_element_Id
+
+            if max_contact_element_Id > max_element_Id:
+                max_element_Id = max_contact_element_Id
+
+            BBMaxX = creator_destructor.GetHighNode()[0]
+            BBMaxY = creator_destructor.GetHighNode()[1]
+            BBMaxZ = creator_destructor.GetHighNode()[2]
+            BBMinX = creator_destructor.GetLowNode()[0]
+            BBMinY = creator_destructor.GetLowNode()[1]
+            BBMinZ = creator_destructor.GetLowNode()[2]
+
+            self.BuildGraphicalBoundingBox(bounding_box_model_part, max_node_Id, max_element_Id, BBMinX, BBMinY, BBMinZ, BBMaxX, BBMaxY, BBMaxZ)
+
             self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
+
 
     def ComputeAndPrintSeaSurface(self, spheres_model_part, rigid_face_model_part):
 

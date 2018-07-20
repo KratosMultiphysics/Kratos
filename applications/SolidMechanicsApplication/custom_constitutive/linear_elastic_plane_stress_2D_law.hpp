@@ -182,4 +182,4 @@ private:
 
 }; // Class LinearElasticPlaneStress2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED  defined

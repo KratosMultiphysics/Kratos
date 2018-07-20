@@ -51,38 +51,35 @@ namespace Kratos
     : public CoulombAdhesionFrictionLaw
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of HardeningCoulombFrictionLaw
     KRATOS_CLASS_POINTER_DEFINITION( HardeningCoulombFrictionLaw );
 
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /// Default constructor.
     HardeningCoulombFrictionLaw();
-    
+
     /// Destructor.
     virtual ~HardeningCoulombFrictionLaw();
 
 
     /**
      * Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this constitutive law
-     * NOTE: implementation scheme:
-     *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
-     *      return p_clone;
+     * @return a pointer to a new instance of this friction law
      */
     FrictionLaw::Pointer Clone() const override;
 
     ///@}
     ///@name Operators
     ///@{
-    
-    
+
+
     ///@}
     ///@name Operations
     ///@{
@@ -91,26 +88,26 @@ namespace Kratos
     ///@}
     ///@name Access
     ///@{
-    
-    
+
+
     ///@}
     ///@name Inquiry
     ///@{
-    
-    
+
+
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     //std::string Info() const override;
 
     /// Print information about this object.
     //void PrintInfo(std::ostream& rOStream) const override;
-    
+
     /// Print object's data.
     //void PrintData(std::ostream& rOStream) const override;
-    
+
 
     ///@}
     ///@name Friends
@@ -122,13 +119,13 @@ namespace Kratos
   protected:
     ///@name Protected static Member Variables
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -137,7 +134,7 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     double EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) override;
 
     double EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) override;
@@ -148,12 +145,12 @@ namespace Kratos
     ///@}
     ///@name Protected  Access
     ///@{
-    
+
 
     ///@}
     ///@name Protected Inquiry
     ///@{
-    
+
 
     ///@}
     ///@name Protected LifeCycle
@@ -167,39 +164,39 @@ namespace Kratos
     ///@name Static Member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
+
 
     ///@}
     ///@name Private Operators
     ///@{
-    
+
 
     ///@}
     ///@name Private Operations
     ///@{
-    
-    
+
+
     ///@}
     ///@name Private  Access
     ///@{
-    
-    
+
+
     ///@}
     ///@name Private Inquiry
     ///@{
-    
-    
+
+
     ///@}
     ///@name Un accessible methods
     ///@{
-    
+
     /// Assignment operator.
     //HardeningCoulombFrictionLaw& operator=(HardeningCoulombFrictionLaw const& rOther);
-    
+
     /// Copy constructor.
     //HardeningCoulombFrictionLaw(HardeningCoulombFrictionLaw const& rOther);
 

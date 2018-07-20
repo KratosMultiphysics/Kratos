@@ -15,8 +15,8 @@
 
 
 // Project includes
-#include "includes/model_part.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "includes/model_part.h"
 #include "structural_mechanics_application_variables.h"
 
 //Processes
@@ -25,6 +25,7 @@
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
+#include "custom_processes/solid_shell_thickness_compute_process.h"
 
 namespace Kratos
 {
@@ -43,39 +44,37 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
 	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariable)
         .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
-        .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
+        .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)
         .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
 
     class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
         .def(init<ModelPart&, Parameters>());
-    
+
     class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")
         .def(init<ModelPart&>())
-        .def("Execute", &TotalStructuralMassProcess::Execute)
         ;
-    
+
+    class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
+        .def(init<ModelPart&>())
+        ;
 
     class_<PrismNeighboursProcess, PrismNeighboursProcess::Pointer, Process>(m, "PrismNeighboursProcess")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, const bool >())
-        .def("Execute",&PrismNeighboursProcess::Execute)
-        .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
         ;
 
     class_<ShellToSolidShellProcess<3>, ShellToSolidShellProcess<3>::Pointer, Process>(m, "TriangleShellToSolidShellProcess")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
-        .def("Execute",&ShellToSolidShellProcess<3>::Execute)
         ;
 
     class_<ShellToSolidShellProcess<4>, ShellToSolidShellProcess<4>::Pointer, Process>(m, "QuadrilateralShellToSolidShellProcess")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
-        .def("Execute",&ShellToSolidShellProcess<4>::Execute)
         ;
 }
 
-}  // namespace Python.  
+}  // namespace Python.
 
 } // Namespace Kratos
 

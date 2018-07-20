@@ -1,38 +1,19 @@
-/*
-Kratos Multi-Physics
-
-Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-    -	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    -	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-        in the documentation and/or other materials provided with the distribution.
-    -	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-            This product includes Kratos Multi-Physics technology.
-    -	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: jcotela $
-//   Date:                $Date: 2015-12-14
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Jordi Cotea
+//                   Riccardo Rossi
+//                   Ruben Zorrilla
 //
-
 
 #if !defined(KRATOS_TRILINOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED )
 #define  KRATOS_TRILINOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -45,10 +26,9 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Project includes
 #include "includes/communicator.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "processes/variational_distance_calculation_process.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-
+#include "processes/variational_distance_calculation_process.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 namespace Kratos
 {
@@ -59,7 +39,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name  Enum's
@@ -73,9 +52,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-
-
-
 /// Short class definition.
 /**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and recomputes a signed distance function
 mantaining as much as possible the position of the zero of the function prior to the call.
@@ -83,11 +59,7 @@ mantaining as much as possible the position of the zero of the function prior to
 This is achieved by minimizing the function  ( 1 - norm( gradient( distance ) )**2
 with the restriction that "distance" is a finite elment function
 */
-
-template< unsigned int TDim,
-          class TSparseSpace,
-          class TDenseSpace,
-          class TLinearSolver >
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver >
 class TrilinosVariationalDistanceCalculationProcess
     : public VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>
 {
@@ -96,136 +68,127 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
-
+    typedef VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef typename TLinearSolver::Pointer LinearSolverPointerType;
+    typedef typename BaseType::SchemeType::Pointer SchemePointerType;
+    typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverPointerType;
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of VariationalDistanceCalculationProcess
+    ///@{
+
+    /// Pointer definition of TrilinosVariationalDistanceCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosVariationalDistanceCalculationProcess);
-
-
-
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-
-    TrilinosVariationalDistanceCalculationProcess(Epetra_MpiComm& rComm,
-                                                  ModelPart& base_model_part,
-                                                  typename TLinearSolver::Pointer plinear_solver,
-                                                  unsigned int max_iterations = 10):
-        VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>(base_model_part,max_iterations),
+    TrilinosVariationalDistanceCalculationProcess(
+        Epetra_MpiComm &rComm,
+        ModelPart &base_model_part,
+        LinearSolverPointerType plinear_solver,
+        unsigned int max_iterations = 10) 
+        : VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(base_model_part, max_iterations),
         mrComm(rComm)
     {
+
         KRATOS_TRY
 
-        //check that there is at least one element and node in the model
+        // Check that there is at least one element and node in the model
         int NNode = base_model_part.Nodes().size();
         int NElem = base_model_part.Elements().size();
 
-        if(NNode > 0 && base_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false )
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data","");
-
-        if(NElem > 0)
-        {
-            if(TDim == 2)
-            {
-                if(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle)
-                    KRATOS_THROW_ERROR(std::logic_error, "In 2D the element type is expected to be a triangle","");
-            }
-            else if(TDim == 3)
-            {
-                if(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra)
-                    KRATOS_THROW_ERROR(std::logic_error, "In 3D the element type is expected to be a tetrahedra","");
-            }
+        if (NNode > 0){
+            VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, base_model_part.Nodes());
+            VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, base_model_part.Nodes());
         }
 
+        if(NElem > 0){
+            if(TDim == 2){
+                KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) << 
+                    "In 2D the element type is expected to be a triangle" << std::endl;
+            } else if(TDim == 3) {
+                KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
+                    "In 3D the element type is expected to be a tetrahedra" << std::endl;
+            }
+        }
 
         base_model_part.GetCommunicator().SumAll(NNode);
         base_model_part.GetCommunicator().SumAll(NElem);
 
-        if( base_model_part.GetCommunicator().MyPID() == 0 )
-        {
-            if( NNode == 0 ) KRATOS_THROW_ERROR(std::logic_error, "the model has no Nodes","");
-            if( NElem == 0 ) KRATOS_THROW_ERROR(std::logic_error, "the model has no Elements","");
-        }
+        KRATOS_ERROR_IF(NNode == 0) << "The model has no nodes" << std::endl;
+        KRATOS_ERROR_IF(NElem == 0) << "The model has no elements" << std::endl;
 
-        //generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
+        // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->ReGenerateDistanceModelPart(base_model_part);
 
-        //generate a linear strategy
-
+        // Generate a linear strategy
         // Scheme
-        typename BaseType::SchemeType::Pointer pscheme = typename BaseType::SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
+        SchemePointerType pscheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> >();
 
         // Builder and Solver
-        int RowSizeGuess = (TDim == 2 ? 15 : 40);
-        typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
-        BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(mrComm,RowSizeGuess,plinear_solver) );
+        const int RowSizeGuess = (TDim == 2 ? 15 : 40);
+        BuilderSolverPointerType pBuilderSolver = Kratos::make_shared<TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > >(
+            mrComm, 
+            RowSizeGuess, 
+            plinear_solver);
 
         // Solution strategy
-        bool CalculateReactions = false;
-        bool ReformDofAtEachIteration = false;
-        bool CalculateNormDxFlag = false;
+        const bool CalculateReactions = false;
+        const bool ReformDofAtEachIteration = false;
+        const bool CalculateNormDxFlag = false;
 
-        this->mp_solving_strategy = typename BaseType::SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(*(this->mp_distance_model_part),pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
+        (this->mp_solving_strategy) = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+            *(this->mp_distance_model_part), 
+            pscheme, 
+            plinear_solver, 
+            pBuilderSolver, 
+            CalculateReactions, 
+            ReformDofAtEachIteration, 
+            CalculateNormDxFlag);
 
         //TODO: check flag DO_EXPENSIVE_CHECKS
-        this->mp_solving_strategy->Check();
+        (this->mp_solving_strategy)->Check();
 
         KRATOS_CATCH("")
     }
 
     /// Destructor.
-    virtual ~TrilinosVariationalDistanceCalculationProcess()
-    {
-    }
-
+    virtual ~TrilinosVariationalDistanceCalculationProcess() {};
 
     ///@}
     ///@name Operators
     ///@{
 
-
-
     ///@}
     ///@name Operations
     ///@{
-
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -235,76 +198,68 @@ protected:
     {
         KRATOS_TRY
 
-        //generate
-        ModelPart::Pointer pAuxModelPart = ModelPart::Pointer( new ModelPart("DistancePart",1) );
-
-        ModelPart::Pointer& p_distance_model_part = this->mp_distance_model_part;
+        // Generate distance model part
+        Kratos::unique_ptr<ModelPart> pAuxModelPart = Kratos::make_unique<ModelPart>("DistancePart");
+        auto& p_distance_model_part = this->mp_distance_model_part;
         p_distance_model_part.swap(pAuxModelPart);
 
         p_distance_model_part->Nodes().clear();
         p_distance_model_part->Conditions().clear();
         p_distance_model_part->Elements().clear();
 
-        p_distance_model_part->SetProcessInfo(  base_model_part.pGetProcessInfo() );
+        p_distance_model_part->SetProcessInfo(base_model_part.pGetProcessInfo());
         p_distance_model_part->SetBufferSize(base_model_part.GetBufferSize());
         p_distance_model_part->SetProperties(base_model_part.pProperties());
         p_distance_model_part->Tables() = base_model_part.Tables();
 
-        //assigning the nodes to the new model part
+        // Assigning the nodes to the new model part
         p_distance_model_part->Nodes() = base_model_part.Nodes();
 
-        //ensure that the nodes have distance as a DOF
-        for (ModelPart::NodesContainerType::iterator iii = base_model_part.NodesBegin(); iii != base_model_part.NodesEnd(); iii++)
-        {
-            iii->AddDof(DISTANCE);
-        }
+        // Ensure that the nodes have distance as a DOF
+        VariableUtils().AddDof<Variable<double> >(DISTANCE, base_model_part);
 
         // For MPI: copy communication data
         Communicator& rRefComm = base_model_part.GetCommunicator();
         Communicator::Pointer pNewComm = rRefComm.Create();
 
-        pNewComm->SetNumberOfColors( rRefComm.GetNumberOfColors() ) ;
+        pNewComm->SetNumberOfColors(rRefComm.GetNumberOfColors());
         pNewComm->NeighbourIndices() = rRefComm.NeighbourIndices();
-        pNewComm->LocalMesh().SetNodes( rRefComm.LocalMesh().pNodes() );
-        pNewComm->InterfaceMesh().SetNodes( rRefComm.InterfaceMesh().pNodes() );
-        pNewComm->GhostMesh().SetNodes( rRefComm.GhostMesh().pNodes() );
-        for (unsigned int i = 0; i < rRefComm.GetNumberOfColors(); i++)
-        {
-            pNewComm->pInterfaceMesh(i)->SetNodes( rRefComm.pInterfaceMesh(i)->pNodes() );
-            pNewComm->pLocalMesh(i)->SetNodes( rRefComm.pLocalMesh(i)->pNodes() );
-            pNewComm->pGhostMesh(i)->SetNodes( rRefComm.pGhostMesh(i)->pNodes() );
+        pNewComm->LocalMesh().SetNodes(rRefComm.LocalMesh().pNodes());
+        pNewComm->InterfaceMesh().SetNodes(rRefComm.InterfaceMesh().pNodes());
+        pNewComm->GhostMesh().SetNodes(rRefComm.GhostMesh().pNodes());
+        for (unsigned int i = 0; i < rRefComm.GetNumberOfColors(); ++i){
+            pNewComm->pInterfaceMesh(i)->SetNodes(rRefComm.pInterfaceMesh(i)->pNodes());
+            pNewComm->pLocalMesh(i)->SetNodes(rRefComm.pLocalMesh(i)->pNodes());
+            pNewComm->pGhostMesh(i)->SetNodes(rRefComm.pGhostMesh(i)->pNodes());
         }
 
         p_distance_model_part->SetCommunicator(pNewComm);
 
-        //generating the elements
+        // Generating the elements
         p_distance_model_part->Elements().reserve(base_model_part.Elements().size());
-        for (ModelPart::ElementsContainerType::iterator iii = base_model_part.ElementsBegin(); iii != base_model_part.ElementsEnd(); iii++)
-        {
-            Properties::Pointer properties = iii->pGetProperties();
-            Element::Pointer p_element = Element::Pointer(new DistanceCalculationElementSimplex<TDim>(
-                                             iii->Id(),
-                                             iii->pGetGeometry(),
-                                             iii->pGetProperties() ) );
+        for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem){
+            Element::Pointer p_element = Kratos::make_shared<DistanceCalculationElementSimplex<TDim> >(
+                it_elem->Id(),
+                it_elem->pGetGeometry(),
+                it_elem->pGetProperties());
 
-            //assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
-            p_element->pGetGeometry() = iii->pGetGeometry();
+            // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
+            p_element->pGetGeometry() = it_elem->pGetGeometry();
 
             p_distance_model_part->Elements().push_back(p_element);
             pNewComm->LocalMesh().Elements().push_back(p_element);
         }
 
-
-        //using the conditions to mark the boundary with the flag boundary
-        //note that we DO NOT add the conditions to the model part
-        for (ModelPart::NodesContainerType::iterator iii = p_distance_model_part->NodesBegin(); iii != p_distance_model_part->NodesEnd(); iii++)
-        {
-            iii->Set(BOUNDARY,false);
-        }
-        for (ModelPart::ConditionsContainerType::iterator iii = base_model_part.ConditionsBegin(); iii != base_model_part.ConditionsEnd(); iii++)
-        {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
-            for(unsigned int i=0; i<geom.size(); i++) geom[i].Set(BOUNDARY,true);
+        // Using the conditions to mark the boundary with the flag boundary
+        // Note that we DO NOT add the conditions to the model part
+        VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, p_distance_model_part->Nodes());
+        // Note that above we have assigned the same geometry. Thus the flag is 
+        // set in the distance model part despite we are iterating the base one
+        for (auto it_cond = base_model_part.ConditionsBegin(); it_cond != base_model_part.ConditionsEnd(); ++it_cond){
+            auto &r_geom = it_cond->GetGeometry();
+            for (unsigned int i = 0; i < r_geom.size(); ++i){
+                r_geom[i].Set(BOUNDARY, true);
+            }
         }
 
         // Communicate BOUNDARY status to all partitions
@@ -313,33 +268,25 @@ protected:
 
         this->mdistance_part_is_initialized = true;
 
-        //KRATOS_WATCH(this->mp_distance_model_part)
-
         KRATOS_CATCH("")
     }
-
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -501,11 +448,9 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -515,27 +460,22 @@ private:
     TrilinosVariationalDistanceCalculationProcess& operator=(TrilinosVariationalDistanceCalculationProcess const& rOther);
 
     /// Copy constructor.
-    //VariationalDistanceCalculationProcess(VariationalDistanceCalculationProcess const& rOther);
-
+    TrilinosVariationalDistanceCalculationProcess(TrilinosVariationalDistanceCalculationProcess const &rOther);
 
     ///@}
 
 }; // Class TrilinosVariationalDistanceCalculationProcess
-
 
 ///@}
 
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 ///@}
-
-
 }  // namespace Kratos.
 
 #endif // KRATOS_TRILINOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined

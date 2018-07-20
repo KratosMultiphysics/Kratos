@@ -33,6 +33,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
         "anisotropy_remeshing"                 : true, 
         "anisotropy_parameters": 
         {
+            "reference_variable_name"              : "DISTANCE",
             "hmin_over_hmax_anisotropic_ratio"      : 1.0, 
             "boundary_layer_max_distance"           : 1.0, 
             "interpolation"                         : "Linear"
@@ -45,10 +46,12 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     
     // In case we have isotropic remeshing (default values)
     if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
+        mRatioReferenceVariable = default_parameters["anisotropy_parameters"]["reference_variable_name"].GetString();
         mAnisotropicRatio = default_parameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = default_parameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(default_parameters["anisotropy_parameters"]["interpolation"].GetString());
     } else {
+        mRatioReferenceVariable = ThisParameters["anisotropy_parameters"]["reference_variable_name"].GetString();
         mAnisotropicRatio = ThisParameters["anisotropy_parameters"]["hmin_over_hmax_anisotropic_ratio"].GetDouble();
         mBoundLayer = ThisParameters["anisotropy_parameters"]["boundary_layer_max_distance"].GetDouble();
         mInterpolation = ConvertInter(ThisParameters["anisotropy_parameters"]["interpolation"].GetString());
@@ -68,24 +71,36 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
     // Some checks
     VariableUtils().CheckVariableExists(mVariableGradient, nodes_array);
     VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
-    
+
+    // Ratio reference variable
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
+    const auto& reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+
     #pragma omp parallel for 
     for(int i = 0; i < num_nodes; ++i)  {
         auto it_node = nodes_array.begin() + i;
         
-        const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
         array_1d<double, 3>& gradient_value = it_node->FastGetSolutionStepValue(mVariableGradient);
-        
-        const double ratio = CalculateAnisotropicRatio(distance, mAnisotropicRatio, mBoundLayer, mInterpolation);
-        
-        // For postprocess pourposes
-        it_node->SetValue(ANISOTROPIC_RATIO, ratio); 
+
+        // Isotropic by default
+        double ratio = 1.0;
         
         double element_size = mMinSize;
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
         const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-        if (((element_size > nodal_h) && (mEnforceCurrent == true)) || (std::abs(distance) > mBoundLayer))
-            element_size = nodal_h;
-        
+        if (it_node->SolutionStepsDataHas(reference_var)) {
+            const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
+            ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);
+            if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(ratio_reference) > mBoundLayer))
+                element_size = nodal_h;
+        } else {
+            if (((element_size > nodal_h) && (mEnforceCurrent)))
+                element_size = nodal_h;
+        }
+
+        // For postprocess pourposes
+        it_node->SetValue(ANISOTROPIC_RATIO, ratio);
+
         const double tolerance = 1.0e-12;
         const double norm_gradient_value = norm_2(gradient_value);
         if (norm_gradient_value > tolerance)

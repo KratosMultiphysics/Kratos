@@ -7,32 +7,24 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 KratosMultiphysics.CheckForPreviousImport()
 
 ## Import base class file
-import navier_stokes_base_solver
+from fluid_solver import FluidSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesCompressibleSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return NavierStokesCompressibleSolver(model, custom_settings)
 
-class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseSolver):
+class NavierStokesCompressibleSolver(FluidSolver):
 
-    def __init__(self, main_model_part, custom_settings):
-
-        self.element_name = "CompressibleNavierStokes"
-        self.condition_name = "Condition"
-        self.min_buffer_size = 3
-        
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
+    def _ValidateSettings(self,settings):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "embedded_solver_from_defaults",
+            "solver_type": "compressible_solver_from_defaults",
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "two_element_test"
+                "input_filename": "two_element_test",
+                "reorder": false
             },
             "maximum_iterations": 10,
             "echo_level": 1,
@@ -62,13 +54,22 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
                 "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false,
-            "reorder": false
+            "move_mesh_flag": false
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
+
+    def __init__(self, model, custom_settings):
+        super(NavierStokesCompressibleSolver,self).__init__(model,custom_settings)
+
+        self.element_name = "CompressibleNavierStokes"
+        self.condition_name = "Condition"
+        self.min_buffer_size = 3
+
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
 
         ## Construct the linear solver
         import linear_solver_factory
@@ -81,15 +82,15 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
 
 
     def AddVariables(self):
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_ENERGY)
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_CAPACITY_RATIO)
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE) ## ?
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) ## ?
@@ -97,7 +98,7 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)  #for momentum
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.REACTION_DENSITY)  #for momentum
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.REACTION_ENERGY)  #for momentum
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE) ## ?
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL) ## ?
@@ -105,13 +106,13 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KINEMATIC_VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
 
-        # Post-process       
+        # Post-process
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)  #for momentum
 
         print("Monolithic compressible fluid solver variables added correctly")
-        
+
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, KratosMultiphysics.REACTION_X, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
@@ -130,23 +131,23 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
         # Creating the solution strategy
         self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                                  self.settings["absolute_tolerance"].GetDouble())
-        
+
 
         #(self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt()
         (self.conv_criteria).SetEchoLevel(3)
 
         self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
                                                                             self.settings["time_order"].GetInt())
-        
+
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         rotation_utility = KratosFluid.CompressibleElementRotationUtility(domain_size,KratosMultiphysics.IS_STRUCTURE)
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(rotation_utility)
         #time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme() # DOFs (4,5)
-        
+
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        
+
 
         self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
                                                                             time_scheme,
@@ -157,22 +158,22 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
                                                                             self.settings["compute_reactions"].GetBool(),
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                             self.settings["move_mesh_flag"].GetBool())
-        
+
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         #(self.solver).SetEchoLevel(1)
 
 
         (self.solver).Initialize()
-        
-        
+
+
         (self.solver).Check()
-        
+
 
         # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble()) # REMEMBER TO CHECK MY STAB CONSTANTS
 
         print ("Monolithic compressible solver initialization finished.")
-        
+
 
     def InitializeSolutionStep(self):
         (self.bdf_process).Execute()
@@ -183,6 +184,10 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
         (self.bdf_process).Execute()
         (self.solver).Solve()
 
+    def PrepareModelPart(self):
+        super(NavierStokesCompressibleSolver,self).PrepareModelPart()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._ExecuteAfterReading()
 
     def _ExecuteAfterReading(self):
         ## Replace element and conditions
@@ -195,12 +200,12 @@ class NavierStokesCompressibleSolver(navier_stokes_base_solver.NavierStokesBaseS
 
         import check_and_prepare_model_process_fluid
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
-        
+
 
     #def _SetCompressibleElementReplaceSettings(self):
         #domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         #self.settings.AddEmptyValue("element_replace_settings")
-        
+
         #if(domain_size == 3):
             #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
             #{
