@@ -191,17 +191,18 @@ private:
     ///@name Private member Variables
     ///@{
     
-    ModelPart& mThisModelPart;               /// The model part to compute
-    TVarType mVariable;                      /// The variable to calculate the hessian
-    double mMinSize;                         /// The minimal size of the elements
-    double mMaxSize;                         /// The maximal size of the elements
-    bool mEnforceCurrent;                    /// With this we choose if we inforce the current nodal size (NODAL_H)
-    bool mEstimateInterpError;               /// If the error of interpolation will be estimated
-    double mInterpError;                     /// The error of interpolation allowed
-    double mMeshConstant;                    /// The mesh constant to remesh (depends of the element type)
-    double mAnisotropicRatio;                /// The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;                      /// The boundary layer limit distance
-    Interpolation mInterpolation;            /// The interpolation type
+    ModelPart& mThisModelPart;                           /// The model part to compute
+    TVarType mVariable;                                  /// The variable to calculate the hessian
+    std::string mRatioReferenceVariable = "DISTANCE";    /// Variable used to compute the anisotropic ratio
+    double mMinSize;                                     /// The minimal size of the elements
+    double mMaxSize;                                     /// The maximal size of the elements
+    bool mEnforceCurrent;                                /// With this we choose if we inforce the current nodal size (NODAL_H)
+    bool mEstimateInterpError;                           /// If the error of interpolation will be estimated
+    double mInterpError;                                 /// The error of interpolation allowed
+    double mMeshConstant;                                /// The mesh constant to remesh (depends of the element type)
+    double mAnisotropicRatio;                            /// The minimal anisotropic ratio (0 < ratio < 1)
+    double mBoundLayer;                                  /// The boundary layer limit distance
+    Interpolation mInterpolation;                        /// The interpolation type
     
     ///@}
     ///@name Private Operators

@@ -76,10 +76,10 @@ char const* greet()
     return header.str().c_str();
 }
 
-using namespace pybind11;
-
 PYBIND11_MODULE(Kratos, m)
 {
+    namespace py = pybind11;
+
     AddVectorToPython(m);
     AddMatrixToPython(m);
     AddPointsToPython(m);
