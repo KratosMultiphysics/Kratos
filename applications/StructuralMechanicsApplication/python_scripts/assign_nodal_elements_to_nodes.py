@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-from math import *
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -14,8 +13,7 @@ class AssignNodalElementsToNodes(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id"                        : 0,
-            "main_model_part"                : "Structure",
+            "main_model_part_name"           : "Structure",
             "sub_model_part_name"            : "",
             "rayleigh_damping"               : false,
             "assign_active_flag_node"        : true,
@@ -91,25 +89,22 @@ class AssignNodalElementsToNodes(KratosMultiphysics.Process):
         if not (settings.Has("nodal_rotational_damping_ratio")):
             settings.AddValue("nodal_rotational_damping_ratio", auxiliar_parameters["nodal_rotational_damping_ratio"])
 
-        # Finally we assign to the instance
-        self.settings = settings
-
         # The main model part
         self.model = Model
-        self.main_model_part = self.model[self.settings["model_part_name"].GetString()]
+        self.main_model_part = self.model[settings["model_part_name"].GetString()]
 
         # The creation of the process
         process_parameters = KratosMultiphysics.Parameters("""{}""")
-        process_parameters.AddValue("main_model_part", self.settings["sub_model_part_name"])
-        process_parameters.AddValue("rayleigh_damping", self.settings["rayleigh_damping"])
-        process_parameters.AddValue("assign_active_flag_node", self.settings["assign_active_flag_node"])
-        process_parameters.AddValue("nodal_mass", self.settings["nodal_mass"])
-        process_parameters.AddValue("nodal_inertia", self.settings["nodal_inertia"])
-        process_parameters.AddValue("nodal_stiffness", self.settings["nodal_stiffness"])
-        process_parameters.AddValue("nodal_rotational_stiffness", self.settings["nodal_rotational_stiffness"])
-        process_parameters.AddValue("nodal_damping_ratio", self.settings["nodal_damping_ratio"])
-        process_parameters.AddValue("nodal_rotational_damping_ratio", self.settings["nodal_rotational_damping_ratio"])
-        process_parameters.AddValue("interval", self.settings["interval"])
+        process_parameters.AddValue("model_part_name", settings["sub_model_part_name"])
+        process_parameters.AddValue("rayleigh_damping", settings["rayleigh_damping"])
+        process_parameters.AddValue("assign_active_flag_node", settings["assign_active_flag_node"])
+        process_parameters.AddValue("nodal_mass", settings["nodal_mass"])
+        process_parameters.AddValue("nodal_inertia", settings["nodal_inertia"])
+        process_parameters.AddValue("nodal_stiffness", settings["nodal_stiffness"])
+        process_parameters.AddValue("nodal_rotational_stiffness", settings["nodal_rotational_stiffness"])
+        process_parameters.AddValue("nodal_damping_ratio", settings["nodal_damping_ratio"])
+        process_parameters.AddValue("nodal_rotational_damping_ratio", settings["nodal_rotational_damping_ratio"])
+        process_parameters.AddValue("interval", settings["interval"])
         self.assign_nodal_elements_to_nodes = StructuralMechanicsApplication.AssignNodalElementsToNodes(self.main_model_part, process_parameters)
 
     def ExecuteInitialize(self):
