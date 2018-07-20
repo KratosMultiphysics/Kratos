@@ -48,7 +48,6 @@ class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_imp
             "adaptative_remesh_settings" : {
                 "error_mesh_tolerance" : 5.0e-3,
                 "error_mesh_constant"  : 5.0e-3,
-                "strategy"             : "Error",
                 "error_strategy_parameters":
                 {
                     "minimal_size"                        : 0.01,

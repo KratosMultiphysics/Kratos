@@ -56,7 +56,7 @@ namespace Kratos
 /**
  * @class ErrorMeshCriteria
  * @ingroup MeshingApplication
- * @brief Custom convergence criteria for the mortar condition
+ * @brief Custom convergence for used to check the convergence in the mesh error
  * @tparam TSparseSpace The sparse space considered
  * @tparam TDenseSpace The dense space considered
  * @author Anna Rehr
@@ -109,7 +109,6 @@ public:
         {
             "error_mesh_tolerance" : 5.0e-3,
             "error_mesh_constant"  : 5.0e-3,
-            "strategy"             : "Error",
             "error_strategy_parameters":
             {
                 "minimal_size"                        : 0.01,

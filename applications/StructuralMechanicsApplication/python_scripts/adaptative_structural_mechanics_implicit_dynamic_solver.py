@@ -46,7 +46,6 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
             "adaptative_remesh_settings" : {
                 "error_mesh_tolerance" : 5.0e-3,
                 "error_mesh_constant"  : 5.0e-3,
-                "strategy"             : "Error",
                 "error_strategy_parameters":
                 {
                     "minimal_size"                        : 0.01,
