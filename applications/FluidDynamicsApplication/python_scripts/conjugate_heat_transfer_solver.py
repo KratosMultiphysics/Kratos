@@ -8,9 +8,12 @@ import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 KratosMultiphysics.CheckRegisteredApplications("ConvectionDiffusionApplication")
 
+
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-#import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
+import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
+import KratosMultiphysics.FSIApplication as FSIApplication
+import NonConformant_OneSideMap as ncosm
 
 def CreateSolver(main_model_part, custom_settings):
     
@@ -20,7 +23,6 @@ class ConjugateHeatTransferSolver(object):
     
     def __init__(self, model, custom_settings):
         self.model = model
-        #print("######################",custom_settings)
         
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -89,33 +91,8 @@ class ConjugateHeatTransferSolver(object):
             },
             "HeatTransfer": {
                 "solid_solver_settings": {
-                    "solver_type": "Monolithic",
-                    "domain_size": 3,
-                    "model_import_settings": {
-                        "input_type": "mdpa",
-                        "input_filename": "Test"
-                    },
-                    "model_part_name": "SolidModelPart",
-                    "echo_level": 0,
-                    "compute_reactions": false,
-                    "dynamic_tau": 0.0,
-                    "oss_switch": 0,
-                    "maximum_iterations": 10,
-                    "relative_velocity_tolerance": 0.001,
-                    "absolute_velocity_tolerance": 0.00001,
-                    "relative_pressure_tolerance": 0.001,
-                    "absolute_pressure_tolerance": 0.00001,
-                    "volume_model_part_name": "Parts_Parts_Auto1",
-                    "skin_parts": [
-                        "Outlet3D_Outlet_pressure_Auto1",
-                        "NoSlip3D_No_Slip_Auto1"
-                    ],
-                    "no_skin_parts": [],
-                    "time_stepping": {
-                        "automatic_time_step": false,
-                        "time_step": 0.01
-                    }
-                },
+
+                 },
                 "thermal_solver_settings": {
                     "domain_size": 3,
                     "echo_level": 0,
@@ -148,8 +125,7 @@ class ConjugateHeatTransferSolver(object):
                         "reaction_variable": "REACTION_FLUX"
                     }
                 }
-            },
-            "model_part_name": "please_specify_name"
+            }
         }
 
         """)
@@ -162,7 +138,6 @@ class ConjugateHeatTransferSolver(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
         
         domain_size = self.settings["domain_size"].GetInt()
-        print("@@@@@@@@@@@@@@@", domain_size)
         
         if(self.settings["ThermallyCoupled"]["fluid_solver_settings"]["domain_size"].GetInt() != domain_size):
             raise Exception("domain size for the fluid solver is not consistent")
@@ -175,57 +150,57 @@ class ConjugateHeatTransferSolver(object):
         self.settings = custom_settings
         
         import python_solvers_wrapper_fluid
-        
-     
 
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["ThermallyCoupled"]["fluid_solver_settings"],"OpenMP")
         
         self.main_model_part = self.fluid_solver.main_model_part
+
+
+
+
         
-              
+        
         import python_solvers_wrapper_convection_diffusion
         
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,custom_settings["ThermallyCoupled"]["thermal_solver_settings"],"OpenMP")
-
            
-        #print("@@@@@@@@@@@@@@@@@", self.settings["HeatTransfer"]["solid_solver_settings"])
-
-        #self.solid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["HeatTransfer"]["solid_solver_settings"],"OpenMP")
-        
-        #self.solid_model_part = self.solid_solver.main_model_part
-        
+                
 
         self.solid_thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,custom_settings["HeatTransfer"]["thermal_solver_settings"],"OpenMP")
 
         settings_aux=custom_settings["HeatTransfer"]["thermal_solver_settings"]
-        #print("%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-        #print("%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-        #print("%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-        #print("%%%%%%%%%%%%%%%%%%%%%%%%%%%", settings_aux)
 
-
+             
         #adding the model part name for the solid part        
-        settings_aux.AddEmptyValue("model_part_name")
-        settings_aux["model_part_name"].SetString("SolidModelPart")
+        #settings_aux.AddEmptyValue("model_part_name")
+        #settings_aux["model_part_name"].SetString("SolidModelPart")
         #settings_aux.AddEmptyValue("volume_model_part_name")
         #settings_aux["volume_model_part_name"].SetString("Parts_solids")
-
+        
     def AddVariables(self):
         self.fluid_solver.AddVariables()
         self.thermal_solver.AddVariables() 
+
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
+        
+        # Temporary container for un-relaxed temperature
+        
         KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part)
         
         self.solid_thermal_solver.AddVariables()
-        
+
 
     def ImportModelPart(self):
         
         self.fluid_solver.ImportModelPart()
-        #print("###############################", self.fluid_solver)
         
         self.solid_thermal_solver.ImportModelPart()
         
-        
+        if not self.model.HasModelPart(self.fluid_solver.main_model_part.Name):
+            self.model.AddModelPart(self.fluid_solver.main_model_part)
+        if not self.model.HasModelPart(self.solid_thermal_solver.main_model_part.Name):
+            self.model.AddModelPart(self.solid_thermal_solver.main_model_part)
+
         #here cloning the fluid modelpart to thermal_model_part so that the nodes are shared
         convection_diffusion_settings = self.thermal_solver.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
         
@@ -239,15 +214,30 @@ class ConjugateHeatTransferSolver(object):
 
         self.thermal_solver.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
-        
-        print(self.thermal_solver.GetComputingModelPart())
-
         self.thermal_solver.ImportModelPart()
 
-        print("qqqqqqqqqqqqqqqqqqq", self.fluid_solver.main_model_part)
-        print("#####################", self.thermal_solver.main_model_part)
-        print("sssssssssssssssssss", self.solid_thermal_solver.main_model_part)
-        
+        count_nodes = 0
+        for node in self.main_model_part.Nodes:
+            count_nodes += 1
+            node.Id = count_nodes
+        count_elems = 0
+        for elem in self.main_model_part.Elements:
+            count_elems += 1
+            elem.Id = count_elems
+        count_conds = 0
+        for cond in self.main_model_part.Conditions:
+            count_conds += 1
+            cond.Id = count_conds
+
+        for node in self.solid_thermal_solver.main_model_part.Nodes:
+            count_nodes += 1
+            node.Id = count_nodes
+        for elem in self.solid_thermal_solver.main_model_part.Elements:
+            count_elems += 1
+            elem.Id = count_elems
+        for cond in self.solid_thermal_solver.main_model_part.Conditions:
+            count_conds += 1
+            cond.Id = count_conds
 
     def AddDofs(self):
         self.fluid_solver.AddDofs()
@@ -260,12 +250,14 @@ class ConjugateHeatTransferSolver(object):
         pass
 
     def GetComputingModelPart(self):
+        
         return self.fluid_solver.GetComputingModelPart()
 
     def GetOutputVariables(self):
         pass
 
     def ComputeDeltaTime(self):
+                
         return self.fluid_solver._ComputeDeltaTime()
 
     def GetMinimumBufferSize(self):
@@ -306,17 +298,17 @@ class ConjugateHeatTransferSolver(object):
         self.main_model_part.CloneTimeStep(new_time)
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
 
-        
+       
+        self.solid_thermal_solver.main_model_part.CloneTimeStep(new_time)
+        self.solid_thermal_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         return new_time
 
     def PrepareModelPart(self):
           
         self.fluid_solver.PrepareModelPart()
-        
         self.thermal_solver.PrepareModelPart()
-
         self.solid_thermal_solver.PrepareModelPart()
-        
+
     def InitializeSolutionStep(self):
         self.fluid_solver.InitializeSolutionStep()
         
@@ -324,35 +316,87 @@ class ConjugateHeatTransferSolver(object):
 
         self.solid_thermal_solver.InitializeSolutionStep()
 
+        
     def Predict(self):
         self.fluid_solver.Predict()
         self.thermal_solver.Predict()
         self.solid_thermal_solver.Predict()
         
-        #print (self.fluid_solver.GetComputingModelPart())
-        
-
-             #       if node.X0>0.298:
-             #   node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,5)		
-             #   node.Fix(KratosMultiphysics.TEMPERATURE)
-
 
 
         for node in self.fluid_solver.GetComputingModelPart().Nodes:
             temperature=node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)	
             gravity_y=-10.0*(1-0.001*(temperature-0.0))
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y,gravity_y)	
-            #node.Fix(KratosMultiphysics.TEMPERATURE)
-
-            #node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0)		    
  
-
-
+    
     def SolveSolutionStep(self):
-        self.fluid_solver.SolveSolutionStep()
+        #self.fluid_solver.SolveSolutionStep()
         
-        self.thermal_solver.SolveSolutionStep()
+        for node in self.solid_thermal_solver.GetComputingModelPart().Nodes:
+            if(node.X<-0.249999999999):
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,300.15)	
+                node.Fix(KratosMultiphysics.TEMPERATURE)
+
+        for node in self.fluid_solver.GetComputingModelPart().Nodes:
+            if(node.X>.999999):
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,595.15)	
+                node.Fix(KratosMultiphysics.TEMPERATURE)
+
+
+        num_coupling_iterations = 10
+        temperature_relaxation_factor = 0.7
+        coupling_relative_tolerance = 1e-5
+
+        self.setUpMapper()
         
+        #self.setUpDirichletCouplingBoundary(self.fluid_solver.GetComputingModelPart())
+        #self.setUpDirichletCouplingBoundary(self.fluid_solver.GetComputingModelPart())
+
+        self.setUpDirichletCouplingBoundary(self.solid_thermal_solver.GetComputingModelPart())
+        
+
+        iter = 0
+        while iter < num_coupling_iterations:
+
+            # Solve Dirichlet side -> Get reactions
+            
+            self.solid_thermal_solver.Solve()
+            # Map reactions
+
+            FSIApplication.VariableRedistributionUtility.DistributePointValues( self.mapper.str_interface, KratosMultiphysics.REACTION_FLUX, KratosMultiphysics.PRESSURE, 1e-5, 50)
+                
+            #self.mapper.StructureToFluid_ScalarMap(KratosMultiphysics.PRESSURE,KratosMultiphysics.FACE_HEAT_FLUX,False)
+            self.mapper.StructureToFluid_ScalarMap(KratosMultiphysics.PRESSURE,KratosMultiphysics.FACE_HEAT_FLUX,False)
+            
+            # Solve Neumann side
+            #self.solid_thermal_solver.Solve()
+            self.thermal_solver.SolveSolutionStep()
+        #   # Get updated temperature
+            #self.main_model_part.AddNodalSolutionStepVariable(PRESSURE)
+            #self.solid_thermal_solver.GetComputingModelPart().AddNodalSolutionStepVariable(NODAL_PAUX)
+
+
+            #self.mapper.FluidToStructure_ScalarMap(KratosMultiphysics.TEMPERATURE,KratosMultiphysics.PRESSURE,True)
+            self.mapper.FluidToStructure_ScalarMap(KratosMultiphysics.TEMPERATURE,KratosMultiphysics.PRESSURE,True)
+            temperature_difference = 0.0
+            for node in self.mapper.str_interface.Nodes:
+                #self.fl_interface
+                old_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                new_temperature = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
+                interpolated_temperature = (1.0-temperature_relaxation_factor)*old_temperature + temperature_relaxation_factor*new_temperature
+                temperature_difference += (old_temperature-new_temperature)**2
+                
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, interpolated_temperature )
+
+            iter += 1
+            if (temperature_difference**0.5)/len(self.mapper.str_interface.Nodes) <= coupling_relative_tolerance:
+                
+                break
+
+
+
+
     def FinalizeSolutionStep(self):
         self.fluid_solver.FinalizeSolutionStep()
         self.thermal_solver.FinalizeSolutionStep()
@@ -363,3 +407,25 @@ class ConjugateHeatTransferSolver(object):
         self.Predict()
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
+
+    def setUpDirichletCouplingBoundary(self,model_part):
+        for cond in model_part.Conditions:
+            
+            for node in cond.GetNodes():
+                node.Fix(KratosMultiphysics.TEMPERATURE)
+
+    def setUpMapper(self):
+
+        for cond in self.fluid_solver.GetComputingModelPart().Conditions:
+            for node in cond.GetNodes():
+                node.Set(KratosMultiphysics.INTERFACE,True)
+                
+
+        for cond in self.solid_thermal_solver.GetComputingModelPart().Conditions:
+            
+            for node in cond.GetNodes():
+                node.Set(KratosMultiphysics.INTERFACE,True)
+
+
+        self.mapper = ncosm.NonConformant_OneSideMap(self.fluid_solver.GetComputingModelPart(),self.solid_thermal_solver.GetComputingModelPart(), search_radius_factor=2.0, it_max=50, tol=1e-5)
+        

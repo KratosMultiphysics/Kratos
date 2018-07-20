@@ -41,10 +41,9 @@ class FluidDynamicsAnalysis(AnalysisStage):
         
         import python_solvers_wrapper_fluid
         
-        import coupled_fluid_thermal_solver
-        
-        
-        
+        #import coupled_fluid_thermal_solver
+        #print("modellllllllllllllllllllllllll",self.project_parameters["solver_settings"])
+        #sssssssssssssss
         return python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],"OpenMP")
         #self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
         
@@ -76,7 +75,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
             if self.project_parameters.Has("output_configuration"):
                 #KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
                 gid_output= self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
+                list_of_processes += [gid_output,self.other_output,]
         else:
             raise NameError("wrong parameter name")
 
@@ -99,6 +98,10 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                 self.project_parameters["problem_data"]["problem_name"].GetString() ,
+                                self.project_parameters["output_configuration"])
+
+        self.other_output = OutputProcess(self._GetSolver().solid_thermal_solver.GetComputingModelPart(),
+                                self.project_parameters["problem_data"]["problem_name"].GetString()+"_other" ,
                                 self.project_parameters["output_configuration"])
 
         return output

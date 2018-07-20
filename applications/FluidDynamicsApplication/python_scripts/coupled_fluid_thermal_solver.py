@@ -120,7 +120,7 @@ class CoupledFluidThermalSolver(object):
         
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,custom_settings["thermal_solver_settings"],"OpenMP")
         
-
+        
 
     def AddVariables(self):
         self.fluid_solver.AddVariables()
@@ -130,7 +130,7 @@ class CoupledFluidThermalSolver(object):
      
 
     def ImportModelPart(self):
-
+        
         self.fluid_solver.ImportModelPart()
         
         #here cloning the fluid modelpart to thermal_model_part so that the nodes are shared
@@ -140,13 +140,18 @@ class CoupledFluidThermalSolver(object):
         if(self.domain_size == 2):
             modeler.GenerateModelPart(self.main_model_part, self.thermal_solver.GetComputingModelPart(), "Element2D3N", "LineCondition2D2N")
         else:
-            modeler.GenerateModelPart(self.main_model_part, self.thermal_solver.GetComputingModelPart(), "Element3D4N", "SurfaceCondition3D3N")
+            
+            #modeler.GenerateModelPart(self.main_model_part, self.thermal_solver.GetComputingModelPart(), "Element3D4N", "SurfaceCondition3D3N")
+            modeler.GenerateModelPart(self.main_model_part, self.thermal_solver.GetComputingModelPart(), "EulerianConvDiff3D", "ThermalFace3D")
+           
+           
 
+        
         self.thermal_solver.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
         print(self.thermal_solver.GetComputingModelPart())
 
-        self.thermal_solver.ImportModelPart()
+        #self.thermal_solver.ImportModelPart()
 
 
     def AddDofs(self):
@@ -198,8 +203,8 @@ class CoupledFluidThermalSolver(object):
         self.main_model_part.CloneTimeStep(new_time)
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
 
-        
-        return new_time
+                
+        return new_time        
 
     def PrepareModelPart(self):
           
@@ -208,6 +213,7 @@ class CoupledFluidThermalSolver(object):
         self.thermal_solver.PrepareModelPart()
 
     def InitializeSolutionStep(self):
+        
         self.fluid_solver.InitializeSolutionStep()
         
         self.thermal_solver.InitializeSolutionStep()
@@ -215,12 +221,6 @@ class CoupledFluidThermalSolver(object):
     def Predict(self):
         self.fluid_solver.Predict()
         self.thermal_solver.Predict()
-        #print (self.fluid_solver.GetComputingModelPart())
-        
-
-             #       if node.X0>0.298:
-             #   node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,5)		
-             #   node.Fix(KratosMultiphysics.TEMPERATURE)
 
 
 
@@ -228,9 +228,6 @@ class CoupledFluidThermalSolver(object):
             temperature=node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)	
             gravity_y=-10.0*(1-0.001*(temperature-0.0))
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y,gravity_y)	
-            #node.Fix(KratosMultiphysics.TEMPERATURE)
-
-            #node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0)		    
  
 
 
