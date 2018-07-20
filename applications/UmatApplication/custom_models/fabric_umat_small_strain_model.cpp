@@ -127,6 +127,8 @@ namespace Kratos
          rValue = mStateVariablesFinalized[9];
       } else if ( rVariable == PLASTIC_MULTIPLIER) {
          rValue = mStateVariablesFinalized[0];
+      } else {
+         rValue = SmallStrainUmatModel::GetValue( rVariable, rValue);
       }
 
       return rValue;
