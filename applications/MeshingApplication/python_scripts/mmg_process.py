@@ -351,12 +351,12 @@ class MmgProcess(KratosMultiphysics.Process):
         # Initialize metric
         self.initialize_metric.Execute()
 
-        print("Calculating the metrics")
+        KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Calculating the metrics")
         # Execute metric computation
         for metric_process in self.metric_processes:
             metric_process.Execute()
 
-        print("Remeshing")
+        KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remeshing")
         self.mmg_process.Execute()
 
         if (self.settings["debug_mode"].GetBool() == True):
@@ -375,14 +375,14 @@ class MmgProcess(KratosMultiphysics.Process):
         # We need to set that the model part has been modified (later on we will act in consequence)
         self.model_part.Set(KratosMultiphysics.MODIFIED, True)
 
-        print("Remesh finished")
+        KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remesh finished")
 
     def _ErrorCalculation(self):
 
         # Initialize metric
         self.initialize_metric.Execute()
 
-        print("Calculating the metrics")
+        KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Calculating the metrics")
         # Execute metric computation
         self.metric_process.Execute()
         self.estimated_error = self.model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE]
