@@ -245,6 +245,26 @@ private:
     ///@{
 
     /**
+     * @brief This method computes the superconvergent stresses
+     */
+    void CalculateSuperconvergentStresses();
+
+    /**
+     * @brief This method estimates the error and computes the new element size
+     * @param rEnergyNormOverall The mean of the energy norm
+     * @param rErrorOverall The mean of the error
+     */
+    void CalculateErrorEstimationAndElementSize(
+        double& rEnergyNormOverall,
+        double& rErrorOverall
+        );
+
+    /**
+     * @brief In this final step the metric is computed
+     */
+    void CalculateMetric();
+
+    /**
      * @brief Calculates the recovered stress. Checks whatever this is a contact case or a standard one
      * @param itNode the node for which the recovered stress should be calculated
      * @param itPatchNode the center node of the patch

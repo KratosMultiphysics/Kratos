@@ -70,39 +70,66 @@ template<SizeType TDim>
 void SPRMetricProcess<TDim>::Execute()
 {
     // Some initializations
-    const double tolerance = std::numeric_limits<double>::epsilon();
     VariableUtils().SetNonHistoricalVariable(ELEMENT_ERROR, 0.0, mThisModelPart.Elements());
     VariableUtils().SetNonHistoricalVariable(ELEMENT_H, 0.0, mThisModelPart.Elements());
 
     /************************************************************************
     --1-- Calculate superconvergent stresses (at the nodes) --1--
     ************************************************************************/
+    CalculateSuperconvergentStresses();
 
+    /******************************************************************************
+    --2-- Calculate error estimation and new element size (for each element) --2--
+    ******************************************************************************/
+    double energy_norm_overall = 0.0;
+    double error_overall = 0.0;
+    CalculateErrorEstimationAndElementSize(energy_norm_overall, error_overall);
+
+    /******************************************************************************
+    --3-- Calculate metric (for each node) --3--
+    ******************************************************************************/
+    CalculateMetric();
+
+    // Final calculations
+    const double tolerance = std::numeric_limits<double>::epsilon();
+    const double denominator = std::sqrt(std::pow(error_overall, 2) + std::pow(energy_norm_overall , 2));
+    const double coeff = denominator < tolerance ? 1.0 : 1.0/denominator;
+    KRATOS_WARNING_IF("SPRMetricProcess", denominator < tolerance) << "Denominator of error estimate zero or almost zero " << denominator << std::endl;
+    mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE] = coeff * error_overall;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void SPRMetricProcess<TDim>::CalculateSuperconvergentStresses()
+{
     FindNodalNeighboursProcess find_neighbours(mThisModelPart);
     find_neighbours.Execute();
 
     // Iteration over all nodes -- construction of patches
     NodesArrayType& nodes_array = mThisModelPart.Nodes();
-    SizeType num_nodes = nodes_array.size();
-    
-    for(IndexType i_node = 0; i_node < num_nodes; ++i_node) {
+    const int num_nodes = static_cast<int>(nodes_array.size());
+
+    #pragma omp parallel for
+    for(int i_node = 0; i_node < num_nodes; ++i_node) {
         auto it_node = nodes_array.begin() + i_node;
-        
+
         const SizeType neighbour_size = it_node->GetValue(NEIGHBOUR_ELEMENTS).size();
 
         Vector sigma_recovered(SigmaSize, 0.0);
-        
+
         if(neighbour_size > TDim) {
             CalculatePatch(it_node, it_node, neighbour_size,sigma_recovered);
             it_node->SetValue(RECOVERED_STRESS, sigma_recovered);
-            
+
             KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
         } else {
             auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             for(auto it_neighbour_nodes = neigh_nodes.begin(); it_neighbour_nodes != neigh_nodes.end(); it_neighbour_nodes++) {
-                
+
                 Vector sigma_recovered_i(SigmaSize,0);
-                
+
                 IndexType count_i = 0;
                 for(IndexType i_node_loop = 0; i_node_loop < num_nodes; ++i_node_loop) { // FIXME: Avoid this double loop, extreamily expensive
                     auto it_node_loop = nodes_array.begin() + i_node_loop;
@@ -112,33 +139,41 @@ void SPRMetricProcess<TDim>::Execute()
                         ++count_i;
                     }
                 }
-                
+
                 // Average solution from different patches
                 if(count_i != 0)
                     sigma_recovered = sigma_recovered*(count_i-1)/count_i + sigma_recovered_i/count_i;
             }
-            
+
             it_node->SetValue(RECOVERED_STRESS,sigma_recovered);
             KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
         }
     }
-    /******************************************************************************
-    --2-- Calculate error estimation and new element size (for each element) --2--
-    ******************************************************************************/
-    // Loop over all elements:
-    double error_overall = 0.0;
-    double energy_norm_overall = 0.0;
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void SPRMetricProcess<TDim>::CalculateErrorEstimationAndElementSize(
+    double& rEnergyNormOverall,
+    double& rErrorOverall
+    )
+{
+    // Some initializations
+    const double tolerance = std::numeric_limits<double>::epsilon();
+
+    // Loop over all elements:
     ElementsArrayType& elements_array = mThisModelPart.Elements();
     const int num_elem = static_cast<int>(elements_array.size());
-    
+
     // Compute the error estimate per element
-    #pragma omp parallel for
+    #pragma omp parallel for reduction(+:rErrorOverall, rEnergyNormOverall)
     for(int i_elem = 0; i_elem < num_elem; ++i_elem){
         auto it_elem = elements_array.begin() + i_elem;
-        
+
         std::vector<double> error_integration_point;
-        auto& process_info = mThisModelPart.GetProcessInfo();
+        const auto& process_info = mThisModelPart.GetProcessInfo();
         it_elem->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, process_info);
 
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Error GP:" << error_integration_point << std::endl;
@@ -146,11 +181,10 @@ void SPRMetricProcess<TDim>::Execute()
         double error_energy_norm = 0.0;
         for(IndexType i = 0;i < error_integration_point.size();++i)
             error_energy_norm += error_integration_point[i];
-        #pragma omp atomic
-        error_overall += error_energy_norm;
+        rErrorOverall += error_energy_norm;
         error_energy_norm = std::sqrt(error_energy_norm);
         it_elem->SetValue(ELEMENT_ERROR, error_energy_norm);
-        
+
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Element error: " << error_energy_norm << std::endl;
 
         std::vector<double> strain_energy;
@@ -159,27 +193,26 @@ void SPRMetricProcess<TDim>::Execute()
         double energy_norm = 0.0;
         for(IndexType i = 0;i < strain_energy.size(); ++i)
             energy_norm += 2.0 * strain_energy[i];
-        #pragma omp atomic
-        energy_norm_overall += energy_norm;
+        rEnergyNormOverall += energy_norm;
         energy_norm= std::sqrt(energy_norm);
 
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Energy norm: " << energy_norm << std::endl;
     }
-    
-    error_overall = std::sqrt(error_overall);
-    energy_norm_overall = std::sqrt(energy_norm_overall);
-    double error_percentage = error_overall/std::sqrt((std::pow(error_overall, 2) + std::pow(energy_norm_overall, 2)));
+
+    rErrorOverall = std::sqrt(rErrorOverall);
+    rEnergyNormOverall = std::sqrt(rEnergyNormOverall);
+    double error_percentage = rErrorOverall/std::sqrt((std::pow(rErrorOverall, 2) + std::pow(rEnergyNormOverall, 2)));
 
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 1)
-        << "Overall error norm: " << error_overall << std::endl
-        << "Overall energy norm: "<< energy_norm_overall << std::endl
+        << "Overall error norm: " << rErrorOverall << std::endl
+        << "Overall energy norm: "<< rEnergyNormOverall << std::endl
         << "Error in percent: " << error_percentage << std::endl;
-    
+
     // Compute new element size
     #pragma omp parallel for
     for(int i_elem = 0; i_elem < num_elem; ++i_elem){
         auto it_elem = elements_array.begin() + i_elem;
-        
+
         //Compute the current element size h
         ComputeElementSize(it_elem);
 
@@ -191,11 +224,11 @@ void SPRMetricProcess<TDim>::Execute()
         // If a target number for elements is given: use this, else: use current element number
         // if(mSetElementNumber == true && mElementNumber<mThisModelPart.Elements().size())
         if(mSetElementNumber == true)
-            new_element_size *= std::sqrt((std::pow(energy_norm_overall, 2) + std::pow(error_overall, 2))/mElementNumber) * mTargetError;
+            new_element_size *= std::sqrt((std::pow(rEnergyNormOverall, 2) + std::pow(rErrorOverall, 2))/mElementNumber) * mTargetError;
         else
-            new_element_size *= std::sqrt((energy_norm_overall*energy_norm_overall+error_overall*error_overall)/mThisModelPart.Elements().size())*mTargetError;
-        
-        
+            new_element_size *= std::sqrt((rEnergyNormOverall*rEnergyNormOverall+rErrorOverall*rErrorOverall)/mThisModelPart.Elements().size())*mTargetError;
+
+
         // Check if element sizes are in specified limits. If not, set them to the limit case
         if(new_element_size < mMinSize)
             new_element_size = mMinSize;
@@ -204,10 +237,17 @@ void SPRMetricProcess<TDim>::Execute()
 
         it_elem->SetValue(ELEMENT_H, new_element_size);
     }
+}
 
-    /******************************************************************************
-    --3-- Calculate metric (for each node) --3--
-    ******************************************************************************/
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void SPRMetricProcess<TDim>::CalculateMetric()
+{
+    // Iteration over all nodes
+    NodesArrayType& nodes_array = mThisModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
@@ -219,7 +259,7 @@ void SPRMetricProcess<TDim>::Execute()
         */
         double h_min = 0.0;
         auto& neigh_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
-        for(WeakElementItType i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++){
+        for(auto i_neighbour_elements = neigh_elements.begin(); i_neighbour_elements != neigh_elements.end(); i_neighbour_elements++){
             const double element_h = i_neighbour_elements->GetValue(ELEMENT_H);
             if(mAverageNodalH == false) {
                 if(h_min == 0.0 || h_min > element_h)
@@ -243,11 +283,6 @@ void SPRMetricProcess<TDim>::Execute()
 
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Node "<<it_node->Id()<<" has metric: "<<it_node->GetValue(MMG_METRIC)<<std::endl;
     }
-    
-    const double denominator = std::sqrt(std::pow(error_overall, 2) + std::pow(energy_norm_overall , 2));
-    const double coeff = denominator < tolerance ? 1.0 : 1.0/denominator;
-    KRATOS_WARNING_IF("SPRMetricProcess", denominator < tolerance) << "Denominator of error estimate zero or almost zero " << denominator << std::endl;
-    mThisModelPart.GetProcessInfo()[ERROR_ESTIMATE] = coeff * error_overall;
 }
 
 /***********************************************************************************/
