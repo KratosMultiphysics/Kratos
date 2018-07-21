@@ -109,7 +109,7 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart& second_model_part = current_model.CreateModelPart("Main");
+            ModelPart& second_model_part = current_model.CreateModelPart("SecondMain");
             second_model_part.CreateSubModelPart("BSubModelPart1");
             second_model_part.CreateSubModelPart("ASubModelPart2");
             second_model_part.CreateSubModelPart("ZSubModelPart3");
@@ -250,7 +250,7 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart& second_model_part = current_model.CreateModelPart("Main");
+            ModelPart& second_model_part = current_model.CreateModelPart("SecondMain");
             ModelPart* p_second_sub_modelpart_1 = &second_model_part.CreateSubModelPart("BSubModelPart1");
             p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
             p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
