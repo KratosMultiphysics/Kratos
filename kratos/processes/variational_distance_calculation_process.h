@@ -25,6 +25,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/unique_modelpart_pointer_wrapper.h"
 #include "includes/kratos_flags.h"
 #include "elements/distance_calculation_element_simplex.h"
 #include "linear_solvers/linear_solver.h"
@@ -122,9 +123,11 @@ public:
         typename TLinearSolver::Pointer plinear_solver,
         unsigned int max_iterations = 10)
         :mr_base_model_part(base_model_part),
-        mModelPartWrapper(rBaseModelPart.GetOwnerModel(), "DistancePart",1)
+        mModelPartWrapper(base_model_part.GetOwnerModel(), "DistancePart",1)
     {
         KRATOS_TRY
+
+        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
 
         mmax_iterations = max_iterations;
         mdistance_part_is_initialized = false; //this will be set to true upon completing ReGenerateDistanceModelPart
@@ -157,7 +160,7 @@ public:
         BuilderSolverPointerType pBuilderSolver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
         mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
-            *mp_distance_model_part,
+            r_distance_model_part,
             pscheme,
             plinear_solver,
             pBuilderSolver,
@@ -191,19 +194,21 @@ public:
     {
         KRATOS_TRY;
 
+        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
+
         if(mdistance_part_is_initialized == false){
             ReGenerateDistanceModelPart(mr_base_model_part);
         }
 
         // TODO: check flag    PERFORM_STEP1
         // Step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
-        mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
+        r_distance_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
         
         // Unfix the distances
-        const int nnodes = static_cast<int>(mp_distance_model_part->NumberOfNodes());
+        const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
         #pragma omp parallel for
         for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = mp_distance_model_part->NodesBegin() + i_node;
+            auto it_node = r_distance_model_part.NodesBegin() + i_node;
             double& d = it_node->FastGetSolutionStepValue(DISTANCE);
             double& fix_flag = it_node->FastGetSolutionStepValue(FLAG_VARIABLE);
 
@@ -227,11 +232,11 @@ public:
             } 
         }
 
-        const int nelem = static_cast<int>(mp_distance_model_part->NumberOfElements());
+        const int nelem = static_cast<int>(r_distance_model_part.NumberOfElements());
 
         #pragma omp parallel for
         for(int i_elem = 0; i_elem < nelem; ++i_elem){
-            auto it_elem = mp_distance_model_part->ElementsBegin() + i_elem;
+            auto it_elem = r_distance_model_part.ElementsBegin() + i_elem;
             array_1d<double,TDim+1> distances;
             auto& geom = it_elem->GetGeometry();
             
@@ -279,7 +284,7 @@ public:
         double max_dist = 0.0;
         double min_dist = 0.0;
         for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = mp_distance_model_part->NodesBegin() + i_node;
+            auto it_node = r_distance_model_part.NodesBegin() + i_node;
             if(it_node->IsFixed(DISTANCE)){
                 const double& d = it_node->FastGetSolutionStepValue(DISTANCE);
                 if(d > max_dist){
@@ -292,7 +297,7 @@ public:
         }
 
         // Synchronize the maximum and minimum distance values
-        auto &r_communicator = mp_distance_model_part->GetCommunicator();
+        auto &r_communicator = r_distance_model_part.GetCommunicator();
         r_communicator.MaxAll(max_dist);
         r_communicator.MinAll(min_dist);
 
@@ -300,7 +305,7 @@ public:
         // and the minimum one to the non-fixed negatives
         #pragma omp parallel for
         for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = mp_distance_model_part->NodesBegin() + i_node;
+            auto it_node = r_distance_model_part.NodesBegin() + i_node;
             if(!it_node->IsFixed(DISTANCE)){
                 double& d = it_node->FastGetSolutionStepValue(DISTANCE);
                 if(d>0){
@@ -314,7 +319,7 @@ public:
         mp_solving_strategy->Solve();
 
         // Step2 - minimize the target residual
-        mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
+        r_distance_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
         for(unsigned int it = 0; it<mmax_iterations; it++){
              mp_solving_strategy->Solve();
         }
@@ -322,7 +327,7 @@ public:
         // Unfix the distances
         #pragma omp parallel for
         for(int i_node = 0; i_node < nnodes; ++i_node){
-            auto it_node = (mp_distance_model_part->NodesBegin()) + i_node;
+            auto it_node = (r_distance_model_part.NodesBegin()) + i_node;
             it_node->Free(DISTANCE);
         }
 
@@ -331,10 +336,11 @@ public:
 
     virtual void Clear()
     {
-        mp_distance_model_part->Nodes().clear();
-        mp_distance_model_part->Conditions().clear();
-        mp_distance_model_part->Elements().clear();
-        // mp_distance_model_part->GetProcessInfo().clear();
+        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
+        r_distance_model_part.Nodes().clear();
+        r_distance_model_part.Conditions().clear();
+        r_distance_model_part.Elements().clear();
+        // r_distance_model_part.GetProcessInfo().clear();
         mdistance_part_is_initialized = false;
 
         mp_solving_strategy->Clear();
@@ -397,7 +403,6 @@ protected:
     unsigned int mmax_iterations;
 
     UniqueModelPartPointerWrapper mModelPartWrapper;
-    ModelPart* mp_distance_model_part;
     ModelPart& mr_base_model_part;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
@@ -415,23 +420,24 @@ protected:
         KRATOS_TRY
 
         // Generate
-        mp_distance_model_part->Nodes().clear();
-        mp_distance_model_part->Conditions().clear();
-        mp_distance_model_part->Elements().clear();
+        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
+        r_distance_model_part.Nodes().clear();
+        r_distance_model_part.Conditions().clear();
+        r_distance_model_part.Elements().clear();
 
-        mp_distance_model_part->SetProcessInfo(  base_model_part.pGetProcessInfo() );
-        mp_distance_model_part->SetBufferSize(base_model_part.GetBufferSize());
-        mp_distance_model_part->SetProperties(base_model_part.pProperties());
-        mp_distance_model_part->Tables() = base_model_part.Tables();
+        r_distance_model_part.SetProcessInfo(  base_model_part.pGetProcessInfo() );
+        r_distance_model_part.SetBufferSize(base_model_part.GetBufferSize());
+        r_distance_model_part.SetProperties(base_model_part.pProperties());
+        r_distance_model_part.Tables() = base_model_part.Tables();
 
         // Assigning the nodes to the new model part
-        mp_distance_model_part->Nodes() = base_model_part.Nodes();
+        r_distance_model_part.Nodes() = base_model_part.Nodes();
 
         // Ensure that the nodes have distance as a DOF
         VariableUtils().AddDof<Variable<double> >(DISTANCE, base_model_part);
 
         // Generating the elements
-        mp_distance_model_part->Elements().reserve(base_model_part.Elements().size());
+        r_distance_model_part.Elements().reserve(base_model_part.Elements().size());
         for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem){
             Properties::Pointer properties = it_elem->pGetProperties();
             Element::Pointer p_element = Kratos::make_shared<DistanceCalculationElementSimplex<TDim> >(
@@ -442,12 +448,12 @@ protected:
             // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = it_elem->pGetGeometry();
             
-            mp_distance_model_part->Elements().push_back(p_element);
+            r_distance_model_part.Elements().push_back(p_element);
         }
 
         // Using the conditions to mark the boundary with the flag boundary
         // Note that we DO NOT add the conditions to the model part
-        VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, mp_distance_model_part->Nodes());
+        VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, r_distance_model_part.Nodes());
         // Note that above we have assigned the same geometry. Thus the flag is 
         // set in the distance model part despite we are iterating the base one
         for (auto it_cond = base_model_part.ConditionsBegin(); it_cond != base_model_part.ConditionsEnd(); ++it_cond){
@@ -510,17 +516,17 @@ private:
     }
 
     void SynchronizeDistance(){
-
-        auto &r_communicator = mp_distance_model_part->GetCommunicator();
+        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
+        auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
         if(r_communicator.TotalProcesses() != 1){
-            int nnodes = static_cast<int>(mp_distance_model_part->NumberOfNodes());
+            int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
             // Set the distance absolute value
             #pragma omp parallel for
             for(int i_node = 0; i_node < nnodes; ++i_node){
-                auto it_node = mp_distance_model_part->NodesBegin() + i_node;
+                auto it_node = r_distance_model_part.NodesBegin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = std::abs(it_node->FastGetSolutionStepValue(DISTANCE));
             }
             
@@ -530,7 +536,7 @@ private:
             // Set the distance sign again by retrieving it from the non-historical database
             #pragma omp parallel for
             for(int i_node = 0; i_node < nnodes; ++i_node){
-                auto it_node = mp_distance_model_part->NodesBegin() + i_node;
+                auto it_node = r_distance_model_part.NodesBegin() + i_node;
                 if(it_node->GetValue(DISTANCE) < 0.0){
                     it_node->FastGetSolutionStepValue(DISTANCE) = -it_node->FastGetSolutionStepValue(DISTANCE);
                 }
@@ -539,12 +545,12 @@ private:
     }
 
     void SynchronizeFixity(){
-
-        auto &r_communicator = mp_distance_model_part->GetCommunicator();
+        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
+        auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
         if(r_communicator.TotalProcesses() != 1){
-            int nnodes = static_cast<int>(mp_distance_model_part->NumberOfNodes());
+            int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
             // Synchronize the fixity flag variable to minium 
             // (-1.0 means fixed and 1.0 means free)
@@ -553,7 +559,7 @@ private:
             // Set the fixity according to the synchronized flag
             #pragma omp parallel for
             for(int i_node = 0; i_node < nnodes; ++i_node){
-                auto it_node = mp_distance_model_part->NodesBegin() + i_node;
+                auto it_node = r_distance_model_part.NodesBegin() + i_node;
                 const double &r_fix_flag = it_node->FastGetSolutionStepValue(FLAG_VARIABLE);
                 if (r_fix_flag == -1.0){
                     it_node->Fix(DISTANCE);
