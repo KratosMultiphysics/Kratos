@@ -1099,7 +1099,8 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        Kratos::shared_ptr<ModelPart>  p_model_part = Kratos::make_shared<ModelPart>(NewSubModelPartName);
+        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetOwnerModel());
+        Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer            
         p_model_part->SetParentModelPart(this);
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;

@@ -628,8 +628,6 @@ void AddModelPartToPython(pybind11::module& m)
         ;
 
     class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
-        .def(init<std::string const&>())
-        .def(init<>())
         .def_property("Name", GetModelPartName, SetModelPartName)
         //  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
         .def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
