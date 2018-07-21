@@ -20,7 +20,7 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "includes/kernel.h"
+#include "containers/unique_modelpart_pointer_wrapper.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -143,7 +143,6 @@ public:
         KRATOS_TRY
 
 		GenerateMeshPart(dimension);
-        KRATOS_WATCH(*mpConvectionModelPart);
 		mdimension = dimension;
         mOldDt = 0.00;
 
