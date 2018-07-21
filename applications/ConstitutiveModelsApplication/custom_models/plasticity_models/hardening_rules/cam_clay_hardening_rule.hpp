@@ -49,9 +49,9 @@ namespace Kratos
   protected:
 
     constexpr static std::size_t VarSize = 3;
-    
+
   public:
-    
+
     typedef InternalVariables<VarSize>   InternalVariablesType;
     typedef PlasticModelData<VarSize>          PlasticDataType;
 
@@ -132,7 +132,7 @@ namespace Kratos
     virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "CamClayHardeningRule Data";
-    }    
+    }
 
 
     ///@}
@@ -190,7 +190,7 @@ namespace Kratos
 
     using HardeningRule::CalculateHardening;
     using HardeningRule::CalculateDeltaHardening;
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -242,6 +242,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED  defined 
+#endif // KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED  defined
 
 

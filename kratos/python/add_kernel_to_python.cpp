@@ -219,6 +219,8 @@ void AddKernelToPython(pybind11::module& m) {
         .def("__repr__", &Kernel::Info)
         .def("HasConstitutiveLaw", HasConstitutiveLaw)
         .def("GetConstitutiveLaw", GetConstitutiveLaw, return_value_policy::reference_internal)
+        .def_static("Version", &Kernel::Version)
+        .def_static("BuildType", &Kernel::BuildType)
             ;
 
 }

@@ -25,10 +25,9 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
-// #include "containers/model.h"
 
 namespace Kratos {
-class Model;
+
 ///@name Kratos Classes
 ///@{
 
@@ -125,8 +124,13 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
-    static std::unordered_set<std::string>& GetApplicationsList();
-        
+    static std::unordered_set<std::string>&
+    GetApplicationsList();
+
+    static std::string Version();
+
+    static std::string BuildType();
+
     ///@}
    protected:
    private:
