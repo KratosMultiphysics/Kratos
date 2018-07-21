@@ -65,22 +65,22 @@ namespace Kratos
             triangle_nodes[0] = p_node_1;
             triangle_nodes[1] = p_node_2;
             triangle_nodes[2] = p_node_4;
-            Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element2D3N", 1, triangle_nodes, p_properties);
+            Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element2D3N", 1, PointerVector<NodeType>{triangle_nodes}, p_properties);
 
             triangle_nodes[0] = p_node_2;
             triangle_nodes[1] = p_node_5;
             triangle_nodes[2] = p_node_4;
-            Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element2D3N", 2, triangle_nodes, p_properties);
+            Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element2D3N", 2, PointerVector<NodeType>{triangle_nodes}, p_properties);
 
             triangle_nodes[0] = p_node_2;
             triangle_nodes[1] = p_node_6;
             triangle_nodes[2] = p_node_5;
-            Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 3, triangle_nodes, p_properties);
+            Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 3, PointerVector<NodeType>{triangle_nodes}, p_properties);
 
             triangle_nodes[0] = p_node_2;
             triangle_nodes[1] = p_node_3;
             triangle_nodes[2] = p_node_6;
-            Element::Pointer p_elem_4 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_nodes, p_properties);
+            Element::Pointer p_elem_4 = this_model_part.CreateNewElement("Element2D3N", 4, PointerVector<NodeType>{triangle_nodes}, p_properties);
 
             // Adding elements and its nodes to the sub model part
             r_sub_model_part_1.AddNode(p_node_1);
@@ -98,7 +98,7 @@ namespace Kratos
             std::vector<NodeType::Pointer> line_nodes(2);
             line_nodes[0] = p_node_1;
             line_nodes[1] = p_node_4;
-            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("Condition2D2N", 1, line_nodes, p_properties);
+            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("Condition2D2N", 1, PointerVector<NodeType>{line_nodes}, p_properties);
 
             // Adding conditions and its nodes to the sub model part
             r_sub_model_part_2.AddNode(p_node_1);
@@ -200,13 +200,13 @@ namespace Kratos
             quadrilateral_nodes[1] = p_node_2;
             quadrilateral_nodes[2] = p_node_5;
             quadrilateral_nodes[3] = p_node_4;
-            Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element2D4N", 1, quadrilateral_nodes, p_properties);
+            Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element2D4N", 1, PointerVector<NodeType>{quadrilateral_nodes}, p_properties);
 
             quadrilateral_nodes[0] = p_node_2;
             quadrilateral_nodes[1] = p_node_3;
             quadrilateral_nodes[2] = p_node_6;
             quadrilateral_nodes[3] = p_node_5;
-            Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element2D4N", 2, quadrilateral_nodes, p_properties);
+            Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element2D4N", 2, PointerVector<NodeType>{quadrilateral_nodes}, p_properties);
 
             // Adding elements and its nodes to the sub model part
             r_sub_model_part_1.AddNode(p_node_1);
