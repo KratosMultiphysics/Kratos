@@ -11,8 +11,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kernel.h"
-#include "kratos/containers/unique_modelpart_pointer_wrapper.h"
+#include "containers/unique_modelpart_pointer_wrapper.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -81,7 +80,7 @@ public:
     {
         KRATOS_TRY;
 
-        ModelPart& r_stokes_part = &mModelPartWrapper.GetModelPart();
+        ModelPart& r_stokes_part = mModelPartWrapper.GetModelPart();
 
         r_stokes_part.GetNodalSolutionStepVariablesList() = mrReferenceModelPart.GetNodalSolutionStepVariablesList();
         r_stokes_part.SetBufferSize(1);
@@ -124,7 +123,8 @@ public:
         bool ReformDofSetFlag = false;
         bool CalculateNormDxFlag = false;
         bool MoveMeshFlag = false;
-        mpSolutionStrategy = StrategyPointerType( new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(*r_stokes_part,
+        mpSolutionStrategy = StrategyPointerType( 
+            new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(r_stokes_part,
                                                                                                                             pScheme,
                                                                                                                             mpLinearSolver,
                                                                                                                             pBuildAndSolver,
@@ -184,6 +184,7 @@ public:
 
     void SetConditions(ModelPart::ConditionsContainerType::Pointer pConditions)
     {
+        ModelPart& r_stokes_part = mModelPartWrapper.GetModelPart();    
         r_stokes_part.SetConditions(pConditions);
         r_stokes_part.GetCommunicator().LocalMesh().SetConditions(pConditions);
     }
