@@ -79,7 +79,7 @@ namespace Kratos
       virtual ~Model()
       {
           mRootModelPartMap.clear();
-          mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
+          //mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
       }
       
       Model & operator=(const Model&) = delete;
@@ -182,8 +182,12 @@ namespace Kratos
       ///@name Member Variables
       ///@{
       std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap;
-      std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
-      
+
+      std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
+      {
+        static std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
+        return mListOfVariablesLists;
+      }
       friend class Serializer;
       
       void save(Serializer& rSerializer) const
@@ -192,7 +196,7 @@ namespace Kratos
           std::vector<VariablesList* > aux_var_lists;
           std::vector<std::string> aux_names;
           std::vector<ModelPart* > aux_model_part_pointers;
-          aux_var_lists.reserve(mListOfVariablesLists.size());
+          aux_var_lists.reserve(GetListOfVariableLists().size());
           aux_names.reserve(mRootModelPartMap.size());
           aux_model_part_pointers.reserve(mRootModelPartMap.size());
           
@@ -202,7 +206,7 @@ namespace Kratos
               aux_model_part_pointers.push_back((it->second).get());
           }
           
-          for(auto it = mListOfVariablesLists.begin(); it!=mListOfVariablesLists.end(); ++it)
+          for(auto it = GetListOfVariableLists().begin(); it!=GetListOfVariableLists().end(); ++it)
               aux_var_lists.push_back(it->get());
           
           rSerializer.save("ListOfVariablesLists", aux_var_lists);
@@ -222,7 +226,7 @@ namespace Kratos
           rSerializer.load("ModelPartPointers", aux_model_part_pointers);   
 
           for(unsigned int i=0; i<aux_var_lists.size(); ++i)
-              mListOfVariablesLists.insert(std::move(std::unique_ptr<VariablesList>(aux_var_lists[i]))); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
+              GetListOfVariableLists().insert(std::move(std::unique_ptr<VariablesList>(aux_var_lists[i]))); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
           
           for(unsigned int i=0; i<aux_names.size(); ++i)
           {

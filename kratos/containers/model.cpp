@@ -30,7 +30,7 @@ namespace Kratos
     void Model::Reset()
     {
         mRootModelPartMap.clear();
-        mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
+        //mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
     }
     
     ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize ) 
@@ -44,7 +44,7 @@ namespace Kratos
              ModelPart* pmodel_part = new ModelPart(ModelPartName, NewBufferSize, pvar_list.get(), *this );
             mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(pmodel_part); //note that i create it separately since Model is friend of ModelPart but unique_ptr is not
 
-            mListOfVariablesLists.insert(std::move(pvar_list));
+            GetListOfVariableLists().insert(std::move(pvar_list));
             return *(mRootModelPartMap[ModelPartName].get());
         } else {
             KRATOS_ERROR << "trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
