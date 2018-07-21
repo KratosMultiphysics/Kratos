@@ -24,6 +24,7 @@
 // Project includes
 #include "includes/convection_diffusion_settings.h"
 #include "includes/define.h"
+#include "containers/unique_modelpart_pointer_wrapper.h"
 #include "includes/kratos_flags.h"
 #include "elements/levelset_convection_element_simplex.h"
 #include "geometries/geometry_data.h"
@@ -99,6 +100,9 @@ public:
           mMaxSubsteps(max_substeps)
     {
         KRATOS_TRY
+
+        mpDistanceModelPart= &mModelPartWrapper.GetModelPart();
+
         
         // Check that there is at least one element and node in the model
         const auto n_nodes = rBaseModelPart.NumberOfNodes();
