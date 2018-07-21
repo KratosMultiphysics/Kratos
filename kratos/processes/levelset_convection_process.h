@@ -93,6 +93,7 @@ public:
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0)
         : mrBaseModelPart(rBaseModelPart),
+          mModelPartWrapper(rBaseModelPart.GetOwnerModel(), "DistancePart"),
           mrLevelSetVar(rLevelSetVar),
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps)
@@ -306,6 +307,8 @@ protected:
     ///@{
 
     ModelPart& mrBaseModelPart;
+
+    UniqueModelPartPointerWrapper mModelPartWrapper;
     ModelPart* mpDistanceModelPart;
 
     Variable<double>& mrLevelSetVar;
@@ -355,9 +358,7 @@ protected:
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
         // Generate
-        if(current_model.HasModelPart("DistancePart"))
-            current_model.DeleteModelPart("DistancePart");
-        mpDistanceModelPart= &current_model.CreateModelPart("DistancePart");
+        mpDistanceModelPart= &mModelPartWrapper.GetModelPart();
 
         mpDistanceModelPart->Nodes().clear();
         mpDistanceModelPart->Conditions().clear();

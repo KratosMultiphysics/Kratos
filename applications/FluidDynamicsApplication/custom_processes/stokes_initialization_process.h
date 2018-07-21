@@ -12,6 +12,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kernel.h"
+#include "kratos/containers/unique_modelpart_pointer_wrapper.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -75,17 +76,18 @@ public:
         Process(),
         mrReferenceModelPart(rModelPart),
         mpLinearSolver(pLinearSolver),
-        mDomainSize(DomainSize)
+        mDomainSize(DomainSize),
+        mModelPartWrapper(rModelPart.GetOwnerModel(), "StokesModelPart")
     {
         KRATOS_TRY;
 
-        // Initialize new model part (same nodes, new elements, no conditions)
-        mpStokesModelPart = &(rModelPart.GetOwnerModel().CreateModelPart("StokesModelPart"));
-        mpStokesModelPart->GetNodalSolutionStepVariablesList() = mrReferenceModelPart.GetNodalSolutionStepVariablesList();
-        mpStokesModelPart->SetBufferSize(1);
-        mpStokesModelPart->SetNodes( mrReferenceModelPart.pNodes() );
-        mpStokesModelPart->SetProcessInfo(mrReferenceModelPart.pGetProcessInfo());
-        mpStokesModelPart->SetProperties(mrReferenceModelPart.pProperties());
+        ModelPart& r_stokes_part = &mModelPartWrapper.GetModelPart();
+
+        r_stokes_part.GetNodalSolutionStepVariablesList() = mrReferenceModelPart.GetNodalSolutionStepVariablesList();
+        r_stokes_part.SetBufferSize(1);
+        r_stokes_part.SetNodes( mrReferenceModelPart.pNodes() );
+        r_stokes_part.SetProcessInfo(mrReferenceModelPart.pGetProcessInfo());
+        r_stokes_part.SetProperties(mrReferenceModelPart.pProperties());
 
         // Retrieve Stokes element model
         std::string ElementName;
@@ -100,7 +102,7 @@ public:
         for (ModelPart::ElementsContainerType::const_iterator itElem = mrReferenceModelPart.ElementsBegin(); itElem != mrReferenceModelPart.ElementsEnd(); itElem++)
         {
             Element::Pointer pElem = rReferenceElement.Create(itElem->Id(), itElem->GetGeometry(), itElem->pGetProperties() );
-            mpStokesModelPart->Elements().push_back(pElem);
+            r_stokes_part.Elements().push_back(pElem);
         }
 
         // pointer types for the solution strategy construcion
@@ -122,7 +124,7 @@ public:
         bool ReformDofSetFlag = false;
         bool CalculateNormDxFlag = false;
         bool MoveMeshFlag = false;
-        mpSolutionStrategy = StrategyPointerType( new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(*mpStokesModelPart,
+        mpSolutionStrategy = StrategyPointerType( new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(*r_stokes_part,
                                                                                                                             pScheme,
                                                                                                                             mpLinearSolver,
                                                                                                                             pBuildAndSolver,
@@ -182,8 +184,8 @@ public:
 
     void SetConditions(ModelPart::ConditionsContainerType::Pointer pConditions)
     {
-        mpStokesModelPart->SetConditions(pConditions);
-        mpStokesModelPart->GetCommunicator().LocalMesh().SetConditions(pConditions);
+        r_stokes_part.SetConditions(pConditions);
+        r_stokes_part.GetCommunicator().LocalMesh().SetConditions(pConditions);
     }
 
     ///@}
@@ -240,7 +242,7 @@ protected:
 
     unsigned int mDomainSize;
 
-    ModelPart* mpStokesModelPart;
+    UniqueModelPartPointerWrapper mModelPartWrapper;
 
     typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
 

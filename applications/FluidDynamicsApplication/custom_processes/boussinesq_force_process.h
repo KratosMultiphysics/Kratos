@@ -184,7 +184,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      ModelPart::Pointer mpModelPart;
+      ModelPart* mpModelPart;
 
       array_1d<double,3> mrGravity;
 

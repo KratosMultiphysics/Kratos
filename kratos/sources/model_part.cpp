@@ -1095,21 +1095,16 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags identifier_flag)
 }
 
 
-ModelPart*  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        //ModelPart::Pointer p_model_part = Kratos::make_shared<ModelPart>(NewSubModelPartName,mpVariablesList, this->GetOwnerModel());
-
-        ModelPart* raw_mp_pointer = new ModelPart(NewSubModelPartName,mpVariablesList, this->GetOwnerModel());
-        ModelPart::Pointer p_model_part = Kratos::shared_ptr<ModelPart>(raw_mp_pointer); //making it to compile, taking into account that constructor is private
-
+        Kratos::shared_ptr<ModelPart>  p_model_part = Kratos::make_shared<ModelPart>(NewSubModelPartName);
         p_model_part->SetParentModelPart(this);
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
-        ModelPart* raw_pointer = p_model_part.get();
         mSubModelParts.insert(p_model_part);
-        return raw_pointer;
+        return *p_model_part;
     }
     else
         KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)

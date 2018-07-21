@@ -103,7 +103,7 @@ public:
     ///@{
 
     /// Pointer definition of ModelPart
-    KRATOS_CLASS_POINTER_DEFINITION(ModelPart);
+    //KRATOS_CLASS_POINTER_DEFINITION(ModelPart); //INTENTIONALLY REMOVING DEFINITION - DO NOT UNCOMMENT
 
     typedef std::size_t IndexType;
 
@@ -219,7 +219,7 @@ public:
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, ModelPart::Pointer >  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, Kratos::shared_ptr<ModelPart> >  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
@@ -1082,7 +1082,7 @@ public:
     /** Creates a new sub model part with given name.
     Does nothing if a sub model part with the same name exist.
     */
-    ModelPart* CreateSubModelPart(std::string const& NewSubModelPartName);
+    ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Add an existing model part as a sub model part.
     	All the meshes will be added to the parents.

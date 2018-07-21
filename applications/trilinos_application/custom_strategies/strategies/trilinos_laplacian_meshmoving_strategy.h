@@ -94,7 +94,9 @@ public:
                                         bool ComputeReactions = false,
                                         bool CalculateMeshVelocities = true,
                                         int EchoLevel = 0)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
+        : 
+        mModelPartWrapper(model_part.GetOwnerModel(), "MeshPart", 1),
+        SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
     {
         KRATOS_TRY
 
@@ -332,6 +334,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+    UniqueModelPartPointerWrapper mModelPartWrapper;
     ModelPart* mpmesh_model_part;
 
     typename BaseType::Pointer mstrategy;
@@ -353,7 +356,7 @@ private:
     void GenerateMeshPart()
     {
         // Initialize auxiliary model part storing the mesh elements
-        mpmesh_model_part = &(Kernel::GetModel().CreateModelPart("MeshPart", 1));
+        mpmesh_model_part = &mModelPartWrapper.GetModelPart();
 
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();

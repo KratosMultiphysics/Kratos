@@ -117,7 +117,12 @@ public:
     KRATOS_CATCH("")
   }
 
-  virtual ~StructuralMeshMovingStrategy() {}
+  virtual ~StructuralMeshMovingStrategy()
+  {
+    Model& owner_model = mpmesh_model_part->GetOwnerModel();
+    std::string name = mpmesh_model_part->Name();
+    owner_model.DeleteModelPart(name);
+  }
 
   void Initialize() override {}
 
@@ -135,7 +140,7 @@ public:
         BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
     if (mcalculate_mesh_velocities == true)
-        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
+        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part.get(), mtime_order,
                                                    delta_time);
     MoveMeshUtilities::MoveMesh(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());

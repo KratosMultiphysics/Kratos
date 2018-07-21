@@ -85,7 +85,7 @@ public:
         ModelPart& rReferenceModelPart = BaseType::mrReferenceModelPart;
         typename TLinearSolver::Pointer& pLinearSolver = BaseType::mpLinearSolver;
         unsigned int DomainSize = BaseType::mDomainSize;
-        ModelPart*& pStokesModelPart = BaseType::mpStokesModelPart;
+        ModelPart*& pStokesModelPart = BaseType::mModelPartWrapper.GetModelPart();
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)

@@ -121,7 +121,8 @@ public:
         ModelPart& base_model_part,
         typename TLinearSolver::Pointer plinear_solver,
         unsigned int max_iterations = 10)
-        :mr_base_model_part(base_model_part)
+        :mr_base_model_part(base_model_part),
+        mModelPartWrapper(rBaseModelPart.GetOwnerModel(), "DistancePart",1)
     {
         KRATOS_TRY
 
@@ -394,6 +395,8 @@ protected:
 
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
+
+    UniqueModelPartPointerWrapper mModelPartWrapper;
     ModelPart* mp_distance_model_part;
     ModelPart& mr_base_model_part;
 
@@ -412,13 +415,6 @@ protected:
         KRATOS_TRY
 
         // Generate
-        Model& current_model = base_model_part.GetOwnerModel();
-        if(current_model.HasModelPart("DistancePart"))
-            current_model.DeleteModelPart("DistancePart");
-        mp_distance_model_part = &current_model.CreateModelPart("DistancePart");
-
-
-
         mp_distance_model_part->Nodes().clear();
         mp_distance_model_part->Conditions().clear();
         mp_distance_model_part->Elements().clear();

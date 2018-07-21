@@ -150,7 +150,7 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
     rmesh_elements.push_back(p_element);
   }
 
-  return pmesh_model_part;
+  return std::move(pmesh_model_part);
 
   KRATOS_CATCH("");
 }

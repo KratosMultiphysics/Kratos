@@ -136,7 +136,9 @@ public:
         bool ReformDofAtEachIteration = false,
         int dimension = 3
     )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
+        : 
+        mModelPartWrapper(model_part.GetOwnerModel(), "ConvectionPart",1),
+        SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
     {
         KRATOS_TRY
 
@@ -394,8 +396,7 @@ protected:
 
   virtual void GenerateMeshPart(int dimension)
   {
-      Model& current_model = BaseType::GetModelPart().GetOwnerModel();
-    mpConvectionModelPart = &(current_model.CreateModelPart("ConvectionPart",1));
+    mpConvectionModelPart = &mModelPartWrapper.GetModelPart();
 
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());
@@ -485,6 +486,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+    UniqueModelPartPointerWrapper mModelPartWrapper;
     ModelPart* mpConvectionModelPart;
     typename BaseType::Pointer mstep1;
     double mOldDt;
