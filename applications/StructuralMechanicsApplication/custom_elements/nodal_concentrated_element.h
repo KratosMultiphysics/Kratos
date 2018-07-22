@@ -80,15 +80,54 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ROTATIONAL_DAMPING_RATIO );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RAYLEIGH_DAMPING );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ACTIVE_NODE_FLAG );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_ONLY_COMPRESSION );
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    /**
+     * @brief If the elemnt works only in compression/tension or both
+     */
+    enum class CompressionTension {COMPRESSION_AND_TENSION = 0, COMPRESSION = 1, TENSION = 2};
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructors
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, const bool UseRayleighDamping = false, const bool ComputeActiveNodeFlag = true);
+    /**
+     * @brief Default constructors
+     * @param NewId The Id of the new created element
+     * @param pGeometry Pointer to the node geometry that defines the element
+     * @param UseRayleighDamping If use Raleigh damping or damping ratio
+     * @param ComputeActiveNodeFlag If the element activates or deactivates in function of the node that define it
+     * @param ComputeCompressionTension If the elements works only in compression or tension or both
+     */
+    NodalConcentratedElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        const bool UseRayleighDamping = false,
+        const bool ComputeActiveNodeFlag = true,
+        const CompressionTension ComputeCompressionTension = CompressionTension::COMPRESSION_AND_TENSION
+        );
 
-    NodalConcentratedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const bool UseRayleighDamping = false, const bool ComputeActiveNodeFlag = true);
+    /**
+     * @brief Default constructors with properties
+     * @param NewId The Id of the new created element
+     * @param pGeometry Pointer to the node geometry that defines the element
+     * @param pProperties The properties of the element
+     * @param UseRayleighDamping If use Raleigh damping or damping ratio
+     * @param ComputeActiveNodeFlag If the element activates or deactivates in function of the node that define it
+     * @param ComputeCompressionTension If the elements works only in compression or tension or both
+     */
+    NodalConcentratedElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties,
+        const bool UseRayleighDamping = false,
+        const bool ComputeActiveNodeFlag = true,
+        const CompressionTension ComputeCompressionTension = CompressionTension::COMPRESSION_AND_TENSION
+        );
 
     ///Copy constructor
     NodalConcentratedElement(NodalConcentratedElement const& rOther);
