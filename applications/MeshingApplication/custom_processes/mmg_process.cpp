@@ -23,6 +23,7 @@
 
 // Project includes
 #include "custom_processes/mmg_process.h"
+#include "containers/model.h"
 #include "utilities/sub_model_parts_list_utility.h"
 #include "utilities/variable_utils.h"
 // We indlude the internal variable interpolation process
@@ -531,7 +532,9 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
     
-    ModelPart r_old_model_part;
+    Model& owner_model = mrThisModelPart.GetOwnerModel();
+
+    ModelPart& r_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
     
     // First we empty the model part
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
@@ -785,6 +788,9 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
         InternalVariablesInterpolation.Execute();
     }
+
+    // We remove the auxiliar old model part
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
 }
 
 /***********************************************************************************/
