@@ -5,7 +5,7 @@
 //   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 // System includes
 
@@ -49,7 +49,7 @@ namespace Kratos
 
   Element::Pointer SmallDisplacementBeamElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Element::Pointer(new SmallDisplacementBeamElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<SmallDisplacementBeamElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
   //*******************************DESTRUCTOR*******************************************
@@ -58,21 +58,21 @@ namespace Kratos
   SmallDisplacementBeamElement::~SmallDisplacementBeamElement()
   {
   }
- 
+
 
   //************************************************************************************
   //************************************************************************************
 
-  void SmallDisplacementBeamElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void SmallDisplacementBeamElement::InitializeElementData(ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const unsigned int voigt_size      = dimension * (dimension +1) * 0.5;
-    
+
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
-    
+
     //Compute Section Properties:
     this->CalculateSectionProperties(rVariables.Section);
 
@@ -81,7 +81,7 @@ namespace Kratos
     if(rVariables.Length == 0.00)
       KRATOS_ERROR << "Zero length found in element #" << this->Id() << std::endl;
 
-    
+
     //set variables including all integration points values
 
     //reading shape functions
@@ -101,45 +101,45 @@ namespace Kratos
 
     KRATOS_CATCH( "" )
   }
-  
+
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void SmallDisplacementBeamElement::CalculateKinematics(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  void SmallDisplacementBeamElement::CalculateKinematics(ElementDataType& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
     //point number
     rVariables.PointNumber = rPointNumber;
-      
+
     //Set Shape Functions Values for this integration point
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
-    
+
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     Vector Jacobian(3);
     noalias(Jacobian) = ZeroVector(3);
-    
+
     //Calculating the jacobian [dx_0/d£]
-    for( unsigned int i=0; i<dimension; i++)
+    for( SizeType i=0; i<dimension; i++)
       {
 	Jacobian[i] = rVariables.J[rPointNumber](i,0);
       }
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_0]
     rVariables.detJ  =  norm_2(Jacobian);
-    rVariables.DN_DX = DN_De[rPointNumber] * 1.0/rVariables.detJ; 
+    rVariables.DN_DX = DN_De[rPointNumber] * 1.0/rVariables.detJ;
 
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.N, rVariables.DN_DX);
-    
-    
+
+
     KRATOS_CATCH( "" )
   }
 
@@ -148,18 +148,18 @@ namespace Kratos
   void SmallDisplacementBeamElement::CalculateDeformationMatrix(Matrix& rB, const Vector& rN, const Matrix& rDN_DX)
   {
     KRATOS_TRY
-      
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int voigt_size = dimension * (dimension +1) * 0.5;
 
     if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
       rB.resize(voigt_size, ( (dimension-1) * 3 ) * number_of_nodes, false );
-    
+
     if( dimension == 2 )
       {
 
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    unsigned int index = 2 * i;
 
@@ -174,8 +174,8 @@ namespace Kratos
     else if( dimension == 3 )
       {
 	unsigned int index = 0;
-	
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = ((dimension-1) * 3 ) * i;
 
@@ -206,27 +206,27 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SmallDisplacementBeamElement::CalculateConstitutiveMatrix(ElementVariables& rVariables)
+  void SmallDisplacementBeamElement::CalculateConstitutiveMatrix(ElementDataType& rVariables)
   {
     KRATOS_TRY
 
     this->CalculateMaterialConstitutiveMatrix(rVariables.ConstitutiveMatrix, rVariables);
-    
+
     //std::cout<<" ConstitutiveMatrix "<<rConstitutiveMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
   }
-  
+
   //************************************************************************************
   //************************************************************************************
-  void SmallDisplacementBeamElement::CalculateStressResultants(ElementVariables& rVariables,
+  void SmallDisplacementBeamElement::CalculateStressResultants(ElementDataType& rVariables,
 							       const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
     Vector NodalDofs;
     this->GetValuesVector(NodalDofs,0);
-    
+
     rVariables.StrainVector = prod( rVariables.B, NodalDofs );
 
     Matrix ConstitutiveMatrix;
@@ -243,7 +243,7 @@ namespace Kratos
   //************************************************************************************
 
   void SmallDisplacementBeamElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-							 ElementVariables& rVariables,
+							 ElementDataType& rVariables,
 							 double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -252,12 +252,12 @@ namespace Kratos
     this->CalculateLocalStiffnessMatrix(LocalStiffnessMatrix,rVariables);
 
     std::cout<<" Direct Stiffness Matrix  "<<LocalStiffnessMatrix<<std::endl;
-    
+
     //contributions to stiffness matrix calculated on the reference config
     noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
 
-    std::cout<<" Stiffness Matrix Timoshenko "<<rLeftHandSideMatrix<<std::endl;  
-    
+    std::cout<<" Stiffness Matrix Timoshenko "<<rLeftHandSideMatrix<<std::endl;
+
     KRATOS_CATCH( "" )
   }
 
@@ -266,16 +266,16 @@ namespace Kratos
   //************************************************************************************
 
   void SmallDisplacementBeamElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-								   ElementVariables & rVariables,
+								   ElementDataType & rVariables,
 								   double& rIntegrationWeight)
   {
     KRATOS_TRY
 
     //contributions to the internal force vector calculated on the reference config
     noalias( rRightHandSideVector ) += rIntegrationWeight * prod( trans( rVariables.B ),  rVariables.StressVector); //to be optimized to remove the temporary
-    
-    std::cout<<" Internal Forces Timoshenko "<<rRightHandSideVector<<std::endl; 
-      
+
+    std::cout<<" Internal Forces Timoshenko "<<rRightHandSideVector<<std::endl;
+
     KRATOS_CATCH( "" )
   }
 
@@ -283,7 +283,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SmallDisplacementBeamElement::CalculateLocalStiffnessMatrix(Matrix& LocalStiffnessMatrix, ElementVariables& rVariables)
+  void SmallDisplacementBeamElement::CalculateLocalStiffnessMatrix(Matrix& LocalStiffnessMatrix, ElementDataType& rVariables)
   {
     KRATOS_TRY
 
@@ -361,12 +361,12 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SmallDisplacementBeamElement::MapLocalToGlobal(ElementVariables& rVariables, MatrixType& rMatrix)
+  void SmallDisplacementBeamElement::MapLocalToGlobal(ElementDataType& rVariables, MatrixType& rMatrix)
   {
     KRATOS_TRY
-      
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
+
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+
     // calculate rotation matrix from spatial frame to material frame
     this->CalculateTransformationMatrix(rVariables.CurrentRotationMatrix);
 
@@ -374,27 +374,27 @@ namespace Kratos
       BeamMathUtilsType::MapLocalToGlobal2D(rVariables.CurrentRotationMatrix, rMatrix);
     else
       BeamMathUtilsType::MapLocalToGlobal3D(rVariables.CurrentRotationMatrix, rMatrix);
-    
+
     KRATOS_CATCH( "" )
   }
 
   //************************************************************************************
   //************************************************************************************
 
-  void SmallDisplacementBeamElement::MapLocalToGlobal(ElementVariables& rVariables, VectorType& rVector)
+  void SmallDisplacementBeamElement::MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector)
   {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     // calculate rotation matrix from spatial frame to material frame
     this->CalculateTransformationMatrix(rVariables.CurrentRotationMatrix);
-   
+
     if( dimension == 2 )
       BeamMathUtilsType::MapLocalToGlobal2D(rVariables.CurrentRotationMatrix, rVector);
     else
       BeamMathUtilsType::MapLocalToGlobal3D(rVariables.CurrentRotationMatrix, rVector);
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -404,7 +404,7 @@ namespace Kratos
   void SmallDisplacementBeamElement::CalculateTransformationMatrix(Matrix& rRotationMatrix)
   {
     KRATOS_TRY
-      
+
     this->CalculateLocalAxesMatrix(rRotationMatrix);
 
     QuaternionType CurrentLocalQuaternion = QuaternionType::FromRotationMatrix( rRotationMatrix );
@@ -412,7 +412,7 @@ namespace Kratos
     CurrentLocalQuaternion = mInitialLocalQuaternion.conjugate() * CurrentLocalQuaternion;
 
     CurrentLocalQuaternion.ToRotationMatrix(rRotationMatrix);
-    
+
     KRATOS_CATCH( "" )
   }
 

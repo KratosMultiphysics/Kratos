@@ -58,7 +58,7 @@ public:
      */
     PythonOutfittedConstitutiveLaw(PyObject* pPyConstitutiveLaw);
 
-    
+
     /**
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
@@ -103,7 +103,7 @@ public:
      * Voigt tensor size:
      */
     SizeType GetStrainSize()
-    {      
+    {
       return boost::python::call_method<int>(mpPyConstitutiveLaw->ptr(),"GetStrainSize");
     };
 
@@ -282,7 +282,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     //PyObject* mpPyConstitutiveLaw;
     boost::shared_ptr<boost::python::object> mpPyConstitutiveLaw;
 
@@ -294,7 +294,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
      * if the matrix passed is 3D is does nothing
@@ -335,4 +335,4 @@ private:
 
 }; // Class PythonOutfittedConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_PYTHON_OUTFITTED_CONSTITUTIVE_LAW_H_INCLUDED  defined 
+#endif // KRATOS_PYTHON_OUTFITTED_CONSTITUTIVE_LAW_H_INCLUDED  defined
