@@ -47,7 +47,10 @@ public:
 
     ///@name Type Definitions
     ///@{
-  
+
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+
     // Counted pointer of MomentCondition
     KRATOS_CLASS_POINTER_DEFINITION( MomentCondition );
 
@@ -57,7 +60,7 @@ public:
 
     /// Empty constructor needed for serialization
     MomentCondition();
-  
+
     /// Default constructor.
     MomentCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
@@ -97,7 +100,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
 
@@ -137,12 +140,12 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */      
-    virtual void AddExplicitContribution(const VectorType& rRHS, 
-					 const Variable<VectorType>& rRHSVariable, 
-					 Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    virtual void AddExplicitContribution(const VectorType& rRHS,
+					 const Variable<VectorType>& rRHSVariable,
+					 Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
@@ -155,7 +158,7 @@ public:
      * @param rCurrentProcessInfo
      */
     virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -172,7 +175,7 @@ public:
 
 protected:
     ///@name Protected static Member Variables
-    ///@{   
+    ///@{
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -182,7 +185,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * Initialize Explicit Contributions
      */
@@ -192,9 +195,9 @@ protected:
     /**
      * Initialize System Matrices
      */
-    
+
     virtual unsigned int GetDofsSize() override;
- 
+
 
     /**
      * Calculate the External Load of the Condition
@@ -203,7 +206,7 @@ protected:
 
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
@@ -211,7 +214,7 @@ protected:
 
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
 						  ConditionVariables& rVariables,
@@ -262,4 +265,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_MOMENT_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_MOMENT_CONDITION_H_INCLUDED defined
