@@ -37,6 +37,8 @@ namespace Kratos
   LoadCondition::LoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BoundaryCondition(NewId, pGeometry, pProperties)
   {
+    this->Set(SOLID);
+    this->Set(STRUCTURE);
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
   }
 
@@ -53,7 +55,7 @@ namespace Kratos
 					   NodesArrayType const& ThisNodes,
 					   PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new LoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<LoadCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -63,14 +65,14 @@ namespace Kratos
   Condition::Pointer LoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
     std::cout<<" Call base class LOAD CONDITION Clone "<<std::endl;
-  
+
     LoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-  
-    return Condition::Pointer( new LoadCondition(NewCondition) );
+
+    return Kratos::make_shared<LoadCondition>(NewCondition);
   }
 
 
@@ -89,7 +91,7 @@ namespace Kratos
     KRATOS_TRY
 
     BoundaryCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -100,12 +102,12 @@ namespace Kratos
   void LoadCondition::CalculateExternalLoad(ConditionVariables& rVariables)
   {
     KRATOS_TRY
-      
+
     KRATOS_ERROR << "calling the base class CalculateExternalLoad method for a load condition... " << std::endl;
-    
+
     KRATOS_CATCH( "" )
   }
-  
+
   //***********************************************************************************
   //***********************************************************************************
 
@@ -116,15 +118,15 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     unsigned int index = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
         index = dimension * i;
-	
-        for ( unsigned int j = 0; j < dimension; j++ )
+
+        for ( SizeType j = 0; j < dimension; j++ )
 	  {
 	    rRightHandSideVector[index + j] += rVariables.N[i] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
 	  }
@@ -139,24 +141,24 @@ namespace Kratos
 
       Vector ExternalCouple(3);
       noalias(ExternalCouple) = ZeroVector(3);
-      
+
       Matrix SkewSymMatrix(3,3);
       noalias(SkewSymMatrix) = ZeroMatrix(3,3);
-      
+
       Vector IntegrationPointPosition(3);
       noalias(IntegrationPointPosition) = ZeroVector(3);
 
       Vector CurrentValueVector(3);
       noalias(CurrentValueVector) = ZeroVector(3);
-      
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  CurrentValueVector = GetGeometry()[i].Coordinates();
 	  IntegrationPointPosition += rVariables.N[i] * CurrentValueVector;
 	}
-    
+
       unsigned int RowIndex = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  RowIndex = i * ( (dimension-1) * 3 );
 
@@ -166,8 +168,8 @@ namespace Kratos
 	  BeamMathUtils<double>::VectorToSkewSymmetricTensor(ExternalLoad,SkewSymMatrix); // m = f x r = skewF · r
 	  CurrentValueVector = GetGeometry()[i].Coordinates();
 	  CurrentValueVector -= IntegrationPointPosition;
-	  ExternalCouple = prod(SkewSymMatrix,CurrentValueVector);	
-	
+	  ExternalCouple = prod(SkewSymMatrix,CurrentValueVector);
+
 	  if( dimension == 2 ){
 	    ExternalLoad[2] = ExternalCouple[2];
 	    BeamMathUtils<double>::AddVector(ExternalCouple,  rRightHandSideVector, RowIndex);
@@ -179,13 +181,13 @@ namespace Kratos
 	}
 
 
-    }           
+    }
 
     //std::cout<<" ExternalForces ["<<this->Id()<<"]"<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH( "" )
   }
-  
+
   //***********************************************************************************
   //***********************************************************************************
 
@@ -193,19 +195,19 @@ namespace Kratos
 						       ConditionVariables& rVariables,
 						       double& rIntegrationWeight,
 						       const ProcessInfo& rCurrentProcessInfo)
-  
+
   {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     // Energy Calculation:
     Vector CurrentValueVector(dimension);
-    noalias(CurrentValueVector) = ZeroVector(dimension); 
+    noalias(CurrentValueVector) = ZeroVector(dimension);
     Vector Displacements(dimension);
     noalias(Displacements) = ZeroVector(dimension);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	//current displacements to compute energy
 	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
@@ -216,7 +218,7 @@ namespace Kratos
 
     Vector ForceVector(dimension);
     noalias(ForceVector) = ZeroVector(dimension);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	ForceVector += rVariables.N[i] * rVariables.ExternalVectorValue * rIntegrationWeight;
       }
@@ -244,9 +246,9 @@ namespace Kratos
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-        
+
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

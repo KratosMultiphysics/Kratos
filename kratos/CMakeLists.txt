@@ -61,6 +61,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/brute_force_point_locator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_utils.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/sub_model_parts_list_utility.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/read_materials_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
@@ -113,6 +114,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_memory_info_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_response_functions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 )
 

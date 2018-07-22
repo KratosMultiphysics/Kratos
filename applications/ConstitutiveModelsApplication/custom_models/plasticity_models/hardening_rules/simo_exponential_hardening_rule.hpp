@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoExponentialHardeningRule 
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoExponentialHardeningRule
     : public HardeningRule
   {
   public:
@@ -69,7 +69,7 @@ namespace Kratos
 
     /// Clone.
     virtual HardeningRule::Pointer Clone() const override;
-    
+
     /// Destructor.
     ~SimoExponentialHardeningRule();
 
@@ -82,13 +82,13 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    
+
     /**
      * Calculate Hardening functions
      */
 
     virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening) override;
-      
+
     /**
      * Calculate Hardening function derivatives
      */
@@ -128,7 +128,7 @@ namespace Kratos
     virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoExponentialHardeningRule Data";
-    }    
+    }
 
 
     ///@}
@@ -152,8 +152,8 @@ namespace Kratos
      * Pure isotropic hardening Theta=1;  pure kinematic hardening Theta= 0; combined isotropic-kinematic 0<Theta<1
      */
     constexpr static const double mTheta = 1.0;
-	
-     
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -177,12 +177,12 @@ namespace Kratos
     virtual double& CalculateAndAddDeltaKinematicHardening(const PlasticDataType& rVariables, double& rDeltaKinematicHardening);
 
 
-    
+
     virtual double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor);
 
     virtual double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor);
 
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -233,12 +233,12 @@ namespace Kratos
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
-    
+
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -270,6 +270,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_EXPONENTIAL_HARDENING_RULE_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_EXPONENTIAL_HARDENING_RULE_H_INCLUDED  defined
 
 

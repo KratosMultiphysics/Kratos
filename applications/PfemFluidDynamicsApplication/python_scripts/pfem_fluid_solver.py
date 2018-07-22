@@ -335,7 +335,7 @@ class PfemFluidSolver:
         unactive_sliver_elements = False
         if(unactive_peak_elements == True or unactive_sliver_elements == True):
             set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
-            set_active_flag.ExecuteFinalize()
+            set_active_flag.Execute()
 
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteFinalize()

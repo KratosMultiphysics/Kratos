@@ -58,24 +58,24 @@
             <Container id="HydrodynamicForceModel" pid="Hydrodynamic Force Model" class="Tab" help="Determine the model for the hydrodynamic forces" open="0">
                 <Item id="PickIndividualForces" pid="Pick each individual force" class="PickForces" dv="0" ivalues="0,1" values="No,Yes" help="Pick specific expressions for the usual terms, one at a time (compatibility not guaranteed)"/>
                 <Item id="BuoyancyForceType" pid="Buoyancy force type" PickForces="1" class="Tab" dv="2" ivalues="0,2" values="Null,Active" help="Pick the buoyancy force model"/>
-                <Item id="DragForceType" pid="Drag Force type" PickForces="1" class="Tab" dv="1" ivalues="0,1,2,3,4,5,6,7,8,9" values="Null,Stokes,Default,Ganser,Ishii,Haider-Newtonian regime,Schiller,Haider-all regimes,Beetstra,Coin-Shaped-Colloid" help="Pick the Drag force model"/>
+                <Item id="DragForceType" pid="Drag Force type" PickForces="1" class="DragForceType" dv="1" ivalues="0,1,2,3,4,5,6,7,8,9" values="Null,Stokes,Default,Ganser,Ishii,Haider-Newtonian regime,Schiller,Haider-all regimes,Beetstra,Coin-Shaped-Colloid" help="Pick the Drag force model"/>
                 <Item id="VirtualMassForceType" pid="Virtual mass force type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="Null,Zuber,Odar" help="Pick the virtual mass force model"/>
                 <Item id="SaffmanLiftForceType" pid="Saffman lift Force type" PickForces="1" class="Tab" dv="0" ivalues="0,1" values="Null,Saffman" help="Pick the shear-induced lift force model"/>
                 <Item id="MagnusLiftForceType" pid="Magnus lift force type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="Null,Rubinow,Oesterle" help="Pick the magnus effect lift force model"/>
                 <Item id="HydrodynamicTorqueType" pid="Hydrodynamic torque type" PickForces="1" class="Tab" dv="0" ivalues="0,1" values="Null,Dennis" help="Pick the hydrodynamic torque (rotational drag) model"/>
-                <Item id="DragModifier" pid="Drag Modifier type" PickForces="1" class="Tab" dv="0" ivalues="0,2,3" values="None,Hayder,Chien" help="Pick the drag-modifying coefficient due to non-sphericity"/>
+                <Item id="DragModifier" pid="Drag Modifier type" PickForces="1" DragForceType="2" class="Tab" dv="0" ivalues="0,2,3" values="None,Hayder,Chien" help="Pick the drag-modifying coefficient due to non-sphericity"/>
                 <Item id="ViscosityModificationType" pid="Viscosity modification type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="None,Einstein,Liu" help="Pick the law by which the viscosity is modified by the particles"/>
-                <Container id="MaxeyRileyEquations" pid="Maxey Riley Equations" PickForces="0" class="Tab" help="Use the Maxey-Riley equations (valid for small Re)" open="0">
-                    <Item id="MRDragModifier" pid="Drag Modifier type" class="Tab" dv="0" ivalues="0,1,2" values="One,Another,YetAnother" help="Pick the drag-modifying coefficient"/>
+                <Container id="MaxeyRileyEquations" pid="Using Maxey Riley Equations" state="hiddenAll" PickForces="0" class="Tab" help="Use the Maxey-Riley equations (valid for small Re)" open="0">
+                    <Item id="MRDragModifier" pid="Drag Modifier type" class="Tab" dv="0" ivalues="0,1,2" state="hidden" values="One,Another,YetAnother" help="Pick the drag-modifying coefficient"/>
                 </Container>
                 <Item id="IncludeFaxenTerms0" pid="Include Faxen Terms" LaplacianMode="0" state="disabled" dv="0" ivalues="0" values="No" help="They require the calculation of the local laplacian and its derivative"/>
-                <Item id="IncludeFaxenTerms1" pid="Include Faxen Terms" dv="0" LaplacianMode="1" ivalues="0,1" values="No,Yes" help="They require the calculation of the local laplacian and its derivative, which involves a certain overhead"/>
-                <Item id="IncludeFaxenTerms" pid="Include Faxen Terms" dv="0" LaplacianMode="2" ivalues="0,1" values="No,Yes" help="They require the calculation of the local laplacian and its derivative, which involves a certain overhead"/>
+                <Item id="IncludeFaxenTerms1" pid="Include Faxen Terms" dv="0" LaplacianMode="1" state="disabled" ivalues="0,1" values="No,Yes" help="They require the calculation of the local laplacian and its derivative, which involves a certain overhead"/>
+                <Item id="IncludeFaxenTerms" pid="Include Faxen Terms" dv="0" LaplacianMode="2" state="disabled" ivalues="0,1" values="No,Yes" help="They require the calculation of the local laplacian and its derivative, which involves a certain overhead"/>
             </Container>
         </Container>
         <Container id="PostProcessingVariables" pid="Post-Processing variables" class="Tab" help="Options concerning variables that are calculated by post-processing the fluid-field solution" open="0">
             <Item id="GradientCalculationType" pid="Gradient Calculation Mode" dv="1" ivalues="0,1,2" values="Null,Volume-Weighed Mean,Superconvergent Recovery" help="The pressure gradient is calculated as a post-process from the fluid solution"/>
-            <Item id="VelocityLaplacianCalculationType" pid="Velocity Laplacian Calculation Mode" class="LaplacianMode" dv="2" ivalues="0,1,2" values="Null,Finite Element Projection,Superconvergent recovery" help="The Laplacian gradient is calculated as a post-process from the fluid solution"/>
+            <Item id="VelocityLaplacianCalculationType" pid="Velocity Laplacian Calculation Mode" state="disabled" class="LaplacianMode" dv="0" ivalues="0,1,2" values="Null,Finite Element Projection,Superconvergent recovery" help="The Laplacian gradient is calculated as a post-process from the fluid solution"/>
         </Container>
         <Container id="SDEM-Results" pid="Results" help="Options concerning the results to be post-processed" open="0">
         <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess additional options" open="0">
@@ -137,7 +137,7 @@
                 <Item id="Fluid-Pressure" pid="Pressure" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
                 <Item id="Fluid-PressureGrad" pid="Pressure gradient" dv="No" ivalues="Yes,No" values="Yes,No" help="Pressure gradient"/>
                 <Item id="Fluid-SolidFraction" pid="Solid Fraction" dv="Yes" ivalues="Yes,No" values="Yes,No" help="1 - Fluid Fraction"/>
-                <Item id="Fluid-MeanHydroReaction" pid="Time-Averaged Hydrodynamic Reaction on Fluid" dv="No" ivalues="Yes,No" values="Yes,No" help="Time-averaged reaction term coming from the hydrodynamic force"/>
+                <Item id="Fluid-MeanHydroReaction" pid="Time-Averaged Hydrodynamic Reaction on Fluid" state="disabled" dv="No" ivalues="Yes,No" values="Yes,No" help="Time-averaged reaction term coming from the hydrodynamic force"/>
                 <Item id="Fluid-Velocity" pid="Velocity" DebugOrRel="Debug" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
                 <Item id="Fluid-VelocityLaplacian" pid="Velocity Laplacian" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid field velocity Laplacian"/>
                 <Item id="Fluid-VelocityLaplacianRate" pid="Velocity Laplacian Rate" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid field velocity Laplacian time derivative"/>
@@ -286,9 +286,9 @@
             <Item id="FluidApproach" pid="Fluid Approach" state="hidden" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach" delvalues="PFEM-Lagrangian"/>
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="0" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="Fractional step"/>
-            <Item id="SolverType" pid="Solver type" CouplingLevel="0" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="ElementBased" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
+            <Item id="SolverType" pid="Solver type" CouplingLevel="0" state="disabled" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="ElementBased" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="0" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
-            <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active turbulence model"/>
+            <Item id="TurbulenceModel" pid="Turbulence model" state="disabled" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active turbulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
             <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>
@@ -299,9 +299,9 @@
             <Item id="FluidApproach" pid="Fluid Approach" state="hidden" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach" delvalues="PFEM-Lagrangian"/>
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="1" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="Fractional step"/>
-            <Item id="SolverType" pid="Solver type" CouplingLevel="1" state="hidden" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
+            <Item id="SolverType" pid="Solver type" CouplingLevel="1" state="disabled" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="1" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
-            <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
+            <Item id="TurbulenceModel" pid="Turbulence model" state="disabled" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
             <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>
@@ -312,9 +312,9 @@
             <Item id="FluidApproach" pid="Fluid Approach" state="hidden" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach" delvalues="PFEM-Lagrangian"/>
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="2" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
-            <Item id="SolverType" pid="Solver type" CouplingLevel="2" state="hidden" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="SolverType"/>
+            <Item id="SolverType" pid="Solver type" CouplingLevel="2" state="disabled" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="SolverType"/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="2" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
-            <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
+            <Item id="TurbulenceModel" pid="Turbulence model" state="disabled" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
             <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>
@@ -327,7 +327,7 @@
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="3" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="SolverType"/>
             <Item id="SolverType" pid="Solver type" state="disabled" CouplingLevel="3" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic" values="Monolithic" help="Only the monolithic solver is available for full two-way interaction between the particles and the fluid"/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="3" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
-            <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
+            <Item id="TurbulenceModel" pid="Turbulence model" state="disabled" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
             <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>
@@ -412,7 +412,7 @@
             <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" state="hidden" fluidSolvTyp="ElementBased,Monolithic" fluidAppr="Eulerian" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
             <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.01" help=""/>
             <Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
-            <Item id="DivergenceCleareanceStep" pid="Divergence cleareance step" dv="0" fluidAppr="Eulerian" fluidType="Incompressible" help="Define the divergence cleareance step value"/>
+            <Item id="DivergenceCleareanceStep" pid="Divergence cleareance step" dv="0" fluidAppr="Eulerian" state="disabled" fluidType="Incompressible" help="Define the divergence cleareance step value"/>
             <Item id="EnvironmentTemperature" pid="Environment temperature" state="hidden" fluidAppr="Eulerian" fluidType="Incompressible" dv="0.0" help=""/>
             <Item id="MaxVart" pid="Max Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Max time variation"/>
             <Item id="MinVart" pid="Min Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Min time variation"/>
@@ -628,7 +628,7 @@
             <Item id="MinZ" pid="Min Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Z"/>
             <Item id="StartTime" pid="Start Time" DEM-BBox="Yes" dv="0.0" help="Time at which the bounding box gets active."/>
             <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
-            <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="No" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
+            <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="Yes" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
         </Container>
         <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">
             <Item id="SearchNeighboursOption" pid="Search Neighbours" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Activates or deactivates the search of DEM neighbours"/>
@@ -1383,6 +1383,6 @@
         <Class>,DEM-RBE-FixAngularVelocityX,DEM-RBE-FixAngularVelocityY,DEM-RBE-FixAngularVelocityZ,</Class>
         <Class>,DEM-RBE-SetInitialVelocityX,DEM-RBE-SetInitialVelocityY,DEM-RBE-SetInitialVelocityZ,DEM-GhostWall,</Class>
         <Class>,DEM-RBE-SetInitialAngularVelocityX,DEM-RBE-SetInitialAngularVelocityY,DEM-RBE-SetInitialAngularVelocityZ,</Class>
-        <Class>,DEM-Inlet_measurement_type,DebugOrRel,CouplingLevel,PeriodicDomain,PickForces,LaplacianMode,DEM-OTimestepType,</Class>
+        <Class>,DEM-Inlet_measurement_type,DebugOrRel,CouplingLevel,PeriodicDomain,PickForces,DragForceType,LaplacianMode,DEM-OTimestepType,</Class>
     </ClassConfiguration>
 </Kratos_Data>

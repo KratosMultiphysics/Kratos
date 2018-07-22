@@ -195,7 +195,7 @@ public:
         BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
     if (mcalculate_mesh_velocities == true)
-        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
+        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part.get(), mtime_order,
                                                    delta_time);
     MoveMeshUtilities::MoveMesh(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
@@ -277,7 +277,7 @@ private:
   /*@} */
   /**@name Member Variables */
   /*@{ */
-  ModelPart::Pointer mpmesh_model_part;
+  std::unique_ptr<ModelPart> mpmesh_model_part;
 
   typename BaseType::Pointer mstrategy_x;
   typename BaseType::Pointer mstrategy_y;
