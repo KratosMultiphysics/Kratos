@@ -30,7 +30,8 @@ namespace Testing
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData1, KratosHDF5TestSuite)
 {
-    ModelPart& r_test_model_part = Kernel::GetModel().CreateModelPart("TestModelPart");
+    Model this_model;
+    ModelPart& r_test_model_part = this_model.CreateModelPart("TestModelPart");
     TestModelPartFactory::CreateModelPart(r_test_model_part);
     KRATOS_CHECK(r_test_model_part.NumberOfNodes() > 0);
     HDF5::Internals::PointsData data;
