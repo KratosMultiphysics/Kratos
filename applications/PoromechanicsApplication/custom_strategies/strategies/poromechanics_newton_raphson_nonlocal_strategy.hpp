@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_NEWTON_RAPHSON_NONLOCAL_STRATEGY)
 #define KRATOS_POROMECHANICS_NEWTON_RAPHSON_NONLOCAL_STRATEGY
@@ -74,11 +81,11 @@ public:
     //------------------------------------------------------------------------------------
 
     ///Destructor
-    virtual ~PoromechanicsNewtonRaphsonNonlocalStrategy() {}
+    ~PoromechanicsNewtonRaphsonNonlocalStrategy() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -107,7 +114,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -136,7 +143,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	bool SolveSolutionStep()
+	bool SolveSolutionStep() override
 	{
         // ********** Prediction phase **********
         
@@ -227,7 +234,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void FinalizeSolutionStep()
+    void FinalizeSolutionStep() override
     {
         KRATOS_TRY
         
@@ -244,7 +251,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY
 
@@ -270,7 +277,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    bool CheckConvergence()
+    bool CheckConvergence() override
     {
         // ********** Prediction phase **********
         
@@ -330,8 +337,8 @@ protected:
             NormDx = TSparseSpace::TwoNorm(mDx);
             ReferenceDofsNorm = this->CalculateReferenceDofsNorm(rDofSet);
             dofs_ratio = NormDx/ReferenceDofsNorm;
-            std::cout << "TEST ITERATION: " << iteration_number << std::endl;
-            std::cout << "    Dofs Ratio = " << dofs_ratio << std::endl;
+            KRATOS_INFO("Newton Raphson Nonlocal Strategy") << "TEST ITERATION: " << iteration_number << std::endl;
+            KRATOS_INFO("Newton Raphson Nonlocal Strategy") << "    Dofs Ratio = " << dofs_ratio << std::endl;
             
             if(dofs_ratio <= 1.0e-3)
                 is_converged = true;

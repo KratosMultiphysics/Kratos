@@ -242,7 +242,7 @@ private:
     struct GeometryDataContainer {
         double Area;
         array_1d<double, TDim+1> N;
-        boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim> DN_DX;
+        BoundedMatrix<double, TDim+1, TDim> DN_DX;
     };
 
     ///@}

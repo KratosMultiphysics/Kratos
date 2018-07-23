@@ -10,7 +10,7 @@ set( MPI_PYTHON_SOURCES
 add_definitions( -w )
 
 ###############################################################
-pybind11_add_module(mpipython MODULE ${MPI_PYTHON_SOURCES})
+pybind11_add_module(mpipython MODULE THIN_LTO ${MPI_PYTHON_SOURCES})
 
 target_link_libraries(mpipython PRIVATE ${MPI_LIBRARIES})
 

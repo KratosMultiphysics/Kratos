@@ -218,8 +218,7 @@ public:
     Quadrilateral3D9( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( this->PointsNumber() != 9 )
-            KRATOS_ERROR << "Invalid points number. Expected 9, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 9 ) << "Invalid points number. Expected 9, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -375,7 +374,7 @@ public:
     double Length() const override
     {
         Vector d = this->Points()[2] - this->Points()[0];
-        return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
+        return( std::sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
     }
 
     /**
@@ -396,14 +395,14 @@ public:
     double Area() const override
     {
         Vector d = this->Points()[2] - this->Points()[0];
-        return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
+        return( std::sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
     }
 
 
     double Volume() const override
     {
         Vector d = this->Points()[2] - this->Points()[0];
-        return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
+        return( std::sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
     }
 
     /**
@@ -423,7 +422,7 @@ public:
      */
     double DomainSize() const override
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
     
     /**
@@ -739,7 +738,7 @@ public:
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         Matrix ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        boost::numeric::ublas::vector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 9 );
+        DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 9 );
         /*vector<double>*/
         ShapeFunctionsValuesInIntegrationPoint = row(
                 CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex );
@@ -796,166 +795,6 @@ public:
             rResult( 2, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
         }
 
-        return rResult;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Determinant of jacobians for given integration method. This
-     * method calculate determinant of jacobian in all
-     * integrations points of given integration method.
-     *
-     * @return Vector of double which is vector of determinants of
-     * jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
-     * integration point index of given integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    Vector& DeterminantOfJacobian( Vector& rResult,
-                                           IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
-     * of jacobian in given integration point of given integration
-     * method.
-     *
-     * @param IntegrationPointIndex index of integration point which jacobians has to
-     * be calculated in it.
-     * @param IntegrationPointIndex index of integration point
-     * which determinant of jacobians has to be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    double DeterminantOfJacobian( IndexType IntegrationPointIndex,
-                                          IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return 0.0;
-    }
-
-    /**
-     * :TODO: check out, whether the PointType might be replaced
-     * by a general Point. This would be the clean way
-     */
-    /**
-     * Determinant of jacobian in given point.
-     * This method calculate determinant of jacobian
-     * matrix in given point.
-     *
-     * @param rPoint point which determinant of jacobians has to
-     * be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
-     * point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     *
-     * KLUDGE: PointType needed for proper functionality
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return 0.0;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobians for given integration method.
-     * This method calculates the inverse of jacobians
-     * matrices in all integrations points of
-     * given integration method.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian
-     * matrices \f$ J^{-1}_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    JacobiansType& InverseOfJacobian( JacobiansType& rResult,
-            IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in specific integration point of given integration
-     * method. This method calculate Inverse of jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point which inverse
-     * of jacobians has to be calculated in it.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian matrix \f$ J^{-1}_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult,
-                                       IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in given point.
-     * This method calculate inverse of jacobian
-     * matrix in given point.
-     *
-     * @param rPoint point which inverse of jacobians has to
-     * be calculated in it.
-     * @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
-    {
-        KRATOS_ERROR << "Quadrilateral3D9::DeterminantOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -1126,7 +965,7 @@ public:
         //getting the inverse jacobian matrices
         JacobiansType temp( integration_points_number );
 
-        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
+        JacobiansType invJ = this->InverseOfJacobian( temp, ThisMethod );
 
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
@@ -1479,7 +1318,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 

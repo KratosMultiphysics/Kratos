@@ -43,7 +43,7 @@ set_target_properties(KratosUmatCore PROPERTIES COMPILE_DEFINITIONS "UMAT_APPLIC
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosUmatApplication MODULE ${KRATOS_UMAT_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosUmatApplication MODULE THIN_LTO ${KRATOS_UMAT_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosUmatApplication PRIVATE KratosUmatCore)
 set_target_properties(KratosUmatApplication PROPERTIES PREFIX "")
 

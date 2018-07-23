@@ -29,7 +29,7 @@ if(${MPI_NEEDED} MATCHES ON )
 endif(${MPI_NEEDED} MATCHES ON )
 
 ## Define PyBind module for the application
-pybind11_add_module(KratosStabilizedCFDApplication MODULE ${KRATOS_STABILIZED_CFD_APPLICATION_SOURCES})
+pybind11_add_module(KratosStabilizedCFDApplication MODULE THIN_LTO ${KRATOS_STABILIZED_CFD_APPLICATION_SOURCES})
 
 target_link_libraries(KratosStabilizedCFDApplication PRIVATE KratosCore KratosFluidDynamicsCore ${KRATOS_STABILIZED_CDF_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosStabilizedCFDApplication PROPERTIES PREFIX "")

@@ -40,7 +40,7 @@ namespace Kratos
 
    ConstitutiveModel::Pointer VonMisesLargeStrainUmatModel::Clone() const
    {
-      return ( VonMisesLargeStrainUmatModel::Pointer(new VonMisesLargeStrainUmatModel(*this)) );
+     return Kratos::make_shared<VonMisesLargeStrainUmatModel>(*this);
    }
 
    //********************************ASSIGNMENT******************************************

@@ -1,9 +1,16 @@
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:               July 2016 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_NONLOCAL_DAMAGE_2D_UTILITIES )
 #define  KRATOS_NONLOCAL_DAMAGE_2D_UTILITIES
@@ -48,13 +55,13 @@ public:
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    virtual ~NonlocalDamage2DUtilities() {}
+    ~NonlocalDamage2DUtilities() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void SearchGaussPointsNeighbours (Parameters* pParameters, ModelPart& rModelPart)
+    void SearchGaussPointsNeighbours (Parameters* pParameters, ModelPart& rModelPart) override
     {
-        std::cout << "Starting non-local search of neighbours ..." << std::endl;
+        KRATOS_INFO("Nonlocal Damage 2D utility") << "Starting non-local search of neighbours ..." << std::endl;
         
         // Define necessary variables
         Utility2DVariables AuxVariables;
@@ -64,7 +71,7 @@ public:
 
         this->SearchNeighbours(AuxVariables,pParameters,rModelPart);
         
-        std::cout << "... search of neighbours completed." << std::endl;
+        KRATOS_INFO("Nonlocal Damage 2D utility") << "... search of neighbours completed." << std::endl;
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -213,7 +220,7 @@ protected:
     void ComputeNeighbourDistance(
         double& rDistance,
         const GaussPoint& ReceiverPoint,
-        const GaussPoint& SourcePoint)
+        const GaussPoint& SourcePoint) override
     {
         rDistance = sqrt((SourcePoint.Coordinates[0]-ReceiverPoint.Coordinates[0])*(SourcePoint.Coordinates[0]-ReceiverPoint.Coordinates[0]) +
                          (SourcePoint.Coordinates[1]-ReceiverPoint.Coordinates[1])*(SourcePoint.Coordinates[1]-ReceiverPoint.Coordinates[1]));

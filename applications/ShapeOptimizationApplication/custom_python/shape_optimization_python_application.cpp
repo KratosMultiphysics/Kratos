@@ -25,7 +25,6 @@
 #include "includes/define_python.h"
 #include "shape_optimization_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "shape_optimization_application.h"
 
 // ==============================================================================
 
@@ -50,6 +49,7 @@ using namespace pybind11;
 
 	AddCustomUtilitiesToPython(m);
 
+
 	//registering variables in python
 
 	// Geometry variables
@@ -71,11 +71,6 @@ using namespace pybind11;
 
     // For edge damping
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DAMPING_FACTOR);
-
-    // For Structure Sensitivity Analysis
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, STRAIN_ENERGY_SHAPE_GRADIENT);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MASS_SHAPE_GRADIENT);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, EIGENFREQUENCY_SHAPE_GRADIENT);
 
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAPPING_ID);

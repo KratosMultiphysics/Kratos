@@ -1431,7 +1431,7 @@ public:
 
 
 
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
+        BoundedMatrix<double,3,2> DN;
 
         double tol = 1.0e-8;
         int maxiter = 1000;

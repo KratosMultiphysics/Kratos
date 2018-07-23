@@ -30,7 +30,7 @@
 #include "add_deprecated_variables_to_python.h"
 #include "add_c2c_variables_to_python.h"
 #include "add_cfd_variables_to_python.h"
-#include "add_ale_variables_to_python.h"
+#include "add_mesh_moving_variables_to_python.h"
 #include "add_mapping_variables_to_python.h"
 #include "add_dem_variables_to_python.h"
 #include "add_fsi_variables_to_python.h"
@@ -61,6 +61,7 @@
 #include "add_testing_to_python.h"
 #include "add_logger_to_python.h"
 #include "add_memory_info_to_python.h"
+#include "add_response_functions_to_python.h"
 
 namespace Kratos
 {
@@ -75,10 +76,10 @@ char const* greet()
     return header.str().c_str();
 }
 
-using namespace pybind11;
-
 PYBIND11_MODULE(Kratos, m)
 {
+    namespace py = pybind11;
+
     AddVectorToPython(m);
     AddMatrixToPython(m);
     AddPointsToPython(m);
@@ -88,7 +89,7 @@ PYBIND11_MODULE(Kratos, m)
     AddNodeToPython(m);
     AddPropertiesToPython(m);
     AddMeshToPython(m);
-    
+
     AddCFDVariablesToPython(m);
     AddDEMVariablesToPython(m);
     AddALEVariablesToPython(m);
@@ -97,19 +98,19 @@ PYBIND11_MODULE(Kratos, m)
     AddLegacyStructuralAppVarsToPython(m);
     AddMappingVariablesToPython(m);
     AddMATVariablesToPython(m);
-    AddDeprecatedVariablesToPython(m);    
-    
-    
-     
+    AddDeprecatedVariablesToPython(m);
+
+
+
 //     //  AddQuadraturesToPython();
 //     //  AddIntegrationPointsToPython();
-     
+
      AddProcessesToPython(m);
      AddIOToPython(m);
      AddModelToPython(m);
-     
+
      AddModelerToPython(m);
-     
+
      AddKratosApplicationToPython(m);
      AddLinearSolversToPython(m);
      AddAMGCLSolverToPython(m);
@@ -123,26 +124,25 @@ PYBIND11_MODULE(Kratos, m)
 
     AddMatrixMarketInterfaceToPython(m);
     AddKratosParametersToPython(m);
-// 
+//
     AddSearchStrategiesToPython(m);
      AddTestingToPython(m);
      AddLoggerToPython(m); //TO BE SPOKEN WITH POOYAN
+     AddResponseFunctionsToPython(m);
 
-//     AddBandedMatrixToPython();
-//     AddTriangularMatrixToPython();
-//     AddSymmetricMatrixToPython();
-//     AddIdentityMatrixToPython();
-//     AddZeroMatrixToPython();
-//     AddScalarMatrixToPython();
-//     AddSparseMatrixToPython();
-//     AddCompressedMatrixToPython();
-// #if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
-//     AddCoordinateMatrixToPython();
-// #endif
+     //     AddBandedMatrixToPython();
+     //     AddTriangularMatrixToPython();
+     //     AddSymmetricMatrixToPython();
+     //     AddIdentityMatrixToPython();
+     //     AddZeroMatrixToPython();
+     //     AddScalarMatrixToPython();
+     //     AddSparseMatrixToPython();
+     //     AddCompressedMatrixToPython();
+     // #if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
+     //     AddCoordinateMatrixToPython();
+     // #endif
 
-     
-     
-    m.def("Hello", greet);
+     m.def("Hello", greet);
 }
 
 

@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 
@@ -59,12 +59,24 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) UpdatedLagrangian
 public:
     ///@name Type Definitions
     ///@{
+
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
+
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// The base element type
+    typedef BaseSolidElement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     /// Counted pointer of UpdatedLagrangian
     KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangian);
@@ -76,6 +88,14 @@ public:
     /// Default constructor.
     UpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
     UpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    // Copy constructor
+    UpdatedLagrangian(UpdatedLagrangian const& rOther)
+        :BaseType(rOther)
+        ,mF0Computed(rOther.mF0Computed)
+        ,mDetF0(rOther.mDetF0)
+        ,mF0(rOther.mF0)
+    {};
 
     /// Destructor.
     ~UpdatedLagrangian() override;
@@ -106,11 +126,30 @@ public:
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
-     * @brief Returns the currently selected integration method
-     * @todo ADD THE OTHER CREATE FUNCTION
-     * @return current integration method selected
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
@@ -252,7 +291,7 @@ protected:
      */ 
     void UpdateHistoricalDatabase(
         KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber
+        const IndexType PointNumber
         );
         
     /**
@@ -278,8 +317,8 @@ protected:
      */ 
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        const IndexType PointNumber,
+        const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
     
     /**
@@ -295,7 +334,7 @@ protected:
         Matrix& J0, 
         Matrix& InvJ0, 
         Matrix& DN_DX, 
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
         ) override;
     
@@ -336,9 +375,8 @@ private:
     void CalculateB(
         Matrix& rB,
         const Matrix& rDN_DX,
-        const unsigned int StrainSize,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
+        const SizeType StrainSize,
+        const IndexType PointNumber
         );
     
     /**
@@ -346,14 +384,14 @@ private:
      * @param PointNumber The integration point considered
      * @return The reference configuration deformation gradient determinant
      */
-    double ReferenceConfigurationDeformationGradientDeterminant(const unsigned PointNumber) const;
+    double ReferenceConfigurationDeformationGradientDeterminant(const IndexType PointNumber) const;
     
     /**
      * It returns the reference configuration deformation gradient
      * @param PointNumber The integration point considered
      * @return The reference configuration deformation gradient
      */
-    Matrix ReferenceConfigurationDeformationGradient(const unsigned PointNumber) const;
+    Matrix ReferenceConfigurationDeformationGradient(const IndexType PointNumber) const;
     
     ///@}
     ///@name Private Operations

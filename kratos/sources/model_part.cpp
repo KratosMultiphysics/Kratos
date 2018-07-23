@@ -84,23 +84,6 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
-// Copy constructor.
-ModelPart::ModelPart(ModelPart const& rOther)
-    : DataValueContainer(rOther)
-    , Flags(rOther)
-    , mName(rOther.mName)
-    , mBufferSize(rOther.mBufferSize)
-    , mpProcessInfo(rOther.mpProcessInfo)
-    , mIndices(rOther.mIndices)
-    , mMeshes(rOther.mMeshes)
-    , mpVariablesList(new VariablesList(*rOther.mpVariablesList))
-    , mpCommunicator(rOther.mpCommunicator)
-    , mpParentModelPart(rOther.mpParentModelPart)
-    , mSubModelParts(rOther.mSubModelParts)
-{
-    KRATOS_WATCH(mMeshes.size())
-}
-
 /// Destructor.
 ModelPart::~ModelPart()
 {
@@ -122,27 +105,6 @@ ModelPart::~ModelPart()
     if (!IsSubModelPart())
       delete mpVariablesList;
 }
-
-
-/// Assignment operator.
-ModelPart & ModelPart::operator=(ModelPart const& rOther)
-{
-    mName = rOther.mName;
-    mBufferSize = rOther.mBufferSize;
-    mpProcessInfo = rOther.mpProcessInfo;
-    mIndices = rOther.mIndices;
-    mMeshes = rOther.mMeshes;
-    // I should not set the parent for a model part while it breaks the hierarchy. Pooyan.
-    //mpParentModelPart = rOther.mpParentModelPart;
-    mSubModelParts = rOther.mSubModelParts;
-
-    //KRATOS_THROW_ERROR(std::logic_error, "This method needs updating and is not working. Pooyan", "")
-
-    *mpVariablesList = *rOther.mpVariablesList;
-
-    return *this;
-}
-
 
 ModelPart::IndexType ModelPart::CreateSolutionStep()
 {
@@ -589,17 +551,17 @@ void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties,
         mpParentModelPart->AddProperties(pNewProperties, ThisIndex);
     }
 
-    auto pprop_it = GetMesh(0).Properties().find(ThisIndex);
-    if( pprop_it != GetMesh(0).Properties().end() )
+    auto existing_prop_it = GetMesh(ThisIndex).Properties().find(pNewProperties->Id());
+    if( existing_prop_it != GetMesh(ThisIndex).Properties().end() )
     {
-        if( &(*(pprop_it.base())) != &pNewProperties )
+        if( &(*existing_prop_it) != pNewProperties.get() )
         {
-            KRATOS_ERROR << "trying to add a property with existing Id within the model part : " << Name() << " Property Id is :" << ThisIndex;
+            KRATOS_ERROR << "trying to add a property with existing Id within the model part : " << Name() << ", property Id is :" << pNewProperties->Id();
         }
     }
     else
     {
-        GetMesh(0).AddProperties(pNewProperties);
+        GetMesh(ThisIndex).AddProperties(pNewProperties);
     }
 }
 
@@ -1130,17 +1092,18 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags identifier_flag)
 }
 
 
-ModelPart::Pointer  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        ModelPart::Pointer p_model_part(new ModelPart(NewSubModelPartName));
+        Kratos::shared_ptr<ModelPart>  p_model_part = Kratos::make_shared<ModelPart>(NewSubModelPartName);
         p_model_part->SetParentModelPart(this);
         delete p_model_part->mpVariablesList;
         p_model_part->mpVariablesList = mpVariablesList;
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
-        return mSubModelParts.insert(p_model_part).base()->second;
+        mSubModelParts.insert(p_model_part);
+        return *p_model_part;
     }
     else
         KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)
@@ -1148,19 +1111,9 @@ ModelPart::Pointer  ModelPart::CreateSubModelPart(std::string const& NewSubModel
         //KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
     }
 
-void ModelPart::AddSubModelPart(ModelPart::Pointer pThisSubModelPart)
+void ModelPart::AddSubModelPart(Kratos::shared_ptr<ModelPart> pThisSubModelPart)
 {
-    if (mSubModelParts.find(pThisSubModelPart->Name()) != mSubModelParts.end())
-        // Here a warning would be enough. To be disscussed. Pooyan.
-        KRATOS_ERROR << "There is an already existing sub model part with name \"" << pThisSubModelPart->Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
-
-    if (IsSubModelPart())
-    {
-        mpParentModelPart->AddSubModelPart(pThisSubModelPart);
-        return;
-    }
-
-    pThisSubModelPart->SetParentModelPart(this);
+   KRATOS_ERROR << "cannot add a submodelpart, since submodelparts are univocally owned by their father " << std::endl;
 }
 /** Remove a sub modelpart with given name.
 */

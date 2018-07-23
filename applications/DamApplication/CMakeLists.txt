@@ -77,7 +77,7 @@ if(${USE_DAM_MPI} MATCHES ON)
 
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PRIVATE KratosCore KratosTrilinosApplication KratosSolidMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosTrilinosApplication KratosSolidMechanicsCore KratosPoromechanicsCore)
 
 else()
 
@@ -93,7 +93,7 @@ else()
     
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PRIVATE KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
 
 endif()
 
@@ -104,9 +104,10 @@ endif()
 ## DamApplication core library (C++ parts)
 #add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
 #target_link_libraries(KratosDamCore PRIVATE KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
+set_target_properties(KratosDamCore PROPERTIES COMPILE_DEFINITIONS "DAM_APPLICATION=EXPORT,API")
 
 ## DamApplication python module
-pybind11_add_module(KratosDamApplication MODULE ${KRATOS_DAM_APPLICATION_PYTHON_INTERFACE_SOURCES})
+pybind11_add_module(KratosDamApplication MODULE THIN_LTO ${KRATOS_DAM_APPLICATION_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosDamApplication PRIVATE KratosDamCore)
 set_target_properties(KratosDamApplication PROPERTIES PREFIX "")
 

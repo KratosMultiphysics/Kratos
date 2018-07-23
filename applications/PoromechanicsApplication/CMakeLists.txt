@@ -85,7 +85,7 @@ if(${USE_PORO_MPI} MATCHES ON)
 
     ## PoromechanicsApplication core library (C++ parts)
     add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosTrilinosApplication KratosSolidMechanicsCore)
+    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosTrilinosApplication KratosSolidMechanicsCore)
 
 else()
 
@@ -101,7 +101,7 @@ else()
 
     ## PoromechanicsApplication core library (C++ parts)
     add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosSolidMechanicsCore)
+    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosSolidMechanicsCore)
 
 endif()
 
@@ -115,7 +115,7 @@ endif()
 set_target_properties( KratosPoromechanicsCore PROPERTIES COMPILE_DEFINITIONS "POROMECHANICS_APPLICATION=EXPORT,API")
 
 ## PoromechanicsApplication python module
-pybind11_add_module(KratosPoromechanicsApplication MODULE ${KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES})
+pybind11_add_module(KratosPoromechanicsApplication MODULE THIN_LTO ${KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosPoromechanicsApplication PRIVATE KratosPoromechanicsCore)
 set_target_properties(KratosPoromechanicsApplication PROPERTIES PREFIX "")
 

@@ -42,6 +42,7 @@ typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 /// Default constructor.
+ModelPart* mpInlet;
 SphericParticle();
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
@@ -114,7 +115,6 @@ std::vector<DEMWall*> mNeighbourRigidFaces; // why repeated? it is in the sphere
 
 typedef std::unique_ptr<ParticleDataBuffer> BufferPointerType;
 
-
 virtual std::unique_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle)
 {
     return std::unique_ptr<ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
@@ -145,7 +145,7 @@ virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_proc
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override;
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override;
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info ) override;
-virtual void ComputeNewNeighboursHistoricalData(boost::numeric::ublas::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces);
+virtual void ComputeNewNeighboursHistoricalData(DenseVector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces);
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
 virtual void SymmetrizeStressTensor();
@@ -281,13 +281,12 @@ std::vector<array_1d<double, 3> > mNeighbourElasticExtraContactForces;
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
 
-
-
 array_1d<double, 3> mContactMoment; //SLS
 
 Matrix* mStressTensor;
 Matrix* mSymmStressTensor;
 double mPartialRepresentativeVolume;
+
 
 std::vector<int> mFemOldNeighbourIds;
 
@@ -344,6 +343,14 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(do
                                                                               const double& dt,
                                                                               const array_1d<double, 3>& ang_vel,
                                                                               SphericParticle* p_neighbour);
+
+virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(double DeltDesp[3],
+                                                                                  double RelVel[3],
+                                                                                  const double OldLocalCoordSystem[3][3],
+                                                                                  const double &other_radius,
+                                                                                  const double &dt,
+                                                                                  const array_1d<double, 3> &angl_vel,
+                                                                                  SphericParticle* neighbour_iterator);
 
 virtual void ComputeMoments(double normalLocalContactForce,
                             double GlobalElasticContactForces[3],
@@ -430,7 +437,7 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
 
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
 
-virtual void ApplyGlobalDampingToContactForces();
+virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
 
 DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 double mRadius;
@@ -466,6 +473,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass",mRealMass);
     rSerializer.load("mClusterId",mClusterId);
+    rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq);
     int aux_int=0;
     rSerializer.load("HasStressTensor", aux_int);
     if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);

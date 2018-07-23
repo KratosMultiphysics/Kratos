@@ -507,7 +507,8 @@ public:
                 else if(mndof == 2) BlockSolve<2>(rA,rX,rB, iters, resid);
                 else if(mndof == 3) BlockSolve<3>(rA,rX,rB, iters, resid);
                 else if(mndof == 4) BlockSolve<4>(rA,rX,rB, iters, resid);
-                else if(mndof == 6) BlockSolve<6>(rA,rX,rB, iters, resid);
+                else
+                    ScalarSolve(rA,rX,rB, iters, resid);
             }
             else
             {
@@ -520,6 +521,8 @@ public:
             mprm.put("solver.type", "gmres");
             ScalarSolve(rA,rX,rB, iters, resid);
         }
+
+        KRATOS_WARNING_IF("AMGCL Linear Solver", mTol < resid)<<"Non converged linear solution. ["<< resid << " > "<< mTol << "]" << std::endl;
 
 
         if(mverbosity > 1)

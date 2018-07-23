@@ -2,6 +2,10 @@
     "input_settings":{
 	"materials_file_name" : "dynamic_tests/beam_elements/dynamic_rotation_materials.json"
     },
+    "time_settings" : {
+        "time_step"  : 0.01,
+        "end_time"   : 0.5
+    },
     "model_settings"           : {
         "domain_parts_list"    : ["Parts_Parts_Auto1"],
         "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","ROTATION_Rotation_Auto1","ANGULAR_VELOCITY_Angular_Velocity_Auto1","ANGULAR_VELOCITY_Angular_Velocity_Auto2","SelfWeight3D_Self_weight_Auto1"]
@@ -9,24 +13,22 @@
     "solver_settings"          : {
         "solver_type" : "solid_mechanics_implicit_dynamic_solver",
         "Parameters"  : {
-            "time_settings"             : {
-                "time_step"  : 0.01,
-                "end_time"   : 0.5
-            },
             "time_integration_settings" : {
                 "solution_type"      : "Dynamic",
                 "time_integration"   : "Implicit",
-                "integration_method" : "RotationEMC"
+                "integration_method" : "EmcStep"
             },
             "solving_strategy_settings" : {
                 "line_search"                 : false,
+		"max_iteration"               : 15,
+                "bossak_factor"               : 0.0
+	    },
+	    "convergence_criterion_settings" : {
                 "convergence_criterion"       : "Residual_criterion",
                 "residual_relative_tolerance" : 0.0001,
-                "residual_absolute_tolerance" : 1e-9,
-                "max_iteration"               : 15,
-                "bossak_factor"               : 0.0
+                "residual_absolute_tolerance" : 1e-9
             },
-	    "dofs" : ["ROTATION"]
+	    "dofs" : ["DISPLACEMENT","ROTATION"]
         }
     },
     "constraints_process_list" : [{
@@ -34,7 +36,7 @@
     },{
         "model_part_name" : "ROTATION_Rotation_Auto1",
         "variable_name"   : "ROTATION",
-        "value"           : [null,0.0,0.0]        
+        "value"           : [null,0.0,0.0]
     },{
         "model_part_name" : "ANGULAR_VELOCITY_Angular_Velocity_Auto1",
         "variable_name"   : "ANGULAR_VELOCITY",
@@ -43,7 +45,7 @@
         "model_part_name" : "ANGULAR_VELOCITY_Angular_Velocity_Auto2",
         "variable_name"   : "ANGULAR_VELOCITY",
         "value"           : [2.0,0.0,0.0],
-        "interval"        : [0.0,0.0]       
+        "interval"        : [0.0,0.0]
     }],
     "loads_process_list"       : [{
         "python_module" : "assign_modulus_and_direction_to_nodes_process",

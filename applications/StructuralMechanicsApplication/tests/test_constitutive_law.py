@@ -295,6 +295,14 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
         self._generic_constitutive_law_test(model_part, deformation_test)
 
+    def test_Isotropic_Damage_3D(self):
+        # Define a model
+        model_part = KratosMultiphysics.ModelPart("test")
+
+        deformation_test = DeformationLinearIsotropicDamage3D()
+
+        self._generic_constitutive_law_test(model_part, deformation_test)
+
 class Deformation():
     def __init__(self):
         self.nr_timesteps = 100
@@ -625,6 +633,46 @@ class DeformationLinearJ2PlasticityPlaneStrain2D(DeformationLinearJ2Plasticity):
     def get_reference_stress(self, i):
         return self.reference_stress[i]
 
+class DeformationLinearIsotropicDamage(Deformation):
+    def __init__(self):
+        Deformation.__init__(self)
+        self.nr_timesteps = 10
+
+    def set_deformation(self, cl_params, i):
+        self.strain = (i+1)/ self.nr_timesteps * self.initial_strain
+        cl_params.SetStrainVector(self.strain)
+
+class DeformationLinearIsotropicDamage3D(DeformationLinearIsotropicDamage):
+    def __init__(self):
+        DeformationLinearIsotropicDamage.__init__(self)
+        self.cl = LinearIsotropicDamage3D()
+
+    def initialize_reference_stress(self, strain_size):
+        self.initial_strain = KratosMultiphysics.Vector(strain_size)
+        self.initial_strain[0] = 0.001
+        self.initial_strain[1] = 0.001
+        self.initial_strain[2] = 0.0
+        self.initial_strain[3] = 0.001
+        self.initial_strain[4] = 0.0
+        self.initial_strain[5] = 0.001
+
+        r_stress = []
+        for i in range(self.nr_timesteps):
+            r_stress.append(KratosMultiphysics.Vector(strain_size))
+        r_stress[0][0] = 0.57692; r_stress[0][1] = 0.57692; r_stress[0][2] = 0.34615; r_stress[0][3] = 0.11538; r_stress[0][4] = 0.0; r_stress[0][5] = 0.11538;
+        r_stress[1][0] = 1.15384; r_stress[1][1] = 1.15384; r_stress[1][2] = 0.69231; r_stress[1][3] = 0.23077; r_stress[1][4] = 0.0; r_stress[1][5] = 0.23077;
+        r_stress[2][0] = 1.73076; r_stress[2][1] = 1.73076; r_stress[2][2] = 1.03850; r_stress[2][3] = 0.34615; r_stress[2][4] = 0.0; r_stress[2][5] = 0.34615;
+        r_stress[3][0] = 1.94550; r_stress[3][1] = 1.94550; r_stress[3][2] = 1.16730; r_stress[3][3] = 0.38910; r_stress[3][4] = 0.0; r_stress[3][5] = 0.38910;
+        r_stress[4][0] = 2.11858; r_stress[4][1] = 2.11858; r_stress[4][2] = 1.27120; r_stress[4][3] = 0.42372; r_stress[4][4] = 0.0; r_stress[4][5] = 0.42372;
+        r_stress[5][0] = 2.29166; r_stress[5][1] = 2.29166; r_stress[5][2] = 1.37500; r_stress[5][3] = 0.45833; r_stress[5][4] = 0.0; r_stress[5][5] = 0.45833;
+        r_stress[6][0] = 2.46473; r_stress[6][1] = 2.46473; r_stress[6][2] = 1.47880; r_stress[6][3] = 0.49295; r_stress[6][4] = 0.0; r_stress[6][5] = 0.49295;
+        r_stress[7][0] = 2.63781; r_stress[7][1] = 2.63781; r_stress[7][2] = 1.58270; r_stress[7][3] = 0.52756; r_stress[7][4] = 0.0; r_stress[7][5] = 0.52756;
+        r_stress[8][0] = 2.68543; r_stress[8][1] = 2.68543; r_stress[8][2] = 1.61130; r_stress[8][3] = 0.53709; r_stress[8][4] = 0.0; r_stress[8][5] = 0.53709;
+        r_stress[9][0] = 2.68543; r_stress[9][1] = 2.68543; r_stress[9][2] = 1.61130; r_stress[9][3] = 0.53709; r_stress[9][4] = 0.0; r_stress[9][5] = 0.53709;
+        self.reference_stress = r_stress
+
+    def get_reference_stress(self, i):
+        return self.reference_stress[i]
 
 class LinearElastic():
     def __init__(self):
@@ -732,6 +780,30 @@ class LinearJ2PlasticityPlaneStrain2D(LinearJ2Plasticity):
     @staticmethod
     def create_constitutive_Law():
         return StructuralMechanicsApplication.LinearJ2PlasticityPlaneStrain2DLaw()
+
+class LinearIsotropicDamage(LinearElastic):
+    def __init__(self):
+        self.young_modulus = 3000
+        self.poisson_ratio = 0.3
+        self.yield_stress = 2.0
+        self.infinity_yield_stress = 3.0
+        self.isotropic_hardening_modulus = 0.3
+
+    def create_properties(self, model_part):
+        properties = LinearElastic.create_properties(self, model_part)
+        properties.SetValue(KratosMultiphysics.YIELD_STRESS, self.yield_stress)
+        properties.SetValue(StructuralMechanicsApplication.INFINITY_YIELD_STRESS, self.infinity_yield_stress)
+        properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
+        return properties
+
+class LinearIsotropicDamage3D(LinearIsotropicDamage):
+    def __init__(self):
+        LinearIsotropicDamage.__init__(self)
+        self.dim = 3
+
+    @staticmethod
+    def create_constitutive_Law():
+        return StructuralMechanicsApplication.LinearIsotropicDamage3DLaw()
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -28,7 +28,7 @@ public:
 
     typedef double RealType;
 
-    typedef bounded_matrix<RealType, 3, 3> BoundedMatrixType3x3;
+    typedef BoundedMatrix<RealType, 3, 3> BoundedMatrixType3x3;
 
     typedef array_1d<RealType, 3> Vector3Type;
 

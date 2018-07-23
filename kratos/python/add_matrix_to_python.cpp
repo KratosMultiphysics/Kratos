@@ -76,12 +76,12 @@ template< typename TMatrixType > class_< TMatrixType > CreateMatrixInterface(pyb
 void  AddMatrixToPython(pybind11::module& m)
 {
     //here we add the dense matrix
-    auto matrix_binder = CreateMatrixInterface< matrix<double> >(m,"Matrix");
-    matrix_binder.def(init<const matrix<double>::size_type, const matrix<double>::size_type>());
-    matrix_binder.def(init<const matrix<double>::size_type, const matrix<double>::size_type, const matrix<double>::value_type >());
-    matrix_binder.def(init<const matrix<double>& >());
-    matrix_binder.def("__mul__", [](const matrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, is_operator());
-    matrix_binder.def("__mul__", [](const matrix<double>& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, is_operator());
+    auto matrix_binder = CreateMatrixInterface< DenseMatrix<double> >(m,"Matrix");
+    matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type>());
+    matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
+    matrix_binder.def(init<const DenseMatrix<double>& >());
+    matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, is_operator());
+    matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, is_operator());
 
     ;
     

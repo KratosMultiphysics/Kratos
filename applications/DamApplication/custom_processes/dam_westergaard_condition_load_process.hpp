@@ -52,9 +52,9 @@ class DamWestergaardConditionLoadProcess : public Process
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
                 "Spe_weight"                                            : 0.0,
                 "Water_level"                                           : 0.0,
-                "Water_Table"                                           : 0, 
+                "Water_Table"                                           : 0,
                 "Aceleration"                                           : 0.0,
-                "Aceleration_Table"                                     : 0  
+                "Aceleration_Table"                                     : 0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -93,13 +93,13 @@ class DamWestergaardConditionLoadProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void Execute() override
     {
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
 
@@ -144,7 +144,7 @@ class DamWestergaardConditionLoadProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -221,19 +221,19 @@ class DamWestergaardConditionLoadProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamWestergaardConditionLoadProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamWestergaardConditionLoadProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

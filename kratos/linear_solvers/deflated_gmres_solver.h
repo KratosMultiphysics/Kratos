@@ -572,10 +572,10 @@ private:
     unsigned int mmax_reduced_size;
     bool mBlocksAreAllocated;
     bool mis_initialized;
-    boost::numeric::ublas::vector<unsigned int> mpressure_indices;
-    boost::numeric::ublas::vector<unsigned int> mother_indices;
-    boost::numeric::ublas::vector<int> mglobal_to_local_indexing;
-    boost::numeric::ublas::vector<int> mis_pressure_block;
+    DenseVector<unsigned int> mpressure_indices;
+    DenseVector<unsigned int> mother_indices;
+    DenseVector<int> mglobal_to_local_indexing;
+    DenseVector<int> mis_pressure_block;
     SparseMatrixType mK;
     SparseMatrixType mG;
     SparseMatrixType mD;

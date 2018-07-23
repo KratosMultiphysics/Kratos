@@ -28,7 +28,7 @@
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
-#include "custom_utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 #include "custom_utilities/logging_settings.hpp"
 
 namespace Kratos
@@ -126,13 +126,13 @@ public:
     typedef std::ptrdiff_t  SignedIndexType;
 
     /// A vector of indexes
-    typedef vector<IndexType> IndexVectorType;
+    typedef DenseVector<IndexType> IndexVectorType;
 
     /// A vector of indexes (signed)
-    typedef vector<SignedIndexType> SignedIndexVectorType;
+    typedef DenseVector<SignedIndexType> SignedIndexVectorType;
 
     /// A vector of types
-    typedef vector<BlockType> BlockTypeVectorType;
+    typedef DenseVector<BlockType> BlockTypeVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -163,10 +163,10 @@ public:
      */
 
     MixedULMLinearSolver(
-            LinearSolverPointerType pSolverDispBlock,
-            Parameters ThisParameters =  Parameters(R"({})")
-            ): BaseType (),
-               mpSolverDispBlock(pSolverDispBlock)
+        LinearSolverPointerType pSolverDispBlock,
+        Parameters ThisParameters =  Parameters(R"({})")
+        ): BaseType (),
+            mpSolverDispBlock(pSolverDispBlock)
 
     {
         KRATOS_TRY
@@ -178,6 +178,7 @@ public:
         // Initializing the remaining variables
         this->SetTolerance( ThisParameters["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( ThisParameters["max_iteration_number"].GetInt() );
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
         mBlocksAreAllocated = false;
         mIsInitialized = false;
 
@@ -258,6 +259,25 @@ public:
             this->Initialize(rA,rX,rB);
 
         mpSolverDispBlock->InitializeSolutionStep(mKDispModified, mDisp, mResidualDisp);
+
+        // We print the resulting system (if needed)
+        if (mEchoLevel == 2) { //if it is needed to print the debug info
+            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
+        } else if (mEchoLevel == 3) { //if it is needed to print the debug info
+            KRATOS_INFO("LHS") << "SystemMatrix = " << mKDispModified << std::endl;
+            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
+        } else if (mEchoLevel == 4) { //print to matrix market file
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << mFileCreated << ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mKDispModified, false);
+
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << mFileCreated << ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mResidualDisp);
+            mFileCreated++;
+        }
     }
 
     /**
@@ -493,7 +513,7 @@ public:
             mWhichBlockType.resize(tot_active_dofs, false);
 
         // Size check
-        KRATOS_ERROR_IF_NOT(n_lm_active_dofs == n_slave_active_dofs) << "The number of active LM dofs: " << n_slave_active_dofs << " and active slave nodes dofs: " << n_slave_active_dofs << " does not coincide" << std::endl;
+        KRATOS_ERROR_IF_NOT(n_lm_active_dofs == n_slave_active_dofs) << "The number of active LM dofs: " << n_lm_active_dofs << " and active slave nodes dofs: " << n_slave_active_dofs << " does not coincide" << std::endl;
 
         /**
          * Construct aux_lists as needed
@@ -954,8 +974,8 @@ protected:
 
         // Compute the P and C operators
         if (slave_active_size > 0) {
-            MatrixMatrixProd(KMLMA,   mKLMAModified, mPOperator);
-            MatrixMatrixProd(KLMALMA, mKLMAModified, mCOperator);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(KMLMA,   mKLMAModified, mPOperator);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(KLMALMA, mKLMAModified, mCOperator);
         }
 
         // We proceed with the auxiliar products for the master blocks
@@ -965,11 +985,11 @@ protected:
         SparseMatrixType master_auxKSASA(master_size, slave_active_size);
 
         if (slave_active_size > 0) {
-            MatrixMatrixProd(mPOperator, mKSAN, master_auxKSAN);
-            MatrixMatrixProd(mPOperator, mKSAM, master_auxKSAM);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mPOperator, mKSAN, master_auxKSAN);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mPOperator, mKSAM, master_auxKSAM);
             if (slave_inactive_size > 0)
-                MatrixMatrixProd(mPOperator, mKSASI, master_auxKSASI);
-            MatrixMatrixProd(mPOperator, mKSASA, master_auxKSASA);
+                SparseMatrixMultiplicationUtility::MatrixMultiplication(mPOperator, mKSASI, master_auxKSASI);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mPOperator, mKSASA, master_auxKSASA);
         }
 
         // We proceed with the auxiliar products for the active slave blocks
@@ -979,11 +999,11 @@ protected:
         SparseMatrixType aslave_auxKSASA(slave_active_size, slave_active_size);
 
         if (slave_active_size > 0) {
-            MatrixMatrixProd(mCOperator, mKSAN, aslave_auxKSAN);
-            MatrixMatrixProd(mCOperator, mKSAM, aslave_auxKSAM);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSAN, aslave_auxKSAN);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSAM, aslave_auxKSAM);
             if (slave_inactive_size > 0)
-                MatrixMatrixProd(mCOperator, mKSASI, aslave_auxKSASI);
-            MatrixMatrixProd(mCOperator, mKSASA, aslave_auxKSASA);
+                SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSASI, aslave_auxKSASI);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSASA, aslave_auxKSASA);
         }
 
         // Auxiliar indexes
@@ -1233,6 +1253,9 @@ private:
     VectorType mLMActive;           /// The solution of the active lagrange multiplies
     VectorType mLMInactive;         /// The solution of the inactive lagrange multiplies
     VectorType mDisp;               /// The solution of the rest of displacements
+
+    IndexType mEchoLevel = 0;       /// The echo level of the solver
+    IndexType mFileCreated = 0;     /// The index used to identify the file created
 
     ///@}
     ///@name Private Operators
@@ -1809,33 +1832,6 @@ private:
     }
 
     /**
-     * @brief Matrix-matrix product C = A·B
-     * @detail This method uses a template for each matrix
-     * @param rA The first matrix
-     * @param rB The second matrix
-     * @param rC The resulting matrix
-     */
-    template <class AMatrix, class BMatrix, class CMatrix>
-    void MatrixMatrixProd(
-        const AMatrix& rA,
-        const BMatrix& rB,
-        CMatrix& rC
-        )
-    {
-    #ifdef _OPENMP
-        const int nt = omp_get_max_threads();
-    #else
-        const int nt = 1;
-    #endif
-
-        if (nt > 16) {
-            SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge(rA, rB, rC);
-        } else {
-            SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad(rA, rB, rC);
-        }
-    }
-
-    /**
      * @brief This method is intended to use to check the matrix
      * @param rA The matrix to be checked
      */
@@ -1965,9 +1961,10 @@ private:
     {
         Parameters default_parameters( R"(
         {
-            "solver_type": "mixed_ulm_linear_solver",
-            "tolerance" : 1.0e-6,
-            "max_iteration_number" : 200
+            "solver_type"          : "mixed_ulm_linear_solver",
+            "tolerance"            : 1.0e-6,
+            "max_iteration_number" : 200,
+            "echo_level"           : 0
         }  )" );
 
         return default_parameters;

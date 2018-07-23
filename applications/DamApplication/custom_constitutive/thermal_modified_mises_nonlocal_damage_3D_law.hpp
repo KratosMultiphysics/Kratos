@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:                  KratosDamApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2017 $
@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-class ThermalModifiedMisesNonlocalDamage3DLaw : public ThermalNonlocalDamage3DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalModifiedMisesNonlocalDamage3DLaw : public ThermalNonlocalDamage3DLaw
 {
 
 public:
@@ -36,10 +36,10 @@ public:
 
     /// Default Constructor
     ThermalModifiedMisesNonlocalDamage3DLaw();
-    
+
     /// Second Constructor
-    ThermalModifiedMisesNonlocalDamage3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
-    
+    ThermalModifiedMisesNonlocalDamage3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
+
     /// Copy Constructor
     ThermalModifiedMisesNonlocalDamage3DLaw (const ThermalModifiedMisesNonlocalDamage3DLaw& rOther);
 
@@ -47,10 +47,10 @@ public:
     virtual ~ThermalModifiedMisesNonlocalDamage3DLaw();
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
-    
-    ConstitutiveLaw::Pointer Clone() const;
+
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+
+    ConstitutiveLaw::Pointer Clone() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -61,17 +61,17 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     /// Serialization
-    
+
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }

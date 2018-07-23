@@ -70,7 +70,7 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 # target_link_libraries(testmap ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${BLAS_LIBRARIES})
 
 # ###############################################################
-pybind11_add_module(KratosTrilinosApplication MODULE ${KRATOS_TRILINOS_APPLICATION_SOURCES})
+pybind11_add_module(KratosTrilinosApplication MODULE THIN_LTO ${KRATOS_TRILINOS_APPLICATION_SOURCES})
 
 
 

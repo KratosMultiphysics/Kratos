@@ -34,7 +34,7 @@ set( KRATOS_THERMO_MECHANICAL_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosThermoMechanicalApplication MODULE ${KRATOS_THERMO_MECHANICAL_APPLICATION_SOURCES})
+pybind11_add_module(KratosThermoMechanicalApplication MODULE THIN_LTO ${KRATOS_THERMO_MECHANICAL_APPLICATION_SOURCES})
 target_link_libraries(KratosThermoMechanicalApplication PRIVATE KratosCore)
 set_target_properties(KratosThermoMechanicalApplication PROPERTIES PREFIX "")
 

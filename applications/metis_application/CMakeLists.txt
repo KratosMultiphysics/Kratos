@@ -29,7 +29,7 @@ set( KRATOS_METIS_APPLICATION_SOURCES
 
 
 # ###############################################################
-pybind11_add_module(KratosMetisApplication MODULE ${KRATOS_METIS_APPLICATION_SOURCES})
+pybind11_add_module(KratosMetisApplication MODULE THIN_LTO ${KRATOS_METIS_APPLICATION_SOURCES})
 target_link_libraries(KratosMetisApplication PRIVATE KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES} )
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
 
