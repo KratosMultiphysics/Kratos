@@ -36,7 +36,7 @@ class UPwSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
+            self.main_model_part = self.model.CreateModelPart(model_part_name,self.min_buffer_size)
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
                                                   self.settings["domain_size"].GetInt())
