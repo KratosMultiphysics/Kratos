@@ -13,8 +13,6 @@
 #define KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // Project includes
 #include "includes/define.h"
@@ -53,7 +51,7 @@ namespace Kratos
  * @tparam TYieldSurfaceType
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TYieldSurfaceType> //, class TVoigtSize>
+template <class TYieldSurfaceType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorDamage
 {
   public:

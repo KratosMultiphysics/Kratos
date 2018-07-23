@@ -346,16 +346,11 @@ Matrix &GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateVa
         rValue =  MathUtils<double>::StressVectorToTensor(stress);
         return rValue;
     }
+	return rValue;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-
-
-
-
-
-
 
 template class GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential>>>;
 template class GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;

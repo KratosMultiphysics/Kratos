@@ -53,7 +53,7 @@ namespace Kratos
  * @tparam TYieldSurfaceType
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TYieldSurfaceType> //, std::size_t TVoigtSize>
+template <class TYieldSurfaceType> 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorPlasticity
 {
   public:

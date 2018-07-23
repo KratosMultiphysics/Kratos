@@ -56,6 +56,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
     /// Pointer definition of TangentOperatorCalculatorUtility
     KRATOS_CLASS_POINTER_DEFINITION(TangentOperatorCalculatorUtility);
 
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     /// Constructor
     TangentOperatorCalculatorUtility()
     {
@@ -77,7 +79,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
 
         const std::size_t num_components = strain_vector_gp.size();
         // Loop over components of the strain
-        for (std::size_t Component = 0; Component < num_components; Component++)
+        for (std::size_t Component = 0; Component < num_components; ++Component)
         {
             Vector &perturbed_strain = rValues.GetStrainVector();
 
@@ -97,35 +99,35 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
     }
 
     static void CalculatePerturbation(
-        const Vector &StrainVector,
+        const Vector &rStrainVector,
         const int Component,
         double &rPerturbation)
     {
         double Pert1, Pert2;
-        if (StrainVector[Component] != 0.0)
+        if (std::abs(rStrainVector[Component]) > tolerance)
         {
-            Pert1 = 1.0e-5 * StrainVector[Component];
+            Pert1 = 1.0e-5 * rStrainVector[Component];
         }
         else
         {
             double MinStrainComp;
-            GetMinAbsValue(StrainVector, MinStrainComp);
+            GetMinAbsValue(rStrainVector, MinStrainComp);
             Pert1 = 1.0e-5 * MinStrainComp;
         }
         double MaxStrainComp;
-        GetMaxAbsValue(StrainVector, MaxStrainComp);
-        Pert2 = 1e-10 * MaxStrainComp;
+        GetMaxAbsValue(rStrainVector, MaxStrainComp);
+        Pert2 = 1.0e-10 * MaxStrainComp;
         rPerturbation = std::max(Pert1, Pert2);
     }
 
     static void PerturbateStrainVector(
-        Vector &PerturbedStrainVector,
-        const Vector &strain_vector_gp,
+        Vector &rPerturbedStrainVector,
+        const Vector &rStrainVectorGP,
         const double Perturbation,
         const int Component)
     {
-        PerturbedStrainVector = strain_vector_gp;
-        PerturbedStrainVector[Component] += Perturbation;
+        rPerturbedStrainVector = rStrainVectorGP;
+        rPerturbedStrainVector[Component] += Perturbation;
     }
 
     static void IntegratePerturbedStrain(
@@ -140,51 +142,51 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
     }
 
     static void GetMaxAbsValue(
-        const Vector &ArrayValues,
-        double &MaxValue)
+        const Vector &rArrayValues,
+        double &rMaxValue)
     {
-        const int Dim = ArrayValues.size();
+        const int Dim = rArrayValues.size();
         std::vector<double> non_zero_values;
 
-        for (int i = 1; i < Dim; i++)
+        for (std::size_t i = 1; i < Dim; ++i)
         {
-            if (ArrayValues[i] != 0.0)
-                non_zero_values.push_back(std::abs(ArrayValues[i]));
+            if (std::abs(rArrayValues[i]) > tolerance)
+                non_zero_values.push_back(std::abs(rArrayValues[i]));
         }
         KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
 
         double aux = std::abs(non_zero_values[0]);
-        for (int i = 1; i < non_zero_values.size(); i++)
+        for (std::size_t i = 1; i < non_zero_values.size(); ++i)
         {
             if (non_zero_values[i] > aux)
                 aux = non_zero_values[i];
         }
 
-        MaxValue = aux;
+        rMaxValue = aux;
     }
 
     static void GetMinAbsValue(
         const Vector &ArrayValues,
-        double &MinValue)
+        double &rMinValue)
     {
         const int Dim = ArrayValues.size();
         std::vector<double> non_zero_values;
 
-        for (int i = 0; i < Dim; i++)
+        for (std::size_t i = 0; i < Dim; ++i)
         {
-            if (ArrayValues[i] != 0.0)
+            if (std::abs(ArrayValues[i]) > tolerance)
                 non_zero_values.push_back(std::abs(ArrayValues[i]));
         }
         KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
 
         double aux = std::abs(non_zero_values[0]);
-        for (int i = 1; i < non_zero_values.size(); i++)
+        for (std::size_t i = 1; i < non_zero_values.size(); ++i)
         {
             if (non_zero_values[i] < aux)
                 aux = non_zero_values[i];
         }
 
-        MinValue = aux;
+        rMinValue = aux;
     }
 
     static void AssignComponentsToTangentTensor(
@@ -194,7 +196,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
         const int Component)
     {
         const int Dim = DeltaStress.size();
-        for (int row = 0; row < Dim; row++)
+        for (std::size_t row = 0; row < Dim; ++row)
         {
             TangentTensor(row, Component) = DeltaStress[row] / Perturbation;
         }
