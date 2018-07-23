@@ -51,16 +51,16 @@ namespace Kratos
 
     //warning::this variable is going to be shadowed by they derived classes
     //if any problem is detected an alternative method must be used instead
-    constexpr static std::size_t VarSize = 2; 
+    constexpr static std::size_t VarSize = 2;
 
-    
+
   public:
     ///@name Type Definitions
     ///@{
 
     typedef InternalVariables<VarSize>   InternalVariablesType;
     typedef PlasticModelData<VarSize>          PlasticDataType;
-    
+
     /// Pointer definition of ModifiedExponentialDamageHardeningRule
     KRATOS_CLASS_POINTER_DEFINITION( ModifiedExponentialDamageHardeningRule );
 
@@ -80,7 +80,7 @@ namespace Kratos
 
     /// Clone.
     virtual HardeningRule::Pointer Clone() const override;
-    
+
     /// Destructor.
     ~ModifiedExponentialDamageHardeningRule();
 
@@ -98,14 +98,14 @@ namespace Kratos
      */
 
     virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening); //do not override -> it must hide the method
-      
+
     /**
      * Calculate Hardening function derivatives
      */
 
     virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening); //do not override -> it must hide the method
 
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -119,7 +119,7 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -138,7 +138,7 @@ namespace Kratos
     virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "ModifiedExponentialDamageHardeningRule Data";
-    } 
+    }
 
     ///@}
     ///@name Friends
@@ -156,12 +156,12 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -214,12 +214,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    
+
     virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
-    
+
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
@@ -258,4 +258,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODIFIED_EXPONENTIAL_DAMAGE_HARDENING_RULE_H_INCLUDED  defined 
+#endif // KRATOS_MODIFIED_EXPONENTIAL_DAMAGE_HARDENING_RULE_H_INCLUDED  defined

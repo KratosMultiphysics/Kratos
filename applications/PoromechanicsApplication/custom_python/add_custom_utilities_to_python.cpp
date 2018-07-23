@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 // External includes
 
@@ -11,8 +17,8 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "includes/kratos_parameters.h"
 
-#include "custom_utilities/condition_utilities.hpp"
-#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/poro_condition_utilities.hpp"
+#include "custom_utilities/poro_element_utilities.hpp"
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "custom_utilities/fracture_propagation_3D_utilities.hpp"
 #include "custom_utilities/fracture_propagation_2D_utilities.hpp"

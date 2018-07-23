@@ -131,7 +131,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Damping matrix part due to the stabilization
-   void UpdatedLagrangianUJWwPDMEElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUJWwPDMEElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -206,7 +206,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the MASS matrix part due to the stabilization   
-   void UpdatedLagrangianUJWwPDMEElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUJWwPDMEElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
    {
 
       KRATOS_TRY

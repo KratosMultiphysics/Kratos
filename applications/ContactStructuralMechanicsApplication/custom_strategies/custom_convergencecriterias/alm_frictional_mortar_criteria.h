@@ -164,7 +164,7 @@ public:
         IndexType is_converged_slip = 0;
         
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-//         const double epsilon = r_process_info[INITIAL_PENALTY];
+        const double common_epsilon = r_process_info[INITIAL_PENALTY];
         const double scale_factor = r_process_info[SCALE_FACTOR];
         const double tangent_factor = r_process_info[TANGENT_FACTOR];
         
@@ -174,7 +174,7 @@ public:
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             
-            const double epsilon = it_node->GetValue(INITIAL_PENALTY); 
+            const double epsilon = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : common_epsilon;
             
             const array_1d<double,3>& lagrange_multiplier = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
             const array_1d<double,3>& nodal_normal = it_node->FastGetSolutionStepValue(NORMAL);

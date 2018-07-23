@@ -47,7 +47,7 @@ void  AddCustomBoundingToPython(pybind11::module& m)
       .def(init< Vector, double, Vector, int >() )
       .def(init< Parameters >())
       .def(init< Parameters& >())
-      .def("CreateBoundingBoxBoundaryMesh",&SphereBoundingBox::CreateBoundingBoxBoundaryMesh) 
+      .def("CreateBoundingBoxBoundaryMesh",&SphereBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
 
   //circle-wall
@@ -73,7 +73,7 @@ void  AddCustomBoundingToPython(pybind11::module& m)
       .def(init< ModelPart&, Parameters& >())
       .def("CreateBoundingBoxBoundaryMesh",&TubeBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
-    
+
   //compound_noses-wall
   class_<CompoundNosesBoundingBox, typename CompoundNosesBoundingBox::Pointer, SpatialBoundingBox>(m,"CompoundNosesBoundingBox")
       .def(init< Vector, Vector, Vector, Matrix, Vector, Vector, Vector, Vector, Vector, Matrix >() )
@@ -81,7 +81,7 @@ void  AddCustomBoundingToPython(pybind11::module& m)
       .def(init< Parameters& >())
       .def("CreateBoundingBoxBoundaryMesh",&CompoundNosesBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
-    
+
 
 }
 

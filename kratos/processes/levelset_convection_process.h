@@ -306,7 +306,7 @@ protected:
     ///@{
 
     ModelPart& mrBaseModelPart;
-    ModelPart::UniquePointer mpDistanceModelPart;
+    Kratos::unique_ptr<ModelPart> mpDistanceModelPart;
 
     Variable<double>& mrLevelSetVar;
 
@@ -353,7 +353,7 @@ protected:
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
         // Generate
-        ModelPart::UniquePointer p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
+        Kratos::unique_ptr<ModelPart> p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
         mpDistanceModelPart.swap(p_aux_model_part);
 
         mpDistanceModelPart->Nodes().clear();

@@ -49,7 +49,7 @@ from shape_optimization_test_factory import algorithm_penalized_projection_test 
 # ==============================================================================
 # Test assembly
 # ==============================================================================
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -96,6 +96,6 @@ def AssambleTestSuites():
 # Main
 # ==============================================================================
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
 
 # ==============================================================================

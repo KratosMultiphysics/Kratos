@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_RAMM_ARC_LENGTH_STRATEGY)
 #define KRATOS_POROMECHANICS_RAMM_ARC_LENGTH_STRATEGY
@@ -126,7 +133,7 @@ public:
             // Initialize Norm of solution
             mNormxEquilibrium = 0.0;
             
-            std::cout << "Ramm's Arc Length Strategy Initialized" << std::endl;
+            KRATOS_INFO("Ramm's Arc Length Strategy") << "Strategy Initialized" << std::endl;
         }
 
         KRATOS_CATCH( "" )
@@ -158,7 +165,7 @@ public:
 	{
         // ********** Prediction phase **********
                 
-        std::cout << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
+        KRATOS_INFO("Ramm's Arc Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
         
         // Initialize variables
 		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
