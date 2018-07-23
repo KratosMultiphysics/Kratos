@@ -116,6 +116,12 @@ namespace Kratos
     rDeltaHardening = (2.0*MeanStress-PreconsolidationStress) ;
     rDeltaHardening *= (-MeanStress);
     rDeltaHardening *= PreconsolidationStress/ ( rOtherSlope - rSwellingSlope);
+
+    /*std::cout << " 1 " << (2.0*MeanStress - PreconsolidationStress) << std::endl;
+    std::cout << " 2 " << (-MeanStress ) << std::endl;
+    std::cout << " 3 " << PreconsolidationStress/ ( rOtherSlope - rSwellingSlope) << std::endl;
+    std::cout << " DeltaHardening " << rDeltaHardening << std::endl;*/
+
     return rDeltaHardening;	
 
     KRATOS_CATCH(" ")

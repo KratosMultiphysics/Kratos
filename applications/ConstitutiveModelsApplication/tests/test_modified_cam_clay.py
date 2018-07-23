@@ -86,7 +86,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.assertAlmostEqual(Pressure, pressureFailure)
         self.assertAlmostEqual(0.5*DeviatoricQ, UndrainedShearStrenght)
 
-    def _test_IsotropicLoading(self):
+    def test_IsotropicLoading(self):
         import math
 
         self._create_material_model_and_law()
@@ -150,8 +150,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         if (nIncr > 2):
             import matplotlib.pyplot as plt
-            plt.plot(pp, qq)
-            plt.show()
+            #plt.plot(pp, qq)
+            #plt.show()
 
     def _compute_determinant(self, A):
 

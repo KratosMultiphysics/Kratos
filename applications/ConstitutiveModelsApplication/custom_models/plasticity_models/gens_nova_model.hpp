@@ -156,7 +156,6 @@ namespace Kratos
                MatrixType Stress;
                this->UpdateInternalVariables(rValues, Variables, Stress);
 
-               std::cout << " in this function " << std::endl;
 
                mInitialized = true;
             }
@@ -200,6 +199,7 @@ namespace Kratos
           */
          virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
          {
+            KRATOS_TRY
 
             rValue=0;
 
@@ -207,15 +207,23 @@ namespace Kratos
             {
                rValue = this->mInternal.Variables[0];
             }
-
-
-            if (rThisVariable==DELTA_PLASTIC_STRAIN)
+            else if (rThisVariable==DELTA_PLASTIC_STRAIN)
             {
                rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
             }
-
-            rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
+            else if ( rThisVariable == PS)
+            {
+               rValue = this->mInternal.Variables[3];
+            }
+            else if ( rThisVariable == PT)
+            {
+               rValue = this->mInternal.Variables[4];
+            } else {
+               rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
+            }
             return rValue;
+
+            KRATOS_CATCH("")
          }
 
          ///@}
@@ -277,8 +285,40 @@ namespace Kratos
             //***************************************************************************************
             // Compute Elasto Plastic Matrix
             void ComputeElastoPlasticTangentMatrix( ModelDataType & rValues, PlasticDataType & rVariables, Matrix & rEPMatrix) override
-
             {
+
+               KRATOS_TRY
+
+               // evaluate constitutive matrix and plastic flow
+               Matrix ElasticMatrix(6,6);
+               noalias(ElasticMatrix) = ZeroMatrix(6,6);
+               this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
+
+               VectorType DeltaStressYieldCondition = this->mYieldSurface.CalculateDeltaStressYieldCondition( rVariables, DeltaStressYieldCondition);
+               VectorType PlasticPotentialDerivative;
+               PlasticPotentialDerivative = DeltaStressYieldCondition; // LMV
+
+
+               MatrixType PlasticPotDerTensor;
+               PlasticPotDerTensor = ConstitutiveModelUtilities::StrainVectorToTensor( PlasticPotentialDerivative, PlasticPotDerTensor);
+               double H = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, H, PlasticPotDerTensor);
+
+               VectorType AuxF = prod( trans(DeltaStressYieldCondition), rEPMatrix);
+               VectorType AuxG = prod( rEPMatrix, PlasticPotentialDerivative);
+
+               Matrix PlasticUpdateMatrix(6,6);
+               noalias(PlasticUpdateMatrix) = ZeroMatrix(6,6);
+               double denom = 0;
+               for (unsigned int i = 0; i < 6; i++) {
+                  denom += AuxF(i)*PlasticPotentialDerivative(i);
+                  for (unsigned int j = 0; j < 6; j++) {
+                     PlasticUpdateMatrix(i,j) = AuxF(i) * AuxG(j);
+                  }
+               }
+
+               rEPMatrix -= PlasticUpdateMatrix / ( H + denom);
+
+               KRATOS_CATCH("")
             }
             //***********************************************************************************
             //***********************************************************************************
@@ -350,22 +390,15 @@ namespace Kratos
 
                double DevPlasticIncr = 0.0;
                for (unsigned int i = 0; i < 3; i++)
-                  DevPlasticIncr += pow( DeltaGamma * ( DeltaStressYieldCondition(i) - rPlasticVolDef/3.0) , 2.0);
+                  DevPlasticIncr += pow( DeltaGamma * DeltaStressYieldCondition(i) - VolPlasticIncr/3.0, 2.0);
                for (unsigned int i = 3; i < 6; i++)
                   DevPlasticIncr += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i) /2.0 , 2.0);
                rPlasticDevDef += sqrt(DevPlasticIncr);
 
 
                double hs =  rhos * rPS * (VolPlasticIncr + 0.0);
-               double ht = -rhot * rPT * ( -fabs(VolPlasticIncr)  + 0.0);
+               double ht = rhot * rPT * ( -fabs(VolPlasticIncr)  + 0.0);
 
-               /*std::cout << " update plastic variables " << hs << " , " << ht << std::endl;
-               std::cout << " rhos " << rhos << " rPS " << rPS << " volIncrPlastic " << VolPlasticIncr << std::endl;
-               std::cout << " rhoT " << rhot << " rPT " << rPT << " volIncrPlastic " << VolPlasticIncr << std::endl;
-               std::cout << " deltaGamma " << DeltaGamma << std::endl;
-               std::cout << " dF/dsigma " << DeltaStressYieldCondition << std::endl;
-               std::cout << " H " << H << std::endl;
-               std::cout << std::endl;*/
                rPS -= hs;
                rPT -= ht;
 
@@ -404,8 +437,9 @@ namespace Kratos
 
                double Tolerance = 1e-7;
 
+                  MatrixType StressMatrix;
+                  this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);
                double YieldSurface = this->mYieldSurface.CalculateYieldCondition( rVariables, YieldSurface);
-               std::cout << " this is the drift " << YieldSurface << std::endl;
 
                if ( fabs(YieldSurface) < Tolerance)
                   return;
@@ -422,6 +456,7 @@ namespace Kratos
                double & rPS     = rVariables.Internal.Variables[3];
                double & rPT     = rVariables.Internal.Variables[4];
                double & rPCstar = rVariables.Internal.Variables[5];
+
                for (unsigned int i = 0; i < 150; i++) {
 
                   Matrix ElasticMatrix(6,6);
@@ -445,45 +480,37 @@ namespace Kratos
                   rValues.StrainMatrix = prod( UpdateMatrix, rValues.StrainMatrix);
                   rValues.StrainMatrix = prod( rValues.StrainMatrix, trans(UpdateMatrix));
 
-                  MatrixType StressMatrix;
                   this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);
 
+                  double VolPlasticIncr = 0.0;
                   for (unsigned int i = 0; i < 3; i++)
-                     rPlasticVolDef += DeltaGamma * DeltaStressYieldCondition(i);
+                     VolPlasticIncr += DeltaGamma * DeltaStressYieldCondition(i);
+                  rPlasticVolDef += VolPlasticIncr;
 
-               rPlasticMultiplier += DeltaGamma;
-               double VolPlasticIncr = 0.0;
-               for (unsigned int i = 0; i < 3; i++)
-                  VolPlasticIncr += DeltaGamma * DeltaStressYieldCondition(i);
-               rPlasticVolDef += VolPlasticIncr;
-
-               double DevPlasticIncr = 0.0;
-               for (unsigned int i = 0; i < 3; i++)
-                  DevPlasticIncr += pow( DeltaGamma * ( DeltaStressYieldCondition(i) - rPlasticVolDef/3.0) , 2.0);
-               for (unsigned int i = 3; i < 6; i++)
-                  DevPlasticIncr += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i) /2.0 , 2.0);
-               rPlasticDevDef += sqrt(DevPlasticIncr);
+                  double DevPlasticIncr = 0.0;
+                  for (unsigned int i = 0; i < 3; i++)
+                     DevPlasticIncr += pow( DeltaGamma * DeltaStressYieldCondition(i) - VolPlasticIncr/3.0, 2.0);
+                  for (unsigned int i = 3; i < 6; i++)
+                     DevPlasticIncr += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i) /2.0 , 2.0);
+                  rPlasticDevDef += sqrt(DevPlasticIncr);
 
 
-               double hs =  rhos * rPS * (VolPlasticIncr + 0.0);
-               double ht = -rhot * rPT * ( -fabs(VolPlasticIncr)  + 0.0);
-               rPS -= hs;
-               rPT -= ht;
+                  double hs =  rhos * rPS * (VolPlasticIncr + 0.0);
+                  double ht = rhot * rPT * ( -fabs(VolPlasticIncr)  + 0.0);
+                  rPS -= hs;
+                  rPT -= ht;
 
-               rPCstar = rPS + (1.0 + k)*rPT;
+                  rPCstar = rPS + (1.0 + k)*rPT;
 
-               std::cout << " correction number " << i << std::endl;
 
                   YieldSurface = this->mYieldSurface.CalculateYieldCondition( rVariables, YieldSurface);
-      
 
-                  std::cout << " yield " << YieldSurface << std::endl;
+
                   if ( fabs( YieldSurface) < Tolerance) {
                      return;
                   }
                }
 
-               KRATOS_ERROR << " not yet implemented " << std::endl;
 
                KRATOS_CATCH("")
             }

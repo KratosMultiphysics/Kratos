@@ -136,7 +136,7 @@ namespace Kratos
       rYieldCondition += (MeanStress * (MeanStress - PreconsolidationStress) );
 
 
-      //std::cout << " yield funciton: p " << MeanStress << " q: " << DeviatoricQ << "  pc " << PreconsolidationStress << " yield value " << rYieldCondition << std::endl;
+     //std::cout << " yield funciton: p " << MeanStress << " q: " << DeviatoricQ << "  pc " << PreconsolidationStress << " yield value " << rYieldCondition << std::endl;
       return rYieldCondition;
 
       KRATOS_CATCH(" ")

@@ -20,6 +20,13 @@ def AssignMaterial(Properties):
 *else
     mat = SmallStrainPlaneStrain2DLaw(model)
 *endif
+*elseif(strcmp(MatProp(Type),"GensNovaPlasticity")==0)
+    model = GensNovaModel()
+*if(strcmp(MatProp(CONSTITUTIVE_LAW_NAME),"FabricModelAxisym2DLaw")==0)
+    mat = LargeStrainAxisymmetric2DLaw(model)
+*else
+    mat = LargeStrainPlaneStrain2DLaw(model)
+*endif
 *else
     mat = *MatProp(CONSTITUTIVE_LAW_NAME)()
 *endif

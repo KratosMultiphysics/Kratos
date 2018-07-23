@@ -188,6 +188,64 @@ End Properties
 
 *endif
 *end materials
+*loop materials
+*if(strcmp(MatProp(Type),"GensNovaPlasticity")==0)
+*format "%i"
+Begin Properties *MatNum
+*format "%10.5e"
+ DENSITY *MatProp(DENSITY,real)
+*format "%10.5e"
+ YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+*format "%10.5e"
+ SWELLING_SLOPE *MatProp(SWELLING_SLOPE,real)
+*format "%10.5e"
+ INITIAL_SHEAR_MODULUS *MatProp(INITIAL_SHEAR_MODULUS,real)
+*format "%10.5e"
+ ALPHA_SHEAR *MatProp(ALPHA_SHEAR,real)
+*format "%10.5e"
+ PRE_CONSOLIDATION_STRESS *MatProp(PRE_CONSOLIDATION_STRESS,real)
+*format "%10.5e"
+ OVER_CONSOLIDATION_RATIO *MatProp(OVER_CONSOLIDATION_RATIO,real)
+*format "%10.5e"
+ NORMAL_COMPRESSION_SLOPE *MatProp(NORMAL_COMPRESSION_SLOPE,real)
+*format "%10.5e"
+ CRITICAL_STATE_LINE *MatProp(CRITICAL_STATE_LINE,real)
+*format "%10.5e"
+ INTERNAL_FRICTION_ANGLE *MatProp(INTERNAL_FRICTION_ANGLE,real)
+*format "%10.5e"
+ KSIM *MatProp(KSIM,real)
+*format "%10.5e"
+ PS *MatProp(PS,real)
+*format "%10.5e"
+ PT *MatProp(PT,real)
+*format "%10.5e"
+ RHOS *MatProp(RHOS,real)
+*format "%10.5e"
+ RHOT *MatProp(RHOT,real)
+*format "%10.5e"
+ DENSITY_WATER *MatProp(WATER_DENSITY,real)
+*format "%10.5e"
+ WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
+*format "%10.5e"
+ PERMEABILITY *MatProp(PERMEABILITY,real)
+*format "%10.5e"
+ STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
+*format "%10.5e"
+ STABILIZATION_FACTOR_WP *MatProp(STABILIZATION_FACTOR_WP,real)
+*format "%10.5e"
+ STABILIZATION_FACTOR_J *MatProp(STABILIZATION_FACTOR_J,real)
+*format "%10.5e"
+ CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
+*format "%10.5e"
+ CONTACT_FRICTION_ANGLE *MatProp(CONTACT_FRICTION_ANGLE,real)
+*format "%10.5e"
+ K0 *MatProp(K0,real)
+*format "%10.5e"
+ THICKNESS *MatProp(THICKNESS,real)
+End Properties
+
+*endif
+*end materials
 
 
 *# Mesh0 block

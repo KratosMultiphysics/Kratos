@@ -138,7 +138,7 @@ namespace Kratos
       rYieldCondition += (MeanStress * (MeanStress - rPCstar) );
 
 
-      //std::cout << " yield funciton: p " << MeanStress << " q: " << DeviatoricQ << "  pc " << rPCstar << " yield value " << rYieldCondition << std::endl;
+      //std::cout << " yield funciton: p " << MeanStress << " q: " << DeviatoricQ << "  pcSTAR " << rPCstar << " yield value " << rYieldCondition << std::endl;
       //std::cout << " stressMatrix " << rStressMatrix << " translated " << StressTranslated << " and " << rPT << std::endl;
       return rYieldCondition;
 

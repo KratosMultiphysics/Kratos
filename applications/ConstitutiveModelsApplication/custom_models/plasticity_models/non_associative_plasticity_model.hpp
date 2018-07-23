@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_models/plasticity_models/plasticity_model.hpp"
+#include "custom_utilities/stress_invariants_utilities.hpp"
 
 namespace Kratos
 {
@@ -116,6 +117,36 @@ namespace Kratos
             ///@name Operations
             ///@{
 
+            
+            /**
+             * Get Values
+             */
+            virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
+            {
+               KRATOS_TRY
+
+               // do somehting
+               if ( rThisVariable == STRESS_INV_P)
+               {
+                  double J2;
+                  StressInvariantsUtilities::CalculateStressInvariants(mStressMatrix , rValue, J2);
+               }
+               else if ( rThisVariable == STRESS_INV_J2)
+               {
+                  double p;
+                  StressInvariantsUtilities::CalculateStressInvariants(mStressMatrix , p, rValue);
+               }
+               else if ( rThisVariable == STRESS_INV_THETA)
+               {
+                  double p, J2;
+                  StressInvariantsUtilities::CalculateStressInvariants(mStressMatrix , p, J2, rValue);
+               }
+               return rValue;
+
+
+               KRATOS_CATCH("")
+            }
+
             /**
              * Calculate Stresses
              */
@@ -180,54 +211,56 @@ namespace Kratos
                   rConstitutiveMatrix.clear();
                   this->mElasticityModel.CalculateConstitutiveTensor(rValues, ConstitutiveMatrix);
                   rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix, rStressMatrix);
-                  return;
-               }
 
-               if ( Variables.TrialStateFunction  < Tolerance) {
+               }
+               else if ( Variables.TrialStateFunction  < Tolerance) {
+
                   // elastic loading step
                   rConstitutiveMatrix.clear();
                   this->mElasticityModel.CalculateConstitutiveTensor(rValues, ConstitutiveMatrix);
                   rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix, rStressMatrix);
-                  return;
-               }
 
-
-               // elasto-plastic step. Recover Initial be
-               const MatrixType & rDeltaDeformationMatrix = rValues.GetDeltaDeformationMatrix();
-               RecoverPreviousElasticLeftCauchyGreen( rDeltaDeformationMatrix, rValues.StrainMatrix );
-
-               double InitialYieldFunction;
-               this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
-               InitialYieldFunction = this->mYieldSurface.CalculateYieldCondition( Variables, InitialYieldFunction);
-
-               if ( (InitialYieldFunction < -Tolerance) && (Variables.TrialStateFunction > Tolerance) )
-               {
-                  // compute solution with change
-                  ComputeSolutionWithChange( rValues, Variables, rDeltaDeformationMatrix);
                } else {
-                  bool UnloadingCondition = false;
 
-                  UnloadingCondition = EvaluateUnloadingCondition( rValues, Variables, rDeltaDeformationMatrix);
-                  if (UnloadingCondition) {
+                  // elasto-plastic step. Recover Initial be
+                  const MatrixType & rDeltaDeformationMatrix = rValues.GetDeltaDeformationMatrix();
+                  RecoverPreviousElasticLeftCauchyGreen( rDeltaDeformationMatrix, rValues.StrainMatrix );
+
+                  double InitialYieldFunction;
+                  this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
+                  InitialYieldFunction = this->mYieldSurface.CalculateYieldCondition( Variables, InitialYieldFunction);
+
+                  if ( (InitialYieldFunction < -Tolerance) && (Variables.TrialStateFunction > Tolerance) )
+                  {
                      // compute solution with change
                      ComputeSolutionWithChange( rValues, Variables, rDeltaDeformationMatrix);
                   } else {
-                     // compute plastic problem
-                     // compute unloading condition
-                     ComputeSubsteppingElastoPlasticProblem( rValues, Variables, rDeltaDeformationMatrix);
+                     bool UnloadingCondition = false;
+
+                     UnloadingCondition = EvaluateUnloadingCondition( rValues, Variables, rDeltaDeformationMatrix);
+                     if (UnloadingCondition) {
+                        // compute solution with change
+                        ComputeSolutionWithChange( rValues, Variables, rDeltaDeformationMatrix);
+                     } else {
+                        // compute plastic problem
+                        // compute unloading condition
+                        ComputeSubsteppingElastoPlasticProblem( rValues, Variables, rDeltaDeformationMatrix);
+                     }
                   }
+
+                  this->ReturnStressToYieldSurface( rValues, Variables);
+
+                  noalias( rStressMatrix) = rValues.StressMatrix;
+
+                  this->mElasticityModel.CalculateConstitutiveTensor(rValues, ConstitutiveMatrix);
+                  this->ComputeElastoPlasticTangentMatrix( rValues, Variables, ConstitutiveMatrix);
+                  rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix, rStressMatrix );
                }
 
-               this->ReturnStressToYieldSurface( rValues, Variables);
-
-               noalias( rStressMatrix) = rValues.StressMatrix;
-
-               this->mElasticityModel.CalculateConstitutiveTensor(rValues, ConstitutiveMatrix);
-               this->ComputeElastoPlasticTangentMatrix( rValues, Variables, ConstitutiveMatrix);
-               rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix, rStressMatrix );
-
-               if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) )
+               if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) ) {
                   this->UpdateInternalVariables( rValues, Variables, rStressMatrix );
+                  mStressMatrix = rStressMatrix;
+               }
 
                KRATOS_CATCH(" ")
             }
@@ -285,6 +318,7 @@ namespace Kratos
             // internal variables:
             InternalVariablesType  mInternal;
             InternalVariablesType  mPreviousInternal;
+            MatrixType             mStressMatrix;
 
             ///@}
             ///@name Protected Operators

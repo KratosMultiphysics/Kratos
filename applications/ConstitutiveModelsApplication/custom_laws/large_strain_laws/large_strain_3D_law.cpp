@@ -165,10 +165,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rValue = mpModel->GetValue(rThisVariable,rValue);
-      
     if(rThisVariable == DETERMINANT_F){
       rValue = mTotalDeformationDet;
+    } else {
+       rValue = mpModel->GetValue(rThisVariable,rValue);
     }
 
     return rValue;

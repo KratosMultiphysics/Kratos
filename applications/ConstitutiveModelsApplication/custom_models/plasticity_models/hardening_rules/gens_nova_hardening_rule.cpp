@@ -124,19 +124,19 @@ namespace Kratos
     const double & k = rMaterialProperties[KSIM];
 
     // Perform the stress translation
-    MatrixType StressTranslated; 
-
     double MeanStressT = 0.0;
     for (unsigned int i = 0; i <3; i++)
-       MeanStressT += StressTranslated(i,i);
+       MeanStressT += rStressMatrix(i,i) + rPT;
+    MeanStressT /= 3.0;
 
     double TracePlasticPotDerivative = 0.0;
     for (unsigned int i = 0; i < 3; i++)
        TracePlasticPotDerivative += rPlasticPotentialDerivative(i,i);
+    
 
 
-    rDeltaHardening = -MeanStressT * rhos * rPS * (TracePlasticPotDerivative);
-    rDeltaHardening += (-MeanStressT) * ( 1.0 + k) * (-rhot) * rPS * ( -fabs(TracePlasticPotDerivative) );
+    rDeltaHardening = (-MeanStressT) * rhos * rPS * (TracePlasticPotDerivative);
+    rDeltaHardening += (-MeanStressT) * ( 1.0 + k) * (rhot) * rPT * ( -fabs(TracePlasticPotDerivative) );
 
 
     return rDeltaHardening;	
