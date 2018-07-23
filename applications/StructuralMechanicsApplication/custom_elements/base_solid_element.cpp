@@ -599,6 +599,78 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             rOutput[point_number] = StrainEnergy;  // 1/2 * sigma * epsilon
         }
+    } else if ( rVariable == ERROR_INTEGRATION_POINT ) {
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        // Reading integration points
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+
+        //Calculate Cauchy Stresses from the FE solution
+        std::vector<Vector> sigma_FE_solution(number_of_nodes);
+        Variable<Vector> variable_stress = CAUCHY_STRESS_VECTOR;
+        CalculateOnIntegrationPoints(variable_stress, sigma_FE_solution, rCurrentProcessInfo);
+
+        // calculate the determinatn of the Jacobian in the current configuration
+        Vector detJ(integration_points.size());
+        detJ = GetGeometry().DeterminantOfJacobian(detJ);
+
+        // If strain has to be computed inside of the constitutive law with PK2
+        Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
+
+        for (IndexType point_number = 0; point_number < integration_points.size(); point_number++) {
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            // Compute material reponse
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+            double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ[point_number]);
+
+            if (dimension == 2 && this->GetProperties().Has(THICKNESS))
+                integration_weight *= this->GetProperties()[THICKNESS];
+
+            // Calculate recovered stresses at integration points
+            Vector sigma_recovered(strain_size, 0.0);
+
+            // sigma_recovered = sum(N_i * sigma_recovered_i)
+            for (IndexType node_number=0; node_number<number_of_nodes; node_number++) {
+                const auto& sigma_recovered_node = GetGeometry()[node_number].GetValue(RECOVERED_STRESS);
+                for (IndexType stress_component = 0; stress_component<strain_size; stress_component++) {
+                    sigma_recovered[stress_component] += this_kinematic_variables.N[node_number] * sigma_recovered_node[stress_component];
+                }
+            }
+
+            // Calculate error_sigma
+            Vector error_sigma(strain_size);
+            error_sigma = sigma_recovered - sigma_FE_solution[point_number];
+
+            // For debug
+            KRATOS_TRACE("ERROR_INTEGRATION_POINT")
+            <<"sigma recovered: " << sigma_recovered << std::endl
+            <<"sigma FE: " << sigma_FE_solution[point_number] << std::endl;
+
+            // Calculate inverse of material matrix
+            Matrix invD(strain_size,strain_size);
+            double detD;
+            MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
+
+            // Calculate error_energy
+            rOutput[point_number]= integration_weight * inner_prod(error_sigma, prod(invD, error_sigma));
+        }
     } else if (rVariable == VON_MISES_STRESS) {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
