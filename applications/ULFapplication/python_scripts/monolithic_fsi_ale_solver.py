@@ -103,7 +103,7 @@ class FsiAleMonolithicSolver:
         # default settings
         self.echo_level = 0
         self.compute_reactions = False
-        self.ReformDofSetAtEachStep = True
+        self.ReformDofSetAtEachStep = False
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = True
         self.use_slip_conditions = False
@@ -172,6 +172,11 @@ class FsiAleMonolithicSolver:
         #self.Remesh()        
         #(self.append_model_part_process).AppendPart(self.model_part, solid_model_part);        
         (self.neigh_finder).Execute();       
+        #we need normals to prescribe the inlet velocity
+        self.normal_util = NormalCalculationUtils()
+        
+        self.normal_util.CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
+        #NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part.Conditions, self.domain_size)     
         #initializes Cachy stress to zero
         self.hypoelastic_solid_stress_tensor_calculate_process.Execute()
         print("Lalalal")
