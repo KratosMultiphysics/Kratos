@@ -54,7 +54,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    LinearMasterSlaveConstraint(IndexType Id = 0)
+    explicit LinearMasterSlaveConstraint(IndexType Id = 0)
         :
         MasterSlaveConstraint(Id)
     {
@@ -63,7 +63,7 @@ public:
     /*
     * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
     */
-    LinearMasterSlaveConstraint(IndexType Id,
+    explicit LinearMasterSlaveConstraint(IndexType Id,
                                 DofPointerVectorType& rMasterDofsVector,
                                 DofPointerVectorType& rSlaveDofsVector,
                                 const MatrixType& rRelationMatrix,
@@ -79,7 +79,7 @@ public:
     /*
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
-    LinearMasterSlaveConstraint(IndexType Id,
+    explicit LinearMasterSlaveConstraint(IndexType Id,
                                 NodeType& rMasterNode,
                                 const VariableType& rMasterVariable,
                                 NodeType& rSlaveNode,
@@ -106,7 +106,7 @@ public:
     /*
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
-    LinearMasterSlaveConstraint(IndexType Id,
+    explicit LinearMasterSlaveConstraint(IndexType Id,
                                 NodeType& rMasterNode,
                                 const VariableComponentType& rMasterVariable,
                                 NodeType& rSlaveNode,
@@ -137,7 +137,7 @@ public:
     }
 
     /// Copy Constructor
-    LinearMasterSlaveConstraint(const LinearMasterSlaveConstraint& rOther)
+    explicit LinearMasterSlaveConstraint(const LinearMasterSlaveConstraint& rOther)
     {
         this->SetId(rOther.Id());
         // this->Flags = rOther.Flags;
@@ -145,6 +145,19 @@ public:
         this->mMasterDofsVector = rOther.mMasterDofsVector;
         this->mRelationMatrix = rOther.mRelationMatrix;
         this->mConstantVector = rOther.mConstantVector;
+    }
+
+    /// Assignment operator
+    LinearMasterSlaveConstraint& operator=(const LinearMasterSlaveConstraint& rOther)
+    {
+        this->SetId(rOther.Id());
+        // this->Flags = rOther.Flags;
+        this->mSlaveDofsVector = rOther.mSlaveDofsVector;
+        this->mMasterDofsVector = rOther.mMasterDofsVector;
+        this->mRelationMatrix = rOther.mRelationMatrix;
+        this->mConstantVector = rOther.mConstantVector;
+
+        return *this;
     }
 
     MasterSlaveConstraint::Pointer Create(IndexType Id,

@@ -76,7 +76,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
 
     /// Empty Constructor
-    MasterSlaveConstraint(IndexType Id = 0) : IndexedObject(Id), Flags()
+    explicit MasterSlaveConstraint(IndexType Id = 0) : IndexedObject(Id), Flags()
     {
     }
 
