@@ -15,15 +15,15 @@ def CreateSolver(model, custom_settings):
     return FluidSolver(model, custom_settings)
 
 class FluidSolver(PythonSolver):
-    
+
     def __init__(self, model, custom_settings):
         settings = self._ValidateSettings(custom_settings)
-        
+
         super(FluidSolver,self).__init__(model, settings)
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
-        
+
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
         self.element_name = None
@@ -31,9 +31,8 @@ class FluidSolver(PythonSolver):
         self.min_buffer_size = 3
 
         # Either retrieve the model part from the model or create a new one
-
         model_part_name = self.settings["model_part_name"].GetString()
-        
+
         if model_part_name == "":
             raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
 
@@ -47,14 +46,11 @@ class FluidSolver(PythonSolver):
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-        
-        
+
     def AddVariables(self):
-        
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
-        
+
     def AddDofs(self):
-        
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
@@ -64,22 +60,18 @@ class FluidSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
 
     def ImportModelPart(self):
-        
         # we can use the default implementation in the base class
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
-        
-       
+
     def PrepareModelPart(self):
-        
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Replace default elements and conditions
-            
             self._ReplaceElementsAndConditions()
             ## Executes the check and prepare model process
             self._ExecuteCheckAndPrepare()
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
-            
+
         if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
             self.model.AddModelPart(self.main_model_part)
 
@@ -110,7 +102,6 @@ class FluidSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        
         if self._TimeBufferIsInitialized():
             self.solver.InitializeSolutionStep()
 
@@ -150,7 +141,7 @@ class FluidSolver(PythonSolver):
         self.Predict()
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
-        
+
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
             raise Exception("The ComputingModelPart was not created yet!")
