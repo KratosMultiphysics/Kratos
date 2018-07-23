@@ -63,7 +63,7 @@ public:
     /*
     * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
     */
-    explicit LinearMasterSlaveConstraint(IndexType Id,
+    LinearMasterSlaveConstraint(IndexType Id,
                                 DofPointerVectorType& rMasterDofsVector,
                                 DofPointerVectorType& rSlaveDofsVector,
                                 const MatrixType& rRelationMatrix,
@@ -76,7 +76,7 @@ public:
     /*
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
-    explicit LinearMasterSlaveConstraint(IndexType Id,
+    LinearMasterSlaveConstraint(IndexType Id,
                                 NodeType& rMasterNode,
                                 const VariableType& rMasterVariable,
                                 NodeType& rSlaveNode,
@@ -103,7 +103,7 @@ public:
     /*
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
-    explicit LinearMasterSlaveConstraint(IndexType Id,
+    LinearMasterSlaveConstraint(IndexType Id,
                                 NodeType& rMasterNode,
                                 const VariableComponentType& rMasterVariable,
                                 NodeType& rSlaveNode,
@@ -134,7 +134,7 @@ public:
     }
 
     /// Copy Constructor
-    explicit LinearMasterSlaveConstraint(const LinearMasterSlaveConstraint& rOther)
+    LinearMasterSlaveConstraint(const LinearMasterSlaveConstraint& rOther)
     {
         this->SetId(rOther.Id());
         // this->Flags = rOther.Flags;
