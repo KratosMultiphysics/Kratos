@@ -799,10 +799,10 @@ public:
     }
 
 
-	bool HasMasterSlaveConstraint(IndexType MasterSlaveConstraintId) const
-	{
-		return (mpMasterSlaveConstraints->find(MasterSlaveConstraintId) != mpMasterSlaveConstraints->end());
-	}
+    bool HasMasterSlaveConstraint(IndexType MasterSlaveConstraintId) const
+    {
+            return (mpMasterSlaveConstraints->find(MasterSlaveConstraintId) != mpMasterSlaveConstraints->end());
+    }
 
 
     ///@}
@@ -834,10 +834,11 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << "    Number of Nodes      : " << mpNodes->size() << std::endl;
-        rOStream << "    Number of Properties : " << mpProperties->size() << std::endl;
-        rOStream << "    Number of Elements   : " << mpElements->size() << std::endl;
-        rOStream << "    Number of Conditions : " << mpConditions->size() << std::endl;
+        rOStream << "    Number of Nodes       : " << mpNodes->size() << std::endl;
+        rOStream << "    Number of Properties  : " << mpProperties->size() << std::endl;
+        rOStream << "    Number of Elements    : " << mpElements->size() << std::endl;
+        rOStream << "    Number of Conditions  : " << mpConditions->size() << std::endl;
+        rOStream << "    Number of Constraints : " << mpMasterSlaveConstraints->size() << std::endl;
     }
 
     /// Print information about this object.
@@ -849,10 +850,11 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString ) const
     {
-        rOStream << PrefixString << "    Number of Nodes      : " << mpNodes->size() << std::endl;
-        rOStream << PrefixString << "    Number of Properties : " << mpProperties->size() << std::endl;
-        rOStream << PrefixString << "    Number of Elements   : " << mpElements->size() << std::endl;
-        rOStream << PrefixString << "    Number of Conditions : " << mpConditions->size() << std::endl;
+        rOStream << PrefixString << "    Number of Nodes       : " << mpNodes->size() << std::endl;
+        rOStream << PrefixString << "    Number of Properties  : " << mpProperties->size() << std::endl;
+        rOStream << PrefixString << "    Number of Elements    : " << mpElements->size() << std::endl;
+        rOStream << PrefixString << "    Number of Conditions  : " << mpConditions->size() << std::endl;
+        rOStream << PrefixString << "    Number of Constraints : " << mpMasterSlaveConstraints->size() << std::endl;
     }
 
 
