@@ -32,8 +32,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
             "model_part_name"      : "please_specify_model_part_name",
             "new_model_part_name"  : "Rigid_Movement_ModelPart",
             "interval"             : [0.0, 1e30],
-            "penalty_parameter"    : 1.0e8,
-            "penalty_parameter"    : "DISPLACEMENT",
+            "variable_name"        : "DISPLACEMENT",
             "reference_node_id"    : 0
         }
         """)
@@ -51,8 +50,8 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
-        # The penalty parameter
-        self.penalty_parameter = settings["penalty_parameter"].GetDouble()
+        # The variable to be enforced
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
 
         # The reference node id
         self.reference_node_id = settings["reference_node_id"].GetInt()
@@ -64,13 +63,32 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         else:
             self.rigid_model_part = self.model_part.CreateSubModelPart(settings["new_model_part_name"].GetString())
 
+        # Trasfering the
+        transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.rigid_model_part, self.model_part, KratosMultiphysics.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES)
+        transfer_process.Execute()
+
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        self.ExecuteInitializeSolutionStep()
+        # TODO: Move a cpp
+        # If reference id is 0 we get the first node of the model part
+        count = self.model_part.GetRootModelPart().NumberOfMasterSlaveConstraints()
+        if (self.reference_node_id == 0):
+            for node_reference in self.rigid_model_part.Nodes:
+                break
+            for node in self.rigid_model_part.Nodes:
+                if (node.Id is not node_reference.Id):
+                    count += 1
+                    self.rigid_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", count, node_reference, self.variable, node, self.variable, 1.0, 0.0)
+        else:
+            node_reference = self.model_part.GetRootModelPart().GetNode(self.reference_node_id)
+            for node in self.rigid_model_part.Nodes:
+                if (node.Id is not node_reference.Id):
+                    count += 1
+                    self.rigid_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", count, node_reference, self.variable, node, self.variable, 1.0, 0.0)
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
