@@ -23,7 +23,6 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace pybind11;
 
 template <class TContainerType, class TVariableType>
 bool HasHelperFunctionConstraint(TContainerType &el, const TVariableType &rVar)
@@ -45,9 +44,9 @@ typename TVariableType::Type GetValueHelperFunctionConstraint(TContainerType &el
 
 void AddConstraintToPython(pybind11::module &m)
 {
-    class_<MasterSlaveConstraint, MasterSlaveConstraint::Pointer, MasterSlaveConstraint::BaseType>(m, "MasterSlaveConstraint")
-        .def(init<>())
-        .def(init<int>())
+    pybind11::class_<MasterSlaveConstraint, MasterSlaveConstraint::Pointer, MasterSlaveConstraint::BaseType>(m, "MasterSlaveConstraint")
+        .def(pybind11::init<>())
+        .def(pybind11::init<int>())
         .def("__setitem__", SetValueHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
         .def("__getitem__", GetValueHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
         .def("Has", HasHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
