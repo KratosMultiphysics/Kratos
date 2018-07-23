@@ -54,14 +54,11 @@ class AnalysisStage(object):
         """
         while self.time < self.end_time:
             self.time = self._GetSolver().AdvanceInTime(self.time)
-            
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
-            
             self.OutputSolutionStep()
-            
 
 
     def Initialize(self):
@@ -73,12 +70,10 @@ class AnalysisStage(object):
         self._GetSolver().PrepareModelPart()
         self._GetSolver().AddDofs()
 
-        
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
 
         ##here we initialize user-provided processes
-        
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 
@@ -118,7 +113,6 @@ class AnalysisStage(object):
         (for each step) BEFORE solving the solution step.
         """
         self.ApplyBoundaryConditions() #here the processes are called
-        
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
@@ -165,7 +159,6 @@ class AnalysisStage(object):
 
     def ModifyInitialProperties(self):
         """this is the place to eventually modify material properties in the stage """
-        
         pass
 
     def ModifyInitialGeometry(self):
@@ -201,10 +194,8 @@ class AnalysisStage(object):
         if not hasattr(self, '_list_of_processes'):
             order_processes_initialization = self._GetOrderOfProcessesInitialization()
             self._list_of_processes = self._CreateProcesses("processes", order_processes_initialization)
-            print("########################", order_processes_initialization)
             list_output_processes = self._GetListOfOutputProcesses()
             self._list_of_processes.extend(list_output_processes) # Adding the output processes to the regular processes
-        
         return self._list_of_processes
 
     def _GetListOfOutputProcesses(self):
