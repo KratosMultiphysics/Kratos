@@ -1,12 +1,18 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
 //
 
-#if !defined(KRATOS_CONDITION_UTILITIES )
-#define  KRATOS_CONDITION_UTILITIES
+
+#if !defined(KRATOS_PORO_CONDITION_UTILITIES )
+#define  KRATOS_PORO_CONDITION_UTILITIES
 
 // Project includes
 #include "includes/element.h"
@@ -14,7 +20,7 @@
 namespace Kratos
 {
 
-class ConditionUtilities
+class PoroConditionUtilities
 {
     
 public:
@@ -100,79 +106,51 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void GetDisplacementsVector(array_1d<double,4>& rDisplacementVector, const Element::GeometryType& Geom)
+    static inline void GetNodalVariableVector(array_1d<double,4>& rNodalVariableVector, const Element::GeometryType& Geom, 
+                                            const Variable<array_1d<double,3>>& Variable)
     {
         //Line_2d_2
-        array_1d<double,3> DisplacementAux;
+        array_1d<double,3> NodalVariableAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<2; i++)
         {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
+            noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable);
+            rNodalVariableVector[index++] = NodalVariableAux[0];
+            rNodalVariableVector[index++] = NodalVariableAux[1];
         }
     }
 
     //----------------------------------------------------------------------------------------
 
-    static inline void GetDisplacementsVector(array_1d<double,12>& rDisplacementVector, const Element::GeometryType& Geom)
-    {
-        //Quadrilateral_3d_4
-        array_1d<double,3> DisplacementAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-            rDisplacementVector[index++] = DisplacementAux[2];
-        }
-    }
-    
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetFaceLoadVector(array_1d<double,4>& rFaceLoadVector, const Element::GeometryType& Geom)
-    {
-        //Line_2d_2
-        array_1d<double,3> FaceLoadAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<2; i++)
-        {
-            noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(FACE_LOAD);
-            rFaceLoadVector[index++] = FaceLoadAux[0];
-            rFaceLoadVector[index++] = FaceLoadAux[1];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetFaceLoadVector(array_1d<double,9>& rFaceLoadVector, const Element::GeometryType& Geom)
+    static inline void GetNodalVariableVector(array_1d<double,9>& rNodalVariableVector, const Element::GeometryType& Geom,
+                                            const Variable<array_1d<double,3>>& Variable)
     {
         //Triangle_3d_3
-        array_1d<double,3> FaceLoadAux;
+        array_1d<double,3> NodalVariableAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<3; i++)
         {
-            noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(FACE_LOAD);
-            rFaceLoadVector[index++] = FaceLoadAux[0];
-            rFaceLoadVector[index++] = FaceLoadAux[1];
-            rFaceLoadVector[index++] = FaceLoadAux[2];
+            noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable);
+            rNodalVariableVector[index++] = NodalVariableAux[0];
+            rNodalVariableVector[index++] = NodalVariableAux[1];
+            rNodalVariableVector[index++] = NodalVariableAux[2];
         }
     }
 
     //----------------------------------------------------------------------------------------
 
-    static inline void GetFaceLoadVector(array_1d<double,12>& rFaceLoadVector, const Element::GeometryType& Geom)
+    static inline void GetNodalVariableVector(array_1d<double,12>& rNodalVariableVector, const Element::GeometryType& Geom,
+                                            const Variable<array_1d<double,3>>& Variable)
     {
         //Quadrilateral_3d_4
-        array_1d<double,3> FaceLoadAux;
+        array_1d<double,3> NodalVariableAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<4; i++)
         {
-            noalias(FaceLoadAux) = Geom[i].FastGetSolutionStepValue(FACE_LOAD);
-            rFaceLoadVector[index++] = FaceLoadAux[0];
-            rFaceLoadVector[index++] = FaceLoadAux[1];
-            rFaceLoadVector[index++] = FaceLoadAux[2];
+            noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable);
+            rNodalVariableVector[index++] = NodalVariableAux[0];
+            rNodalVariableVector[index++] = NodalVariableAux[1];
+            rNodalVariableVector[index++] = NodalVariableAux[2];
         }
     }
 
@@ -380,7 +358,7 @@ public:
         }
     }     
     
-}; /* Class ConditionUtilities*/
+}; /* Class PoroConditionUtilities*/
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_CONDITION_UTILITIES defined */
+#endif /* KRATOS_PORO_CONDITION_UTILITIES defined */

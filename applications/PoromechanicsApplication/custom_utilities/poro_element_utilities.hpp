@@ -1,18 +1,24 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
 //
 
-#if !defined(KRATOS_ELEMENT_UTILITIES )
-#define  KRATOS_ELEMENT_UTILITIES
+
+#if !defined(KRATOS_PORO_ELEMENT_UTILITIES )
+#define  KRATOS_PORO_ELEMENT_UTILITIES
 
 // System includes
 //#include <cmath>
 
 // Project includes
-//#include "utilities/math_utils.h"
+#include "utilities/math_utils.h"
 #include "includes/element.h"
 
 // Application includes
@@ -21,7 +27,7 @@
 namespace Kratos
 {
 
-class ElementUtilities
+class PoroElementUtilities
 {
     
 public:
@@ -241,235 +247,84 @@ public:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void GetDisplacementsVector(array_1d<double,6>& rDisplacementVector, const Element::GeometryType& Geom)
+    static inline void GetNodalVariableVector(array_1d<double,6>& rNodalVariableVector, const Element::GeometryType& Geom,
+                                            const Variable<array_1d<double,3>>& Variable)
     {
         //Triangle_2d_3
-        array_1d<double,3> DisplacementAux;
+        array_1d<double,3> NodalVariableAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<3; i++)
         {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
+            noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable);
+            rNodalVariableVector[index++] = NodalVariableAux[0];
+            rNodalVariableVector[index++] = NodalVariableAux[1];
         }
     }
 
     //----------------------------------------------------------------------------------------
     
-    static inline void GetDisplacementsVector(array_1d<double,8>& rDisplacementVector, const Element::GeometryType& Geom)
+    static inline void GetNodalVariableVector(array_1d<double,8>& rNodalVariableVector, const Element::GeometryType& Geom,
+                                            const Variable<array_1d<double,3>>& Variable)
     {
         //Quadrilateral_2d_4
-        array_1d<double,3> DisplacementAux;
+        array_1d<double,3> NodalVariableAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<4; i++)
         {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
+            noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable);
+            rNodalVariableVector[index++] = NodalVariableAux[0];
+            rNodalVariableVector[index++] = NodalVariableAux[1];
         }
     }
 
     //----------------------------------------------------------------------------------------
 
-    static inline void GetDisplacementsVector(array_1d<double,12>& rDisplacementVector, const Element::GeometryType& Geom)
+    static inline void GetNodalVariableVector(array_1d<double,12>& rNodalVariableVector, const Element::GeometryType& Geom,
+                                            const Variable<array_1d<double,3>>& Variable)
     {
         //Tetrahedra_3d_4
-        array_1d<double,3> DisplacementAux;
+        array_1d<double,3> NodalVariableAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<4; i++)
         {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-            rDisplacementVector[index++] = DisplacementAux[2];
+            noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable);
+            rNodalVariableVector[index++] = NodalVariableAux[0];
+            rNodalVariableVector[index++] = NodalVariableAux[1];
+            rNodalVariableVector[index++] = NodalVariableAux[2];
         }
     }
 
     //----------------------------------------------------------------------------------------
     
-    static inline void GetDisplacementsVector(array_1d<double,18>& rDisplacementVector, const Element::GeometryType& Geom)
+    static inline void GetNodalVariableVector(array_1d<double,18>& rNodalVariableVector, const Element::GeometryType& Geom,
+                                            const Variable<array_1d<double,3>>& Variable)
     {
         //Prism_3d_6
-        array_1d<double,3> DisplacementAux;
+        array_1d<double,3> NodalVariableAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<6; i++)
         {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-            rDisplacementVector[index++] = DisplacementAux[2];
+            noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable);
+            rNodalVariableVector[index++] = NodalVariableAux[0];
+            rNodalVariableVector[index++] = NodalVariableAux[1];
+            rNodalVariableVector[index++] = NodalVariableAux[2];
         }
     }
 
     //----------------------------------------------------------------------------------------
 
-    static inline void GetDisplacementsVector(array_1d<double,24>& rDisplacementVector, const Element::GeometryType& Geom)
+    static inline void GetNodalVariableVector(array_1d<double,24>& rNodalVariableVector, const Element::GeometryType& Geom,
+                                            const Variable<array_1d<double,3>>& Variable)
     {
         //Hexahedron_3d_8
-        array_1d<double,3> DisplacementAux;
+        array_1d<double,3> NodalVariableAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<8; i++)
         {
-            noalias(DisplacementAux) = Geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            rDisplacementVector[index++] = DisplacementAux[0];
-            rDisplacementVector[index++] = DisplacementAux[1];
-            rDisplacementVector[index++] = DisplacementAux[2];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-    
-    static inline void GetVelocitiesVector(array_1d<double,6>& rVelocityVector, const Element::GeometryType& Geom)
-    {
-        //Triangle_2d_3
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<3; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-        }
-    }
-    
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVelocitiesVector(array_1d<double,8>& rVelocityVector, const Element::GeometryType& Geom)
-    {
-        //Quadrilateral_2d_4
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVelocitiesVector(array_1d<double,12>& rVelocityVector, const Element::GeometryType& Geom)
-    {
-        //Tetrahedra_3d_4
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-            rVelocityVector[index++] = VelocityAux[2];
-        }
-    }
-    
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVelocitiesVector(array_1d<double,18>& rVelocityVector, const Element::GeometryType& Geom)
-    {
-        //Prism_3d_6
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<6; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-            rVelocityVector[index++] = VelocityAux[2];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVelocitiesVector(array_1d<double,24>& rVelocityVector, const Element::GeometryType& Geom)
-    {
-        //Hexahedra_3d_8
-        array_1d<double,3> VelocityAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<8; i++)
-        {
-            noalias(VelocityAux) = Geom[i].FastGetSolutionStepValue(VELOCITY);
-            rVelocityVector[index++] = VelocityAux[0];
-            rVelocityVector[index++] = VelocityAux[1];
-            rVelocityVector[index++] = VelocityAux[2];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVolumeAccelerationVector(array_1d<double,6>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
-    {
-        //Triangle_2d_3
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<3; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-        }
-    }
-    
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVolumeAccelerationVector(array_1d<double,8>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
-    {
-        //Quadrilateral_2d_4
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVolumeAccelerationVector(array_1d<double,12>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
-    {
-        //Tetrahedra_3d_4
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<4; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[2];
-        }
-    }
-    
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVolumeAccelerationVector(array_1d<double,18>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
-    {
-        //Prism_3d_6
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<6; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[2];
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-
-    static inline void GetVolumeAccelerationVector(array_1d<double,24>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
-    {
-        //Hexahedra_3d_8
-        array_1d<double,3> BodyAccelerationAux;
-        unsigned int index = 0;
-        for(unsigned int i=0; i<8; i++)
-        {
-            noalias(BodyAccelerationAux) = Geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[0];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
-            rVolumeAccelerationVector[index++] = BodyAccelerationAux[2];
+            noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable);
+            rNodalVariableVector[index++] = NodalVariableAux[0];
+            rNodalVariableVector[index++] = NodalVariableAux[1];
+            rNodalVariableVector[index++] = NodalVariableAux[2];
         }
     }
 
@@ -1090,7 +945,7 @@ public:
         rExtrapolationMatrix(7,4) = -0.6830127018922192; rExtrapolationMatrix(7,5) = 0.18301270189221927; rExtrapolationMatrix(7,6) = -0.6830127018922192; rExtrapolationMatrix(7,7) = 2.549038105676658;
     }
 
-}; /* Class ElementUtilities*/
+}; /* Class PoroElementUtilities*/
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_ELEMENT_UTILITIES defined */
+#endif /* KRATOS_PORO_ELEMENT_UTILITIES defined */
