@@ -31,7 +31,8 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
 
-        self.objectives, self.equality_constraints, self.inequality_constraints = communicator.GetInfoAboutResponses()
+        self.specified_objectives = optimizationSettings["objectives"]
+        self.specified_constraints = optimizationSettings["constraints"]
 
         self.completeResponseLogFileName = self.__CreateCompleteResponseLogFilename( optimizationSettings )
 
@@ -48,8 +49,8 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
-        self.only_obj = self.objectives[0]
-        self.only_con = self.equality_constraints[0] if len(self.equality_constraints)>0 else self.inequality_constraints[0]
+        self.only_obj = self.specified_objectives[0]
+        self.only_con = self.specified_constraints[0]
 
         with open(self.completeResponseLogFileName, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -58,8 +59,8 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             row.append("{:>20s}".format("f"))
             row.append("{:>12s}".format("df_abs[%]"))
             row.append("{:>12s}".format("df_rel[%]"))
-            row.append("{:>20s}".format("c["+self.only_con["settings"]["identifier"].GetString()+"]: "+self.only_con["settings"]["type"].GetString()))
-            row.append("{:>20s}".format("c["+self.only_con["settings"]["identifier"].GetString()+"]_ref"))
+            row.append("{:>20s}".format("c["+self.only_con["identifier"].GetString()+"]: "+self.only_con["type"].GetString()))
+            row.append("{:>20s}".format("c["+self.only_con["identifier"].GetString()+"]_ref"))
             row.append("{:>13s}".format("c_scaling[-]"))
             row.append("{:>13s}".format("step_size[-]"))
             row.append("{:>25s}".format("time_stamp"))
@@ -109,15 +110,15 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __AddResponseValuesToHistory( self ):
-        objectiveValue = self.communicator.getValue( self.only_obj["settings"]["identifier"].GetString() )
-        constraintValue = self.communicator.getValue( self.only_con["settings"]["identifier"].GetString() )
+        objectiveValue = self.communicator.getValue( self.only_obj["identifier"].GetString() )
+        constraintValue = self.communicator.getValue( self.only_con["identifier"].GetString() )
 
         self.objectiveHistory[self.currentIteration] = objectiveValue
         self.constraintHistory[self.currentIteration] = constraintValue
 
     # --------------------------------------------------------------------------
     def __DetermineReferenceValuesForOutput( self ):
-        self.constraintOutputReference = self.communicator.getReferenceValue( self.only_con["settings"]["identifier"].GetString() )
+        self.constraintOutputReference = self.communicator.getReferenceValue( self.only_con["identifier"].GetString() )
         self.objectiveOutputReference = self.objectiveHistory[self.initialIteration]
 
         if abs(self.objectiveOutputReference)<1e-12:

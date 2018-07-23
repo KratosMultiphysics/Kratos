@@ -31,7 +31,8 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
 
-        self.objectives, self.equality_constraints, self.inequality_constraints = communicator.GetInfoAboutResponses()
+        self.specified_objectives = optimizationSettings["objectives"]
+        self.specified_constraints = optimizationSettings["constraints"]
 
         self.completeResponseLogFileName = self.__CreateCompleteResponseLogFilename( optimizationSettings )
 
@@ -52,7 +53,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
-        self.only_obj = self.objectives[0]
+        self.only_obj = self.specified_objectives[0]
 
         with open(self.completeResponseLogFileName, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -103,7 +104,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __AddObjectiveValueToHistory( self ):
-        objectiveValue = self.communicator.getValue ( self.only_obj["settings"]["identifier"].GetString() )
+        objectiveValue = self.communicator.getValue ( self.only_obj["identifier"].GetString() )
         self.objectiveHistory[self.currentIteration] = objectiveValue
 
     # --------------------------------------------------------------------------
