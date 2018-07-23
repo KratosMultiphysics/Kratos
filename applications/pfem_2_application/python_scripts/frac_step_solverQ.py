@@ -16,36 +16,20 @@ from KratosMultiphysics.ExternalSolversApplication import *
 def AddVariables(model_part,p_model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
-
     model_part.AddNodalSolutionStepVariable(PRESSURE);
-
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
-
     model_part.AddNodalSolutionStepVariable(NODAL_MASS);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
-
-
-
-
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
-
-
-
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(FORCE)
     model_part.AddNodalSolutionStepVariable(FORCE_CM)
-
     model_part.AddNodalSolutionStepVariable(MOMENTUM_CM)
-
-   
-    
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY)
     #model_part.AddNodalSolutionStepVariable(TO_ERASE)
     model_part.AddNodalSolutionStepVariable(MATERIAL_VARIABLE);
@@ -56,18 +40,11 @@ def AddVariables(model_part,p_model_part):
     model_part.AddNodalSolutionStepVariable(IS_WATER)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
-    
-
-    
     model_part.AddNodalSolutionStepVariable(IS_VISITED)
     model_part.AddNodalSolutionStepVariable(NODAL_H)
-
     model_part.AddNodalSolutionStepVariable(IS_POROUS)
     model_part.AddNodalSolutionStepVariable(IS_EROSIONABLE)
-    
-
     model_part.AddNodalSolutionStepVariable(PRESSUREAUX)
-
     model_part.AddNodalSolutionStepVariable(BULK_MODULUS)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -79,40 +56,22 @@ def AddVariables(model_part,p_model_part):
 
     p_model_part.AddNodalSolutionStepVariable(VELOCITY);
     #p_model_part.AddNodalSolutionStepVariable(FRACT_VEL);
-
     p_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
-
-
     p_model_part.AddNodalSolutionStepVariable(PRESSURE);
     p_model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT);
-
     p_model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
-
     p_model_part.AddNodalSolutionStepVariable(NODAL_MASS);
     p_model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-
     p_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-
     p_model_part.AddNodalSolutionStepVariable(DENSITY);
     p_model_part.AddNodalSolutionStepVariable(VISCOSITY);
-
-
-
-
     p_model_part.AddNodalSolutionStepVariable(ACCELERATION);
     p_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
-
-
-
     p_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     p_model_part.AddNodalSolutionStepVariable(DISTANCE);
     p_model_part.AddNodalSolutionStepVariable(FORCE)
     p_model_part.AddNodalSolutionStepVariable(FORCE_CM)
-
     p_model_part.AddNodalSolutionStepVariable(MOMENTUM_CM)
-
-   
-    
     p_model_part.AddNodalSolutionStepVariable(IS_BOUNDARY)
     #p_model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
     p_model_part.AddNodalSolutionStepVariable(MATERIAL_VARIABLE);
@@ -123,18 +82,11 @@ def AddVariables(model_part,p_model_part):
     p_model_part.AddNodalSolutionStepVariable(IS_WATER)
     p_model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     p_model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
-    
-
-    
     p_model_part.AddNodalSolutionStepVariable(IS_VISITED)
     p_model_part.AddNodalSolutionStepVariable(NODAL_H)
-
     p_model_part.AddNodalSolutionStepVariable(IS_POROUS)
     p_model_part.AddNodalSolutionStepVariable(IS_EROSIONABLE)
-    
-
     p_model_part.AddNodalSolutionStepVariable(PRESSUREAUX)
-
     p_model_part.AddNodalSolutionStepVariable(BULK_MODULUS)
     p_model_part.AddNodalSolutionStepVariable(NORMAL)
     p_model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -160,7 +112,9 @@ def ReadRestartFile(FileName,nodes):
 
 class FracStepSolver:
     
-    def __init__(self,model_part,p_model_part,domain_size):
+
+ 
+    def __init__(self, model_part, p_model_part, domain_size, box_corner1, box_corner2):
 
         
         #neighbour search
@@ -171,6 +125,10 @@ class FracStepSolver:
         self.model_part = model_part
         self.p_model_part = p_model_part
         self.domain_size = domain_size
+
+        self.box_corner1=box_corner1
+        self.box_corner2=box_corner2
+
 
         #assignation of parameters to be used
         self.vel_toll = 0.0001;
@@ -188,7 +146,6 @@ class FracStepSolver:
 
         #definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
-        #self.velocity_linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
         
         self.velocity_linear_solver =  SuperLUSolver()
 
@@ -258,7 +215,7 @@ class FracStepSolver:
         self.solver = FracStepStrategy( self.model_part, self.velocity_linear_solver,self.pressure_linear_solver, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
 
 
-        (self.solver).SetEchoLevel(self.echo_level)
+        #(self.solver).SetEchoLevel(self.echo_level)
 
         (self.fluid_neigh_finder).Execute();
         (self.Pfem2_apply_bc_process).Execute();  
@@ -267,7 +224,7 @@ class FracStepSolver:
             node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
 
 		#self.Remesh2();
-        self.RemeshAux(); #solo multifluido
+        #self.RemeshAux(); #solo multifluido
 
         
     def Solve(self):
@@ -335,50 +292,26 @@ class FracStepSolver:
 
         for node in (self.model_part).Nodes:
             node.Set(TO_ERASE, False)
-        #dambreak
-        for node in (self.model_part).Nodes: 
-            node.SetSolutionStepValue(NODAL_H,0,0.0011) 
+
 
         self.node_erase_process = NodeEraseProcess(self.model_part);
-        box_corner1 = Vector(3); 
-        box_corner2 = Vector(3); 
-
-        
-
-        box_corner1[0]=-0.014653
-        box_corner1[1]=-0.16#0.31315#-0.1689
-        box_corner1[1]=-0.15#0.31315#-0.1689
-        box_corner1[2]=-10.0
-        box_corner2[0]=0.015702
-        box_corner2[1]=0.01189
-        box_corner2[2]=10.0
-
-
-
-
-        box_corner1[0]=-10.0
-        box_corner1[1]=-10.0#0.31315#-0.1689
-        box_corner1[2]=-10.0
-        box_corner2[0]=10.0
-        box_corner2[1]=10.0
-        box_corner2[2]=10.0
 
         for node in (self.model_part).Nodes: 
-            node.SetSolutionStepValue(NODAL_H,0,0.15) 
-
-
-        self.box_corner1 = box_corner1
-        self.box_corner2 = box_corner2
+            node.SetSolutionStepValue(NODAL_H,0,0.0006) 
 
         self.Pfem2Utils.MarkLonelyNodesForErasing(self.model_part)
 
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
 
+
         self.node_erase_process.Execute()
+
+        ((self.model_part).Elements).clear();
+        ((self.model_part).Conditions).clear();
 
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("QFluid2D","Condition2D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("QFluid2D","Condition2D", self.model_part, self.node_erase_process, False, False, alpha_shape, h_factor)
         elif (self.domain_size == 3):
             
             (self.Mesher).ReGenerateMesh("QFluid3D","Condition3D", self.model_part, self.node_erase_process, True, False, alpha_shape, h_factor)            
