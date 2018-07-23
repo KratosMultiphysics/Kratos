@@ -13,8 +13,6 @@
 #define KRATOS_GENERIC_PLASTIC_POTENTIAL_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // Project includes
 #include "includes/define.h"

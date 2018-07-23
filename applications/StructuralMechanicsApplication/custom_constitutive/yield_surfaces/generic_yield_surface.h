@@ -13,8 +13,6 @@
 #define KRATOS_GENERIC_YIELD_SURFACE_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // Project includes
 #include "includes/define.h"
