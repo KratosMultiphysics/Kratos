@@ -1,0 +1,146 @@
+{
+    "problem_data": {
+        "problem_name":         "element_tests/arc_length_test/arc_length_test",
+        "start_time":           0.0,
+        "end_time":             2.0,
+        "echo_level":           0,
+        "parallel_type":        "OpenMP",
+        "number_of_threads":    1
+    },
+    "solver_settings": {
+        "solver_type":                        "poromechanics_U_Pw_solver",
+        "model_part_name":                    "PorousDomain",
+        "domain_size":                        2,
+        "start_time":                         0.0,
+        "time_step":                          1.0,
+        "model_import_settings":              {
+            "input_type":       "mdpa",
+            "input_filename":   "element_tests/arc_length_test/arc_length_test"
+        },
+        "buffer_size":                        2,
+        "echo_level":                         0,
+        "clear_storage":                      false,
+        "compute_reactions":                  true,
+        "move_mesh_flag":                     false,
+        "periodic_interface_conditions":      false,
+        "reform_dofs_at_each_step":           false,
+        "nodal_smoothing":                    true,
+        "block_builder":                      false,
+        "solution_type":                      "quasi_static",
+        "scheme_type":                        "Newmark",
+        "newmark_beta":                       0.25,
+        "newmark_gamma":                      0.5,
+        "newmark_theta":                      0.5,
+        "rayleigh_m":                         0.0,
+        "rayleigh_k":                         0.0,
+        "strategy_type":                      "arc_length",
+        "convergence_criterion":              "And_criterion",
+        "displacement_relative_tolerance":    1.0E-4,
+        "displacement_absolute_tolerance":    1.0E-9,
+        "residual_relative_tolerance":        1.0E-4,
+        "residual_absolute_tolerance":        1.0E-9,
+        "max_iteration":                      25,
+        "desired_iterations":                 4,
+        "max_radius_factor":                  10.0,
+        "min_radius_factor":                  1.0,
+        "nonlocal_damage":                    true,
+        "characteristic_length":              0.01,
+        "linear_solver_settings":             {
+            "solver_type":         "BICGSTABSolver",
+            "tolerance":           1.0e-6,
+            "max_iteration":       100,
+            "scaling":             false,
+            "preconditioner_type": "ILU0Preconditioner"
+        },
+        "problem_domain_sub_model_part_list": ["Body_Part-auto-1"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Fluid_Pressure-auto-1","Face_Load-auto-1","Face_Load-auto-2"],
+        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"],
+        "loads_sub_model_part_list":          ["Face_Load-auto-1","Face_Load-auto-2"],
+        "loads_variable_list":                ["FACE_LOAD","FACE_LOAD"]
+    },
+    "constraints_process_list": [{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "Solid_Displacement-auto-1",
+            "variable_name":   "DISPLACEMENT",
+            "active":          [true,true,false],
+            "is_fixed":        [true,true,false],
+            "value":           [0.0,0.0,0.0],
+            "table":           [0,0,0]
+        }
+    },{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "Solid_Displacement-auto-2",
+            "variable_name":   "DISPLACEMENT",
+            "active":          [false,true,false],
+            "is_fixed":        [false,true,false],
+            "value":           [0.0,0.0,0.0],
+            "table":           [0,0,0]
+        }
+    },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name":      "Fluid_Pressure-auto-1",
+            "variable_name":        "WATER_PRESSURE",
+            "is_fixed":             true,
+            "value":                0.0,
+            "table":                0,
+            "hydrostatic":          false,
+            "gravity_direction":    2,
+            "reference_coordinate": 0.0,
+            "specific_weight":      10000.0
+        }
+    }],
+    "loads_process_list": [{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "Face_Load-auto-1",
+            "variable_name":   "FACE_LOAD",
+            "active":          [false,true,false],
+            "value":           [0.0,-1.5e4,0.0],
+            "table":           [0,0,0]
+        }
+    },{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "Face_Load-auto-2",
+            "variable_name":   "FACE_LOAD",
+            "active":          [false,true,false],
+            "value":           [0.0,-1.5e3,0.0],
+            "table":           [0,0,0]
+        }
+    }],
+    "auxiliar_process_list" : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"    : "FromJsonCheckResultProcess",
+            "Parameters"      : {
+                "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "input_file_name"      : "element_tests/arc_length_test/arc_length_test_results.json",
+                "model_part_name"      : "Body_Part-auto-1",
+                "time_frequency"       : 1.0
+            }
+    }],
+    "_json_output_process"  : [{
+        "python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name"     : "element_tests/arc_length_test/arc_length_test_results.json",
+            "model_part_name"      : "Body_Part-auto-1",
+            "time_frequency"       : 1.0
+        }
+    }]
+}

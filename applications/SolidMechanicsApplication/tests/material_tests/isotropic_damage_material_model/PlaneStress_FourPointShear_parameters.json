@@ -16,7 +16,7 @@
 		"max_iteration"         : 15
 	    },
 	    "convergence_criterion_settings" : {
-		"convergence_criterion" : "And_criterion"		
+		"convergence_criterion" : "And_criterion"
 	    },
             "linear_solver_settings"    : {
 		"solver_type" : "SuperLUSolver",
@@ -28,13 +28,13 @@
         "model_part_name" : "DISPLACEMENT_Displacement_Auto1"
     },{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-        "value"           : [null,0.0,0.0]        
+        "value"           : [null,0.0,0.0]
     }],
     "loads_process_list"       : [{
         "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
         "variable_name"   : "FORCE_LOAD",
         "modulus"         : "15000.0*t",
-        "direction"       : [0.0,-1.0,0.0]     
+        "direction"       : [0.0,-1.0,0.0]
     },{
         "model_part_name" : "LineLoad2D_Load_on_lines_Auto2",
         "variable_name"   : "FORCE_LOAD",

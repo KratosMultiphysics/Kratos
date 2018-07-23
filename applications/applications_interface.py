@@ -105,7 +105,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_UmatApplication: " + str(Import_UmatApplication))
     print("Import_MachiningApplication: " + str(Import_MachiningApplication))
     print("Import_StringDynamicsApplication: " + str(Import_StringDynamicsApplication))
-    print("Import_ConvectionDiffusionApplication: " + str(Import_ConvectionDiffusionApplication)
+    print("Import_ConvectionDiffusionApplication: " + str(Import_ConvectionDiffusionApplication))
     print("Import_MeshingApplication: " + str(Import_MeshingApplication))
     print("Import_MeshMovingApplication: " + str(Import_MeshMovingApplication))
     print("Import_IncompressibleFluidApplication: " + str(Import_IncompressibleFluidApplication))
@@ -451,8 +451,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         print("importing KratosMultiscaleApplication ...")
         sys.path.append(applications_path + '/MultiScaleApplication/python_scripts')
         from KratosMultiscaleApplication import *
-        wind_turbine_application = KratosMultiScaleApplication()
-        kernel.ImportApplication(MultiScaleApplication)
+        multi_scale_application = KratosMultiScaleApplication()
+        kernel.ImportApplication(multi_scale_application)
         print("KratosMultiScaleApplication sucessfully imported")
 
     if(Import_ContactStructuralMechanicsApplication):

@@ -19,8 +19,6 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 
 // External includes
@@ -29,9 +27,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "custom_utilities/interface_object.h"
-#include "custom_utilities/interface_node.h"
-#include "custom_utilities/interface_geometry_object.h"
+
+#include "custom_searching/interface_object.h"
 
 
 namespace Kratos
@@ -193,6 +190,8 @@ private:
     const InterfaceObject           mInterfaceObject;
     const InterfaceNode             mInterfaceNode;
     const InterfaceGeometryObject   mInterfaceGeometryObject;
+
+    // TODO maybe the mapper_local_infos have to be registered too bcs of the serializer
 
     ///@}
     ///@name Private Operators

@@ -7,6 +7,7 @@
 
 // Project includes
 #include "DEM_application.h"
+#include "includes/kernel.h"
 #include "includes/kratos_flags.h"
 #include "containers/flags.h"
 #include "geometries/point_3d.h"

@@ -22,15 +22,13 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_utilities/mapper_communicator.h"
-#include "custom_utilities/mapper_utilities.h"
+#include "includes/kratos_parameters.h"
+#include "custom_utilities/matrix_based_mapping_operation_utility.h"
+#include "custom_utilities/interface_preprocessor.h"
+#include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapper_flags.h"
-
-// For MPI-parallel Mapper
-#ifdef KRATOS_USING_MPI
-#include "mpi.h"
-#include "custom_utilities/mapper_mpi_communicator.h"
-#endif
+#include "custom_searching/interface_communicator.h"
+#include "mapping_application_variables.h"
 
 
 namespace Kratos
@@ -62,13 +60,14 @@ namespace Kratos
 *        Mapping Direction: Origin => Destionation
 * - InverseMap: This function does the opposite of the "Map" function
 *               Mapping Direction: Destination => Origin
-* - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and 
+* - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and
 *   other information related to the relations btw entities (node, elements,...) on the interfaces
 * It is also responsible for initializing the MapperCommunicator or the MapperMPICommuniator
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
 
+template<class TSparseSpace, class TDenseSpace>
 class Mapper
 {
 public:
@@ -80,14 +79,41 @@ public:
     /// Pointer definition of Mapper
     KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
+    typedef MappingOperationUtility<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
+    typedef typename Kratos::unique_ptr<MappingOperationUtilityType> MappingOperationUtilityPointerType;
+    using InterfacePreprocessorPointerType = Kratos::unique_ptr<InterfacePreprocessor>;
+    using InterfaceCommunicatorType = InterfaceCommunicator;
+    using InterfaceCommunicatorPointerType = Kratos::unique_ptr<InterfaceCommunicatorType>;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
+
+    using MapperUniquePointerType = Kratos::unique_ptr<Mapper>;
+
+    using MapperInterfaceInfoUniquePointerType = typename InterfaceCommunicatorType::MapperInterfaceInfoUniquePointerType;
+
+    using MapperLocalSystemPointer = typename MappingOperationUtilityType::MapperLocalSystemPointer;
+    using MapperLocalSystemPointerVector = typename MappingOperationUtilityType::MapperLocalSystemPointerVector;
+    using MapperLocalSystemPointerVectorPointer = typename MappingOperationUtilityType::MapperLocalSystemPointerVectorPointer;
+
+    using TSystemMatrixType = typename MappingOperationUtilityType::TSystemMatrixType;
+    using TSystemVectorType = typename MappingOperationUtilityType::TSystemVectorType;
+
+    using TSystemMatrixUniquePointerType = typename MappingOperationUtilityType::TSystemMatrixUniquePointerType;
+    using TSystemVectorUniquePointerType = typename MappingOperationUtilityType::TSystemVectorUniquePointerType;
+
+    using DoubleVariableType = typename MappingOperationUtilityType::DoubleVariableType;
+    using ComponentVariableType = typename MappingOperationUtilityType::ComponentVariableType;
+    using Array3VariableType = typename MappingOperationUtilityType::Array3VariableType;
+
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination) :
-        mModelPartOrigin(rModelPartOrigin),
-        mModelPartDestination(rModelPartDestination),
-        mJsonParameters(Parameters(R"({})")) {}
+        mrModelPartOrigin(rModelPartOrigin),
+        mrModelPartDestination(rModelPartDestination),
+        mGeneralMapperSettings(Parameters(R"({})")) {}
 
     /// Destructor.
     virtual ~Mapper()
@@ -102,35 +128,95 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) = 0;
+    void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius)
+    {
+        // std::cout << "\n\n";
+        // if (MappingOptions.IsDefined(MapperFlags::REMESHED))
+        // {
+        //     KRATOS_INFO("\tFlagsCheck") << "IsDefined" << std::endl;
+        //     if (MappingOptions.Is(MapperFlags::REMESHED))
+        //     {
+        //         KRATOS_INFO("\t\tFlagsCheck") << "IsDefined AND Is" << std::endl;
+        //     }
+        //     else
+        //     {
+        //         KRATOS_INFO("\t\tFlagsCheck") << "IsDefined AND NOT Is" << std::endl;
+        //     }
+        // }
+        // else
+        // {
+        //     KRATOS_INFO("\tFlagsCheck") << "NOT IsDefined" << std::endl;
+        //                 KRATOS_INFO("\tFlagsCheck") << "IsDefined" << std::endl;
+        //     if (MappingOptions.Is(MapperFlags::REMESHED))
+        //     {
+        //         KRATOS_INFO("\t\tFlagsCheck") << "NOT IsDefined AND Is" << std::endl;
+        //     }
+        //     else
+        //     {
+        //         KRATOS_INFO("\t\tFlagsCheck") << "NOT IsDefined AND NOT Is" << std::endl;
+        //     }
+        // }
+
+        // std::cout << "\n";
+
+        // if (MappingOptions.Is(MapperFlags::REMESHED))
+        // {
+        //     KRATOS_INFO("\tFlagsCheck") << "Is" << std::endl;
+        // }
+        // else
+        // {
+        //     KRATOS_INFO("\tFlagsCheck") << "NOT Is" << std::endl;
+        // }
+
+        // std::cout << "\n\n";
+
+        UpdateInterfaceInternal(MappingOptions, SearchRadius);
+        if (mInverseMapperIsInitialized)
+            mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
+    }
 
     /* This function maps from Origin to Destination */
     virtual void Map(const Variable<double>& rOriginVariable,
                      const Variable<double>& rDestinationVariable,
-                     Kratos::Flags MappingOptions) = 0;
+                     Kratos::Flags MappingOptions)
+    {
+        TMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
 
     /* This function maps from Origin to Destination */
     virtual void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
                      const Variable< array_1d<double, 3> >& rDestinationVariable,
-                     Kratos::Flags MappingOptions) = 0;
+                     Kratos::Flags MappingOptions)
+    {
+        TMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
 
     /* This function maps from Destination to Origin */
     virtual void InverseMap(const Variable<double>& rOriginVariable,
                             const Variable<double>& rDestinationVariable,
-                            Kratos::Flags MappingOptions) = 0;
+                            Kratos::Flags MappingOptions)
+    {
+        TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
 
     /* This function maps from Destination to Origin */
     virtual void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
-                            Kratos::Flags MappingOptions) = 0;
+                            Kratos::Flags MappingOptions)
+    {
+        TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
+    }
 
-    virtual Mapper::Pointer Clone(ModelPart& rModelPartOrigin, 
+    virtual MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) = 0;
 
-    MapperCommunicator::Pointer pGetMapperCommunicator()
+    // Developer function only being used if this class needs to be accessed from outside!
+    // can be overridden in case it is needed (e.g. for Mortar where Mdd != I !)
+    virtual double GetMappingMatrixEntry(const IndexType RowIndex, const IndexType ColumnIndex)
     {
-        return mpMapperCommunicator;
+        // return mpMappingOperationUtility->GetMappingMatrixEntry(RowIndex, ColumnIndex);
+        KRATOS_ERROR << "Not implemented" << std::endl;
     }
 
     ///@}
@@ -176,19 +262,20 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    ModelPart& mModelPartOrigin;
-    ModelPart& mModelPartDestination;
+    ModelPart& mrModelPartOrigin;
+    ModelPart& mrModelPartDestination;
 
-    Parameters mJsonParameters;
+    Parameters mGeneralMapperSettings;
 
-    MapperCommunicator::Pointer mpMapperCommunicator;
+    MappingOperationUtilityPointerType mpMappingOperationUtility;
+    InterfacePreprocessorPointerType mpInterfacePreprocessor;
+    InterfaceCommunicatorPointerType mpIntefaceCommunicator;
+    MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
-    // global, aka of the entire submodel-parts
-    int mNumConditionsOrigin;
-    int mNumConditionsDestination;
-
-    int mNumNodesOrigin;
-    int mNumNodesDestination;
+    // The mapping matrix and the corresponding vectors
+    TSystemMatrixUniquePointerType mpMdo;
+    TSystemVectorUniquePointerType mpQo;
+    TSystemVectorUniquePointerType mpQd;
 
     int mEchoLevel = 0;
 
@@ -201,76 +288,165 @@ protected:
     ///@{
 
     // Constructor, can only be called by derived classes (actual mappers)
-    Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-           Parameters JsonParameters) :
-        mModelPartOrigin(rModelPartOrigin),
-        mModelPartDestination(rModelPartDestination),
-        mJsonParameters(JsonParameters)
+    Mapper(ModelPart& rModelPartOrigin,
+           ModelPart& rModelPartDestination,
+           Parameters MapperSettings);
+
+
+    /**
+     * This function can be overridden by derived Mappers to do sth different
+     * */
+    virtual void Initialize();
+
+    virtual void InitializeInterfaceCommunicator();
+
+    virtual void InitializeMappingOperationUtility();
+
+    virtual void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
+
+    virtual void BuildMappingMatrix(Kratos::Flags MappingOptions = Kratos::Flags());
+
+    virtual void UpdateInterfaceInternal(Kratos::Flags MappingOptions, double SearchRadius);
+
+    MapperUniquePointerType& GetInverseMapper()
     {
-        ComputeNumberOfNodesAndConditions();
-
-        // Create the mapper communicator
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-        int mpi_initialized;
-        MPI_Initialized(&mpi_initialized);
-        if (mpi_initialized)   // parallel execution, i.e. mpi imported in python
-        {
-            int comm_size;
-            MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-            if (comm_size > 1)
-            {
-                mpMapperCommunicator = MapperCommunicator::Pointer (
-                                           new MapperMPICommunicator(mModelPartOrigin,
-                                                   mModelPartDestination,
-                                                   mJsonParameters) );
-            }
-            else     // mpi importet in python, but execution with one process only
-            {
-                InitializeSerialCommunicator();
-            }
-        }
-        else     // serial execution, i.e. mpi NOT imported in python
-        {
-            InitializeSerialCommunicator();
-        }
-
-#else // serial compilation
-        InitializeSerialCommunicator();
-#endif
-        // Access the Parameters only after the communicator is constructed,
-        // bcs they are checked and validated there!
-        mEchoLevel = JsonParameters["echo_level"].GetInt();
+        InitializeInverseMapper(); // Checks if it was initialized
+        return mpInverseMapper;
     }
 
-    void ComputeNumberOfNodesAndConditions()
+    // template< typename T>
+    // void TestFunction(T someParam);
+
+    // TSystemMatrixType& GetMdo()
+    // {
+    //     TSystemMatrixType& rMdo = *mpMdo;
+
+    //     return rMdo;
+    // }
+
+    // TSystemVectorType& GetQo()
+    // {
+    //     TSystemVectorType& rQo = *mpQo;
+
+    //     return rQo;
+    // }
+
+    // TSystemVectorType& GetQd()
+    // {
+    //     TSystemVectorType& rQd = *mpQd;
+
+    //     return rQd;
+    // }
+
+        /* This function maps from Destination to Origin */
+    virtual void MapInternal(const Variable<double>& rOriginVariable,
+                             const Variable<double>& rDestinationVariable,
+                             Kratos::Flags MappingOptions,
+                             const bool UseTranspose)
     {
-        // Compute the quantities of the local model_parts
-        mNumConditionsOrigin = mModelPartOrigin.GetCommunicator().LocalMesh().NumberOfConditions();
-        mNumConditionsDestination = mModelPartDestination.GetCommunicator().LocalMesh().NumberOfConditions();
-
-        mNumNodesOrigin = mModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
-        mNumNodesDestination = mModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
-
-        // Compute the quantities of the global model_parts
-        mModelPartOrigin.GetCommunicator().SumAll(mNumConditionsOrigin);
-        mModelPartDestination.GetCommunicator().SumAll(mNumConditionsDestination);
-
-        mModelPartOrigin.GetCommunicator().SumAll(mNumNodesOrigin);
-        mModelPartDestination.GetCommunicator().SumAll(mNumNodesDestination);
+        mpMappingOperationUtility->InitializeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                rOriginVariable, rDestinationVariable,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->ExecuteMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                rOriginVariable, rDestinationVariable,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->FinalizeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                rOriginVariable, rDestinationVariable,
+                MappingOptions, UseTranspose);
     }
 
-    void ProcessMappingOptions(const Kratos::Flags& rMappingOptions,
-                               double& Factor)
+    /* This function maps from Destination to Origin */
+    virtual void MapInternal(const Variable< array_1d<double, 3> >& rOriginVariable,
+                             const Variable< array_1d<double, 3> >& rDestinationVariable,
+                             Kratos::Flags MappingOptions,
+                             const bool UseTranspose)
     {
-        if (rMappingOptions.Is(MapperFlags::SWAP_SIGN))
-        {
-            Factor *= (-1);
-        }
+        auto const& var_x_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_X");
+        auto const& var_y_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Y");
+        auto const& var_z_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Z");
+
+        auto const& var_x_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_X");
+        auto const& var_y_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Y");
+        auto const& var_z_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Z");
+
+        // X-Component
+        mpMappingOperationUtility->InitializeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_x_origin, var_x_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->ExecuteMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_x_origin, var_x_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->FinalizeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_x_origin, var_x_destination,
+                MappingOptions, UseTranspose);
+
+        // Y-Component
+        mpMappingOperationUtility->InitializeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_y_origin, var_y_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->ExecuteMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_y_origin, var_y_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->FinalizeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_y_origin, var_y_destination,
+                MappingOptions, UseTranspose);
+
+        // Z-Component
+        mpMappingOperationUtility->InitializeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_z_origin, var_z_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->ExecuteMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_z_origin, var_z_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->FinalizeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_z_origin, var_z_destination,
+                MappingOptions, UseTranspose);
     }
+
+    /**
+     * This function can be overridden by derived Mappers if they need some
+     * Mapper-specific settings. After initializing/validating the mapper-specific
+     * settings this function should set the mGeneralMapperParameters
+     * */
+    virtual void ValidateMapperSpecificSettings(Parameters AllMapperSettings)
+    {
+        // mGeneralMapperSettings = AllMapperSettings;
+    }
+
+    virtual MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const = 0;
+    virtual MapperLocalSystemPointer GetMapperLocalSystem() const = 0;
+
+    virtual InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const = 0;
+
 
     ///@}
     ///@name Protected  Access
     ///@{
+
 
     ///@}
     ///@name Protected Inquiry
@@ -291,6 +467,10 @@ private:
     ///@name Member Variables
     ///@{
 
+    bool mInverseMapperIsInitialized = false;
+
+    MapperUniquePointerType mpInverseMapper;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -299,13 +479,99 @@ private:
     ///@name Private Operations
     ///@{
 
-    void InitializeSerialCommunicator()
+    void InitializeInverseMapper()
     {
-        mpMapperCommunicator = MapperCommunicator::Pointer (
-                                   new MapperCommunicator(mModelPartOrigin,
-                                           mModelPartDestination,
-                                           mJsonParameters) );
+        if (!mInverseMapperIsInitialized)
+        {
+            mpInverseMapper = Clone(mrModelPartDestination,
+                                    mrModelPartOrigin,
+                                    mGeneralMapperSettings); // TODO how to handle this ...? => some parameters wil be validated in the derived clases (Mappers)
+
+            mInverseMapperIsInitialized = true;
+        }
     }
+
+    void ValidateInput(Parameters AllMapperSettings);
+
+    void ValidateParameters(Parameters AllMapperSettings)
+    {
+        ValidateMapperSpecificSettings(AllMapperSettings);
+
+        Parameters default_settings = Parameters( R"({
+            "search_radius"     : -1.0,
+            "search_iterations" : 3,
+            "echo_level"        : 0
+        })");
+
+        mGeneralMapperSettings.ValidateAndAssignDefaults(default_settings);
+    }
+
+
+    template< typename TDataType >
+    void TMap(const Variable<TDataType>& rOriginVariable,
+              const Variable<TDataType>& rDestinationVariable,
+              Kratos::Flags MappingOptions,
+              const bool UseTranspose = false)
+    {
+        CheckForConservative(MappingOptions);
+
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
+        {
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+            const bool use_transpose = true;
+            TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions, use_transpose);
+        }
+        else
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(mpMappingOperationUtility)<< "mpMappingOperationUtility "
+                << "is a nullptr" << std::endl;
+
+            MapInternal(rOriginVariable,
+                        rDestinationVariable,
+                        MappingOptions,
+                        UseTranspose);
+
+            // mpMappingOperationUtility->ExecuteMapping(
+            //     *mpMdo, *mpQo, *mpQd,
+            //     mrModelPartOrigin, mrModelPartDestination,
+            //     rOriginVariable, rDestinationVariable,
+            //     MappingOptions, UseTranspose);
+        }
+    }
+
+    template< typename TDataType >
+    void TInverseMap(const Variable<TDataType>& rOriginVariable,
+                     const Variable<TDataType>& rDestinationVariable,
+                     Kratos::Flags MappingOptions,
+                     const bool UseTranspose = false)
+    {
+        CheckForConservative(MappingOptions);
+
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
+        {
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+            const bool use_transpose = true;
+            TMap(rOriginVariable, rDestinationVariable, MappingOptions, use_transpose);
+        }
+        else
+            GetInverseMapper()->TMap(rDestinationVariable, rOriginVariable, MappingOptions, UseTranspose);
+    }
+
+    // From outside the user might specify CONSERVATIVE
+    // This is translated to USE_TRANSPOSE for internal use
+    // Note that if the user would specify USE_TRANSPOSE it would have the same effect
+    void CheckForConservative(Kratos::Flags& rMappingOptions)
+    {
+        if (rMappingOptions.Is(MapperFlags::CONSERVATIVE))
+        {
+            rMappingOptions.Reset(MapperFlags::CONSERVATIVE); // TODO test this!!!
+            rMappingOptions.Set(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+        }
+    }
+
+    void AssignInterfaceEquationIds();
+
+    void PrintPairingInfo();
 
     ///@}
     ///@name Private  Access
@@ -320,7 +586,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    Mapper& operator=(Mapper const& rOther);
+    // Mapper& operator=(Mapper const& rOther) {}
 
     /// Copy constructor.
     //Mapper(Mapper const& rOther);
