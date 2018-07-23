@@ -473,7 +473,6 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass",mRealMass);
     rSerializer.load("mClusterId",mClusterId);
-    rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq);
     int aux_int=0;
     rSerializer.load("HasStressTensor", aux_int);
     if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
