@@ -12,5 +12,22 @@
 namespace Kratos
 {
   //specific constitutive models variables must be CREATED here
+   KRATOS_CREATE_VARIABLE( double, ALPHA )
+   KRATOS_CREATE_VARIABLE( double, BETA )   
+   KRATOS_CREATE_VARIABLE( double, MF )   
+   KRATOS_CREATE_VARIABLE( double, CC )   
+   KRATOS_CREATE_VARIABLE( double, MM )   
+   KRATOS_CREATE_VARIABLE( double, RHOS )   
+   KRATOS_CREATE_VARIABLE( double, RHOT )   
+   KRATOS_CREATE_VARIABLE( double, KSIS )   
+   KRATOS_CREATE_VARIABLE( double, RHOM )   
+   KRATOS_CREATE_VARIABLE( double, KSIM )   
+   KRATOS_CREATE_VARIABLE( double, PC0 )   
+
+   KRATOS_CREATE_VARIABLE( double, VOID_RATIO )   
+   KRATOS_CREATE_VARIABLE( double, PS )   
+   KRATOS_CREATE_VARIABLE( double, PT )   
+   KRATOS_CREATE_VARIABLE( double, PM )   
+   KRATOS_CREATE_VARIABLE( double, PLASTIC_MULTIPLIER )   
 
 }

@@ -221,8 +221,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
 
             self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
             self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
-            ps = self.properties.GetValue( KratosUmatApplication.PS )
-            ps = self.material_law.GetValue( KratosUmatApplication.PS , ps)
             stress = self.parameters.GetStressVector();
 
 

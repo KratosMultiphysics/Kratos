@@ -49,6 +49,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/exponential_damage_hardening_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/modified_exponential_damage_hardening_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/gens_nova_hardening_rule.cpp
 
 
 )

@@ -41,21 +41,5 @@ namespace Kratos {
     Serializer::Register( "HypoplasticUmatSmallStrainModel", mHypoplasticSmallStrainUmatModel);
     Serializer::Register( "VonMisesUmatLargeStrainModel", mVonMisesLargeStrainUmatModel);
 
-    // fabric model variables
-    KRATOS_REGISTER_VARIABLE( ALPHA )
-    KRATOS_REGISTER_VARIABLE( BETA )   
-    KRATOS_REGISTER_VARIABLE( MF )   
-    KRATOS_REGISTER_VARIABLE( CC )   
-    KRATOS_REGISTER_VARIABLE( MM )   
-    KRATOS_REGISTER_VARIABLE( RHOS )   
-    KRATOS_REGISTER_VARIABLE( KSIS )   
-    KRATOS_REGISTER_VARIABLE( RHOM )   
-    KRATOS_REGISTER_VARIABLE( KSIM )   
-    KRATOS_REGISTER_VARIABLE( PC0 )   
-
-    KRATOS_REGISTER_VARIABLE( VOID_RATIO )   
-    KRATOS_REGISTER_VARIABLE( PS )   
-    KRATOS_REGISTER_VARIABLE( PM )   
-    KRATOS_REGISTER_VARIABLE( PLASTIC_MULTIPLIER )   
   }
 }  // namespace Kratos.

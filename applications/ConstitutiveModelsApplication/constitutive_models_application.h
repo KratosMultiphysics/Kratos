@@ -80,6 +80,7 @@
 #include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/cam_clay_model.hpp"
+#include "custom_models/plasticity_models/gens_nova_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 
@@ -88,6 +89,7 @@
 #include "custom_models/plasticity_models/yield_surfaces/simo_ju_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/modified_mises_yield_surface.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/modified_cam_clay_yield_surface.hpp"
+#include "custom_models/plasticity_models/yield_surfaces/gens_nova_yield_surface.hpp"
 
 //hardening rules
 #include "custom_models/plasticity_models/hardening_rules/simo_linear_hardening_rule.hpp"
@@ -97,6 +99,7 @@
 #include "custom_models/plasticity_models/hardening_rules/exponential_damage_hardening_rule.hpp"
 #include "custom_models/plasticity_models/hardening_rules/modified_exponential_damage_hardening_rule.hpp"
 #include "custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.hpp"
+#include "custom_models/plasticity_models/hardening_rules/gens_nova_hardening_rule.hpp"
 
 
 #include "constitutive_models_application_variables.h"
@@ -289,6 +292,7 @@ namespace Kratos {
     const JohnsonCookJ2ThermoPlasticityModel       mJohnsonCookJ2ThermoPlasticityModel;
     const BakerJohnsonCookJ2ThermoPlasticityModel  mBakerJohnsonCookJ2ThermoPlasticityModel;
     const CamClayModel                             mCamClayModel;
+    const GensNovaModel                            mGensNovaModel;
     const SimoJuExponentialDamageModel             mSimoJuExponentialDamageModel;
     const SimoJuExponentialDamageModel             mSimoJuModifiedExponentialDamageModel;
     
@@ -298,6 +302,7 @@ namespace Kratos {
     const SimoJuYieldSurface<HardeningRuleType>             mSimoJuYieldSurface;
     const ModifiedMisesYieldSurface<HardeningRuleType>      mModifiedMisesYieldSurface;
     const ModifiedCamClayYieldSurface<HardeningRuleType>    mModifiedCamClayYieldSurface;
+    const GensNovaYieldSurface<HardeningRuleType>           mGensNovaYieldSurface;
     
     //hardening rules
     const SimoExponentialHardeningRule              mSimoExponentialHardeningRule;
@@ -308,6 +313,7 @@ namespace Kratos {
     const ExponentialDamageHardeningRule            mExponentialDamageHardeningRule;
     const ModifiedExponentialDamageHardeningRule    mModifiedExponentialDamageHardeningRule;
     const CamClayHardeningRule                      mCamClayHardeningRule;
+    const GensNovaHardeningRule                     mGensNovaHardeningRule;
       
        
     ///@}

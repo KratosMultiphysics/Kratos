@@ -78,6 +78,7 @@ namespace Kratos {
     Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
     Serializer::Register( "SimoJ2PlasticityModel", mSimoJ2PlasticityModel );
     Serializer::Register( "CamClayModel", mCamClayModel );
+    Serializer::Register( "GensNovaModel", mGensNovaModel );
     Serializer::Register( "SimoJ2ThermoPlasticityModel", mSimoJ2ThermoPlasticityModel );
 	
     //yield criteria
@@ -86,6 +87,7 @@ namespace Kratos {
     Serializer::Register( "SimoJuYieldSurface", mSimoJuYieldSurface );
     Serializer::Register( "ModifiedMisesYieldSurface", mModifiedMisesYieldSurface );
     Serializer::Register( "ModifiedCamClaySurface", mModifiedCamClayYieldSurface );
+    Serializer::Register( "GensNovaSurface", mGensNovaYieldSurface );
     
     //hardening rules
     Serializer::Register( "SimoExponentialHardeningRule", mSimoExponentialHardeningRule );
@@ -96,9 +98,28 @@ namespace Kratos {
     Serializer::Register( "ExponentialDamageHardeningRule", mExponentialDamageHardeningRule );
     Serializer::Register( "ModifiedExponentialDamageHardeningRule", mModifiedExponentialDamageHardeningRule );
     Serializer::Register( "CamClayHardeningRule", mCamClayHardeningRule );
+    Serializer::Register( "GensNovaHardeningRule", mGensNovaHardeningRule );
     Serializer::Register( "SimoJuExponentialDamageModel", mSimoJuExponentialDamageModel );
     Serializer::Register( "SimoJuModifiedExponentialDamageModel", mSimoJuModifiedExponentialDamageModel );
       
+    // fabric model variables
+    KRATOS_REGISTER_VARIABLE( ALPHA )
+    KRATOS_REGISTER_VARIABLE( BETA )   
+    KRATOS_REGISTER_VARIABLE( MF )   
+    KRATOS_REGISTER_VARIABLE( CC )   
+    KRATOS_REGISTER_VARIABLE( MM )   
+    KRATOS_REGISTER_VARIABLE( RHOS )   
+    KRATOS_REGISTER_VARIABLE( RHOT )   
+    KRATOS_REGISTER_VARIABLE( KSIS )   
+    KRATOS_REGISTER_VARIABLE( RHOM )   
+    KRATOS_REGISTER_VARIABLE( KSIM )   
+    KRATOS_REGISTER_VARIABLE( PC0 )   
+
+    KRATOS_REGISTER_VARIABLE( VOID_RATIO )   
+    KRATOS_REGISTER_VARIABLE( PS )   
+    KRATOS_REGISTER_VARIABLE( PT )   
+    KRATOS_REGISTER_VARIABLE( PM )   
+    KRATOS_REGISTER_VARIABLE( PLASTIC_MULTIPLIER )   
 
   }
 }  // namespace Kratos.

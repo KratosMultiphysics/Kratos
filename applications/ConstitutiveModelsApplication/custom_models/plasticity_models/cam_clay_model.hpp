@@ -165,7 +165,7 @@ namespace Kratos
                rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
             }
 
-
+            rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
             return rValue;
          }
 
