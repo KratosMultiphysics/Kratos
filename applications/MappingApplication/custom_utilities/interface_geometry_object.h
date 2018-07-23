@@ -49,9 +49,9 @@ namespace Kratos
 ///@{
 
 /// GeometricalObject-based objects (Element or Condition) on the Interface for Searching
-/** This class Is the "wrapper" for Elements/Conditions on the interface. It uses the fact that both
-* Elements and Conditions are deriving from "GeometricalObject". The search is caarried out using the
-* center of the geometry.
+/** This class Is the "wrapper" for Elements/Conditions on the interface. It uses the fact that both 
+* Elements and Conditions are deriving from "GeometricalObject". The search is caarried out using the 
+* center of the geometry. 
 * It saves a pointer to the original geometry, not to the Condition/Element itself. This is e.g. why the Id is not accessible.
 * It selects the best result by the closest projection distance of the successful projections.
 * In case no projection is successful, it uses an approximation (closest node of the geometry with the
@@ -71,11 +71,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // A default constructor necessary for serialization
+    // A default constructor necessary for serialization 
     InterfaceGeometryObject() : InterfaceObject()
     {
     }
-
+    
     InterfaceGeometryObject(Geometry<Node<3>>& rGeometry, const double ApproximationTolerance, const int EchoLevel, const int ConstructionIndex,
                             GeometryData::IntegrationMethod IntegrationMethod = GeometryData::NumberOfIntegrationMethods) :
         mpGeometry(&rGeometry),
@@ -84,17 +84,17 @@ public:
         mIntegrationMethod(IntegrationMethod)
     {
         SetCoordinates();
-
+    
         mGeometryFamily = mpGeometry->GetGeometryFamily();
-        KRATOS_ERROR_IF(mGeometryFamily == GeometryData::Kratos_Point)
+        KRATOS_ERROR_IF(mGeometryFamily == GeometryData::Kratos_Point) 
             << "Elements/Conditions with point-based geometries cannot be used with interpolative "
             << "Mapping, use the Nearest Neighbor Mapper instead!" << std::endl;
-
+    
         mNumPoints = mpGeometry->PointsNumber();
         KRATOS_ERROR_IF(mNumPoints == 0) << "Number of Points cannot be zero" << std::endl;
-
+    
         mpPoint = &(mpGeometry->GetPoint(0)); // used for debugging
-
+    
         mEchoLevel = EchoLevel;
     }
 
@@ -116,77 +116,77 @@ public:
         return mpGeometry;
     }
 
-    // bool EvaluateResult(const InterfaceObject::Pointer rObject,
-    //                     double& rMinDistance, const double Distance,
-    //                     std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
-    // {
-    //     // Distance is the distance to the center and not the projection distance, therefore it is unused
-    //     bool is_closer = false;
-    //     bool is_inside = false;
-    //     double projection_distance = std::numeric_limits<double>::max();
-    //     array_1d<double, 3> projection_local_coords;
+    bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords,
+                        double& rMinDistance, const double Distance,
+                        std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
+    {
+        // Distance is the distance to the center and not the projection distance, therefore it is unused
+        bool is_closer = false;
+        bool is_inside = false;
+        double projection_distance = std::numeric_limits<double>::max();
+        array_1d<double, 3> projection_local_coords;
 
-    //     if (mGeometryFamily == GeometryData::Kratos_Linear
-    //             && mNumPoints == 2)   // I am a linear line condition
-    //     {
-    //         is_inside = MapperUtilities::ProjectPointToLine(mpGeometry, rGlobalCoords,
-    //                     projection_local_coords,
-    //                     projection_distance);
-    //     }
-    //     else if (mGeometryFamily == GeometryData::Kratos_Triangle
-    //              && mNumPoints == 3)   // I am a linear triangular condition
-    //     {
-    //         is_inside = MapperUtilities::ProjectPointToTriangle(mpGeometry, rGlobalCoords,
-    //                     projection_local_coords,
-    //                     projection_distance);
-    //     }
-    //     else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
-    //              && mNumPoints == 4)   // I am a linear quadrilateral condition
-    //     {
-    //         is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpGeometry, rGlobalCoords,
-    //                     projection_local_coords,
-    //                     projection_distance);
-    //     }
-    //     else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra ||
-    //              mGeometryFamily == GeometryData::Kratos_Prism ||
-    //              mGeometryFamily == GeometryData::Kratos_Hexahedra)   // Volume Mapping
-    //     {
-    //         is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpGeometry, rGlobalCoords,
-    //                     projection_local_coords,
-    //                     projection_distance);
-    //     }
-    //     else
-    //     {
-    //         if (mEchoLevel >= 2) {
-    //             std::cout << "MAPPER WARNING, Unsupported geometry, "
-    //                       << "using an approximation (Nearest Node)"
-    //                       << " | InterfaceGeometryObject, Center: [ "
-    //                       << this->X() << " | "
-    //                       << this->Y() << " | "
-    //                       << this->Z() << " ], "
-    //                       << "(KratosGeometryFamily \"" << mGeometryFamily
-    //                       << "\", num points: " << mNumPoints << std::endl;
-    //         }
-    //         return false;
-    //     }
+        if (mGeometryFamily == GeometryData::Kratos_Linear
+                && mNumPoints == 2)   // I am a linear line condition
+        {
+            is_inside = MapperUtilities::ProjectPointToLine(mpGeometry, rGlobalCoords,
+                        projection_local_coords,
+                        projection_distance);
+        }
+        else if (mGeometryFamily == GeometryData::Kratos_Triangle
+                 && mNumPoints == 3)   // I am a linear triangular condition
+        {
+            is_inside = MapperUtilities::ProjectPointToTriangle(mpGeometry, rGlobalCoords,
+                        projection_local_coords,
+                        projection_distance);
+        }
+        else if (mGeometryFamily == GeometryData::Kratos_Quadrilateral
+                 && mNumPoints == 4)   // I am a linear quadrilateral condition
+        {
+            is_inside = MapperUtilities::ProjectPointToQuadrilateral(mpGeometry, rGlobalCoords,
+                        projection_local_coords,
+                        projection_distance);
+        }
+        else if (mGeometryFamily == GeometryData::Kratos_Tetrahedra ||
+                 mGeometryFamily == GeometryData::Kratos_Prism ||
+                 mGeometryFamily == GeometryData::Kratos_Hexahedra)   // Volume Mapping
+        {
+            is_inside = MapperUtilities::PointLocalCoordinatesInVolume(mpGeometry, rGlobalCoords,
+                        projection_local_coords,
+                        projection_distance);
+        }
+        else
+        {   
+            if (mEchoLevel >= 2) {
+                std::cout << "MAPPER WARNING, Unsupported geometry, "
+                          << "using an approximation (Nearest Node)"
+                          << " | InterfaceGeometryObject, Center: [ "
+                          << this->X() << " | "
+                          << this->Y() << " | "
+                          << this->Z() << " ], "
+                          << "(KratosGeometryFamily \"" << mGeometryFamily 
+                          << "\", num points: " << mNumPoints << std::endl;              
+            }
+            return false;
+        }
 
-    //     if (is_inside)
-    //     {
-    //         projection_distance = fabs(projection_distance);
+        if (is_inside)
+        {
+            projection_distance = fabs(projection_distance);
 
-    //         if (projection_distance < rMinDistance)
-    //         {
-    //             rMinDistance = projection_distance;
-    //             rShapeFunctionValues.resize(mNumPoints);
-    //             for (int i = 0; i < mNumPoints; ++i)
-    //             {
-    //                 rShapeFunctionValues[i] = mpGeometry->ShapeFunctionValue(i, projection_local_coords);
-    //             }
-    //             is_closer = true;
-    //         }
-    //     }
-    //     return is_closer;
-    // }
+            if (projection_distance < rMinDistance)
+            {
+                rMinDistance = projection_distance;
+                rShapeFunctionValues.resize(mNumPoints);
+                for (int i = 0; i < mNumPoints; ++i)
+                {
+                    rShapeFunctionValues[i] = mpGeometry->ShapeFunctionValue(i, projection_local_coords);
+                }
+                is_closer = true;
+            }
+        }
+        return is_closer;
+    }
 
     bool ComputeApproximation(const array_1d<double, 3>& rGlobalCoords, double& rMinDistance,
                               std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
@@ -340,17 +340,17 @@ private:
     Geometry<Node<3>>* mpGeometry;
     Node<3>* mpPoint;
     GeometryData::KratosGeometryFamily mGeometryFamily;
-    int mNumPoints;
+    int mNumPoints; 
     double mApproximationTolerance = 0.0f;
     int mConstructionIndex;
     GeometryData::IntegrationMethod mIntegrationMethod;
-
+        
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-
+    
     virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
@@ -358,7 +358,7 @@ private:
     }
     virtual void load(Serializer& rSerializer) override
     {
-        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;        
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
     }
 

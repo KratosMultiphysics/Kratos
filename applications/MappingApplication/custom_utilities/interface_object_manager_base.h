@@ -26,8 +26,6 @@
 
 #include "interface_node.h"
 #include "interface_geometry_object.h"
-#include "interface_meshless_point.h"
-#include "interface_element.h"
 #include "custom_configures/interface_object_configure.h"
 
 
@@ -467,17 +465,10 @@ protected:
         {
             InitializeInterfaceNodeManager(rModelPart);
         }
-        else if (InterfaceObjectType == MapperUtilities::Geom_Object_Center)
+        else if (InterfaceObjectType == MapperUtilities::Condition_Center ||
+                 InterfaceObjectType == MapperUtilities::Condition_Gauss_Point)
         {
             InitializeInterfaceGeometryObjectManager(rModelPart, IntegrationMethod, ApproximationTolerance);
-        }
-        else if (InterfaceObjectType == MapperUtilities::Meshless_Point)
-        {
-            InitializeInterfaceMeshlessPointManager(rModelPart);
-        }
-        else if (InterfaceObjectType == MapperUtilities::Element_Center)
-        {
-            InitializeInterfaceElementManager(rModelPart);
         }
         else
         {
@@ -487,7 +478,7 @@ protected:
         int num_interface_objects = mInterfaceObjects.size();
         mrModelPart.GetCommunicator().SumAll(num_interface_objects);
 
-        KRATOS_ERROR_IF_NOT(num_interface_objects > 0)
+        KRATOS_ERROR_IF_NOT(num_interface_objects > 0) 
             << "No interface objects were created in ModelPart \""
             << mrModelPart.Name() << "\"!" << std::endl;
     }
@@ -566,30 +557,6 @@ private:
         }
     }
 
-    void InitializeInterfaceMeshlessPointManager(ModelPart& rModelPart)
-    {
-        mInterfaceObjects.resize(rModelPart.GetCommunicator().LocalMesh().NumberOfElements());
-
-        int i = 0;
-        for (auto &local_elem : rModelPart.GetCommunicator().LocalMesh().Elements())
-        {
-            mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceMeshlessPoint(local_elem, mEchoLevel) );
-            ++i;
-        }
-    }
-
-    void InitializeInterfaceElementManager(ModelPart& rModelPart)
-    {
-        mInterfaceObjects.resize(rModelPart.GetCommunicator().LocalMesh().NumberOfElements());
-
-        int i = 0;
-        for (auto &local_elem : rModelPart.GetCommunicator().LocalMesh().Elements())
-        {
-            mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceElement(local_elem, mEchoLevel) );
-            ++i;
-        }
-    }
-
     void InitializeInterfaceGeometryObjectManager(ModelPart& rModelPart,
             GeometryData::IntegrationMethod IntegrationMethod,
             const double ApproximationTolerance)
@@ -622,7 +589,7 @@ private:
             {
                 mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
                                             ApproximationTolerance,
-                                            mEchoLevel,
+                                            mEchoLevel, 
                                             0) ));
             }
             for (auto& element : rModelPart.GetCommunicator().LocalMesh().Elements())

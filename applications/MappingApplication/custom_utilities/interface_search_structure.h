@@ -286,7 +286,7 @@ protected:
 
         for (int i = 0; i < static_cast<int>(NumResults); ++i)   // find index of best result
         {
-            if (rResultList[i]->EvaluateResult((*rPoint), min_distance,
+            if (rResultList[i]->EvaluateResult((*rPoint)->Coordinates(), min_distance,
                                                rDistances[i], rShapeFunctionsValues))
             {
                 rClosestDistance = min_distance;

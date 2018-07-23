@@ -49,7 +49,7 @@ namespace Kratos
 ///@{
 
 /// Node on the Interface for Searching
-/** This class Is the "wrapper" for nodes on the interface. It selects the best result by the closest distance to the
+/** This class Is the "wrapper" for nodes on the interface. It selects the best result by the closest distance to the 
 * point of which neighbor have to be found
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
@@ -66,11 +66,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // A default constructor necessary for serialization
+    // A default constructor necessary for serialization 
     InterfaceNode() : InterfaceObject()
     {
     }
-
+    
     InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
     {
         SetCoordinates();
@@ -95,20 +95,20 @@ public:
         return mpNode;
     }
 
-    // bool EvaluateResult(const InterfaceObject::Pointer rObject,
-    //                     double& rMinDistance, const double Distance,
-    //                     std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
-    // {
-    //     bool is_closer = false;
+    bool EvaluateResult(const array_1d<double, 3>& GlobalCooords,
+                        double& rMinDistance, const double Distance,
+                        std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
+    {
+        bool is_closer = false;
 
-    //     if (Distance < rMinDistance)
-    //     {
-    //         rMinDistance = Distance;
-    //         is_closer = true;
-    //     }
+        if (Distance < rMinDistance)
+        {
+            rMinDistance = Distance;
+            is_closer = true;
+        }
 
-    //     return is_closer;
-    // }
+        return is_closer;
+    }
 
     // Functions used for Debugging
     void PrintNeighbors(const int CommRank) override
@@ -220,16 +220,16 @@ private:
     ///@{
 
     Node<3>* mpNode;
-
+        
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-
+    
     virtual void save(Serializer& rSerializer) const override
     {
-        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
+        KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;        
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
     }
     virtual void load(Serializer& rSerializer) override

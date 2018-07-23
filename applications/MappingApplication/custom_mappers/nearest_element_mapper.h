@@ -50,7 +50,7 @@ namespace Kratos
 
 /// Interpolative Mapper
 /** This class implements the Nearest Element Mapping technique.
-* Each node on the destination side gets assigned is's closest condition or element (distance to center)
+* Each node on the destination side gets assigned is's closest condition or element (distance to center) 
 * on the other side of the interface.
 * In the mapping phase every node gets assigned the interpolated value of the condition/element.
 * The interpolation is done with the shape funcitons
@@ -77,7 +77,7 @@ public:
                          Parameters JsonParameters) : Mapper(
                                  rModelPartOrigin, rModelPartDestination, JsonParameters)
     {
-        mpMapperCommunicator->InitializeOrigin(MapperUtilities::Geom_Object_Center);
+        mpMapperCommunicator->InitializeOrigin(MapperUtilities::Condition_Center);
         mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
         mpMapperCommunicator->Initialize();
 

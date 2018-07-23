@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "mapper_utilities.h"
-#include "mapping_application_variables.h"
+#include "../mapping_application_variables.h"
 
 
 namespace Kratos
@@ -180,13 +180,7 @@ public:
         return nullptr;
     }
 
-    virtual Element* pGetBaseElement()
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-        return nullptr;
-    }
-
-    virtual bool EvaluateResult(const InterfaceObject::Pointer rObject,
+    virtual bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords,
                                 double& rMinDistance, const double Distance,
                                 std::vector<double>& rShapeFunctionValues)
     {

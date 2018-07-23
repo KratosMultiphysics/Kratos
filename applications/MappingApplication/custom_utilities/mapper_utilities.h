@@ -73,9 +73,9 @@ public:
     enum InterfaceObjectConstructionType
     {
         Node_Coords,
-        Geom_Object_Center,
-        Meshless_Point,
-        Element_Center
+        Condition_Center,
+        Condition_Gauss_Point,
+        // Point or Coordinates or sth => for Contact => create with list of points/coords,
     };
 
     ///@}
@@ -263,12 +263,12 @@ public:
     static std::vector<double> ComputeModelPartBoundingBox(ModelPart& rModelPart){
         double init_max = std::numeric_limits<double>::max();
         double init_min = std::numeric_limits<double>::lowest();
-
+        
         std::vector<double> model_part_bbox{ init_min, init_max, init_min, init_max, init_min, init_max };
         // xmax, xmin,  ymax, ymin,  zmax, zmin
         MapperUtilities::ComputeLocalBoundingBox(rModelPart, &model_part_bbox[0]);
 
-        // this is not the most efficient way, but it is less implementational
+        // this is not the most efficient way, but it is less implementational 
         // effort and anyway only used for debugging
         rModelPart.GetCommunicator().MaxAll(model_part_bbox[0]);
         rModelPart.GetCommunicator().MinAll(model_part_bbox[1]);
@@ -282,10 +282,10 @@ public:
 
     static bool ComputeBoundingBoxIntersection(std::vector<double>& bbox_origin,
                                                std::vector<double>& bbox_destination)
-    {
+    {   
         std::vector<double> bbox_origin_tol(6);
         std::vector<double> bbox_destination_tol(6);
-
+        
         const double tolerance = std::numeric_limits<double>::epsilon();
 
         MapperUtilities::ComputeBoundingBoxWithTolerance(&bbox_origin[0], tolerance, &bbox_origin_tol[0]);
@@ -340,7 +340,7 @@ public:
         buffer << "Bounding Box Origin: "
                << MapperUtilities::BoundingBoxStingStream(&bbox_origin[0]) << ", "
                << "Bounding Box Destination: "
-               << MapperUtilities::BoundingBoxStingStream(&bbox_destination[0])
+               << MapperUtilities::BoundingBoxStingStream(&bbox_destination[0]) 
                << std::endl;
         return buffer.str();
     }
