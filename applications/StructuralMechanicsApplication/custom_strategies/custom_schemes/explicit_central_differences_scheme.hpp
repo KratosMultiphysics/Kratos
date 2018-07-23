@@ -139,7 +139,7 @@ public:
     KRATOS_CATCH("")
   }
   //***************************************************************************
-  
+
   void InitializeNonLinIteration(
       ModelPart& rModelPart,
       TSystemMatrixType& A,
@@ -150,20 +150,20 @@ public:
       KRATOS_TRY;
 
       ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
-      
+
       #pragma omp parallel for
       for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
           auto it_elem = rModelPart.ElementsBegin() + i;
           it_elem->InitializeNonLinearIteration(current_process_info);
       }
-      
-      
+
+
       #pragma omp parallel for
       for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
           auto it_elem = rModelPart.ConditionsBegin() + i;
           it_elem->InitializeNonLinearIteration(current_process_info);
-      }     
-      
+      }
+
       KRATOS_CATCH( "" );
   }
 
@@ -339,10 +339,14 @@ public:
     for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
       // Current step information "N+1" (before step update).
       this->UpdateTranslationalDegreesOfFreedom(i_begin + i);
-      if (has_dof_for_rot_z)
-        this->UpdateRotationalDegreesOfFreedom(i_begin + i);
     } // for Node parallel
 
+if (has_dof_for_rot_z){
+#pragma omp parallel for firstprivate(i_begin)
+    for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+        this->UpdateRotationalDegreesOfFreedom(i_begin + i);
+    } // for Node parallel
+}
     mTime.Previous = mTime.Current;
     mTime.PreviousMiddle = mTime.Middle;
 
