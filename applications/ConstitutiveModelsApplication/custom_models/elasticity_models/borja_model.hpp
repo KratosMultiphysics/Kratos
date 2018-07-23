@@ -47,10 +47,10 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) BorjaModel : public HenckyHyperElasticModel
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of BorjaModel
     KRATOS_CLASS_POINTER_DEFINITION( BorjaModel );
 
@@ -58,8 +58,8 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.    
-    BorjaModel(); 
+    /// Default constructor.
+    BorjaModel();
 
     /// Copy constructor.
     BorjaModel(BorjaModel const& rOther);
@@ -79,17 +79,17 @@ namespace Kratos
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
-    
+
+
     ///@}
     ///@name Access
     ///@{
-        
-    
+
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -140,8 +140,8 @@ namespace Kratos
     ///@}
     ///@name Protected Operators
     ///@{
-    
-   
+
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -179,7 +179,7 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
@@ -187,7 +187,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -203,7 +203,7 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
@@ -217,7 +217,7 @@ namespace Kratos
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyHyperElasticModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyHyperElasticModel )
     }
 
     ///@}
@@ -250,6 +250,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BORJA_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_BORJA_MODEL_H_INCLUDED  defined
 
 

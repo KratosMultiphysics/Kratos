@@ -65,9 +65,16 @@ namespace Kratos
 
   Condition::Pointer ContactDomainLM3DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Condition::Pointer(new ContactDomainLM3DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Kratos::make_shared<ContactDomainLM3DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
   }
 
+  //************************************CLONE*******************************************
+  //************************************************************************************
+
+  Condition::Pointer ContactDomainLM3DCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
+  {
+    return this->Create(NewId, ThisNodes, pGetProperties());
+  }
 
   //*******************************DESTRUCTOR*******************************************
   //************************************************************************************
@@ -392,11 +399,11 @@ namespace Kratos
     MathUtils<double>::CrossProduct(DirectionC,Covariant.DirectionA,Covariant.DirectionB);
     if( norm_2(DirectionC)!=0 )
 	DirectionC /= norm_2(DirectionC);
-    
+
     Covariant.Metric(0,0) = inner_prod(Covariant.DirectionA, Covariant.DirectionA);
     Covariant.Metric(0,1) = inner_prod(Covariant.DirectionA, Covariant.DirectionB);
     Covariant.Metric(0,2) = inner_prod(Covariant.DirectionA, DirectionC);
-    
+
     Covariant.Metric(1,0) = inner_prod(Covariant.DirectionB, Covariant.DirectionA);
     Covariant.Metric(1,1) = inner_prod(Covariant.DirectionB, Covariant.DirectionB);
     Covariant.Metric(1,2) = inner_prod(Covariant.DirectionB, DirectionC);
@@ -404,9 +411,9 @@ namespace Kratos
     Covariant.Metric(2,0) = inner_prod(DirectionC, Covariant.DirectionA);
     Covariant.Metric(2,1) = inner_prod(DirectionC, Covariant.DirectionB);
     Covariant.Metric(2,2) = inner_prod(DirectionC, DirectionC);
-    
+
     // Contravariant vectors and contravariant metric
-    Contravariant.Metric.resize(3,3);   
+    Contravariant.Metric.resize(3,3);
     double MetricDet;
     MathUtils<double>::InvertMatrix3(Covariant.Metric,Contravariant.Metric, MetricDet);
 
@@ -424,9 +431,9 @@ namespace Kratos
     // Contravariant.Metric(0,1) = inner_prod(Contravariant.DirectionA, Contravariant.DirectionB);
     // Contravariant.Metric(1,0) = inner_prod(Contravariant.DirectionB, Contravariant.DirectionA);
     // Contravariant.Metric(1,1) = inner_prod(Contravariant.DirectionB, Contravariant.DirectionB);
-    
+
     // std::cout<<" Check "<<inner_prod(Contravariant.DirectionA, Covariant.DirectionB)<<" "<<inner_prod(Contravariant.DirectionB, Covariant.DirectionA)<<" Det "<<1.0/MathUtils<double>::Det(Contravariant.Metric)<<" "<<MathUtils<double>::Det(Covariant.Metric)<<std::endl;
-    
+
     // std::cout<<" CvMetric "<<Covariant.Metric<<" CvA "<<Covariant.DirectionA<<" CvB "<<Covariant.DirectionB<<std::endl;
     // std::cout<<" CnMetric "<<Contravariant.Metric<<" CnA "<<Contravariant.DirectionA<<" CnB "<<Contravariant.DirectionB<<std::endl;
 
@@ -2302,7 +2309,7 @@ namespace Kratos
          rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[jdir]+
          rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
          rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
-    
+
     Kcont-= (rVariables.Contact.dN_dn[ndi] * rVariables.Contact.CurrentSurface.Normal[idir]) *
         (rVariables.Contact.Tangent.A.CurrentTensil.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
          rVariables.Contact.Tangent.B.CurrentTensil.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
@@ -2336,10 +2343,10 @@ namespace Kratos
 
     //current configuration factor (UL-SL)
     double factor = 1.0; //rVariables.Contact.Tangent.CurrentArea/rVariables.Contact.Tangent.ReferenceArea;
-    
+
     Kcont+= factor*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Nsigma[ndj][jdir];
     //std::cout<<" Kb "<<Kcont;
-    
+
     rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS,false); //friction needs an special treatment --> correct linearization is needed.
 
     //Stick contact contribution:
@@ -2359,13 +2366,13 @@ namespace Kratos
 	    Kcont+= (raux*rVariables.Contact.Tangent.A.dN_dt[ndi]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]) *
 	      ( (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal) )*rVariables.Contact.dN_drn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+
 		rVariables.Contact.Multiplier.Normal*rVariables.Contact.CurrentSurface.Normal[jdir]*(rVariables.Contact.Tangent.CovariantBase.Metric(0,0)*rVariables.Contact.Tangent.A.dN_dt[ndj]+rVariables.Contact.Tangent.CovariantBase.Metric(0,1)*rVariables.Contact.Tangent.B.dN_dt[ndj]) );
-            
+
             Kcont+= (raux*rVariables.Contact.Tangent.B.dN_dt[ndi]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir])*
 	      ( (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal) )*rVariables.Contact.dN_drn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir]+
 		rVariables.Contact.Multiplier.Normal*rVariables.Contact.CurrentSurface.Normal[jdir]*(rVariables.Contact.Tangent.CovariantBase.Metric(1,0)*rVariables.Contact.Tangent.A.dN_dt[ndj]+rVariables.Contact.Tangent.CovariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndj]) );
-            
+
             Kcont+= rVariables.Contact.Tangent.A.Multiplier*(rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+(rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir])*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.dN_drn[ndj]+(rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.CurrentSurface.Normal(idir)-raux*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionA(jdir)*rVariables.Contact.Tangent.A.dN_dt(ndj)-raux*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionB(jdir)*rVariables.Contact.Tangent.A.dN_dt(ndj));
-            
+
             Kcont-= rVariables.Contact.Tangent.B.Multiplier*(rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+(rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir])*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.dN_drn[ndj]+(rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+ rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.CurrentSurface.Normal(idir)-raux*rVariables.Contact.Tangent.A.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionA(jdir)*rVariables.Contact.Tangent.B.dN_dt(ndj)-raux*rVariables.Contact.Tangent.B.dN_dt(ndi)*rVariables.Contact.Tangent.CovariantBase.DirectionB(jdir)*rVariables.Contact.Tangent.B.dN_dt(ndj));
 
 	    // rstiff = rstiff + (raux*dNt1_a(in) + t1cn(idime)*hdNn_n(in))*
