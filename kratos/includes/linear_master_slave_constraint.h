@@ -68,12 +68,9 @@ public:
                                 DofPointerVectorType& rSlaveDofsVector,
                                 const MatrixType& rRelationMatrix,
                                 const VectorType& rConstantVector)
-        : MasterSlaveConstraint(Id)
+        : MasterSlaveConstraint(Id), mSlaveDofsVector(rSlaveDofsVector), mMasterDofsVector(rMasterDofsVector),
+                                    mRelationMatrix(rRelationMatrix), mConstantVector(rConstantVector)
     {
-        mSlaveDofsVector = rSlaveDofsVector;
-        mMasterDofsVector = rMasterDofsVector;
-        mRelationMatrix = rRelationMatrix;
-        mConstantVector = rConstantVector;
     }
 
     /*
