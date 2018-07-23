@@ -24,3 +24,11 @@ def DeleteDirectoryIfExisting(directory_name):
         rmtree(directory_name)
     except:
         pass
+
+def DeleteTimeFiles(directory_name):
+    """This function deletes all *.time files in a directory
+    """
+    import os
+    for file_name in os.listdir(directory_name):
+        if file_name.endswith(".time"):
+            DeleteFileIfExisting(os.path.join(directory_name, file_name))
