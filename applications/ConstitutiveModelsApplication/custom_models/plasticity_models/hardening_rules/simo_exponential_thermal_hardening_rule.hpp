@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoExponentialThermalHardeningRule 
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoExponentialThermalHardeningRule
     : public SimoExponentialHardeningRule
   {
   public:
@@ -69,7 +69,7 @@ namespace Kratos
 
     /// Clone.
     virtual HardeningRule::Pointer Clone() const override;
-    
+
     /// Destructor.
     ~SimoExponentialThermalHardeningRule();
 
@@ -122,7 +122,7 @@ namespace Kratos
     virtual void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoExponentialThermalHardeningRule Data";
-    }    
+    }
 
 
     ///@}
@@ -139,7 +139,7 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-     
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -147,11 +147,11 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-  
+
     virtual double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor) override;
 
     virtual double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor) override;
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -202,12 +202,12 @@ namespace Kratos
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SimoExponentialHardeningRule )
     }
-    
+
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SimoExponentialHardeningRule )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -239,6 +239,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_EXPONENTIAL_THERMAL_HARDENING_RULE_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_EXPONENTIAL_THERMAL_HARDENING_RULE_H_INCLUDED  defined
 
 

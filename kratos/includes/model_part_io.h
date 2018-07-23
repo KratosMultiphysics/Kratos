@@ -409,7 +409,7 @@ protected:
 
     void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
 
-    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string InitialTabulation);
+    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string& InitialTabulation);
 
     void ReadSubModelPartDataBlock(ModelPart& rModelPart);
 

@@ -42,7 +42,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   PointLoadCondition::PointLoadCondition( PointLoadCondition const& rOther )
-    : LoadCondition(rOther)     
+    : LoadCondition(rOther)
   {
   }
 
@@ -53,7 +53,7 @@ namespace Kratos
 						  NodesArrayType const& ThisNodes,
 						  PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new PointLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<PointLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -67,8 +67,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new PointLoadCondition(NewCondition) );
+    return Kratos::make_shared<PointLoadCondition>(NewCondition);
   }
 
 
@@ -85,13 +84,13 @@ namespace Kratos
   void PointLoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-      
-    const unsigned int number_of_nodes = GetGeometry().size();
+
+    const SizeType number_of_nodes = GetGeometry().size();
     const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVariables.Initialize(dimension, local_dimension, number_of_nodes);
-   
+
     //Only one node:
     rVariables.N[0] = 1.0;
 
@@ -107,62 +106,62 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
     noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
-   
+
     //FORCE CONDITION:
     //defined on condition
     if( this->Has( FORCE_LOAD ) ){
       array_1d<double, 3 > & PointLoad = this->GetValue( FORCE_LOAD );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
 	}
     }
-    
+
     //defined on condition nodes
     if( this->Has( FORCE_LOAD_VECTOR ) ){
       Vector& PointLoads = this->GetValue( FORCE_LOAD_VECTOR );
       unsigned int counter = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  counter = i*3;
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    {
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoads[counter+k];
 	    }
-	  
+
 	}
     }
-    
-    //defined on condition nodes (legacy)     
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+
+    //defined on condition nodes (legacy)
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( POINT_LOAD ) ){
 	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( POINT_LOAD );
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
- 
+
 	}
       }
 
-    //defined on condition nodes      
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    //defined on condition nodes
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( FORCE_LOAD ) ){
 	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( FORCE_LOAD );
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
- 
+
 	}
       }
-    
+
 
     KRATOS_CATCH( "" )
   }
@@ -210,14 +209,14 @@ namespace Kratos
 	//contributions to stiffness matrix calculated on the reference config
 	this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
       }
-    
+
     if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
       {
-	
+
 	this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
       }
-    
-  
+
+
     KRATOS_CATCH( "" )
   }
 
@@ -236,9 +235,9 @@ namespace Kratos
     KRATOS_CHECK_VARIABLE_KEY(POINT_LOAD);
     KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD);
     KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD_VECTOR);
-        
+
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

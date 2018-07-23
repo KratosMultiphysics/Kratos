@@ -214,4 +214,4 @@ private:
 
 }; // Class LinearElasticAxisym2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_AXISYM_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_AXISYM_2D_LAW_H_INCLUDED  defined
