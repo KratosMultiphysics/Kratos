@@ -114,7 +114,6 @@ namespace Kratos
       const ModelDataType & rModelData = rVariables.GetModelData();
       const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
-      const double & rPS     = rVariables.Internal.Variables[3];
       const double & rPT     = rVariables.Internal.Variables[4];
       const double & rPCstar = rVariables.Internal.Variables[5];
 
@@ -155,7 +154,6 @@ namespace Kratos
       const ModelDataType & rModelData = rVariables.GetModelData();
       const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
-      const double & rPS     = rVariables.Internal.Variables[3];
       const double & rPT     = rVariables.Internal.Variables[4];
       const double & rPCstar = rVariables.Internal.Variables[5];
 

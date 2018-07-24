@@ -933,8 +933,9 @@ namespace Kratos
                rValues.State.Set(ConstitutiveModelData::PLASTIC_REGION,false);
 
                rValues.State.Set(ConstitutiveModelData::IMPLEX_ACTIVE,false);
-               if( rValues.GetProcessInfo()[IMPLEX] == 1 )
+               if( rValues.GetProcessInfo()[IMPLEX] == 1 ) {
                   rValues.State.Set(ConstitutiveModelData::IMPLEX_ACTIVE,true);
+               }
 
                rVariables.SetState(rValues.State);
 
@@ -974,12 +975,64 @@ namespace Kratos
 
             // ****************************************************************************
             //  compute the stress state by using implex
-            void  CalculateImplexPlasticStep(ModelDataType& rValues, PlasticDataType&  Variables, MatrixType&  rStressMatrix, const MatrixType & rDeltaDeformationMatrix)
+            void  CalculateImplexPlasticStep(ModelDataType& rValues, PlasticDataType&  rVariables, MatrixType&  rStressMatrix, const MatrixType & rDeltaDeformationMatrix)
             {
                KRATOS_TRY
-               // compute with 
 
-               KRATOS_ERROR << "not yet impelemnted" << std::endl;
+               // evaluate constitutive matrix and plastic flow
+               double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
+               double & rPlasticDevDef = rVariables.Internal.Variables[2];
+
+               const double & rPlasticMultiplierOld = mPreviousInternal.Variables[0];
+               double & rPlasticMultiplier    = rVariables.Internal.Variables[0];
+               double  DeltaPlasticMultiplier = (rPlasticMultiplier - rPlasticMultiplierOld);
+
+               if ( DeltaPlasticMultiplier < 0)
+                  DeltaPlasticMultiplier = 0;
+
+               
+               this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
+
+               /*Matrix ElasticMatrix(6,6);
+               noalias(ElasticMatrix) = ZeroMatrix(6,6);
+               this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);*/
+
+               VectorType DeltaStressYieldCondition = this->mYieldSurface.CalculateDeltaStressYieldCondition( rVariables, DeltaStressYieldCondition);
+               VectorType PlasticPotentialDerivative;
+               PlasticPotentialDerivative = DeltaStressYieldCondition; // LMV
+
+               //double H = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, H);
+
+               //MatrixType StrainMatrix = prod( rDeltaDeformationMatrix, trans( rDeltaDeformationMatrix) );
+               //VectorType StrainVector; 
+               //ConvertCauchyGreenTensorToHenckyVector( StrainMatrix, StrainVector);
+
+               //VectorType AuxVector;
+               //AuxVector = prod( ElasticMatrix, StrainVector);
+
+
+
+               MatrixType UpdateMatrix;
+               ConvertHenckyVectorToCauchyGreenTensor( -DeltaPlasticMultiplier * PlasticPotentialDerivative / 2.0, UpdateMatrix);
+               UpdateMatrix = prod( rDeltaDeformationMatrix, UpdateMatrix);
+
+
+               rValues.StrainMatrix = prod( UpdateMatrix, rValues.StrainMatrix);
+               rValues.StrainMatrix = prod( rValues.StrainMatrix, trans(UpdateMatrix));
+
+               this->mElasticityModel.CalculateStressTensor( rValues, rStressMatrix);
+
+               rPlasticMultiplier += DeltaPlasticMultiplier;
+               for (unsigned int i = 0; i < 3; i++)
+                  rPlasticVolDef += DeltaPlasticMultiplier * DeltaStressYieldCondition(i);
+
+               double update = 0.0;
+               for (unsigned int i = 0; i < 3; i++)
+                  update += pow( DeltaPlasticMultiplier * ( DeltaStressYieldCondition(i) - rPlasticVolDef/3.0) , 2.0);
+               for (unsigned int i = 3; i < 6; i++)
+                  update += 2.0 * pow( DeltaPlasticMultiplier *  DeltaStressYieldCondition(i) /2.0 , 2.0);
+               rPlasticDevDef += sqrt(update);
+
                KRATOS_CATCH("")
             }
             ///@}

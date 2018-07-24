@@ -455,7 +455,7 @@ namespace Kratos
                double k =  rMaterialProperties[KSIM];
                // evaluate constitutive matrix and plastic flow
                double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
-               double & rPlasticMultiplier = rVariables.Internal.Variables[0];
+               //double & rPlasticMultiplier = rVariables.Internal.Variables[0];
                double & rPlasticDevDef = rVariables.Internal.Variables[2];
                double & rPS     = rVariables.Internal.Variables[3];
                double & rPT     = rVariables.Internal.Variables[4];
