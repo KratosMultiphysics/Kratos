@@ -1,11 +1,24 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
 
-import KratosMultiphysics.StructuralMechanicsApplication
+# Importing the Kratos Library
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication
+    missing_external_dependencies = False
+    missing_application = ''
+except ImportError as e:
+    missing_external_dependencies = True
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
+                                    '{0}'.format(e)).group(1)
+
+# Other imports
+import os
 
 
-class TestMultipointConstraints(KratosUnittest.TestCase):
+class TestLinearMultipointConstraints(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
