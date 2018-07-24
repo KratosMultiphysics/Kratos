@@ -134,6 +134,48 @@ namespace Kratos
 
 		}
 
+		void AssignPointNeumannConditionsVel(ModelPart& ThisModelPart)
+		{			
+			KRATOS_TRY;
+			//KRATOS_WATCH("Inside of AssignPointNeumannConditions UTILITY")
+			const int TDim=ThisModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+			Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
+			int id = ThisModelPart.Conditions().size();
+			//KRATOS_WATCH(ThisModelPart.Conditions().size())
+			Condition::NodesArrayType temp;	
+			for(ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin(); 
+				it!=ThisModelPart.NodesEnd(); it++)
+			 {
+				if( it->FastGetSolutionStepValue(FLAG_VARIABLE) == 1.0)
+				   {	
+	      			       temp.reserve(1);
+				       temp.push_back(*(it.base()));	
+		
+					if (TDim==3)
+						{
+						Condition::Pointer p_cond = (KratosComponents<Condition>::Get("PointNeumann3D_vel")).Create(id, temp, properties);	
+						(ThisModelPart.Conditions()).push_back(p_cond);
+						}
+					else if (TDim==2)
+						{
+						Condition::Pointer p_cond = (KratosComponents<Condition>::Get("PointNeumann2D_vel")).Create(id, temp, properties);	
+						(ThisModelPart.Conditions()).push_back(p_cond);
+						
+						}
+					
+					id++;
+					temp.clear();
+					
+				  }
+
+			}
+
+			//ThisModelPart.Conditions().Sort();
+
+
+			KRATOS_CATCH("")
+		}
 		 //THIS ONE IS FOR THE VELOCITY-BASED FORMUALTION
 		/* IT WORKS, BUT IS COMMENTED
 		void AssignPointNeumannConditionsMonolithic2D(ModelPart& ThisModelPart)

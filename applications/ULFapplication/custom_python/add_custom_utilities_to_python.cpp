@@ -98,6 +98,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<>())
     .def("AssignPointNeumannConditionsDisp", &AssignPointNeumannConditions::AssignPointNeumannConditionsDisp)
     .def("AssignPointNeumannConditionsDispAxisym", &AssignPointNeumannConditions::AssignPointNeumannConditionsDispAxisym)
+    .def("AssignPointNeumannConditionsVel", &AssignPointNeumannConditions::AssignPointNeumannConditionsVel)
     //.def("AssignPointNeumannConditionsMonolithic2D", &AssignPointNeumannConditions::AssignPointNeumannConditionsMonolithic2D)
     ; 
 

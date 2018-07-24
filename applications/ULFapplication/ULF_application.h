@@ -44,6 +44,7 @@
 #include "custom_elements/hypo_elastic_solid2d.h"
 #include "custom_elements/hypo_elastic_solid3d.h"
 #include "custom_conditions/Point_Neumann3D.h"
+#include "custom_conditions/Point_Neumann3D_vel.h"
 #include "custom_conditions/Point_Neumann2D.h"
 #include "custom_conditions/Point_Neumann_Axisym.h"
 #include "custom_elements/surface_tension.h"
@@ -218,6 +219,7 @@ private:
     const HypoElasticSolid3D mHypoElasticSolid3D;
     const PointNeumann3D  mPointNeumann3D;
     const PointNeumann2D  mPointNeumann2D;
+    const PointNeumann3D_vel  mPointNeumann3D_vel;
     const PointNeumannAxisym  mPointNeumannAxisym;
     
        /// 2D instance of the SurfaceTension element

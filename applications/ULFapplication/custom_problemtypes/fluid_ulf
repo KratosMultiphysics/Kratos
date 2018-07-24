@@ -7,17 +7,15 @@ VECTOR CONDITION DISPLACEMENT 		point line surface volume fixed 0.0 0.0 0.0
 VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
 VECTOR CONDITION BODY_FORCE     	point line surface volume free 0.0 0.0 0.0
 SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
-SCALAR CONDITION VISCOSITY     		point line surface volume free  0.0001
+SCALAR CONDITION VISCOSITY     		point line surface volume free  0.000001
 SCALAR CONDITION DENSITY     		point line surface volume free  1.0
-SCALAR CONDITION DENSITY_AIR     	point line surface volume free  1.0
-SCALAR CONDITION DENSITY_WATER     	point line surface volume free  1.0
-SCALAR CONDITION VISCOSITY_AIR     	point line surface volume free  1.0
-SCALAR CONDITION VISCOSITY_WATER     	point line surface volume free  1.0
+
+
 
 FLAG CONDITION IS_INTERFACE   		point line surface volume free 1.0 0.0
 FLAG CONDITION IS_LAGRANGIAN_INLET	point line surface volume free 1.0 0.0
 FLAG CONDITION FLAG_VARIABLE  		point line surface volume free 1.0 2.0 3.0 4.0 5.0
-FLAG CONDITION IS_BOUNDARY    		point line surface volume free 1.0 2.0 3.0 4.0 5.0
+FLAG CONDITION IS_BOUNDARY    		point line surface volume free 1.0 0.0
 FLAG CONDITION IS_STRUCTURE    		point line surface volume free 1.0 0.0
 
 FACE CONDITION Condition2D line
@@ -28,17 +26,22 @@ ELEMENT UpdatedLagrangianFluid3D volume
 ELEMENT UpdatedLagrangianFluid2Dinc surface
 ELEMENT UpdatedLagrangianFluid3Dinc volume 
 ELEMENT UlfFrac2D surface 
+ELEMENT VMS2D surface 
 ELEMENT UlfFrac3D volume 
+ELEMENT VMS3D volume 
 ELEMENT MembraneElement surface
 ELEMENT TotalLagrangian2D3N surface  
 ELEMENT TotalLagrangian3D4N volume
+ELEMENT HypoElasticSolid2D surface  
+ELEMENT HypoElasticSolid3D volume
 
-OPTION 2D_Body_Element surface UpdatedLagrangianFluid2D UpdatedLagrangianFluid2Dinc UlfFrac2D TotalLagrangian2D3N MembraneElement
-OPTION 3D_Body_Element volume UpdatedLagrangianFluid3D UpdatedLagrangianFluid3Dinc UlfFrac3D TotalLagrangian3D4N 
+
+OPTION 2D_Body_Element surface UpdatedLagrangianFluid2D UpdatedLagrangianFluid2Dinc UlfFrac2D VMS2D TotalLagrangian2D3N MembraneElement HypoElasticSolid2D
+OPTION 3D_Body_Element volume UpdatedLagrangianFluid3D UpdatedLagrangianFluid3Dinc UlfFrac3D VMS3D TotalLagrangian3D4N HypoElasticSolid3D
 
 PROPERTY FSI 0 FSI
 PROPERTY compute_reactions 0 compute_reactions
-PROPERTY Time_step 0.01 Dt
+PROPERTY Time_step 0.001 Dt
 PROPERTY max_time 1.0 max_time
 PROPERTY output_step 0.01 output_step
 PROPERTY alpha_shape 1.6 alpha_shape
@@ -58,7 +61,7 @@ PROPERTY lagrangian_nodes_inlet 0 lagrangian_nodes_inlet
 TEXT FLAG PROPERTY SolverType Quasi_Inc_Constant_Pressure Quasi_Inc_Linear_Pressure FracStep Incompressible_Modified_FracStep SolverType
 
 DEFINE MATERIAL Structure DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR THICKNESS SCALAR 
-ADD MATERIAL TestMaterial     2000.0 2000000.0   0.1  (0.0,0.0,0.0) 1.0  #do not put spaces in the definition of the vector
+ADD MATERIAL TestMaterial     1000.0 2000000.0   0.3  (0.0,0.0,0.0) 1.0  #do not put spaces in the definition of the vector
 
 DEFINE MODEL PART NoSlipCondition point line surface LOWER
 ADD CONDITION DISPLACEMENT point line surface volume fixed 0.0 0.0 0.0
