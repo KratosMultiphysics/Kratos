@@ -150,11 +150,6 @@ class RungeKuttaFracStepSolver:
         alpha_shape=1.4;
         h_factor=0.2
 
-        if(self.domain_size == 2):
-            for node in (self.model_part).Nodes: 
-                node.SetSolutionStepValue(NODAL_H,0,0.002) 
-
-
         self.node_erase_process = NodeEraseProcess(self.model_part);
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)
 
