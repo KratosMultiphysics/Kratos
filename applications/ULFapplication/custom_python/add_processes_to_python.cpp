@@ -79,10 +79,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/calculate_curvature.h"
 #include "custom_processes/find_triple_point.h"
 #include "custom_processes/calculate_contact_angle.h"
-
+#include "custom_processes/apply_proj_dirichlet_process.h"
+#include "custom_processes/pseudo_lag_part_process.h"
 #include "custom_processes/calculate_nodal_length.h"
 #include "custom_processes/find_nodal_neighbours_surface_process.h"
 #include "custom_processes/mark_free_surface_process.h"
+#include "custom_processes/ulf_apply_bc_process.h"
 
 #include "includes/node.h"
 
@@ -235,8 +237,23 @@ void  AddProcessesToPython(pybind11::module& m)
 
     class_<CalculateAdhesionForce> (m,"CalculateAdhesionForce")
     .def(init<>())
-    .def("CalculateAdhesionForce3D", &CalculateAdhesionForce::CalculateAdhesionForce3D)
+    .def("CalculateAdhesionForce3D",
+    &CalculateAdhesionForce::CalculateAdhesionForce3D)
     ;
+    
+    class_<ApplyProjDirichletProcess,ApplyProjDirichletProcess::Pointer,Process >(m, "ApplyProjDirichletProcess")
+    .def(init<>())
+    .def("ApplyProjDirichlet",
+    &ApplyProjDirichletProcess::ApplyProjDirichlet)
+    ;
+    
+    class_<PseudoLagPartProcess, PseudoLagPartProcess::Pointer,Process >(m, "PseudoLagPartProcess")
+    .def(init<>())
+    .def("SavePseudoLagPart", &PseudoLagPartProcess::SavePseudoLagPart)
+		 ;
+                 
+    class_<UlfApplyBCProcess, UlfApplyBCProcess::Pointer, Process>(m,"UlfApplyBCProcess")
+    .def(init<ModelPart&>());
     
 //      class_<AssignSurfaceTensionConditions > ("AssignSurfaceTensionConditions", init<>())
 //     .def("AssignSurfaceTensionConditions2D", &AssignSurfaceTensionConditions::AssignSurfaceTensionConditions2D)

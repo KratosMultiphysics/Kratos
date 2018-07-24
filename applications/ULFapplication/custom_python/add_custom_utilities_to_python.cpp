@@ -56,7 +56,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include <pybind11/pybind11.h>
+#include "includes/define.h"
+// #include <pybind11/pybind11.h>
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/define_python.h"
@@ -65,8 +66,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/ulf_utilities.h"
 #include "custom_utilities/nist_utilities.h"
 #include "custom_utilities/assign_point_neumann_conditions.h"
+#include "custom_utilities/assign_point_neumann_conditions_embedded.h"
+#include "custom_utilities/coupled_eulerian_ulf_utilities.h"
+// #include "custom_utilities/elembased_distance_utilities.h"
+// #include "custom_utilities/elembased_extrapolation_utilities.h"
+// #include "custom_utilities/elembased_BC_utilities.h"
+#include "custom_utilities/embedded_utilities.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+
 
 namespace Kratos
 {
@@ -139,8 +147,74 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("AssignPointNeumannConditionsDispAxisym", &AssignPointNeumannConditions::AssignPointNeumannConditionsDispAxisym)
     //.def("AssignPointNeumannConditionsMonolithic2D", &AssignPointNeumannConditions::AssignPointNeumannConditionsMonolithic2D)
     ; 
+    
+    
+    class_<AssignPointNeumannConditionsEmbedded > (m,"AssignPointNeumannConditionsEmbedded")
+    .def(init<>())
+    .def("AssignPointNeumannConditions3D", &AssignPointNeumannConditionsEmbedded::AssignPointNeumannConditions3D)
+    ;
 
+    
+//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+//     class_< MatrixContainer < 2, SparseSpaceType>, boost::noncopyable > ("MatrixContainer2D", init< >())
+//     .def("ConstructCSRVector", &MatrixContainer < 2, SparseSpaceType >::ConstructCSRVector)
+//     .def("BuildCSRData", &MatrixContainer < 2, SparseSpaceType >::BuildCSRData)
+//     .def("Clear", &MatrixContainer < 2, SparseSpaceType >::Clear)
+//     ;
+// 
+//     class_< MatrixContainer < 3, SparseSpaceType>, boost::noncopyable > ("MatrixContainer3D", init< >())
+//     .def("ConstructCSRVector", &MatrixContainer < 3, SparseSpaceType >::ConstructCSRVector)
+//     .def("BuildCSRData", &MatrixContainer < 3, SparseSpaceType >::BuildCSRData)
+//     .def("Clear", &MatrixContainer < 3, SparseSpaceType >::Clear)
+//     ;
+    
+    class_<CoupledEulerianUlfUtils > (m,"CoupledEulerianUlfUtils")
+    .def(init<>())
+    .def("SavePseudoLagPart", &CoupledEulerianUlfUtils::SavePseudoLagPart)
+    .def("ApplyProjDirichlet", &CoupledEulerianUlfUtils::ApplyProjDirichlet)
+    .def("FindInterface", &CoupledEulerianUlfUtils::FindInterface)
+    .def("FindIntersectionOfEdges", &CoupledEulerianUlfUtils::FindIntersectionOfEdges)
+    .def("DisableSubdomain", &CoupledEulerianUlfUtils::DisableSubdomain)
+    ;
 
+    class_<EmbeddedUtils > (m,"EmbeddedUtils")
+    .def(init<>())
+    .def("DisableSubdomain3D", &EmbeddedUtils::DisableSubdomain)
+    .def("CreateIntersConditions", &EmbeddedUtils::CreateIntersConditions)
+    .def("ApplyProjDirichlet", &EmbeddedUtils::ApplyProjDirichlet)
+    ;
+
+    
+
+// // //     class_< ElemBasedDistanceUtilities > (m, "ElemBasedDistanceUtilities")
+// // //     .def(init<ModelPart& >())
+// // //     .def("IdentifyFreeSurface", &ElemBasedDistanceUtilities::IdentifyFreeSurface)
+// // //     .def("MarkExternalAndMixedNodes", &ElemBasedDistanceUtilities::MarkExternalAndMixedNodes)
+// // //     .def("MarkInternalAndMixedNodes", &ElemBasedDistanceUtilities::MarkInternalAndMixedNodes)
+// // //     .def("SaveScalarVariableToOldStep", &ElemBasedDistanceUtilities::SaveScalarVariableToOldStep)
+// // //     .def("ChangeSignToDistance", &ElemBasedDistanceUtilities::ChangeSignToDistance)
+// // //     .def("MarkNodesByDistance", &ElemBasedDistanceUtilities::MarkNodesByDistance)
+// // //     ;
+
+// // //     class_< ElemBasedBCUtilities > (m, "ElemBasedBCUtilities")
+// // //     .def(init<ModelPart& >())
+// // //     .def("SetDividedElem_2D", &ElemBasedBCUtilities::SetDividedElem_2D)
+// // //     .def("SetPressureAndVelocityFixities", &ElemBasedBCUtilities::SetPressureAndVelocityFixities)
+// // //     .def("FreePressureAndVelocity", &ElemBasedBCUtilities::FreePressureAndVelocity)
+// // //     .def("SetToZeroPressureAndVelocity", &ElemBasedBCUtilities::SetToZeroPressureAndVelocity)
+// // //     ;
+// // //     
+// // //     class_< ElemBasedExtrapolationUtilities > (m, "ElemBasedExtrapolationUtilities")
+// // //     .def(init<ModelPart& >())
+// // //     .def("ExtrapolateVelocities", &ElemBasedExtrapolationUtilities::ExtrapolateVelocities)
+// // //     ;
+
+   
+//     class_<UlfApplyBCProcess, UlfApplyBCProcess::Pointer, Process>(m,"UlfApplyBCProcess").def(init<ModelPart&>());
+ 
+    
 }
 
 }  // namespace Python.

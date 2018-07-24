@@ -27,6 +27,10 @@ set( KRATOS_ULF_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann3D.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann_Axisym.cpp         
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_tension.cpp
+ 	
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/proj_dirichlet_cond.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/proj_dirichlet_cond3D.cpp	
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/Point_Neumann_Monolithic2D.cpp
 
     #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_frac2d_swimming.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ulf_frac3d_swimming.cpp

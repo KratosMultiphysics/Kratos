@@ -45,7 +45,11 @@
 #include "custom_conditions/Point_Neumann2D.h"
 #include "custom_conditions/Point_Neumann_Axisym.h"
 #include "custom_elements/surface_tension.h"
+#include "custom_conditions/proj_dirichlet_cond.h"
+#include "custom_conditions/proj_dirichlet_cond3D.h"
+#include "custom_conditions/Point_Neumann_Monolithic2D.h"
 #include "includes/ublas_interface.h"
+
 
 namespace Kratos
 {
@@ -220,6 +224,10 @@ private:
     const SurfaceTension<2> mSurfaceTension2D;
     /// 3D instance of the SurfaceTension element
     const SurfaceTension<3> mSurfaceTension3D;
+    
+    const ProjDirichletCond mProjDirichletCond;
+    const ProjDirichletCond3D mProjDirichletCond3D;
+    const PointNeumannMonolithic2D mPointNeumannMonolithic2D;
 
     ///@}
     ///@name Private Operators
