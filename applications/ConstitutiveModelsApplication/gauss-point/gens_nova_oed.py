@@ -40,7 +40,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
     # holis
-    def test_OedometricLoading(self):
+    def test_TriaxialLoading(self):
         import math
         import numpy as np
 
@@ -267,7 +267,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self._OpenOutputFile()
         stress = self.parameters.GetStressVector()
         self.strain = self.parameters.GetStrainVector()
-        strai = self.ComputeStrainFromF(self.F)
+        strain = self.ComputeStrainFromF(self.F)
         self._WriteThisToFile(0, stress, strain)
 
         for step in range(0, nIncr):
