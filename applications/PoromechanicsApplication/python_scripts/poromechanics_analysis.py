@@ -41,7 +41,8 @@ class PoromechanicsAnalysis(AnalysisStage):
 
     def _GetOrderOfProcessesInitialization(self):
         return ["constraints_process_list",
-                "loads_process_list"]
+                "loads_process_list",
+                "auxiliar_process_list"]
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -51,7 +52,7 @@ class PoromechanicsAnalysis(AnalysisStage):
         list_of_processes = super(PoromechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["constraints_process_list", "loads_process_list"]
+            processes_block_names = ["constraints_process_list", "loads_process_list","auxiliar_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
