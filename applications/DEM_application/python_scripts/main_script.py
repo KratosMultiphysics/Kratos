@@ -523,12 +523,14 @@ class Solution(object):
         os.chdir(self.main_path)
 
     def CleanUpOperations(self):
-
-        objects_to_destroy = [self.demio, self.procedures, self.creator_destructor, self.dem_fem_search, self.solver, self.DEMFEMProcedures, self.post_utils,
+        objects_to_destroy = [self.all_model_parts, self.demio, self.procedures, self.creator_destructor, self.dem_fem_search, self.solver, self.DEMFEMProcedures, self.post_utils,
                               self.cluster_model_part, self.rigid_face_model_part, self.spheres_model_part, self.DEM_inlet_model_part, self.mapping_model_part]
 
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             objects_to_destroy.append(self.DEM_inlet)
+
+        if self.post_normal_impact_velocity_option:
+            del self.analytic_model_part
 
         for obj in objects_to_destroy:
             del obj
