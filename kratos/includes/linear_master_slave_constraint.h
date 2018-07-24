@@ -54,7 +54,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    LinearMasterSlaveConstraint(IndexType Id = 0)
+    explicit LinearMasterSlaveConstraint(IndexType Id = 0)
         :
         MasterSlaveConstraint(Id)
     {
@@ -68,12 +68,9 @@ public:
                                 DofPointerVectorType& rSlaveDofsVector,
                                 const MatrixType& rRelationMatrix,
                                 const VectorType& rConstantVector)
-        : MasterSlaveConstraint(Id)
+        : MasterSlaveConstraint(Id), mSlaveDofsVector(rSlaveDofsVector), mMasterDofsVector(rMasterDofsVector),
+                                    mRelationMatrix(rRelationMatrix), mConstantVector(rConstantVector)
     {
-        mSlaveDofsVector = rSlaveDofsVector;
-        mMasterDofsVector = rMasterDofsVector;
-        mRelationMatrix = rRelationMatrix;
-        mConstantVector = rConstantVector;
     }
 
     /*
@@ -145,6 +142,19 @@ public:
         this->mMasterDofsVector = rOther.mMasterDofsVector;
         this->mRelationMatrix = rOther.mRelationMatrix;
         this->mConstantVector = rOther.mConstantVector;
+    }
+
+    /// Assignment operator
+    LinearMasterSlaveConstraint& operator=(const LinearMasterSlaveConstraint& rOther)
+    {
+        this->SetId(rOther.Id());
+        // this->Flags = rOther.Flags;
+        this->mSlaveDofsVector = rOther.mSlaveDofsVector;
+        this->mMasterDofsVector = rOther.mMasterDofsVector;
+        this->mRelationMatrix = rOther.mRelationMatrix;
+        this->mConstantVector = rOther.mConstantVector;
+
+        return *this;
     }
 
     MasterSlaveConstraint::Pointer Create(IndexType Id,

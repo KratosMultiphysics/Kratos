@@ -101,7 +101,7 @@ public:
     ///@{
 
     /// Pointer definition of ModelPart
-    KRATOS_CLASS_POINTER_DEFINITION(ModelPart);
+    //KRATOS_CLASS_POINTER_DEFINITION(ModelPart); //INTENTIONALLY REMOVING DEFINITION - DO NOT UNCOMMENT
 
     typedef std::size_t IndexType;
 
@@ -221,28 +221,26 @@ public:
     /**
      *
      */
-    // Defining the constraint base type
-    typedef MasterSlaveConstraint MasterSlaveConstraintType;
-
     /// The container of the constraints
-    typedef PointerVectorSet<MasterSlaveConstraintType, IndexedObject> MasterSlaveConstraintContainerType;
+    typedef MeshType::MasterSlaveConstraintType MasterSlaveConstraintType;
+    typedef MeshType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
 
     /** Iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
     MasterSlaveConstraint by * operator and not a pointer for more convenient
     usage. */
-    typedef MasterSlaveConstraintContainerType::iterator MasterSlaveConstraintIteratorType;
+    typedef MeshType::MasterSlaveConstraintIteratorType MasterSlaveConstraintIteratorType;
 
     /** Const iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
     Table by * operator and not a pointer for more convenient
     usage. */
-    typedef MasterSlaveConstraintContainerType::const_iterator MasterSlaveConstraintConstantIteratorType;
+    typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
 
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, Kratos::shared_ptr<ModelPart> >  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
@@ -618,55 +616,50 @@ public:
     ///@name MasterSlaveConstraints
     ///@{
 
-    SizeType NumberOfMasterSlaveConstraints() const
+    SizeType NumberOfMasterSlaveConstraints(IndexType ThisIndex = 0) const
     {
-        return mMasterSlaveConstraints.size();
+        return GetMesh(ThisIndex).NumberOfMasterSlaveConstraints();
     }
 
-    MasterSlaveConstraintContainerType& MasterSlaveConstraints()
+    MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0)
     {
-        return mMasterSlaveConstraints;
+        return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
 
-    const MasterSlaveConstraintContainerType& MasterSlaveConstraints() const 
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const 
     {
-        return mMasterSlaveConstraints;
+        return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
 
-    void SetMasterSlaveConstraints(const MasterSlaveConstraintContainerType& rOtherMasterSlaveConstraints)
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin(IndexType ThisIndex = 0) const
     {
-        mMasterSlaveConstraints = rOtherMasterSlaveConstraints;
+        return GetMesh(ThisIndex).MasterSlaveConstraintsBegin();
     }
 
-    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin() const
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsEnd(IndexType ThisIndex = 0) const
     {
-        return mMasterSlaveConstraints.begin();
+        return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
     }
 
-    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsEnd() const
+    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsBegin(IndexType ThisIndex = 0)
     {
-        return mMasterSlaveConstraints.end();
+        return GetMesh(ThisIndex).MasterSlaveConstraintsBegin();
     }
 
-    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsBegin()
+    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsEnd(IndexType ThisIndex = 0)
     {
-        return mMasterSlaveConstraints.begin();
-    }
-
-    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsEnd()
-    {
-        return mMasterSlaveConstraints.end();
+        return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
     }
 
 
 
     /** Inserts a master-slave constraint in the current modelpart.
      */
-    void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint);
+    void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, IndexType ThisIndex = 0);
 
     /** Inserts a list of master-slave constraints to a submodelpart provided their Id. Does nothing if applied to the top model part
      */
-    void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds);
+    void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, IndexType ThisIndex = 0);
 
     /** Inserts a list of pointers to Master-Slave constraints
      */
@@ -723,7 +716,8 @@ public:
                                                                                     DofsVectorType& rMasterDofsVector,
                                                                                     DofsVectorType& rSlaveDofsVector,
                                                                                     const MatrixType& RelationMatrix,
-                                                                                    const VectorType& ConstantVector);
+                                                                                    const VectorType& ConstantVector,
+                                                                                    IndexType ThisIndex = 0);
 
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
                                                                                     IndexType Id, 
@@ -732,7 +726,8 @@ public:
                                                                                     NodeType& rSlaveNode,
                                                                                     const DoubleVariableType& rSlaveVariable,
                                                                                     const double Weight,
-                                                                                    const double Constant);
+                                                                                    const double Constant,
+                                                                                    IndexType ThisIndex = 0);
 
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
                                                                                     IndexType Id, 
@@ -740,30 +735,33 @@ public:
                                                                                     const VariableComponentType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
                                                                                     const VariableComponentType& rSlaveVariable,
-                                                                                    const double Weight,
-                                                                                    const double Constant);
+                                                                                    double Weight,
+                                                                                    double Constant,
+                                                                                    IndexType ThisIndex = 0);
 
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
-    void RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId);
+    void RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
 
     /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
     */
-    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint);
+    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
 
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
     */
-    void RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId);
+    void RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
 
     /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
     */
-    void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint);
+    void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
 
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
-    MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId);
+    MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId, IndexType ThisIndex = 0);
 
     /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
-    MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId);
+    MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+    /** Returns a const reference MasterSlaveConstraint corresponding to it's identifier */
+    const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0) const ;
 
 
     ///@}
@@ -1261,7 +1259,7 @@ public:
     /** Creates a new sub model part with given name.
     Does nothing if a sub model part with the same name exist.
     */
-    ModelPart::Pointer CreateSubModelPart(std::string const& NewSubModelPartName);
+    ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Add an existing model part as a sub model part.
     	All the meshes will be added to the parents.
@@ -1270,7 +1268,7 @@ public:
     	In the case of conflict the new one would replace the old one
     	resulting inconsitency in parent.
     */
-    void AddSubModelPart(ModelPart::Pointer rThisSubModelPart);
+    void AddSubModelPart(Kratos::shared_ptr<ModelPart> pThisSubModelPart);
 
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
@@ -1288,14 +1286,14 @@ public:
     /** Returns a shared pointer to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart::Pointer pGetSubModelPart(std::string const& SubModelPartName)
+    ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
     {
         SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
         if(i == mSubModelParts.end())
             KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
             //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
-            return i.base()->second;
+            return (i.base()->second).get();
     }
 
     /** Remove a sub modelpart with given name.
@@ -1527,8 +1525,6 @@ private:
     ModelPart* mpParentModelPart;
 
     SubModelPartsContainerType mSubModelParts;
-
-    MasterSlaveConstraintContainerType mMasterSlaveConstraints;
 
     ///@}
     ///@name Private Operators

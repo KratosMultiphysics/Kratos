@@ -82,7 +82,7 @@ class ProcessHandler(KratosMultiphysics.Process):
 
     def Sort(self):
 
-        #print("::[Process_Handler]:: Create Process List -START-")
+        #print("::[--Process_Handler--]:: Create Process List -START-")
         #build sorted list of processes
 
         # Assumptions: (a) each supplied list is separated and has no intersections
@@ -92,7 +92,7 @@ class ProcessHandler(KratosMultiphysics.Process):
         #sort processes using groups category and order:
         if( self.settings["processes_sub_model_part_tree_list"].size() > 0 ):
 
-            print("::[Process_Handler]:: Sorting Loads and Constraints")
+            print("::[--Process_Handler--]:: Sorting Loads and Constraints")
 
             #set group category
             self.Categorize()
@@ -119,8 +119,8 @@ class ProcessHandler(KratosMultiphysics.Process):
         # sorted check list
         self.list_of_processes += self.ConstructList( self.ProcessList(self.settings["check_process_list"]) )
 
-        #print("::[Process_Handler]:: Create Process List -END-")
-        print("::[Process_Handler]:: Process List Ready")
+        #print("::[--Process_Handler--]:: Create Process List -END-")
+        print("::[--Process_Handler--]:: Process List Ready")
 
 
     #
@@ -256,7 +256,6 @@ class ProcessHandler(KratosMultiphysics.Process):
            "interval"        : [0.0,"End"]
         }
         """)
-
 
         ##overwrite the default settings with user-provided parameters
         settings = custom_settings

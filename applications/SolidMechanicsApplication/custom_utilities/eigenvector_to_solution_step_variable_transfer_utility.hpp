@@ -11,12 +11,12 @@
 #define  KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY
 
 // System includes
-#include <iterator>
+//#include <iterator>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
+//#include "includes/define.h"
 #include "includes/model_part.h"
 
 // Application includes

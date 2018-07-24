@@ -148,7 +148,7 @@ namespace Kratos
           */
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     double& rIntegrationWeight) override;
 
          /**
@@ -156,7 +156,7 @@ namespace Kratos
           */
 
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-               ElementVariables & rVariables,
+               ElementDataType & rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight) override;
 
@@ -166,7 +166,7 @@ namespace Kratos
          /**
 	  * Initialize Element General Variables
 	  */
-        void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+        void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
          ///@}

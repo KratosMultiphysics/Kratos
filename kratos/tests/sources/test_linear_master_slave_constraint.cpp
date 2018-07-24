@@ -55,8 +55,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintTests, KratosCoreFastSuite)
         KRATOS_CHECK_EQUAL(transformation_matrix.size2(), 1);
         KRATOS_CHECK_EQUAL(constant_vector.size(), 1);
 
-        KRATOS_CHECK_EQUAL(transformation_matrix(0,0), 1.0); // TODO: Check -> comparison between two doubles ??
-        KRATOS_CHECK_EQUAL(constant_vector(0), 0.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(transformation_matrix(0,0), 1.0); // TODO: Check -> comparison between two doubles ??
+        KRATOS_CHECK_DOUBLE_EQUAL(constant_vector(0), 0.0);
 }
 
 }

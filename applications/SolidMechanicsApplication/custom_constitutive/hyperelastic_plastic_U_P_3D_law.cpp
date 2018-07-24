@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/hyperelastic_plastic_U_P_3D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -55,8 +52,7 @@ HyperElasticPlasticUP3DLaw::HyperElasticPlasticUP3DLaw(const HyperElasticPlastic
 
 ConstitutiveLaw::Pointer HyperElasticPlasticUP3DLaw::Clone() const
 {
-    HyperElasticPlasticUP3DLaw::Pointer p_clone(new HyperElasticPlasticUP3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticUP3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -99,11 +95,11 @@ double &  HyperElasticPlasticUP3DLaw::CalculateVolumetricPressure (const Materia
 
 Vector&  HyperElasticPlasticUP3DLaw::CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
 							      Vector & rFactors)
-							      
+
 {
     double Pressure = 0;
     Pressure = this->CalculateVolumetricPressure( rElasticVariables, Pressure );
-  
+
     if(rFactors.size()!=3) rFactors.resize(3);
 
     rFactors[0] =  1.0;
@@ -127,7 +123,7 @@ void HyperElasticPlasticUP3DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 
