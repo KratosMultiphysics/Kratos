@@ -21,8 +21,8 @@
 #include "includes/define.h"
 #include "custom_elements/curve_base_discrete_element.h"
 
-#include "iga_structural_mechanics_application.h"
-#include "iga_structural_mechanics_application_variables.h"
+#include "iga_application.h"
+#include "iga_application_variables.h"
 
 #include "utilities/math_utils.h"
 
