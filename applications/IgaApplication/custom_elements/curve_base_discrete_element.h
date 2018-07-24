@@ -98,13 +98,13 @@ public:
 protected:
     ///@name Static Member Variables
     ///@{
-    Vector mBaseVector0;
+    Vector3D mBaseVector0;
     ///@}
     ///@name Operations
     ///@{
 
     void GetBaseVector(
-        Vector& rBaseVector, 
+        Vector3D& rBaseVector, 
         const Matrix& rDN_De);
 
     /**
@@ -115,11 +115,11 @@ protected:
     */
     void GetBoundaryEdgeBaseVector(const Matrix& DN_De,
         const array_1d<double, 2>& Tangents,
-        Vector& rBaseVector);
+        Vector3D& rBaseVector);
 
     void Get1stVariationsAxialStrain(
         Vector& rEpsilon1stVariationDoF,
-        const Vector& rBaseVector,
+        const Vector3D& rBaseVector,
         const int& rNumberOfDoFs, 
         const Matrix& rDN_De);
 

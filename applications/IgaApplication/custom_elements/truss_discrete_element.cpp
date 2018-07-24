@@ -49,7 +49,7 @@ void TrussDiscreteElement::Initialize()
 {
     KRATOS_TRY
 
-    Vector base_vector = ZeroVector(3);
+    Vector3D base_vector = ZeroVector(3);
     GetBaseVector(base_vector, GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES));
     mBaseVector0 = base_vector;
 
@@ -100,7 +100,7 @@ void TrussDiscreteElement::CalculateAll(
 
     // compute base vectors
 
-    Vector actual_base_vector = ZeroVector(3);
+    Vector3D actual_base_vector = ZeroVector(3);
     GetBaseVector(actual_base_vector, shape_derivatives);
 
     const double reference_a = norm_2(mBaseVector0);
@@ -140,8 +140,8 @@ void TrussDiscreteElement::CalculateAll(
                     shape_derivatives(shape_index_s, 0) / reference_aa;
 
                 rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs;
+            }
         }
-    }
 
         rRightHandSideVector[r] = -s11_membrane * epsilon_var_r;
     }

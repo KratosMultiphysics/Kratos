@@ -65,6 +65,8 @@ public:
     /// Counted pointer of BaseDiscreteElement
     KRATOS_CLASS_POINTER_DEFINITION( BaseDiscreteElement );
 
+    using Vector3D = BoundedVector<double, 3>;
+
     ///@}
     ///@name Life Cycle
     ///@{
