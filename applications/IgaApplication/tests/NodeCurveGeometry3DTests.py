@@ -99,6 +99,9 @@ class NodeCurveGeometry3DTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_y_at_t, 2.0 * t - 2.0 * t**2)
 
     def testNodeIndexOutOfRange(self):
+        if Kernel.BuildType() == 'Release':
+            self.skipTest(reason='Index checked only in Debug mode')
+
         with self.assertRaises(Exception):
             self.curve.Node(Index=-1)
 
