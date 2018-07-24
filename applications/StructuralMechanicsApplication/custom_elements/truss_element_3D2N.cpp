@@ -114,11 +114,6 @@ void TrussElement3D2N::CalculateDampingMatrix(
     MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
-  if (rDampingMatrix.size1() != msLocalSize) {
-    rDampingMatrix.resize(msLocalSize, msLocalSize, false);
-  }
-
-  rDampingMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
   MatrixType stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 
@@ -142,7 +137,7 @@ void TrussElement3D2N::CalculateDampingMatrix(
     beta = rCurrentProcessInfo[RAYLEIGH_BETA];
   }
 
-  noalias(rDampingMatrix) += alpha * mass_matrix;
+  rDampingMatrix = alpha * mass_matrix;
   noalias(rDampingMatrix) += beta * stiffness_matrix;
 
   KRATOS_CATCH("")
@@ -152,10 +147,6 @@ void TrussElement3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
                                            ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
-  if (rMassMatrix.size1() != msLocalSize) {
-    rMassMatrix.resize(msLocalSize, msLocalSize, false);
-  }
-
   rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
   const double A = this->GetProperties()[CROSS_AREA];
@@ -164,17 +155,12 @@ void TrussElement3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
 
   const double total_mass = A * L * rho;
 
-  Vector lumping_factor = ZeroVector(msNumberOfNodes);
-
-  lumping_factor = this->GetGeometry().LumpingFactors(lumping_factor);
-
   for (int i = 0; i < msNumberOfNodes; ++i) {
-    double temp = lumping_factor[i] * total_mass;
 
     for (int j = 0; j < msDimension; ++j) {
       int index = i * msDimension + j;
 
-      rMassMatrix(index, index) = temp;
+      rMassMatrix(index, index) = total_mass*0.50;
     }
   }
   KRATOS_CATCH("")
@@ -278,19 +264,13 @@ void TrussElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   // calculate internal forces
   BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
   this->UpdateInternalForces(internal_forces);
-  // resizing the matrices + create memory for LHS
-  rLeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
   // creating LHS
-  noalias(rLeftHandSideMatrix) =
+  rLeftHandSideMatrix =
       this->CreateElementStiffnessMatrix(rCurrentProcessInfo);
-
   // create+compute RHS
-  rRightHandSideVector = ZeroVector(msLocalSize);
-  // update Residual
-  noalias(rRightHandSideVector) -= internal_forces;
+  rRightHandSideVector = -internal_forces;
   // add bodyforces
   noalias(rRightHandSideVector) += this->CalculateBodyForces();
-
   KRATOS_CATCH("")
 }
 
@@ -685,7 +665,7 @@ void TrussElement3D2N::AddExplicitContribution(
           ZeroVector(msLocalSize);
       Vector current_nodal_velocities = ZeroVector(msLocalSize);
       this->GetFirstDerivativesVector(current_nodal_velocities);
-      Matrix damping_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+      Matrix damping_matrix;
       ProcessInfo temp_process_information; // cant pass const ProcessInfo
       this->CalculateDampingMatrix(damping_matrix, temp_process_information);
       // current residual contribution due to damping
