@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanics
     */
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFastSuite)
 {
-    double I1, J2, J3;
+    double I1, J2;
     Vector Strain, Stress;
     Vector Deviator = ZeroVector(6);
     Properties rMaterialProperties;
@@ -229,15 +229,15 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterExponential, KratosStruct
     rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
 
     // Analytical solutions damage parameter Exponential Softening
-    double MCres, VMres, DPres, Rres, Tres, SJres;
+    double MCres, VMres, DPres, Rres, Tres;//, SJres;
     MCres = 0.00429492;
     VMres = 0.545455;
     DPres = 0.00429492;
     Rres = 0.545455;
     Tres = 0.00429492;
-    SJres = -2.00000000;
+//     SJres = -2.00000000;
 
-    double TestMC = 0.0, TestVM = 0.0, TestDP = 0.0, TestR = 0.0, TestT = 0.0, TestSJ = 0.0;
+    double TestMC = 0.0, TestVM = 0.0, TestDP = 0.0, TestR = 0.0, TestT = 0.0;//, TestSJ = 0.0;
     MC::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
     VM::CalculateDamageParameter(rMaterialProperties, TestVM, characteristic_length);
     DP::CalculateDamageParameter(rMaterialProperties, TestDP, characteristic_length);
