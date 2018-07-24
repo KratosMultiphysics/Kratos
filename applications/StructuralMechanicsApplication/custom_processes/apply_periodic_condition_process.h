@@ -22,51 +22,42 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/element.h"
-#include "includes/node.h"
 #include "geometries/point.h"
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "spatial_containers/spatial_containers.h"
-#include "includes/linear_master_slave_constraint.h"
+
+#include "../../MappingApplication/custom_utilities/mapper_communicator.h"
+
 
 namespace Kratos
 {
-/**
- * @class ApplyPeriodicConditionProcess
- *
- * @ingroup StructuralMechanicsApplication
- *
- * @brief This method computes and assigns the periodic boundary conditions on
- * specified boundary conditions process.
- *
- * @author Aditya Ghantasala
-*/
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyPeriodicConditionProcess
-    : public Process
+
+class ApplyPeriodicConditionProcess : public Process
 {
   public:
     /// Pointer definition of ApplyPeriodicConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPeriodicConditionProcess);
 
-    typedef Element ElementType;
     typedef Dof<double> *DofPointerType;
     typedef Dof<double> DofType;
-    typedef Geometry<ModelPart::NodeType> GeometryType;
 
-    typedef typename ModelPart::VariableComponentType VariableComponentType;
+    typedef ModelPart::VariableComponentType VariableComponentType;
     typedef KratosComponents<Variable<array_1d<double, 3>>> VectorVariableType;
     typedef ProcessInfo ProcessInfoType;
     typedef ProcessInfo::Pointer ProcessInfoPointerType;
-    typedef std::size_t IndexType;
+    typedef unsigned int IndexType;
 
-    typedef typename ModelPart::DoubleVariableType VariableType;
+    typedef ModelPart::DoubleVariableType VariableType;
+    typedef ModelPart::NodeIterator NodeIterator;
+    typedef Element ElementType;
+    typedef Node<3> NodeType;
 
     /// Constructor.
-    ApplyPeriodicConditionProcess(ModelPart &rModelPart,
-                                  Parameters rParameters) : Process(Flags()), mrMainModelPart(rModelPart), mParameters(rParameters)
+    ApplyPeriodicConditionProcess(ModelPart &model_part,
+                                  Parameters rParameters) : Process(Flags()), mrMainModelPart(model_part), m_parameters(rParameters)
     {
         Parameters default_parameters(R"(
                                             {
@@ -79,32 +70,44 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyPeriodicConditionProcess
                                             "angle":0.0,
                                             "flip":false,
                                             "dir_of_translation":[0.0,0.0,0.0],
-                                            "magnitude":0.0
+                                            "magnitude":0.0,
+                                            "interpolation_type":"nodes",
+                                            "interpolation_settings":{
+                                                            "search_radius" : 0.5,
+                                                            "search_iterations":10,
+                                                            "approximation_tolerance":1e-3,
+                                                            "echo_level":3,
+                                                            "mapper_type":"nearest_element",
+                                                            "interface_submodel_part_origin":"default_master",
+                                                            "interface_submodel_part_destination":"default_slave"
+                                                             }
                                             }  )");
 
         // Initializing
-        mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+        m_parameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+        std::cout << "Parameters afeter validating are :: " << m_parameters << std::endl;
 
         // using the given data first rotate the master surface to match with slave surface. obtain a new model part.
 
         // Use the salve model part and newly created model part to form MPC constraints
-        mSlaveSubModelPartName = mParameters["slave_sub_model_part_name"].GetString();
-        mMasterSubModelPartName = mParameters["master_sub_model_part_name"].GetString();
+        mSlaveSubModelPartName = m_parameters["slave_sub_model_part_name"].GetString();
+        mMasterSubModelPartName = m_parameters["master_sub_model_part_name"].GetString();
 
-        mCenterOfRotation.push_back(mParameters["center"][0].GetDouble());
-        mCenterOfRotation.push_back(mParameters["center"][1].GetDouble());
-        mCenterOfRotation.push_back(mParameters["center"][2].GetDouble());
+        mCenterOfRotation.push_back(m_parameters["center"][0].GetDouble());
+        mCenterOfRotation.push_back(m_parameters["center"][1].GetDouble());
+        mCenterOfRotation.push_back(m_parameters["center"][2].GetDouble());
 
-        mAxisOfRoationVector.push_back(mParameters["axis_of_rotation"][0].GetDouble());
-        mAxisOfRoationVector.push_back(mParameters["axis_of_rotation"][1].GetDouble());
-        mAxisOfRoationVector.push_back(mParameters["axis_of_rotation"][2].GetDouble());
+        mAxisOfRoationVector.push_back(m_parameters["axis_of_rotation"][0].GetDouble());
+        mAxisOfRoationVector.push_back(m_parameters["axis_of_rotation"][1].GetDouble());
+        mAxisOfRoationVector.push_back(m_parameters["axis_of_rotation"][2].GetDouble());
 
-        mModulus = mParameters["magnitude"].GetDouble();
-        mDirOfTranslation.push_back(mParameters["dir_of_translation"][0].GetDouble());
-        mDirOfTranslation.push_back(mParameters["dir_of_translation"][1].GetDouble());
-        mDirOfTranslation.push_back(mParameters["dir_of_translation"][2].GetDouble());
+        mModulus = m_parameters["magnitude"].GetDouble();
+        mDirOfTranslation.push_back(m_parameters["dir_of_translation"][0].GetDouble());
+        mDirOfTranslation.push_back(m_parameters["dir_of_translation"][1].GetDouble());
+        mDirOfTranslation.push_back(m_parameters["dir_of_translation"][2].GetDouble());
 
-        if (mParameters["flip"].GetBool())
+        if (m_parameters["flip"].GetBool())
             mSign = -1;
         else
             mSign = 1;
@@ -117,8 +120,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyPeriodicConditionProcess
         for (unsigned int d = 0; d < 3; ++d)
             mAxisOfRoationVectorNormalized.push_back(mAxisOfRoationVector[d] / norm);
 
-        mTheta = mParameters["angle"].GetDouble() * 2 * 3.1416 / 360.0;
-        mpRotatedMasterModelPart = ModelPart::Pointer(new ModelPart("rotatedMaster"));
+        mTheta = m_parameters["angle"].GetDouble() * 2 * 3.1416 / 360.0;
 
         mTransformationMatrix.resize(4);
         for (auto &it : mTransformationMatrix)
@@ -135,6 +137,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyPeriodicConditionProcess
 
         CalculateTransformationMatrix();
         mIsInitialized = false;
+        //mpMpcProcess->SetWeak();
         // Multiplying the point to get the rotated point
         for (int i = 0; i < 4; i++)
         {
@@ -144,60 +147,44 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyPeriodicConditionProcess
             }
             std::cout << std::endl;
         }
-
-        mSearchRadius = 0.0;
     }
     ~ApplyPeriodicConditionProcess()
     {
     }
 
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-       rOStream <<" ApplyPeriodicConditionProcess "<<std::endl;
-    }
-
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
-        mConstraintId = 0;
         if (!mIsInitialized)
         {
-            ModelPart &masterModelPart = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+            ModelPart &masterModelPart = mrMainModelPart.GetSubModelPart(m_parameters["master_sub_model_part_name"].GetString());
 
             ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
-            int prob_dim = info->GetValue(DOMAIN_SIZE);
+            int probDim = info->GetValue(DOMAIN_SIZE);
             // Rotate the master so it goes to the slave
-            if (prob_dim == 2)
+            if (probDim == 2)
             {
                 GetRotatedMaster<2>(masterModelPart);
                 ApplyConstraintsForPeriodicConditions<2>();
             }
-            else if (prob_dim == 3)
+            else if (probDim == 3)
             {
                 GetRotatedMaster<3>(masterModelPart);
-                std::cout << "applying periodic conditions >> START " << std::endl;
                 ApplyConstraintsForPeriodicConditions<3>();
-                std::cout << "applying periodic conditions >> END " << std::endl;
             }
-
             mIsInitialized = true;
         }
 
-        std::cout<<"##################################### "<<std::endl;
-        std::cout<<"##################################### :: "<<mrMainModelPart.MasterSlaveConstraints().size()<<std::endl;
-        std::cout<<"##################################### "<<std::endl;
-
+        // Once master and slave nodes are on the same surface we interpolate and appply constraints
 
         KRATOS_CATCH("");
     }
 
   private:
-    IndexType mConstraintId;
     std::vector<std::vector<double>> mTransformationMatrix;
     ModelPart &mrMainModelPart;
-    Parameters mParameters;
-    ModelPart::Pointer mpRotatedMasterModelPart; // This is new modelpart
+    Parameters m_parameters;
+    ModelPart mpRotatedMasterModelPart; // This is new modelpart
     std::string mSlaveSubModelPartName;
     std::string mMasterSubModelPartName;
     double mTheta;
@@ -205,251 +192,213 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyPeriodicConditionProcess
     std::vector<double> mCenterOfRotation;
     std::vector<double> mAxisOfRoationVector;
     std::vector<double> mAxisOfRoationVectorNormalized;
-
     int mSign;
     std::string mType;
     double mModulus;
     std::vector<double> mDirOfTranslation;
-    double mSearchRadius;
 
-  private:
-    class ConditionCenterPoint : public Point
+    /*
+    *   Structrue which contain the slave master information. This is used in conjection with the mapper communicator
+    *
+    */
+    struct MasterSlaveRelation
     {
-
-      public:
-        KRATOS_CLASS_POINTER_DEFINITION(ConditionCenterPoint);
-
-        ConditionCenterPoint() : Point(), mrCondition(  *(Kratos::make_shared<Condition>()) )
-        {
-        }
-
-        ConditionCenterPoint(Point& rPoint) : Point(rPoint), mrCondition(  *(Kratos::make_shared<Condition>()) )
-        {
-        }
-
-        ConditionCenterPoint(Condition& rCondition) : Point(), mrCondition(rCondition)
-        {
-            double xC(0.0), yC(0.0), zC(0.0);
-            int number_points = rCondition.GetGeometry().size();
-            auto geometry = rCondition.GetGeometry();
-
-            for (int i = 0; i < number_points; i++)
-            {
-                xC += geometry[i].X();
-                yC += geometry[i].Y();
-                zC += geometry[i].Z();
-            }
-
-            this->X() = xC / number_points;
-            this->Y() = yC / number_points;
-            this->Z() = zC / number_points;
-        }
-
-        Condition& GetCondition()
-        {
-            return mrCondition;
-        }
-
-        ~ConditionCenterPoint()
-        {
-        }
-
-      private:
-        Condition& mrCondition;
+        std::vector<int> MastersNodeIds;
+        std::vector<double> MastersNodeWeights;
+        std::vector<double> MasterConstants;
     };
-
-    typedef ConditionCenterPoint ElementCenterPointType;
-    typedef ConditionCenterPoint::Pointer ElementCenterPointTypePointer;
-    typedef Point::Pointer PointPointerType;
-    typedef std::vector<ElementCenterPointTypePointer> ElementCenterPointerVector;
-    typedef std::vector<ElementCenterPointTypePointer>::iterator CenterIterator;
-    typedef std::vector<double>::iterator DoubleVectorIterator;
 
     template <int TDim>
     void ApplyConstraintsForPeriodicConditions()
     {
-        ModelPart &slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
-        ModelPart &master_model_part = (*mpRotatedMasterModelPart);
-        int num_vars = mParameters["variable_names"].size();
-
-        // Type definitions for tree-search
-        typedef Bucket<TDim, ElementCenterPointType, ElementCenterPointerVector, ElementCenterPointTypePointer, CenterIterator, DoubleVectorIterator> BucketType;
-        typedef Tree<KDTreePartition<BucketType>> KDTree;
-        std::size_t bucket_size = 100;
-        unsigned int max_number_of_neighbors = 3;
-        ElementCenterPointerVector centers_vector(master_model_part.NumberOfConditions());
-        this->CalculateElementCenterVectors(master_model_part, centers_vector);
-
-        typename KDTree::Pointer p_search_tree = Kratos::make_shared<KDTree>(centers_vector.begin(), centers_vector.end(), bucket_size);
-
-        for (int var_index = 0; var_index < num_vars; var_index++)
+        ModelPart &slaveModelPart = mrMainModelPart.GetSubModelPart(m_parameters["slave_sub_model_part_name"].GetString());
+        int numVars = m_parameters["variable_names"].size();
+        Parameters mapper_parameters = m_parameters["interpolation_settings"]; // TODO: find out how to give these settings
+        MapperCommunicator mpMapperCommunicator(mpRotatedMasterModelPart,
+                                   slaveModelPart,
+                                   mapper_parameters);
+        if (m_parameters["interpolation_type"].GetString() == "elements")
         {
-            std::string var_name = mParameters["variable_names"][var_index].GetString();
-            if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
-            { // its a variable with components, we can apply periodic condition with vector variables
+            mpMapperCommunicator.InitializeOrigin(MapperUtilities::Condition_Center);
+            mpMapperCommunicator.InitializeDestination(MapperUtilities::Node_Coords);
+            mpMapperCommunicator.Initialize();
+        }
+        else
+        {
+            mpMapperCommunicator.InitializeOrigin(MapperUtilities::Node_Coords);
+            mpMapperCommunicator.InitializeDestination(MapperUtilities::Node_Coords);
+            mpMapperCommunicator.Initialize();
+        }
 
-                // Loop over the slave nodes
-                for (auto &node : slave_model_part.Nodes())
+        for (int j = 0; j < numVars; j++)
+        {
+            std::string varName = m_parameters["variable_names"][j].GetString();
+            if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(varName + "_X"))
+            {
+                if (m_parameters["interpolation_type"].GetString() == "elements")
                 {
-                    ElementCenterPointerVector neighbor_nodes(max_number_of_neighbors);
-                    std::vector<double> resulting_squared_distances(max_number_of_neighbors);
-                    // Marking the node as a slave
-                    node.Set(SLAVE);
-                    ConditionCenterPoint center_point(node);
-                    std::size_t number_of_neighbors = p_search_tree->SearchInRadius(center_point,
-                                                                                    mSearchRadius,
-                                                                                    neighbor_nodes.begin(),
-                                                                                    resulting_squared_distances.begin(),
-                                                                                    max_number_of_neighbors);
-
-                    // Now we know which 10 elements are close now we project the slave point on to these elements
-                    for (unsigned int nei_index = 0; nei_index < number_of_neighbors; nei_index++)
-                    {
-                        auto &cond = neighbor_nodes[nei_index]->GetCondition();
-                        typename Point::CoordinatesArrayType local_coordinates;
-                        Vector shape_function_values;
-                        bool is_found = cond.GetGeometry().IsInside(node.Coordinates(), local_coordinates);
-                        cond.GetGeometry().ShapeFunctionsValues(shape_function_values, local_coordinates);
-                        // If found apply the constraint and break
-                        if (is_found)
-                        {
-                            ApplyCondition<TDim>(var_name, node, cond, shape_function_values);
-                            break;
-                        }
-                    }
+                    auto function_pointer_origin = std::bind(&GetMasterRelationInformationFromElementVectorVariable,
+                                                             std::placeholders::_1,
+                                                             std::placeholders::_2);
+                    auto function_pointer_destination = std::bind(&SetMpcDataAtNodeVectorVariable<void *>,
+                                                                  std::placeholders::_1,
+                                                                  std::placeholders::_2,
+                                                                  &mrMainModelPart,
+                                                                  mTransformationMatrix,
+                                                                  varName, TDim, mSign);
+                    mpMapperCommunicator.TransferVariableData(function_pointer_origin, function_pointer_destination);
+                }
+                else
+                {
+                    auto function_pointer_origin = std::bind(&GetMasterRelationInformationFromNodeVectorVariable,
+                                                             std::placeholders::_1,
+                                                             std::placeholders::_2);
+                    auto function_pointer_destination = std::bind(&SetMpcDataAtNodeVectorVariable<void *>,
+                                                                  std::placeholders::_1,
+                                                                  std::placeholders::_2,
+                                                                  &mrMainModelPart,
+                                                                  mTransformationMatrix,
+                                                                  varName, TDim, mSign);
+                    mpMapperCommunicator.TransferVariableData(function_pointer_origin, function_pointer_destination);
                 }
             }
-            else
-            {
-                KRATOS_ERROR << "Provided variable :: " << var_name << ". Periodic boundary conditions are only applied for variables with components. " << std::endl;
-            }
-        }
-        // void SearchNearestPoint(PointType const& rThisPoint, PointerType& rResult, CoordinateType& rResultDistance )
-    }
-
-    void CalculateElementCenterVectors(ModelPart &rModelPart, ElementCenterPointerVector &rCentersVector)
-    {
-        std::size_t index = 0;
-        for (auto &cond : rModelPart.Conditions())
-        {
-            rCentersVector[index] = Kratos::make_shared<ElementCenterPointType>(cond);
-            auto elem_length = cond.GetGeometry().Length();
-            mSearchRadius = mSearchRadius < elem_length ? elem_length : mSearchRadius;
-            index++;
         }
     }
 
-    template <int TDim>
-    void ApplyCondition(std::string &rVarName, Node<3> &rSlaveNode, Condition &rCondition, Vector &rShapeFunctionValues)
+    /*
+    * Function to be used in realation with the nearest node mapper. Slave side
+    */
+    template <typename T>
+    static void SetMpcDataAtNodeVectorVariable(InterfaceObject::Pointer pInterfaceObject, T rValue, ModelPart* rModelPart, const std::vector<std::vector<double>> &rTransformationMatrix, std::string varName, int TDim, int sign)
     {
+        VariableComponentType rVarX = KratosComponents<VariableComponentType>::Get(varName + std::string("_X"));
+        VariableComponentType rVarY = KratosComponents<VariableComponentType>::Get(varName + std::string("_Y"));
+        VariableComponentType rVarZ = KratosComponents<VariableComponentType>::Get(varName + std::string("_Z"));
 
-        const VariableComponentType rVarX = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
-        const VariableComponentType rVarY = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
-        const VariableComponentType rVarZ = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Z"));
+        int current_num_constraint = rModelPart->MasterSlaveConstraints().size();
 
-        std::size_t slave_node_id = rSlaveNode.Id();
-        GeometryType &geom = rCondition.GetGeometry();
-        std::size_t num_master_nodes = geom.size();
+        Node<3> *p_base_node = (pInterfaceObject)->pGetBaseNode();
+        unsigned int slave_node_id = p_base_node->Id();
 
+        MasterSlaveRelation *pMasterSlaveRelation = static_cast<MasterSlaveRelation *>(rValue);
+        KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+        // Marking the node as a slave
+        p_base_node->Set(SLAVE);
 
-        double constant_cumulative_x(0.0), constant_cumulative_y(0.0), constant_cumulative_z(0.0);
-
-        for (unsigned int i = 0; i < num_master_nodes; i++)
+        KRATOS_ERROR_IF(pMasterSlaveRelation->MastersNodeIds.size() != pMasterSlaveRelation->MastersNodeWeights.size()) <<"Size of shape_function_values differenct from number of master nodes ... !!"<<std::endl;
+        int num_master_nodes = pMasterSlaveRelation->MastersNodeIds.size();
+        for (IndexType i = 0; i < num_master_nodes; i++)
         {
-            std::size_t master_node_id = geom[i].Id();
-            // This can happen for example nodes on the axis
-            if (slave_node_id == master_node_id)
-            {
-                return;
-            }
-        }
+            int master_node_id = pMasterSlaveRelation->MastersNodeIds[i];
 
-        for (unsigned int i = 0; i < num_master_nodes; i++)
-        {
-            double master_weight = mSign * rShapeFunctionValues[i];
-
-            constant_cumulative_x += master_weight * mTransformationMatrix[0][3];
-            constant_cumulative_y += master_weight * mTransformationMatrix[1][3];
-            constant_cumulative_z += master_weight * mTransformationMatrix[2][3];
-
+            double master_weight = sign * pMasterSlaveRelation->MastersNodeWeights[i];
             double constant_x(0.0), constant_y(0.0), constant_z(0.0);
-            if (i == num_master_nodes - 1)
-            {
-                constant_x = constant_cumulative_x;
-                constant_y = constant_cumulative_y;
-                constant_z = constant_cumulative_z;
-            }
 
-            if (! geom[i].HasDofFor(rVarX) )
-            {
-                KRATOS_ERROR << "Error while applying periodic boundary condition. Master Node " <<geom[i].Id()<<" does not have DOF "<<rVarX<<std::endl;
-            }
-            if (! rSlaveNode.HasDofFor(rVarX) )
-            {
-                KRATOS_ERROR << "Error while applying periodic boundary condition. Slave Node " <<rSlaveNode.Id()<<" does not have DOF "<<rVarX<<std::endl;
-            }
+            constant_x = master_weight * rTransformationMatrix[0][3];
+            constant_y = master_weight * rTransformationMatrix[1][3];
+            constant_z = master_weight * rTransformationMatrix[2][3];
 
-            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintId++, geom[i], rVarX, rSlaveNode, rVarX, master_weight * mTransformationMatrix[0][0], constant_x);
-            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintId++, geom[i], rVarY, rSlaveNode, rVarX, master_weight * mTransformationMatrix[0][1], constant_x);
-            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintId++, geom[i], rVarZ, rSlaveNode, rVarX, master_weight * mTransformationMatrix[0][2], constant_x);
+            rModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, rModelPart->Nodes()[master_node_id], rVarX, rModelPart->Nodes()[slave_node_id], rVarX, master_weight * rTransformationMatrix[0][0], constant_x);
+            rModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, rModelPart->Nodes()[master_node_id], rVarY, rModelPart->Nodes()[slave_node_id], rVarX, master_weight * rTransformationMatrix[0][1], constant_x);
+            rModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, rModelPart->Nodes()[master_node_id], rVarZ, rModelPart->Nodes()[slave_node_id], rVarX, master_weight * rTransformationMatrix[0][2], constant_x);
 
-            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintId++, geom[i], rVarX, rSlaveNode, rVarY, master_weight * mTransformationMatrix[1][0], constant_y);
-            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintId++, geom[i], rVarY, rSlaveNode, rVarY, master_weight * mTransformationMatrix[1][1], constant_y);
-            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintId++, geom[i], rVarZ, rSlaveNode, rVarY, master_weight * mTransformationMatrix[1][2], constant_y);
+            rModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, rModelPart->Nodes()[master_node_id], rVarX, rModelPart->Nodes()[slave_node_id], rVarY, master_weight * rTransformationMatrix[1][0], constant_y);
+            rModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, rModelPart->Nodes()[master_node_id], rVarY, rModelPart->Nodes()[slave_node_id], rVarY, master_weight * rTransformationMatrix[1][1], constant_y);
+            rModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, rModelPart->Nodes()[master_node_id], rVarZ, rModelPart->Nodes()[slave_node_id], rVarY, master_weight * rTransformationMatrix[1][2], constant_y);
 
             if (TDim == 3)
             {
-                mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintId++, geom[i], rVarX, rSlaveNode, rVarZ, master_weight * mTransformationMatrix[2][0], constant_z);
-                mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintId++, geom[i], rVarY, rSlaveNode, rVarZ, master_weight * mTransformationMatrix[2][1], constant_z);
-                mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", mConstraintId++, geom[i], rVarZ, rSlaveNode, rVarZ, master_weight * mTransformationMatrix[2][2], constant_z);
+                rModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, rModelPart->Nodes()[master_node_id], rVarX, rModelPart->Nodes()[slave_node_id], rVarZ, master_weight * rTransformationMatrix[2][0], constant_z);
+                rModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, rModelPart->Nodes()[master_node_id], rVarY, rModelPart->Nodes()[slave_node_id], rVarZ, master_weight * rTransformationMatrix[2][1], constant_z);
+                rModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, rModelPart->Nodes()[master_node_id], rVarZ, rModelPart->Nodes()[slave_node_id], rVarZ, master_weight * rTransformationMatrix[2][2], constant_z);
             }
         }
+
+        delete pMasterSlaveRelation;
+    }
+
+    /*
+    * Function to be used in realation with the nearest node mapper. Master side
+    */
+    static void *GetMasterRelationInformationFromElementVectorVariable(InterfaceObject::Pointer pInterfaceObject,
+                                                                                      const std::vector<double> &rShapeFunctionValues)
+    {
+        MasterSlaveRelation *pMasterSlaveRelation = new MasterSlaveRelation();
+        Geometry<Node<3>> *p_base_geometry =(pInterfaceObject)->pGetBaseGeometry();
+        KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
+        double constant = 0.0;
+        for (std::size_t i = 0; i < p_base_geometry->PointsNumber(); ++i)
+        {
+            unsigned int nodeId = p_base_geometry->GetPoint(i).Id();
+            pMasterSlaveRelation->MastersNodeIds.push_back(nodeId);
+
+            pMasterSlaveRelation->MastersNodeWeights.push_back(rShapeFunctionValues[i]);
+            pMasterSlaveRelation->MasterConstants.push_back(constant);
+        }
+
+        return pMasterSlaveRelation;
+    }
+
+    static void *GetMasterRelationInformationFromNodeVectorVariable(InterfaceObject::Pointer pInterfaceObject,
+                                                                                   const std::vector<double> &rShapeFunctionValues)
+    {
+        MasterSlaveRelation *pMasterSlaveRelation = new MasterSlaveRelation();
+        Node<3> *p_base_node = (pInterfaceObject)->pGetBaseNode();
+        KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+        double constant = 0.0;
+        unsigned int nodeId = p_base_node->Id();
+        pMasterSlaveRelation->MastersNodeIds.push_back(nodeId);
+
+        pMasterSlaveRelation->MastersNodeWeights.push_back(1.0);
+        pMasterSlaveRelation->MasterConstants.push_back(constant);
+
+        return pMasterSlaveRelation;
     }
 
     // Functions which use two variable components
     template <int TDim>
     void GetRotatedMaster(ModelPart &master_model_part)
     {
-
+        // iterating over slave nodes to find thecorresponding masters
         long int n_master_nodes = master_model_part.Nodes().size();
-         for (int i = 0; i < n_master_nodes; i++)
+        for (int i = 0; i < n_master_nodes; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = (master_model_part).NodesBegin() + i;
             Node<3>::Pointer pnode = *(iparticle.base());
-            auto new_node = pnode->Clone();
-            (*mpRotatedMasterModelPart).AddNode(new_node);
+            mpRotatedMasterModelPart.CreateNewNode(pnode->Id(), *pnode);
         }
 
+        // iterating over slave nodes to find thecorresponding masters
         long int n_master_elem = master_model_part.Elements().size();
         for (int i = 0; i < n_master_elem; i++)
         {
-            Element::NodesArrayType new_nodes_array;
+            Element::NodesArrayType newNodesArray;
             ModelPart::ElementsContainerType::iterator iparticle = (master_model_part).ElementsBegin() + i;
             for (unsigned int ii = 0; ii < (*iparticle).GetGeometry().size(); ii++)
             {
-                new_nodes_array.push_back((*mpRotatedMasterModelPart).pGetNode((*iparticle).GetGeometry()[ii].Id()));
+                newNodesArray.push_back(mpRotatedMasterModelPart.pGetNode((*iparticle).GetGeometry()[ii].Id()));
             }
-            Element::Pointer pElem = (*iparticle).Clone((*iparticle).Id(), new_nodes_array);
-            (*mpRotatedMasterModelPart).AddElement(pElem);
+            Element::Pointer pElem = (*iparticle).Clone((*iparticle).Id(), newNodesArray);
+            mpRotatedMasterModelPart.AddElement(pElem);
         }
 
         long int n_master_cond = master_model_part.Conditions().size();
         for (int i = 0; i < n_master_cond; i++)
         {
-            Condition::NodesArrayType new_nodes_array;
+            Condition::NodesArrayType newNodesArray;
             ModelPart::ConditionsContainerType::iterator iparticle = (master_model_part).ConditionsBegin() + i;
             for (unsigned int ii = 0; ii < (*iparticle).GetGeometry().size(); ii++)
             {
-                new_nodes_array.push_back((*mpRotatedMasterModelPart).pGetNode((*iparticle).GetGeometry()[ii].Id()));
+                newNodesArray.push_back(mpRotatedMasterModelPart.pGetNode((*iparticle).GetGeometry()[ii].Id()));
             }
-            Condition::Pointer pCond = (*iparticle).Clone((*iparticle).Id(), new_nodes_array);
-            (*mpRotatedMasterModelPart).AddCondition(pCond);
+            Condition::Pointer pCond = (*iparticle).Clone((*iparticle).Id(), newNodesArray);
+            mpRotatedMasterModelPart.AddCondition(pCond);
         }
 
         // Rotating the nodes
         for (int i = 0; i < n_master_nodes; i++)
         {
-            ModelPart::NodesContainerType::iterator iparticle = (*mpRotatedMasterModelPart).NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator iparticle = mpRotatedMasterModelPart.NodesBegin() + i;
             Node<3>::Pointer p_master_node = *(iparticle.base());
             std::vector<double> masterNode = {p_master_node->X(), p_master_node->Y(), p_master_node->Z(), 1};
 
@@ -537,6 +486,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyPeriodicConditionProcess
         double t7 = a * b;
         double t8 = t5 + t6;
         double t9 = 1.0 / t8;
+        if(isnan(t9))
+            t9 = 0.0;
         double t10 = a * c;
         double t11 = b * t3;
         double t12 = a * t3 * t5;
@@ -575,6 +526,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyPeriodicConditionProcess
 
         return rotatedNode;
     }
+
 };
 }
 
