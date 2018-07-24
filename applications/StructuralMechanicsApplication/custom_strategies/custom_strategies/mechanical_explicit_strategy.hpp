@@ -182,20 +182,20 @@ public:
     // initial operations ... things that are constant over the Solution Step
     pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, mDx, mb);
 
-    ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
-    ElementsArrayType &r_elements = r_model_part.Elements();
-
     if (BaseType::mRebuildLevel > 0) {
-    auto it_elem = r_model_part.ElementsBegin();
-// #pragma omp parallel for firstprivate(it_elem)
-    for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-        // Getting nodal mass and inertia from element
-        Vector dummy_vector;
-        // this function needs to be implemented in the respective
-        // element to provide inertias and nodal masses
-        (it_elem + i)
-            ->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
-                                    NODAL_INERTIA, r_current_process_info);
+      ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
+      ElementsArrayType &r_elements = r_model_part.Elements();
+
+      auto it_elem = r_model_part.ElementsBegin();
+  // #pragma omp parallel for firstprivate(it_elem)
+      for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+          // Getting nodal mass and inertia from element
+          Vector dummy_vector;
+          // this function needs to be implemented in the respective
+          // element to provide inertias and nodal masses
+          (it_elem + i)
+              ->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
+                                      NODAL_INERTIA, r_current_process_info);
     }
     }
 
