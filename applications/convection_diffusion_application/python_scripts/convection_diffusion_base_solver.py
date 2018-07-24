@@ -457,7 +457,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
         # Assign mesh entities from domain and process sub model parts to the computing model part.
-        import check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
+        import check_and_prepare_model_process
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # This will be removed once the Model is fully supported! => It wont e necessary anymore
