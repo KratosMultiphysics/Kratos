@@ -85,8 +85,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         for iteracio in range(0, 100):
             stress = self.parameters.GetStressVector()
-            print('StressHere')
-            print(stress)
 
             residual = 0.0*stress + stress;
             
@@ -98,10 +96,10 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             norm = 0
             for i in range(0,6):
                 norm += residual[i]*residual[i]
-            print('iteracio')
-            print(iteracio)
-            print('norm')
-            print(norm)
+            #print('iteracio')
+            #print(iteracio)
+            #print('norm')
+            #print(norm)
             if (norm < 1e-9):
                 break
             if ( iteracio > 95):
@@ -119,7 +117,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self.F = self._set_identity_matrix()
             for j in range(0,3):
                 self.F[j,j] = self.F[j,j] + 1.0*XX[j]
-                print(self.F[j,j])
             self.detF = self._compute_determinant(self.F)
 
             #Compute
@@ -174,19 +171,19 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
                 verticalF = self.F[1,1]
                 residual[1] = verticalF - verticalStrain
 
-                print('InfoHere')
-                print( self.F)   
-                print( verticalStrain)
-                print( stress)
+                #print('InfoHere')
+                #print( self.F)   
+                #print( verticalStrain)
+                #print( stress)
                 #Compute the norm of the residual
                 norm = 0
                 for i in range(0,6):
                     norm += residual[i]*residual[i]
-                print('iteracio')
-                print(iteracio)
-                print('norm')
-                print(norm)
-                print(residual)
+                #print('iteracio')
+                #print(iteracio)
+                #print('norm')
+                #print(norm)
+                #print(residual)
                 if (norm < 1e-12):
                     break
                 if (iteracio > 90):
@@ -207,7 +204,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
                 self.F = self._set_identity_matrix()
                 for j in range(0,3):
                     self.F[j,j] = self.F[j,j] + 1.0*XX[j]
-                    print(self.F[j,j])
                 self.detF = self._compute_determinant(self.F)
 
                 #Compute
@@ -224,11 +220,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             strain = self.ComputeStrainFromF(self.F)
         
             self._WriteThisToFile(t, stress, strain)
-
-            print('Stress')
-            print(stress)
-            print('Strain')
-            print(strain)
 
             VolStrain[t] = strain[0] + strain[1] + strain[2]
             VolStrain[t] *= -1.0
@@ -366,7 +357,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         """)
         self.model_part = KratosMultiphysics.ModelPart(settings["model_part_name"].GetString())
         self.echo_level = settings["echo_level"].GetInt()
-        
+
         #read nodes
         self.number_of_nodes = settings["nodes"].size()
         self.nodes = [] #self.model_part.GetNodes()

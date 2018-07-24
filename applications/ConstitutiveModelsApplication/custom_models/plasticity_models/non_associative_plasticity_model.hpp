@@ -87,7 +87,8 @@ namespace Kratos
             NonAssociativePlasticityModel() : BaseType() {}
 
             /// Copy constructor.
-            NonAssociativePlasticityModel(NonAssociativePlasticityModel const& rOther) :BaseType(rOther), mInternal(rOther.mInternal), mPreviousInternal(rOther.mPreviousInternal) {}
+            NonAssociativePlasticityModel(NonAssociativePlasticityModel const& rOther) :BaseType(rOther), mInternal(rOther.mInternal), mPreviousInternal(rOther.mPreviousInternal),
+               mStressMatrix(rOther.mStressMatrix) {}
 
             /// Assignment operator.
             NonAssociativePlasticityModel& operator=(NonAssociativePlasticityModel const& rOther)
@@ -95,6 +96,7 @@ namespace Kratos
                BaseType::operator=(rOther);
                mInternal = rOther.mInternal;
                mPreviousInternal = rOther.mPreviousInternal;
+               mStressMatrix = rOther.mStressMatrix;
                return *this;
             }
 

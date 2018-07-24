@@ -218,6 +218,10 @@ namespace Kratos
             else if ( rThisVariable == PT)
             {
                rValue = this->mInternal.Variables[4];
+            }
+            else if ( rThisVariable == PM)
+            {
+               rValue = this->mInternal.Variables[5];
             } else {
                rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
             }
