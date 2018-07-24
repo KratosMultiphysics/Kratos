@@ -1,9 +1,15 @@
-//   
-//   Project Name:        			KratosDamApplication $
-//   Last Modified by:    $Author:    	  Lorenzo Gracia $
-//   Date:                $Date:           	    May 2017 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Lorenzo Gracia
+//
+
 
 // Application includes
 #include "custom_conditions/added_mass_condition.hpp"
@@ -187,7 +193,7 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSide
             }
 
 			//Computing Nu Matrix
-			ConditionUtilities::CalculateNuMatrix(Nu,NContainer,igauss);
+			PoroConditionUtilities::CalculateNuMatrix(Nu,NContainer,igauss);
 								
 			//Calculating weighting coefficient for integration
 			this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[igauss], integration_points[igauss].Weight() );
@@ -239,7 +245,7 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSid
             }
 
 			//Computing Nu Matrix
-			ConditionUtilities::CalculateNuMatrix(Nu,NContainer,igauss);
+			PoroConditionUtilities::CalculateNuMatrix(Nu,NContainer,igauss);
 								
 			//Calculating weighting coefficient for integration
 			this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[igauss], integration_points[igauss].Weight() );
