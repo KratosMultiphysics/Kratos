@@ -48,6 +48,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
  * @details This function assigns a value to a variable belonging to all of the nodes in a given mesh
+ * @note If the MODIFIED flag is set it will create new entities, copying the geometry and data, instead of just transfering
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(KRATOS_CORE) FastTransferBetweenModelPartsProcess
@@ -102,12 +103,14 @@ public:
      * @param rOriginModelPart The origin model part
      * @param Entity The elements to transfer
      * @param Flag The flag used to differentiate between elements to transfer
+     * @param ReplicateEntities  If the entities are replicated or transfered
      */
     FastTransferBetweenModelPartsProcess(
         ModelPart& rDestinationModelPart,
         ModelPart& rOriginModelPart,
         const EntityTransfered Entity = EntityTransfered::ALL,
-        const Flags Flag = Flags()
+        const Flags Flag = Flags(),
+        const bool ReplicateEntities = false
         );
 
     /// Destructor.
@@ -216,6 +219,32 @@ private:
     ///@name Private Operations
     ///@{
     
+    /**
+     * @brief This method transfer the entities without considering the flags
+     */
+    void TransferWithoutFlags();
+
+    /**
+     * @brief This method transfer the entities considering the flags
+     */
+    void TransferWithFlags();
+
+    /**
+     * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
+     */
+
+    void ReorderAllIds(ModelPart& rThhisModelPart);
+
+    /**
+     * @brief This method replicates the entities without considering the flags
+     */
+    void ReplicateWithoutFlags();
+
+    /**
+     * @brief This method replicates the entities considering the flags
+     */
+    void ReplicateWithFlags();
+
     ///@}
     ///@name Private  Access
     ///@{
