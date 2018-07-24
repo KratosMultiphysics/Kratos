@@ -114,18 +114,11 @@ void TrussElement3D2N::CalculateDampingMatrix(
     MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
-  if (rDampingMatrix.size1() != msLocalSize) {
-    rDampingMatrix.resize(msLocalSize, msLocalSize, false);
-  }
 
-  rDampingMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-
-  MatrixType stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-
+  MatrixType stiffness_matrix;
   this->CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
 
-  MatrixType mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-
+  MatrixType mass_matrix;
   this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
   double alpha = 0.0;
@@ -142,7 +135,7 @@ void TrussElement3D2N::CalculateDampingMatrix(
     beta = rCurrentProcessInfo[RAYLEIGH_BETA];
   }
 
-  noalias(rDampingMatrix) += alpha * mass_matrix;
+  rDampingMatrix = alpha * mass_matrix;
   noalias(rDampingMatrix) += beta * stiffness_matrix;
 
   KRATOS_CATCH("")
@@ -674,24 +667,21 @@ void TrussElement3D2N::AddExplicitContribution(
     const ProcessInfo &rCurrentProcessInfo) {
     KRATOS_TRY;
 
-    BoundedVector<double, msLocalSize> damping_residual_contribution =
-        ZeroVector(msLocalSize);
-    // calculate damping contribution to residual -->
-    if ((this->GetProperties().Has(RAYLEIGH_ALPHA) ||
-        this->GetProperties().Has(RAYLEIGH_BETA)) &&
-        (rDestinationVariable != NODAL_INERTIA)) {
+    if (rRHSVariable == RESIDUAL_VECTOR &&
+        rDestinationVariable == FORCE_RESIDUAL) {
+
+      BoundedVector<double, msLocalSize> damping_residual_contribution =
+          ZeroVector(msLocalSize);
       Vector current_nodal_velocities = ZeroVector(msLocalSize);
       this->GetFirstDerivativesVector(current_nodal_velocities);
-      Matrix damping_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+     // Matrix damping_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+      Matrix damping_matrix;
       ProcessInfo temp_process_information; // cant pass const ProcessInfo
       this->CalculateDampingMatrix(damping_matrix, temp_process_information);
       // current residual contribution due to damping
       noalias(damping_residual_contribution) =
           prod(damping_matrix, current_nodal_velocities);
-    }
 
-    if (rRHSVariable == RESIDUAL_VECTOR &&
-        rDestinationVariable == FORCE_RESIDUAL) {
 
       for (size_t i = 0; i < msNumberOfNodes; ++i) {
         size_t index = msDimension * i;
@@ -705,7 +695,7 @@ void TrussElement3D2N::AddExplicitContribution(
       }
     }
 
-    if (rDestinationVariable == NODAL_INERTIA) {
+    else if (rDestinationVariable == NODAL_INERTIA) {
 
       Matrix element_mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
       ProcessInfo temp_info; // Dummy

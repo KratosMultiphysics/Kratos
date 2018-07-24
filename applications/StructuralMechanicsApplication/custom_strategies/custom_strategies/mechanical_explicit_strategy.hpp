@@ -22,6 +22,8 @@
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
 
+#include "utilities/builtin_timer.h"
+
 namespace Kratos {
 
 /**
@@ -182,20 +184,20 @@ public:
     // initial operations ... things that are constant over the Solution Step
     pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, mDx, mb);
 
-    ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
-    ElementsArrayType &r_elements = r_model_part.Elements();
-
     if (BaseType::mRebuildLevel > 0) {
-    auto it_elem = r_model_part.ElementsBegin();
-// #pragma omp parallel for firstprivate(it_elem)
-    for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-        // Getting nodal mass and inertia from element
-        Vector dummy_vector;
-        // this function needs to be implemented in the respective
-        // element to provide inertias and nodal masses
-        (it_elem + i)
-            ->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
-                                    NODAL_INERTIA, r_current_process_info);
+      ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
+      ElementsArrayType &r_elements = r_model_part.Elements();
+
+      auto it_elem = r_model_part.ElementsBegin();
+  // #pragma omp parallel for firstprivate(it_elem)
+      for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+          // Getting nodal mass and inertia from element
+          Vector dummy_vector;
+          // this function needs to be implemented in the respective
+          // element to provide inertias and nodal masses
+          (it_elem + i)
+              ->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
+                                      NODAL_INERTIA, r_current_process_info);
     }
     }
 
@@ -247,12 +249,19 @@ public:
     TSystemVectorType mDx = TSystemVectorType();
     TSystemVectorType mb = TSystemVectorType();
 
+    BuiltinTimer setup_system_time_1;
     pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+    this->time_mes_temp[0] += setup_system_time_1.ElapsedSeconds();
 
+    BuiltinTimer setup_system_time_2;
     this->CalculateAndAddRHS(pScheme, r_model_part);
+    this->time_mes_temp[1] += setup_system_time_2.ElapsedSeconds();
 
+    BuiltinTimer setup_system_time_3;
     pScheme->Update(r_model_part, dof_set_dummy, mA, mDx,
                     mb); // Explicitly integrates the equation of motion.
+    this->time_mes_temp[2] += setup_system_time_3.ElapsedSeconds();
+
     return true;
   }
   //**********************************************************************
@@ -275,6 +284,7 @@ public:
       BaseType::MoveMesh();
 
     // Cleaning memory after the solution
+    KRATOS_WATCH(this->time_mes_temp);
     pScheme->Clean();
   }
 
@@ -399,6 +409,8 @@ protected:
   bool mCalculateReactionsFlag;
 
   bool mInitializeWasPerformed = false;
+
+  Vector time_mes_temp = ZeroVector(3);
 
   /*@} */
   /**@name Private Operators*/
