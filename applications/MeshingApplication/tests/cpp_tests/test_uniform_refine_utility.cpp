@@ -42,7 +42,8 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(UniformRefineTrianglesUtility, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
@@ -176,7 +177,8 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(UniformRefineQuadrilateralsUtility, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(VELOCITY);
 

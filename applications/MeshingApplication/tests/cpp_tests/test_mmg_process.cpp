@@ -53,8 +53,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
@@ -145,8 +145,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
