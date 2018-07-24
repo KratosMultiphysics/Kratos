@@ -705,7 +705,7 @@ void TrussElement3D2N::AddExplicitContribution(
       }
     }
 
-    if (rDestinationVariable == NODAL_INERTIA) {
+    else if (rDestinationVariable == NODAL_INERTIA) {
 
       Matrix element_mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
       ProcessInfo temp_info; // Dummy
