@@ -246,6 +246,8 @@ namespace Kratos
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
+        bool CheckSelfWeight() const;
+
 
         /**
          * @brief This function calls the constitutive law to get stresses

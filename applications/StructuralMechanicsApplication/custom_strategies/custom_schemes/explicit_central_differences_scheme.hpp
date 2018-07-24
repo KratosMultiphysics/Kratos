@@ -22,7 +22,6 @@
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/variable_utils.h"
-#include "utilities/builtin_timer.h"
 
 namespace Kratos {
 
@@ -153,21 +152,17 @@ public:
       ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
 
 
-      BuiltinTimer setup_system_time_1;
       #pragma omp parallel for
       for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
           auto it_elem = rModelPart.ElementsBegin() + i;
           it_elem->InitializeNonLinearIteration(current_process_info);
       }
-      this->time_mes_temp_scheme[0] += setup_system_time_1.ElapsedSeconds();
 
-      BuiltinTimer setup_system_time_2;
       #pragma omp parallel for
       for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
           auto it_elem = rModelPart.ConditionsBegin() + i;
           it_elem->InitializeNonLinearIteration(current_process_info);
       }
-      this->time_mes_temp_scheme[1] += setup_system_time_2.ElapsedSeconds();
 
       KRATOS_CATCH( "" );
   }
@@ -595,8 +590,6 @@ public:
         TSystemVectorType& b) override
     {
         BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
-        KRATOS_WATCH(this->time_mes_temp_scheme);
-        KRATOS_WATCH(this->time_rhs_contri);
     }
 
 
@@ -642,8 +635,6 @@ protected:
 
   TimeVariables mTime;
   DeltaTimeParameters mDeltaTime;
-  Vector time_mes_temp_scheme = ZeroVector(3);
-  Vector time_rhs_contri = ZeroVector(3);
 
 
   /*@} */
@@ -687,33 +678,6 @@ private:
   /*@} */
   /**@name Private Operations*/
   /*@{ */
-
-  void TCalculate_RHS_Contribution(Element::Pointer pCurrentEntity,
-                                   LocalSystemVectorType &RHS_Contribution,
-                                   ProcessInfo &rCurrentProcessInfo) {
-    Matrix dummy_lhs;
-
-    BuiltinTimer setup_system_time_1;
-    (pCurrentEntity)
-        ->CalculateLocalSystem(dummy_lhs, RHS_Contribution,
-                               rCurrentProcessInfo);
-    this->time_rhs_contri[0] += setup_system_time_1.ElapsedSeconds();
-
-    BuiltinTimer setup_system_time_2;
-    (pCurrentEntity)
-        ->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR,
-                                  FORCE_RESIDUAL, rCurrentProcessInfo);
-    this->time_rhs_contri[1] += setup_system_time_2.ElapsedSeconds();
-
-
-    BuiltinTimer setup_system_time_3;
-    (pCurrentEntity)
-        ->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR,
-                                  MOMENT_RESIDUAL, rCurrentProcessInfo);
-    this->time_rhs_contri[2] += setup_system_time_3.ElapsedSeconds();
-  }
-
-
 
   template <typename TObjectType>
   void TCalculate_RHS_Contribution(TObjectType pCurrentEntity,

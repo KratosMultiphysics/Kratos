@@ -22,7 +22,6 @@
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
 
-#include "utilities/builtin_timer.h"
 
 namespace Kratos {
 
@@ -249,18 +248,12 @@ public:
     TSystemVectorType mDx = TSystemVectorType();
     TSystemVectorType mb = TSystemVectorType();
 
-    BuiltinTimer setup_system_time_1;
     pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-    this->time_mes_temp[0] += setup_system_time_1.ElapsedSeconds();
 
-    BuiltinTimer setup_system_time_2;
     this->CalculateAndAddRHS(pScheme, r_model_part);
-    this->time_mes_temp[1] += setup_system_time_2.ElapsedSeconds();
 
-    BuiltinTimer setup_system_time_3;
     pScheme->Update(r_model_part, dof_set_dummy, mA, mDx,
                     mb); // Explicitly integrates the equation of motion.
-    this->time_mes_temp[2] += setup_system_time_3.ElapsedSeconds();
 
     return true;
   }
@@ -284,7 +277,6 @@ public:
       BaseType::MoveMesh();
 
     // Cleaning memory after the solution
-    KRATOS_WATCH(this->time_mes_temp);
     pScheme->Clean();
   }
 
@@ -409,8 +401,6 @@ protected:
   bool mCalculateReactionsFlag;
 
   bool mInitializeWasPerformed = false;
-
-  Vector time_mes_temp = ZeroVector(3);
 
   /*@} */
   /**@name Private Operators*/
