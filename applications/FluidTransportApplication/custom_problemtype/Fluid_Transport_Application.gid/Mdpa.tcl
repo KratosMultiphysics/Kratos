@@ -69,19 +69,42 @@ proc WriteMdpa { basename dir problemtypedir } {
     #set IsQuadratic [GiD_Info Project Quadratic]
     # Body_Part
     set Groups [GiD_Info conditions Body_Part groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i} {
-        # Elements Property
-        set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+    set SolutionType [GiD_AccessValue get gendata Solution_Type]
 
-        # SteadyConvectionDiffusionFICElement2D3N
-        WriteElements FileVar [lindex $Groups $i] triangle SteadyConvectionDiffusionFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
-        # SteadyConvectionDiffusionFICElement2D4N
-        WriteElements FileVar [lindex $Groups $i] quadrilateral SteadyConvectionDiffusionFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
-        # SteadyConvectionDiffusionFICElement3D4N
-        WriteElements FileVar [lindex $Groups $i] tetrahedra SteadyConvectionDiffusionFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
-        # SteadyConvectionDiffusionFICElement3D8N
-        WriteElements FileVar [lindex $Groups $i] hexahedra SteadyConvectionDiffusionFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+    if {$SolutionType eq "Steady"} {
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # SteadyConvectionDiffusionFICElement2D3N
+            WriteElements FileVar [lindex $Groups $i] triangle SteadyConvectionDiffusionFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+            # SteadyConvectionDiffusionFICElement2D4N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral SteadyConvectionDiffusionFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+            # SteadyConvectionDiffusionFICElement3D4N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra SteadyConvectionDiffusionFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+            # SteadyConvectionDiffusionFICElement3D8N
+            WriteElements FileVar [lindex $Groups $i] hexahedra SteadyConvectionDiffusionFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+        }
+
+    } else {
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            # Elements Property
+            set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+            # TransientConvectionDiffusionFICElement2D3N
+            WriteElements FileVar [lindex $Groups $i] triangle TransientConvectionDiffusionFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
+            # TransientConvectionDiffusionFICElement2D4N
+            WriteElements FileVar [lindex $Groups $i] quadrilateral TransientConvectionDiffusionFICElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+            # TransientConvectionDiffusionFICElement3D4N
+            WriteElements FileVar [lindex $Groups $i] tetrahedra TransientConvectionDiffusionFICElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+            # TransientConvectionDiffusionFICElement3D8N
+            WriteElements FileVar [lindex $Groups $i] hexahedra TransientConvectionDiffusionFICElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+        }
+
     }
+
     puts $FileVar ""
 
     ## Conditions

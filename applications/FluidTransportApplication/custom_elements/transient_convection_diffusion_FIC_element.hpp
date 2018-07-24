@@ -30,7 +30,7 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class TransientConvectionDiffusionFICElement : public SteadyConvectionDiffusionFICElement
+class KRATOS_API(FLUID_TRANSPORT_APPLICATION) TransientConvectionDiffusionFICElement : public SteadyConvectionDiffusionFICElement<TDim,TNumNodes>
 {
 
 public:
@@ -49,16 +49,16 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    TransientConvectionDiffusionFICElement(IndexType NewId = 0) : SteadyConvectionDiffusionFICElement( NewId ) {}
+    TransientConvectionDiffusionFICElement(IndexType NewId = 0) : SteadyConvectionDiffusionFICElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
-    TransientConvectionDiffusionFICElement(IndexType NewId, const NodesArrayType& ThisNodes) : SteadyConvectionDiffusionFICElement(NewId, ThisNodes) {}
+    TransientConvectionDiffusionFICElement(IndexType NewId, const NodesArrayType& ThisNodes) : SteadyConvectionDiffusionFICElement<TDim,TNumNodes>(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    TransientConvectionDiffusionFICElement(IndexType NewId, GeometryType::Pointer pGeometry) : SteadyConvectionDiffusionFICElement(NewId, pGeometry) {}
+    TransientConvectionDiffusionFICElement(IndexType NewId, GeometryType::Pointer pGeometry) : SteadyConvectionDiffusionFICElement<TDim,TNumNodes>(NewId, pGeometry) {}
 
     /// Constructor using Properties
-    TransientConvectionDiffusionFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : SteadyConvectionDiffusionFICElement( NewId, pGeometry, pProperties ) {}
+    TransientConvectionDiffusionFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : SteadyConvectionDiffusionFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
     virtual ~TransientConvectionDiffusionFICElement() {}
@@ -83,7 +83,7 @@ protected:
 
     void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+    void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 

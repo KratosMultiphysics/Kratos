@@ -122,6 +122,8 @@ protected:
         double Beta;
         double NormGradPhi;
         double absorption;
+        double TransientAbsorption;
+        double SigmaVBar;
         double DifSC;
         double AuxDiffusion;
         double CosinusNormals;
@@ -188,7 +190,7 @@ protected:
 
     void CalculateBoundaryLv(ElementVariables& rVariables);
 
-    void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+    virtual void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
     void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node<3> >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
                                                     const PropertiesType& Prop);

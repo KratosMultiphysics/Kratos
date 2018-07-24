@@ -36,6 +36,15 @@ Element::Pointer TransientConvectionDiffusionFICElement<TDim,TNumNodes>::Create(
 template< unsigned int TDim, unsigned int TNumNodes >
 int TransientConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
+
+    // Base class checks for positive area and Id > 0
+    int ierr = Element::Check(rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
+
+    return ierr;
+
+    KRATOS_CATCH( "" );
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -48,7 +57,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( Matri
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
-    GeometryData::IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
+    GeometryData::IntegrationMethod ThisIntegrationMethod = SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
 
@@ -122,7 +131,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( Vecto
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
-    GeometryData::IntegrationMethod ThisIntegrationMethod = GetIntegrationMethod();
+    GeometryData::IntegrationMethod ThisIntegrationMethod = SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
 
@@ -257,6 +266,50 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     const Variable<double>& rReactionVar = my_settings->GetReactionVariable();
     rVariables.absorption = Prop[rReactionVar];
 
+    const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Adding transient absorption
+    ///////////////////////////////////////////////////////////////////////////
+
+    array_1d<double,TNumNodes> NodalPhi1;
+    array_1d<double,TNumNodes> NodalPhi0;
+    double sum_phi = 0.0;
+    double sustr_phi = 0.0;
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        NodalPhi1[i] = rGeom[i].FastGetSolutionStepValue(rUnknownVar);
+        NodalPhi0[i] = rGeom[i].FastGetSolutionStepValue(rUnknownVar,1);
+
+        double aux_var = NodalPhi1[i] - NodalPhi0[i];
+        double aux_var2 = NodalPhi1[i] + NodalPhi0[i];
+
+        if(aux_var > sustr_phi)
+        {
+            sustr_phi = aux_var;
+        }
+
+        if(aux_var2 > sum_phi)
+        {
+            sum_phi = aux_var2;
+        }
+
+        if(sum_phi < 1e-5)
+        {
+            sum_phi = 1e-5;
+        }
+    }
+
+    double delta_time = CurrentProcessInfo.GetValue(DELTA_TIME);
+    double theta = CurrentProcessInfo.GetValue(THETA);
+
+    rVariables.TransientAbsorption = rVariables.rho_dot_c / (theta * delta_time) * 2.0 *tanh(300.0 * (sustr_phi) / (sum_phi));
+
+    rVariables.absorption += rVariables.TransientAbsorption;
+
+    ///////////////////////////////////////////////////////////////////////////
+
     double NormVel = norm_2(rVariables.VelInter);
 
     noalias(rVariables.GradPhi) = ZeroVector(TDim);
@@ -334,6 +387,9 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         rVariables.OmegaV = rVariables.absorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion;
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
+
+        rVariables.SigmaVBar = (rVariables.absorption + rVariables.TransientAbsorption) * rVariables.lv * rVariables.lv
+                                / rVariables.AuxDiffusion / (2.0 * rVariables.Peclet);
 
         rVariables.AlphaVBar = 1.0 / tanh(rVariables.Peclet) - 1.0 / rVariables.Peclet;
     }
