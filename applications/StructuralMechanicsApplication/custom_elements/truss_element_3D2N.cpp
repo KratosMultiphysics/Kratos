@@ -104,7 +104,7 @@ TrussElement3D2N::CreateElementStiffnessMatrix(
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
 
-  local_stiffness_matrix += K_geo;
+  noalias(local_stiffness_matrix) += K_geo;
 
   return local_stiffness_matrix;
   KRATOS_CATCH("")
@@ -270,7 +270,7 @@ void TrussElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   // create+compute RHS
   rRightHandSideVector = -internal_forces;
   // add bodyforces
-  noalias(rRightHandSideVector) += this->CalculateBodyForces();
+  if (this->CheckSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -290,7 +290,7 @@ void TrussElement3D2N::CalculateRightHandSide(
   noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
 
   // add bodyforces
-  noalias(rRightHandSideVector) += this->CalculateBodyForces();
+  if (this->CheckSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -549,8 +549,8 @@ void TrussElement3D2N::UpdateInternalForces(
   this->mConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
 
 
-    const double normal_force =
-        ((temp_internal_stresses[3] + prestress) * l * A) / L0;
+  const double normal_force =
+      ((temp_internal_stresses[3] + prestress) * l * A) / L0;
 
   // internal force vectors
   BoundedVector<double, msLocalSize> f_local = ZeroVector(msLocalSize);
@@ -653,10 +653,6 @@ void TrussElement3D2N::AddExplicitContribution(
     Variable<array_1d<double, 3>> &rDestinationVariable,
     const ProcessInfo &rCurrentProcessInfo) {
     KRATOS_TRY;
-
-    BoundedVector<double, msLocalSize> damping_residual_contribution =
-        ZeroVector(msLocalSize);
-
 
     if (rRHSVariable == RESIDUAL_VECTOR &&
         rDestinationVariable == FORCE_RESIDUAL) {
@@ -959,4 +955,22 @@ void TrussElement3D2N::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
   rSerializer.load("mConstitutiveLaw", mConstitutiveLaw);
 }
+
+
+bool TrussElement3D2N::CheckSelfWeight() const
+{
+  const double norm_self_weight =
+   this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[0]*
+   this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[0]+
+   this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[1]*
+   this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[1]+
+   this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[2]*
+   this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[2];
+
+  if (norm_self_weight<=std::numeric_limits<double>::epsilon()) return false;
+  else return true;
+}
+
+
+
 } // namespace Kratos.
