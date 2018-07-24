@@ -30,17 +30,17 @@
 namespace Kratos
 {
 
-constexpr size_t TrussDiscreteElement::DofsPerNode()
+constexpr std::size_t TrussDiscreteElement::DofsPerNode()
 {
     return 3;
 };
 
-size_t TrussDiscreteElement::NumberOfNodes() const
+std::size_t TrussDiscreteElement::NumberOfNodes() const
 {
     return GetGeometry().size();
 };
 
-size_t TrussDiscreteElement::NumberOfDofs() const
+std::size_t TrussDiscreteElement::NumberOfDofs() const
 {
     return NumberOfNodes() * DofsPerNode();
 };
@@ -66,7 +66,7 @@ void TrussDiscreteElement::CalculateAll(
 {
     KRATOS_TRY
 
-    const size_t number_of_dofs = NumberOfDofs();
+    const std::size_t number_of_dofs = NumberOfDofs();
 
     if (CalculateStiffnessMatrixFlag) {
         if (rLeftHandSideMatrix.size1() != number_of_dofs) {
@@ -129,8 +129,8 @@ void TrussDiscreteElement::CalculateAll(
     Get2ndVariationsAxialStrain(epsilon_var_2, 3, shape_derivatives);
     epsilon_var_2 = epsilon_var_2 / (reference_a * reference_a);
 
-    for (size_t r = 0; r < number_of_dofs; r++) {
-        for (size_t s = 0; s < number_of_dofs; s++) {
+    for (std::size_t r = 0; r < number_of_dofs; r++) {
+        for (std::size_t s = 0; s < number_of_dofs; s++) {
             rLeftHandSideMatrix(r, s) = E * A * epsilon_var_1_dof[r] *
                 epsilon_var_1_dof[s] + s11_membrane * epsilon_var_2(r, s);
         }

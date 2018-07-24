@@ -69,11 +69,11 @@ public:
             GetGeometry().Create(ThisNodes), pProperties);
     };
 
-    static constexpr size_t DofsPerNode();
+    static constexpr std::size_t DofsPerNode();
 
-    size_t NumberOfNodes() const;
+    std::size_t NumberOfNodes() const;
 
-    size_t NumberOfDofs() const;
+    std::size_t NumberOfDofs() const;
 
     void Initialize() override;
 
