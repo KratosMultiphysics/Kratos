@@ -57,6 +57,10 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of UpdatedLagrangianUPElement
     KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUPElement );
@@ -97,7 +101,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected element variables, creating a new one
@@ -106,7 +110,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
     //************* GETTING METHODS
@@ -116,7 +120,7 @@ public:
     /**
      * Set a double  Value on the Element Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //GET:
@@ -124,7 +128,7 @@ public:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -134,7 +138,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize();
+    void Initialize() override;
 
     //************************************************************************************
     //************************************************************************************
@@ -197,61 +201,55 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    double& rIntegrationWeight);
+                                    ElementDataType& rVariables,
+                                    double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     Vector& rVolumeForce,
-                                    double& rIntegrationWeight);
+                                    double& rIntegrationWeight) override;
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
    /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementVariables & rVariables, const double& rPointNumber);
+    virtual void FinalizeStepVariables(ElementDataType & rVariables, const double& rPointNumber) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
-                                     const double& rPointNumber);
+    virtual void CalculateKinematics(ElementDataType& rVariables,
+                                     const double& rPointNumber) override;
 
 
     /**
      * Calculation of the Deformation Gradient F
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition);
+    void CalculateDeformationGradient(Matrix& rF,
+                                      const Matrix& rDN_DX,
+                                      const Matrix& rDeltaPosition);
 
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB,
-				    Matrix& rF,
-				    Matrix& rDN_DX);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementVariables& rVariables, 
-				 const double& rPointNumber );
+    void GetHistoricalVariables( ElementDataType& rVariables,
+				 const double& rPointNumber ) override;
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables);
+    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     ///@}
     ///@name Protected  Access
@@ -295,9 +293,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry
@@ -318,4 +316,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined

@@ -182,7 +182,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassMatri
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
     
     //Distribute boundary mass matrix into the elemental matrix
-    ElementUtilities::AssemblePBlockMatrix< boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rFICVariables.PMatrix,TDim,TNumNodes);
+    ElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rFICVariables.PMatrix,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------

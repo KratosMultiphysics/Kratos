@@ -85,7 +85,7 @@ namespace Kratos
 
 		typedef Kratos::KratosMultiScaleApplication::UnorderedVectorVectorMap VectorVectorMap;
 		typedef Kratos::KratosMultiScaleApplication::UnorderedVectorMatrixMap VectorMatrixMap;
-		
+
 		template <typename T>
 		vector<size_t> sort_indexes(const vector<T> &v) { //only c++11
 
@@ -101,7 +101,7 @@ namespace Kratos
 		}
 
     public:
-        
+
 		RveMaterialDatabase3D(std::string C0_file_name, std::string hash_file_name, std::string json_file_name)
 			: mC0FileName(C0_file_name)
 			, mHashFileName(hash_file_name) // TODO: Remove it
@@ -126,21 +126,21 @@ namespace Kratos
 			std::cout << "json_file: " << json_file << std::endl;
 			this->ReadAndCreatePredictorDataDamageHistory(json_file);
         }
-        
+
 		virtual ~RveMaterialDatabase3D()
         {
         }
 
     public:
-		
+
 		virtual void GetMaterialMapSize(size_t& RveMaterialMapSize)
 		{
 			RveMaterialMapSize = mRveMaterialMap.size();
 		}
 
-		virtual void GetElasticValues(const vector<int>& Tag, 
-									  double& Radius, 
-									  Vector& ElasticStrain, 
+		virtual void GetElasticValues(const vector<int>& Tag,
+									  double& Radius,
+									  Vector& ElasticStrain,
 									  Vector& ElasticStress)
 		{
 			VectorVectorMap::const_iterator it = mRveElasticMap.find(Tag);
@@ -211,9 +211,9 @@ namespace Kratos
 			ElasticStress[5] = i[12];
 		}
 
-		virtual void GetMaterialValues(const vector<int>& Tag, 
-									   Vector& DamageVector, 
-									   Vector& RadiusVector, 
+		virtual void GetMaterialValues(const vector<int>& Tag,
+									   Vector& DamageVector,
+									   Vector& RadiusVector,
 									   Matrix& StressMatrix)
 		{
 			size_t dam_dim = DamageSize();
@@ -303,19 +303,19 @@ namespace Kratos
 				StressMatrix(5, j) = i(7, j);
 			}
 		}
-		
+
 		virtual void PrintData()
 		{
 			std::stringstream ss;
 			ss << "RVE Constitutive Tensor:" << std::endl;
 
 			ss << "Size: (" << mConstitutiveTensor.size1() << ", " <<mConstitutiveTensor.size2() << ") \n";
-			
+
 			ss << "Tensor: [" << mConstitutiveTensor << "]" << std::endl;
 
 			std::cout << ss.str();
 		}
-		
+
 		virtual void SetData()
 		{
 		}
@@ -352,7 +352,7 @@ namespace Kratos
 
             std::stringstream ss;
             ss << "RVE Material Database:" << std::endl;
-			
+
 			ss << "Size: " << mRveMaterialMap.size() << " \n";
 
 			ss << "Values: \n";
@@ -421,7 +421,7 @@ namespace Kratos
 				// Vector e = i_strain;
 				// Vector Se = prod(S, e);
 				// double eTSe = e(0)*Se(0) + e(1)*Se(1) + e(2)*Se(2) + e(3)*Se(3);
-				// 
+				//
 				// double radius = sqrt(eTSe);
 				double radius = norm_2(i_strain);
 				// //Calculate phi & number of division
@@ -429,11 +429,11 @@ namespace Kratos
 				// //std::cout << "m: " << m << std::endl;
 				// double phi = Globals::Pi / m;
 				// //std::cout << "phi: " << phi << " rad" << std::endl;
-				// 
+				//
 				// Vector Theta(2, 0.0);
 				// Theta = this->CalculateTheta(i_strain);
 				// //std::cout << "Theta: " << Theta << std::endl;
-				// 
+				//
 				// Vector real_tag = Theta / phi;
 				// std::cout << "real_tag: " << real_tag << std::endl;
 
@@ -652,7 +652,7 @@ namespace Kratos
 
 
     protected:
-    
+
 		Matrix mConstitutiveTensor;
 		VectorVectorMap mRveElasticMap; // TODO: Remove it
 		VectorMatrixMap mRveMaterialMap;

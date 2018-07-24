@@ -163,7 +163,7 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHandSide
 		const unsigned int LocalDim = Geom.LocalSpaceDimension();
 			
 		// Components of the Jacobian for computing the normal vector and shape functions container
-		boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
+		BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
         //const Vector& ShapeFunctionsValues = Geom.ShapeFunctionsValues();
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
 		GeometryType::JacobiansType JContainer(NumGPoints);
@@ -213,7 +213,7 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSid
 		const unsigned int LocalDim = Geom.LocalSpaceDimension();
 			
 		// Components of the Jacobian for computing the normal vector and shape functions container
-		boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
+		BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
 		GeometryType::JacobiansType JContainer(NumGPoints);
 		for(unsigned int i = 0; i<NumGPoints; i++)
@@ -221,7 +221,7 @@ void AddedMassCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSid
 		Geom.Jacobian( JContainer, mThisIntegrationMethod );
         
         double IntegrationCoefficient;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> MassMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> MassMatrix;
         Vector ShapeFunctionsValues;
         ShapeFunctionsValues.resize(TNumNodes,false);
         Vector AccelerationVector;

@@ -147,7 +147,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
@@ -209,7 +209,7 @@ public:
     void InitializeNonLinIteration( ModelPart& r_model_part,
                                     TSystemMatrixType& A,
                                     TSystemVectorType& Dx,
-                                    TSystemVectorType& b )
+                                    TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
@@ -397,7 +397,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
@@ -416,7 +416,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
@@ -495,7 +495,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) override
     {
 
         InitializeNonLinIteration( r_model_part, A, Dx, b );
@@ -664,7 +664,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo )
+        ProcessInfo& CurrentProcessInfo ) override
     {
         KRATOS_TRY
 
@@ -699,7 +699,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo )
+        ProcessInfo& CurrentProcessInfo ) override
     {
         //Initializing the non linear iteration for the current element
         ( rCurrentElement ) -> InitializeNonLinearIteration( CurrentProcessInfo );
@@ -718,7 +718,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo )
+        ProcessInfo& CurrentProcessInfo ) override
     {
 
         KRATOS_TRY
@@ -747,7 +747,7 @@ public:
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo )
+        ProcessInfo& CurrentProcessInfo ) override
     {
         KRATOS_TRY
         ( rCurrentCondition ) ->

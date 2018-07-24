@@ -42,7 +42,7 @@ public:
     //------------------------------------------------------------------------------------
     
     ///Destructor
-    virtual ~TrilinosNewmarkQuasistaticDampedUPwScheme() {}
+    ~TrilinosNewmarkQuasistaticDampedUPwScheme() override {}
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         
@@ -109,7 +109,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Clear()
+    void Clear() override
     {
         BaseType::Clear();
         
@@ -119,7 +119,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    bool DofImporterIsInitialized()
+    bool DofImporterIsInitialized() override
     {
         return mImporterIsInitialized;
     }

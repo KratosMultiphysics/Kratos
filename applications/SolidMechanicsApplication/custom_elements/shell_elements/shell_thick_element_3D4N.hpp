@@ -51,11 +51,11 @@ class ShellQ4_LocalCoordinateSystem;
  *
  * This element represents a 4-node bilinear Shell element
  * based on the Enhanced Assumed Strain Method (E.A.S.) for the membrane part
- * and on the Mixed Interpolation of Tensorial Components (M.I.T.C.) 
+ * and on the Mixed Interpolation of Tensorial Components (M.I.T.C.)
  * for the trasverse shear part.
- * This element is formulated for small strains, 
+ * This element is formulated for small strains,
  * but can be used in Geometrically nonlinear problems
- * involving large displacements and rotations 
+ * involving large displacements and rotations
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
@@ -65,9 +65,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
 
   ///@name Type Definitions
   ///@{
-    
+
   KRATOS_CLASS_POINTER_DEFINITION(ShellThickElement3D4N);
-    
+
   typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
   typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
@@ -177,13 +177,13 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
 
     array_1d<double, 5> alpha;              /*!< (trial) vector containing the 5 enhanced strain parameters */
     array_1d<double, 5> alpha_converged;    /*!< (converged) vector containing the 5 enhanced strain parameters */
-											    
+
     array_1d<double, 24> displ;             /*!< (trial) vector containing the displacement vector */
     array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the displacement vector */
 
     array_1d<double, 5>           residual; /*!< vector containing the 5 residuals for the 5 enhanced strain parameters */
-    bounded_matrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
-    bounded_matrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
+    BoundedMatrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
+    BoundedMatrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
 
     bool mInitialized;                      /*!< Initialization flag */
 
@@ -226,7 +226,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
      * after the standard strain-displacement matrix has been computed, as well as the standard
      * generalized strains, but before the computation of the constitutive laws.
      */
-    inline void GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac, 
+    inline void GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac,
                                             Vector& generalizedStrains,
                                             EASOperatorStorage& storage);
 
@@ -238,7 +238,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
      * by the integration weight, and their size is assumed to be those of a standard shell element
      * (i.e. algorithmicTangent(8x8), generalizedStresses(8x1))
      */
-    inline void GaussPointComputation_Step2(const Matrix& D, 
+    inline void GaussPointComputation_Step2(const Matrix& D,
                                             const Matrix& B,
                                             const Vector& S,
                                             EASOperatorStorage& storage);
@@ -266,79 +266,79 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
   ///@name Life Cycle
   ///@{
 
-  ShellThickElement3D4N(IndexType NewId, 
-                        GeometryType::Pointer pGeometry, 
-                        bool NLGeom = false);
-    
-  ShellThickElement3D4N(IndexType NewId, 
-                        GeometryType::Pointer pGeometry, 
-                        PropertiesType::Pointer pProperties, 
+  ShellThickElement3D4N(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
                         bool NLGeom = false);
 
-  ShellThickElement3D4N(IndexType NewId, 
-                        GeometryType::Pointer pGeometry, 
-                        PropertiesType::Pointer pProperties, 
+  ShellThickElement3D4N(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties,
+                        bool NLGeom = false);
+
+  ShellThickElement3D4N(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties,
                         CoordinateTransformationBasePointerType pCoordinateTransformation);
 
   virtual ~ShellThickElement3D4N();
 
   ///@}
-    
+
   ///@name Operations
   ///@{
 
   // Basic
 
-  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-  void Initialize();
+  void Initialize() override;
 
-  void ResetConstitutiveLaw();
+  void ResetConstitutiveLaw() override;
 
-  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+  void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-  int Check(const ProcessInfo& rCurrentProcessInfo);
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-  void CleanMemory();
+  void CleanMemory() override;
 
-  void GetValuesVector(Vector& values, int Step = 0);
+  void GetValuesVector(Vector& values, int Step = 0) override;
 
-  void GetFirstDerivativesVector(Vector& values, int Step = 0);
-    
-  void GetSecondDerivativesVector(Vector& values, int Step = 0);
+  void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
 
-  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+  void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
-  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-  void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+  void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
   void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                             VectorType& rRightHandSideVector,
-                            ProcessInfo& rCurrentProcessInfo);
+                            ProcessInfo& rCurrentProcessInfo) override;
 
   void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+                              ProcessInfo& rCurrentProcessInfo) override;
 
   // Results calculation on integration points
 
-  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   ///@}
 
@@ -350,17 +350,17 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
   ///@}
 
  protected:
-    
+
   ///@name Protected Lyfe Cycle
   ///@{
-    
+
   /**
    * Protected empty constructor
    */
   ShellThickElement3D4N() : Element()
   {
   }
-    
+
   ///@}
 
  private:
@@ -372,9 +372,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
 
   void SetupOrientationAngles();
 
-  void CalculateBMatrix(double xi, double eta, 
-                        const JacobianOperator& Jac, const MITC4Params& params, 
-                        const Vector& N, 
+  void CalculateBMatrix(double xi, double eta,
+                        const JacobianOperator& Jac, const MITC4Params& params,
+                        const Vector& N,
                         Matrix& B, Vector& Bdrill);
 
   void CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -386,11 +386,11 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
   void AddBodyForces(const array_1d<double,4> & dA, VectorType& rRightHandSideVector);
 
   bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
-                                                          std::vector<array_1d<double,3> >& rValues, 
+                                                          std::vector<array_1d<double,3> >& rValues,
                                                           const ProcessInfo& rCurrentProcessInfo);
 
   bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
-                                                                   std::vector<Matrix>& rValues, 
+                                                                   std::vector<Matrix>& rValues,
                                                                    const ProcessInfo& rCurrentProcessInfo);
 
   ///@}
@@ -398,42 +398,42 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
   ///@name Static Member Variables
   ///@{
   ///@}
-    
+
   ///@name Member Variables
   ///@{
-    
+
   CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
   CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
-    
+
   EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
 
   ///@}
-    
+
   ///@name Serialization
   ///@{
 
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer) const;
+  void save(Serializer& rSerializer) const override;
 
-  virtual void load(Serializer& rSerializer);
-    
+  void load(Serializer& rSerializer) override;
+
   ///@}
-    
+
   ///@name Private  Access
   ///@{
   ///@}
-    
+
   ///@name Private Inquiry
   ///@{
   ///@}
-    
+
   ///@name Un accessible methods
   ///@{
   ///@}
-    
+
 };
 
-} 
+}
 #endif // SHELL_THICK_ELEMENT_3D4N_H_INCLUDED

@@ -90,8 +90,8 @@ public:
         :BaseType( gp_title, geometryFamily, gid_element_type, number_of_integration_points,
                    index_container) {}
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int parameter_index )
+    void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
+                               double SolutionTag, unsigned int parameter_index ) override
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -157,13 +157,13 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
+                       double SolutionTag, unsigned int value_index ) override
     {
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part, double
-                               SolutionTag, unsigned int parameter_index )
+    void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part, double
+                       SolutionTag, unsigned int parameter_index ) override
     {
         if( mMeshConditions.size() != 0 )
         {
@@ -197,8 +197,8 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int parameter_index )
+    void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
+                       double SolutionTag, unsigned int parameter_index ) override
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {

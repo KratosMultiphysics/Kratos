@@ -39,6 +39,10 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_contact_domain_LM_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_contact_domain_penalty_2D_condition.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_contact_domain_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_contact_domain_penalty_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_thermal_contact_domain_penalty_2D_condition.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_penalty_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_penalty_2D_condition.cpp
@@ -48,6 +52,9 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/EP_point_rigid_contact_penalty_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/EP_point_rigid_contact_penalty_wP_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/hydraulic_rigid_contact_penalty_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/hydraulic_axisym_rigid_contact_penalty_2D_condition.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_rigid_contact_condition.cpp
 
@@ -69,9 +76,9 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 	##utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
 
-	##modelers
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_3D_modeler.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_2D_modeler.cpp
+	##meshers
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_meshers/contact_domain_3D_mesher.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_meshers/contact_domain_2D_mesher.cpp
 
 )
 
@@ -82,7 +89,7 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_meshers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_friction_laws_to_python.cpp
 )
 
@@ -92,7 +99,7 @@ set_target_properties(KratosContactMechanicsCore PROPERTIES COMPILE_DEFINITIONS 
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosContactMechanicsApplication MODULE ${KRATOS_CONTACT_MECHANICS_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosContactMechanicsApplication MODULE THIN_LTO ${KRATOS_CONTACT_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosContactMechanicsApplication PRIVATE KratosContactMechanicsCore)
 set_target_properties(KratosContactMechanicsApplication PROPERTIES PREFIX "")
 

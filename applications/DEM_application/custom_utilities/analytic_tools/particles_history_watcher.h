@@ -7,6 +7,7 @@
 #include <limits>
 #include <iostream>
 #include <iomanip>
+#include <list>
 
 // Project includes
 #include "includes/define.h"
@@ -34,7 +35,7 @@ ParticlesHistoryWatcher(){}
 
 virtual ~ParticlesHistoryWatcher(){}
 
-void ClearData();
+void ClearData() override;
 
 void GetNewParticlesData(std::list<int> ids,
                          std::list<double> X0s,
@@ -43,18 +44,18 @@ void GetNewParticlesData(std::list<int> ids,
                          std::list<double> radii,
                          std::list<double> times_of_creation);
 
-void MakeMeasurements(ModelPart& analytic_model_part);
+void MakeMeasurements(ModelPart& analytic_model_part) override;
 
-void Record(SphericParticle* p_particle, ModelPart& r_model_part);
+void Record(SphericParticle* p_particle, ModelPart& r_model_part) override;
 
 /// Turn back information as a string
-std::string Info() const;
+std::string Info() const override;
 
 /// Print information about this object
-void PrintInfo(std::ostream& rOStream) const;
+void PrintInfo(std::ostream& rOStream) const override;
 
 /// Print object's data
-void PrintData(std::ostream& rOStream) const;
+void PrintData(std::ostream& rOStream) const override;
 
 
 private:

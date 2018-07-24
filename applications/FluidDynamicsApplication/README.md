@@ -10,7 +10,7 @@ The Fluid Dynamics Application contains the core developments in Computational F
 
 - Embedded formulation for flows around non-watertight or poorly defined geometries (STL) or for problems with fixed mesh and deforming domains.
 
-- Arbitrary Lagrangian-Eulerian (ALE) formulation allows for mesh deformation during the simulation (see ALEApplication).
+- Arbitrary Lagrangian-Eulerian (ALE) formulation allows for mesh deformation during the simulation (see MeshMovingApplication).
 
 - Support for Fluid-Structure Interaction (see FSIapplication).
 

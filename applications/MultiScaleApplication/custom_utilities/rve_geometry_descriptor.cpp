@@ -107,7 +107,7 @@ std::string RveGeometryDescriptor::GetInfo()const
 	ss << "corner nodes: " << std::endl;
 	for(size_t i = 0; i < m_corner_nodes.size(); i++)
 	{
-		ss << "[" << i << "] - [[" << m_corner_nodes[i]->GetId() << "]] - " 
+		ss << "[" << i << "] - [[" << m_corner_nodes[i]->GetId() << "]] - "
 			<< m_corner_nodes[i]->GetInitialPosition() << " - <" << m_corner_nodes_ids[i] << ">"
 			<< std::endl;
 	}
@@ -115,7 +115,7 @@ std::string RveGeometryDescriptor::GetInfo()const
 	ss << "boundary nodes: " << std::endl;
 	for(size_t i = 0; i < m_boundary_nodes.size(); i++)
 	{
-		ss << "[" << i << "] - [[" << m_boundary_nodes[i]->GetId() << "]] - " 
+		ss << "[" << i << "] - [[" << m_boundary_nodes[i]->GetId() << "]] - "
 			<< m_boundary_nodes[i]->GetInitialPosition() << " - <" << m_boundary_nodes_ids[i] << ">"
 			<< "<" << (m_boundary_nodes_types[i] == BoundaryNodeType_PeriodicMaster ? "MASTER" : m_boundary_nodes_types[i] == BoundaryNodeType_PeriodicSlave ? "SLAVE" : "") << ">"
 			<< std::endl;
@@ -347,7 +347,7 @@ void RveGeometryDescriptor::FindCornerNodes_3D(ModelPart& modelPart)
 		double ix = inode->X0();
 		double iy = inode->Y0();
 		double iz = inode->Z0();
-		
+
 		if((ix - x_min) <= toleranceX)
 		{
 			if((iy - y_min) <= toleranceY)
@@ -407,7 +407,7 @@ void RveGeometryDescriptor::FindBoundaryNodes(ModelPart& modelPart)
 void RveGeometryDescriptor::FindBoundaryNodes_2D(ModelPart& modelPart)
 {
 	// find the periodicity directions and the transformation matrix
-	
+
 	array_1d<double,2> vx;
 	array_1d<double,2> vy;
 	vx[0] = m_corner_nodes[1]->X0() - m_corner_nodes[0]->X0();
@@ -483,7 +483,7 @@ void RveGeometryDescriptor::FindBoundaryNodes_2D(ModelPart& modelPart)
 void RveGeometryDescriptor::FindBoundaryNodes_3D(ModelPart& modelPart)
 {
 	// find the periodicity directions and the transformation matrix
-	
+
 	array_1d<double,3> vx;
 	array_1d<double,3> vy;
 	array_1d<double,3> vz;
@@ -589,7 +589,7 @@ void RveGeometryDescriptor::FindPeriodicNodes(ModelPart& modelPart)
 void RveGeometryDescriptor::FindPeriodicNodes_2D(ModelPart& modelPart)
 {
 	// find the periodicity directions and the transformation matrix
-	
+
 	array_1d<double,2> vx;
 	array_1d<double,2> vy;
 	vx[0] = m_corner_nodes[1]->X0() - m_corner_nodes[0]->X0();
@@ -732,7 +732,7 @@ void RveGeometryDescriptor::FindPeriodicNodes_2D(ModelPart& modelPart)
 void RveGeometryDescriptor::FindPeriodicNodes_3D(ModelPart& modelPart)
 {
 	// find the periodicity directions and the transformation matrix
-	
+
 	array_1d<double,3> vx;
 	array_1d<double,3> vy;
 	array_1d<double,3> vz;
@@ -839,7 +839,7 @@ void RveGeometryDescriptor::FindPeriodicNodes_3D(ModelPart& modelPart)
 					}
 				}
 			}
-			
+
 			if(ipos[2] > lz0-tolerance) { //top plane
 				if(ipos[0] < tolerance) {
 					edges[7].push_back(inode);
@@ -1049,7 +1049,7 @@ void RveGeometryDescriptor::ExtractIndexArrays(ModelPart& modelPart)
 		for(size_t jj = 0; jj < ielem_geom.size(); jj++)
 		{
 			size_t jnodeid = ielem_geom[jj].GetId();
-			if(std::binary_search(m_boundary_nodes_ids.begin(), m_boundary_nodes_ids.end(), jnodeid)) 
+			if(std::binary_search(m_boundary_nodes_ids.begin(), m_boundary_nodes_ids.end(), jnodeid))
 			{
 				m_boundary_elements_ids.push_back(elemid);
 				break;

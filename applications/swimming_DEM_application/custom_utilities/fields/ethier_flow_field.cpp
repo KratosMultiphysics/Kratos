@@ -36,7 +36,7 @@ void EthierFlowField::UpdateCoordinates(const double time, const array_1d<double
     }
 }
 
-void EthierFlowField::UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread)
+void EthierFlowField::UpdateCoordinates(const double time, const DenseVector<double>& coor, const int i_thread)
 {
     if (!mCoordinatesAreUpToDate[i_thread]){
         mExpD2T[i_thread]  = std::exp(- mD * mD * time);

@@ -11,14 +11,9 @@
 #define KRATOS_MESH_DATA_TRANSFER_UTILITIES_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 #include <stdlib.h>
 
-#include <boost/timer.hpp>
-
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
@@ -147,7 +142,7 @@ namespace Kratos
 
     struct BoundaryVariables
     {
-      
+
       double DoubleVariable;
       array_1d<double, 3> Array1DVariable;
       Vector VectorVariable;
@@ -162,7 +157,7 @@ namespace Kratos
 	MatrixVariable.resize(dimension, dimension);
 	noalias(MatrixVariable) = IdentityMatrix(dimension);
       }
-      
+
     };
 
 
@@ -173,7 +168,7 @@ namespace Kratos
       std::vector<array_1d<double,3> > Array1DVariableArray;
       std::vector<Vector> VectorVariableArray;
       std::vector<Matrix> MatrixVariableArray;
-      
+
       void Initialize(const unsigned int& size)
       {
 	array_size = size;
@@ -182,9 +177,9 @@ namespace Kratos
 	VectorVariableArray.resize(size);
 	MatrixVariableArray.resize(size);
       }
-      
+
     };
-	
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -239,7 +234,7 @@ namespace Kratos
     void TransferInitialBoundaryData(Condition::Pointer rCurrentCondition,
 				     const TransferParameters& rTransferVariables,
 				     BoundaryVariables& rVariables);
-    
+
     //*******************************************************************************************
     //*******************************************************************************************
 
@@ -249,8 +244,8 @@ namespace Kratos
 				     BoundaryVariables& rVariables,
 				     BoundaryVariableArrays& rVariableArrays,
 				     const ProcessInfo& rCurrentProcessInfo);
-	
-	 
+
+
     //*******************************************************************************************
     //*******************************************************************************************
 

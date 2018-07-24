@@ -15,7 +15,6 @@
 #include <iostream>
 
 // External includes
-#include <boost/timer.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -23,15 +22,16 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-
+#include "utilities/openmp_utils.h"
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:     NEIGHBOUR_ELEMENTS(set), NEIGHBOUR_NODES(set)
-//StepData: 
-//Flags:    (checked) 
+//StepData:
+//Flags:    (checked)
 //          (set)     STRUCTURE(set)->when a dof is fixed
-//          (modified)  
-//          (reset)   
+//          (modified)
+//          (reset)
 // (set):=(set in this process)
 
 
@@ -64,7 +64,7 @@ namespace Kratos
   /** Detail class definition.
    */
   class NodalNeighboursSearchProcess
-    : public Process
+    : public MesherProcess
   {
   public:
     ///@name Type Definitions
@@ -81,9 +81,9 @@ namespace Kratos
     /// avg_elems ------ expected number of neighbour elements per node.,
     /// avg_nodes ------ expected number of neighbour Nodes
     /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-    NodalNeighboursSearchProcess(ModelPart& rModelPart, 				
+    NodalNeighboursSearchProcess(ModelPart& rModelPart,
 				 int EchoLevel = 0,
-				 int AverageElements = 10, 
+				 int AverageElements = 10,
 				 int AverageNodes = 10)
       : mrModelPart(rModelPart)
     {
@@ -112,13 +112,13 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
       bool success=false;
 
       int method = 0; //Kratos or Lohner method
 
-      boost::timer auxiliary;
+      double begin_time = OpenMPUtils::GetCurrentTime();
 
       if(method==0)
 	{
@@ -138,8 +138,10 @@ namespace Kratos
       else
 	{
 	  //print out the mesh generation time
-	  if( mEchoLevel > 1 )
-	    std::cout<<"  Neighbour Nodes Search time = "<<auxiliary.elapsed()<<std::endl;
+	  if( mEchoLevel > 1 ){
+            double end_time = OpenMPUtils::GetCurrentTime();
+	    std::cout<<"  Neighbour Nodes Search time = "<<end_time-begin_time<<std::endl;
+          }
 	  //PrintNodeNeighbours();
 	}
 
@@ -148,7 +150,7 @@ namespace Kratos
     void ClearNeighbours()
     {
       NodesContainerType& rNodes = mrModelPart.Nodes();
-      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
 	{
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end());
@@ -156,7 +158,7 @@ namespace Kratos
 	  WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
 	  rN.erase(rN.begin(),rN.end() );
 	}
-	
+
     }
 
     ///@}
@@ -174,19 +176,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "NodalNeighboursSearchProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "NodalNeighboursSearchProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -261,7 +263,7 @@ namespace Kratos
       typename WeakPointerVector< TDataType >::iterator endit = v.end();
       while ( i != endit && (i)->Id() != (candidate.lock())->Id())
 	{
-	  i++;
+	  ++i;
 	}
       if( i == endit )
 	{
@@ -274,7 +276,7 @@ namespace Kratos
     {
       NodesContainerType&    rNodes = mrModelPart.Nodes();
       //*************  Erase old node neighbours  *************//
-      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
 	{
 	  (in->GetValue(NEIGHBOUR_NODES)).reserve(mAverageNodes);
 	  WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
@@ -284,16 +286,16 @@ namespace Kratos
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end() );
 
-	  //set fixed nodes as Nodes<3>::STRUCTURE  to not be removed in the meshing 
+	  //set fixed nodes as Nodes<3>::STRUCTURE  to not be removed in the meshing
 	  Node<3>::DofsContainerType& node_dofs = in->GetDofs();
-	  for( Node<3>::DofsContainerType::const_iterator i_dof = node_dofs.begin() ; i_dof != node_dofs.end() ; i_dof++)
+	  for( Node<3>::DofsContainerType::const_iterator i_dof = node_dofs.begin() ; i_dof != node_dofs.end() ; ++i_dof)
 	    {
 	      if(i_dof->IsFixed()){
 		in->Set(STRUCTURE);
 		break;
 	      }
 	    }
-		
+
 	}
 
       //std::cout<<"  [ Node Neighbours CLEAN ] "<<std::endl;
@@ -305,12 +307,12 @@ namespace Kratos
 
       NodesContainerType& rNodes = mrModelPart.Nodes();
       std::cout<<" NODES: neighbour elems: "<<std::endl;
-      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
 	{
 	  std::cout<<"["<<in->Id()<<"]:"<<std::endl;
 	  std::cout<<"( ";
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-	  for(unsigned int i = 0; i < rE.size(); i++)
+	  for(unsigned int i = 0; i < rE.size(); ++i)
 	    {
 	      std::cout<< rE[i].Id()<<", ";
 	    }
@@ -321,12 +323,12 @@ namespace Kratos
 
       std::cout<<" NODES: neighbour nodes: "<<std::endl;
 
-      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
 	{
 	  std::cout<<"["<<in->Id()<<"]:"<<std::endl;
 	  std::cout<<"( ";
 	  WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
-	  for(unsigned int i = 0; i < rN.size(); i++)
+	  for(unsigned int i = 0; i < rN.size(); ++i)
 	    {
 	      std::cout<< rN[i].Id()<<", ";
 	    }
@@ -351,10 +353,10 @@ namespace Kratos
       //*************  Neighbours of nodes  ************//
 
       //add the neighbour elements to all the nodes in the mesh
-      for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
+      for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ++ie)
 	{
 	  Element::GeometryType& pGeom = ie->GetGeometry();
-	  for(unsigned int i = 0; i < pGeom.size(); i++)
+	  for(unsigned int i = 0; i < pGeom.size(); ++i)
 	    {
 	      //KRATOS_WATCH( pGeom[i] )
 	      (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
@@ -364,24 +366,24 @@ namespace Kratos
 
 
       //adding the neighbouring nodes to all nodes in the mesh
-      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
 	{
 	  WeakPointerVector< Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 	  //KRATOS_WATCH ( *in )
 	  //KRATOS_WATCH ( rE.size() )
-	  for(unsigned int ie = 0; ie < rE.size(); ie++)
+	  for(unsigned int ie = 0; ie < rE.size(); ++ie)
 	    {
 	      Element::GeometryType& pGeom = rE[ie].GetGeometry();
-	      for(unsigned int i = 0; i < pGeom.size(); i++)
+	      for(unsigned int i = 0; i < pGeom.size(); ++i)
 		{
 		  //std::cout<<" inside pgeom loop {"<<i<<"} rE.size() : "<<rE.size()<<std::endl;
 		  if( pGeom[i].Id() != in->Id() )
-		    {              
+		    {
 		      Element::NodeType::WeakPointer temp = pGeom(i);
 		      WeakPointerVector< Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
 		      AddUniqueWeakPointer< Node<3> >(rN, temp);
 		      //std::cout<<" inside add unique {"<<i<<"} rE.size() : "<<rE.size()<<std::endl;
-		    }	    
+		    }
 
 		}
 	    }
@@ -422,10 +424,10 @@ namespace Kratos
       PSharedE[0]=1;
       PSharedN[0]=1;
 
-      for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
+      for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ++ie)
 	{
 	  Element::GeometryType& pGeom = ie->GetGeometry();
-	  for(unsigned int i = 0; i < pGeom.size(); i++)
+	  for(unsigned int i = 0; i < pGeom.size(); ++i)
 	    {
 	      ipoi1=pGeom[i].Id();      //counter
 	      PSharedE[ipoi1]+=1;       //auxiliar counter: esup2
@@ -437,7 +439,7 @@ namespace Kratos
 
       //2.- Reshuffling pass (1)
       unsigned int pn;
-      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
 	{
 	  pn= in->Id();
 	  int size= PSharedE[pn]*(Nn-1)+Nn; //it is an estimation of the size like mAverageNodes
@@ -449,10 +451,10 @@ namespace Kratos
 	}
 
       //3.- Store the elements in PSurroundE
-      for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
+      for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ++ie)
 	{
 	  Element::GeometryType& pGeom = ie->GetGeometry();
-	  for(unsigned int i = 0; i < pGeom.size(); i++)
+	  for(unsigned int i = 0; i < pGeom.size(); ++i)
 	    {
 	      ipoi1=pGeom[i].Id();         //counter
 	      PSharedE[ipoi1]-=1;
@@ -472,12 +474,12 @@ namespace Kratos
 
       PSharedN.clear();
 
-      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
 	{
 	  WeakPointerVector<Element >& rNeighElems = in->GetValue(NEIGHBOUR_ELEMENTS);
 	  rpn = in->Id();
 
-	  for (unsigned int sel=0; sel<rNeighElems.size(); sel++)
+	  for (unsigned int sel=0; sel<rNeighElems.size(); ++sel)
 	    {
 
 	      iel = rNeighElems[sel].Id();
@@ -485,7 +487,7 @@ namespace Kratos
 	      Element::GeometryType& pGeom = rElems[iel].GetGeometry();
 
 
-	      for (unsigned int nd=0; nd<pGeom.size(); nd++)
+	      for (unsigned int nd=0; nd<pGeom.size(); ++nd)
 		{
 		  ipn = pGeom[nd].Id();
 
@@ -495,7 +497,7 @@ namespace Kratos
 
 		      if (PSharedN[rpn]!=0)
 			{
-			  for(unsigned int spn=0; spn<=PSharedN[rpn]; spn++)
+			  for(unsigned int spn=0; spn<=PSharedN[rpn]; ++spn)
 			    {
 			      if (PSurroundN[rpn][spn]!=ipn)
 				{
@@ -527,7 +529,7 @@ namespace Kratos
 	  //std::cout<<" NODE "<<rpn<<" "<<PSharedN[rpn]<<std::endl;
 
 
-	  for(unsigned int spn=0; spn<PSharedN[rpn]; spn++)
+	  for(unsigned int spn=0; spn<PSharedN[rpn]; ++spn)
 	    {
 	      //std::cout<<" ShNodes "<<PSurroundN[rpn][spn]<<std::endl;
 	      Element::NodeType::WeakPointer temp = rNodes(PSurroundN[rpn][spn]);
@@ -596,6 +598,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NODAL_NEIGHBOURS_SEARCH_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_NODAL_NEIGHBOURS_SEARCH_PROCESS_H_INCLUDED  defined

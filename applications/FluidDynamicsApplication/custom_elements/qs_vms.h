@@ -47,12 +47,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// Forward decalration of auxiliary class
-namespace Internals {
-template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem;
-}
-
 template< class TElementData >
 class QSVMS : public FluidElement<TElementData>
 {
@@ -305,7 +299,7 @@ protected:
 
     void AddViscousTerm(
         const TElementData& rData,
-        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+        BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS);
 
     /**
@@ -318,50 +312,49 @@ protected:
     KRATOS_DEPRECATED virtual double EffectiveViscosity(
         TElementData& rData,
         double ElementSize);
-    
+
     virtual void CalculateTau(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
         double &TauOne,
         double &TauTwo) const;
 
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
+    virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
     virtual void MomentumProjTerm(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRHS);
+        const TElementData& rData,
+        const array_1d<double,3>& rConvectionVelocity,
+        array_1d<double,3>& rMomentumRHS) const;
 
     virtual void MassProjTerm(
-        TElementData& rData,
-        double& rMassRHS);
-
+        const TElementData& rData,
+        double& rMassRHS) const;
 
     virtual void SubscaleVelocity(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        array_1d<double,3>& rVelocitySubscale);
+        const TElementData& rData,
+        array_1d<double,3>& rVelocitySubscale) const;
 
     virtual void SubscalePressure(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        double &rPressureSubscale);
+        const TElementData& rData,
+        double &rPressureSubscale) const;
 
-    virtual void ASGSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
+    virtual void AlgebraicMomentumResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const;
 
+    virtual void AlgebraicMassResidual(
+        const TElementData& rData,
+        double& rMomentumRes) const;
 
-    virtual void ASGSMassResidual(
-        TElementData& rData,
-        double& rMomentumRes);
+    virtual void OrthogonalMomentumResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const;
 
-    virtual void OSSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
-
-    virtual void OSSMassResidual(
-        TElementData& rData,
-        double& rMassRes);
+    virtual void OrthogonalMassResidual(
+        const TElementData& rData,
+        double& rMassRes) const;
 
     ///@}
     ///@name Protected  Access
@@ -388,11 +381,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
-
-    friend class Internals::SpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
     ///@}
     ///@name Serialization
     ///@{
@@ -470,33 +458,7 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 }
 ///@}
 
-
-namespace Internals {
-
-template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem {
-   public:
-    static void AddSystem(QSVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, true> {
-   public:
-    static void AddSystem(QSVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, false> {
-   public:
-    static void AddSystem(QSVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
 ///@} // Fluid Dynamics Application group
-
-} // namespace Internals
 
 } // namespace Kratos.
 

@@ -15,7 +15,7 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
@@ -26,31 +26,18 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+namespace Kratos {
+namespace Python {
 
-
-namespace Kratos
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
+    using namespace pybind11;
 
-namespace Python
-{
+	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+	typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
+}
 
-  void  AddCustomUtilitiesToPython()
-  {
-	using namespace boost::python;
-
-
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-
-  }
-
-
-
-
-
-}  // namespace Python.
-
+} // namespace Python.
 } // Namespace Kratos

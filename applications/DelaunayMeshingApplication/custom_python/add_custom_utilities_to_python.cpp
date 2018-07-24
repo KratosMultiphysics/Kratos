@@ -7,61 +7,61 @@
 //
 //
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
 
 //Utilities
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
 // refining methods
-    
-void SetRefiningParameters(ModelerUtilities::RefiningParameters& rRefiningParameters, double AlphaParameter, double CriticalRadius, double CriticalSide)
+
+void SetRefiningParameters(MesherUtilities::RefiningParameters& rRefiningParameters, double AlphaParameter, double CriticalRadius, double CriticalSide)
 {
   rRefiningParameters.SetParameters(AlphaParameter, CriticalRadius, CriticalSide);
 }
-    
-    
-void SetThresholdVariable(ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<double>& rVariable)
+
+
+void SetThresholdVariable(MesherUtilities::RefiningParameters& rRefiningParameters, const Variable<double>& rVariable)
 {
   rRefiningParameters.SetThresholdVariable(rVariable);
 }
 
-void SetErrorVariable(ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<double>& rVariable)
+void SetErrorVariable(MesherUtilities::RefiningParameters& rRefiningParameters, const Variable<double>& rVariable)
 {
   rRefiningParameters.SetErrorVariable(rVariable);
 }
 
-Variable<double> GetThresholdVariable(ModelerUtilities::RefiningParameters& rRefiningParameters)
+Variable<double> GetThresholdVariable(MesherUtilities::RefiningParameters& rRefiningParameters)
 {
   return rRefiningParameters.GetThresholdVariable();
 
 }
 // remeshing methods
 
-void SetReferenceElement(ModelerUtilities::MeshingParameters& rMeshingParameters, char* ElementName)
+void SetReferenceElement(MesherUtilities::MeshingParameters& rMeshingParameters, char* ElementName)
 {
   rMeshingParameters.SetReferenceElement(KratosComponents<Element>::Get(ElementName));
 }
 
-void SetReferenceCondition(ModelerUtilities::MeshingParameters& rMeshingParameters, char* ConditionName)
+void SetReferenceCondition(MesherUtilities::MeshingParameters& rMeshingParameters, char* ConditionName)
 {
   rMeshingParameters.SetReferenceCondition(KratosComponents<Condition>::Get(ConditionName));
 }
 
 
 // transfer methods
-void TransferNodesToElementsOnThreshold( MeshDataTransferUtilities& rMeshDataTransfer, MeshDataTransferUtilities::TransferParameters& rTransferParameters, ModelerUtilities::RefiningParameters& rRefiningParameters, ModelPart& rModelPart)
+void TransferNodesToElementsOnThreshold( MeshDataTransferUtilities& rMeshDataTransfer, MeshDataTransferUtilities::TransferParameters& rTransferParameters, MesherUtilities::RefiningParameters& rRefiningParameters, ModelPart& rModelPart)
 {
   rMeshDataTransfer.TransferNodalValuesToElements( rTransferParameters, rRefiningParameters.GetThresholdVariable(), rRefiningParameters.GetReferenceThreshold(), rModelPart );
 }
@@ -70,17 +70,17 @@ void SetDoubleVariable( MeshDataTransferUtilities::TransferParameters& rTransfer
 {
   rTransferParameters.SetVariable( rVariable );
 }
-    
+
 void SetArray1DVariable( MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<array_1d<double,3> >& rVariable )
 {
   rTransferParameters.SetVariable( rVariable );
 }
-    
+
 void SetVectorVariable( MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<Vector>& rVariable )
 {
   rTransferParameters.SetVariable( rVariable );
 }
-    
+
 void SetMatrixVariable( MeshDataTransferUtilities::TransferParameters& rTransferParameters, const Variable<Matrix>& rVariable )
 {
   rTransferParameters.SetVariable( rVariable );
@@ -92,56 +92,56 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
   using namespace  pybind11;
 
- 
+
   //***************DOMAIN SET**************//
-  class_<ModelerUtilities>(m,"ModelerUtilities")
+  class_<MesherUtilities>(m,"MesherUtilities")
       .def(init<>())
-      .def("SetModelPartNameToConditions",&ModelerUtilities::SetModelPartNameToConditions)
-      .def("SetModelPartNameToNodes",&ModelerUtilities::SetModelPartNameToNodes)
-      .def("CheckCriticalRadius",&ModelerUtilities::CheckCriticalRadius)
-      .def("ComputeModelPartVolume",&ModelerUtilities::ComputeModelPartVolume)
-	
-      .def_readonly_static("REMESH",&ModelerUtilities::REMESH)
-      .def_readonly_static("REFINE",&ModelerUtilities::REFINE)
-      .def_readonly_static("RECONNECT",&ModelerUtilities::RECONNECT)
-      .def_readonly_static("TRANSFER",&ModelerUtilities::TRANSFER)
-      .def_readonly_static("CONSTRAINED",&ModelerUtilities::CONSTRAINED)
-      .def_readonly_static("CONTACT_SEARCH",&ModelerUtilities::CONTACT_SEARCH)
-      .def_readonly_static("MESH_SMOOTHING",&ModelerUtilities::MESH_SMOOTHING)
-      .def_readonly_static("VARIABLES_SMOOTHING",&ModelerUtilities::VARIABLES_SMOOTHING)
-	
-      .def_readonly_static("REMOVE_NODES",&ModelerUtilities::REMOVE_NODES)
-      .def_readonly_static("REMOVE_NODES_ON_DISTANCE",&ModelerUtilities::REMOVE_NODES_ON_DISTANCE)
-      .def_readonly_static("REMOVE_NODES_ON_ERROR",&ModelerUtilities::REMOVE_NODES_ON_ERROR)
-      .def_readonly_static("REMOVE_NODES_ON_THRESHOLD",&ModelerUtilities::REMOVE_NODES_ON_THRESHOLD)
-      .def_readonly_static("REMOVE_BOUNDARY_NODES",&ModelerUtilities::REMOVE_BOUNDARY_NODES)
-      .def_readonly_static("REMOVE_BOUNDARY_NODES_ON_DISTANCE",&ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)
-      .def_readonly_static("REMOVE_BOUNDARY_NODES_ON_ERROR",&ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_ERROR)
-      .def_readonly_static("REMOVE_BOUNDARY_NODES_ON_THRESHOLD",&ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_THRESHOLD)
-	
-      .def_readonly_static("REFINE_ADD_NODES",&ModelerUtilities::REFINE_ADD_NODES)
-      .def_readonly_static("REFINE_INSERT_NODES",&ModelerUtilities::REFINE_INSERT_NODES)
-      .def_readonly_static("REFINE_ELEMENTS",&ModelerUtilities::REFINE_ELEMENTS)
-      .def_readonly_static("REFINE_ELEMENTS_ON_DISTANCE",&ModelerUtilities::REFINE_ELEMENTS_ON_DISTANCE)
-      .def_readonly_static("REFINE_ELEMENTS_ON_ERROR",&ModelerUtilities::REFINE_ELEMENTS_ON_ERROR)
-      .def_readonly_static("REFINE_ELEMENTS_ON_THRESHOLD",&ModelerUtilities::REFINE_ELEMENTS_ON_THRESHOLD)
-      .def_readonly_static("REFINE_BOUNDARY",&ModelerUtilities::REFINE_BOUNDARY)
-      .def_readonly_static("REFINE_BOUNDARY_ON_DISTANCE",&ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE)
-      .def_readonly_static("REFINE_BOUNDARY_ON_ERROR",&ModelerUtilities::REFINE_BOUNDARY_ON_ERROR)
-      .def_readonly_static("REFINE_BOUNDARY_ON_THRESHOLD",&ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD)
+      .def("SetModelPartNameToConditions",&MesherUtilities::SetModelPartNameToConditions)
+      .def("SetModelPartNameToNodes",&MesherUtilities::SetModelPartNameToNodes)
+      .def("CheckCriticalRadius",&MesherUtilities::CheckCriticalRadius)
+      .def("ComputeModelPartVolume",&MesherUtilities::ComputeModelPartVolume)
 
-      .def_readonly_static("INITIALIZE_MESHER_INPUT",&ModelerUtilities::INITIALIZE_MESHER_INPUT)
-      .def_readonly_static("FINALIZE_MESHER_INPUT",&ModelerUtilities::FINALIZE_MESHER_INPUT)
-      .def_readonly_static("TRANSFER_KRATOS_NODES_TO_MESHER",&ModelerUtilities::TRANSFER_KRATOS_NODES_TO_MESHER)
-      .def_readonly_static("TRANSFER_KRATOS_ELEMENTS_TO_MESHER",&ModelerUtilities::TRANSFER_KRATOS_ELEMENTS_TO_MESHER)
-      .def_readonly_static("TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER",&ModelerUtilities::TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER)
-      .def_readonly_static("TRANSFER_KRATOS_FACES_TO_MESHER",&ModelerUtilities::TRANSFER_KRATOS_FACES_TO_MESHER)
+      .def_readonly_static("REMESH",&MesherUtilities::REMESH)
+      .def_readonly_static("REFINE",&MesherUtilities::REFINE)
+      .def_readonly_static("RECONNECT",&MesherUtilities::RECONNECT)
+      .def_readonly_static("TRANSFER",&MesherUtilities::TRANSFER)
+      .def_readonly_static("CONSTRAINED",&MesherUtilities::CONSTRAINED)
+      .def_readonly_static("CONTACT_SEARCH",&MesherUtilities::CONTACT_SEARCH)
+      .def_readonly_static("MESH_SMOOTHING",&MesherUtilities::MESH_SMOOTHING)
+      .def_readonly_static("VARIABLES_SMOOTHING",&MesherUtilities::VARIABLES_SMOOTHING)
 
-      .def_readonly_static("SELECT_TESSELLATION_ELEMENTS",&ModelerUtilities::SELECT_TESSELLATION_ELEMENTS)
-      .def_readonly_static("KEEP_ISOLATED_NODES",&ModelerUtilities::KEEP_ISOLATED_NODES)
+      .def_readonly_static("REMOVE_NODES",&MesherUtilities::REMOVE_NODES)
+      .def_readonly_static("REMOVE_NODES_ON_DISTANCE",&MesherUtilities::REMOVE_NODES_ON_DISTANCE)
+      .def_readonly_static("REMOVE_NODES_ON_ERROR",&MesherUtilities::REMOVE_NODES_ON_ERROR)
+      .def_readonly_static("REMOVE_NODES_ON_THRESHOLD",&MesherUtilities::REMOVE_NODES_ON_THRESHOLD)
+      .def_readonly_static("REMOVE_BOUNDARY_NODES",&MesherUtilities::REMOVE_BOUNDARY_NODES)
+      .def_readonly_static("REMOVE_BOUNDARY_NODES_ON_DISTANCE",&MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)
+      .def_readonly_static("REMOVE_BOUNDARY_NODES_ON_ERROR",&MesherUtilities::REMOVE_BOUNDARY_NODES_ON_ERROR)
+      .def_readonly_static("REMOVE_BOUNDARY_NODES_ON_THRESHOLD",&MesherUtilities::REMOVE_BOUNDARY_NODES_ON_THRESHOLD)
+
+      .def_readonly_static("REFINE_ADD_NODES",&MesherUtilities::REFINE_ADD_NODES)
+      .def_readonly_static("REFINE_INSERT_NODES",&MesherUtilities::REFINE_INSERT_NODES)
+      .def_readonly_static("REFINE_ELEMENTS",&MesherUtilities::REFINE_ELEMENTS)
+      .def_readonly_static("REFINE_ELEMENTS_ON_DISTANCE",&MesherUtilities::REFINE_ELEMENTS_ON_DISTANCE)
+      .def_readonly_static("REFINE_ELEMENTS_ON_ERROR",&MesherUtilities::REFINE_ELEMENTS_ON_ERROR)
+      .def_readonly_static("REFINE_ELEMENTS_ON_THRESHOLD",&MesherUtilities::REFINE_ELEMENTS_ON_THRESHOLD)
+      .def_readonly_static("REFINE_BOUNDARY",&MesherUtilities::REFINE_BOUNDARY)
+      .def_readonly_static("REFINE_BOUNDARY_ON_DISTANCE",&MesherUtilities::REFINE_BOUNDARY_ON_DISTANCE)
+      .def_readonly_static("REFINE_BOUNDARY_ON_ERROR",&MesherUtilities::REFINE_BOUNDARY_ON_ERROR)
+      .def_readonly_static("REFINE_BOUNDARY_ON_THRESHOLD",&MesherUtilities::REFINE_BOUNDARY_ON_THRESHOLD)
+
+      .def_readonly_static("INITIALIZE_MESHER_INPUT",&MesherUtilities::INITIALIZE_MESHER_INPUT)
+      .def_readonly_static("FINALIZE_MESHER_INPUT",&MesherUtilities::FINALIZE_MESHER_INPUT)
+      .def_readonly_static("TRANSFER_KRATOS_NODES_TO_MESHER",&MesherUtilities::TRANSFER_KRATOS_NODES_TO_MESHER)
+      .def_readonly_static("TRANSFER_KRATOS_ELEMENTS_TO_MESHER",&MesherUtilities::TRANSFER_KRATOS_ELEMENTS_TO_MESHER)
+      .def_readonly_static("TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER",&MesherUtilities::TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER)
+      .def_readonly_static("TRANSFER_KRATOS_FACES_TO_MESHER",&MesherUtilities::TRANSFER_KRATOS_FACES_TO_MESHER)
+
+      .def_readonly_static("SELECT_TESSELLATION_ELEMENTS",&MesherUtilities::SELECT_TESSELLATION_ELEMENTS)
+      .def_readonly_static("KEEP_ISOLATED_NODES",&MesherUtilities::KEEP_ISOLATED_NODES)
       ;
-        
-        
+
+
   //***************NORMALS**************//
 
   class_<BoundaryNormalsCalculationUtilities>(m,"BoundaryNormalsCalculation")
@@ -149,7 +149,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("CalculateWeightedBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateWeightedBoundaryNormals)
       .def("CalculateUnitBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateUnitBoundaryNormals)
       ;
-      
+
   //***************TRANSFER UTILITIES**************//
 
   typedef  void (MeshDataTransferUtilities::*TransferElementalValuesToNodes)(const MeshDataTransferUtilities::TransferParameters&, ModelPart&);
@@ -175,10 +175,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
 
 
-  // Remeshing modeler information parameters
+  // Remeshing mesher information parameters
   class_< MeshDataTransferUtilities::TransferParameters, typename MeshDataTransferUtilities::TransferParameters::Pointer>
       (m,"TransferParameters")
-      .def(init<>())    
+      .def(init<>())
       .def("Set",&MeshDataTransferUtilities::TransferParameters::Set)
       .def("Reset",&MeshDataTransferUtilities::TransferParameters::Reset)
       .def("SetOptions",&MeshDataTransferUtilities::TransferParameters::SetOptions)
@@ -189,82 +189,82 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("SetVariable",SetMatrixVariable)
       ;
 
-  //***************MODELER UTILITIES**************//
+  //***************MESHER UTILITIES**************//
 
-  // Remeshing modeler information parameters
-  class_< ModelerUtilities::MeshingInfoParameters, typename ModelerUtilities::MeshingInfoParameters::Pointer>
+  // Remeshing mesher information parameters
+  class_< MesherUtilities::MeshingInfoParameters, typename MesherUtilities::MeshingInfoParameters::Pointer>
       (m,"MeshingInfoParameters")
-      .def(init<>())    
-      .def("Initialize",&ModelerUtilities::MeshingInfoParameters::Initialize)
-      .def("CheckMechanicalSmoothing",&ModelerUtilities::MeshingInfoParameters::CheckMechanicalSmoothing)
-      .def("SetNumberOfNodes",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNodes)
-      .def("SetNumberOfElements",&ModelerUtilities::MeshingInfoParameters::SetNumberOfElements)
-      .def("SetNumberOfConditions",&ModelerUtilities::MeshingInfoParameters::SetNumberOfConditions)
-      .def("GetNumberOfNodes",&ModelerUtilities::MeshingInfoParameters::GetNumberOfNodes)
-      .def("GetNumberOfElements",&ModelerUtilities::MeshingInfoParameters::GetNumberOfElements)
-      .def("GetNumberOfConditions",&ModelerUtilities::MeshingInfoParameters::GetNumberOfConditions)
-      .def("SetNumberOfNewNodes",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNewNodes)
-      .def("SetNumberOfNewElements",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNewElements)
-      .def("SetNumberOfNewConditions",&ModelerUtilities::MeshingInfoParameters::SetNumberOfNewConditions)
-      .def("SetInitialMeshVolume",&ModelerUtilities::MeshingInfoParameters::SetInitialMeshVolume)
-      .def("GetInitialMeshVolume",&ModelerUtilities::MeshingInfoParameters::GetInitialMeshVolume)
-      .def("GetInsertedNodes",&ModelerUtilities::MeshingInfoParameters::GetInsertedNodes)
+      .def(init<>())
+      .def("Initialize",&MesherUtilities::MeshingInfoParameters::Initialize)
+      .def("CheckMechanicalSmoothing",&MesherUtilities::MeshingInfoParameters::CheckMechanicalSmoothing)
+      .def("SetNumberOfNodes",&MesherUtilities::MeshingInfoParameters::SetNumberOfNodes)
+      .def("SetNumberOfElements",&MesherUtilities::MeshingInfoParameters::SetNumberOfElements)
+      .def("SetNumberOfConditions",&MesherUtilities::MeshingInfoParameters::SetNumberOfConditions)
+      .def("GetNumberOfNodes",&MesherUtilities::MeshingInfoParameters::GetNumberOfNodes)
+      .def("GetNumberOfElements",&MesherUtilities::MeshingInfoParameters::GetNumberOfElements)
+      .def("GetNumberOfConditions",&MesherUtilities::MeshingInfoParameters::GetNumberOfConditions)
+      .def("SetNumberOfNewNodes",&MesherUtilities::MeshingInfoParameters::SetNumberOfNewNodes)
+      .def("SetNumberOfNewElements",&MesherUtilities::MeshingInfoParameters::SetNumberOfNewElements)
+      .def("SetNumberOfNewConditions",&MesherUtilities::MeshingInfoParameters::SetNumberOfNewConditions)
+      .def("SetInitialMeshVolume",&MesherUtilities::MeshingInfoParameters::SetInitialMeshVolume)
+      .def("GetInitialMeshVolume",&MesherUtilities::MeshingInfoParameters::GetInitialMeshVolume)
+      .def("GetInsertedNodes",&MesherUtilities::MeshingInfoParameters::GetInsertedNodes)
       ;
 
-  // Remeshing modeler refining parameters
-  class_< ModelerUtilities::RefiningParameters, typename ModelerUtilities::RefiningParameters::Pointer>
+  // Remeshing mesher refining parameters
+  class_< MesherUtilities::RefiningParameters, typename MesherUtilities::RefiningParameters::Pointer>
       (m,"RefiningParameters")
       .def(init<>())
-      .def("Initialize",&ModelerUtilities::RefiningParameters::Initialize)
-      .def("SetRefiningOptions",&ModelerUtilities::RefiningParameters::SetRefiningOptions)
-      .def("SetRemovingOptions",&ModelerUtilities::RefiningParameters::SetRemovingOptions)
-      .def("SetAlphaParameter",&ModelerUtilities::RefiningParameters::SetAlphaParameter)
-      .def("SetMeanVolume",&ModelerUtilities::RefiningParameters::SetMeanVolume)
-      .def("GetMeanVolume",&ModelerUtilities::RefiningParameters::GetMeanVolume)
-      .def("SetCriticalRadius",&ModelerUtilities::RefiningParameters::SetCriticalRadius)
-      .def("SetInitialRadius",&ModelerUtilities::RefiningParameters::SetInitialRadius)
-      .def("SetCriticalSide",&ModelerUtilities::RefiningParameters::SetCriticalSide)
+      .def("Initialize",&MesherUtilities::RefiningParameters::Initialize)
+      .def("SetRefiningOptions",&MesherUtilities::RefiningParameters::SetRefiningOptions)
+      .def("SetRemovingOptions",&MesherUtilities::RefiningParameters::SetRemovingOptions)
+      .def("SetAlphaParameter",&MesherUtilities::RefiningParameters::SetAlphaParameter)
+      .def("SetMeanVolume",&MesherUtilities::RefiningParameters::SetMeanVolume)
+      .def("GetMeanVolume",&MesherUtilities::RefiningParameters::GetMeanVolume)
+      .def("SetCriticalRadius",&MesherUtilities::RefiningParameters::SetCriticalRadius)
+      .def("SetInitialRadius",&MesherUtilities::RefiningParameters::SetInitialRadius)
+      .def("SetCriticalSide",&MesherUtilities::RefiningParameters::SetCriticalSide)
       .def("SetRefiningParameters",SetRefiningParameters)
-      .def("SetRefiningBox",&ModelerUtilities::RefiningParameters::SetRefiningBox)
-      .def("SetReferenceThreshold",&ModelerUtilities::RefiningParameters::SetReferenceThreshold)
-      .def("SetReferenceError",&ModelerUtilities::RefiningParameters::SetReferenceError)
+      .def("SetRefiningBox",&MesherUtilities::RefiningParameters::SetRefiningBox)
+      .def("SetReferenceThreshold",&MesherUtilities::RefiningParameters::SetReferenceThreshold)
+      .def("SetReferenceError",&MesherUtilities::RefiningParameters::SetReferenceError)
       .def("SetThresholdVariable",SetThresholdVariable)
       .def("SetErrorVariable",SetErrorVariable)
       .def("GetThresholdVariable",GetThresholdVariable)
-      .def("GetReferenceThreshold",&ModelerUtilities::RefiningParameters::GetReferenceThreshold)
-      .def("GetRefiningOptions",&ModelerUtilities::RefiningParameters::GetRefiningOptions)
-      .def("GetRemovingOptions",&ModelerUtilities::RefiningParameters::GetRemovingOptions)
+      .def("GetReferenceThreshold",&MesherUtilities::RefiningParameters::GetReferenceThreshold)
+      .def("GetRefiningOptions",&MesherUtilities::RefiningParameters::GetRefiningOptions)
+      .def("GetRemovingOptions",&MesherUtilities::RefiningParameters::GetRemovingOptions)
       ;
 
-  // Remeshing modeler remeshing parameters
-  class_< ModelerUtilities::MeshingParameters, typename ModelerUtilities::MeshingParameters::Pointer>
+  // Remeshing mesher remeshing parameters
+  class_< MesherUtilities::MeshingParameters, typename MesherUtilities::MeshingParameters::Pointer>
       (m,"MeshingParameters")
       .def(init<>())
-      .def("Initialize",&ModelerUtilities::MeshingParameters::Initialize)
-      .def("Set",&ModelerUtilities::MeshingParameters::Set)
-      .def("Reset",&ModelerUtilities::MeshingParameters::Reset)
-      .def("SetOptions",&ModelerUtilities::MeshingParameters::SetOptions)
-      .def("SetSubModelPartName",&ModelerUtilities::MeshingParameters::SetSubModelPartName)
-      .def("SetExecutionOptions",&ModelerUtilities::MeshingParameters::SetExecutionOptions)
-      .def("SetTessellationFlags",&ModelerUtilities::MeshingParameters::SetTessellationFlags)
-      .def("SetTessellationInfo",&ModelerUtilities::MeshingParameters::SetTessellationInfo)
-      .def("SetAlphaParameter",&ModelerUtilities::MeshingParameters::SetAlphaParameter)
-      .def("SetOffsetFactor",&ModelerUtilities::MeshingParameters::SetOffsetFactor)
-      .def("SetInfoParameters",&ModelerUtilities::MeshingParameters::SetInfoParameters)
-      .def("SetRefiningParameters",&ModelerUtilities::MeshingParameters::SetRefiningParameters)
-      .def("SetProperties",&ModelerUtilities::MeshingParameters::SetProperties)
-      .def("SetMeshingBox",&ModelerUtilities::MeshingParameters::SetMeshingBox)
-      .def("SetTransferParameters",&ModelerUtilities::MeshingParameters::SetTransferParameters)
-      .def("SetTransferVariable",&ModelerUtilities::MeshingParameters::SetTransferVariable)
+      .def("Initialize",&MesherUtilities::MeshingParameters::Initialize)
+      .def("Set",&MesherUtilities::MeshingParameters::Set)
+      .def("Reset",&MesherUtilities::MeshingParameters::Reset)
+      .def("SetOptions",&MesherUtilities::MeshingParameters::SetOptions)
+      .def("SetSubModelPartName",&MesherUtilities::MeshingParameters::SetSubModelPartName)
+      .def("SetExecutionOptions",&MesherUtilities::MeshingParameters::SetExecutionOptions)
+      .def("SetTessellationFlags",&MesherUtilities::MeshingParameters::SetTessellationFlags)
+      .def("SetTessellationInfo",&MesherUtilities::MeshingParameters::SetTessellationInfo)
+      .def("SetAlphaParameter",&MesherUtilities::MeshingParameters::SetAlphaParameter)
+      .def("SetOffsetFactor",&MesherUtilities::MeshingParameters::SetOffsetFactor)
+      .def("SetInfoParameters",&MesherUtilities::MeshingParameters::SetInfoParameters)
+      .def("SetRefiningParameters",&MesherUtilities::MeshingParameters::SetRefiningParameters)
+      .def("SetProperties",&MesherUtilities::MeshingParameters::SetProperties)
+      .def("SetMeshingBox",&MesherUtilities::MeshingParameters::SetMeshingBox)
+      .def("SetTransferParameters",&MesherUtilities::MeshingParameters::SetTransferParameters)
+      .def("SetTransferVariable",&MesherUtilities::MeshingParameters::SetTransferVariable)
       .def("SetReferenceElement",SetReferenceElement)
       .def("SetReferenceCondition",SetReferenceCondition)
-      .def("GetInfoParameters",&ModelerUtilities::MeshingParameters::GetInfoParameters)
-      .def("GetTransferParameters",&ModelerUtilities::MeshingParameters::GetTransferParameters)
-      .def("GetRefiningParameters",&ModelerUtilities::MeshingParameters::GetRefiningParameters)
-      .def("GetSubModelPartName",&ModelerUtilities::MeshingParameters::GetSubModelPartName)
-      .def("GetOptions",&ModelerUtilities::MeshingParameters::GetOptions)
-      .def("InitializeMeshing",&ModelerUtilities::MeshingParameters::InitializeMeshing)
-      .def("FinalizeMeshing",&ModelerUtilities::MeshingParameters::FinalizeMeshing)
+      .def("GetInfoParameters",&MesherUtilities::MeshingParameters::GetInfoParameters)
+      .def("GetTransferParameters",&MesherUtilities::MeshingParameters::GetTransferParameters)
+      .def("GetRefiningParameters",&MesherUtilities::MeshingParameters::GetRefiningParameters)
+      .def("GetSubModelPartName",&MesherUtilities::MeshingParameters::GetSubModelPartName)
+      .def("GetOptions",&MesherUtilities::MeshingParameters::GetOptions)
+      .def("InitializeMeshing",&MesherUtilities::MeshingParameters::InitializeMeshing)
+      .def("FinalizeMeshing",&MesherUtilities::MeshingParameters::FinalizeMeshing)
       ;
 
 }

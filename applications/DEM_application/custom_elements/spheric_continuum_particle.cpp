@@ -126,7 +126,7 @@ namespace Kratos {
             array_1d<double, 4>& Weight = this->mContactConditionWeights[i];
 
             rFemNeighbours[i]->ComputeConditionRelativeData(i, this, LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
-            
+
             double initial_delta = -(DistPToB - GetRadius());
 
             mFemIniNeighbourIds[i] = rFemNeighbours[i]->Id();
@@ -150,7 +150,7 @@ namespace Kratos {
             SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
             double other_radius = ini_cont_neighbour_iterator->GetRadius();
             double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, cont_ini_neigh_area); //This call fills the vector of areas only if the Constitutive Law wants.
-            total_equiv_area += area;           
+            total_equiv_area += area;
 
         }
         if (print_debug_files) {
@@ -158,10 +158,10 @@ namespace Kratos {
             outputfile << external_sphere_area << "  " << total_equiv_area << "\n";
             outputfile.close();
         }
-        if (cont_ini_neighbours_size >= 6) { 
+        if (cont_ini_neighbours_size >= 6) {
             if (!IsSkin()) {
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
-                if (print_debug_files) {                                       
+                if (print_debug_files) {
                     std::ofstream outputfile("alpha.txt", std::ios_base::out | std::ios_base::app);
                     outputfile << alpha << "\n";
                     outputfile.close();
@@ -191,9 +191,9 @@ namespace Kratos {
     double SphericContinuumParticle::EffectiveVolumeRadius() {
 
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
-        
+
         double effectiveVolumeRadiusSum = 0.0;
-        
+
         for (int i = 0; i < cont_ini_neighbours_size; i++) {
 
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
@@ -203,7 +203,7 @@ namespace Kratos {
             double distance = DEM_MODULUS_3(other_to_me_vect);
             effectiveVolumeRadiusSum += 0.5 * (distance + GetRadius() - other_radius);
         }
-        
+
         double effectiveVolumeRadius = effectiveVolumeRadiusSum / cont_ini_neighbours_size;
 
         return effectiveVolumeRadius;
@@ -211,15 +211,15 @@ namespace Kratos {
 
 
     /*void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
-    
+
     KRATOS_TRY
-        
+
     SphericParticle::InitializeSolutionStep(r_process_info);
-    
+
     for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
         DEM_COPY_SECOND_TO_FIRST_3(mArrayOfOldDeltaDisplacements[i], mArrayOfDeltaDisplacements[i]);
     }
-    
+
     KRATOS_CATCH("")
     }*/
 
@@ -230,10 +230,10 @@ namespace Kratos {
                                                                  double& RollingResistance)
     {
         KRATOS_TRY
-        
+
         const int time_steps = r_process_info[TIME_STEPS];
         const int& search_control = r_process_info[SEARCH_CONTROL];
-        vector<int>& search_control_vector = r_process_info[SEARCH_CONTROL_VECTOR];
+        DenseVector<int>& search_control_vector = r_process_info[SEARCH_CONTROL_VECTOR];
 
         const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -291,13 +291,13 @@ namespace Kratos {
 
             if (i < mContinuumInitialNeighborsSize) {
                 mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, cont_ini_neigh_area, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
-                mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator); 
+                mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area, this, neighbour_iterator);
             }
 
             EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, vel, delta_displ);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, data_buffer.mDt, ang_vel, neighbour_iterator);
+                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, data_buffer.mDt, ang_vel, neighbour_iterator);
             }
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, neighbour_iterator);
@@ -337,7 +337,7 @@ namespace Kratos {
             if (i < mContinuumInitialNeighborsSize) {
 
                 mContinuumConstitutiveLawArray[i]->CheckFailure(i, this, neighbour_iterator);
-                
+
                 mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
                                                                    OldLocalElasticContactForce,
                                                                    LocalElasticContactForce,
@@ -366,7 +366,7 @@ namespace Kratos {
                                                                    LocalRelVel,
                                                                    ViscoDampingLocalContactForce);
 
-            } else if (indentation > 0.0) {                
+            } else if (indentation > 0.0) {
                 const double previous_indentation = indentation + LocalDeltDisp[2];
                 mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
                         LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
@@ -380,7 +380,7 @@ namespace Kratos {
             // Transforming to global forces and adding up
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
-            
+
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it.
                 mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator, r_process_info, i, indentation);
             }
@@ -411,10 +411,10 @@ namespace Kratos {
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) /*&& (i < mContinuumInitialNeighborsSize)*/) {
                 AddNeighbourContributionToStressTensor(TotalGlobalElasticContactForce, LocalCoordSystem[2], data_buffer.mDistance, radius_sum, this);
-            }                        
+            }
 
             AddContributionToRepresentativeVolume(data_buffer.mDistance, radius_sum, calculation_area);
-            
+
             ComputeForceWithNeighbourFinalOperations();
 
             /*if (i < mContinuumInitialNeighborsSize) {
@@ -423,14 +423,14 @@ namespace Kratos {
         } // for each neighbor
 
         ComputeBrokenBondsRatio();
-                       
+
         KRATOS_CATCH("")
     } //  ComputeBallToBallContactForce
 
     void SphericContinuumParticle::ComputeForceWithNeighbourFinalOperations(){}
-    
+
     void SphericContinuumParticle::ComputeBrokenBondsRatio() {
-        
+
         int BrokenBondsCounter = 0.0;
 
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
@@ -448,9 +448,9 @@ namespace Kratos {
             //int NeighbourSize = mNeighbourElements.size();
             //GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_SIZE) = NeighbourSize;
             double NeighbourRatio = 0.0;
-        
+
             if (mContinuumInitialNeighborsSize) NeighbourRatio = BrokenBondsCounter / mContinuumInitialNeighborsSize;
-        
+
             GetGeometry()[0].GetSolutionStepValue(NEIGHBOUR_RATIO) = NeighbourRatio;
         }
     }
@@ -484,19 +484,19 @@ namespace Kratos {
 
     /*
     void SphericContinuumParticle::CorrectRepresentativeVolume(double& rRepresentative_Volume, bool& is_smaller_than_sphere) {
-    
+
         KRATOS_TRY
-        
+
         SphericParticle::CorrectRepresentativeVolume(rRepresentative_Volume, is_smaller_than_sphere);
-        
+
         //if (*mSkinSphere && is_smaller_than_sphere) rRepresentative_Volume *= 1.5; // This is the quotient between the volume of the cylinder circumscribed about a sphere and the latter
                                                                                    // So the minimum volume for a skin sphere is that of a cylinder
         //if (*mSkinSphere) rRepresentative_Volume *= 0.5;
-                
+
         KRATOS_CATCH("")
     }
     */
-        
+
     void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
         KRATOS_TRY
 
@@ -507,17 +507,17 @@ namespace Kratos {
         if (this->Is(DEMFlags::HAS_ROTATION) ){
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
         }
-        
+
         KRATOS_CATCH("")
     }
-    
+
     void SphericContinuumParticle::GetStressTensorFromNeighbourStep1(){
-        
+
         Set(DEMFlags::COPIED_STRESS_TENSOR, false);
         Set(DEMFlags::COPIED_STRESS_TENSOR2,false);
         if(!IsSkin()) return;
-        
-        for (unsigned int i=0; i<mNeighbourElements.size(); i++) { 
+
+        for (unsigned int i=0; i<mNeighbourElements.size(); i++) {
             if (mNeighbourElements[i] == NULL) continue;
             SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             if(!p_neighbour->IsSkin()) {
@@ -528,12 +528,12 @@ namespace Kratos {
             }
         }
     }
-    
+
     void SphericContinuumParticle::GetStressTensorFromNeighbourStep2(){
-        
+
         if(!IsSkin()) return;
         if(Is(DEMFlags::COPIED_STRESS_TENSOR)) return;
-        
+
         for (unsigned int i=0; i<mNeighbourElements.size(); i++) {
             if (mNeighbourElements[i] == NULL) continue;
             SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
@@ -545,13 +545,13 @@ namespace Kratos {
             }
         }
     }
-    
+
     void SphericContinuumParticle::GetStressTensorFromNeighbourStep3(){
-        
+
         if(!IsSkin()) return;
         if(Is(DEMFlags::COPIED_STRESS_TENSOR)) return;
         if(Is(DEMFlags::COPIED_STRESS_TENSOR2)) return;
-        
+
         for (unsigned int i=0; i<mNeighbourElements.size(); i++) {
             if (mNeighbourElements[i] == NULL) continue;
             SphericContinuumParticle* p_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
@@ -562,13 +562,13 @@ namespace Kratos {
             }
         }
     }
-    
+
     void SphericContinuumParticle::MarkNewSkinParticlesDueToBreakage() {
-        
+
         KRATOS_TRY
-        
+
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            
+
             if (mNeighbourElements[i] == NULL) {
                 *mSkinSphere = 1.0;
                 break;
@@ -579,9 +579,9 @@ namespace Kratos {
     }
 
     void SphericContinuumParticle::ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& TempNeighbourElements) {
-        
+
         KRATOS_TRY
-        
+
         unsigned int current_neighbors_size = mNeighbourElements.size();
         unsigned int initial_neighbors_size = mIniNeighbourIds.size();
         TempNeighbourElements.resize(initial_neighbors_size);
@@ -633,10 +633,10 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-            
+
 
     void SphericContinuumParticle::ReorderFEMneighbours() {
-        
+
         KRATOS_TRY
 
         unsigned int current_neighbors_size = mNeighbourRigidFaces.size();
@@ -669,9 +669,9 @@ namespace Kratos {
     }
 
     void SphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {}
-    
+
     double SphericContinuumParticle::CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info) {
-        
+
         KRATOS_TRY
 
         double max_local_search = 0.0;
@@ -682,14 +682,14 @@ namespace Kratos {
             double search_dist = mContinuumConstitutiveLawArray[i]->LocalMaxSearchDistance(i, this, r_continuum_ini_neighbour);
             if (search_dist > max_local_search) max_local_search = search_dist;
         }
-        
+
         return max_local_search;
-        
+
         KRATOS_CATCH("")
     }
 
     bool SphericContinuumParticle::OverlappedParticleRemoval() {
-        
+
         KRATOS_TRY
 
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
@@ -702,21 +702,21 @@ namespace Kratos {
             double distance = DEM_MODULUS_3(other_to_me_vect);
 
             double alpha = 1.0; // alpha = 1.0 means that the particle is completely inside another
-            
+
             if (GetRadius() + distance < alpha * other_radius) {
                 this->Set(TO_ERASE, true);
                 return true;
             }
         }
         return false;
-        
+
         KRATOS_CATCH("")
     }
 
     double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
-        
+
         KRATOS_TRY
-        
+
         double max_sqr_period = 0.0;
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
@@ -730,14 +730,14 @@ namespace Kratos {
             if (sqr_period_discontinuum > max_sqr_period) { (max_sqr_period = sqr_period_discontinuum); }
         }
         return max_sqr_period;
-        
+
         KRATOS_CATCH("")
     }
 
     void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
-        
+
         Vector& cont_ini_neigh_area = GetValue(NEIGHBOURS_CONTACT_AREAS);
 
         if (!cont_ini_neigh_area.size()) return; //TODO: ugly fix //This means that for this case the areas are not being saved (because the constitutive law is not filling this vector)
@@ -747,18 +747,18 @@ namespace Kratos {
             SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             if (r_continuum_ini_neighbour == NULL) continue; //The initial neighbor was deleted at some point in time!!
 
-            if (this->Id() > r_continuum_ini_neighbour->Id()) continue; // The Sphere with a lower Id will do the job only                                   
+            if (this->Id() > r_continuum_ini_neighbour->Id()) continue; // The Sphere with a lower Id will do the job only
 
             Vector& NeighbourContIniNeighArea = r_continuum_ini_neighbour->GetValue(NEIGHBOURS_CONTACT_AREAS);
 
             int index_of_the_neighbour_that_is_me = -1;
 
             for (unsigned int j = 0; j <  NeighbourContIniNeighArea.size(); j++) {
-                boost::numeric::ublas::vector<int>& vector_of_ids_of_neighbours_of_this_neighbour = r_continuum_ini_neighbour->GetValue(NEIGHBOUR_IDS);
+                DenseVector<int>& vector_of_ids_of_neighbours_of_this_neighbour = r_continuum_ini_neighbour->GetValue(NEIGHBOUR_IDS);
                 if ((int) this->Id() == vector_of_ids_of_neighbours_of_this_neighbour[j]) index_of_the_neighbour_that_is_me = (int)j;
             }
-            
-            if (index_of_the_neighbour_that_is_me == -1) {               
+
+            if (index_of_the_neighbour_that_is_me == -1) {
                 std::string message = "An element (Id " + std::to_string(this->Id()) + ") found a neighbor (had contact area) but the neighbor (Id " \
                                                         + std::to_string(r_continuum_ini_neighbour->Id()) + ") did not have area for that element  ";
 
@@ -783,7 +783,7 @@ namespace Kratos {
     }
 
     void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
-        
+
         KRATOS_TRY
 
         if (rVariable == DELTA_TIME) {
@@ -800,7 +800,7 @@ namespace Kratos {
             }
             return;
         }//CRITICAL DELTA CALCULATION
-        
+
         SphericParticle::Calculate(rVariable, Output, r_process_info);
 
         KRATOS_CATCH("")
@@ -827,7 +827,7 @@ namespace Kratos {
     }
 
     void SphericContinuumParticle::CalculateOnContactElements(size_t i, double LocalElasticContactForce[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
-        
+
         KRATOS_TRY
 
         if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.

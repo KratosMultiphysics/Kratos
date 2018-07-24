@@ -76,8 +76,6 @@ public:
     mDeltaTime.Maximum = MaximumDeltaTime;
 
     mDeltaTime.Fraction = DeltaTimeFraction;
-
-    mSchemeIsInitialized = false;
   }
 
   /** Destructor.
@@ -96,7 +94,7 @@ public:
 
     KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
         << "Insufficient buffer size for Central Difference Scheme. It has to "
-           "be 2"
+           "be > 2"
         << std::endl;
 
     return 0;
@@ -106,7 +104,7 @@ public:
   virtual void Initialize(ModelPart &rModelPart) override {
     KRATOS_TRY
 
-    if ((mDeltaTime.PredictionLevel > 0) && (mSchemeIsInitialized == false)) {
+    if ((mDeltaTime.PredictionLevel > 0) && (!BaseType::SchemeIsInitialized())) {
       CalculateDeltaTime(rModelPart);
     }
 
@@ -121,10 +119,10 @@ public:
     mTime.Previous = mTime.Current - mTime.Delta;
     mTime.PreviousMiddle = mTime.Current - 1.5 * mTime.Delta;
 
-    if (!mSchemeIsInitialized)InitializeExplicitScheme(rModelPart);
+    if (!BaseType::SchemeIsInitialized())InitializeExplicitScheme(rModelPart);
     else SchemeCustomInitialization(rModelPart);
 
-    mSchemeIsInitialized = true;
+    BaseType::SetSchemeIsInitialized();
     KRATOS_CATCH("")
   }
 
@@ -140,6 +138,35 @@ public:
     InitializeResidual(rModelPart);
     KRATOS_CATCH("")
   }
+  //***************************************************************************
+  
+  void InitializeNonLinIteration(
+      ModelPart& rModelPart,
+      TSystemMatrixType& A,
+      TSystemVectorType& Dx,
+      TSystemVectorType& b
+      ) override
+  {
+      KRATOS_TRY;
+
+      ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
+      
+      #pragma omp parallel for
+      for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
+          auto it_elem = rModelPart.ElementsBegin() + i;
+          it_elem->InitializeNonLinearIteration(current_process_info);
+      }
+      
+      
+      #pragma omp parallel for
+      for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
+          auto it_elem = rModelPart.ConditionsBegin() + i;
+          it_elem->InitializeNonLinearIteration(current_process_info);
+      }     
+      
+      KRATOS_CATCH( "" );
+  }
+
 
   //**************************************************************************
 
@@ -589,8 +616,6 @@ protected:
 
     double Delta; // time step
   };
-
-  bool mSchemeIsInitialized;
 
   TimeVariables mTime;
   DeltaTimeParameters mDeltaTime;

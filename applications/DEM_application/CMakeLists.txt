@@ -26,7 +26,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ship_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/analytic_rigid_body_element.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/analytic_rigid_body_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidFace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/analytic_RigidFace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidEdge.cpp
@@ -52,8 +52,10 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Rankine_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_fissured_rock_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_ExponentialHC_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_HighStiffness_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_confined_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_confined_CL.cpp
@@ -75,9 +77,8 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/dem_fem_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/excavator_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_model_part_filler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_face_watcher.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/particles_history_watcher.cpp    
+####    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/particles_history_watcher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/bins_dynamic_objects_periodic.cpp
 )
 
@@ -87,6 +88,8 @@ set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AuxiliaryUtilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_face_watcher.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
 )
 
 add_library(KratosDEMCore SHARED ${KRATOS_DEM_APPLICATION_CORE})
@@ -95,7 +98,7 @@ set_target_properties(KratosDEMCore PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICAT
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosDEMApplication MODULE ${KRATOS_DEM_APPLICATION_PYTHON_INTERFACE})
+pybind11_add_module(KratosDEMApplication MODULE THIN_LTO ${KRATOS_DEM_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosDEMApplication PUBLIC KratosDEMCore)
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 
@@ -103,14 +106,6 @@ set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
     add_definitions(-DDEBUG_MACRO)
 endif(${ACTIVATE_DEBUG_MACRO} MATCHES ON)
-
-# Warn about overriding virtual fuctions not marked as override
-# Warding since it is not compatible with any version of MSVC and GCC > 5.1
-if(GCC_VERSION VERSION_GREATER 5.1 OR GCC_VERSION VERSION_EQUAL 5.1)
-  if(${CMAKE_COMPILER_IS_GNUCXX})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
-  endif(${CMAKE_COMPILER_IS_GNUCXX})
-endif()
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

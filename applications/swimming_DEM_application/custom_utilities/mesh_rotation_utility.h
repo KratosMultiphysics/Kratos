@@ -180,11 +180,11 @@ double mStationaryTime;
 array_1d<double, 3> mAInit;
 array_1d<double, 3> mAFinal;
 array_1d<double, 3> mAxisVersor;
-boost::numeric::ublas::bounded_matrix<double, 3, 3> mI;
-boost::numeric::ublas::bounded_matrix<double, 3, 3> mUU;
-boost::numeric::ublas::bounded_matrix<double, 3, 3> mUx;
-boost::numeric::ublas::bounded_matrix<double, 3, 3> mR;
-boost::numeric::ublas::bounded_matrix<double, 3, 3> mRp;
+BoundedMatrix<double, 3, 3> mI;
+BoundedMatrix<double, 3, 3> mUU;
+BoundedMatrix<double, 3, 3> mUx;
+BoundedMatrix<double, 3, 3> mR;
+BoundedMatrix<double, 3, 3> mRp;
 std::vector<array_1d<double, 3> > mStationaryVelocities;
 ModelPart* mpStationaryModelPart;
 

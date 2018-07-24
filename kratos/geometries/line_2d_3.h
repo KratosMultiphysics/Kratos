@@ -512,7 +512,7 @@ public:
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        boost::numeric::ublas::vector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 3 );
+        DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 3 );
         ShapeFunctionsValuesInIntegrationPoint = row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ),
                                                 IntegrationPointIndex );
 

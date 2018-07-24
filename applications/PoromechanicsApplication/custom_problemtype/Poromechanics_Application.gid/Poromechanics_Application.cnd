@@ -122,10 +122,10 @@ HELP: Mohr-Coulomb's friction coefficient in contact cases.
 QUESTION: Joint_Activation#CB#(true,false)
 VALUE: false
 HELP: True means that the joint is initially inactive, but can be activated during the calculation. False means that the joint is active from the beginning.
-DEPENDENCIES: (true,RESTORE,Von_Mises_Limit,#CURRENT#)(false,HIDE,Von_Mises_Limit,#CURRENT#)
-QUESTION: Von_Mises_Limit
+DEPENDENCIES: (true,RESTORE,Stress_Limit,#CURRENT#)(false,HIDE,Stress_Limit,#CURRENT#)
+QUESTION: Stress_Limit
 VALUE: 100.0e6
-HELP: Von Mises stress after which the joint is activated.
+HELP: Principal stress S1 after which the joint is activated.
 END CONDITION
 
 

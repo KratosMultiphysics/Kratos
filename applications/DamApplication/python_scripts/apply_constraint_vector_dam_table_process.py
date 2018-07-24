@@ -4,11 +4,11 @@ from KratosMultiphysics.PoromechanicsApplication import *
 
 
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyConstraintVectorDamTableProcess(Model, settings["Parameters"])
 
-## All the python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 
 class ApplyConstraintVectorDamTableProcess(Process):
     def __init__(self, Model, settings ):

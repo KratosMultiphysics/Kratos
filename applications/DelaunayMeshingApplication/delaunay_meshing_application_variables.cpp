@@ -39,8 +39,8 @@ namespace Kratos
 
   //condition variables
   KRATOS_CREATE_VARIABLE(ConditionContainerType,   CHILDREN_CONDITIONS )
-  
-  //modeler criteria
+
+  //mesher criteria
   KRATOS_CREATE_VARIABLE(double, MEAN_ERROR )
 
   ///@}

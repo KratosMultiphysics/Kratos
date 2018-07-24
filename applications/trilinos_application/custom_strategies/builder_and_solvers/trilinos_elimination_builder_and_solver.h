@@ -777,12 +777,12 @@ public:
     // If reactions are to be calculated, we check if all the dofs have reactions defined
     // This is tobe done only in debug mode
 
-    #ifdef KRATOS_DEBUG        
+    #ifdef KRATOS_DEBUG
 
     if(BaseType::GetCalculateReactionsFlag())
     {
         for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-        { 
+        {
                 KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
                     << "Node : "<<dof_iterator->Id()<< std::endl
                     << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
@@ -1086,9 +1086,7 @@ public:
       TSystemMatrixPointerType& pA,
       TSystemVectorPointerType& pDx,
       TSystemVectorPointerType& pb,
-      ElementsArrayType& rElements,
-      ConditionsArrayType& rConditions,
-      ProcessInfo& CurrentProcessInfo
+      ModelPart& rModelPart
     ) override
     {
         KRATOS_TRY
@@ -1112,11 +1110,15 @@ public:
                 temp[i] = mFirstMyId+i;
             Epetra_Map my_map(-1, number_of_local_dofs, temp, 0, mrComm);
 
+            auto& rElements = rModelPart.Elements();
+            auto& rConditions = rModelPart.Conditions();
 
             //create and fill the graph of the matrix --> the temp array is reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mguess_row_size);
-            //int ierr;
+
             Element::EquationIdVectorType EquationId;
+            ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+            
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {
@@ -1290,25 +1292,6 @@ public:
         ModelPart& r_model_part,
         TSystemVectorType& b) override
     {}
-
-    /**
-    this function is intended to be called at the end of the solution step to clean up memory
-    storage not needed
-    */
-    void Clear() override
-    {
-        this->mDofSet = DofsArrayType();
-        //this->mReactionsVector = TSystemVectorType();
-        this->mpLinearSystemSolver->Clear();
-
-        if (this->GetEchoLevel()>0)
-        {
-
-            KRATOS_WATCH("TrilinosResidualBasedEliminationBuilderAndSolver Clear Function called");
-        }
-    }
-
-
 
 
     /*@} */

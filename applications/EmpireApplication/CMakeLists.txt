@@ -16,7 +16,7 @@ set( KRATOS_EMPIRE_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosEmpireApplication MODULE ${KRATOS_EMPIRE_APPLICATION_SOURCES})
+pybind11_add_module(KratosEmpireApplication MODULE THIN_LTO ${KRATOS_EMPIRE_APPLICATION_SOURCES})
 target_link_libraries(KratosEmpireApplication PRIVATE KratosCore )
 set_target_properties(KratosEmpireApplication PROPERTIES PREFIX "")
 install(TARGETS KratosEmpireApplication DESTINATION libs )

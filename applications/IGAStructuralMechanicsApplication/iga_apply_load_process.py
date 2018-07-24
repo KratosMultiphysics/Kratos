@@ -1,10 +1,10 @@
 import KratosMultiphysics
-import python_process
 
-##all the processes python processes should be derived from "python_process"
-class IGAApplyLoad(python_process.PythonProcess):
+
+## All the processes python should be derived from "Process"
+class IGAApplyLoad(KratosMultiphysics.Process):
     def __init__(self, model_part, variable_name, factor, direction, mesh_id=0 ):
-        python_process.PythonProcess.__init__(self) 
+        KratosMultiphysics.Process.__init__(self) 
         
         variable = globals().get(variable_name)
         #print(model_part)

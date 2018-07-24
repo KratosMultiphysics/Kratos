@@ -40,6 +40,14 @@ CrBeamElementLinear2D2N::Create(IndexType NewId,
       NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
+Element::Pointer
+CrBeamElementLinear2D2N::Create(IndexType NewId,
+                                GeometryType::Pointer pGeom,
+                                PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<CrBeamElementLinear2D2N>(
+      NewId, pGeom, pProperties);
+}
+
 CrBeamElementLinear2D2N::~CrBeamElementLinear2D2N() {}
 
 void CrBeamElementLinear2D2N::CalculateLocalSystem(
@@ -95,7 +103,7 @@ void CrBeamElementLinear2D2N::CalculateLeftHandSide(
 ///////////// CUSTOM FUNCTIONS --->>
 /////////////////////////////////////////////////
 
-bounded_matrix<double, CrBeamElement2D2N::msElementSize,
+BoundedMatrix<double, CrBeamElement2D2N::msElementSize,
                CrBeamElement2D2N::msElementSize>
 CrBeamElementLinear2D2N::CreateRotationMatrix() {
   KRATOS_TRY;
@@ -103,7 +111,7 @@ CrBeamElementLinear2D2N::CreateRotationMatrix() {
   const double c = std::cos(current_element_angle);
   const double s = std::sin(current_element_angle);
 
-  bounded_matrix<double, msElementSize, msElementSize> rotation_matrix =
+  BoundedMatrix<double, msElementSize, msElementSize> rotation_matrix =
       ZeroMatrix(msElementSize, msElementSize);
 
   rotation_matrix(0, 0) = c;
@@ -140,7 +148,7 @@ void CrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
   Vector nodal_deformation = ZeroVector(msElementSize);
   this->GetValuesVector(nodal_deformation);
 
-  bounded_matrix<double, msElementSize, msElementSize> transformation_matrix =
+  BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
       this->CreateRotationMatrix();
   // calculate local displacements
   nodal_deformation = prod((trans(transformation_matrix)), nodal_deformation);

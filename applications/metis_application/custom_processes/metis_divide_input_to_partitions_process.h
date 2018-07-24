@@ -117,7 +117,7 @@ public:
     typedef matrix<int> GraphType;
     #ifdef KRATOS_USE_METIS_5
       typedef idx_t idxtype;
-    #else 
+    #else
       typedef int idxtype;
     #endif
 
@@ -157,7 +157,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_TRY;
 
@@ -268,19 +268,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MetisDivideInputToPartitionsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MetisDivideInputToPartitionsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -496,8 +496,8 @@ protected:
         }
     }
 
-    void ConvertKratosToCSRFormat(IO::ConnectivitiesContainerType& KratosFormatNodeConnectivities, 
-                                    idxtype** NodeIndices, 
+    void ConvertKratosToCSRFormat(IO::ConnectivitiesContainerType& KratosFormatNodeConnectivities,
+                                    idxtype** NodeIndices,
                                     idxtype** NodeConnectivities)
     {
         idxtype*& rNodeIndices = *NodeIndices;
@@ -508,7 +508,7 @@ protected:
         {
             num_entries += it->size();
         }
-        
+
         SizeType num_nodes = KratosFormatNodeConnectivities.size();
         rNodeIndices = new idxtype[num_nodes+1];
         rNodeIndices[0] = 0;
@@ -516,14 +516,14 @@ protected:
 
         SizeType i = 0;
         SizeType aux_index = 0;
-        
+
         for (IO::ConnectivitiesContainerType::iterator it = KratosFormatNodeConnectivities.begin(); it != KratosFormatNodeConnectivities.end(); ++it)
         {
             for (std::vector<SizeType>::iterator entry_it = it->begin(); entry_it != it->end(); entry_it++)
                 rNodeConnectivities[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
             rNodeIndices[++i] = aux_index;
-        }                
-        
+        }
+
     }
 
     ///@}
@@ -616,6 +616,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined 
+#endif // KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined
 
 

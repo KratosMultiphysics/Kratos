@@ -344,7 +344,7 @@ public:
     }
 
     template<class TDataType>
-    void load(std::string const & rTag, boost::numeric::ublas::vector<TDataType>& rObject)
+    void load(std::string const & rTag, DenseVector<TDataType>& rObject)
     {
         load_trace_point(rTag);
         SizeType size;
@@ -391,7 +391,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension>
-    void load(std::string const & rTag, bounded_vector<TDataType, TDimension>& rObject)
+    void load(std::string const & rTag, BoundedVector<TDataType, TDimension>& rObject)
     {
         load_trace_point(rTag);
 
@@ -401,7 +401,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
-    void load(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2>& rObject)
+    void load(std::string const & rTag, BoundedMatrix<TDataType, TDimension1, TDimension2>& rObject)
     {
         load_trace_point(rTag);
 
@@ -426,6 +426,7 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
+	KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<double>)
 
 	template<class TDataType, std::size_t TDataSize>
 	void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
@@ -449,7 +450,7 @@ public:
     }
 
     template<class TDataType>
-    void save(std::string const & rTag, boost::numeric::ublas::vector<TDataType> const& rObject)
+    void save(std::string const & rTag, DenseVector<TDataType> const& rObject)
     {
         save_trace_point(rTag);
         SizeType size = rObject.size();
@@ -602,7 +603,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension>
-    void save(std::string const & rTag, bounded_vector<TDataType, TDimension> const& rObject)
+    void save(std::string const & rTag, BoundedVector<TDataType, TDimension> const& rObject)
     {
         save_trace_point(rTag);
 
@@ -612,7 +613,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
-    void save(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2> const& rObject)
+    void save(std::string const & rTag, BoundedMatrix<TDataType, TDimension1, TDimension2> const& rObject)
     {
         save_trace_point(rTag);
 
@@ -637,6 +638,7 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::size_t)
 #endif
+	KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<double>)
 
 
     template<class TDataType>
@@ -655,7 +657,7 @@ public:
     }
 
     template<class TDataType>
-    void load_base(std::string const & rTag, boost::numeric::ublas::vector<TDataType>& rObject)
+    void load_base(std::string const & rTag, DenseVector<TDataType>& rObject)
     {
         load_trace_point(rTag);
         load(rTag, rObject);
@@ -676,7 +678,7 @@ public:
     }
 
     template<class TDataType>
-    void save_base(std::string const & rTag, boost::numeric::ublas::vector<TDataType> const& rObject)
+    void save_base(std::string const & rTag, DenseVector<TDataType> const& rObject)
     {
         save_trace_point(rTag);
         save(rTag, rObject);
@@ -1108,7 +1110,7 @@ private:
 //        }
 //
 //        template<class TDataType>
-//        void read(boost::numeric::ublas::vector<TDataType>& rData)
+//        void read(DenseVector<TDataType>& rData)
 //        {
 //            std::size_t size;
 //            *mpBuffer >> size;
@@ -1118,14 +1120,14 @@ private:
 //        }
 //
 //        template<class TDataType>
-//        void write(boost::numeric::ublas::vector<TDataType> const& rData)
+//        void write(DenseVector<TDataType> const& rData)
 //        {
 //            *mpBuffer << rData.size() << std::endl;
 //            write(rData.begin(), rData.end());
 //        }
 
     template<class TDataType>
-    void read(boost::numeric::ublas::matrix<TDataType>& rData)
+    void read(DenseMatrix<TDataType>& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
 
@@ -1157,7 +1159,7 @@ private:
     }
 
     template<class TDataType>
-    void write(boost::numeric::ublas::matrix<TDataType> const& rData)
+    void write(DenseMatrix<TDataType> const& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
 

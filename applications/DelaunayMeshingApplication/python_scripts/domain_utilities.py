@@ -14,8 +14,8 @@ class DomainUtilities(object):
 
         if( model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):
 
-            # initialize the modeler
-            print("::[Domain_Utilities]:: Initialize", model_part.Name)
+            # initialize the mesher
+            print("::[--Domain Utilities-]:: Initialize", model_part.Name)
 
             # find node neighbours
             self.SearchNodeNeighbours(model_part, echo_level)
@@ -23,12 +23,11 @@ class DomainUtilities(object):
             # find element neighbours
             self.SearchElementNeighbours(model_part, echo_level)
 
-
-            # set modeler utilities
-            modeler_utils = KratosDelaunay.ModelerUtilities()
+            # set mesher utilities
+            mesher_utils = KratosDelaunay.MesherUtilities()
 
             # set the domain labels to conditions
-            modeler_utils.SetModelPartNameToConditions(model_part)
+            mesher_utils.SetModelPartNameToConditions(model_part)
 
             # find skin and boundary normals
             if( model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
@@ -38,17 +37,22 @@ class DomainUtilities(object):
                 # search nodal h
                 self.SearchNodalH(model_part, echo_level)
 
+                # add rigid and solid boundary nodes to fluid domains:
+                self.AddBoundaryNodesToFluidDomains(model_part)
+
                 # set the domain labels to nodes
-                modeler_utils.SetModelPartNameToNodes(model_part)
+                mesher_utils.SetModelPartNameToNodes(model_part)
 
 
             model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, True)
 
-            print("::[Domain_Utilities]:: Resultant ModelPart")
-            print(model_part)
+            if( echo_level > 0 ):
+                print("::[--Domain Utilities-]:: Resultant ModelPart")
+                print(model_part)
 
 
     #
+    @classmethod
     def SearchNodeNeighbours(self, model_part, echo_level):
 
 
@@ -62,9 +66,10 @@ class DomainUtilities(object):
         # execute search:
         nodal_neighbour_search.Execute()
 
-        print("::[Domain_Utilities]:: Nodal Search executed ")
+        print("::[--Domain Utilities-]:: Nodal Search executed ")
 
     #
+    @classmethod
     def SearchElementNeighbours(self, model_part, echo_level):
 
         dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
@@ -78,14 +83,15 @@ class DomainUtilities(object):
         elemental_neighbour_search.Execute()
 
         if( echo_level > 0 ):
-            print("::[Domain_Utilities]:: Elemental Search executed ")
+            print("::[--Domain Utilities-]:: Elemental Search executed ")
 
 
     #
+    @classmethod
     def BuildModelPartBoundary(self, model_part, echo_level):
 
 
-        print("::[Domain_Utilities]:: Build Mesh Boundary ")
+        print("::[--Domain Utilities-]:: Build Mesh Boundary ")
         # set building options:
 
 
@@ -99,12 +105,13 @@ class DomainUtilities(object):
         # skin_build.SearchConditionMasters()
 
         if( echo_level > 0 ):
-            print("::[Domain_Utilities]:: Mesh Boundary Build executed ")
+            print("::[--Domain Utilities-]:: Mesh Boundary Build executed ")
 
 
     ###
 
     #
+    @classmethod
     def SearchNodalH(self, model_part, echo_level):
 
         # define search utility
@@ -117,9 +124,10 @@ class DomainUtilities(object):
         # print "nodal_h:",nodal_h
 
         if( echo_level > 0 ):
-            print("::[Domain_Utilities]:: Nodal H Search executed ")
+            print("::[--Domain Utilities-]:: Nodal H Search executed ")
 
     #
+    @classmethod
     def ComputeBoundaryNormals(self, model_part, echo_level):
 
         # define calculation utility
@@ -132,4 +140,34 @@ class DomainUtilities(object):
         # normals_calculation.CalculateUnitBoundaryNormals(model_part, self.echo_level)
 
         if( echo_level > 0 ):
-            print("::[Domain_Utilities]:: Boundary Normals computed ")
+            print("::[--Domain Utilities-]:: Boundary Normals computed ")
+
+
+    #
+    @classmethod
+    def AddBoundaryNodesToFluidDomains(self,model_part):
+
+        exist_fluid_domain = False
+        for part in model_part.SubModelParts:
+            if part.Is(KratosMultiphysics.FLUID):
+               exist_fluid_domain = True
+               break
+
+        if( exist_fluid_domain ):
+
+            print("::[--Domain Utilities-]:: Add boundary nodes to fluid domains ")
+
+            try:
+                import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+            except:
+                raise Exception("SolidMechanicsApplication not imported and needed in this operation")
+
+            transfer_flags = [KratosMultiphysics.BOUNDARY,KratosMultiphysics.NOT_FLUID]
+            entity_type = "Nodes"
+            for fluid_part in model_part.SubModelParts:
+                if (fluid_part.IsNot(KratosMultiphysics.ACTIVE) and fluid_part.Is(KratosMultiphysics.FLUID)):
+                    for part in model_part.SubModelParts:
+                        if part.IsNot(KratosMultiphysics.ACTIVE):
+                            if( part.Is(KratosMultiphysics.SOLID) or part.Is(KratosMultiphysics.RIGID) ):
+                                transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags)
+                                transfer_process.Execute()

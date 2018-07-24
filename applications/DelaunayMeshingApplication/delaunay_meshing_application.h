@@ -4,7 +4,7 @@
 //        | |) / -_| / _` | || | ' \/ _` | || |            .
 //        |___/\___|_\__,_|\_,_|_||_\__,_|\_, |MESHING     .
 //                                        |__/             .
-//                                                         .    
+//                                                         .
 //  License:(BSD)   DelaunayMeshingApplication/license.txt .
 //  Main authors:   Josep Maria Carbonell                  .
 //                        ..                               .
@@ -23,7 +23,7 @@
 
 // System includes
 
-// External includes 
+// External includes
 
 // Project includes
 
@@ -32,13 +32,7 @@
 //conditions
 #include "custom_conditions/composite_condition.hpp"
 
-//constitutive laws
-#include "containers/flags.h"
-#include "includes/variables.h"
-#include "includes/ublas_interface.h"
 #include "includes/kratos_application.h"
-
-#include "containers/flags.h"
 
 #include "delaunay_meshing_application_variables.h"
 
@@ -48,18 +42,18 @@ namespace Kratos
   ///@{
 
   ///@name Kratos Globals
-  ///@{ 
+  ///@{
 
-  ///@} 
+  ///@}
   ///@name Type Definitions
-  ///@{ 
+  ///@{
 
-  ///@} 
+  ///@}
   ///@name  Enum's
   ///@{
 
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
 
   ///@}
@@ -69,74 +63,64 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosDelaunayMeshingApplication : public KratosApplication
+  class KRATOS_API(DELAUNAY_MESHING_APPLICATION) KratosDelaunayMeshingApplication : public KratosApplication
   {
   public:
 
 
     ///@name Type Definitions
     ///@{
-		
 
-    /// Pointer definition of KratosDelaunayMeshingApplication    
+    /// Pointer definition of KratosDelaunayMeshingApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosDelaunayMeshingApplication);
 
-
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
-
-    /// Default constructor.
-    KratosDelaunayMeshingApplication    ();
-
-    /// Destructor.
-    virtual ~KratosDelaunayMeshingApplication    (){}
-
-
-    ///@}
-    ///@name Operators 
+    ///@name Life Cycle
     ///@{
 
+    /// Default constructor.
+    KratosDelaunayMeshingApplication();
 
+    /// Destructor.
+    virtual ~KratosDelaunayMeshingApplication(){}
+
+
+    ///@}
+    ///@name Operators
+    ///@{
     ///@}
     ///@name Operations
     ///@{
 
-    virtual void Register();
-
-
+    void Register() override;
 
     ///@}
     ///@name Access
-    ///@{ 
-
-
+    ///@{
     ///@}
     ///@name Inquiry
     ///@{
-
-
-    ///@}      
+    ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
       {
-	return "KratosDelaunayMeshingApplication    ";
+	return "KratosDelaunayMeshingApplication";
       }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << Info();
       PrintData(rOStream);
     }
 
-    ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
     {
-      KRATOS_WATCH( "in KratosDelaunayMeshingApplication" ) 
+      KRATOS_WATCH( "in KratosDelaunayMeshingApplication" )
       KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
       rOStream << "Variables:" << std::endl;
       KratosComponents<VariableData>().PrintData(rOStream);
@@ -146,7 +130,7 @@ namespace Kratos
     }
 
 
-    ///@}      
+    ///@}
     ///@name Friends
     ///@{
 
@@ -154,77 +138,53 @@ namespace Kratos
     ///@}
 
   protected:
-    ///@name Protected static Member Variables 
-    ///@{ 
-
-
-    ///@} 
-    ///@name Protected member Variables 
-    ///@{ 
-
-
-    ///@} 
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    ///@}
     ///@name Protected Operators
-    ///@{ 
-
-
-    ///@} 
+    ///@{
+    ///@}
     ///@name Protected Operations
-    ///@{ 
-
-
-    ///@} 
-    ///@name Protected  Access 
-    ///@{ 
-
-
-    ///@}      
-    ///@name Protected Inquiry 
-    ///@{ 
-
-
-    ///@}    
-    ///@name Protected LifeCycle 
-    ///@{ 
-
-
+    ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
     ///@}
 
   private:
-    ///@name Static Member Variables 
-    ///@{ 
-
-    ///@} 
-    ///@name Member Variables 
-    ///@{ 
-
+    ///@name Static Member Variables
+    ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     const CompositeCondition mCompositeCondition2D2N;
     const CompositeCondition mCompositeCondition3D3N;
 
-    ///@} 
+    ///@}
     ///@name Private Operators
-    ///@{ 
-
-
-    ///@} 
+    ///@{
+    ///@}
     ///@name Private Operations
-    ///@{ 
-
-
-    ///@} 
-    ///@name Private  Access 
-    ///@{ 
-
-
-    ///@}    
-    ///@name Private Inquiry 
-    ///@{ 
-
-
-    ///@}    
-    ///@name Un accessible methods 
-    ///@{ 
+    ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
     /// Assignment operator.
     KratosDelaunayMeshingApplication& operator=(KratosDelaunayMeshingApplication const& rOther);
@@ -232,27 +192,23 @@ namespace Kratos
     /// Copy constructor.
     KratosDelaunayMeshingApplication(KratosDelaunayMeshingApplication const& rOther);
 
+    ///@}
 
-    ///@}    
+  }; // Class KratosDelaunayMeshingApplication
 
-  }; // Class KratosDelaunayMeshingApplication     
-
-  ///@} 
-
-
-  ///@name Type Definitions       
-  ///@{ 
+  ///@}
 
 
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-
-  ///@} 
+  ///@name Type Definitions
+  ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
+  ///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DELAUNAY_MESHING_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_DELAUNAY_MESHING_APPLICATION_H_INCLUDED  defined
 
 

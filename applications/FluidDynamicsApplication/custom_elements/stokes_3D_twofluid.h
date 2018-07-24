@@ -26,10 +26,10 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/math_utils.h"
 #include "includes/cfd_variables.h"
 #include "utilities/split_tetrahedra.h"
 #include "custom_elements/stokes_3D.h"
@@ -107,7 +107,7 @@ public:
         return Kratos::make_shared< Stokes3DTwoFluid >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
-    
+
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
@@ -141,9 +141,9 @@ public:
 
         //compute element size
 //         data.h = ComputeH<4,3>(data.DN_DX, Volume);
-        
+
         //gauss point position
-        bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
+        BoundedMatrix<double,NumNodes, NumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         //database access to all of the variables needed
@@ -175,7 +175,7 @@ public:
         }
 
         //allocate memory needed
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_local;
         array_1d<double,MatrixSize> rhs_local;
 
         unsigned int npos=0, nneg=0;
@@ -189,19 +189,19 @@ public:
 
 
         //here we decide if the element is all FLUID/AIR/MIXED
-        if(npos == NumNodes) //all AIR 
+        if(npos == NumNodes) //all AIR
         {
             ComputeElementAsAIR<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo);
         }
-        else if (nneg == NumNodes) //all FLUID 
+        else if (nneg == NumNodes) //all FLUID
         {
             ComputeElementAsFLUID<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo);
         }
-        else //element includes both FLUID and AIR 
+        else //element includes both FLUID and AIR
         {
             ComputeElementAsMIXED<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances);
         }
-            
+
 
         KRATOS_CATCH("Error in StokesTwoFluid Element Symbolic")
     }
@@ -259,13 +259,13 @@ public:
             KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","");
 
         // Checks on nodes
-        
+
         //check Properties
         if(GetProperties().Has(DENSITY_AIR) == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY_AIR is not set","");
         if(GetProperties().Has(CONSTITUTIVE_LAW) == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"CONSTITUTIVE_LAW is not set","");
-        
+
         //check constitutive CONSTITUTIVE_LAW
         GetProperties().GetValue(CONSTITUTIVE_LAW)->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
 
@@ -309,8 +309,8 @@ public:
             for(unsigned int i=0; i<GetGeometry().size(); i++)
                 distance_center += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
             distance_center/=static_cast<double>(GetGeometry().size());
-            
-            if(distance_center > 0) //AIR 
+
+            if(distance_center > 0) //AIR
             {
                 Output=0.0;
             }
@@ -336,8 +336,8 @@ public:
 
                 if (data.stress.size() != strain_size) data.stress.resize(strain_size,false);
 
-                const bounded_matrix<double,NumNodes,Dim>& v = data.v;
-                const bounded_matrix<double,NumNodes,Dim>& DN = data.DN_DX;
+                const BoundedMatrix<double,NumNodes,Dim>& v = data.v;
+                const BoundedMatrix<double,NumNodes,Dim>& DN = data.DN_DX;
 
                 //compute strain
                 Vector strain(strain_size);
@@ -376,13 +376,13 @@ public:
     }
 
     template<int MatrixSize, int NumNodes>
-    void ComputeElementAsAIR(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
+    void ComputeElementAsAIR(BoundedMatrix<double,MatrixSize, MatrixSize>& lhs_local,
                              array_1d<double,MatrixSize>& rhs_local,
                              Matrix& rLeftHandSideMatrix,
                              Vector& rRightHandSideVector,
                              const double& Volume,
                              element_data<4,3>& data,
-                             bounded_matrix<double,NumNodes, NumNodes>& Ncontainer,
+                             BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
                              ProcessInfo& rCurrentProcessInfo)
     {
         const double air_density = GetProperties()[DENSITY_AIR];
@@ -393,18 +393,18 @@ public:
         const double weight = Volume/static_cast<double>(NumNodes);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++) 
+        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++)
         {
-             noalias(data.N) = row(Ncontainer, igauss); 
- 
+             noalias(data.N) = row(Ncontainer, igauss);
+
              ComputeConstitutiveResponse_AIR(data, air_density, air_nu, rCurrentProcessInfo);
 
             Stokes3DTwoFluid::ComputeGaussPointRHSContribution(rhs_local, data);
             Stokes3DTwoFluid::ComputeGaussPointLHSContribution(lhs_local, data);
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-            noalias(rLeftHandSideMatrix) += weight*lhs_local; 
-            noalias(rRightHandSideVector) += weight*rhs_local; 
+            noalias(rLeftHandSideMatrix) += weight*lhs_local;
+            noalias(rRightHandSideVector) += weight*rhs_local;
         }
 
 //         //assign AIR_DENSITY to density
@@ -412,22 +412,22 @@ public:
 //         for (unsigned int i = 0; i < NumNodes; i++)
 //             data.rho[i] = air_density;
 //         const double air_nu = GetProperties()[DYNAMIC_VISCOSITY]; //ATTENTION: not using here the real visosity of air
-// 
+//
 //         for (unsigned int i = 0; i < NumNodes; i++) //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //             data.N[i] = 0.25;
-// 
+//
 //         for(unsigned int igauss = 0; igauss<1; igauss++)
 //         {
 //             ComputeConstitutiveResponse_AIR(data,air_density, air_nu, rCurrentProcessInfo);
-// 
+//
 //             Stokes3D::ComputeGaussPointRHSContribution(rhs_local, data);
 //             Stokes3D::ComputeGaussPointLHSContribution(lhs_local, data);
-// 
+//
 //             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
 //             noalias(rLeftHandSideMatrix) = lhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //             noalias(rRightHandSideVector) = rhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         }
-// 
+//
 //         rLeftHandSideMatrix  *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         rRightHandSideVector *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 
@@ -435,63 +435,63 @@ public:
 
 
     template<int MatrixSize, int NumNodes>
-    void ComputeElementAsFLUID(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
+    void ComputeElementAsFLUID(BoundedMatrix<double,MatrixSize, MatrixSize>& lhs_local,
                                array_1d<double,MatrixSize>& rhs_local,
                                Matrix& rLeftHandSideMatrix,
                                Vector& rRightHandSideVector,
                                const double& Volume,
                                element_data<4,3>& data,
-                               bounded_matrix<double,NumNodes, NumNodes>& Ncontainer,
+                               BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
                                ProcessInfo& rCurrentProcessInfo)
     {
         const double weight = Volume/static_cast<double>(NumNodes);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++) 
+        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++)
         {
-             noalias(data.N) = row(Ncontainer, igauss); 
- 
+             noalias(data.N) = row(Ncontainer, igauss);
+
              ComputeConstitutiveResponse(data, rCurrentProcessInfo);
 
             Stokes3DTwoFluid::ComputeGaussPointRHSContribution(rhs_local, data);
             Stokes3DTwoFluid::ComputeGaussPointLHSContribution(lhs_local, data);
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-            noalias(rLeftHandSideMatrix) += weight*lhs_local; 
-            noalias(rRightHandSideVector) += weight*rhs_local; 
+            noalias(rLeftHandSideMatrix) += weight*lhs_local;
+            noalias(rRightHandSideVector) += weight*rhs_local;
         }
 
 
     }
-    
-        
-        
+
+
+
 //         for (unsigned int i = 0; i < NumNodes; i++) //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //             data.N[i] = 0.25;
-// 
+//
 //         for(unsigned int igauss = 0; igauss<1; igauss++) //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         {
-// 
+//
 //             ComputeConstitutiveResponse(data, rCurrentProcessInfo);
-// 
+//
 //             Stokes3D::ComputeGaussPointRHSContribution(rhs_local, data);
 //             Stokes3D::ComputeGaussPointLHSContribution(lhs_local, data);
-// 
+//
 //             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
 //             noalias(rLeftHandSideMatrix) = lhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //             noalias(rRightHandSideVector) = rhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         }
-// 
+//
 //         rLeftHandSideMatrix  *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
 //         rRightHandSideVector *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
-// 
+//
 //     }
-//     
-    
-    
+//
+
+
     //ATTENTION: here multiple integration points are used. For this reason the methods used must be reimplemented in the current element
     template<int MatrixSize, int NumNodes>
-    void ComputeElementAsMIXED(bounded_matrix<double,MatrixSize, MatrixSize>& lhs_local,
+    void ComputeElementAsMIXED(BoundedMatrix<double,MatrixSize, MatrixSize>& lhs_local,
                                array_1d<double,MatrixSize>& rhs_local,
                                Matrix& rLeftHandSideMatrix,
                                Vector& rRightHandSideVector,
@@ -513,9 +513,9 @@ public:
             if(ndivisions == 1)
             {
                 //gauss point position
-                bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
+                BoundedMatrix<double,NumNodes, NumNodes> Ncontainer;
                 GetShapeFunctionsOnGauss(Ncontainer);
-        
+
                 //cases exist when the element is like not subdivided due to the characteristics of the provided distance
                 //in this cases the element is treated as AIR or FLUID depending on the side
                 array_1d<double,NumNodes> Ncenter;
@@ -532,9 +532,9 @@ public:
             }
             else
             {
-                boost::numeric::ublas::bounded_matrix<double, MatrixSize, NumNodes > Vtot, V;
-                boost::numeric::ublas::bounded_matrix<double, NumNodes, MatrixSize > Htot, H;
-                boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes> Kee_tot, Kee;
+                BoundedMatrix<double, MatrixSize, NumNodes > Vtot, V;
+                BoundedMatrix<double, NumNodes, MatrixSize > Htot, H;
+                BoundedMatrix<double, NumNodes, NumNodes> Kee_tot, Kee;
                 array_1d<double, NumNodes> rhs_ee_tot, rhs_ee;
                 Vtot.clear();
                 Htot.clear();
@@ -633,17 +633,17 @@ public:
     ///@{
 
     //this is the symbolic function implementing the element
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data<4,3>& data);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const element_data<4,3>& data);
     void ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const element_data<4,3>& data);
     void ComputeGaussPointEnrichmentContributions(
-        boost::numeric::ublas::bounded_matrix<double,4,16>& H,
-        boost::numeric::ublas::bounded_matrix<double,16,4>& V,
-        boost::numeric::ublas::bounded_matrix<double,4,4>&  Kee,
+        BoundedMatrix<double,4,16>& H,
+        BoundedMatrix<double,16,4>& V,
+        BoundedMatrix<double,4,4>&  Kee,
         array_1d<double,4>& rhs_ee,
         const element_data<4,3>& data,
         const array_1d<double,4>& distances,
         const array_1d<double,4>& Nenr,
-        const boost::numeric::ublas::bounded_matrix<double,4,4>& DNenr
+        const BoundedMatrix<double,4,4>& DNenr
     );
 
     ///@}
@@ -685,9 +685,9 @@ public:
     }
 
     void CondenseEnrichment(Matrix& rLeftHandSideMatrix,Vector& rRightHandSideVector,
-                            const boost::numeric::ublas::bounded_matrix<double,4,16>& Htot,
-                            const boost::numeric::ublas::bounded_matrix<double,16,4>& Vtot,
-                            boost::numeric::ublas::bounded_matrix<double,4,4>& Kee_tot,
+                            const BoundedMatrix<double,4,16>& Htot,
+                            const BoundedMatrix<double,16,4>& Vtot,
+                            BoundedMatrix<double,4,4>& Kee_tot,
                             array_1d<double,4>& Renr,
                             const Vector& volumes,
                             const Vector& signs,
@@ -762,50 +762,15 @@ public:
         }
 
         //add to LHS enrichment contributions
-        boost::numeric::ublas::bounded_matrix<double,4,4> inverse_diag;
-        bool inversion_successful = InvertMatrix<>(Kee_tot,inverse_diag);
+        double det;
+        BoundedMatrix<double,4,4> inverse_diag = MathUtils<double>::InvertMatrix<4>(Kee_tot,det);
 
-        if(!inversion_successful )
-        {
-            KRATOS_WATCH(distances)
-            KRATOS_WATCH(positive_volume/Vol)
-            KRATOS_WATCH(negative_volume/Vol)
-            KRATOS_WATCH(Kee_tot)
-            KRATOS_THROW_ERROR(std::logic_error,"error in the inversion of the enrichment matrix for element ",this->Id());
-        }
-
-        const boost::numeric::ublas::bounded_matrix<double,4,16> tmp = prod(inverse_diag,Htot);
+        const BoundedMatrix<double,4,16> tmp = prod(inverse_diag,Htot);
         noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
 
         const array_1d<double,4> tmp2 = prod(inverse_diag,Renr);
         noalias(rRightHandSideVector) -= prod(Vtot,tmp2);
 
-    }
-
-
-    template<class T>
-    bool InvertMatrix(const T& input, T& inverse)
-    {
-        typedef permutation_matrix<std::size_t> pmatrix;
-
-        // create a working copy of the input
-        T A(input);
-
-        // create a permutation matrix for the LU-factorization
-        pmatrix pm(A.size1());
-
-        // perform LU-factorization
-        int res = lu_factorize(A, pm);
-        if (res != 0)
-            return false;
-
-        // create identity matrix of "inverse"
-        inverse.assign(identity_matrix<double> (A.size1()));
-
-        // backsubstitute to get the inverse
-        lu_substitute(A, pm, inverse);
-
-        return true;
     }
 
 ///@}
@@ -862,8 +827,8 @@ private:
         if(data.stress.size() != strain_size)
             data.stress.resize(strain_size,false);
 
-        const bounded_matrix<double,nnodes,dim>& v = data.v;
-        const bounded_matrix<double,nnodes,dim>& DN = data.DN_DX;
+        const BoundedMatrix<double,nnodes,dim>& v = data.v;
+        const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
         //compute strain
         Vector strain(strain_size);
@@ -945,6 +910,6 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_STOKES_ELEMENT_TWOFLUID_3D_INCLUDED  defined 
+#endif // KRATOS_STOKES_ELEMENT_TWOFLUID_3D_INCLUDED  defined
 
 

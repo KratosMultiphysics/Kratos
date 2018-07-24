@@ -47,13 +47,13 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
-    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor;
+    typedef DenseVector<Vector> Second_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
+    typedef DenseVector<Second_Order_Tensor> Third_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
+    typedef DenseVector<DenseVector<Matrix> > Fourth_Order_Tensor;
 
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; 
+    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor;
 
 
     /**
@@ -108,7 +108,7 @@ public:
         }
 
         if(p < 0) return false; //in this case the square roots below will be negative. This substitutes with better efficiency lines 107-110
-        
+
         solution(0)=
             -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+ Globals::Pi / 3.0)
             -b/(3*a);
@@ -236,33 +236,33 @@ public:
     /**
      * calculates the eigenvectiors using a direct method.
      * @param A the given square matrix the eigenvalues are to be calculated.
-     * WARNING only valid symmetric 3*3 Matrices 
+     * WARNING only valid symmetric 3*3 Matrices
      */
 
 
-    static inline Vector EigenValuesDirectMethod(const Matrix& A) 
+    static inline Vector EigenValuesDirectMethod(const Matrix& A)
     {
         // Given a real symmetric 3x3 matrix A, compute the eigenvalues
         int dim= A.size1();
         Vector Result(dim);
 	noalias(Result) = ZeroVector(dim);
-            
+
         const double p1 = A(0,1)*A(0,1) + A(0,2)*A(0,2) + A(1,2)*A(1,2);
-        if (p1 == 0) 
+        if (p1 == 0)
         {//A is diagonal.
             Result[0] = A(0,0);
             Result[1] = A(1,1);
-            Result[2] = A(2,2); 
+            Result[2] = A(2,2);
             return Result;
         }
-                            
+
         const double q = (A(0,0) + A(1,1) + A(2,2)) / 3.0;
         const double p2 = (A(0,0) - q) * (A(0,0) - q) + (A(1,1) - q) * (A(1,1) - q) + (A(2,2) - q) * (A(2,2) - q) + 2.0 * p1;
         const double p = sqrt(p2 / 6.0);
-            
+
         Matrix B(3,3);
         const double inv_p = 1.0/p;
-            
+
         // B = (1 / p) * (A - q * I)  where  I is the identity matrix
         B(0,0) = inv_p * (A(0,0) - q);
         B(1,1) = inv_p * (A(1,1) - q);
@@ -273,7 +273,7 @@ public:
         B(2,0) = inv_p * A(2,0);
         B(1,2) = inv_p * A(1,2);
         B(2,1) = inv_p * A(2,1);
-                                    
+
         //r = det(B) / 2
         double r = 0.5 * ( B(0,0)*B(1,1)*B(2,2) + B(0,1)*B(1,2)*B(2,0) + B(1,0)*B(2,1)*B(0,2) - B(2,0)*B(1,1)*B(0,2) - B(1,0)*B(0,1)*B(2,2) - B(0,0)*B(2,1)*B(1,2) );
 
@@ -283,11 +283,11 @@ public:
         if (r <= -1) { phi = Globals::Pi / 3.0; }
         else if (r >= 1) { phi = 0.0; }
         else { phi = acos(r) / 3.0;}
-            
+
         // the eigenvalues satisfy eig3 <= eig2 <= eig1
         Result[0] = q + 2.0 * p * cos(phi);
         Result[2] = q + 2.0 * p * cos(phi + (2.0 * Globals::Pi / 3.0));
-        Result[1] = 3.0 * q - Result[0] - Result[2];     //% since trace(A) = eig1 + eig2 + eig3   
+        Result[1] = 3.0 * q - Result[0] - Result[2];     //% since trace(A) = eig1 + eig2 + eig3
 
         return Result;
     }
@@ -422,17 +422,17 @@ public:
      * The eigenvectors and eigenvalues are calculated using the iterative
      * Gauss-Seidel-method
      * @param A the given symmetric matrix where the eigenvectors have to be calculated.
-     * @param vectors where the eigenvectors will be stored 
+     * @param vectors where the eigenvectors will be stored
      * @param lambda wher the eigenvalues will be stored
      * @param zero_tolerance the largest value considered to be zero
      * @param max_iterations allowed
      */
 
 
-    static inline void EigenVectors(const MatrixType& A, 
-				    MatrixType& vectors, 
-				    VectorType& lambda, 
-				    double zero_tolerance =1e-9, 
+    static inline void EigenVectors(const MatrixType& A,
+				    MatrixType& vectors,
+				    VectorType& lambda,
+				    double zero_tolerance =1e-9,
 				    int max_iterations = 10)
     {
         Matrix Help= A;
@@ -548,7 +548,7 @@ public:
             Rotation(index2,index2)=c;
 
 //                 Help.resize(A.size1(),A.size1(),false);
-//                 noalias(Help)=ZeroMatrix(A.size1(),A.size1());	    
+//                 noalias(Help)=ZeroMatrix(A.size1(),A.size1());
 
             noalias(VDummy) = ZeroMatrix(Help.size1(), Help.size2());
 
@@ -565,7 +565,7 @@ public:
             V= VDummy;
 
 //                 Matrix VTA(3,3);
-//                 noalias(VTA) = ZeroMatrix(3,3);	    
+//                 noalias(VTA) = ZeroMatrix(3,3);
 //                 for(int i=0; i< Help.size1(); i++)
 //                 {
 //                     for(int j=0; j< Help.size1(); j++)
@@ -624,7 +624,7 @@ public:
 
     static inline void EigenVectors3x3(const Matrix& A, Matrix&V, Vector& d)
     {
-      
+
       if(A.size1()!=3 || A.size2()!=3)
 	std::cout<<" GIVEN MATRIX IS NOT 3x3  eigenvectors calculation "<<std::endl;
 
@@ -637,14 +637,14 @@ public:
 	  V(i,j) = A(i,j);
 	}
       }
-      
+
       // *******************//
       //Symmetric Housholder reduction to tridiagonal form
-      
+
       for (int j = 0; j < 3; j++) {
 	d[j] = V(2,j);
       }
-    
+
       // Householder reduction to tridiagonal form.
 
       for (int i = 2; i > 0; i--) {
@@ -747,7 +747,7 @@ public:
       }
       V(2,2) = 1.0;
       e[0] = 0.0;
-      
+
       // *******************//
 
       // Symmetric tridiagonal QL algorithm.
@@ -839,7 +839,7 @@ public:
 	d[l] = d[l] + f;
 	e[l] = 0.0;
       }
-  
+
       // Sort eigenvalues and corresponding vectors.
 
       for (int i = 0; i < 2; i++) {

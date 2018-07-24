@@ -151,7 +151,7 @@ public:
         array_1d<double,3> An;
         if(dimension == 2)
         {
-            boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+            BoundedMatrix<double,3,2> DN_DX;
             array_1d<double,3> N;
             double Volume;
             for(ModelPart::ElementsContainerType::iterator it =  rElements.begin(); it !=rElements.end(); it++)
@@ -171,7 +171,7 @@ public:
         }
         else if(dimension == 3)
         {
-            boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+            BoundedMatrix<double,4,3> DN_DX;
             array_1d<double,4> N;
             double Volume;
             for(ModelPart::ElementsContainerType::iterator it =  rElements.begin(); it !=rElements.end(); it++)

@@ -28,7 +28,6 @@
 
 #include "includes/element.h"
 #include "includes/condition.h"
-#include "includes/variables.h"
 
 // Core applications
 #include "delaunay_meshing_application.h"
@@ -38,20 +37,20 @@ namespace Kratos
   //Create Variables
 
 
-  KratosDelaunayMeshingApplication    ::KratosDelaunayMeshingApplication    ():
+  KratosDelaunayMeshingApplication::KratosDelaunayMeshingApplication    ():
     KratosApplication("DelaunayMeshingApplication"),
-    mCompositeCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mCompositeCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
+    mCompositeCondition2D2N( 0, Kratos::make_shared<Line2D2<Node<3> > >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ,
+    mCompositeCondition3D3N( 0, Kratos::make_shared<Triangle3D3<Node<3> > >( Condition::GeometryType::PointsArrayType( 3 ) ) )
   {}
 
-  void KratosDelaunayMeshingApplication    ::Register()
+  void KratosDelaunayMeshingApplication::Register()
   {
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::cout << "            ___      _                                        " << std::endl
-    std::cout << "     KRATOS|   \\ ___| |__ _ _  _ _ _  __ _ _  _              " << std::endl
-    std::cout << "           | |) / -_| / _` | || | ' \\/ _` | || |             " << std::endl
+    std::cout << "            ___      _                                        " << std::endl;
+    std::cout << "     KRATOS|   \\ ___| |__ _ _  _ _ _  __ _ _  _              " << std::endl;
+    std::cout << "           | |) / -_| / _` | || | ' \\/ _` | || |             " << std::endl;
     std::cout << "           |___/\\___|_\\__,_|\\_,_|_||_\\__,_|\\_, |MESHING  " << std::endl;
     std::cout << "                                            |__/              " << std::endl;
     std::cout << "Initializing KratosDelaunayMeshingApplication    ...          " << std::endl;
@@ -77,7 +76,7 @@ namespace Kratos
     //condition variables
     KRATOS_REGISTER_VARIABLE( CHILDREN_CONDITIONS )
 
-    //modeler criteria
+    //mesher criteria
     KRATOS_REGISTER_VARIABLE( MEAN_ERROR )
 
     //Register Conditions

@@ -227,7 +227,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() override 
+    void Initialize() override
     {}
 
     int Check() override
@@ -314,6 +314,17 @@ public:
 
 
         return NormDp;
+    }
+
+    bool SolveSolutionStep() override
+    {
+        double norm_dp = this->Solve();
+        /* If not doing predictor corrector iterations, norm_dp will
+         * typically be "large" since we are not iterating on pressure.
+         * It makes no sense to report that the iteration didn't converge
+         * based on this.
+         */
+        return mPredictorCorrector ? this->CheckPressureConvergence(norm_dp) : true;
     }
 
 
@@ -831,7 +842,7 @@ protected:
         {
             ModelPart::NodeIterator itNode = rModelPart.NodesBegin() + i;
             const Node<3>& r_const_node = *itNode;
-            
+
             if ( r_const_node.GetValue(rSlipWallFlag) != 0.0 )
             {
                 const array_1d<double,3>& rNormal = itNode->FastGetSolutionStepValue(NORMAL);

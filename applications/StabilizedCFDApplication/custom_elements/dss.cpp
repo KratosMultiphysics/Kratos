@@ -750,7 +750,7 @@ void DSS<TDim>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 		const unsigned int NumGauss = GaussWeights.size();
 
 		rValues.resize(NumGauss);
-		
+
   		// Loop on integration points
 		for (unsigned int g = 0; g < NumGauss; g++)
 		{
@@ -1826,17 +1826,17 @@ void DSS<TDim>::ModulatedGradientDiffusion(MatrixType &rDampMatrix, const ShapeF
 
     // Element lengths
     array_1d<double,3> Delta(3,0.0);
-    Delta[0] = abs(rGeom[NumNodes-1].X()-rGeom[0].X());
-    Delta[1] = abs(rGeom[NumNodes-1].Y()-rGeom[0].Y());
-    Delta[2] = abs(rGeom[NumNodes-1].Z()-rGeom[0].Z());
+    Delta[0] = fabs(rGeom[NumNodes-1].X()-rGeom[0].X());
+    Delta[1] = fabs(rGeom[NumNodes-1].Y()-rGeom[0].Y());
+    Delta[2] = fabs(rGeom[NumNodes-1].Z()-rGeom[0].Z());
 
     for (unsigned int n = 1; n < NumNodes; n++)
     {
-        double hx = abs(rGeom[n].X()-rGeom[n-1].X());
+        double hx = fabs(rGeom[n].X()-rGeom[n-1].X());
         if (hx > Delta[0]) Delta[0] = hx;
-        double hy = abs(rGeom[n].Y()-rGeom[n-1].Y());
+        double hy = fabs(rGeom[n].Y()-rGeom[n-1].Y());
         if (hy > Delta[1]) Delta[1] = hy;
-        double hz = abs(rGeom[n].Z()-rGeom[n-1].Z());
+        double hz = fabs(rGeom[n].Z()-rGeom[n-1].Z());
         if (hz > Delta[2]) Delta[2] = hz;
     }
 

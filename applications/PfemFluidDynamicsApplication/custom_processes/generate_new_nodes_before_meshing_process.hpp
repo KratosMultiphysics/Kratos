@@ -22,7 +22,8 @@
 
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:      
@@ -45,7 +46,7 @@ namespace Kratos
 */
 
 class GenerateNewNodesBeforeMeshingProcess
-  : public Process
+  : public MesherProcess
 {
 public:
     ///@name Type Definitions
@@ -65,7 +66,7 @@ public:
 
     /// Default constructor.
     GenerateNewNodesBeforeMeshingProcess(ModelPart& rModelPart,
-					 ModelerUtilities::MeshingParameters& rRemeshingParameters,
+					 MesherUtilities::MeshingParameters& rRemeshingParameters,
 					 int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
@@ -94,7 +95,7 @@ public:
     ///@{
 
     /// Execute method is used to execute the Process algorithms.
-    virtual void Execute()
+  void Execute() override 
   {
     KRATOS_TRY
 
@@ -180,45 +181,6 @@ public:
       }
 
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
-    {
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
-    {	
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
-    {
-    }
-
-    /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
-    {
-    }
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
-    {
-    }
-
-
     ///@}
     ///@name Access
     ///@{
@@ -234,19 +196,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const  override
     {
         return "GenerateNewNodesBeforeMeshingProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "GenerateNewNodesBeforeMeshingProcess";
     }
 
     /// Print object's data.s
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const  override
     {
     }
 
@@ -267,9 +229,9 @@ private:
     ///@{
     ModelPart& mrModelPart;
  
-    ModelerUtilities::MeshingParameters& mrRemesh;
+    MesherUtilities::MeshingParameters& mrRemesh;
 
-    ModelerUtilities mModelerUtilities;  
+    MesherUtilities mMesherUtilities;  
 
     int mEchoLevel;
 
@@ -326,6 +288,11 @@ private:
       if(inletNodes>0){
       	penalization=0.9;
       }
+    }
+    else if(rigidNodes>0 && freesurfaceNodes>0){
+      penalization=0;
+    }else if(freesurfaceNodes>0){
+      penalization=0.85;
     }
 
     double ElementalVolume =  Element.Area();
@@ -511,6 +478,12 @@ private:
 	penalization=0.9;
       }
     }
+    else if(rigidNodes>0 && freesurfaceNodes>0){
+      penalization=0;
+    }else if(freesurfaceNodes>0){
+      penalization=0.95;
+    }
+
     // if(freesurfaceNodes>2){
     //   penalization=0.6;
     // }
@@ -681,8 +654,8 @@ private:
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     std::vector<Node<3>::Pointer > list_of_new_nodes;
-    double NodeIdParent = ModelerUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
-    double NodeId = ModelerUtilities::GetMaxNodeId(mrModelPart);
+    double NodeIdParent = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
+    double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
 
     unsigned int initial_node_size =NodeIdParent + 1 + ElementsToRefine; //total model part node size
 

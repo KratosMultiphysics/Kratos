@@ -28,11 +28,15 @@
 
 // Project includes
 #include "includes/define.h"
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#include "includes/amatrix_interface.h"
+#else
 #include "includes/ublas_interface.h"
 
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/storage.hpp>
 #include <boost/numeric/ublas/detail/vector_assign.hpp>
+#endif // ifdef KRATOS_USE_AMATRIX
 
 namespace Kratos
 {
@@ -56,6 +60,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+template <typename TDataType, std::size_t TSize> using array_1d = Internals::Matrix<TDataType,TSize, 1>;
+#else
 /// Short	class definition.
 /** Detail class definition.
 */
@@ -743,6 +750,7 @@ private:
     ///@}
 
 }; // Class	array_1d
+#endif // ifndef KRATOS_USE_AMATRIX
 
 ///@}
 

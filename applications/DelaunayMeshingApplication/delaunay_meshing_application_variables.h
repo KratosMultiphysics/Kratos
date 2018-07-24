@@ -4,7 +4,7 @@
 //        | |) / -_| / _` | || | ' \/ _` | || |            .
 //        |___/\___|_\__,_|\_,_|_||_\__,_|\_, |MESHING     .
 //                                        |__/             .
-//                                                         .    
+//                                                         .
 //  License:(BSD)   DelaunayMeshingApplication/license.txt .
 //  Main authors:   Josep Maria Carbonell                  .
 //                        ..                               .
@@ -26,18 +26,17 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_application.h"
-
+#include "containers/pointer_vector_set.h"
+#include "includes/element.h"
+#include "includes/condition.h"
+#include "utilities/indexed_object.h"
 
 namespace Kratos
 {
   ///@name Type Definitions
   ///@{
-  typedef array_1d<double,3> Vector3;
-  typedef array_1d<double,6> Vector6;
   typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
   ///@}
 
@@ -65,8 +64,8 @@ namespace Kratos
 
   //condition variables
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, ConditionContainerType, CHILDREN_CONDITIONS)
-    
-  //modeler criteria
+
+  //mesher criteria
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, double, MEAN_ERROR )
 
 

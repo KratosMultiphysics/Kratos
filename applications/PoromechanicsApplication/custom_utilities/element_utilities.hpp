@@ -28,7 +28,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,2,6>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,2,6>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Triangle_2d_3
         rNu(0,0) = Ncontainer(GPoint,0); rNu(0,2) = Ncontainer(GPoint,1); rNu(0,4) = Ncontainer(GPoint,2);
@@ -37,7 +37,7 @@ public:
     
     //----------------------------------------------------------------------------------------
     
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,2,8>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,2,8>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Quadrilateral_2d_4
         rNu(0,0) = Ncontainer(GPoint,0); rNu(0,2) = Ncontainer(GPoint,1); rNu(0,4) = Ncontainer(GPoint,2); rNu(0,6) = Ncontainer(GPoint,3);
@@ -46,7 +46,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,12>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,3,12>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Tetrahedra_3d_4
         rNu(0,0) = Ncontainer(GPoint,0); rNu(0,3) = Ncontainer(GPoint,1); rNu(0,6) = Ncontainer(GPoint,2); rNu(0,9)  = Ncontainer(GPoint,3);
@@ -56,7 +56,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,18>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,3,18>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Prism_3d_6
         rNu(0,0) = Ncontainer(GPoint,0); rNu(0,3) = Ncontainer(GPoint,1); rNu(0,6) = Ncontainer(GPoint,2);
@@ -70,7 +70,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,24>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuMatrix(BoundedMatrix<double,3,24>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Hexahedron_3d_8
         rNu(0,0) = Ncontainer(GPoint,0); rNu(0,3) = Ncontainer(GPoint,1); rNu(0,6) = Ncontainer(GPoint,2); rNu(0,9)  = Ncontainer(GPoint,3);
@@ -84,7 +84,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,3,9>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuElementMatrix(BoundedMatrix<double,3,9>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Triangle_2d_3
         rNut(0,0) = Ncontainer(GPoint,0); rNut(0,3) = Ncontainer(GPoint,1); rNut(0,6) = Ncontainer(GPoint,2);
@@ -93,7 +93,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,3,12>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuElementMatrix(BoundedMatrix<double,3,12>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Quadrilateral_2d_4
         rNut(0,0) = Ncontainer(GPoint,0); rNut(0,3) = Ncontainer(GPoint,1); rNut(0,6) = Ncontainer(GPoint,2); rNut(0,9) = Ncontainer(GPoint,3);
@@ -102,7 +102,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,4,16>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuElementMatrix(BoundedMatrix<double,4,16>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Tetrahedra_3d_4
         rNut(0,0) = Ncontainer(GPoint,0); rNut(0,4) = Ncontainer(GPoint,1); rNut(0,8)  = Ncontainer(GPoint,2); rNut(0,12) = Ncontainer(GPoint,3);
@@ -112,7 +112,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,4,24>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuElementMatrix(BoundedMatrix<double,4,24>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Prism_3d_6
         rNut(0,0) = Ncontainer(GPoint,0); rNut(0,4) = Ncontainer(GPoint,1); rNut(0,8) = Ncontainer(GPoint,2);
@@ -126,7 +126,7 @@ public:
     
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,4,32>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
+    static inline void CalculateNuElementMatrix(BoundedMatrix<double,4,32>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
         //Hexahedron_3d_8
         rNut(0,0) = Ncontainer(GPoint,0); rNut(0,4) = Ncontainer(GPoint,1); rNut(0,8) = Ncontainer(GPoint,2); rNut(0,12) = Ncontainer(GPoint,3);
@@ -475,7 +475,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void CalculatePermeabilityMatrix(boost::numeric::ublas::bounded_matrix<double,2,2>& rPermeabilityMatrix,
+    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
                                                     const Element::PropertiesType& Prop)
     {
         //2D
@@ -488,7 +488,7 @@ public:
 
     //----------------------------------------------------------------------------------------
     
-    static inline void CalculatePermeabilityMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rPermeabilityMatrix,
+    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
                                                     const Element::PropertiesType& Prop)
     {
         //3D
@@ -509,8 +509,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void InvertMatrix2(boost::numeric::ublas::bounded_matrix<double,2,2>& rInvertedMatrix,
-                                    const boost::numeric::ublas::bounded_matrix<double,2,2>& InputMatrix)
+    static inline void InvertMatrix2(BoundedMatrix<double,2,2>& rInvertedMatrix,
+                                    const BoundedMatrix<double,2,2>& InputMatrix)
     {
         double InputMatrixDet = InputMatrix(0,0)*InputMatrix(1,1)-InputMatrix(0,1)*InputMatrix(1,0);
         
@@ -550,7 +550,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,6,6>& UBlockMatrix)
+    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,6,6>& UBlockMatrix)
     {        
         //Triangle_2d_3
         unsigned int Global_i, Global_j, Local_i, Local_j;
@@ -575,7 +575,7 @@ public:
     
     //----------------------------------------------------------------------------------------
 
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,8,8>& UBlockMatrix)
+    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,8,8>& UBlockMatrix)
     {        
         //Quadrilateral_2d_4
         unsigned int Global_i, Global_j, Local_i, Local_j;
@@ -600,7 +600,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,12,12>& UBlockMatrix)
+    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,12,12>& UBlockMatrix)
     {
         //Tetrahedra_3d_4
         unsigned int Global_i, Global_j, Local_i, Local_j;
@@ -631,7 +631,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,18,18>& UBlockMatrix)
+    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,18,18>& UBlockMatrix)
     {        
         //Prism_3d_6
         unsigned int Global_i, Global_j, Local_i, Local_j;
@@ -662,7 +662,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,24,24>& UBlockMatrix)
+    static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,24,24>& UBlockMatrix)
     {
         //Hexahedra_3d_8
         unsigned int Global_i, Global_j, Local_i, Local_j;
@@ -693,7 +693,7 @@ public:
 
     //----------------------------------------------------------------------------------------
     
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,6,3>& UPBlockMatrix)
+    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,6,3>& UPBlockMatrix)
     {
         //Triangle_2d_3
         unsigned int Global_i, Global_j, Local_i;
@@ -715,7 +715,7 @@ public:
 
     //----------------------------------------------------------------------------------------
     
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,8,4>& UPBlockMatrix)
+    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,8,4>& UPBlockMatrix)
     {        
         //Quadrilateral_2d_4
         unsigned int Global_i, Global_j, Local_i;
@@ -737,7 +737,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,12,4>& UPBlockMatrix)
+    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,12,4>& UPBlockMatrix)
     {
         //Tetrahedra_3d_4
         unsigned int Global_i, Global_j, Local_i;
@@ -760,7 +760,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,18,6>& UPBlockMatrix)
+    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,18,6>& UPBlockMatrix)
     {
         //Prism_3d_6
         unsigned int Global_i, Global_j, Local_i;
@@ -783,7 +783,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,24,8>& UPBlockMatrix)
+    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,24,8>& UPBlockMatrix)
     {        
         //Hexahedra_3d_8
         unsigned int Global_i, Global_j, Local_i;
@@ -806,7 +806,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,3,6>& PUBlockMatrix)
+    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,3,6>& PUBlockMatrix)
     {        
         //Triangle_2d_3
         unsigned int Global_i, Global_j, Local_j;
@@ -828,7 +828,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,4,8>& PUBlockMatrix)
+    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,4,8>& PUBlockMatrix)
     {        
         //Quadrilateral_2d_4
         unsigned int Global_i, Global_j, Local_j;
@@ -850,7 +850,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,4,12>& PUBlockMatrix)
+    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,4,12>& PUBlockMatrix)
     {
         //Tetrahedra_3d_4
         unsigned int Global_i, Global_j, Local_j;
@@ -873,7 +873,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,6,18>& PUBlockMatrix)
+    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,6,18>& PUBlockMatrix)
     {
         //Prism_3d_6
         unsigned int Global_i, Global_j, Local_j;
@@ -896,7 +896,7 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,8,24>& PUBlockMatrix)
+    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,8,24>& PUBlockMatrix)
     {        
         //Hexahedra_3d_8
         unsigned int Global_i, Global_j, Local_j;
@@ -1047,7 +1047,7 @@ public:
     /// Rows: nodes
     /// Columns: GP
             
-    static inline void CalculateExtrapolationMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& rExtrapolationMatrix)
+    static inline void CalculateExtrapolationMatrix(BoundedMatrix<double,4,4>& rExtrapolationMatrix)
     {
         //Quadrilateral_2d_4
         //GI_GAUSS_2
@@ -1060,7 +1060,7 @@ public:
     
     //----------------------------------------------------------------------------------------    
     
-    static inline void CalculateExtrapolationMatrix(boost::numeric::ublas::bounded_matrix<double,8,8>& rExtrapolationMatrix)
+    static inline void CalculateExtrapolationMatrix(BoundedMatrix<double,8,8>& rExtrapolationMatrix)
     {
         //Hexahedra_3d_8
         //GI_GAUSS_2

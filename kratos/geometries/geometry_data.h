@@ -163,21 +163,21 @@ public:
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry data.
     */
-    typedef boost::array<boost::numeric::ublas::vector<Matrix>, NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
+    typedef boost::array<DenseVector<Matrix>, NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
 
     /** A third order tensor to hold shape functions'
     gradients. ShapefunctionsLocalGradients function return this
     type as its result.
     */
-    typedef boost::numeric::ublas::vector<Matrix> ShapeFunctionsGradientsType;
+    typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
 
-    typedef boost::numeric::ublas::vector<Matrix> ShapeFunctionsSecondDerivativesType;
+    typedef DenseVector<Matrix> ShapeFunctionsSecondDerivativesType;
 
     /**
      * fourth order tensor to hold the third order derivatives of the
      * shape functions
      */
-    typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > ShapeFunctionsThirdDerivativesType;
+    typedef DenseVector<DenseVector<Matrix> > ShapeFunctionsThirdDerivativesType;
 
     ///@}
     ///@name Life Cycle

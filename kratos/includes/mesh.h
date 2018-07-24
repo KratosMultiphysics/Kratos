@@ -275,6 +275,13 @@ public:
         return *i;
     }
 
+    const NodeType& GetNode(IndexType NodeId) const
+    {
+        auto i = mpNodes->find(NodeId);
+        KRATOS_ERROR_IF(i == mpNodes->end()) << " node index not found: " << NodeId << ".";
+        return *i;
+    }
+
     /** Remove the node with given Id from mesh.
     */
     void RemoveNode(IndexType NodeId)
@@ -317,6 +324,11 @@ public:
     }
 
     NodesContainerType& Nodes()
+    {
+        return *mpNodes;
+    }
+
+    const NodesContainerType& Nodes() const
     {
         return *mpNodes;
     }
@@ -468,6 +480,13 @@ public:
         return *i;
     }
 
+    const ElementType& GetElement(IndexType ElementId) const
+    {
+        auto i = mpElements->find(ElementId);
+        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        return *i;
+    }
+
     /** Remove the element with given Id from mesh.
     */
     void RemoveElement(IndexType ElementId)
@@ -510,6 +529,11 @@ public:
     }
 
     ElementsContainerType& Elements()
+    {
+        return *mpElements;
+    }
+
+    const ElementsContainerType& Elements() const
     {
         return *mpElements;
     }
@@ -567,6 +591,13 @@ public:
         return *i;
     }
 
+    const ConditionType& GetCondition(IndexType ConditionId) const
+    {
+        auto i = mpConditions->find(ConditionId);
+        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        return *i;
+    }
+
     /** Remove the condition with given Id from mesh.
     */
     void RemoveCondition(IndexType ConditionId)
@@ -609,6 +640,11 @@ public:
     }
 
     ConditionsContainerType& Conditions()
+    {
+        return *mpConditions;
+    }
+
+    const ConditionsContainerType& Conditions() const
     {
         return *mpConditions;
     }

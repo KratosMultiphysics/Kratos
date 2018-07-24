@@ -51,7 +51,7 @@ set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module( KratosEigenSolversApplication MODULE ${KRATOS_EIGENSOLVERS_APPLICATION_SOURCES} )
+pybind11_add_module( KratosEigenSolversApplication MODULE THIN_LTO ${KRATOS_EIGENSOLVERS_APPLICATION_SOURCES} )
 target_link_libraries( KratosEigenSolversApplication PRIVATE KratosCore )
 
 if( USE_EIGEN_MKL MATCHES ON )

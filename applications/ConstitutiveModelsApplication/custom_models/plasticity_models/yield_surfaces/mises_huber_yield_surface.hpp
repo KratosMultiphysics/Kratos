@@ -61,7 +61,7 @@ namespace Kratos
     typedef YieldSurface<THardeningRule>                                 BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
-    
+
     /// Pointer definition of MisesHuberYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( MisesHuberYieldSurface );
 
@@ -71,7 +71,7 @@ namespace Kratos
 
     /// Default constructor.
     MisesHuberYieldSurface() : BaseType() {}
-   
+
     /// Copy constructor.
     MisesHuberYieldSurface(MisesHuberYieldSurface const& rOther) : BaseType(rOther) {}
 
@@ -81,13 +81,13 @@ namespace Kratos
       BaseType::operator=(rOther);
       return *this;
     }
-    
+
     /// Clone.
     virtual BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new MisesHuberYieldSurface(*this));
+      return Kratos::make_shared<MisesHuberYieldSurface>(*this);
     }
-    
+
     /// Destructor.
     virtual ~MisesHuberYieldSurface() {}
 
@@ -96,7 +96,7 @@ namespace Kratos
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -114,14 +114,14 @@ namespace Kratos
       const double& rStressNorm = rVariables.GetStressNorm();
 
       Hardening = this->mHardeningRule.CalculateHardening(rVariables,Hardening);
-     
+
       rYieldCondition = rStressNorm - sqrt(2.0/3.0) * Hardening;
-		
+
       return rYieldCondition;
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate State Function
      */
@@ -131,22 +131,22 @@ namespace Kratos
       KRATOS_TRY
 
       const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-    
+
       const double& rStressNorm = rVariables.GetStressNorm();
-    
+
       const double& rDeltaGamma = rVariables.GetDeltaInternalVariables()[0];
-    
+
       double Hardening = 0;
-		
+
       Hardening = this->mHardeningRule.CalculateHardening( rVariables, Hardening );
 
       rStateFunction = rStressNorm - 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
-		
+
       return rStateFunction;
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate State Function derivative
      */
@@ -162,12 +162,12 @@ namespace Kratos
       DeltaHardening = this->mHardeningRule.CalculateDeltaHardening( rVariables, DeltaHardening );
 
       rDeltaStateFunction = 2.0 * rMaterial.GetLameMuBar() + (2.0/3.0) * DeltaHardening;
-		
+
       return rDeltaStateFunction;
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate Plastic Dissipation
      */
@@ -181,11 +181,11 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate Plastic Dissipation derivative
      */
-    
+
     virtual double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
@@ -205,28 +205,28 @@ namespace Kratos
 
       rPlasticDissipation = 0;
       return rPlasticDissipation;
-    
+
       KRATOS_CATCH(" ")
-    }      
-    
+    }
+
     /**
      * Calculate Implex Plastic Dissipation derivative
      */
-    
+
     virtual double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
-      
+
       rDeltaPlasticDissipation = 0;
       return rDeltaPlasticDissipation;
 
       KRATOS_CATCH(" ")
     }
-          
+
     ///@}
     ///@name Access
     ///@{
-        
+
 
     ///@}
     ///@name Inquiry
@@ -273,8 +273,8 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -326,7 +326,7 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
@@ -336,12 +336,12 @@ namespace Kratos
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
-    
+
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -372,6 +372,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MISES_HUBER_YIELD_SURFACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MISES_HUBER_YIELD_SURFACE_H_INCLUDED  defined

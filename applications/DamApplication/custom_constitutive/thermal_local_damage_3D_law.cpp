@@ -39,8 +39,6 @@ int ThermalLocalDamage3DLaw::Check(const Properties& rMaterialProperties,const G
 
     if ( THERMAL_EXPANSION.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"THERMAL_EXPANSION Key is 0. Check if all applications were correctly registered.", "" )
-    if ( REFERENCE_TEMPERATURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"REFERENCE_TEMPERATURE Key is 0. Check if all applications were correctly registered.", "" )
     if ( TEMPERATURE.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"TEMPERATURE Key is 0. Check if all applications were correctly registered.", "" )
 
@@ -82,7 +80,9 @@ void ThermalLocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValu
     ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
     ElasticVariables.LameMu = 1.0+PoissonCoefficient;
     ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION]; 
-    ElasticVariables.ReferenceTemperature = rValues.GetProcessInfo()[REFERENCE_TEMPERATURE];
+    /* Calculate Nodal Reference Temperature */
+    double NodalReferenceTemperature;
+    this->CalculateNodalReferenceTemperature(ElasticVariables,NodalReferenceTemperature);
     
     // ReturnMappingVariables
     FlowRule::RadialReturnVariables ReturnMappingVariables;
@@ -101,7 +101,7 @@ void ThermalLocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValu
     
       // Thermal strain
       Vector ThermalStrainVector(VoigtSize);
-      this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables);
+      this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
       // Mechanical strain
       noalias(rStrainVector) -= ThermalStrainVector;
       noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
@@ -147,7 +147,7 @@ void ThermalLocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValu
         Vector& rStressVector = rValues.GetStressVector();
 
         // Thermal strain
-        this->CalculateThermalStrain(rStrainVector,ElasticVariables);
+        this->CalculateThermalStrain(rStrainVector,ElasticVariables,NodalReferenceTemperature);
         noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
         
@@ -160,7 +160,7 @@ void ThermalLocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValu
 
         // Thermal strain
         Vector ThermalStrainVector(VoigtSize);
-        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables);
+        this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
         // Mechanical strain
         noalias(rStrainVector) -= ThermalStrainVector;
         noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
@@ -178,7 +178,7 @@ void ThermalLocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValu
       if(Options.Is(ConstitutiveLaw::THERMAL_RESPONSE_ONLY)){
 
 	// Thermal strain
-        this->CalculateThermalStrain(rStrainVector,ElasticVariables);	
+        this->CalculateThermalStrain(rStrainVector,ElasticVariables,NodalReferenceTemperature);	
       }
       //other strain: to implement
       
@@ -212,10 +212,13 @@ void ThermalLocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValue
 	ElasticVariables.SetElementGeometry(rValues.GetElementGeometry());
     ElasticVariables.LameMu = 1.0+PoissonCoefficient;
     ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION]; 
-    ElasticVariables.ReferenceTemperature = rValues.GetProcessInfo()[REFERENCE_TEMPERATURE];
+    /* Calculate Nodal Reference Temperature */
+    double NodalReferenceTemperature;
+    this->CalculateNodalReferenceTemperature(ElasticVariables,NodalReferenceTemperature);
+    
     // Compute Thermal strain
     Vector ThermalStrainVector(VoigtSize);
-    this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables);
+    this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
     // Compute Mechanical strain
     noalias(rStrainVector) -= ThermalStrainVector;
     
@@ -256,7 +259,29 @@ void ThermalLocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValue
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ThermalLocalDamage3DLaw::CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables)
+double&  ThermalLocalDamage3DLaw::CalculateNodalReferenceTemperature (const MaterialResponseVariables & rElasticVariables, double & rNodalReferenceTemperature)
+{
+    KRATOS_TRY
+
+    const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
+    const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
+    const unsigned int number_of_nodes = DomainGeometry.size();
+
+    rNodalReferenceTemperature = 0.0;
+
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+      rNodalReferenceTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+    }
+
+    return rNodalReferenceTemperature;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ThermalLocalDamage3DLaw::CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables, double & rNodalReferenceTemperature)
 {
     KRATOS_TRY
 
@@ -281,7 +306,7 @@ void ThermalLocalDamage3DLaw::CalculateThermalStrain(Vector& rThermalStrainVecto
     rThermalStrainVector[5] = 0.0;
 
     // Delta T
-    double DeltaTemperature = Temperature - ElasticVariables.ReferenceTemperature;
+    double DeltaTemperature = Temperature - rNodalReferenceTemperature;
 
     //Thermal strain vector
     for(unsigned int i = 0; i < 6; i++)

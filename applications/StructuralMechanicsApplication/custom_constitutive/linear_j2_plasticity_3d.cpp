@@ -74,35 +74,7 @@ bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
     return false;
 }
 
-//************************************************************************************
-//************************************************************************************
 
-bool& LinearJ2Plasticity3D::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mInelasticFlag;
-    }
-
-    return rValue;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-double& LinearJ2Plasticity3D::GetValue(
-    const Variable<double>& rThisVariable,
-    double& rValue
-    )
-{
-    if(rThisVariable == PLASTIC_STRAIN){
-        rValue = mAccumulatedPlasticStrain;
-    }
-
-    return rValue;
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -148,7 +120,7 @@ void LinearJ2Plasticity3D::FinalizeSolutionStep(
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::CalculateMaterialResponsePK1(Parameters& rValues)
+void LinearJ2Plasticity3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -156,7 +128,7 @@ void LinearJ2Plasticity3D::CalculateMaterialResponsePK1(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::CalculateMaterialResponsePK2(Parameters& rValues)
+void LinearJ2Plasticity3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -164,7 +136,7 @@ void LinearJ2Plasticity3D::CalculateMaterialResponsePK2(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::CalculateMaterialResponseKirchhoff(Parameters& rValues)
+void LinearJ2Plasticity3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -172,7 +144,7 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseKirchhoff(Parameters& rValue
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
+void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     Flags &Options = rValues.GetOptions();
 
@@ -279,8 +251,23 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
+bool& LinearJ2Plasticity3D::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
+{
+    if(rThisVariable == INELASTIC_FLAG){
+        rValue = mInelasticFlag;
+    }
+    return(rValue);
+}
+
+//************************************************************************************
+//************************************************************************************
+
 double& LinearJ2Plasticity3D::CalculateValue(
-    Parameters& rParameterValues,
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -297,37 +284,39 @@ double& LinearJ2Plasticity3D::CalculateValue(
         rValue = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain))
                  + GetPlasticPotential(r_material_properties);
     }
+
     if(rThisVariable == PLASTIC_STRAIN){
         rValue = mAccumulatedPlasticStrain;
     }
+
     return(rValue);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::FinalizeMaterialResponsePK1(Parameters& rValues)
+void LinearJ2Plasticity3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::FinalizeMaterialResponsePK2(Parameters& rValues)
+void LinearJ2Plasticity3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void LinearJ2Plasticity3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void LinearJ2Plasticity3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 }
 

@@ -60,7 +60,7 @@ public:
     ///@{
 
     /// Default constructor.
-    TranslationOperation(ModelPart& model_part, boost::numeric::ublas::vector<int> group_ids,boost::numeric::ublas::vector<int> table_ids,unsigned int echo_level=0):
+    TranslationOperation(ModelPart& model_part, DenseVector<int> group_ids,DenseVector<int> table_ids,unsigned int echo_level=0):
 	Process(),mr_model_part(model_part),mgroup_ids(group_ids),mtable_ids(table_ids)
      {
 	mecho_level=echo_level;
@@ -234,8 +234,8 @@ private:
 
     ModelPart& mr_model_part;
    // ModelPart::MeshType& mgroup_container;
-    boost::numeric::ublas::vector<int> mgroup_ids;
-    boost::numeric::ublas::vector<int> mtable_ids;
+    DenseVector<int> mgroup_ids;
+    DenseVector<int> mtable_ids;
     unsigned int mecho_level;
 
     ///@}

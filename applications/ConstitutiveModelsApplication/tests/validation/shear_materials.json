@@ -1,9 +1,9 @@
 {
-    "material_models_list":[{	
+    "material_models_list":[{
         "python_module"   : "assign_materials_process",
         "kratos_module"   : "ConstitutiveModelsApplication",
         "help"            : "This process creates a material and assigns its properties",
-        "process_name"    : "AssignMaterialsProcess",	
+        "process_name"    : "AssignMaterialsProcess",
 	"Parameters"      : {
 	    "model_part_name" : "MaterialDomain",
 	    "properties_id"   : 0,

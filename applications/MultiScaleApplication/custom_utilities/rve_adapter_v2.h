@@ -143,12 +143,12 @@ namespace Kratos
 		double a11 = C(2, 2);
 		double a12 = a2*a2;
 		double a13 = a1*a1;
-		double detQ = 
-				(a1*a4*a8*cosA + a2*a3*a8*cosA - a1*a3*a10*cosA + 
-				a1*a6*a7*cosA + a2*a5*a7*cosA - a2*a4*a9*cosA - 
-				a1*a5*a10*cosA - a2*a6*a9*cosA)*sinA + 
-				a9*a11*a12 - a4*a6*a13 - a3*a5*a12 + a10*a11*a13 + 
-				a1*a2*a3*a4 + a1*a2*a5*a6 - a1*a2*a7*a8 - 
+		double detQ =
+				(a1*a4*a8*cosA + a2*a3*a8*cosA - a1*a3*a10*cosA +
+				a1*a6*a7*cosA + a2*a5*a7*cosA - a2*a4*a9*cosA -
+				a1*a5*a10*cosA - a2*a6*a9*cosA)*sinA +
+				a9*a11*a12 - a4*a6*a13 - a3*a5*a12 + a10*a11*a13 +
+				a1*a2*a3*a4 + a1*a2*a5*a6 - a1*a2*a7*a8 -
 				a1*a2*a7*a11 - a1*a2*a8*a11 + a1*a2*a9*a10;
 		return detQ;
 	}
@@ -231,7 +231,7 @@ public:
 	* Creates a new empty RveAdapterV2
 	*/
 	RveAdapterV2()
-		: mpModelPart(ModelPart::Pointer())
+		: mpModelPart(ModelPart*())
 		, mpMacroscaleData(RveMacroscaleData::Pointer())
 		, mpGeometryDescriptor(RveGeometryDescriptor::Pointer())
 		, mpConstraintHandler(RveConstraintHandlerPointerType())
@@ -265,14 +265,14 @@ public:
 	virtual ~RveAdapterV2()
 	{
 	}
-	
+
 public:
-	
+
 	/**
 	* Returns a pointer to the model part used for the microscale calculation.
 	* @return a pointer to the model part.
 	*/
-	inline const ModelPart::Pointer& GetModelPart()const
+	inline const ModelPart*& GetModelPart()const
 	{
 		return mpModelPart;
 	}
@@ -313,7 +313,7 @@ public:
 	* This method is meant to be called by the RveModeler when it finds out that this
 	* RveAdaptors requests the the rve generation.
 	*/
-	virtual void SetPredictorData(const ModelPart::Pointer& pNewModelPart,
+	virtual void SetPredictorData(const ModelPart*& pNewModelPart,
 		const RvePredictorCalculator::Pointer& pNewPredictorCalculator)
 	{
 		KRATOS_TRY
@@ -354,7 +354,7 @@ public:
 	* This method is meant to be called by the RveModeler when it finds out that this
 	* RveAdaptors requests the the rve generation.
 	*/
-	virtual void SetRveDataAfterPredictor(//const ModelPart::Pointer& pNewModelPart,
+	virtual void SetRveDataAfterPredictor(//const ModelPart*& pNewModelPart,
 		const RveMacroscaleData::Pointer& pNewMacroScaleData,
 		const RveGeometryDescriptor::Pointer& pNewGeometryDescriptor,
 		const RveConstraintHandlerPointerType& pNewConstraintHandler,
@@ -435,7 +435,7 @@ public:
 	* This method is meant to be called by the RveModeler when it finds out that this
 	* RveAdaptors requests the the rve generation.
 	*/
-	virtual void SetRveData(const ModelPart::Pointer& pNewModelPart,
+	virtual void SetRveData(const ModelPart*& pNewModelPart,
 		                    const RveMacroscaleData::Pointer& pNewMacroScaleData,
 		                    const RveGeometryDescriptor::Pointer& pNewGeometryDescriptor,
 							const RveConstraintHandlerPointerType& pNewConstraintHandler,
@@ -740,11 +740,11 @@ public:
     * @param rCurrentProcessInfo the process info
     */
     virtual void SetValue(const Variable<Vector >& rVariable,
-                          const Vector& rValue, 
+                          const Vector& rValue,
                           const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
- 
+
     /**
     * sets the value of a specified variable
     * @param rVariable the variable to be returned
@@ -752,7 +752,7 @@ public:
     * @param rCurrentProcessInfo the process info
     */
     virtual void SetValue(const Variable<Matrix >& rVariable,
-                          const Matrix& rValue, 
+                          const Matrix& rValue,
                           const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
@@ -895,7 +895,7 @@ public:
                                         const ProcessInfo& rCurrentProcessInfo)
 	{
 #ifdef RVE_V2_IS_VERBOSE
-		std::cout << "RVE INITIALIZE SOLUTION STEP\n"; 
+		std::cout << "RVE INITIALIZE SOLUTION STEP\n";
 #endif // RVE_V2_IS_VERBOSE
 		const ProcessInfo& macroProcessInfo = rCurrentProcessInfo;
 		ProcessInfo& microProcessInfo = mpModelPart->GetProcessInfo();
@@ -945,7 +945,7 @@ public:
                                       const ProcessInfo& rCurrentProcessInfo)
 	{
 #ifdef RVE_V2_IS_VERBOSE
-		std::cout << "RVE FINALIZE SOLUTION STEP\n"; 
+		std::cout << "RVE FINALIZE SOLUTION STEP\n";
 #endif // RVE_V2_IS_VERBOSE
 
 		mFirstStepDone = true;
@@ -965,10 +965,10 @@ public:
 		mSolutionStepFinalized = true;
 
 #ifdef RVE_V2_IS_VERBOSE
-		std::cout << "RVE FINALIZE SOLUTION STEP - END\n"; 
+		std::cout << "RVE FINALIZE SOLUTION STEP - END\n";
 #endif // RVE_V2_IS_VERBOSE
 	}
- 
+
     /**
     * to be called at the beginning of each step iteration
     * (e.g. from Element::InitializeNonLinearIteration)
@@ -998,7 +998,7 @@ public:
                                             const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
-    
+
     /**
     * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
     * @see Parameters
@@ -1007,7 +1007,7 @@ public:
 	{
 		CalculateRveResponse(rValues);
 	}
-    
+
     /**
     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
     * @see Parameters
@@ -1016,7 +1016,7 @@ public:
 	{
 		CalculateRveResponse(rValues);
 	}
-    
+
     /**
     * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
     * @see Parameters
@@ -1025,7 +1025,7 @@ public:
 	{
 		CalculateRveResponse(rValues);
 	}
-    
+
     /**
     * Computes the material response in terms of Cauchy stresses and constitutive tensor
     * @see Parameters
@@ -1034,7 +1034,7 @@ public:
 	{
 		CalculateRveResponse(rValues);
 	}
-    
+
     /**
     * Updates the material response in terms of 1st Piola-Kirchhoff stresses
     * @see Parameters
@@ -1042,7 +1042,7 @@ public:
     virtual void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
 	{
 	}
-    
+
     /**
     * Updates the material response in terms of 2nd Piola-Kirchhoff stresses
     * @see Parameters
@@ -1112,8 +1112,8 @@ public:
 		}
 		if(mRveGenerated)
 		{
-			if( mpModelPart == NULL || 
-				mpMacroscaleData == NULL || 
+			if( mpModelPart == NULL ||
+				mpMacroscaleData == NULL ||
 				mpGeometryDescriptor == NULL ||
 				mpConstraintHandler == NULL ||
 				mpLinearSOE == NULL ||
@@ -1127,7 +1127,7 @@ public:
 		return 0;
 		KRATOS_CATCH("")
 	}
-	
+
 public:
 
 	/**
@@ -1182,7 +1182,7 @@ protected:
 			double noiseval = AA*std::exp(-(L-BB)*(L-BB)/(2.0*CC));
 			//double noiseval = scaled_raw_noise_2d(-0.1,0.1,inode.X0(),inode.Y0());
 			inode.FastGetSolutionStepValue(RANDOM_IMPERFECTION_FACTOR) = noiseval + m_macro_imperfection_factor;
-		} 
+		}
 #else
 		if(m_macro_imperfection_factor != 0.0)
 		{
@@ -1196,7 +1196,7 @@ protected:
 
 #ifdef RVE_USE_PREDICTOR_CALCULATOR
 		if(!mpPredictorCalculator)
-			mpPredictorCalculator = RvePredictorCalculator::Pointer(new RvePredictorCalculator("Ciccio"));  
+			mpPredictorCalculator = RvePredictorCalculator::Pointer(new RvePredictorCalculator("Ciccio"));
 #endif // RVE_USE_PREDICTOR_CALCULATOR
 
 		mpConstraintHandler->AddConditions(model, *mpGeometryDescriptor);
@@ -1256,7 +1256,7 @@ protected:
 #ifdef RVE_TIMER_ON
 		RveUtilities::RveTimer timer_total;
 		RveUtilities::RveTimer timer;
-		timer_total.start();  
+		timer_total.start();
 #endif // RVE_TIMER_ON
 
 		size_t strain_size = GetStrainSize();
@@ -1355,7 +1355,7 @@ protected:
 #ifdef RVE_TIMER_ON
 		timer.stop();
 		double t_01 = timer.value();
-		timer.start();  
+		timer.start();
 #endif // RVE_TIMER_ON
 
 		bool converged = false;
@@ -1380,21 +1380,21 @@ protected:
 			mStrainVectorOld_trial = rValues.GetStrainVector();
 			return;
 		}
-		
+
 #ifdef RVE_TIMER_ON
-		timer.start();  
+		timer.start();
 #endif // RVE_TIMER_ON
 
 		mpHomogenizer->HomogenizeStressTensor(
-			model, 
-			geomdescriptor, mpLinearSOE, 
+			model,
+			geomdescriptor, mpLinearSOE,
 			mpConstraintHandler, macrodata, stress_vector);
 		noalias(mStressVector) = stress_vector;
 
 #ifdef RVE_TIMER_ON
 		timer.stop();
 		double t_03 = timer.value();
-		timer.start();  
+		timer.start();
 #endif // RVE_TIMER_ON
 
 		if(compute_constitutive_tensor)
@@ -1404,8 +1404,8 @@ protected:
 			{
 				RveUtilities::SaveSolutionVector(model, mU);
 				mpHomogenizer->HomogenizeTengentConstitutiveTensor(
-					model, geomdescriptor, 
-					mpLinearSOE, 
+					model, geomdescriptor,
+					mpLinearSOE,
 					mpConstraintHandler,
 					macrodata, mpScheme,
 					stress_vector, tangent_matrix,
@@ -1422,14 +1422,14 @@ protected:
 			{
 				noalias(tangent_matrix) = mConstitutiveTensor;
 			}
-		}  
+		}
 
 		//KRATOS_WATCH(mStressVector)
 		//KRATOS_WATCH(mConstitutiveTensor)
 
 #ifdef RVE_TIMER_ON
 		timer.stop();
-		double t_04 = timer.value();  
+		double t_04 = timer.value();
 #endif // RVE_TIMER_ON
 
 		mpLinearSOE->End();
@@ -1469,7 +1469,7 @@ protected:
 		ss << "Equlibrate:  " << t_02 << "; % = " << t_02/t_total << " - with NLIN: " << nln << std::endl;
 		ss << "Hom.Stress:  " << t_03 << "; % = " << t_03/t_total << std::endl;
 		ss << "Hom.Tangent: " << t_04 << "; % = " << t_04/t_total << std::endl;
-		std::cout << ss.str();  
+		std::cout << ss.str();
 #endif // RVE_TIMER_ON
 
 #ifdef RVE_V2_CHECK_HOMG_STRAIN
@@ -1579,7 +1579,7 @@ protected:
 		bool zero_increment = max_strain_incr_comp < min_tol;
 		zero_increment = false;
 
-		if(mSolutionStepFinalized || zero_increment) 
+		if(mSolutionStepFinalized || zero_increment)
 		{
 			SizeType strain_size = GetStrainSize();
 
@@ -1633,7 +1633,7 @@ protected:
 		mEquivalentDamage = mEquivalentDamage_converged;
 		SizeType ndim = WorkingSpaceDimension();
 		SizeType strain_size = GetStrainSize();
-	
+
 		if ((strain_size == 3 && ndim == 2) || (strain_size == 6 && ndim == 3))
 		{
 			int full_prediction_flag = rValues.GetProcessInfo().Has(RVE_PREDICTION_FLAG) ? rValues.GetProcessInfo()[RVE_PREDICTION_FLAG] : 0;
@@ -1645,7 +1645,7 @@ protected:
 				{
                         KRATOS_WATCH("DEBUG A2");
 					mpPredictorCalculator->PredictStress2D(strain_vector, stress_vector, mMacroCharacteristicLength, const_tangent, mEquivalentDamage, mEquivalentDamage_converged);
-	
+
 					mRveNonLinearFlag = 0.0;
 					mRveGenerationRequested = false;
 					return false;
@@ -1749,7 +1749,7 @@ protected:
 				iteration_number = mMaxIterationNumber;
 				break;
 			}
-			
+
 #ifdef RVE_V2_USE_LINE_SEARCH
 			PerformLineSearch();
 #endif // RVE_V2_USE_LINE_SEARCH
@@ -1780,11 +1780,11 @@ protected:
 			* - Finalize the nonlinear iteration
 			*-----------------------------------------------------------*/
 
-			mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData, 
+			mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData,
 				                        mpLinearSOE->TransformedEquationIds(), *mpScheme,
 				                        mpLinearSOE->DofSet(), mpLinearSOE->A(), mpLinearSOE->X(), mpLinearSOE->B(),
 										mpLinearSOE->EquationSystemSize());
-										
+
 			if(mMoveMesh) this->MoveMesh();
 
 			mpScheme->FinalizeNonLinIteration(model, mpLinearSOE->A(), mpLinearSOE->X(), mpLinearSOE->B());
@@ -1815,7 +1815,7 @@ KRATOS_WATCH((model.NodesBegin()->pGetDof(DISPLACEMENT_X)))
 		{
 			mpLinearSOE->BuildRHS_WithReactions(model, mpScheme);
 		}
-		
+
 		return converged;
 	}
 
@@ -1827,14 +1827,14 @@ KRATOS_WATCH((model.NodesBegin()->pGetDof(DISPLACEMENT_X)))
 		VectorType B0          = mpLinearSOE->B();
 
 		double R0 = inner_prod(mpLinearSOE->X(),mpLinearSOE->B());
-		mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData, 
+		mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData,
 									mpLinearSOE->TransformedEquationIds(), *mpScheme,
 									mpLinearSOE->DofSet(), mpLinearSOE->A(), mpLinearSOE->X(), mpLinearSOE->B(),
 									mpLinearSOE->EquationSystemSize());
 		mpLinearSOE->BuildRHS(model, mpScheme);
 		double R1= inner_prod(ReferenceDx, mpLinearSOE->B());
 		mpLinearSOE->X() *= (-1.0);
-		mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData, 
+		mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData,
 									mpLinearSOE->TransformedEquationIds(), *mpScheme,
 									mpLinearSOE->DofSet(), mpLinearSOE->A(), mpLinearSOE->X(), mpLinearSOE->B(),
 									mpLinearSOE->EquationSystemSize());
@@ -1851,20 +1851,20 @@ KRATOS_WATCH((model.NodesBegin()->pGetDof(DISPLACEMENT_X)))
 			double CurrentAlpha  = 1.0;
 			int iterations=0;
 			int max_iterations = 10;
-			while(std::abs(R2/R0start)>0.3 && iterations<max_iterations && 
+			while(std::abs(R2/R0start)>0.3 && iterations<max_iterations &&
 				 (R1*R0)<0.0 && std::abs(R1)>1.0e-7 && std::abs(R0)>1.0e-7)
 			{
 				alpha = 0.5*(nabla+delta);
 				CurrentAlpha  = alpha;
 				noalias(mpLinearSOE->X()) = ReferenceDx * CurrentAlpha;
-				mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData, 
+				mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData,
 									mpLinearSOE->TransformedEquationIds(), *mpScheme,
 									mpLinearSOE->DofSet(), mpLinearSOE->A(), mpLinearSOE->X(), mpLinearSOE->B(),
 									mpLinearSOE->EquationSystemSize());
 				mpLinearSOE->BuildRHS(model, mpScheme);
 				R2 = inner_prod(ReferenceDx, mpLinearSOE->B());
 				mpLinearSOE->X() *= (-1.0);
-				mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData, 
+				mpConstraintHandler->Update(model,*mpGeometryDescriptor,*mpMacroscaleData,
 									mpLinearSOE->TransformedEquationIds(), *mpScheme,
 									mpLinearSOE->DofSet(), mpLinearSOE->A(), mpLinearSOE->X(), mpLinearSOE->B(),
 									mpLinearSOE->EquationSystemSize());
@@ -1878,15 +1878,15 @@ KRATOS_WATCH((model.NodesBegin()->pGetDof(DISPLACEMENT_X)))
 				}
 				else{
 					break;
-				}  
+				}
 				iterations++;
 			}
 
 			rCurrentAlpha  = CurrentAlpha;
 		}
-		if(rCurrentAlpha>1.0 || rCurrentAlpha<=0.0) 
+		if(rCurrentAlpha>1.0 || rCurrentAlpha<=0.0)
 			rCurrentAlpha=1.0;
-		
+
 		noalias(mpLinearSOE->X()) = ReferenceDx * rCurrentAlpha;
 		noalias(mpLinearSOE->B()) = B0;
 
@@ -1948,7 +1948,7 @@ KRATOS_WATCH((model.NodesBegin()->pGetDof(DISPLACEMENT_X)))
 	void AssignCharacteristicLengthMultiplier()
 	{
 		double chlen_mult = mMacroCharacteristicLength / mMicroCharacteristicLength;
-		
+
 #ifdef RVE_V2_SUPPRESS_REGULARIZATION
 		chlen_mult = 1.0;
 #endif // RVE_V2_SUPPRESS_REGULARIZATION
@@ -1982,7 +1982,7 @@ protected:
 
 	// RVE components
 
-	ModelPart::Pointer                    mpModelPart;
+	ModelPart*                    mpModelPart;
 	RveMacroscaleData::Pointer            mpMacroscaleData;
 	RveGeometryDescriptor::Pointer        mpGeometryDescriptor;
 	RveConstraintHandlerPointerType       mpConstraintHandler;
@@ -2021,7 +2021,7 @@ protected:
 
 	Vector mU;
 	size_t mNDofs;
-	
+
 	// Bifurcation analysis
 
 	bool m_localized;
@@ -2048,7 +2048,7 @@ private:
 	* private copy constructor
 	*/
 	RveAdapterV2(const RveAdapterV2& other);
-	
+
 	/**
 	* private assignment operator
 	*/
@@ -2084,7 +2084,7 @@ private:
 		//	mRveGenerated = true;
 		//}
     }
-	
+
 };
 
 template<class TSparseSpace,

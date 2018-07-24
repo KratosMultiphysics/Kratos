@@ -3,12 +3,12 @@
 // Miguel Angel Celigueta maceli@cimne.upc.edu
 //
 
+#include "AuxiliaryUtilities.h"
+#include "DEM_application_variables.h"
+
 // System includes
 #include <string>
 #include <iostream>
-
-#include "AuxiliaryUtilities.h"
-#include "DEM_application_variables.h"
 
 namespace Kratos {
     pybind11::object AuxiliaryUtilities::GetIthSubModelPartIsForceIntegrationGroup(ModelPart& rParentModelPart, const int& required_i){

@@ -17,7 +17,7 @@ set( KRATOS_MIXED_ELEMENT_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosMixedElementApplication MODULE ${KRATOS_MIXED_ELEMENT_APPLICATION_SOURCES})
+pybind11_add_module(KratosMixedElementApplication MODULE THIN_LTO ${KRATOS_MIXED_ELEMENT_APPLICATION_SOURCES})
 target_link_libraries(KratosMixedElementApplication KratosCore )
 set_target_properties(KratosMixedElementApplication PROPERTIES PREFIX "")
 
