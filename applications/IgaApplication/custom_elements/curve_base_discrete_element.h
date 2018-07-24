@@ -1,3 +1,17 @@
+/*
+//  KRATOS .___  ________    _____
+//         |   |/  _____/   /  _  \
+//         |   /   \  ___  /  /_\  \
+//         |   \    \_\  \/    |    \
+//         |___|\______  /\____|__  /
+//                     \/         \/  Application
+//
+//  License: BSD License
+//           Kratos default license: kratos/license.txt
+//
+//  Authors: Tobias Teschemacher
+*/
+
 #if !defined(KRATOS_CURVE_BASE_DISCRETE_ELEMENT_H_INCLUDED )
 #define  KRATOS_CURVE_BASE_DISCRETE_ELEMENT_H_INCLUDED
 

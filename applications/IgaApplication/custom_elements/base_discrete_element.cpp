@@ -1,15 +1,16 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+/*
+//  KRATOS .___  ________    _____
+//         |   |/  _____/   /  _  \
+//         |   /   \  ___  /  /_\  \
+//         |   \    \_\  \/    |    \
+//         |___|\______  /\____|__  /
+//                     \/         \/  Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//  License: BSD License
+//           Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Teschemacher
-//
-
+//  Authors: Tobias Teschemacher
+*/
 
 // System includes
 #include "includes/define.h"
