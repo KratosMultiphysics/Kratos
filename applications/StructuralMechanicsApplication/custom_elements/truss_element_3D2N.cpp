@@ -676,10 +676,13 @@ void TrussElement3D2N::AddExplicitContribution(
 
     BoundedVector<double, msLocalSize> damping_residual_contribution =
         ZeroVector(msLocalSize);
-    // calculate damping contribution to residual -->
-    if ((this->GetProperties().Has(RAYLEIGH_ALPHA) ||
-        this->GetProperties().Has(RAYLEIGH_BETA)) &&
-        (rDestinationVariable != NODAL_INERTIA)) {
+
+
+    if (rRHSVariable == RESIDUAL_VECTOR &&
+        rDestinationVariable == FORCE_RESIDUAL) {
+
+      BoundedVector<double, msLocalSize> damping_residual_contribution =
+          ZeroVector(msLocalSize);
       Vector current_nodal_velocities = ZeroVector(msLocalSize);
       this->GetFirstDerivativesVector(current_nodal_velocities);
       Matrix damping_matrix = ZeroMatrix(msLocalSize, msLocalSize);
@@ -688,10 +691,7 @@ void TrussElement3D2N::AddExplicitContribution(
       // current residual contribution due to damping
       noalias(damping_residual_contribution) =
           prod(damping_matrix, current_nodal_velocities);
-    }
 
-    if (rRHSVariable == RESIDUAL_VECTOR &&
-        rDestinationVariable == FORCE_RESIDUAL) {
 
       for (size_t i = 0; i < msNumberOfNodes; ++i) {
         size_t index = msDimension * i;
