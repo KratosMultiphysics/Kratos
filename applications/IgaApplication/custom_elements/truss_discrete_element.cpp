@@ -87,9 +87,8 @@ void TrussDiscreteElement::CalculateAll(
 
     // get integration data
     
-    double& integrationWeight = GetValue(INTEGRATION_WEIGHT);
-    Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
-    Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+    double& integration_weight = GetValue(INTEGRATION_WEIGHT);
+    Matrix& shape_derivatives = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
     // get properties
 
@@ -101,44 +100,46 @@ void TrussDiscreteElement::CalculateAll(
 
     // compute base vectors
 
-    Vector actualBaseVector = ZeroVector(3);
-    GetBaseVector(actualBaseVector, DN_De);
+    Vector actual_base_vector = ZeroVector(3);
+    GetBaseVector(actual_base_vector, shape_derivatives);
 
-    double referenceA = norm_2(mBaseVector0);
-    double actualA = norm_2(actualBaseVector);
+    double reference_a = norm_2(mBaseVector0);
+    double actual_a = norm_2(actual_base_vector);
 
     // green-lagrange strain
 
-    double E11_membrane = 0.5 * (actualA * actualA - referenceA * referenceA);
+    double e11_membrane = 0.5 * (actual_a * actual_a - reference_a *
+        reference_a);
 
     // normal force
 
-    double S11_membrane = prestress * A + E11_membrane * A * E / (referenceA *
-        referenceA);
+    double s11_membrane = prestress * A + e11_membrane * A * E /
+        (reference_a * reference_a);
 
     // 1st variation of the axial strain
 
-    Vector epsilonVar1Dof = ZeroVector(number_of_dofs);
-    Get1stVariationsAxialStrain(epsilonVar1Dof, actualBaseVector, 3, DN_De);
-    epsilonVar1Dof = epsilonVar1Dof / (referenceA * referenceA);
+    Vector epsilon_var_1_dof = ZeroVector(number_of_dofs);
+    Get1stVariationsAxialStrain(epsilon_var_1_dof, actual_base_vector, 3,
+        shape_derivatives);
+    epsilon_var_1_dof = epsilon_var_1_dof / (reference_a * reference_a);
 
     // 2nd variation of the axial strain 
 
-    Matrix epsilonVar2Dof = ZeroMatrix(number_of_dofs, number_of_dofs);
-    Get2ndVariationsAxialStrain(epsilonVar2Dof, 3, DN_De);
-    epsilonVar2Dof = epsilonVar2Dof / (referenceA * referenceA);
+    Matrix epsilon_var_2 = ZeroMatrix(number_of_dofs, number_of_dofs);
+    Get2ndVariationsAxialStrain(epsilon_var_2, 3, shape_derivatives);
+    epsilon_var_2 = epsilon_var_2 / (reference_a * reference_a);
 
     for (size_t r = 0; r < number_of_dofs; r++) {
         for (size_t s = 0; s < number_of_dofs; s++) {
-            rLeftHandSideMatrix(r, s) = E * A * epsilonVar1Dof[r] *
-                epsilonVar1Dof[s] + S11_membrane * epsilonVar2Dof(r, s);
+            rLeftHandSideMatrix(r, s) = E * A * epsilon_var_1_dof[r] *
+                epsilon_var_1_dof[s] + s11_membrane * epsilon_var_2(r, s);
         }
     }
 
-    rRightHandSideVector = -S11_membrane * epsilonVar1Dof;
+    rRightHandSideVector = -s11_membrane * epsilon_var_1_dof;
 
-    rLeftHandSideMatrix *= integrationWeight * referenceA;
-    rRightHandSideVector *= integrationWeight * referenceA;
+    rLeftHandSideMatrix *= integration_weight * reference_a;
+    rRightHandSideVector *= integration_weight * reference_a;
 
     KRATOS_CATCH("");
 }
