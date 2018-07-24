@@ -148,8 +148,8 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         disp1 = mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         disp2 = mp.Nodes[6].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         self.assertAlmostEqual(disp1, disp2, 4)
-        #self.assertAlmostEqual(disp1, 0.0049994, 4)
-        #self.assertAlmostEqual(disp2, 0.0049994, 4)
+        self.assertAlmostEqual(disp1, 0.0049994, 4)
+        self.assertAlmostEqual(disp2, 0.0049994, 4)
         #print("Test 1 :: ", disp1," == ",disp2)
 
         disp1 = mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
