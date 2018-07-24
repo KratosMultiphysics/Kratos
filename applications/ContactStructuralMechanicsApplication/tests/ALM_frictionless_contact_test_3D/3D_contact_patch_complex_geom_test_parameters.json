@@ -83,7 +83,7 @@
     }],
     "contact_process_list" : [{
         "python_module" : "alm_contact_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "help"          : "This process computes the contact between different surfaces",
         "process_name"  : "ALMContactProcess",
         "Parameters"    : {

@@ -266,12 +266,10 @@ void TrussElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   // calculate internal forces
   BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
   this->UpdateInternalForces(internal_forces);
-
   // creating LHS
   rLeftHandSideMatrix =
       this->CreateElementStiffnessMatrix(rCurrentProcessInfo);
   // create+compute RHS
-
   rRightHandSideVector = -internal_forces;
   // add bodyforces
   if (this->CheckSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
@@ -665,7 +663,6 @@ void TrussElement3D2N::AddExplicitContribution(
           ZeroVector(msLocalSize);
       Vector current_nodal_velocities = ZeroVector(msLocalSize);
       this->GetFirstDerivativesVector(current_nodal_velocities);
-     // Matrix damping_matrix = ZeroMatrix(msLocalSize, msLocalSize);
       Matrix damping_matrix;
       ProcessInfo temp_process_information; // cant pass const ProcessInfo
       this->CalculateDampingMatrix(damping_matrix, temp_process_information);

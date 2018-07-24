@@ -32,8 +32,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
-//#include "solid_mechanics_application_variables.h"
-#include "pfem_application_variables.h"
+#include "delaunay_meshing_application_variables.h"
 
 namespace Kratos
 {

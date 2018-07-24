@@ -246,6 +246,9 @@ namespace Kratos
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
+        /**
+         * @brief This function checks if self weight is present
+         */
         bool CheckSelfWeight() const;
 
 
