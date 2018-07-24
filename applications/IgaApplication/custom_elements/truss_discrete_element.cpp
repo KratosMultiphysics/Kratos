@@ -87,33 +87,33 @@ void TrussDiscreteElement::CalculateAll(
 
     // get integration data
     
-    double& integration_weight = GetValue(INTEGRATION_WEIGHT);
+    const double& integration_weight = GetValue(INTEGRATION_WEIGHT);
     Matrix& shape_derivatives = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
     // get properties
 
-    auto& properties = GetProperties();
+    const auto& properties = GetProperties();
 
-    double E = properties[YOUNG_MODULUS];
-    double A = properties[CROSS_AREA];
-    double prestress = properties[PRESTRESS_CAUCHY];
+    const double E = properties[YOUNG_MODULUS];
+    const double A = properties[CROSS_AREA];
+    const double prestress = properties[PRESTRESS_CAUCHY];
 
     // compute base vectors
 
     Vector actual_base_vector = ZeroVector(3);
     GetBaseVector(actual_base_vector, shape_derivatives);
 
-    double reference_a = norm_2(mBaseVector0);
-    double actual_a = norm_2(actual_base_vector);
+    const double reference_a = norm_2(mBaseVector0);
+    const double actual_a = norm_2(actual_base_vector);
 
     // green-lagrange strain
 
-    double e11_membrane = 0.5 * (actual_a * actual_a - reference_a *
+    const double e11_membrane = 0.5 * (actual_a * actual_a - reference_a *
         reference_a);
 
     // normal force
 
-    double s11_membrane = prestress * A + e11_membrane * A * E /
+    const double s11_membrane = prestress * A + e11_membrane * A * E /
         (reference_a * reference_a);
 
     // 1st variation of the axial strain
