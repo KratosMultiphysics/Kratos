@@ -311,22 +311,20 @@ public:
     }
 
     template<class TDataType>
-    void load(std::string const & rTag, const Variable<TDataType>* pVariable)
+    void load(std::string const & rTag, const Variable<TDataType>* /*pVariable*/)
     {
         load_trace_point(rTag);
         std::string name;
         read(name);
-
-        pVariable = static_cast<const Variable<TDataType>*>(GetVariableData(name));
     }
 
-	template<class TDataType, std::size_t TDataSize>
-	void load(std::string const & rTag, std::array<TDataType, TDataSize>& rObject)
-	{
-		load_trace_point(rTag);
-		for (SizeType i = 0; i < TDataSize; i++)
-			load("E", rObject[i]);
-	}
+    template<class TDataType, std::size_t TDataSize>
+    void load(std::string const & rTag, std::array<TDataType, TDataSize>& rObject)
+    {
+        load_trace_point(rTag);
+        for (SizeType i = 0; i < TDataSize; i++)
+            load("E", rObject[i]);
+    }
 
     template<class TDataType>
     void load(std::string const & rTag, std::vector<TDataType>& rObject)
