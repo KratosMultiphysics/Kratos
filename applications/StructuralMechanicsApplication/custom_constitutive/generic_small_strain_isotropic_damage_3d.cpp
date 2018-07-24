@@ -69,77 +69,70 @@ template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
     // Integrate Stress Damage
-    const Properties &rMaterialProperties = rValues.GetMaterialProperties();
-    const int VoigtSize = this->GetStrainSize();
-    Vector &IntegratedStressVector = rValues.GetStressVector();
-    Matrix &TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const Flags &ConstitutiveLawOptions = rValues.GetOptions();
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    Vector& integrated_stress_vector = rValues.GetStressVector();
+    Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+    const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // Elastic Matrix
     Matrix C;
-    this->CalculateElasticMatrix(C, rMaterialProperties);
+    this->CalculateElasticMatrix(C, r_material_properties);
 
-    double Threshold, Damage;
+    double threshold, damage;
     // In the 1st step Threshold must be set
-    if (std::abs(this->GetThreshold()) < tolerance)
-    {
-        ConstLawIntegratorType::YieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, Threshold);
-        this->SetThreshold(Threshold);
+    if (std::abs(this->GetThreshold()) < tolerance) {
+        ConstLawIntegratorType::YieldSurfaceType::GetInitialUniaxialThreshold(r_material_properties, threshold);
+        this->SetThreshold(threshold);
     }
 
     // Converged values
-    Threshold = this->GetThreshold();
-    Damage = this->GetDamage();
+    threshold = this->GetThreshold();
+    damage = this->GetDamage();
 
     // S0 = C:(E-Ep)
-    Vector PredictiveStressVector = prod(C, rValues.GetStrainVector());
+    Vector predictive_stress_vector = prod(C, rValues.GetStrainVector());
 
     // Initialize Plastic Parameters
-    double UniaxialStress;
-    ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector,
-                                                                        rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
+    double uniaxial_stress;
+    ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector,
+                                                                        rValues.GetStrainVector(), uniaxial_stress, r_material_properties);
 
-    const double F = UniaxialStress - Threshold;
+    const double F = uniaxial_stress - threshold;
 
-    if (F <= 0.0)
-    { // Elastic case
+    if (F <= 0.0) { // Elastic case
 
-        this->SetNonConvDamage(Damage);
-        this->SetNonConvThreshold(Threshold);
-        noalias(IntegratedStressVector) = (1.0 - Damage) * PredictiveStressVector;
+        this->SetNonConvDamage(damage);
+        this->SetNonConvThreshold(threshold);
+        noalias(integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 
-        if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true)
-        {
-            noalias(TangentTensor) = (1.0 - Damage) * C;
+        if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
+            noalias(r_tangent_tensor) = (1.0 - damage) * C;
 
-            ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVector,
-                                                                                rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
+            ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(integrated_stress_vector,
+                                                                                rValues.GetStrainVector(), uniaxial_stress, r_material_properties);
 
-            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
         }
-    }
-    else
-    { // Damage case
-        const double CharacteristicLength = rValues.GetElementGeometry().Length();
+    } else { // Damage case
+        const double characteristic_length = rValues.GetElementGeometry().Length();
         // This routine updates the PredictiveStress to verify the yield surf
-        ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
-                                                      Damage, Threshold, rMaterialProperties,
-                                                      CharacteristicLength);
+        ConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress,
+                                                      damage, threshold, r_material_properties,
+                                                      characteristic_length);
 
         // Updated Values
-        noalias(IntegratedStressVector) = PredictiveStressVector;
-        this->SetNonConvDamage(Damage);
-        this->SetNonConvThreshold(UniaxialStress);
+        noalias(integrated_stress_vector) = predictive_stress_vector;
+        this->SetNonConvDamage(damage);
+        this->SetNonConvThreshold(uniaxial_stress);
 
-        if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true)
-        {
+        if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
             this->CalculateTangentTensor(rValues);
-            noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
+            noalias(r_tangent_tensor) = rValues.GetConstitutiveMatrix();
 
-            ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVector,
-                                         rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
+            ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(integrated_stress_vector,
+                                         rValues.GetStrainVector(), uniaxial_stress, r_material_properties);
 
-            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
         }
     }
 } // End CalculateMaterialResponseCauchy
@@ -159,10 +152,10 @@ void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateTange
 
 template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::FinalizeSolutionStep(
-    const Properties &rMaterialProperties,
+    const Properties& rMaterialProperties,
     const GeometryType &rElementGeometry,
-    const Vector &rShapeFunctionsValues,
-    const ProcessInfo &rCurrentProcessInfo)
+    const Vector& rShapeFunctionsValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     this->SetDamage(this->GetNonConvDamage());
     this->SetThreshold(this->GetNonConvThreshold());
@@ -173,8 +166,8 @@ void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::FinalizeSoluti
 
 template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateElasticMatrix(
-    Matrix &rElasticityTensor,
-    const Properties &rMaterialProperties)
+    Matrix& rElasticityTensor,
+    const Properties& rMaterialProperties)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
@@ -235,18 +228,13 @@ void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::FinalizeMateri
 /***********************************************************************************/
 
 template <class ConstLawIntegratorType>
-bool GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::Has(const Variable<double> &rThisVariable)
+bool GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
-    if (rThisVariable == DAMAGE)
-    {
+    if (rThisVariable == DAMAGE) {
         return true;
-    }
-    else if (rThisVariable == THRESHOLD)
-    {
+    } else if (rThisVariable == THRESHOLD) {
         return true;
-    }
-    else if (rThisVariable == UNIAXIAL_STRESS)
-    {
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
         return true;
     }
 
@@ -258,20 +246,15 @@ bool GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::Has(const Vari
 
 template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::SetValue(
-    const Variable<double> &rThisVariable,
-    const double &rValue,
-    const ProcessInfo &rCurrentProcessInfo)
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rThisVariable == DAMAGE)
-    {
+    if (rThisVariable == DAMAGE) {
         mDamage = rValue;
-    }
-    else if (rThisVariable == THRESHOLD)
-    {
+    } else if (rThisVariable == THRESHOLD) {
         mThreshold = rValue;
-    }
-    else if (rThisVariable == UNIAXIAL_STRESS)
-    {
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
         mUniaxialStress = rValue;
     }
 }
@@ -280,20 +263,15 @@ void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::SetValue(
 /***********************************************************************************/
 
 template <class ConstLawIntegratorType>
-double &GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::GetValue(
-    const Variable<double> &rThisVariable,
-    double &rValue)
+double& GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue)
 {
-    if (rThisVariable == DAMAGE)
-    {
+    if (rThisVariable == DAMAGE) {
         rValue = mDamage;
-    }
-    else if (rThisVariable == THRESHOLD)
-    {
+    } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
-    }
-    else if (rThisVariable == UNIAXIAL_STRESS)
-    {
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
         rValue = mUniaxialStress;
     }
 
@@ -304,10 +282,10 @@ double &GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::GetValue(
 /***********************************************************************************/
 
 template <class ConstLawIntegratorType>
-double &GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateValue(
+double& GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateValue(
     Parameters &rParameterValues,
-    const Variable<double> &rThisVariable,
-    double &rValue)
+    const Variable<double>& rThisVariable,
+    double& rValue)
 {
     return this->GetValue(rThisVariable, rValue);
 }
@@ -316,17 +294,16 @@ double &GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateVa
 /***********************************************************************************/
 
 template <class ConstLawIntegratorType>
-Matrix &GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateValue(
+Matrix& GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters &rParameterValues,
     const Variable<Matrix> &rThisVariable,
-    Matrix &rValue)
+    Matrix& rValue)
 {
-    if (rThisVariable == INTEGRATED_STRESS_TENSOR)
-    {
+    if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
         //1.-Compute total deformation gradient
-        const Matrix &DeformationGradientF = rParameterValues.GetDeformationGradientF();
+        const Matrix& deformation_gradient_F = rParameterValues.GetDeformationGradientF();
         //2.-Right Cauchy-Green tensor C
-        Matrix right_cauchy_green = prod(trans(DeformationGradientF), DeformationGradientF);
+        Matrix right_cauchy_green = prod(trans(deformation_gradient_F), deformation_gradient_F);
         Vector strain_vector = ZeroVector(6);
 
         //E= 0.5*(FT*F-1) or E = 0.5*(C-1)
@@ -338,7 +315,7 @@ Matrix &GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateVa
         strain_vector[5] = right_cauchy_green(0, 2); // xz
 
         Matrix C;
-        const Properties &MaterialProperties = rParameterValues.GetMaterialProperties();
+        const Properties& MaterialProperties = rParameterValues.GetMaterialProperties();
         this->CalculateElasticMatrix(C, MaterialProperties);
 
         Vector stress = prod(C, strain_vector);
