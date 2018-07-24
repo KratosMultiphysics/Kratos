@@ -175,6 +175,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution
         slt.Run()
+        del slt
     end = timer.time()
     benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
 #DBC.delete_archives() #.......Removing some unuseful files
