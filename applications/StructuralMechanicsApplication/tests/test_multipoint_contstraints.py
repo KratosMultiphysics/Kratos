@@ -119,34 +119,71 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         self.strategy.Solve()
 
     def _check_results(self, mp):
+        dispx13 = mp.Nodes[13].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        self.assertAlmostEqual(dispx13, 0.01, 5)
+        dispy13 = mp.Nodes[13].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        self.assertAlmostEqual(dispy13, 0.0, 5)
+
+        dispx14 = mp.Nodes[14].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        self.assertAlmostEqual(dispx14, 0.01, 5)
+        dispy14 = mp.Nodes[14].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        self.assertAlmostEqual(dispy14, 0.0, 5)
+
+        dispx15 = mp.Nodes[15].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        self.assertAlmostEqual(dispx15, 0.01, 5)
+        dispy15 = mp.Nodes[15].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        self.assertAlmostEqual(dispy15, 0.0, 5)
+
+        dispx11 = mp.Nodes[11].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        self.assertAlmostEqual(dispx11, 0.0077238, 5)
+        dispy11 = mp.Nodes[11].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        self.assertAlmostEqual(dispy11, 0.0, 5)
+
+        dispx4 = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        self.assertAlmostEqual(dispx4, 0.0022754, 5)
+        dispy4 = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        self.assertAlmostEqual(dispy4, 0.0, 5)
+
+
         disp1 = mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         disp2 = mp.Nodes[6].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         self.assertAlmostEqual(disp1, disp2, 5)
-
+        self.assertAlmostEqual(disp1, 0.0049994, 5)
+        self.assertAlmostEqual(disp2, 0.0049994, 5)
+        print("Test 1 :: ", disp1," == ",disp2)
 
         disp1 = mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
         disp2 = mp.Nodes[6].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
         self.assertAlmostEqual(disp1, disp2, 5)
+        self.assertAlmostEqual(disp1, -0.0011049, 5)
+        self.assertAlmostEqual(disp1, -0.0011049, 5)
+        print("Test 2 :: ", disp1," == ",disp2)
 
-        disp1 = 0.5 * ( mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
-                        + mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0))
-
-        disp2 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        disp1 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        disp2 = mp.Nodes[17].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         self.assertAlmostEqual(disp1, disp2, 5)
+        self.assertAlmostEqual(disp1, 0.0049994, 5)
+        self.assertAlmostEqual(disp2, 0.0049994, 5)
+        print("Test 3 :: ", disp1," == ",disp2)
 
-
-        disp1 = 0.5 * (mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
-                        + mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0))
-        disp2 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        disp1 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        disp2 = mp.Nodes[17].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
         self.assertAlmostEqual(disp1, disp2, 5)
+        print("Test 4 :: ", disp1," == ",disp2)
 
         disp1 = mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         disp2 = mp.Nodes[9].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         self.assertAlmostEqual(disp1, disp2, 5)
+        self.assertAlmostEqual(disp1, 0.0049994, 5)
+        self.assertAlmostEqual(disp1, 0.0049994, 5)
+        print("Test 5 :: ", disp1," == ",disp2)
 
         disp1 = mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
         disp2 = mp.Nodes[9].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
         self.assertAlmostEqual(disp1, disp2, 5)
+        self.assertAlmostEqual(disp1, 0.0011049, 5)
+        self.assertAlmostEqual(disp1, 0.0011049, 5)
+        print("Test 6 :: ", disp1," == ",disp2)
 
     def _setup_model_part(self, mp):
         #create nodes
@@ -160,10 +197,13 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         mp.CreateNewNode(8, 0.50000, 0.00000, 0.00000)
         mp.CreateNewNode(9, 1.00000, 0.00000, 0.00000)
         mp.CreateNewNode(10, 1.50000, 1.00000, 0.00000)
+        mp.CreateNewNode(11, 1.50000, 0.50000, 0.00000)
         mp.CreateNewNode(12, 1.50000, 0.00000, 0.00000)
         mp.CreateNewNode(13, 2.00000, 1.00000, 0.00000)
+        mp.CreateNewNode(14, 2.00000, 0.50000, 0.00000)
         mp.CreateNewNode(15, 2.00000, 0.00000, 0.00000)
         mp.CreateNewNode(16, 1.00000, 1.00000, 0.00000)
+        mp.CreateNewNode(17, 1.00000, 0.50000, 0.00000)
         mp.CreateNewNode(18, 1.00000, 0.00000, 0.00000)
 
         #create a submodelpart for boundary conditions
@@ -171,15 +211,19 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         bcs.AddNodes([1, 2, 5])
 
         bcmn = mp.CreateSubModelPart("MovingNodes")
-        bcmn.AddNodes([13, 15])
+        bcmn.AddNodes([13, 14, 15])
 
         #create Element
+        mp.CreateNewElement("SmallDisplacementElement2D4N", 1,
+                            [14, 11, 12, 15], mp.GetProperties()[1])
         mp.CreateNewElement("SmallDisplacementElement2D4N", 2,
-                            [13, 10, 12, 15], mp.GetProperties()[1])
+                            [13, 10, 11, 14], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D4N", 3,
+                            [11, 17, 18, 12], mp.GetProperties()[1])
         mp.CreateNewElement("SmallDisplacementElement2D4N", 4,
-                            [10, 16, 18, 12], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 5, [2, 4, 3, 1],
-                            mp.GetProperties()[1])
+                            [10, 16, 17, 11], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement2D4N", 5,
+                            [2, 4, 3, 1], mp.GetProperties()[1])
         mp.CreateNewElement("SmallDisplacementElement2D4N", 6, [5, 8, 4, 2],
                             mp.GetProperties()[1])
         mp.CreateNewElement("SmallDisplacementElement2D4N", 7, [4, 7, 6, 3],
@@ -193,13 +237,11 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
 
-        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 4, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
-        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 5, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 6, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, mp.Nodes[17], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 4, mp.Nodes[17], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
-        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 7, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
-        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 8, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 5, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 6, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
     def _set_and_fill_buffer(self, mp, buffer_size, delta_time):
         # Set buffer size
@@ -225,8 +267,39 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         self._add_dofs(mp)
         self._apply_material_properties(mp, dim)
 
+        from gid_output_process import GiDOutputProcess
+
+        gid_output = GiDOutputProcess(mp,
+                                    'test_mpc',
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration": {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostAscii",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "file_label": "step",
+                                                "output_control_type": "step",
+                                                "output_frequency": 1.0,
+                                                "body_output": true,
+                                                "node_output": false,
+                                                "skin_output": false,
+                                                "plane_output": [],
+                                                "nodal_results": ["DISPLACEMENT"],
+                                                "gauss_point_results": [],
+                                                "additional_list_files": []
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+
         #time integration parameters
-        dt = 0.005
+        dt = 0.001
         time = 0.0
         end_time = 0.01
         step = 0
@@ -240,13 +313,18 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         self._setup_solver(mp)
 
         while (time <= end_time):
+            print("STEP :: ", step)
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
+            gid_output.ExecuteInitializeSolutionStep()
             self._solve()
+            gid_output.ExecuteFinalizeSolutionStep()
+            gid_output.PrintOutput()
         # Checking the results
         self._check_results(mp)
         self._reset()
+        gid_output.ExecuteFinalize()
 
 
 if __name__ == '__main__':
