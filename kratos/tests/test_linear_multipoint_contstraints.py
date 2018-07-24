@@ -106,7 +106,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
             -0.01)
         self.convergence_criterion = KratosMultiphysics.ResidualCriteria(
             1e-10, 1e-12)
-        self.convergence_criterion.SetEchoLevel(1)
+        self.convergence_criterion.SetEchoLevel(0)
 
         max_iters = 100
         compute_reactions = False
@@ -280,37 +280,6 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self._add_dofs(mp)
         self._apply_material_properties(mp, dim)
 
-        from gid_output_process import GiDOutputProcess
-
-        gid_output = GiDOutputProcess(mp,
-                                    'test_mpc',
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration": {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostAscii",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "file_label": "step",
-                                                "output_control_type": "step",
-                                                "output_frequency": 1.0,
-                                                "body_output": true,
-                                                "node_output": false,
-                                                "skin_output": false,
-                                                "plane_output": [],
-                                                "nodal_results": ["DISPLACEMENT"],
-                                                "gauss_point_results": [],
-                                                "additional_list_files": []
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-
         #time integration parameters
         dt = 0.002
         time = 0.0
@@ -326,18 +295,13 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self._setup_solver(mp)
 
         while (time <= end_time):
-            print("STEP :: ", step)
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
-            gid_output.ExecuteInitializeSolutionStep()
             self._solve()
-            gid_output.ExecuteFinalizeSolutionStep()
-            gid_output.PrintOutput()
         # Checking the results
         self._check_results(mp)
         self._reset()
-        gid_output.ExecuteFinalize()
 
 
 if __name__ == '__main__':
