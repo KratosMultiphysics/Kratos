@@ -119,7 +119,7 @@ class FsiAleMonolithicSolver:
         #self.spalart_allmaras_linear_solver = None
         
         pDiagPrecond = DiagonalPreconditioner()
-        self.linear_solver = BICGSTABSolver(1e-9, 5000, pDiagPrecond)
+        self.linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
 
         self.divergence_clearance_steps = 0
 
