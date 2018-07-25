@@ -311,6 +311,10 @@ class MechanicalSolver(PythonSolver):
     def get_mechanical_solution_strategy(self):
         if not hasattr(self, '_mechanical_solution_strategy'):
             self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
+        if (self.settings["multi_point_constraints_used"].GetBool() is False and
+            self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+            self.settings["multi_point_constraints_used"].SetBool(True)
+            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
         return self._mechanical_solution_strategy
 
     def import_constitutive_laws(self):
