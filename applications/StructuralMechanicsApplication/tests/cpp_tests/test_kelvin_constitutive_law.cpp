@@ -75,6 +75,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawKelvin, KratosStructuralMechanicsFastSu
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetProcessInfo(process_info);
     cl_parameters.SetOptions(cl_options);
+    Matrix const_matrix;
+    cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL
     ViscousGeneralizedKelvin3D kelvin_cl = ViscousGeneralizedKelvin3D();
@@ -87,8 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawKelvin, KratosStructuralMechanicsFastSu
     test_kelvin_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++)
-    {
+    for (int comp = 0; comp < 3; comp++) {
         KRATOS_CHECK_NEAR(test_kelvin_stress[comp], kelvin_res[comp], 1.0);
     }
 }

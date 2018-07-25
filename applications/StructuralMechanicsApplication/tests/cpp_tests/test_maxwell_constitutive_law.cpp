@@ -76,6 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosStructuralMechanicsFastS
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetProcessInfo(process_info);
     cl_parameters.SetOptions(cl_options);
+    Matrix const_matrix;
+    cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL
     ViscousGeneralizedMaxwell3D maxwell_cl = ViscousGeneralizedMaxwell3D();
@@ -88,8 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosStructuralMechanicsFastS
     test_maxwell_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++)
-    {
+    for (int comp = 0; comp < 3; comp++) {
         KRATOS_CHECK_NEAR(test_maxwell_stress[comp], maxwell_res[comp], 0.0001e6);
     }
 }

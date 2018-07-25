@@ -93,6 +93,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticity, KratosStruct
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
+    Matrix const_matrix;
+    cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL's
     MC MohrCoulombCL = MC();
