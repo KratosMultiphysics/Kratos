@@ -74,7 +74,7 @@ namespace Kratos
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
  * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
- * @author Riccardo Rossi
+ * @author Aditya Ghantasala
  */
 template <class TSparseSpace,
           class TDenseSpace,  //= DenseSpace<double>,
