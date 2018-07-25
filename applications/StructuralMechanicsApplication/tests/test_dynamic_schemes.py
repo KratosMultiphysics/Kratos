@@ -283,7 +283,7 @@ def create_solver(mp, scheme_name):
                                                                         move_mesh_flag)
     strategy.SetEchoLevel(0)
 
-    #strategy.Check()
+    strategy.Check()
 
     return strategy
 

@@ -40,7 +40,7 @@ namespace Kratos
         static constexpr int msNumberOfNodes = 2;
         static constexpr int msDimension = 3;
         static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
-        ConstitutiveLaw::Pointer mConstitutiveLaw = nullptr;
+        ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     public:
         KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
