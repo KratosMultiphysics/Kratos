@@ -24,16 +24,12 @@
 // #include "includes/kratos_application.h"
 // #include "includes/model_part.h"
 //#include "structural_mechanics_application.h"
-#include "custom_utilities/multipoint_constraint_data.hpp"
 #include "custom_utilities/shell_cross_section.hpp"
 #include "includes/mat_variables.h"
 
 namespace Kratos
 {
 typedef array_1d<double, 3> Vector3;
-typedef MpcData::Pointer MpcDataPointerType;
-typedef Kratos::shared_ptr<std::vector<MpcDataPointerType>> MpcDataSharedPointerVectorType;
-typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
 
     // General pourpose
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, int, INTEGRATION_ORDER); // The integration order considered on the element
@@ -182,8 +178,6 @@ typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, Vector, POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, Vector, NEGATIVE_FACE_PRESSURES_VECTOR )
 
-    // For MPC implementations
-    KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, MpcDataSharedPointerVectorType, MPC_DATA_CONTAINER)
 
     KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, bool, INELASTIC_FLAG)
     KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, INFINITY_YIELD_STRESS)
