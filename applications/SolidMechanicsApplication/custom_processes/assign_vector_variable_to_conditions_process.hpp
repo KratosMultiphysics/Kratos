@@ -17,9 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-#include "processes/process.h"
+#include "custom_processes/assign_scalar_variable_to_entities_process.hpp"
 
 namespace Kratos
 {
@@ -30,7 +28,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class AssignVectorVariableToConditionsProcess : public Process
+class AssignVectorVariableToConditionsProcess : public AssignScalarVariableToEntitiesProcess
 {
 public:
     ///@name Type Definitions
@@ -39,17 +37,13 @@ public:
     /// Pointer definition of AssignVectorVariableToConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignVectorVariableToConditionsProcess);
 
-    enum AssigmentType { DIRECT, ADDITION, SUBSTRACTION, MULTIPLICATION, DIVISION };
+    typedef AssignScalarVariableToEntitiesProcess   BaseType;
 
     ///@}
     ///@name Life Cycle
     ///@{
-    AssignVectorVariableToConditionsProcess(ModelPart& rModelPart) : Process(Flags()) , mrModelPart(rModelPart)
-    {
-    }
-
     AssignVectorVariableToConditionsProcess(ModelPart& rModelPart,
-					    Parameters rParameters) : Process(Flags()) , mrModelPart(rModelPart)
+					    Parameters rParameters) : BaseType(rModelPart)
     {
         KRATOS_TRY
 
@@ -76,34 +70,7 @@ public:
         mvector_value[1] = rParameters["value"][1].GetDouble();
         mvector_value[2] = rParameters["value"][2].GetDouble();
 
-        //compound_assignment:
-
-        //implemented:
-        //  = direct
-        // += addition
-        // -= substraction
-        // *= multiplication
-        // /= division
-
-        if( rParameters["compound_assignment"].GetString() == "direct" ){
-          mAssignment = DIRECT;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "addition" ){
-          mAssignment = ADDITION;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "substraction" ){
-          mAssignment = SUBSTRACTION;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "multiplication" ){
-          mAssignment = MULTIPLICATION;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "division" ){
-          mAssignment = DIVISION;
-        }
-        else{
-          KRATOS_ERROR <<" Assignment type "<< rParameters["compound_assignment"].GetString() << " is not supported " << std::endl;
-        }
-
+        this->SetAssignmentType(rParameters["compound_assignment"].GetString(), mAssignment);
 
         KRATOS_CATCH("");
     }
@@ -111,7 +78,7 @@ public:
 
     AssignVectorVariableToConditionsProcess(ModelPart& rModelPart,
 					    const Variable<array_1d<double,3> >& rVariable,
-					    const array_1d<double,3>& rvector_value) : Process() , mrModelPart(rModelPart), mvector_value(rvector_value)
+					    const array_1d<double,3>& rvector_value) : BaseType(rModelPart), mvector_value(rvector_value)
     {
         KRATOS_TRY;
 
@@ -277,10 +244,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    std::string mvariable_name;
     array_1d<double,3> mvector_value;
-    AssigmentType mAssignment;
 
     ///@}
     ///@name Private Operators
@@ -292,33 +256,13 @@ private:
 
         typedef void (AssignVectorVariableToConditionsProcess::*AssignmentMethodPointer) (ModelPart::ConditionType&, const Variable<array_1d<double,3> >&, const array_1d<double,3>&);
 
-        AssignmentMethodPointer AssignmentMethod = nullptr;
-        switch( mAssignment )
-        {
-          case DIRECT:
-            AssignmentMethod = &AssignVectorVariableToConditionsProcess::DirectAssignValue;
-            break;
-          case ADDITION:
-            AssignmentMethod = &AssignVectorVariableToConditionsProcess::AddAssignValue;
-            break;
-          case SUBSTRACTION:
-            AssignmentMethod = &AssignVectorVariableToConditionsProcess::SubstractAssignValue;
-            break;
-          case MULTIPLICATION:
-            AssignmentMethod = &AssignVectorVariableToConditionsProcess::MultiplyAssignValue;
-            break;
-          case DIVISION:
-            AssignmentMethod = &AssignVectorVariableToConditionsProcess::DivideAssignValue;
-            break;
-          default:
-            KRATOS_ERROR << "Unexpected value for Assigment method: " << mAssignment << std::endl;
-        }
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
 
-        const int nconditions = mrModelPart.GetMesh().Conditions().size();
+        const int nconditions = this->mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = this->mrModelPart.GetMesh().ConditionsBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)
@@ -333,50 +277,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    template< class TEntityType >
-    void DirectAssignValue(TEntityType& rEntity, const Variable<array_1d<double,3>>& rVariable, const array_1d<double,3>& value)
-    {
-      rEntity.SetValue(rVariable,value);
-    }
-
-    template< class TEntityType >
-    void AddAssignValue(TEntityType& rEntity, const Variable<array_1d<double,3>>& rVariable, const array_1d<double,3>& value)
-    {
-      array_1d<double,3> AddedValue = rEntity.GetValue(rVariable)+value;
-      rEntity.SetValue(rVariable,AddedValue);
-    }
-
-    template< class TEntityType >
-    void SubstractAssignValue(TEntityType& rEntity, const Variable<array_1d<double,3>>& rVariable, const array_1d<double,3>& value)
-    {
-      array_1d<double,3> SubstractedValue = rEntity.GetValue(rVariable)-value;
-      rEntity.SetValue(rVariable,SubstractedValue);
-    }
-
-    template< class TEntityType >
-    void MultiplyAssignValue(TEntityType& rEntity, const Variable<array_1d<double,3>>& rVariable, const array_1d<double,3>& value)
-    {
-      Vector MultipliedValue = rEntity.GetValue(rVariable);
-      for(unsigned int i=0; i<3; ++i)
-      {
-        MultipliedValue[i]*=value[i];
-      }
-      rEntity.SetValue(rVariable,MultipliedValue);
-    }
-
-    template< class TEntityType >
-    void DivideAssignValue(TEntityType& rEntity, const Variable<array_1d<double,3>>& rVariable, const array_1d<double,3>& value)
-    {
-      Vector DividedValue = rEntity.GetValue(rVariable);
-      for(unsigned int i=0; i<3; ++i)
-      {
-        if(value[i]!=0)
-          DividedValue[i]/=value[i];
-      }
-      rEntity.SetValue(rVariable,DividedValue);
-    }
-
-
     ///@}
     ///@name Private  Access
     ///@{

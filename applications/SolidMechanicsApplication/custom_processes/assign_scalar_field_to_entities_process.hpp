@@ -143,33 +143,7 @@ public:
           KRATOS_ERROR << " Assignment to " << this->mEntity << " not implemented "<< std::endl;
         }
 
-        //compound_assignment:
-
-        //implemented:
-        //  = direct
-        // += addition
-        // -= substraction
-        // *= multiplication
-        // /= division
-
-        if( rParameters["compound_assignment"].GetString() == "direct" ){
-          this->mAssignment = BaseType::DIRECT;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "addition" ){
-          this->mAssignment = BaseType::ADDITION;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "substraction" ){
-          this->mAssignment = BaseType::SUBSTRACTION;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "multiplication" ){
-          this->mAssignment = BaseType::MULTIPLICATION;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "division" ){
-          this->mAssignment = BaseType::DIVISION;
-        }
-        else{
-          KRATOS_ERROR <<" Assignment type "<< rParameters["compound_assignment"].GetString() << " is not supported " << std::endl;
-        }
+        this->SetAssignmentType(rParameters["compound_assignment"].GetString(), mAssignment);
 
         KRATOS_CATCH("")
     }
@@ -504,27 +478,7 @@ protected:
 
         typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::NodeType&, const TVarType&, const double&);
 
-        AssignmentMethodPointer AssignmentMethod = nullptr;
-        switch( this->mAssignment )
-        {
-          case DIRECT:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::DirectAssignValue;
-            break;
-          case ADDITION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::AddAssignValue;
-            break;
-          case SUBSTRACTION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::SubstractAssignValue;
-            break;
-          case MULTIPLICATION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::MultiplyAssignValue;
-            break;
-          case DIVISION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::DivideAssignValue;
-            break;
-          default:
-            KRATOS_ERROR << "Unexpected value for Assigment method: " << this->mAssignment << std::endl;
-        }
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
 
         const int nnodes = this->mrModelPart.GetMesh().Nodes().size();
 
@@ -554,27 +508,8 @@ protected:
       if( this->mEntity == CONDITIONS ){
 
         typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ConditionType&, const Variable<Vector>&, const Vector&);
-        AssignmentMethodPointer AssignmentMethod = nullptr;
-        switch( this->mAssignment )
-        {
-          case DIRECT:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::DirectAssignValue;
-            break;
-          case ADDITION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::AddAssignValue;
-            break;
-          case SUBSTRACTION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::SubstractAssignValue;
-            break;
-          case MULTIPLICATION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::MultiplyAssignValue;
-            break;
-          case DIVISION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::DivideAssignValue;
-            break;
-          default:
-            KRATOS_ERROR << "Unexpected value for Assigment method: " << this->mAssignment << std::endl;
-        }
+
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
 
         const int nconditions = this->mrModelPart.GetMesh().Conditions().size();
 
@@ -605,27 +540,7 @@ protected:
       if( this->mEntity == CONDITIONS ){
 
         typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ConditionType&, const TVarType&, const TDataType&);
-        AssignmentMethodPointer AssignmentMethod = nullptr;
-        switch( this->mAssignment )
-        {
-          case DIRECT:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::DirectAssignValue;
-            break;
-          case ADDITION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::AddAssignValue;
-            break;
-          case SUBSTRACTION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::SubstractAssignValue;
-            break;
-          case MULTIPLICATION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::MultiplyAssignValue;
-            break;
-          case DIVISION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::DivideAssignValue;
-            break;
-          default:
-            KRATOS_ERROR << "Unexpected value for Assigment method: " << this->mAssignment << std::endl;
-        }
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
 
         const int nconditions = this->mrModelPart.GetMesh().Conditions().size();
 
@@ -653,27 +568,8 @@ protected:
       if( this->mEntity == ELEMENTS ){
 
         typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ElementType&, const Variable<Vector>&, const Vector&);
-        AssignmentMethodPointer AssignmentMethod = nullptr;
-        switch( this->mAssignment )
-        {
-          case DIRECT:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::DirectAssignValue;
-            break;
-          case ADDITION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::AddAssignValue;
-            break;
-          case SUBSTRACTION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::SubstractAssignValue;
-            break;
-          case MULTIPLICATION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::MultiplyAssignValue;
-            break;
-          case DIVISION:
-            AssignmentMethod = &AssignScalarFieldToEntitiesProcess::DivideAssignValue;
-            break;
-          default:
-            KRATOS_ERROR << "Unexpected value for Assigment method: " << this->mAssignment << std::endl;
-        }
+
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
 
         const int nelements = this->mrModelPart.GetMesh().Elements().size();
 

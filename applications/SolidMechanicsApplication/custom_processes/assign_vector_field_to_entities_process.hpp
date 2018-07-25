@@ -120,33 +120,8 @@ public:
         mvector_value[1] = rParameters["value"][1].GetDouble();
         mvector_value[2] = rParameters["value"][2].GetDouble();
 
-        //compound_assignment:
 
-        //implemented:
-        //  = direct
-        // += addition
-        // -= substraction
-        // *= multiplication
-        // /= division
-
-        if( rParameters["compound_assignment"].GetString() == "direct" ){
-          mAssignment = BaseType::DIRECT;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "addition" ){
-          mAssignment = BaseType::ADDITION;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "substraction" ){
-          mAssignment = BaseType::SUBSTRACTION;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "multiplication" ){
-          mAssignment = BaseType::MULTIPLICATION;
-        }
-        else if(  rParameters["compound_assignment"].GetString() == "division" ){
-          mAssignment = BaseType::DIVISION;
-        }
-        else{
-          KRATOS_ERROR <<" Assignment type "<< rParameters["compound_assignment"].GetString() << " is not supported " << std::endl;
-        }
+       this->SetAssignmentType(rParameters["compound_assignment"].GetString(), this->mAssignment);
 
         KRATOS_CATCH("");
     }
@@ -408,27 +383,8 @@ private:
     {
 
         typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ConditionType&, const TVarType&, const TDataType&);
-        AssignmentMethodPointer AssignmentMethod = nullptr;
-        switch( this->mAssignment )
-        {
-          case DIRECT:
-            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::DirectAssignValue;
-            break;
-          case ADDITION:
-            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::AddAssignValue;
-            break;
-          case SUBSTRACTION:
-            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::SubstractAssignValue;
-            break;
-          case MULTIPLICATION:
-            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::MultiplyAssignValue;
-            break;
-          case DIVISION:
-            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::DivideAssignValue;
-            break;
-          default:
-            KRATOS_ERROR << "Unexpected value for Assigment method: " << this->mAssignment << std::endl;
-        }
+
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
 
         const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
