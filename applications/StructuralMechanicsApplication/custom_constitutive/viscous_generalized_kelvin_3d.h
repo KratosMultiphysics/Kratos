@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Main authors:    Alejandro Cornejo&  Lucia Barbu
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
@@ -39,11 +39,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GenericConstitutiveLawIntegrator
+ * @class ViscousGeneralizedKelvin3D
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
- * @author Alejandro Cornejo & Lucia Barbu
+ * @brief This is a constitutive law that reproduces the behaviour of viscous Kelvin material
+ * @details The definition of the Kelvin-Voigt material can be founf in Wikipedia https://en.wikipedia.org/wiki/Kelvin%E2%80%93Voigt_material
+ * The Kelvin–Voigt model, also called the Voigt model, can be represented by a purely viscous damper and purely elastic spring
+ *
+ *                   Spring K
+ *                  |--^^^^--|
+ *             -----          ------
+ *                  |---[----|
+ *                   Damper C
+ *
+ * @author Alejandro Cornejo&  Lucia Barbu
  */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
@@ -52,6 +60,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
   public:
     ///@name Type Definitions
     ///@{
+
+    /// Definition of the base class
+    typedef ConstitutiveLaw BaseType;
+
+    /// The index definition
+    typedef std::size_t IndexType;
+
+    /// The size definition
+    typedef std::size_t SizeType;
 
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedKelvin3D);
@@ -78,7 +95,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
     /**
     * Copy constructor.
     */
-    ViscousGeneralizedKelvin3D(const ViscousGeneralizedKelvin3D &rOther)
+    ViscousGeneralizedKelvin3D(const ViscousGeneralizedKelvin3D& rOther)
         : ConstitutiveLaw(rOther)
     {
     }
@@ -117,25 +134,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
      * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * to be called at the end of each solution step
@@ -146,39 +163,47 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
      * @param the current ProcessInfo instance
      */
     void FinalizeSolutionStep(
-        const Properties &rMaterialProperties,
-        const GeometryType &rElementGeometry,
-        const Vector &rShapeFunctionsValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-    Matrix &CalculateValue(
-        ConstitutiveLaw::Parameters &rParameterValues,
-        const Variable<Matrix> &rThisVariable,
-        Matrix &rValue) override;
+    /**
+     * @brief Calculates the value of a specified variable (Matrix)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Matrix& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue
+        ) override;
 
     ///@}
     ///@name Access
@@ -267,8 +292,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
      * @param rMaterialProperties The material properties
      */
     void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties);
+        Matrix& rElasticityTensor,
+        const Properties& rMaterialProperties);
 
     ///@}
     ///@name Private  Access
@@ -286,7 +311,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
 
     friend class Serializer;
 
-    void save(Serializer &rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("PrevStressVector", mPrevStressVector);
@@ -295,7 +320,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
         rSerializer.save("NonConvPrevInelasticStrainVector", mNonConvPrevInelasticStrainVector);
     }
 
-    void load(Serializer &rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("PrevStressVector", mPrevStressVector);
