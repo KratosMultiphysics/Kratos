@@ -304,16 +304,19 @@ class MechanicalSolver(PythonSolver):
         return self._linear_solver
 
     def get_builder_and_solver(self):
+        if (self.settings["multi_point_constraints_used"].GetBool() is False and
+            self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+            self.settings["multi_point_constraints_used"].SetBool(True)
+            self._builder_and_solver = self._create_builder_and_solver()
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._create_builder_and_solver()
         return self._builder_and_solver
 
     def get_mechanical_solution_strategy(self):
-        if not hasattr(self, '_mechanical_solution_strategy'):
-            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
         if (self.settings["multi_point_constraints_used"].GetBool() is False and
             self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            self.settings["multi_point_constraints_used"].SetBool(True)
+            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
+        if not hasattr(self, '_mechanical_solution_strategy'):
             self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
         return self._mechanical_solution_strategy
 
