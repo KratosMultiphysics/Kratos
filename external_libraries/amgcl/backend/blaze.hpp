@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ struct blaze {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
 
-    struct provides_row_iterator : boost::false_type {};
+    struct provides_row_iterator : std::false_type {};
 
     typedef ::blaze::CompressedMatrix<real> matrix;
     typedef ::blaze::DynamicVector<real>    vector;
@@ -80,7 +80,7 @@ struct blaze {
         const size_t n = rows(*A);
         const size_t m = cols(*A);
 
-        std::shared_ptr<matrix> B = std::make_shared<matrix>(n, m);
+        auto B = std::make_shared<matrix>(n, m);
 
         B->reserve(nonzeros(*A));
         for(size_t i = 0; i < n; ++i) {
@@ -97,8 +97,7 @@ struct blaze {
     static std::shared_ptr<vector>
     copy_vector(typename builtin<real>::vector const &x, const params&)
     {
-        std::shared_ptr<vector> v = std::make_shared<vector>(
-                x.size(), &x[0]);
+        auto v = std::make_shared<vector>(x.size(), &x[0]);
         return v;
     }
 

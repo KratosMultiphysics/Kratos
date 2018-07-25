@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +31,9 @@ THE SOFTWARE.
  * \brief  CUDA backend.
  */
 
-#include <boost/static_assert.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <type_traits>
+#include <memory>
+
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/solver/skyline_lu.hpp>
 #include <amgcl/util.hpp>
@@ -147,7 +146,7 @@ class cuda_hyb_matrix {
         void spmv(
                 real alpha, thrust::device_vector<real> const &x,
                 real beta,  thrust::device_vector<real>       &y,
-                boost::false_type
+                std::false_type
             ) const
         {
             AMGCL_CALL_CUDA(
@@ -162,7 +161,7 @@ class cuda_hyb_matrix {
         void spmv(
                 real alpha, thrust::device_vector<real> const &x,
                 real beta,  thrust::device_vector<real>       &y,
-                boost::true_type
+                std::true_type
             ) const
         {
             AMGCL_CALL_CUDA(
@@ -182,8 +181,8 @@ class cuda_hyb_matrix {
 
         cusparseHandle_t handle;
 
-        std::shared_ptr<boost::remove_pointer<cusparseMatDescr_t>::type> desc;
-        std::shared_ptr<boost::remove_pointer<cusparseHybMat_t>::type>   mat;
+        std::shared_ptr<std::remove_pointer<cusparseMatDescr_t>::type> desc;
+        std::shared_ptr<std::remove_pointer<cusparseHybMat_t>::type>   mat;
 
         static cusparseMatDescr_t create_description() {
             cusparseMatDescr_t desc;
@@ -245,11 +244,9 @@ class cuda_hyb_matrix {
  */
 template <typename real, class DirectSolver = solver::cuda_skyline_lu<real> >
 struct cuda {
-        BOOST_STATIC_ASSERT_MSG(
-                (
-                 boost::is_same<real, float>::value ||
-                 boost::is_same<real, double>::value
-                ),
+        static_assert(
+                std::is_same<real, float>::value ||
+                std::is_same<real, double>::value,
                 "Unsupported value type for cuda backend"
                 );
 
@@ -259,7 +256,7 @@ struct cuda {
     typedef thrust::device_vector<real> matrix_diagonal;
     typedef DirectSolver                direct_solver;
 
-    struct provides_row_iterator : boost::false_type {};
+    struct provides_row_iterator : std::false_type {};
 
     /// Backend parameters.
     struct params {
@@ -268,15 +265,17 @@ struct cuda {
 
         params(cusparseHandle_t handle = 0) : cusparse_handle(handle) {}
 
+#ifdef BOOST_VERSION
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, cusparse_handle)
         {
-            AMGCL_PARAMS_CHECK(p, (cusparse_handle));
+            check_params(p, {"cusparse_handle"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, cusparse_handle);
         }
+#endif
     };
 
     static std::string name() { return "cuda"; }
@@ -385,7 +384,7 @@ struct spmv_impl<
     static void apply(Alpha alpha, const matrix &A, const vector &x,
             Beta beta, vector &y)
     {
-        A.spmv(alpha, x, beta, y, typename boost::is_same<V, double>::type());
+        A.spmv(alpha, x, beta, y, typename std::is_same<V, double>::type());
     }
 };
 
@@ -404,7 +403,7 @@ struct residual_impl<
             vector &r)
     {
         thrust::copy(rhs.begin(), rhs.end(), r.begin());
-        A.spmv(-1, x, 1, r, typename boost::is_same<V, double>::type());
+        A.spmv(-1, x, 1, r, typename std::is_same<V, double>::type());
     }
 };
 
@@ -419,28 +418,30 @@ struct clear_impl< thrust::device_vector<V> >
     }
 };
 
-template < typename V >
-struct copy_impl<
-    thrust::device_vector<V>,
-    thrust::device_vector<V>
-    >
+template <class V, class T>
+struct copy_impl<V, thrust::device_vector<T> >
 {
-    typedef thrust::device_vector<V> vector;
-
-    static void apply(const vector &x, vector &y)
+    static void apply(const V &x, thrust::device_vector<T> &y)
     {
         thrust::copy(x.begin(), x.end(), y.begin());
     }
 };
 
-template < typename V >
-struct copy_to_backend_impl<
-    thrust::device_vector<V>
-    >
+template <class T, class V>
+struct copy_impl<thrust::device_vector<T>, V >
 {
-    static void apply(const std::vector<V> &data, thrust::device_vector<V> &x)
+    static void apply(const thrust::device_vector<T> &x, V &y)
     {
-        thrust::copy(data.begin(), data.end(), x.begin());
+        thrust::copy(x.begin(), x.end(), y.begin());
+    }
+};
+
+template <class T1, class T2>
+struct copy_impl<thrust::device_vector<T1>, thrust::device_vector<T2> >
+{
+    static void apply(const thrust::device_vector<T1> &x, thrust::device_vector<T2> &y)
+    {
+        thrust::copy(x.begin(), x.end(), y.begin());
     }
 };
 
@@ -602,7 +603,7 @@ class cuda_event {
             return delta / 1000.0f;
         }
     private:
-        std::shared_ptr<boost::remove_pointer<cudaEvent_t>::type> e;
+        std::shared_ptr<std::remove_pointer<cudaEvent_t>::type> e;
 
         static cudaEvent_t create_event() {
             cudaEvent_t e;

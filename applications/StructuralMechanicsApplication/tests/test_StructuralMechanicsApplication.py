@@ -42,8 +42,6 @@ from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTe
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
 from test_loading_conditions_line import TestLoadingConditionsLine as TTestLoadingConditionsLine
 from test_loading_conditions_surface import TestLoadingConditionsSurface as TTestLoadingConditionsSurface
-# Multipoint constraint tests
-from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 # Spring damper element test
@@ -222,8 +220,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsSurface]))
     # Nodal Damping
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
-    # Multipoint Constraint
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
     # Dynamic basic tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
     # Eigenvalues Postprocessing Process test
