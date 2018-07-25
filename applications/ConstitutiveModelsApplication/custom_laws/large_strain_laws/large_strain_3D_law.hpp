@@ -127,6 +127,8 @@ namespace Kratos
     
     bool Has( const Variable<double>& rThisVariable ) override;
 
+    void WriteToFile();
+
     /**
      * Set Values
      */

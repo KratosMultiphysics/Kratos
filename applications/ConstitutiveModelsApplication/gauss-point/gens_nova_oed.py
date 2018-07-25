@@ -488,6 +488,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
     def _OpenOutputFile(self):
         import os.path
 
+        return;
         problem_path = os.getcwd()
         self.csv_path = os.path.join(problem_path, "GaussPoint.csv")
 
@@ -512,6 +513,9 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
     def _WriteThisToFile(self, t, stress, strain):
+
+        self.material_law.WriteToFile()
+        return;
 
         line = str(t) + " , "
         for st in stress:

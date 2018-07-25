@@ -142,6 +142,7 @@ namespace Kratos
       class_< LargeStrain3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
       	( "LargeStrain3DLaw",
       	  init<ConstitutiveModelPointer>() )
+         .def("WriteToFile",&LargeStrain3DLaw::WriteToFile)
       	;
     
       class_< LargeStrainPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >

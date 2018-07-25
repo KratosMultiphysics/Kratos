@@ -13,6 +13,8 @@
 // System includes
 
 // External includes
+#include <iostream>
+#include <fstream>
 
 // Project includes
 #include "custom_models/plasticity_models/non_associative_plasticity_model.hpp"
@@ -257,6 +259,35 @@ namespace Kratos
          virtual void PrintData(std::ostream& rOStream) const override
          {
             rOStream << "GensNovaModel Data";
+         }
+
+         void WriteToFile() override
+         {
+            KRATOS_TRY
+      
+            std::ofstream myfile;
+
+            myfile.open("gauss-point-kratos.csv", std::fstream::app);
+            Vector StressVector(6);
+            StressVector = ConstitutiveModelUtilities::StressTensorToVector( mStressMatrix, StressVector);
+            for (unsigned int i = 0; i < 6; i++)
+               myfile << StressVector(i) << " , ";
+
+
+            VectorType Strain; 
+            ConvertCauchyGreenTensorToHenckyVector( mTotalB, Strain);
+
+            for (unsigned int i = 0; i < 6; i++)
+               myfile << Strain(i) << " , ";
+
+            myfile << mInternal.Variables[3] << " , ";
+            myfile << mInternal.Variables[4] << " , ";
+            myfile << mInternal.Variables[5] ;
+            myfile << " \n";
+            myfile.close();
+
+
+            KRATOS_CATCH("")
          }
 
          ///@}

@@ -225,6 +225,9 @@ namespace Kratos
       rOStream << "ConstitutiveModel Data";
     }
 
+    virtual void WriteToFile()
+    {
+    }
 
     ///@}
     ///@name Friends

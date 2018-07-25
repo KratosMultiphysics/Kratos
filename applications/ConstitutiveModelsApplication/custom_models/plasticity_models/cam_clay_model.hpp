@@ -198,6 +198,12 @@ namespace Kratos
             rOStream << "CamClayModel Data";
          }
 
+         void WriteToFile()
+         {
+            KRATOS_TRY
+            KRATOS_CATCH("")
+         }
+
          ///@}
          ///@name Friends
          ///@{

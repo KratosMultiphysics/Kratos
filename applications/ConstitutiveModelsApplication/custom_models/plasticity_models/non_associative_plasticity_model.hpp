@@ -88,7 +88,7 @@ namespace Kratos
 
             /// Copy constructor.
             NonAssociativePlasticityModel(NonAssociativePlasticityModel const& rOther) :BaseType(rOther), mInternal(rOther.mInternal), mPreviousInternal(rOther.mPreviousInternal),
-               mStressMatrix(rOther.mStressMatrix) {}
+               mStressMatrix(rOther.mStressMatrix), mTotalB(rOther.mTotalB) {}
 
             /// Assignment operator.
             NonAssociativePlasticityModel& operator=(NonAssociativePlasticityModel const& rOther)
@@ -97,6 +97,7 @@ namespace Kratos
                mInternal = rOther.mInternal;
                mPreviousInternal = rOther.mPreviousInternal;
                mStressMatrix = rOther.mStressMatrix;
+               mTotalB = rOther.mTotalB;
                return *this;
             }
 
@@ -261,7 +262,10 @@ namespace Kratos
 
                if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) ) {
                   this->UpdateInternalVariables( rValues, Variables, rStressMatrix );
-                  mStressMatrix = rStressMatrix;
+                  mStressMatrix = rStressMatrix / rValues.GetTotalDeformationDet();
+                  const ModelDataType&  rModelData = Variables.GetModelData();
+                  const MatrixType & rTotalF = rModelData.GetTotalDeformationMatrix();
+                  mTotalB = prod( rTotalF, trans(rTotalF) );
                }
 
                KRATOS_CATCH(" ")
@@ -321,6 +325,7 @@ namespace Kratos
             InternalVariablesType  mInternal;
             InternalVariablesType  mPreviousInternal;
             MatrixType             mStressMatrix;
+            MatrixType             mTotalB;
 
             ///@}
             ///@name Protected Operators
@@ -893,7 +898,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      const ModelDataType&  rModelData = rVariables.GetModelData();
+               const ModelDataType&  rModelData = rVariables.GetModelData();
 
                //working stress is Kirchhoff by default : transform stresses is working stress is PK2
                const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();

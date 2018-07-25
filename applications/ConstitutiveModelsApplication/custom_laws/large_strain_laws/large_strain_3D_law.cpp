@@ -113,7 +113,15 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
   
- 
+
+  void LargeStrain3DLaw::WriteToFile()
+  {
+     KRATOS_TRY
+
+     mpModel->WriteToFile();
+
+     KRATOS_CATCH("")
+  }
   //***********************SET VALUE: DOUBLE - VECTOR - MATRIX**************************
   //************************************************************************************
 
