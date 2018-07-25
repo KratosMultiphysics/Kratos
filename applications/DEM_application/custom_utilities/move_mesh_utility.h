@@ -28,7 +28,7 @@
 
 namespace  Kratos
 {
-    class MoveMeshUtility
+    class  KRATOS_API(DEM_APPLICATION) MoveMeshUtility
     {
         public:
             typedef ModelPart::NodesContainerType NodesContainerType;
