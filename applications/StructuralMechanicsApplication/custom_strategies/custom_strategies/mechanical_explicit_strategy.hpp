@@ -150,10 +150,10 @@ public:
         VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
 
       auto it_elem = r_model_part.ElementsBegin();
-      // #pragma omp parallel for firstprivate(it_elem)
+      Vector dummy_vector;
+      // #pragma omp parallel for firstprivate(it_elem, dummy_vector)
       for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
         // Getting nodal mass and inertia from element
-        Vector dummy_vector;
         // this function needs to be implemented in the respective
         // element to provide inertias and nodal masses
         (it_elem + i)
@@ -188,7 +188,7 @@ public:
 
       auto it_elem = r_model_part.ElementsBegin();
       Vector dummy_vector;
-  // #pragma omp parallel for firstprivate(it_elem)
+  // #pragma omp parallel for firstprivate(it_elem, dummy_vector)
       for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
           // Getting nodal mass and inertia from element
           // this function needs to be implemented in the respective
