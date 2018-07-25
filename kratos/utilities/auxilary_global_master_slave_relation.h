@@ -53,23 +53,22 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     typedef std::vector<IndexType> EquationIdVectorType;
     KRATOS_CLASS_POINTER_DEFINITION(AuxilaryGlobalMasterSlaveRelation);
 
-    // empty constructor and methods to add master and slave independently.
-    AuxilaryGlobalMasterSlaveRelation() : IndexedObject(0), mConstant(0.0)
-    {
-    }
-
-    AuxilaryGlobalMasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId), mConstant(0.0)
+    /**
+     * @brief Constructor of the class
+     * @param SlaveEquationId the slave equation id for which this class is being constructed.
+     */
+    AuxilaryGlobalMasterSlaveRelation(IndexType SlaveEquationId = 0) : IndexedObject(SlaveEquationId), mConstant(0.0)
     {
     }
 
     /**
-     * Function to get the slave equation Id corresponding to this constraint.
+     * @brief Function to get the slave equation Id corresponding to this constraint.
      * @param Constant the value of the constant to be assigned.
      */
     IndexType SlaveEquationId() const { return this->Id(); }
 
     /**
-     * Function to set the lefthand side of the constraint (the slave dof value)
+     * @brief Function to set the lefthand side of the constraint (the slave dof value)
      * @param LhsValue the value of the lhs (the slave dof value)
      */
     void SetLHSValue(double const &LhsValue)
@@ -78,8 +77,8 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     }
 
     /**
-     * Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
-     * @param RhsValue the value of the lhs (the slave dof value)
+     * @brief Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
+     * @param RHSValue the value of the lhs (the slave dof value)
      */
     void SetRHSValue(double const &RhsValue) { mRhsValue = RhsValue; }
     void UpdateRHSValue(double const &RhsValueUpdate)
@@ -94,7 +93,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     }
 
     /**
-     * this determines the master equation IDs connected to this constraint
+     * @brief this determines the master equation IDs connected to this constraint
      * @param rResult the elemental equation ID vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -114,8 +113,8 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     }
 
     /**
-     * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
+     * @brief   this is called during the assembling process in order
+     *          to calculate all elemental contributions to the global system
      * matrix and the right hand side
      * @param rMasterWeightsVector the elemental left hand side matrix
      * @param rConstant the elemental right hand side
