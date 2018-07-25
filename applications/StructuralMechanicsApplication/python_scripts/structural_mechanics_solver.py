@@ -429,7 +429,7 @@ class MechanicalSolver(PythonSolver):
         linear_solver = self.get_linear_solver()
         if self.settings["block_builder"].GetBool():
             if self.settings["multi_point_constraints_used"].GetBool():
-                builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(linear_solver)
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithConstraints(linear_solver)
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
