@@ -24,20 +24,10 @@
 // #define USE_LOCKS_IN_ASSEMBLY
 
 /* Project includes */
-#include "includes/define.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "includes/model_part.h"
-#include "includes/key_hash.h"
-#include "utilities/timer.h"
-#include "utilities/openmp_utils.h"
-#include "includes/kratos_flags.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "includes/master_slave_constraint.h"
 #include "utilities/auxilary_global_master_slave_relation.h"
 
-#include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
-#include "containers/variable_data.h"
 #include "containers/pointer_vector_map.h"
 #include "containers/pointer_hash_map_set.h"
 #include "containers/data_value_container.h"
@@ -107,7 +97,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef Node<3> NodeType;
+    typedef typename BaseType::NodeType NodeType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
@@ -158,14 +148,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void SetUpSystem(
         ModelPart &rModelPart) override
     {
+        BaseType::SetUpSystem(rModelPart);
         if(rModelPart.NumberOfMasterSlaveConstraints() > 0)
         {
-            BaseType::SetUpSystem(rModelPart);
             FormulateGlobalMasterSlaveRelations(rModelPart);
-        }
-        else
-        {
-            BaseType::SetUpSystem(rModelPart);
         }
     }
 
@@ -189,108 +175,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             BaseType::Build(pScheme, rModelPart, A, b);
     }
 
-
-    void BuildWithConstraints(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &A,
-        TSystemVectorType &b)
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-        // Getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-
-        // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-
-        ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // assemble all elements
-        double start_build = OpenMPUtils::GetCurrentTime();
-
-#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId)
-        {
-#pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; k++)
-            {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
-
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    element_is_active = (it)->Is(ACTIVE);
-
-                if (element_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    ApplyConstraints<Element>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
-#ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
-#else
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
-                }
-            }
-
-//#pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId ) schedule(dynamic, 1024)
-#pragma omp for schedule(guided, 512)
-            for (int k = 0; k < nconditions; k++)
-            {
-                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    condition_is_active = (it)->Is(ACTIVE);
-
-                if (condition_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    ApplyConstraints<Condition>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
-#ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
-#else
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
-
-                    // clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
-                }
-            }
-        }
-
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
-
-        //for (int i = 0; i < A_size; i++)
-        //    omp_destroy_lock(&lock_array[i]);
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
-
-        KRATOS_CATCH("")
-    }
 
     /**
      * @brief Function to perform the building and solving phase at the same time.
@@ -435,7 +319,43 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
     }
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+  private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    // This is the set of condenced global constraints.
+    GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveRelations; //This can be changed to more efficient implementation later on.
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /*
+    * This function is exactly same as the ConstructMatrixStructure() function in base class except that the function
+    * has the call to ApplyConstraints function call once the element and conditions compute their equation ids
+    */
     virtual void ConstructMatrixStructureWithConstraints(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType &A,
@@ -545,38 +465,112 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         Timer::Stop("MatrixStructure");
     }
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
+    /*
+    * This function is exactly same as the Build() function in base class except that the function
+    * has the call to ApplyConstraints function call once the LHS or RHS are computed by elements and conditions
+    */
+    void BuildWithConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart &rModelPart,
+        TSystemMatrixType &A,
+        TSystemVectorType &b)
+    {
+        KRATOS_TRY
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
 
-    ///@}
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
-  private:
-    ///@name Static Member Variables
-    ///@{
+        ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+        //contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-    // This is the set of condenced global constraints.
-    GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveRelations; //This can be changed to more efficient implementation later on.
+        //vector containing the localization in the system of the different
+        //terms
+        Element::EquationIdVectorType EquationId;
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+        // assemble all elements
+        double start_build = OpenMPUtils::GetCurrentTime();
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId)
+        {
+#pragma omp for schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; k++)
+            {
+                ModelPart::ElementsContainerType::iterator it = el_begin + k;
+
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    element_is_active = (it)->Is(ACTIVE);
+
+                if (element_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    ApplyConstraints<Element>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
+#else
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+#endif
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*(it.base()));
+                }
+            }
+
+//#pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId ) schedule(dynamic, 1024)
+#pragma omp for schedule(guided, 512)
+            for (int k = 0; k < nconditions; k++)
+            {
+                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    condition_is_active = (it)->Is(ACTIVE);
+
+                if (condition_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    ApplyConstraints<Condition>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
+#else
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+#endif
+
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*(it.base()));
+                }
+            }
+        }
+
+        const double stop_build = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
+
+        //for (int i = 0; i < A_size; i++)
+        //    omp_destroy_lock(&lock_array[i]);
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
 
 
     /**
@@ -602,7 +596,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
         EquationIdVectorType slave_equation_ids = EquationIdVectorType(0);
         EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
-        int index = 0;
 
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
@@ -622,27 +615,39 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 (*it).CalculateLocalSystem(relation_matrix, constant_vector, r_current_process_info);
 
                 //assemble the Constraint contribution
-                int slave_count = 0;
-                for (auto &slave_equation_id : slave_equation_ids)
-                {
-                    int master_count = 0;
-                    auto global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
-                    if (global_constraint == mGlobalMasterSlaveRelations.end())
-                    {
-                        index++;
-                        mGlobalMasterSlaveRelations.insert(mGlobalMasterSlaveRelations.begin(), Kratos::make_shared<AuxilaryGlobalMasterSlaveRelationType>(slave_equation_id));
-                        global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
-                    }
-                    for (auto &master_equation_id : master_equation_ids)
-                    {
-                        global_constraint->AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
-                        master_count++;
-                    }
-                    slave_count++;
-                }
+                AssembleSlaves(slave_equation_ids, master_equation_ids, relation_matrix);
             }
         }
     }
+
+
+    /**
+     * @brief   this method assembles the given list of slave equation ids and corresponding master equatio ids
+     * @param   rSlaveEquationIdVector list of slave equation ids to be assembled.
+     * @param   rMasterEquationIdVector list of corresponding master equation ids.
+     * @param   rRelationMatrix the matrix relating the rSlaveEquationIdVector with rMasterEquationIdVector
+     */
+    void AssembleSlaves(EquationIdVectorType& rSlaveEquationIdVector, EquationIdVectorType& rMasterEquationIdVector, LocalSystemMatrixType& rRelationMatrix)
+    {
+        int slave_count = 0;
+        for (auto &slave_equation_id : rSlaveEquationIdVector)
+        {
+            int master_count = 0;
+            auto global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
+            if (global_constraint == mGlobalMasterSlaveRelations.end())
+            {
+                mGlobalMasterSlaveRelations.insert(mGlobalMasterSlaveRelations.begin(), Kratos::make_shared<AuxilaryGlobalMasterSlaveRelationType>(slave_equation_id));
+                global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
+            }
+            for (auto &master_equation_id : rMasterEquationIdVector)
+            {
+                global_constraint->AddMaster(master_equation_id, rRelationMatrix(slave_count, master_count));
+                master_count++;
+            }
+            slave_count++;
+        }
+    }
+
 
     /**
      * @brief   this method resets the LHS and RHS values of the AuxilaryGlobalMasterSlaveRelation objects
@@ -677,11 +682,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // Getting the beginning iterator
         ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
-        //contributions to the system
-        LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
-        EquationIdVectorType slave_equation_ids = EquationIdVectorType(0);
-        EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
 
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
@@ -695,33 +695,49 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             if (constraint_is_active)
             {
-                //get the equation Ids of the constraint
-                (*it).EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
-                //calculate constraint's T and b matrices
-                (*it).CalculateLocalSystem(relation_matrix, constant_vector, r_current_process_info);
-
-                // For calculating the constant
-                MasterSlaveConstraintType::DofPointerVectorType slave_dofs_vector;
-                MasterSlaveConstraintType::DofPointerVectorType master_dofs_vector;
-                (*it).GetDofList(slave_dofs_vector, master_dofs_vector, r_current_process_info);
-                double slave_value = 0.0;
-
-                int slave_index = 0;
-                for (auto &slave_dof : slave_dofs_vector)
-                {
-                    double slave_value_calc = 0.0;
-                    for (IndexType master_index = 0; master_index < master_dofs_vector.size(); master_index++)
-                    {
-                        slave_value_calc += slave_dof->GetSolutionStepValue() * relation_matrix(slave_index, master_index);
-                    }
-                    slave_value_calc += constant_vector[slave_index];
-                    slave_value = slave_dof->GetSolutionStepValue();
-                    auto global_constraint = mGlobalMasterSlaveRelations.find(slave_dof->EquationId());
-                    global_constraint->SetLHSValue(slave_value);
-                    global_constraint->UpdateRHSValue(slave_value_calc);
-                    slave_index++;
-                }
+                UpdateMasterSlaveConstraint(*it, r_current_process_info);
             }
+        }
+    }
+
+
+    /**
+     * @brief   this method uses the MasterSlaveConstraints objects in rModelPart to reconstruct the LHS and RHS values
+     *          of the individual AuxilaryGlobalMasterSlaveRelation object. That is the value of Slave as LHS and the T*M+C as RHS value
+     * @param   rMasterSlaveConstraint The MasterSlaveConstraint which is to be updated
+     */
+    void UpdateMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType& rMasterSlaveConstraint, ProcessInfo& rCurrentProcessInfo)
+    {
+        //contributions to the system
+        LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
+        EquationIdVectorType slave_equation_ids = EquationIdVectorType(0);
+        EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
+
+        //get the equation Ids of the constraint
+        (*it).EquationIdVector(slave_equation_ids, master_equation_ids, rCurrentProcessInfo);
+        //calculate constraint's T and b matrices
+        (*it).CalculateLocalSystem(relation_matrix, constant_vector, rCurrentProcessInfo);
+        // For calculating the constant
+        MasterSlaveConstraintType::DofPointerVectorType slave_dofs_vector;
+        MasterSlaveConstraintType::DofPointerVectorType master_dofs_vector;
+        rMasterSlaveConstraint.GetDofList(slave_dofs_vector, master_dofs_vector, rCurrentProcessInfo);
+        double slave_value = 0.0;
+
+        int slave_index = 0;
+        for (auto &slave_dof : slave_dofs_vector)
+        {
+            double slave_value_calc = 0.0;
+            for (IndexType master_index = 0; master_index < master_dofs_vector.size(); master_index++)
+            {
+                slave_value_calc += slave_dof->GetSolutionStepValue() * relation_matrix(slave_index, master_index);
+            }
+            slave_value_calc += constant_vector[slave_index];
+            slave_value = slave_dof->GetSolutionStepValue();
+            auto global_constraint = mGlobalMasterSlaveRelations.find(slave_dof->EquationId());
+            global_constraint->SetLHSValue(slave_value);
+            global_constraint->UpdateRHSValue(slave_value_calc);
+            slave_index++;
         }
     }
 
