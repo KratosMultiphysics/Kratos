@@ -100,7 +100,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
                 if (node.Id is not node_reference.Id):
                     for var in self.var_list:
                         count += 1
-                        constraint = self.rigid_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", count, node_reference, var, node, var, 1.0, 0.0)
+                        constraint = self.rigid_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", count, node, var, node_reference, var, 1.0, 0.0)
                         self.computing_model_part.AddMasterSlaveConstraint(constraint)
         else:
             node_reference = self.model_part.GetRootModelPart().GetNode(self.reference_node_id)
@@ -108,7 +108,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
                 if (node.Id is not node_reference.Id):
                     for var in self.var_list:
                         count += 1
-                        constraint = self.rigid_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", count, node_reference, var, node, var, 1.0, 0.0)
+                        constraint = self.rigid_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", count, node, var, node_reference, var, 1.0, 0.0)
                         self.computing_model_part.AddMasterSlaveConstraint(constraint)
 
     def ExecuteInitializeSolutionStep(self):
