@@ -114,7 +114,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
 
             # Compute step direction in step length units
-            x_bar = self.__DetermineStep(dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
+            x_bar = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
 
             # Compute actual step
             dx = [step_length*x_bar[i] for i in range(self.n)]
@@ -334,10 +334,14 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return len_ineqs_relevant, dir_ineqs_relevant
 
     # --------------------------------------------------------------------------
-    def __DetermineStep(self, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
+    def __DetermineStep(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
 
         timer = Timer()
         timer.StartTimer()
+
+
+        # Create projector object wich can do the projection in the orthogonalized subspace
+        projector = Projector(len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs)
 
         # 1. Test projection if there is room for objective improvement
         # I.e., the actual step length to become feasible for an inactive threshold is smaller than 1 and hence a part of the step can be dedicated to objective improvement
@@ -345,9 +349,11 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         inactive_threshold = 100
         nargout = 2
 
-        norm_inf_dX, is_projection_sucessfull = self.__RunProjectionProcess(len_obj_test, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, inactive_threshold, nargout)
+        norm_inf_dX, is_projection_sucessfull = projector.RunProjection(len_obj, inactive_threshold, nargout)
 
         print("\n> Time needed for one projection step = ", timer.GetTotalTime(), "s")
+
+        # 2. Determine step following two different modes depending on the previos found step length to the feasible domain
 
         bi_tolerance = self.algorithm_settings["bisectioning_tolerance"].GetDouble()
         bi_max_itr = self.algorithm_settings["bisectioning_max_itr"].GetInt()
@@ -360,7 +366,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 len_obj_min = len_obj_test
                 len_obj_max = 1.1
 
-                func = lambda len_obj: self.__RunProjectionProcess(len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, inactive_threshold, nargout)
+                func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold, nargout)
 
                 len_obj_result, bi_itrs, bi_err = PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
 
@@ -379,7 +385,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
 
 
-        # 2. Identify how the step length shares have to be readjusted according the previos finding
 
         # # Corrective behavior --> choose only a minimal objective share and adjust the constraint shares within the limits of the trust region (3d infinity norm of dx = 1)
         # if norm_inf_dx>1:
@@ -398,32 +403,61 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return dX
 
     # --------------------------------------------------------------------------
-    def __RunProjectionProcess(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, threshold, nargout):
-        # 1. Filter lengths to consider specified step length shares in case usable and feasible domain is left (lenths are positive)
-        len_obj, len_eqs, len_ineqs = self.__FilterStepLengths(len_obj, len_eqs, len_ineqs, threshold)
+    def __UpdateMesh(self, dx):
+        WriteListToNodalVariable(dx, self.design_surface, SHAPE_UPDATE)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.model_part_controller.SetReferenceMeshToMesh()
 
-        # 2. Suboptimization in orthogonal subspace
+        x = WriteNodeCoordinatesToList(self.design_surface)
+        dxAbsolute = [x[i]+dx[i] - self.x_init[i] for i in range(self.number_of_design_variables)]
+        WriteListToNodalVariable(dxAbsolute, self.design_surface, SHAPE_CHANGE)
 
-        ortho_basis = self.__PerformGramSchmidtOrthogonalization(dir_obj, dir_eqs, dir_ineqs)
+# ==============================================================================
+class Projector():
+    # --------------------------------------------------------------------------
+    def __init__(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
 
-        # Convert to position direction format(The position is relative to the current position) - This information is used to apply the half-spaces as constraint in the orthogonolized space
-        hpPos, hpDir, hsPos, hsDir = self.__ConvertToPositionDirectionFormat(len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs)
+        # Store some working variables
+        self.num_eqs = len(len_eqs)
+        self.num_ineqs = len(len_ineqs)
+
+        # Store lengths with which initial position of constraint border is computed as reference
+        self.reference_len_obj = len_obj
+        self.reference_len_eqs = len_eqs
+        self.reference_len_ineqs = len_ineqs
+
+        # Create orthogonal basis
+        self.ortho_basis = self.__PerformGramSchmidtOrthogonalization(dir_obj, dir_eqs, dir_ineqs)
+
+        # Determine position of border of halfspaces and hyperplanes
+        pos_obj, pos_eqs, pos_ineqs = self.__DetermineConstraintBorders(len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs)
 
         # Translate to orthogonal basis
-        hpPos_o = TranslateToNewBasis(hpPos, ortho_basis)
-        hpDir_o = TranslateToNewBasis(hpDir, ortho_basis)
-        hsPos_o = TranslateToNewBasis(hsPos, ortho_basis)
-        hsDir_o = TranslateToNewBasis(hsDir, ortho_basis)
+        self.pos_obj_o = TranslateToNewBasis(pos_obj, self.ortho_basis)
+        self.dir_obj_o = TranslateToNewBasis([dir_obj], self.ortho_basis)
+        self.pos_eqs_o = TranslateToNewBasis(pos_eqs, self.ortho_basis)
+        self.dir_eqs_o = TranslateToNewBasis(dir_eqs, self.ortho_basis)
+        self.pos_ineqs_o = TranslateToNewBasis(pos_ineqs, self.ortho_basis)
+        self.dir_ineqs_o = TranslateToNewBasis(dir_ineqs, self.ortho_basis)
 
-        # Project to half-spaces (suboptimization)
-        dX_o, subopt_itr, error, exit_code = self.__ProjectToHalfSpaces(hsPos_o, hsDir_o)
+    # --------------------------------------------------------------------------
+    def RunProjection(self, len_obj, threshold, nargout):
+
+        # Adjust halfspaces according input
+        pos_obj_o, pos_eqs_o, pos_ineqs_o, len_obj, len_eqs, len_ineqs = self.__AdjustHalfSpaces(len_obj, threshold)
+
+        pos_HS_o = HorzCat(pos_obj_o, pos_ineqs_o)
+        dir_HS_o = HorzCat(dir_obj_o, dir_ineqs_o)
+
+        # Project to adjusted halfspaces (suboptimization)
+        dX_o, subopt_itr, error, exit_code = self.__ProjectToHalfSpaces(pos_HS_o, dir_HS_o)
 
         # Determine return values
         if exit_code == 0:
             is_projection_sucessfull = True
 
             # Backtransformation and multiplication with -1 because the direction vectors are chosen opposite to the gradients such that the lengths are positive if violated
-            dX = ScalarVectorProduct(-1, TranslateToOriginalBasis(dX_o, ortho_basis))
+            dX = ScalarVectorProduct(-1, TranslateToOriginalBasis(dX_o, self.ortho_basis))
             norm_dX = NormInf3D(dX)
         else:
             is_projection_sucessfull = False
@@ -438,17 +472,31 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             return norm_dX, dX, is_projection_sucessfull
 
     # --------------------------------------------------------------------------
-    def __FilterStepLengths(self, len_obj, len_eqs, len_ineqs, threshold):
-        if threshold<len_obj:
-            len_obj = threshold
+    def __AdjustHalfSpaces(self, len_obj, threshold):
 
-        for itr in range(len(len_eqs)):
-            [itr] = min(max(len_eqs[itr],-threshold),threshold)
+        # Adjusting objective halfspace according input length
+        adj_len_obj = len_obj
+        adj_pos_obj_o = ScalarVectorProduct(adj_len_obj/self.reference_len_obj, self.pos_obj_o)
 
-        for itr in range(len(len_ineqs)):
-            len_ineqs[itr] = min(len_ineqs[itr],threshold)
+        # Adjusting all half spaces according threshold
+        if threshold<adj_len_obj:
+            adj_len_obj = threshold
+            adj_pos_obj_o = ScalarVectorProduct(adj_len_obj/self.reference_len_obj, self.pos_obj_o)
 
-        return len_obj, len_eqs, len_ineqs
+        adj_len_eqs = self.reference_len_eqs
+        adj_len_ineqs = self.reference_len_ineqs
+
+        for itr in range(self.num_eqs):
+            adj_len_eqs[itr] = min(max(self.reference_len_eqs[itr],-threshold),threshold)
+            scaling = adj_len_eqsr[itr]/self.reference_len_eqs[itr]
+            adj_pos_eqs_o[itr] =  ScalarVectorProduct(scaling, self.pos_eqs_o[itr])
+
+        for itr in range(self.num_ineqs):
+            adj_len_ineqs[itr] = min(self.reference_len_ineqs[itr],threshold)
+            scaling = adj_len_ineqs[itr]/self.reference_len_ineqs[itr]
+            adj_pos_ineqs_o[itr] =  ScalarVectorProduct(scaling, self.pos_ineqs_o[itr])
+
+        return adj_pos_obj_o, adj_pos_eqs_o, adj_pos_ineqs_o, adj_len_obj, adj_len_eqs, adj_len_ineqs
 
     # --------------------------------------------------------------------------
     def __PerformGramSchmidtOrthogonalization(self, dir_obj, dir_eqs, dir_ineqs):
@@ -480,26 +528,20 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return B
 
     # --------------------------------------------------------------------------
-    def __ConvertToPositionDirectionFormat(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
-        hsPos = []
-        hsDir = []
-        hpPos = []
-        hpDir = []
+    def __DetermineConstraintBorders(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
+        pos_obj = []
+        pos_eq = []
+        pos_ineq = []
 
-        hsPos.append(ScalarVectorProduct(-len_obj,dir_obj))
-        hsDir.append(dir_obj)
+        pos_obj.append(ScalarVectorProduct(-len_obj,dir_obj))
 
-        for i in range(len(len_eqs)):
-            if Norm2(dir_eqs[i])>0:
-                hpPos.append(ScalarVectorProduct(-len_eqs[i],dir_eqs[i]))
-                hpDir.append(dir_eqs[i])
+        for i in range(self.num_eqs):
+            pos_eq.append(ScalarVectorProduct(-len_eqs[i],dir_eqs[i]))
 
-        for i in range(len(len_ineqs)):
-            if Norm2(dir_ineqs[i])>0:
-                hsPos.append(ScalarVectorProduct(-len_ineqs[i],dir_ineqs[i]))
-                hsDir.append(dir_ineqs[i])
+        for i in range(self.num_ineqs):
+            pos_ineq.append(ScalarVectorProduct(-len_ineqs[i],dir_ineqs[i]))
 
-        return hpPos, hpDir, hsPos, hsDir
+        return pos_obj, pos_eq, pos_ineq
 
     # --------------------------------------------------------------------------
     def __ProjectToHalfSpaces(self, hsPos_o, hs_Dir_o):
@@ -512,16 +554,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         dX_o, subopt_itr, error, exit_code = QuadProg(A, b, max_itr, tolerance)
 
         return dX_o, subopt_itr, error, exit_code
-
-    # --------------------------------------------------------------------------
-    def __UpdateMesh(self, dx):
-        WriteListToNodalVariable(dx, self.design_surface, SHAPE_UPDATE)
-        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
-        self.model_part_controller.SetReferenceMeshToMesh()
-
-        x = WriteNodeCoordinatesToList(self.design_surface)
-        dxAbsolute = [x[i]+dx[i] - self.x_init[i] for i in range(self.number_of_design_variables)]
-        WriteListToNodalVariable(dxAbsolute, self.design_surface, SHAPE_CHANGE)
 
 # ==============================================================================
 
