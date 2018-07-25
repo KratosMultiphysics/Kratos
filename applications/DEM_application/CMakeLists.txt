@@ -76,6 +76,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_proxies.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/dem_fem_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/excavator_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/move_mesh_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_model_part_filler.cpp
 ####    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/particles_history_watcher.cpp
