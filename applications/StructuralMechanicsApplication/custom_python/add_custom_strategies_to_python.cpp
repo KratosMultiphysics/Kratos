@@ -30,9 +30,6 @@
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 
-// Builder and solvers
-#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc.h"
-
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_and_other_dof_criteria.h"
@@ -168,10 +165,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
-    class_< ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-     typename ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >(m,"ResidualBasedBlockBuilderAndSolverWithMpc")
-                .def(init<LinearSolverType::Pointer>());
 }
 
 }  // namespace Python.
