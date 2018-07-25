@@ -28,6 +28,16 @@
 
 namespace  Kratos
 {
+
+    /**
+     * @class MoveMeshUtility
+     *
+     * @brief This utilitiy moves the nodes of a dem wall
+     *        used especially in the fem-dem coupling
+     *
+     * @author Klaus B Sautter
+     */
+
     class  KRATOS_API(DEM_APPLICATION) MoveMeshUtility
     {
         public:
@@ -38,7 +48,13 @@ namespace  Kratos
             MoveMeshUtility() {};
             ~MoveMeshUtility() {};
 
-            void MoveDemMesh(NodesContainerType& rNodes, const bool rSetDeltaDisplacement) const;
+        /**
+         * @brief This function is the main operation of this utility. It sorts the reference matrix w.r.t. the given dofs and condenses the reference matrix by using the following inputs:
+         * @param rNodes The nodes array of a model part
+         * @param SetDeltaDisplacement A boolean to also update DELTA_DISPLACEMENT
+         */
+
+            void MoveDemMesh(NodesContainerType& rNodes, const bool SetDeltaDisplacement) const;
     }; // MoveMeshUtility
 } //  Kratos
 

@@ -22,7 +22,7 @@
 
 namespace  Kratos
 {
-    void MoveMeshUtility::MoveDemMesh(NodesContainerType& rNodes, const bool rSetDeltaDisplacement) const
+    void MoveMeshUtility::MoveDemMesh(NodesContainerType& rNodes, const bool SetDeltaDisplacement) const
     {
         KRATOS_TRY;
 
@@ -33,7 +33,7 @@ namespace  Kratos
         const int num_nodes = static_cast<int>(rNodes.size());
 
 
-        if(!rSetDeltaDisplacement)
+        if(!SetDeltaDisplacement)
         {
             #pragma omp parallel for
             for(int i = 0; i < num_nodes; ++i)
