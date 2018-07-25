@@ -118,23 +118,23 @@ public:
      * @brief Constructor with parameters
      * @details The ExplicitCentralDifferencesScheme method
      * @param rParameters The parameters containing the configuration parameters
-     * @warning delta_time_predicion_level should be an integer
+     * @warning time_step_prediction_level should be an integer
      */
     ExplicitCentralDifferencesScheme(Parameters rParameters =  Parameters(R"({})"))
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "delta_time_predicion_level" : 1.0,
-            "delta_time_fraction"        : 0.0,
-            "maximum_delta_time"         : 0.0
+            "time_step_prediction_level" : 0.0,
+            "fraction_delta_time"        : 0.9,
+            "max_delta_time"             : 1.0e-5
         })" );
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mDeltaTime.PredictionLevel = rParameters["delta_time_predicion_level"].GetDouble();
-        mDeltaTime.Maximum = rParameters["maximum_delta_time"].GetDouble();
-        mDeltaTime.Fraction = rParameters["delta_time_fraction"].GetDouble();
+        mDeltaTime.PredictionLevel = rParameters["time_step_prediction_level"].GetDouble();
+        mDeltaTime.Maximum = rParameters["max_delta_time"].GetDouble();
+        mDeltaTime.Fraction = rParameters["fraction_delta_time"].GetDouble();
     }
 
     /** Destructor.
