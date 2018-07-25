@@ -39,11 +39,16 @@ public:
     /// Pointer definition of AssignScalarVariableToEntitiesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarVariableToEntitiesProcess);
 
-    enum EntityType { NODES, CONDITIONS, ELEMENTS};
+    enum EntityType { NODES, CONDITIONS, ELEMENTS };
+
+    enum AssigmentType { DIRECT, ADDITION, SUBSTRACTION, MULTIPLICATION, DIVISION };
+
 
     ///@}
     ///@name Life Cycle
     ///@{
+    AssignScalarVariableToEntitiesProcess(ModelPart& rModelPart) : Process(Flags()), mrModelPart(rModelPart) {}
+
     AssignScalarVariableToEntitiesProcess(ModelPart& rModelPart,
                                           Parameters rParameters) : Process(Flags()) , mrModelPart(rModelPart)
     {
@@ -54,7 +59,8 @@ public:
                 "model_part_name":"MODEL_PART_NAME",
                 "variable_name": "VARIABLE_NAME",
                 "entity_type": "NODES",
-                "value" : 1.0
+                "value" : 1.0,
+                "compound_assignment": "direct"
             }  )" );
 
 
@@ -138,6 +144,34 @@ public:
             KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
           }
 
+        }
+
+        //compound_assignment:
+
+        //implemented:
+        //  = direct
+        // += addition
+        // -= substraction
+        // *= multiplication
+        // /= division
+
+        if( rParameters["compound_assignment"].GetString() == "direct" ){
+          mAssignment = DIRECT;
+        }
+        else if(  rParameters["compound_assignment"].GetString() == "addition" ){
+          mAssignment = ADDITION;
+        }
+        else if(  rParameters["compound_assignment"].GetString() == "substraction" ){
+          mAssignment = SUBSTRACTION;
+        }
+        else if(  rParameters["compound_assignment"].GetString() == "multiplication" ){
+          mAssignment = MULTIPLICATION;
+        }
+        else if(  rParameters["compound_assignment"].GetString() == "division" ){
+          mAssignment = DIVISION;
+        }
+        else{
+          KRATOS_ERROR <<" Assignment type "<< rParameters["compound_assignment"].GetString() << " is not supported " << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -353,6 +387,13 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
+
+    ModelPart& mrModelPart;
+    std::string mvariable_name;
+
+    EntityType mEntity;
+    AssigmentType mAssignment;
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -366,6 +407,124 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    // nodes
+
+    template< class TVarType, class TDataType >
+    void DirectAssignValue(ModelPart::NodeType& rNode, const TVarType& rVariable, const TDataType& value)
+    {
+      rNode.FastGetSolutionStepValue(rVariable) = value;
+    }
+
+    template< class TVarType, class TDataType >
+    void AddAssignValue(ModelPart::NodeType& rNode, const TVarType& rVariable, const TDataType& value)
+    {
+      rNode.FastGetSolutionStepValue(rVariable) += value;
+    }
+
+    template< class TVarType, class TDataType >
+    void SubstractAssignValue(ModelPart::NodeType& rNode, const TVarType& rVariable, const TDataType& value)
+    {
+      rNode.FastGetSolutionStepValue(rVariable) -= value;
+    }
+
+    template< class TVarType, class TDataType >
+    void MultiplyAssignValue(ModelPart::NodeType& rNode, const TVarType& rVariable, const TDataType& value)
+    {
+      rNode.FastGetSolutionStepValue(rVariable) *= value;
+    }
+
+    template< class TVarType, class TDataType >
+    void DivideAssignValue(ModelPart::NodeType& rNode, const TVarType& rVariable, const TDataType& value)
+    {
+      if(value!=0)
+        rNode.FastGetSolutionStepValue(rVariable) /= value;
+    }
+
+    // elements and conditions
+
+    template< class TEntityType, class TVarType, class TDataType >
+    void DirectAssignValue(TEntityType& rEntity, const TVarType& rVariable, const TDataType& value)
+    {
+      rEntity.SetValue(rVariable,value);
+    }
+
+    template< class TEntityType, class TVarType, class TDataType >
+    void AddAssignValue(TEntityType& rEntity, const TVarType& rVariable, const TDataType& value)
+    {
+      TDataType AddedValue = rEntity.GetValue(rVariable)+value;
+      rEntity.SetValue(rVariable,AddedValue);
+    }
+
+    template< class TEntityType, class TVarType, class TDataType >
+    void SubstractAssignValue(TEntityType& rEntity, const TVarType& rVariable, const TDataType& value)
+    {
+      TDataType SubstractedValue = rEntity.GetValue(rVariable)-value;
+      rEntity.SetValue(rVariable,SubstractedValue);
+    }
+
+    template< class TEntityType, class TVarType, class TDataType >
+    void MultiplyAssignValue(TEntityType& rEntity, const TVarType& rVariable, const TDataType value)
+    {
+      TDataType MultipliedValue = rEntity.GetValue(rVariable)*value;
+      rEntity.SetValue(rVariable,MultipliedValue);
+    }
+
+    template< class TEntityType, class TVarType, class TDataType >
+    void DivideAssignValue(TEntityType& rEntity, const TVarType& rVariable, const TDataType& value)
+    {
+      TDataType DividedValue = rEntity.GetValue(rVariable);
+      if(value!=0)
+        DividedValue/=value;
+      rEntity.SetValue(rVariable,DividedValue);
+    }
+
+    template< class TEntityType >
+    void MultiplyAssignValue(TEntityType& rEntity, const Variable<Vector>& rVariable, const Vector& value)
+    {
+      Vector MultipliedValue = rEntity.GetValue(rVariable);
+      for(unsigned int i=0; i<MultipliedValue.size(); ++i)
+      {
+        MultipliedValue[i]*=value[i];
+      }
+      rEntity.SetValue(rVariable,MultipliedValue);
+    }
+
+    template< class TEntityType >
+    void DivideAssignValue(TEntityType& rEntity, const Variable<Vector>& rVariable, const Vector& value)
+    {
+      Vector DividedValue = rEntity.GetValue(rVariable);
+      for(unsigned int i=0; i<DividedValue.size(); ++i)
+      {
+        if(value[i]!=0)
+          DividedValue[i]/=value[i];
+      }
+      rEntity.SetValue(rVariable,DividedValue);
+    }
+
+    template< class TEntityType >
+    void MultiplyAssignValue(TEntityType& rEntity, const Variable<array_1d<double,3>>& rVariable, const array_1d<double,3>& value)
+    {
+      Vector MultipliedValue = rEntity.GetValue(rVariable);
+      for(unsigned int i=0; i<3; ++i)
+      {
+        MultipliedValue[i]*=value[i];
+      }
+      rEntity.SetValue(rVariable,MultipliedValue);
+    }
+
+    template< class TEntityType >
+    void DivideAssignValue(TEntityType& rEntity, const Variable<array_1d<double,3>>& rVariable, const array_1d<double,3>& value)
+    {
+      Vector DividedValue = rEntity.GetValue(rVariable);
+      for(unsigned int i=0; i<3; ++i)
+      {
+        if(value[i]!=0)
+          DividedValue[i]/=value[i];
+      }
+      rEntity.SetValue(rVariable,DividedValue);
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -385,21 +544,42 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    std::string mvariable_name;
     double mdouble_value;
     int mint_value;
     bool mbool_value;
-    EntityType mEntity;
 
     ///@}
     ///@name Private Operators
     ///@{
 
     template< class TVarType, class TDataType >
-    void AssignValueToNodes(TVarType& rVar, const TDataType value)
+    void AssignValueToNodes(TVarType& rVariable, const TDataType value)
     {
         const int nnodes = mrModelPart.Nodes().size();
+
+        typedef void (AssignScalarVariableToEntitiesProcess::*AssignmentMethodPointer) (ModelPart::NodeType&, const TVarType&, const TDataType&);
+        AssignmentMethodPointer AssignmentMethod = nullptr;
+        switch( mAssignment )
+        {
+          case DIRECT:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::DirectAssignValue;
+            break;
+          case ADDITION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::AddAssignValue;
+            break;
+          case SUBSTRACTION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::SubstractAssignValue;
+            break;
+          case MULTIPLICATION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::MultiplyAssignValue;
+            break;
+          case DIVISION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::DivideAssignValue;
+            break;
+          default:
+            KRATOS_ERROR << "Unexpected value for Assigment method: " << mAssignment << std::endl;
+        }
+
 
         if(nnodes != 0)
         {
@@ -410,15 +590,38 @@ private:
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                it->FastGetSolutionStepValue(rVar) = value;
+                (this->*AssignmentMethod)(*it, rVariable, value);
             }
         }
     }
 
     template< class TVarType, class TDataType >
-    void AssignValueToConditions(TVarType& rVar, const TDataType value)
+    void AssignValueToConditions(TVarType& rVariable, const TDataType value)
     {
-      const int nconditions = mrModelPart.GetMesh().Conditions().size();
+        const int nconditions = mrModelPart.GetMesh().Conditions().size();
+
+        typedef void (AssignScalarVariableToEntitiesProcess::*AssignmentMethodPointer) (ModelPart::ConditionType&, const TVarType&, const TDataType&);
+        AssignmentMethodPointer AssignmentMethod = nullptr;
+        switch( mAssignment )
+        {
+          case DIRECT:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::DirectAssignValue;
+            break;
+          case ADDITION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::AddAssignValue;
+            break;
+          case SUBSTRACTION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::SubstractAssignValue;
+            break;
+          case MULTIPLICATION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::MultiplyAssignValue;
+            break;
+          case DIVISION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::DivideAssignValue;
+            break;
+          default:
+            KRATOS_ERROR << "Unexpected value for Assigment method: " << mAssignment << std::endl;
+        }
 
         if(nconditions != 0)
         {
@@ -429,15 +632,38 @@ private:
             {
                 ModelPart::ConditionsContainerType::iterator it = it_begin + i;
 
-                it->SetValue(rVar, value);
+                (this->*AssignmentMethod)(*it, rVariable, value);
             }
         }
     }
 
     template< class TVarType, class TDataType >
-    void AssignValueToElements(TVarType& rVar, const TDataType value)
+    void AssignValueToElements(TVarType& rVariable, const TDataType value)
     {
-      const int nelements = mrModelPart.GetMesh().Elements().size();
+        const int nelements = mrModelPart.GetMesh().Elements().size();
+
+        typedef void (AssignScalarVariableToEntitiesProcess::*AssignmentMethodPointer) (ModelPart::ElementType&, const TVarType&, const TDataType&);
+        AssignmentMethodPointer AssignmentMethod = nullptr;
+        switch( mAssignment )
+        {
+          case DIRECT:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::DirectAssignValue;
+            break;
+          case ADDITION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::AddAssignValue;
+            break;
+          case SUBSTRACTION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::SubstractAssignValue;
+            break;
+          case MULTIPLICATION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::MultiplyAssignValue;
+            break;
+          case DIVISION:
+            AssignmentMethod = &AssignScalarVariableToEntitiesProcess::DivideAssignValue;
+            break;
+          default:
+            KRATOS_ERROR << "Unexpected value for Assigment method: " << mAssignment << std::endl;
+        }
 
         if(nelements != 0)
         {
@@ -448,10 +674,12 @@ private:
             {
                 ModelPart::ElementsContainerType::iterator it = it_begin + i;
 
-                it->SetValue(rVar, value);
+                (this->*AssignmentMethod)(*it, rVariable, value);
             }
         }
     }
+
+
 
     ///@}
     ///@name Private Operations

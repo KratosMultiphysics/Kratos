@@ -57,7 +57,8 @@ public:
                 "variable_name": "VARIABLE_NAME",
                 "entity_type": "NODES",
                 "value" : [0.0, 0.0, 0.0],
-                "local_axes" : {}
+                "local_axes" : {},
+                "compound_assignment": "direct"
             }  )" );
 
 
@@ -118,6 +119,34 @@ public:
         mvector_value[0] = rParameters["value"][0].GetDouble();
         mvector_value[1] = rParameters["value"][1].GetDouble();
         mvector_value[2] = rParameters["value"][2].GetDouble();
+
+        //compound_assignment:
+
+        //implemented:
+        //  = direct
+        // += addition
+        // -= substraction
+        // *= multiplication
+        // /= division
+
+        if( rParameters["compound_assignment"].GetString() == "direct" ){
+          mAssignment = BaseType::DIRECT;
+        }
+        else if(  rParameters["compound_assignment"].GetString() == "addition" ){
+          mAssignment = BaseType::ADDITION;
+        }
+        else if(  rParameters["compound_assignment"].GetString() == "substraction" ){
+          mAssignment = BaseType::SUBSTRACTION;
+        }
+        else if(  rParameters["compound_assignment"].GetString() == "multiplication" ){
+          mAssignment = BaseType::MULTIPLICATION;
+        }
+        else if(  rParameters["compound_assignment"].GetString() == "division" ){
+          mAssignment = BaseType::DIVISION;
+        }
+        else{
+          KRATOS_ERROR <<" Assignment type "<< rParameters["compound_assignment"].GetString() << " is not supported " << std::endl;
+        }
 
         KRATOS_CATCH("");
     }
@@ -223,6 +252,7 @@ public:
 
         if( this->mEntity == CONDITIONS ){
 
+          mAssignment = BaseType::DIRECT;
           if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
           {
 
@@ -376,6 +406,30 @@ private:
     template< class TVarType, class TDataType >
     void AssignValueToConditions(TVarType& rVariable, TDataType& Value, const double& rTime )
     {
+
+        typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ConditionType&, const TVarType&, const TDataType&);
+        AssignmentMethodPointer AssignmentMethod = nullptr;
+        switch( this->mAssignment )
+        {
+          case DIRECT:
+            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::DirectAssignValue;
+            break;
+          case ADDITION:
+            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::AddAssignValue;
+            break;
+          case SUBSTRACTION:
+            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::SubstractAssignValue;
+            break;
+          case MULTIPLICATION:
+            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::MultiplyAssignValue;
+            break;
+          case DIVISION:
+            AssignmentMethod = &AssignVectorFieldToEntitiesProcess::DivideAssignValue;
+            break;
+          default:
+            KRATOS_ERROR << "Unexpected value for Assigment method: " << this->mAssignment << std::endl;
+        }
+
         const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
@@ -389,7 +443,7 @@ private:
 
 		this->CallFunction<TDataType>(*(it.base()), rTime, Value);
 
-                it->SetValue(rVariable, Value);
+                (this->*AssignmentMethod)(*it, rVariable, Value);
             }
         }
 
@@ -399,6 +453,9 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+
+
     ///@}
     ///@name Private  Access
     ///@{
