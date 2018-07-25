@@ -40,7 +40,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5NonHistoricalNodalValueIO_WriteNodalResults1, Krat
                               "EXTERNAL_FORCES_VECTOR",
                               "CONSTITUTIVE_MATRIX"]
         })");
-    ModelPart& r_write_model_part = Kernel::GetModel().CreateModelPart("test_write");
+    Model this_model;
+    ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     TestModelPartFactory::CreateModelPart(r_write_model_part);
     TestModelPartFactory::AssignNonHistoricalNodalTestData(
         r_write_model_part, {{"DENSITY"},
@@ -53,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5NonHistoricalNodalValueIO_WriteNodalResults1, Krat
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     HDF5::NonHistoricalNodalValueIO nodal_value_io(settings, p_file);
     nodal_value_io.WriteNodalResults(r_write_model_part.Nodes());
-    ModelPart& r_read_model_part = Kernel::GetModel().CreateModelPart("test_read");
+    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     model_part_io.ReadNodes(r_read_model_part.Nodes());
     nodal_value_io.ReadNodalResults(r_read_model_part.Nodes(),
                                     r_read_model_part.GetCommunicator());

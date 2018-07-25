@@ -41,8 +41,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
         })");
     auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
 
-    ModelPart& r_read_model_part = Kernel::GetModel().CreateModelPart("test_read");
-    ModelPart& r_write_model_part = Kernel::GetModel().CreateModelPart("test_write");
+    Model this_model;
+    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
+    ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}});
     TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}});
 
