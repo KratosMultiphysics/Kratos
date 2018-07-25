@@ -295,29 +295,30 @@ public:
 
         #pragma omp parallel for firstprivate(it_begin)
         for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+            auto it_node = (it_begin + i);
             bool check_has_all_variables = true;
             double E(0.0), nu(0.0), roh(0.0), alpha(0.0), beta(0.0);
             // get geometric and material properties
-            if ((it_begin + i)->GetProperties().Has(RAYLEIGH_ALPHA)) {
-                alpha = (it_begin + i)->GetProperties()[RAYLEIGH_ALPHA];
+            if (it_node->GetProperties().Has(RAYLEIGH_ALPHA)) {
+                alpha = it_node->GetProperties()[RAYLEIGH_ALPHA];
             }
-            if ((it_begin + i)->GetProperties().Has(RAYLEIGH_BETA)) {
-                beta = (it_begin + i)->GetProperties()[RAYLEIGH_BETA];
+            if (it_node->GetProperties().Has(RAYLEIGH_BETA)) {
+                beta = it_node->GetProperties()[RAYLEIGH_BETA];
             }
-            if ((it_begin + i)->GetProperties().Has(YOUNG_MODULUS)) {
-                E = (it_begin + i)->GetProperties()[YOUNG_MODULUS];
+            if (it_node->GetProperties().Has(YOUNG_MODULUS)) {
+                E = it_node->GetProperties()[YOUNG_MODULUS];
             } else
                 check_has_all_variables = false;
-            if ((it_begin + i)->GetProperties().Has(POISSON_RATIO)) {
-                nu = (it_begin + i)->GetProperties()[POISSON_RATIO];
+            if (it_node->GetProperties().Has(POISSON_RATIO)) {
+                nu = it_node->GetProperties()[POISSON_RATIO];
             }
-            if ((it_begin + i)->GetProperties().Has(DENSITY)) {
-                roh = (it_begin + i)->GetProperties()[DENSITY];
+            if (it_node->GetProperties().Has(DENSITY)) {
+                roh = it_node->GetProperties()[DENSITY];
             } else
                 check_has_all_variables = false;
 
             if (check_has_all_variables) {
-                const double length = (it_begin + i)->GetGeometry().Length();
+                const double length = it_node->GetGeometry().Length();
 
                 // compute courant criterion
                 const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
