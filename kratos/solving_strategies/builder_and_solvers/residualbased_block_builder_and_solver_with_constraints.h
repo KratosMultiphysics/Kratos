@@ -767,7 +767,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             return;
         }
-        // TODO: make sure that the order of the masters is same in the loops, in that case, the order of all the vectors should be same
+
         MatrixType lhs_contribution = rLHSContribution;
         VectorType rhs_contribution = rRHSContribution;
         typename TContainerType::EquationIdVectorType equation_ids= rEquationIds;
@@ -937,6 +937,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         //contributions to the system
         VectorType master_weights_vector;
         double constant = 0.0;
+        double slave_dx_value = 0.0;
         IndexType slave_equation_id = 0;
         EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
 
@@ -944,7 +945,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
 
-            double slave_dx_value = 0.0;
+            slave_dx_value = 0.0;
             //get the equation Ids of the constraint
             (*it).EquationIdVector(slave_equation_id, master_equation_ids, r_current_process_info);
             //calculate constraint's T and b matrices
