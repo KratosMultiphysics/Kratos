@@ -592,17 +592,6 @@ class Procedures(object):
 
     def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part):
         pass
-        # no need to initialize nodal values
-
-        #for mesh_number in range(0, spheres_model_part.NumberOfSubModelParts()):
-        #    mesh_nodes = self.aux.GetIthSubModelPartNodes(spheres_model_part, mesh_number)
-
-        #    for node in mesh_nodes:
-        #        node.SetSolutionStepValue(NORMAL_IMPACT_VELOCITY, 0.0)
-        #        node.SetSolutionStepValue(TANGENTIAL_IMPACT_VELOCITY, 0.0)
-        #        node.SetSolutionStepValue(FACE_NORMAL_IMPACT_VELOCITY, 0.0)
-        #        node.SetSolutionStepValue(FACE_TANGENTIAL_IMPACT_VELOCITY, 0.0)
-        #        node.SetSolutionStepValue(LINEAR_IMPULSE, 0.0)
 
     @classmethod
     def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, DEM_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
