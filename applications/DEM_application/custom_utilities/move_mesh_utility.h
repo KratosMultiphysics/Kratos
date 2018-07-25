@@ -38,7 +38,7 @@ namespace  Kratos
             MoveMeshUtility() {};
             ~MoveMeshUtility() {};
 
-            void MoveDemMesh(NodesContainerType& rNodes, const bool& rSetDeltaDisplacement) const;
+            void MoveDemMesh(NodesContainerType& rNodes, const bool rSetDeltaDisplacement) const;
     }; // MoveMeshUtility
 } //  Kratos
 
