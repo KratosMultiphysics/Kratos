@@ -30,10 +30,6 @@
 namespace Kratos
 {
 typedef array_1d<double, 3> Vector3;
-<<<<<<< HEAD
-=======
-
->>>>>>> StrMech-mpc-cleanup
     // General pourpose
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, int, INTEGRATION_ORDER); // The integration order considered on the element
 
