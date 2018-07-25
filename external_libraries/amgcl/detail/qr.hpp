@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -87,8 +87,6 @@ THE SOFTWARE.
 #include <vector>
 #include <complex>
 #include <cmath>
-
-#include <boost/math/special_functions/sign.hpp>
 
 #include <amgcl/util.hpp>
 #include <amgcl/value_type/interface.hpp>
@@ -385,7 +383,7 @@ class QR {
 
             if (math::is_zero(xnorm2)) return tau;
 
-            scalar_type beta = -boost::math::copysign(sqrt(sqr(math::norm(alpha)) + xnorm2), amgcl::detail::real(alpha));
+            scalar_type beta = -std::copysign(sqrt(sqr(math::norm(alpha)) + xnorm2), amgcl::detail::real(alpha));
 
             tau = math::identity<value_type>() - math::inverse(beta) * alpha;
             alpha = math::inverse(alpha - beta * math::identity<value_type>());
@@ -462,7 +460,7 @@ class QR {
 };
 
 template <class value_type>
-class QR<value_type, typename boost::enable_if< math::is_static_matrix<value_type> >::type>
+class QR<value_type, typename std::enable_if<math::is_static_matrix<value_type>::value>::type>
 {
     public:
         typedef typename amgcl::math::rhs_of<value_type>::type rhs_type;
