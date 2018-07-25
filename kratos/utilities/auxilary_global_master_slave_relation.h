@@ -14,9 +14,6 @@
 #define AUXILARY_GLOBAL_MASTER_SLAVE_RELATION
 // System includes
 #include <vector>
-#include <unordered_set>
-#include <iostream>
-#include <assert.h>
 
 // project includes
 #include "includes/define.h"
@@ -49,21 +46,20 @@ namespace Kratos
 class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 {
   public:
-    typedef std::size_t IndexType;
+    typedef IndexedObject BaseType;
+    typedef BaseType::IndexType IndexType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
     typedef std::vector<IndexType> EquationIdVectorType;
     KRATOS_CLASS_POINTER_DEFINITION(AuxilaryGlobalMasterSlaveRelation);
 
     // empty constructor and methods to add master and slave independently.
-    AuxilaryGlobalMasterSlaveRelation() : IndexedObject(0)
+    AuxilaryGlobalMasterSlaveRelation() : IndexedObject(0), mConstant(0.0)
     {
-        mConstant = 0.0;
     }
 
-    AuxilaryGlobalMasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId)
+    AuxilaryGlobalMasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId), mConstant(0.0)
     {
-        mConstant = 0.0;
     }
 
     /**
@@ -111,7 +107,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 
         rSlaveEquationId = this->SlaveEquationId();
 
-        for (IndexType i = 0; i < this->GetNumberOfMasters(); i++)
+        for (IndexType i = 0; i < this->GetNumberOfMasters(); ++i)
         {
             rMasterEquationIds[i] = mMasterEquationIdVector[i];
         }
@@ -134,7 +130,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
             rMasterWeightsVector.resize(this->GetNumberOfMasters(), false);
         }
 
-        for (IndexType i = 0; i < this->GetNumberOfMasters(); i++)
+        for (IndexType i = 0; i < this->GetNumberOfMasters(); ++i)
             rMasterWeightsVector(i) = mMasterWeightsVector[i];
 
 
@@ -180,12 +176,16 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer &rSerializer) const override
+    void save(Serializer &rSerializer) const override
     {
+        // No need to save anything from this class as they will be reconstructed
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
     }
 
-    virtual void load(Serializer &rSerializer) override
-    {
+    void load(Serializer &rSerializer) override
+    {   
+        // No need to load anything from this class as they will be reconstructed
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
     }
 
     int MasterEquationIdExists(IndexType MasterEquationId)
