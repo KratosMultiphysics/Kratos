@@ -237,9 +237,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_CATCH("")
     }
 
-    //**************************************************************************
-    //**************************************************************************
-
     void InitializeSolutionStep(
         ModelPart &rModelPart,
         TSystemMatrixType &A,
@@ -248,6 +245,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
 
+        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp for schedule(guided, 512)
@@ -257,11 +255,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             it->InitializeSolutionStep(); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to intialize")
     }
 
-    //**************************************************************************
-    //**************************************************************************
 
     void FinalizeSolutionStep(
         ModelPart &rModelPart,
@@ -269,6 +265,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
     {
+        KRATOS_TRY
+        BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp for schedule(guided, 512)
@@ -277,6 +275,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + k;
             it->FinalizeSolutionStep();
         }
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to finalize")
     }
 
     ///@}
@@ -715,9 +714,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
 
         //get the equation Ids of the constraint
-        (*it).EquationIdVector(slave_equation_ids, master_equation_ids, rCurrentProcessInfo);
+        rMasterSlaveConstraint.EquationIdVector(slave_equation_ids, master_equation_ids, rCurrentProcessInfo);
         //calculate constraint's T and b matrices
-        (*it).CalculateLocalSystem(relation_matrix, constant_vector, rCurrentProcessInfo);
+        rMasterSlaveConstraint.CalculateLocalSystem(relation_matrix, constant_vector, rCurrentProcessInfo);
         // For calculating the constant
         MasterSlaveConstraintType::DofPointerVectorType slave_dofs_vector;
         MasterSlaveConstraintType::DofPointerVectorType master_dofs_vector;
@@ -1012,18 +1011,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      */
     bool HasSlaveNode(GeometryType& rGeometry)
     {
-        bool slave_found = false;
-        const SizeType number_of_nodes = rGeometry.PointsNumber();
-        for (IndexType j = 0; j < number_of_nodes; j++)
-        {
-            if (rGeometry[j].IsDefined(SLAVE))
-                slave_found = rGeometry[j].Is(SLAVE);
-            if (slave_found)
-            {
-                break;
-            }
-        }
-        return slave_found;
+        for(auto& node : rGeometry)
+            if (node.IsDefined(SLAVE))
+                if ( node.Is(SLAVE) )
+                    return true;
+        return false;
     }
 
     ///@}
