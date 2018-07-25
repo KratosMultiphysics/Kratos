@@ -161,6 +161,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def( init< double, double, std::string >())
             .def(init< double, double>())
             ;
+
+    //********************************************************************
+    //*************************BUILDER AND SOLVER*************************
+    //********************************************************************
 }
 
 }  // namespace Python.
