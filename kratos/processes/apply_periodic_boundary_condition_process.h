@@ -120,6 +120,7 @@ class ApplyPeriodicConditionProcess : public Process
         else if (mTheta == 0.0 && mModulus == 0.0)
             KRATOS_THROW_ERROR(std::runtime_error, "Both angle of rotation and modulus of translation cannot be zero. Please check the input", "");
 
+        CalculateTransformationMatrix();
         mIsInitialized = false;
     }
     ~ApplyPeriodicConditionProcess()
@@ -174,6 +175,87 @@ class ApplyPeriodicConditionProcess : public Process
     void ApplyConstraintsForPeriodicConditions()
     {
     }
+
+
+
+    void CalculateTransformationMatrix()
+    {
+
+        if (mType == "translation")
+            CalculateTranslationMatrix();
+        else if (mType == "rotation")
+            CalculateRoatationMatrix();
+    }
+
+    void CalculateTranslationMatrix()
+    {
+        mTransformationMatrix[0][0] = 1;
+        mTransformationMatrix[0][1] = 0;
+        mTransformationMatrix[0][2] = 0;
+        mTransformationMatrix[0][3] = mModulus * mDirOfTranslation[0];
+        mTransformationMatrix[1][0] = 0;
+        mTransformationMatrix[1][1] = 1.0;
+        mTransformationMatrix[1][2] = 0;
+        mTransformationMatrix[1][3] = mModulus * mDirOfTranslation[1];
+        mTransformationMatrix[2][0] = 0;
+        mTransformationMatrix[2][1] = 0;
+        mTransformationMatrix[2][2] = 1.0;
+        mTransformationMatrix[2][3] = mModulus * mDirOfTranslation[2];
+        mTransformationMatrix[3][3] = 1.0;
+    }
+
+    void CalculateRoatationMatrix()
+    {
+        std::vector<double> U(3); // normalized axis of rotation
+        // normalizing the axis of roatation
+        double norm = 0.0;
+        for (unsigned int d = 0; d < 3; ++d)
+            norm += mAxisOfRoationVector[d] * mAxisOfRoationVector[d];
+        norm = sqrt(norm);
+        for (unsigned int d = 0; d < 3; ++d)
+            U[d] = mAxisOfRoationVector[d] / norm;
+
+        // Constructing the transformation matrix
+        double x1 = mCenterOfRotation[0];
+        double y1 = mCenterOfRotation[1];
+        double z1 = mCenterOfRotation[2];
+
+        double a = U[0];
+        double b = U[1];
+        double c = U[2];
+        //double eps = 1e-12;
+
+        double t2 = cos(mTheta);
+        double t3 = sin(mTheta);
+        double t4 = a * a;
+        double t5 = b * b;
+        double t6 = c * c;
+        double t7 = a * b;
+        double t8 = t5 + t6;
+        double t9 = 1.0 / t8;
+        if(isnan(t9))
+            t9 = 0.0;
+        double t10 = a * c;
+        double t11 = b * t3;
+        double t12 = a * t3 * t5;
+        double t13 = a * t3 * t6;
+        double t14 = b * c * t2;
+        mTransformationMatrix[0][0] = t4 + t2 * t8;
+        mTransformationMatrix[0][1] = t7 - c * t3 - a * b * t2;
+        mTransformationMatrix[0][2] = t10 + t11 - a * c * t2;
+        mTransformationMatrix[0][3] = x1 - t4 * x1 - a * b * y1 - a * c * z1 - b * t3 * z1 + c * t3 * y1 - t2 * t5 * x1 - t2 * t6 * x1 + a * b * t2 * y1 + a * c * t2 * z1;
+        mTransformationMatrix[1][0] = t7 + c * t3 - a * b * t2;
+        mTransformationMatrix[1][1] = t9 * (t2 * t6 + t5 * t8 + t2 * t4 * t5);
+        mTransformationMatrix[1][2] = -t9 * (t12 + t13 + t14 - b * c * t8 - b * c * t2 * t4);
+        mTransformationMatrix[1][3] = -t9 * (-t8 * y1 + t2 * t6 * y1 + t5 * t8 * y1 + a * b * t8 * x1 - b * c * t2 * z1 + b * c * t8 * z1 - a * t3 * t5 * z1 - a * t3 * t6 * z1 + c * t3 * t8 * x1 + t2 * t4 * t5 * y1 - a * b * t2 * t8 * x1 + b * c * t2 * t4 * z1);
+        mTransformationMatrix[2][0] = t10 - t11 - a * c * t2;
+        mTransformationMatrix[2][1] = t9 * (t12 + t13 - t14 + b * c * t8 + b * c * t2 * t4);
+        mTransformationMatrix[2][2] = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
+        mTransformationMatrix[2][3] = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
+        mTransformationMatrix[3][3] = 1.0;
+    }
+
+
 
 };
 
