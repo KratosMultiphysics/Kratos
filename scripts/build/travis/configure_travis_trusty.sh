@@ -83,7 +83,7 @@ CXX_WARN_FLAGS="-Wall"
 #        CXX_CUSTOM_FLAGS="-fmessage-length=20"
 # --------------------------------------------------------------------------------------------------------------
 C_CUSTOM_FLAGS=""
-CXX_CUSTOM_FLAGS=""
+CXX_CUSTOM_FLAGS="-Werror=suggest-override -Werror=unused-variable"
 
 CMAKE_LIBS=(
   # Boost
