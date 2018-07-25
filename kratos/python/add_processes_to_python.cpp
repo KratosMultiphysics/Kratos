@@ -52,6 +52,7 @@
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/simple_mortar_mapper_process.h"
 #include "processes/skin_detection_process.h"
+#include "processes/apply_periodic_boundary_condition_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -362,6 +363,10 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
         ;
+
+    class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
+            .def(init<ModelPart&, Parameters>())
+    ;
 }
 
 }  // namespace Python.
