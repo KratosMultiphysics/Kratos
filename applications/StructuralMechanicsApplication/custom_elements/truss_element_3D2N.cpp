@@ -588,7 +588,7 @@ void TrussElement3D2N::CreateTransformationMatrix(
     direction_vector_z[0] = 1.0;
   }
 
-  if (fabs(direction_vector_x[2]) != 1.00) {
+  if (std::abs(direction_vector_x[2]) != 1.00) {
     MathUtils<double>::UnitCrossProduct(direction_vector_y, direction_vector_x,
                                         global_z_vector);
     MathUtils<double>::UnitCrossProduct(direction_vector_z, direction_vector_y,
