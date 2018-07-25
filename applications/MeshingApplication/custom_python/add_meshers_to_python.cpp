@@ -38,7 +38,7 @@
 #include "external_includes/trigen_glass_forming.h"
 
 #include "external_includes/trigen_droplet_refine.h"
-
+#include "external_includes/trigen_injection_refine.h"
 
 //#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
@@ -165,6 +165,20 @@ void TriRegenerateMeshDroplet(TriGenDropletModeler& Mesher, char* ElementName, c
                           KratosComponents<Condition>::Get(ConditionName),NodeErase, RemNodes, AddNodes, AlphaShape, HFactor     );
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                       //
+//          ADAPTIVE 2D MESHER specifically for DROPLET_INJECTION FORMING                //
+//                                                                                       //
+///////////////////////////////////////////////////////////////////////////////////////////
+
+void TriRegenerateMeshInjection(TriGenInjectionModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+{
+    Mesher.ReGenerateMeshInjection(rModelPart,
+                          KratosComponents<Element>::Get(ElementName),
+                          KratosComponents<Condition>::Get(ConditionName),NodeErase, RemNodes, AddNodes, AlphaShape, HFactor     );
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                       //
 //                             BOUNDARY CONFORMANT 2D MESHER                             //
@@ -263,6 +277,11 @@ void  AddMeshersToPython(pybind11::module& m)
     .def("ReGenerateMeshDroplet",&TriGenDropletModeler::ReGenerateMeshDroplet)
     ;
 
+    class_<TriGenInjectionModeler, TriGenInjectionModeler::Pointer >(m,"TriGenInjectionModeler")
+    .def(init< >())
+    .def("ReGenerateMeshInjection",TriRegenerateMeshInjection)
+    .def("ReGenerateMeshInjection",&TriGenInjectionModeler::ReGenerateMeshInjection)
+    ;
 
     class_<TriGenPFEMModelerVMS, TriGenPFEMModelerVMS::Pointer>(m, "TriGenPFEMModelerVMS")
     .def(init< >())
@@ -281,4 +300,3 @@ void  AddMeshersToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

@@ -59,6 +59,9 @@ KratosULFApplication::KratosULFApplication():
     mPointNeumannAxisym(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mSurfaceTension2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mPointNeumannMonolithic2D(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mProjDirichletCond3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
     mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 ))))
 
 {}
@@ -69,8 +72,6 @@ void KratosULFApplication::Register()
     // calling base class register to register Kratos components
     KratosApplication::Register();
     std::cout << "Initializing Kratos ULFApplication... " << std::endl;
-
-
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
@@ -89,13 +90,11 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_VARIABLE( PRINCIPAL_CURVATURE_2 )
     KRATOS_REGISTER_VARIABLE(SUBSCALE_PRESSURE)
     KRATOS_REGISTER_VARIABLE(INITIAL_MESH_SIZE)
-    
     KRATOS_REGISTER_VARIABLE(DISSIPATIVE_FORCE_COEFF_JM)
     KRATOS_REGISTER_VARIABLE(DISSIPATIVE_FORCE_COEFF_BM)
     KRATOS_REGISTER_VARIABLE(DISSIPATIVE_FORCE_COEFF_SM)
 //     KRATOS_REGISTER_VARIABLE(SOLID_LIQIUD_SURFTENS_COEFF)
 //     KRATOS_REGISTER_VARIABLE(SOLID_AIR_SURFTENS_COEFF)
-    
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VISCOUS_STRESSX )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VISCOUS_STRESSY )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VISCOUS_STRESSZ ) 
@@ -107,15 +106,15 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CONTACT_LINE_EQUILIBRIUM )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_TRIPLE_POINT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_CONTACT_LINE )
-//     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SOLID_FRACTION_GRADIENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SOLID_FRACTION_GRADIENT_PROJECTED )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SUBSCALE_VELOCITY)
-
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
     //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
     //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY) 
     //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL1)
+    KRATOS_REGISTER_VARIABLE(DISABLE)
+
 
 
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid2D", mUpdatedLagrangianFluid2D);
@@ -130,11 +129,15 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_CONDITION("PointNeumann3D", mPointNeumann3D);
     KRATOS_REGISTER_CONDITION("PointNeumann2D", mPointNeumann2D);
     KRATOS_REGISTER_CONDITION("PointNeumannAxisym", mPointNeumannAxisym);
+    KRATOS_REGISTER_CONDITION("ProjDirichletCond", mProjDirichletCond);
     
     KRATOS_REGISTER_ELEMENT("SurfaceTension2D3N",mSurfaceTension2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("SurfaceTension3D4N",mSurfaceTension3D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("SurfaceTension2D",mSurfaceTension2D);
     KRATOS_REGISTER_ELEMENT("SurfaceTension3D",mSurfaceTension3D);
+    KRATOS_REGISTER_CONDITION("ProjDirichletCond", mProjDirichletCond);
+    KRATOS_REGISTER_CONDITION("ProjDirichletCond3D", mProjDirichletCond3D);
+    KRATOS_REGISTER_CONDITION("PointNeumannMonolithic2D", mPointNeumannMonolithic2D);
 
 
 }
