@@ -86,7 +86,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * @param RhsValue the value of the lhs (the slave dof value)
      */
     void SetRHSValue(double const &RhsValue) { mRhsValue = RhsValue; }
-    void UpdateRhsValue(double const &RhsValueUpdate)
+    void UpdateRHSValue(double const &RhsValueUpdate)
     {
         mRhsValue += RhsValueUpdate;
     }
