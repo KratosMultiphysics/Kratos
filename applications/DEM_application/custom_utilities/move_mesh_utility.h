@@ -49,7 +49,8 @@ namespace  Kratos
             ~MoveMeshUtility() {};
 
         /**
-         * @brief This function is the main operation of this utility. It sorts the reference matrix w.r.t. the given dofs and condenses the reference matrix by using the following inputs:
+         * @brief This function is the main operation of this utility.
+         *        It moves the nodes of a given model part w.r.t. the current DISPLACEMENT
          * @param rNodes The nodes array of a model part
          * @param SetDeltaDisplacement A boolean to also update DELTA_DISPLACEMENT
          */
