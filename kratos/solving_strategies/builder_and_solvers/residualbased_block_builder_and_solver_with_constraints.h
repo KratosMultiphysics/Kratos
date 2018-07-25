@@ -719,18 +719,18 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     // Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
     template <typename TContainerType>
     void ApplyConstraints(ModelPart &rModelPart,
-                          TContainerType& pCurrentContainer,
+                          TContainerType& rCurrentContainer,
                           typename TContainerType::EquationIdVectorType &rEquationIds,
                           ProcessInfo &rCurrentProcessInfo)
     {
         // If no slave is found for this container , no need of going on
-        if (! HasSlaveNode(pCurrentContainer.GetGeometry()))
+        if (! HasSlaveNode(rCurrentContainer.GetGeometry()))
         {
             return;
         }
         DofsVectorType container_dofs;
         typename TContainerType::EquationIdVectorType master_equation_ids;
-        pCurrentContainer.GetDofList(container_dofs, rCurrentProcessInfo);
+        rCurrentContainer.GetDofList(container_dofs, rCurrentProcessInfo);
         IndexType slave_equation_id;
 
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
@@ -753,7 +753,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
     template <typename TContainerType>
     void ApplyConstraints(ModelPart &rModelPart,
-                          TContainerType& pCurrentContainer,
+                          TContainerType& rCurrentContainer,
                           LocalSystemMatrixType &rLHSContribution,
                           LocalSystemVectorType &rRHSContribution,
                           typename TContainerType::EquationIdVectorType &rEquationIds,
@@ -763,7 +763,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         KRATOS_TRY
         // If no slave is found for this container , no need of going on
-        if (! HasSlaveNode(pCurrentContainer.GetGeometry()))
+        if (! HasSlaveNode(rCurrentContainer.GetGeometry()))
         {
             return;
         }
@@ -800,7 +800,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         std::set_difference(local_index_vector.begin(), local_index_vector.end(), local_slave_index_vector.begin(), local_slave_index_vector.end(), std::back_inserter(local_internal_index_vector));
 
         // first fill in the rEquationIds using the above function (overloaded one)
-        ApplyConstraints<TContainerType>(rModelPart, pCurrentContainer, rEquationIds, rCurrentProcessInfo); // now rEquationIds has all the slave equation ids appended to it.
+        ApplyConstraints<TContainerType>(rModelPart, rCurrentContainer, rEquationIds, rCurrentProcessInfo); // now rEquationIds has all the slave equation ids appended to it.
 
         // Get number of master indices for this current container
         const SizeType total_number_of_masters = rEquationIds.size() - initial_sys_size;
