@@ -579,7 +579,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      *          matrix and the right hand side
      * @param   rModelPart The model part of the problem to solve
      */
-    void FormulateGlobalMasterSlaveRelations(ModelPart &rModelPart)
+    void FormulateGlobalMasterSlaveRelations(ModelPart& rModelPart)
     {
         KRATOS_TRY
         // First delete the existing ones
@@ -655,7 +655,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @brief   this method resets the LHS and RHS values of the AuxilaryGlobalMasterSlaveRelation objects
      * @param   rModelPart The model part of the problem to solve
      */
-    void ResetConstraintRelations(ModelPart &rModelPart)
+    void ResetConstraintRelations(ModelPart& rModelPart)
     {
         KRATOS_TRY
         const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
@@ -677,7 +677,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      *          of the AuxilaryGlobalMasterSlaveRelation objects. That is the value of Slave as LHS and the T*M+C as RHS value
      * @param   rModelPart The model part of the problem to solve
      */
-    void UpdateConstraintsForBuilding(ModelPart &rModelPart)
+    void UpdateConstraintsForBuilding(ModelPart& rModelPart)
     {
         KRATOS_TRY
         // Reset the constraint equations
@@ -759,10 +759,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @param   rCurrentProcessInfo the current process info
      */
     template <typename TContainerType>
-    void ApplyConstraints(ModelPart &rModelPart,
+    void ApplyConstraints(ModelPart& rModelPart,
                           TContainerType& rCurrentContainer,
-                          typename TContainerType::EquationIdVectorType &rEquationIds,
-                          ProcessInfo &rCurrentProcessInfo)
+                          typename TContainerType::EquationIdVectorType& rEquationIds,
+                          ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         // If no slave is found for this container , no need of going on
@@ -806,12 +806,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @param   rCurrentProcessInfo the current process info
      */
     template <typename TContainerType>
-    void ApplyConstraints(ModelPart &rModelPart,
+    void ApplyConstraints(ModelPart& rModelPart,
                           TContainerType& rCurrentContainer,
-                          LocalSystemMatrixType &rLHSContribution,
-                          LocalSystemVectorType &rRHSContribution,
-                          typename TContainerType::EquationIdVectorType &rEquationIds,
-                          ProcessInfo &rCurrentProcessInfo)
+                          LocalSystemMatrixType& rLHSContribution,
+                          LocalSystemVectorType& rRHSContribution,
+                          typename TContainerType::EquationIdVectorType& rEquationIds,
+                          ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         // If no slave is found for this container , no need of going on
@@ -1047,10 +1047,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @param b RHS vector (residual)
      */
     void ReconstructSlaveSolutionAfterSolve(
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb)
     {
         KRATOS_TRY
         const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
