@@ -85,7 +85,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
      * @param RhsValue the value of the lhs (the slave dof value)
      */
-    void SetRhsValue(double const &RhsValue) { mRhsValue = RhsValue; }
+    void SetRHSValue(double const &RhsValue) { mRhsValue = RhsValue; }
     void UpdateRhsValue(double const &RhsValueUpdate)
     {
         mRhsValue += RhsValueUpdate;

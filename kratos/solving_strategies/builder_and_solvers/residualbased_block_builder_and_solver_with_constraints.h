@@ -15,8 +15,6 @@
 
 /* System includes */
 #include <unordered_set>
-// #include <iostream>
-// #include <fstream>
 
 /* External includes */
 // #define USE_GOOGLE_HASH
@@ -580,6 +578,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     ///@name Private Operations
     ///@{
 
+
+    /**
+     * this method condences the MasterSlaveConstraints which are added on the rModelPart
+     * into objects of AuxilaryGlobalMasterSlaveRelation. One unique object for each unique slave.
+     * these will be used in the ApplyConstraints functions late on.
+     * matrix and the right hand side
+     * @param rModelPart The model part of the problem to solve
+     */
     void FormulateGlobalMasterSlaveRelations(ModelPart &rModelPart)
     {
 
@@ -638,26 +644,30 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
     }
 
+    /**
+     * this method resets the LHS and RHS values of the AuxilaryGlobalMasterSlaveRelation objects
+     * @param rModelPart The model part of the problem to solve
+     */
     void ResetConstraintRelations(ModelPart &rModelPart)
     {
         const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
         // Getting the beginning iterator
 
         GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveRelations.begin();
-        //contributions to the system
-        LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
-        EquationIdVectorType slave_equation_ids = EquationIdVectorType(0);
-        EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
 
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
             (*it).SetLHSValue(0.0);
-            (*it).SetRhsValue(0.0);
+            (*it).SetRHSValue(0.0);
         }
     }
 
+    /**
+     * this method uses the MasterSlaveConstraints objects in rModelPart to reconstruct the LHS and RHS values
+     * of the AuxilaryGlobalMasterSlaveRelation objects. That is the value of Slave as LHS and the T*M+C as RHS value
+     * @param rModelPart The model part of the problem to solve
+     */
     void UpdateConstraintsForBuilding(ModelPart &rModelPart)
     {
         // Reset the constraint equations
@@ -708,7 +718,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                     slave_value = slave_dof->GetSolutionStepValue();
                     auto global_constraint = mGlobalMasterSlaveRelations.find(slave_dof->EquationId());
                     global_constraint->SetLHSValue(slave_value);
-                    global_constraint->UpdateRhsValue(slave_value_calc);
+                    global_constraint->UpdateRHSValue(slave_value_calc);
                     slave_index++;
                 }
             }
