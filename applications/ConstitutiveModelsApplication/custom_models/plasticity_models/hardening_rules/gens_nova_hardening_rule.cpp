@@ -146,8 +146,8 @@ namespace Kratos
     }
     NormPlasticPotDerivative = sqrt( NormPlasticPotDerivative); 
 
-    const double & chis = rMaterialProperties[ALPHA];
-    const double & chit = rMaterialProperties[BETA];
+    const double & chis = rMaterialProperties[CHIS];
+    const double & chit = rMaterialProperties[CHIT];
 
     rDeltaHardening = (-MeanStressT) * rhos * (+rPS )* (TracePlasticPotDerivative + chis * sqrt(2.0/3.0) * NormPlasticPotDerivative );
  rDeltaHardening += (-MeanStressT) * ( 1.0 + k) * (rhot) * (-rPT) * ( fabs(TracePlasticPotDerivative) + chit*sqrt(2.0/3.0) * NormPlasticPotDerivative);

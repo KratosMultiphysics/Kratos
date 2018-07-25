@@ -223,6 +223,10 @@ Begin Properties *MatNum
 *format "%10.5e"
  RHOT *MatProp(RHOT,real)
 *format "%10.5e"
+ CHIS *MatProp(CHIS,real)
+*format "%10.5e"
+ CHIT *MatProp(CHIT,real)
+*format "%10.5e"
  DENSITY_WATER *MatProp(WATER_DENSITY,real)
 *format "%10.5e"
  WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)

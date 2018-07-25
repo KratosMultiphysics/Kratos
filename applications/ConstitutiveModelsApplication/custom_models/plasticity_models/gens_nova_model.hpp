@@ -366,12 +366,12 @@ namespace Kratos
 
                const ModelDataType & rModelData = rVariables.GetModelData();
                const Properties & rMaterialProperties = rModelData.GetMaterialProperties();
-               double rhos = rMaterialProperties[RHOS];
-               double rhot = rMaterialProperties[RHOT];
+               const double & rhos = rMaterialProperties[RHOS];
+               const double & rhot = rMaterialProperties[RHOT];
                double k =  rMaterialProperties[KSIM];
       
-               const double & chis = rMaterialProperties[ALPHA];
-               const double & chit = rMaterialProperties[BETA];
+               const double & rChis = rMaterialProperties[CHIS];
+               const double & rChit = rMaterialProperties[CHIT];
 
                MatrixType StressMatrix;
                // evaluate constitutive matrix and plastic flow
@@ -435,8 +435,8 @@ namespace Kratos
                rPlasticDevDef += DevPlasticIncr;
 
 
-               double hs = rhos * ( rPS) * (     VolPlasticIncr  + chis*sqrt(2.0/3.0) * DevPlasticIncr );
-               double ht = rhot * (-rPT) * (fabs(VolPlasticIncr) + chit*sqrt(2.0/3.0) * DevPlasticIncr );
+               double hs = rhos * ( rPS) * (     VolPlasticIncr  + rChis*sqrt(2.0/3.0) * DevPlasticIncr );
+               double ht = rhot * (-rPT) * (fabs(VolPlasticIncr) + rChit*sqrt(2.0/3.0) * DevPlasticIncr );
 
                rPS -= hs;
                rPT -= ht;

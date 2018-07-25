@@ -23,6 +23,8 @@ namespace Kratos
    KRATOS_CREATE_VARIABLE( double, RHOM )   
    KRATOS_CREATE_VARIABLE( double, KSIM )   
    KRATOS_CREATE_VARIABLE( double, PC0 )   
+   KRATOS_CREATE_VARIABLE( double, CHIS )   
+   KRATOS_CREATE_VARIABLE( double, CHIT )   
 
    KRATOS_CREATE_VARIABLE( double, VOID_RATIO )   
    KRATOS_CREATE_VARIABLE( double, PS )   
