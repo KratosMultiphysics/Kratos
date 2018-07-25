@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //
@@ -25,7 +26,7 @@ namespace Testing
 
 typedef Node<3> NodeType;
 
-KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
 {
     ModelPart model_part("test_model_part");
 
@@ -47,16 +48,16 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosStructuralMechanicsFastSui
     material_properties->SetValue(YOUNG_MODULUS, 210e9);
     material_properties->SetValue(POISSON_RATIO, 0.22);
 
-    Element::Pointer pElem1 = Element().Clone(1,array_nodes1);
-    Element::Pointer pElem2 = Element().Clone(1,array_nodes2);
+    Element::Pointer p_elem_1 = Element().Clone(1,array_nodes1);
+    Element::Pointer p_elem_2 = Element().Clone(1,array_nodes2);
 
     model_part.AddNode(p_node_1);
     model_part.AddNode(p_node_2);
     model_part.AddNode(p_node_3);
     model_part.AddNode(p_node_4);
 
-    model_part.AddElement(pElem1);
-    model_part.AddElement(pElem2);
+    model_part.AddElement(p_elem_1);
+    model_part.AddElement(p_elem_2);
 
     Parameters default_parameters = Parameters(R"(
         {
@@ -69,9 +70,9 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosStructuralMechanicsFastSui
     SkinDetectionProcess<2> skin_process = SkinDetectionProcess<2>(
                                            model_part, default_parameters);
 
-    for (int i = 0; i < 2; i++)
-    {
-        
+    // We generate in several iterations to see if it crashes
+    for (int i = 0; i < 2; i++) {
+        skin_process.Execute();
     }
 }
 
