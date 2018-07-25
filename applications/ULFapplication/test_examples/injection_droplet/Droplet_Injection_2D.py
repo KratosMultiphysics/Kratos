@@ -71,7 +71,6 @@ lagrangian_model_part.AddNodalSolutionStepVariable(VISCOUS_STRESSY)
 lagrangian_model_part.AddNodalSolutionStepVariable(AUX_VEL)
 lagrangian_model_part.AddNodalSolutionStepVariable(CONTACT_ANGLE)
 lagrangian_model_part.AddNodalSolutionStepVariable(IS_WATER)
-lagrangian_model_part.AddNodalSolutionStepVariable(INITIAL_AVERAGE_NODAL_AREA)
 
 #############################################
 SolverType = ProjectParameters.SolverType
@@ -386,9 +385,7 @@ while(time <= final_time):
                 gid_io.WriteNodalResults(IS_LAGRANGIAN_INLET,lagrangian_model_part.Nodes,time,0)
                 gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
                 gid_io.WriteNodalResults(NODAL_AREA,lagrangian_model_part.Nodes,time,0)
-                gid_io.WriteNodalResults(INITIAL_AVERAGE_NODAL_AREA,lagrangian_model_part.Nodes,time,0)
 	 
-                
                 gid_io.Flush()
                 gid_io.FinalizeResults();
                 

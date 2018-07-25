@@ -75,7 +75,6 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_JM)
     model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM)
     model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM)
-    model_part.AddNodalSolutionStepVariable(INITIAL_AVERAGE_NODAL_AREA)
 
 
 def AddDofs(model_part, config=None):
