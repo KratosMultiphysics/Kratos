@@ -27,8 +27,7 @@ namespace Testing
 
 typedef Node<3> NodeType;
 
-// KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
-KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, SkinDetectionProcessSuite)
+KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
 {
     ModelPart model_part("test_model_part");
     model_part.SetBufferSize(2);
