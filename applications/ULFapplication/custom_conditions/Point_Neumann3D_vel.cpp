@@ -75,15 +75,15 @@ namespace Kratos
 
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(3,3);
 
-	int nodes_number = 1;
-	int dim = 3;
-	unsigned int matsize = nodes_number*(dim);
+			int nodes_number = 1;
+			int dim = 3;
+			unsigned int matsize = nodes_number*(dim);
 
 			//calculate normal to element.(normal follows the cross rule)
 			array_1d<double,3> An,edge;
 			An = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
 			//KRATOS_WATCH(An)
-			double ext_pr = -1.0*GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
+			double ext_pr = 1.0*GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
 
 
 			double temp=An[0]*ext_pr;
@@ -94,6 +94,9 @@ namespace Kratos
 			rRightHandSideVector[0] = An[0]*ext_pr;
 			rRightHandSideVector[1] = An[1]*ext_pr;
 			rRightHandSideVector[2] = An[2]*ext_pr;
+
+		//KRATOS_WATCH("ADDING EXTERNAL PRESSURE CONTRIBUTION")
+		//KRATOS_WATCH(rRightHandSideVector)
 		
 	}
 
