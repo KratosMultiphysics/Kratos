@@ -773,7 +773,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
             if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
             { // if a equation exists for this slave
-                global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids, rCurrentProcessInfo); // get the slave and master equation ids for this slave.
+                global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids); // get the slave and master equation ids for this slave.
                 for (auto &master_eq_id : master_equation_ids)
                 {
                     // Add the current slaves master eq ids to the equation ids
@@ -802,120 +802,38 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                           typename TContainerType::EquationIdVectorType &rEquationIds,
                           ProcessInfo &rCurrentProcessInfo)
     {
-        // This function modifies LHS and RHS contributions with T and C matrices of the constraints present in this current pElement
-
         KRATOS_TRY
         // If no slave is found for this container , no need of going on
         if (! HasSlaveNode(rCurrentContainer.GetGeometry()))
-        {
             return;
-        }
 
-        MatrixType lhs_contribution = rLHSContribution;
-        VectorType rhs_contribution = rRHSContribution;
-        typename TContainerType::EquationIdVectorType equation_ids= rEquationIds;
-        MatrixType transformation_matrix_local;
-        VectorType constant_vector_local;
-
+        typename TContainerType::EquationIdVectorType equation_ids = rEquationIds;
         // Saving th original system size
         const SizeType initial_sys_size = rLHSContribution.size1();
 
         // Formulating which are the internal, slave indices locally.
-        VectorIndexType::iterator it;
         VectorIndexType local_index_vector;
         VectorIndexType local_internal_index_vector;
         VectorIndexType local_master_index_vector;
         VectorIndexType local_slave_index_vector;
 
-        int index = 0;
-        for (auto &eq_id : rEquationIds)
-        {
-            auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(eq_id);
-            if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
-            {
-                local_slave_index_vector.push_back(index);
-            }
-            local_index_vector.push_back(index);
-            index++;
-        }
-        std::sort(local_index_vector.begin(), local_index_vector.end());
-        std::sort(local_slave_index_vector.begin(), local_slave_index_vector.end());
-        std::set_difference(local_index_vector.begin(), local_index_vector.end(), local_slave_index_vector.begin(), local_slave_index_vector.end(), std::back_inserter(local_internal_index_vector));
-
         // first fill in the rEquationIds using the above function (overloaded one)
         ApplyConstraints<TContainerType>(rModelPart, rCurrentContainer, rEquationIds, rCurrentProcessInfo); // now rEquationIds has all the slave equation ids appended to it.
-
-        // Get number of master indices for this current container
-        const SizeType total_number_of_masters = rEquationIds.size() - initial_sys_size;
-        for (unsigned int i = initial_sys_size; i < rEquationIds.size(); i++)
-        {
-            local_master_index_vector.push_back(i);
-        }
-
-        // We resize the LHS and RHS contribution with the master sizes
-        const SizeType lhs_size_1 = initial_sys_size + total_number_of_masters;
-        const SizeType lhs_size_2 = initial_sys_size + total_number_of_masters;
-        transformation_matrix_local.resize(lhs_size_1, lhs_size_2, false); //true for Preserving the data and resizing the matrix
-        constant_vector_local.resize(lhs_size_1, false);
-        // Making the transformation matrix zero
-        for (IndexType m = 0; m < lhs_size_1; m++)
-        {
-            for (IndexType n = 0; n < lhs_size_2; n++)
-            {
-                transformation_matrix_local(m, n) = 0.0;
-            }
-            constant_vector_local(m) = 0.0;
-        }
-
-        lhs_contribution.resize(lhs_size_1, lhs_size_2, true); //true for Preserving the data and resizing the matrix
-        rhs_contribution.resize(lhs_size_1, true);
-        // Making the extra part of matrix zero
-        for (IndexType m = initial_sys_size; m < lhs_size_1; m++)
-        {
-            for (IndexType n = 0; n < lhs_size_2; n++)
-            {
-                lhs_contribution(m, n) = 0.0;
-                lhs_contribution(n, m) = 0.0;
-            }
-            rhs_contribution(m) = 0.0;
-        }
-
-        IndexType slave_equation_id;
-        typename TContainerType::EquationIdVectorType master_equation_ids;
-        VectorType master_weights_vector;
-        double slave_constant;
-        int i_masters_total = initial_sys_size;
-
-        for (auto &slave_index : local_slave_index_vector)
-        {
-            auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(equation_ids[slave_index]);
-            if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
-            {
-                global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids, rCurrentProcessInfo);
-                global_master_slave_constraint->CalculateLocalSystem(master_weights_vector, slave_constant, rCurrentProcessInfo);
-                for (IndexType i_master = 0; i_master < master_equation_ids.size(); i_master++)
-                {
-                    transformation_matrix_local(slave_index, i_masters_total) += master_weights_vector(i_master);
-                    i_masters_total++;
-                }
-                constant_vector_local(slave_index) = slave_constant;
-            }
-            else
-            {
-                KRATOS_ERROR << "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
-            }
-        }
-
-        for (auto &master_index : local_master_index_vector)
-        {
-            transformation_matrix_local(master_index, master_index) = 1.0;
-        }
-
-        for (auto &internal_index : local_internal_index_vector)
-        {
-            transformation_matrix_local(internal_index, internal_index) = 1.0;
-        }
-
+        SizeType total_number_of_masters = rEquationIds.size() - initial_sys_size;
+        // Calculating the local indices corresponding to internal, master, slave dofs of this container
+        CalculateLocalSlaveIndices(equation_ids, local_slave_index_vector);
+        CalculateLocalInternalIndices(equation_ids, local_slave_index_vector, local_internal_index_vector);
+        CalculateLocalMasterIndices(equation_ids, local_master_index_vector, total_number_of_masters);
+        // resizing the matrices to the new required length
+        MatrixType lhs_contribution = rLHSContribution;
+        VectorType rhs_contribution = rRHSContribution;
+        ResizeAndInitializeLocalMatrices(lhs_contribution, rhs_contribution, rEquationIds.size());
+        MatrixType transformation_matrix_local;
+        VectorType constant_vector_local;
+        ResizeAndInitializeLocalMatrices(transformation_matrix_local, constant_vector_local, rEquationIds.size());
+        // Calculagint the T and C which are local to this container
+        CalculateLocalTransformationMatrixAndConstantVector(local_internal_index_vector, local_master_index_vector,
+                                                            local_slave_index_vector, transformation_matrix_local, constant_vector_local, equation_ids);
         // Here order is important as lhs_contribution should be unodified for usin in calculation
         // of RHS constribution. Later on lhs_contribution is modified to apply the constraint.
         // rhs_h =  T'*(rhs - K*g)
@@ -926,31 +844,25 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         lhs_contribution = prod( trans(transformation_matrix_local),  temp_mat);
 
         for (auto &slave_index : local_slave_index_vector)
-        {
             for (auto &slave_index_other : local_slave_index_vector)
                 lhs_contribution(slave_index, slave_index_other) = rLHSContribution(slave_index, slave_index_other);
-        }
 
         for (auto &slave_index : local_slave_index_vector)
-        {
             for (auto &master_index : local_master_index_vector)
             {
                 lhs_contribution(slave_index, master_index) = 0.0;
                 lhs_contribution(master_index, slave_index) = 0.0;
             }
-        }
+
         for (auto &slave_index : local_slave_index_vector)
-        {
             for (auto &internal_index : local_internal_index_vector)
             {
                 lhs_contribution(slave_index, internal_index) = 0.0;
                 lhs_contribution(internal_index, slave_index) = 0.0;
             }
-        }
+
         for (auto &slave_index : local_slave_index_vector)
-        {
             rhs_contribution(slave_index) = 0.0;
-        }
 
         rLHSContribution = lhs_contribution;
         rRHSContribution = rhs_contribution;
@@ -958,8 +870,133 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_CATCH("Applying Multipoint constraints failed ..");
     }
 
+
+
     /**
-     * @brief This method reconstructs the slave solution after Solving. 
+     * @brief   This function resizes the given matrix and vector pair to the new size provided.
+     *          And Initializes the extra part added to zero.
+     * @param   rMatrix matrix to be resized
+     * @param   rVector vector to be resized
+     * @param   FinalSize the final size of the resized quantities.
+     */
+    void ResizeAndInitializeLocalMatrices(MatrixType& rMatrix, VectorType& rVector,
+                                            SizeType FinalSize)
+    {
+        const SizeType initial_sys_size = rMatrix.size1();
+
+        rMatrix.resize(FinalSize, FinalSize, true); //true for Preserving the data and resizing the matrix
+        rVector.resize(FinalSize, true);
+        // Making the extra part of matrix zero
+        for (IndexType m = initial_sys_size; m < FinalSize; m++)
+        {
+            for (IndexType n = 0; n < FinalSize; n++)
+            {
+                rMatrix(m, n) = 0.0;
+                rMatrix(n, m) = 0.0;
+            }
+            rVector(m) = 0.0;
+        }
+    }
+
+    /**
+     * @brief   This function calculates the local transformation matrix and the constant vector for each
+     *          each element or condition. The T matrix and C vector for each element or condition for the slaves they contain .
+     * @param   rLocalInternalIndexVector vector of the internal indices
+     * @param   rLocalMasterIndexVector vector of master indices
+     * @param   rLocalSlaveIndexVector vectof slave indices
+     * @param   rTransformationMatrixLocal reference to the tranformation matrix which is to be calculated.
+     * @param   rConstantVectorLocal reference to the constant vector to be calculated
+     * @param   rEquationIds the list of equation ids.
+     */
+    void CalculateLocalTransformationMatrixAndConstantVector(VectorIndexType& rLocalInternalIndexVector,
+                                                             VectorIndexType& rLocalMasterIndexVector,
+                                                             VectorIndexType& rLocalSlaveIndexVector,
+                                                             MatrixType& rTransformationMatrixLocal,
+                                                             VectorType& rConstantVectorLocal,
+                                                             EquationIdVectorType& rEquationIds)
+    {
+        IndexType slave_equation_id;
+        EquationIdVectorType master_equation_ids;
+        VectorType master_weights_vector;
+        double slave_constant;
+        int i_masters_total = rEquationIds.size();
+
+        for (auto &slave_index : rLocalSlaveIndexVector)
+        {
+            auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
+            if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
+            {
+                global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids);
+                global_master_slave_constraint->CalculateLocalSystem(master_weights_vector, slave_constant);
+                for (IndexType i_master = 0; i_master < master_equation_ids.size(); i_master++)
+                {
+                    rTransformationMatrixLocal(slave_index, i_masters_total) += master_weights_vector(i_master);
+                    i_masters_total++;
+                }
+                rConstantVectorLocal(slave_index) = slave_constant;
+            }
+            else
+                KRATOS_ERROR << "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
+        }
+
+        for (auto &master_index : rLocalMasterIndexVector)
+            rTransformationMatrixLocal(master_index, master_index) = 1.0;
+
+        for (auto &internal_index : rLocalInternalIndexVector)
+            rTransformationMatrixLocal(internal_index, internal_index) = 1.0;
+    }
+
+
+    /**
+     * @brief   This function calculates the local slave indices of a given element or condition
+     * @param   rEquationIds vector of the equation ids
+     * @param   rLocalSlaveIndexVector reference to the vector of slave indices
+     */
+    void CalculateLocalSlaveIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalSlaveIndexVector)
+    {
+        int index = 0;
+        for (auto &eq_id : rEquationIds)
+        {
+            auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(eq_id);
+            if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
+                rLocalSlaveIndexVector.push_back(index);
+
+            index++;
+        }
+    }
+
+    /**
+     * @brief   This function calculates the local internal indices of a given element or condition
+     * @param   rEquationIds vector of the equation ids
+     * @param   rLocalSlaveIndexVector reference to the vector of slave indices
+     * @param   rLocalInternalIndexVector reference to the vector of internal indices
+     */
+    void CalculateLocalInternalIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalSlaveIndexVector, VectorIndexType& rLocalInternalIndexVector)
+    {
+        VectorIndexType local_index_vector;
+        for (IndexType i = 0; i<rEquationIds.size(); ++i)
+            local_index_vector.push_back(i);
+
+        std::sort(local_index_vector.begin(), local_index_vector.end());
+        std::sort(rLocalSlaveIndexVector.begin(), rLocalSlaveIndexVector.end());
+        std::set_difference(local_index_vector.begin(), local_index_vector.end(), rLocalSlaveIndexVector.begin(), rLocalSlaveIndexVector.end(), std::back_inserter(rLocalInternalIndexVector));
+    }
+
+    /**
+     * @brief   This function calculates the local internal indices of a given element or condition
+     * @param   rEquationIds vector of the equation ids
+     * @param   rLocalMasterIndexVector reference to the vector of master indices
+     * @param   rTotalNumberOfMasters total number of masters for the given element or condition.
+     */
+    void CalculateLocalMasterIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalMasterIndexVector, SizeType& rTotalNumberOfMasters)
+    {
+        // Get number of master indices for this current container
+        for (SizeType i = rEquationIds.size(); i < rTotalNumberOfMasters + rEquationIds.size(); i++)
+            rLocalMasterIndexVector.push_back(i);
+    }
+
+    /**
+     * @brief This method reconstructs the slave solution after Solving.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param A System matrix
      * @param Dx Vector of results (variations on nodal variables)
@@ -976,7 +1013,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // Getting the beginning iterator
 
         GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveRelations.begin();
-        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
         //contributions to the system
         VectorType master_weights_vector;
         double constant = 0.0;
@@ -990,9 +1026,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             slave_dx_value = 0.0;
             //get the equation Ids of the constraint
-            (*it).EquationIdVector(slave_equation_id, master_equation_ids, r_current_process_info);
+            (*it).EquationIdVector(slave_equation_id, master_equation_ids);
             //calculate constraint's T and b matrices
-            (*it).CalculateLocalSystem(master_weights_vector, constant, r_current_process_info);
+            (*it).CalculateLocalSystem(master_weights_vector, constant);
             int master_index = 0;
             for (auto &master_equation_id : master_equation_ids)
             {
