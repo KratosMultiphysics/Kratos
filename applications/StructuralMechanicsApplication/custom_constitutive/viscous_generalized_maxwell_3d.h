@@ -43,8 +43,13 @@ namespace Kratos
 /**
  * @class ViscousGeneralizedMaxwell3D
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This is a viscous law using Maxwell formulation
+ * @details The definition of a maxwell material can be found in https://en.wikipedia.org/wiki/Maxwell_material
+ * This definition consists in a spring and a damper in serial
+ *
+ *           -----^^^^^^-----------[------
+ *                Spring (K)   Damper (C)
+ *
  * @author Alejandro Cornejo & Lucia Barbu
  */
 
@@ -54,6 +59,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
   public:
     ///@name Type Definitions
     ///@{
+
+    typedef ConstitutiveLaw BaseType;
 
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedMaxwell3D);
@@ -81,7 +88,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
     * Copy constructor.
     */
     ViscousGeneralizedMaxwell3D(const ViscousGeneralizedMaxwell3D &rOther)
-        : ConstitutiveLaw(rOther), mPrevStressVector(rOther.mPrevStressVector), mPrevStrainVector(rOther.mPrevStrainVector), mNonConvPrevStressVector(rOther.mNonConvPrevStressVector), mNonConvPrevStrainVector(rOther.mNonConvPrevStrainVector)
+        : BaseType(rOther),
+          mPrevStressVector(rOther.mPrevStressVector),
+          mPrevStrainVector(rOther.mPrevStrainVector),
+          mNonConvPrevStressVector(rOther.mNonConvPrevStressVector),
+          mNonConvPrevStrainVector(rOther.mNonConvPrevStrainVector)
     {
     }
 
@@ -120,25 +131,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
      * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * to be called at the end of each solution step
@@ -158,30 +169,38 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-    Matrix &CalculateValue(
-        ConstitutiveLaw::Parameters &rParameterValues,
-        const Variable<Matrix> &rThisVariable,
-        Matrix &rValue) override;
+    /**
+     * @brief Calculates the value of a specified variable (Matrix)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Matrix& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue
+        ) override;
 
     ///@}
     ///@name Access
@@ -270,7 +289,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
      * @param rMaterialProperties The material properties
      */
     void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
+        Matrix& rElasticityTensor,
         const Properties &rMaterialProperties);
 
     ///@}

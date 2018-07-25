@@ -21,7 +21,7 @@
 
 namespace Kratos
 {
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues)
+void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -29,7 +29,7 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK1(ConstitutiveLaw::
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues)
+void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -37,7 +37,7 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK2(ConstitutiveLaw::
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues)
+void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -45,13 +45,13 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(Constitutiv
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
+void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // Integrate Stress Damage
     const Properties &material_props = rValues.GetMaterialProperties();
     Vector &integrated_stress_vector = rValues.GetStressVector(); // To be updated
     const Vector &strain_vector = rValues.GetStrainVector();
-    Matrix &tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+    Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const ProcessInfo &process_info = rValues.GetProcessInfo();
     const double time_step = process_info[DELTA_TIME];
     const Flags &ConstitutiveLawOptions = rValues.GetOptions();
@@ -98,7 +98,7 @@ void ViscousGeneralizedMaxwell3D::FinalizeSolutionStep(
 /***********************************************************************************/
 
 void ViscousGeneralizedMaxwell3D::CalculateElasticMatrix(
-    Matrix &rElasticityTensor,
+    Matrix& rElasticityTensor,
     const Properties &rMaterialProperties)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
@@ -128,42 +128,49 @@ void ViscousGeneralizedMaxwell3D::CalculateElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues)
+void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
+    BaseType::FinalizeMaterialResponsePK1(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues)
+void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
+    BaseType::FinalizeMaterialResponsePK2(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues)
+void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
+    BaseType::FinalizeMaterialResponseKirchhoff(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
+void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    BaseType::FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix &ViscousGeneralizedMaxwell3D::CalculateValue(ConstitutiveLaw::Parameters &rParameterValues,
-                                                    const Variable<Matrix> &rThisVariable, Matrix &rValue)
+Matrix& ViscousGeneralizedMaxwell3D::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue
+    )
 {
-    if (rThisVariable == INTEGRATED_STRESS_TENSOR)
-    {
+    if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
         rValue = MathUtils<double>::StressVectorToTensor(this->GetPreviousStressVector());
-        return rValue;
     }
+
+    return rValue;
 }
 
 } // namespace Kratos
