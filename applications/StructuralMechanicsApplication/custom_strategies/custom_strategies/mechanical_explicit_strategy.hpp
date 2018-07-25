@@ -187,10 +187,10 @@ public:
       ElementsArrayType &r_elements = r_model_part.Elements();
 
       auto it_elem = r_model_part.ElementsBegin();
+      Vector dummy_vector;
   // #pragma omp parallel for firstprivate(it_elem)
       for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
           // Getting nodal mass and inertia from element
-          Vector dummy_vector;
           // this function needs to be implemented in the respective
           // element to provide inertias and nodal masses
           (it_elem + i)
