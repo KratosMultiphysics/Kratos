@@ -240,7 +240,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    ApplyConstraints<Element>(rModelPart, *(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    ApplyConstraints<Element>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -269,7 +269,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 {
                     //calculate elemental contribution
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    ApplyConstraints<Condition>(rModelPart, *(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    ApplyConstraints<Condition>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -473,7 +473,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             typename ElementsContainerType::iterator i_element = rModelPart.Elements().begin() + iii;
             pScheme->EquationId(*(i_element.base()), ids, rModelPart.GetProcessInfo());
-            ApplyConstraints<Element>(rModelPart, *(i_element.base()), ids, rModelPart.GetProcessInfo());
+            ApplyConstraints<Element>(rModelPart, *i_element, ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -494,7 +494,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             typename ConditionsArrayType::iterator i_condition = rModelPart.Conditions().begin() + iii;
             pScheme->Condition_EquationId(*(i_condition.base()), ids, rModelPart.GetProcessInfo());
-            ApplyConstraints<Condition>(rModelPart, *(i_condition.base()), ids, rModelPart.GetProcessInfo());
+            ApplyConstraints<Condition>(rModelPart, *i_condition, ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -716,20 +716,21 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     }
 
     // This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
-    template <class TContainerType>
+    // Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
+    template <typename TContainerType>
     void ApplyConstraints(ModelPart &rModelPart,
-                          typename TContainerType::Pointer pCurrentContainer,
+                          TContainerType& pCurrentContainer,
                           typename TContainerType::EquationIdVectorType &rEquationIds,
                           ProcessInfo &rCurrentProcessInfo)
     {
         // If no slave is found for this container , no need of going on
-        if (! HasSlaveNode(pCurrentContainer->GetGeometry()))
+        if (! HasSlaveNode(pCurrentContainer.GetGeometry()))
         {
             return;
         }
         DofsVectorType container_dofs;
         typename TContainerType::EquationIdVectorType master_equation_ids;
-        pCurrentContainer->GetDofList(container_dofs, rCurrentProcessInfo);
+        pCurrentContainer.GetDofList(container_dofs, rCurrentProcessInfo);
         IndexType slave_equation_id;
 
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
@@ -750,9 +751,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
     }
 
-    template <class TContainerType>
+    template <typename TContainerType>
     void ApplyConstraints(ModelPart &rModelPart,
-                          typename TContainerType::Pointer pCurrentContainer,
+                          TContainerType& pCurrentContainer,
                           LocalSystemMatrixType &rLHSContribution,
                           LocalSystemVectorType &rRHSContribution,
                           typename TContainerType::EquationIdVectorType &rEquationIds,
@@ -762,7 +763,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         KRATOS_TRY
         // If no slave is found for this container , no need of going on
-        if (! HasSlaveNode(pCurrentContainer->GetGeometry()))
+        if (! HasSlaveNode(pCurrentContainer.GetGeometry()))
         {
             return;
         }
