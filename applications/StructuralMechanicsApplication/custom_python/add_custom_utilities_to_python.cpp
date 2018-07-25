@@ -18,8 +18,6 @@
 
 //Utilities
 #include "custom_utilities/formfinding_io_utility.h"
-#include "custom_utilities/vtk_output.hpp"
-
 
 namespace Kratos
 {
