@@ -580,11 +580,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
 
     /**
-     * this method condences the MasterSlaveConstraints which are added on the rModelPart
-     * into objects of AuxilaryGlobalMasterSlaveRelation. One unique object for each unique slave.
-     * these will be used in the ApplyConstraints functions late on.
-     * matrix and the right hand side
-     * @param rModelPart The model part of the problem to solve
+     * @brief   this method condences the MasterSlaveConstraints which are added on the rModelPart
+     *          into objects of AuxilaryGlobalMasterSlaveRelation. One unique object for each unique slave.
+     *          these will be used in the ApplyConstraints functions late on.
+     *          matrix and the right hand side
+     * @param   rModelPart The model part of the problem to solve
      */
     void FormulateGlobalMasterSlaveRelations(ModelPart &rModelPart)
     {
@@ -645,8 +645,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     }
 
     /**
-     * this method resets the LHS and RHS values of the AuxilaryGlobalMasterSlaveRelation objects
-     * @param rModelPart The model part of the problem to solve
+     * @brief   this method resets the LHS and RHS values of the AuxilaryGlobalMasterSlaveRelation objects
+     * @param   rModelPart The model part of the problem to solve
      */
     void ResetConstraintRelations(ModelPart &rModelPart)
     {
@@ -664,9 +664,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     }
 
     /**
-     * this method uses the MasterSlaveConstraints objects in rModelPart to reconstruct the LHS and RHS values
-     * of the AuxilaryGlobalMasterSlaveRelation objects. That is the value of Slave as LHS and the T*M+C as RHS value
-     * @param rModelPart The model part of the problem to solve
+     * @brief   this method uses the MasterSlaveConstraints objects in rModelPart to reconstruct the LHS and RHS values
+     *          of the AuxilaryGlobalMasterSlaveRelation objects. That is the value of Slave as LHS and the T*M+C as RHS value
+     * @param   rModelPart The model part of the problem to solve
      */
     void UpdateConstraintsForBuilding(ModelPart &rModelPart)
     {
@@ -725,8 +725,15 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
     }
 
-    // This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
-    // Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
+
+    /**
+     * @brief   This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
+     * @details Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
+     * @param   rModelPart The model part of the problem to solve
+     * @param   rCurrentContainer the element or condition where the rEquationIds to be modified for master-slave constraints
+     * @param   rEquationIds the equation id vector for the above element or condition
+     * @param   rCurrentProcessInfo the current process info
+     */
     template <typename TContainerType>
     void ApplyConstraints(ModelPart &rModelPart,
                           TContainerType& rCurrentContainer,
@@ -761,6 +768,17 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
     }
 
+    /**
+     * @brief   This function modifies the LHS and RHS of the rCurrentContainer to account for any master-slave constraints its nodes/dofs 
+     *          are carrying.
+     * @details Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
+     * @param   rModelPart The model part of the problem to solve
+     * @param   rCurrentContainer the element or condition where the rEquationIds to be modified for master-slave constraints
+     * @param   rLHSContribution the LHS contibution of the rCurrentContainer
+     * @param   rRHSContribution the RHS contibution of the rCurrentContainer
+     * @param   rEquationIds the equation id vector for the above element or condition
+     * @param   rCurrentProcessInfo the current process info
+     */
     template <typename TContainerType>
     void ApplyConstraints(ModelPart &rModelPart,
                           TContainerType& rCurrentContainer,
@@ -926,7 +944,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     }
 
     /**
-     * @brief This method reconstructs the slave solution for iteration step
+     * @brief This method reconstructs the slave solution after Solving. 
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param A System matrix
      * @param Dx Vector of results (variations on nodal variables)
@@ -972,7 +990,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
     }
 
-
+    /**
+     * @brief this method checks if any of the nodes of the given rGeometry is marked SLAVE.
+     * @param rGeometry The geometry to check for.
+     */
     bool HasSlaveNode(GeometryType& rGeometry)
     {
         bool slave_found = false;
