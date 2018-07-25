@@ -144,16 +144,16 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 
     void PrintInfo() const
     {
-        std::cout<<std::endl;
-        std::cout << "------------------------------" << std::endl;
-        std::cout << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
-        std::cout << "Constant :: " << mConstant << std::endl;
-        std::cout << "------------------------------ :: Masters = " << mMasterEquationIdVector.size()<< std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation")<<std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "------------------------------" << std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "Constant :: " << mConstant << std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "------------------------------ :: Masters = " << mMasterEquationIdVector.size()<< std::endl;
         for (IndexType i = 0; i< mMasterEquationIdVector.size(); i++)
         {
-            std::cout << i << " Master  equation id :: " <<mMasterEquationIdVector[i] << ", weight :: " << mMasterWeightsVector[i] << std::endl;
+            KRATOS_INFO("GlobalMasterSlaveRelation") << i << " Master  equation id :: " <<mMasterEquationIdVector[i] << ", weight :: " << mMasterWeightsVector[i] << std::endl;
         }
-        std::cout << "------------------------------" << std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "------------------------------" << std::endl;
     }
 
     void Clear()
