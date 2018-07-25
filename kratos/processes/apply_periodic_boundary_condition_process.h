@@ -55,7 +55,7 @@ class ApplyPeriodicConditionProcess : public Process
     typedef Node<3> NodeType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
-    
+
     ApplyPeriodicConditionProcess(ModelPart &model_part,
                                   Parameters rParameters) : Process(Flags()), mrMainModelPart(model_part), mParameters(rParameters)
     {
@@ -96,14 +96,6 @@ class ApplyPeriodicConditionProcess : public Process
             mSign = -1;
         else
             mSign = 1;
-
-        // normalizing the axis of roatation
-        double norm = 0.0;
-        for (unsigned int d = 0; d < 3; ++d)
-            norm += mAxisOfRoationVector[d] * mAxisOfRoationVector[d];
-        norm = sqrt(norm);
-        for (unsigned int d = 0; d < 3; ++d)
-            mAxisOfRoationVectorNormalized.push_back(mAxisOfRoationVector[d] / norm);
 
         mTheta = mParameters["angle"].GetDouble() * 2 * 3.1416 / 360.0;
 
@@ -162,7 +154,6 @@ class ApplyPeriodicConditionProcess : public Process
     bool mIsInitialized;
     std::vector<double> mCenterOfRotation;
     std::vector<double> mAxisOfRoationVector;
-    std::vector<double> mAxisOfRoationVectorNormalized;
     int mSign;
     std::string mType;
     double mModulus;
