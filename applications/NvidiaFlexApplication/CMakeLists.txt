@@ -24,8 +24,6 @@ set(NVIDIA_FLEX_LIBRARY
     ${NVIDIA_FLEX_DIR}/NvFlexDeviceRelease_x64.a
 )
 
-message("LALALA ${CUDA_LIBRARIES}")
-
 add_library(KratosNvidiaFlexCore SHARED ${KRATOS_NVIDIAFLEX_APPLICATION_CORE})
 target_link_libraries(KratosNvidiaFlexCore PUBLIC KratosCore ${NVIDIA_FLEX_LIBRARY} ${CUDA_LIBRARIES})
 set_target_properties(KratosNvidiaFlexCore PROPERTIES COMPILE_DEFINITIONS "NVIDIAFLEX_APPLICATION=EXPORT,API")

@@ -19,8 +19,14 @@ namespace Kratos {
         
         NvFlexSolver* g_solver;
         NvFlexParams g_params;
-        
         NvFlexSetParams(g_solver, &g_params);
+        
+//        SimBuffers* g_buffers;
+//        NvFlexLibrary* g_flexLib;
+//        g_buffers = AllocBuffers(g_flexLib);
+//        
+//        NvFlexUpdateSolver(g_solver, 0.0001f, 1, false);
+//        NvFlexSetVelocities(g_solver, g_buffers->velocities.buffer, NULL);
     }
 
     /// Turn back information as a string.
