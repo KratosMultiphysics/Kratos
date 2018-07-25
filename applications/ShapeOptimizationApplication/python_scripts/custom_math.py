@@ -16,7 +16,9 @@ import math
 
 # ==============================================================================
 def Norm2(_X):
-    return math.sqrt(sum(x**2 for x in _X))
+    temp_vec = [x**2 for x in _X]
+    temp_sum = sum(temp_vec)
+    return math.sqrt(temp_sum)
 
 # ------------------------------------------------------------------------------
 def NormInf3D(_X):
@@ -28,10 +30,10 @@ def NormInf3D(_X):
 def Dot(_X, _Y):
     if len(_X) != len(_Y):
         raise RuntimeError("custom_math::Dot: Dot product to be computed but _X and _Y do not have the same dimension!")
-    return sum([_X[i]*_Y[i] for i in range(len(_X))])
+    return sum( [_X[i]*_Y[i] for i in range(len(_X))] )
 
 # ------------------------------------------------------------------------------
-def Plus(_X,_Y):
+def Plus(_X, _Y):
     if len(_X)!=len(_Y):
         raise ValueError("custom_math::Plus: Wrong size of input variables!")
     return [ _X[i]+_Y[i] for i in range(len(_X)) ]
@@ -77,7 +79,7 @@ def ElemwiseProd(_X,_Y):
 def Trans(_A):
     if IsEmpty(_A):
         return []
-    return [ [ _A[j][i] for j in range(CollSize(_A)) ] for i in range(RowSize(_A))  ]
+    return list(map(list, zip(*_A)))
 
 # ------------------------------------------------------------------------------
 def RowSize(_A):
@@ -152,7 +154,11 @@ def IsVector(_X):
 
 # ------------------------------------------------------------------------------
 def TranslateToNewBasis(_X, basis):
-    return Prod(Trans(basis),_X)
+    if IsEmpty(_X):
+        return []
+
+    trans_basis = Trans(basis)
+    return Prod(trans_basis,_X)
 
 # ------------------------------------------------------------------------------
 def TranslateToOriginalBasis(_X, basis):
@@ -318,5 +324,79 @@ def QuadProg(A, b, max_itr, tolerance):
         exit_code = 0
 
     return x, k, error, exit_code
+
+# ------------------------------------------------------------------------------
+def PerformBisectioning(func, a, b, target, tolerance, max_itr):
+
+    fa_value_0, fa_is_converged = func(a)
+    fb_value_0, fb_is_converged = func(b)
+
+    error = None
+    itr = 0
+
+    # Always safe last argument for which function converges and return this if no solution is found
+    if fa_is_converged:
+        last_allowed_function_argument = a
+    elif fb_is_converged:
+        last_allowed_function_argument = b
+
+    # Check special cases
+    if abs(fa_value_0-target) < tolerance:
+        res_function_argument = a
+        error = abs(fa_value_0-target)
+
+    elif abs(fb_value_0-target) < tolerance:
+        res_function_argument = b
+        error = abs(fb_value_0-target)
+
+    elif abs(fa_value_0-fb_value_0) < 1e-13:
+        print("Bisectioning intervall yiels to identical function values!")
+        res_function_argument = a
+        error = abs(fb_value_0-target)
+
+    elif (fa_value_0-target)*(fb_value_0-target)>0:
+        print("Bisectioning on function, that has no root in specified intervall!! Returning the argument which yiels a closer value to the target.")
+
+        if abs(fa_value_0-target) < abs(fb_value_0-target):
+            res_function_argument = a
+            error = fa_value_0-target
+        else:
+            res_function_argument = b
+            error = fb_value_0-target
+
+    # Perform bisectioning if no special case applies
+    else:
+        p = (a + b)/2
+
+        for itr in range(1,max_itr+1):
+            fa_value, fa_is_converged = func(a)
+            fp_value, fp_is_converged = func(p)
+
+            if (fa_value-target)*(fp_value-target) < 0:
+                b = p
+            else:
+                a = p
+
+            p = (a + b)/2
+
+            fp_value, fp_is_converged = func(p)
+            error = abs(fp_value-target)
+
+            if fp_is_converged:
+                last_allowed_function_argument = p
+
+            if itr == max_itr:
+                res_function_argument = last_allowed_function_argument
+                print("Bisectioning did not converge in the specified maximum number of iterations!")
+                break
+
+            elif error < tolerance:
+                res_function_argument = p
+                break
+
+    return res_function_argument, itr, error
+
+
+
 
 # ==============================================================================

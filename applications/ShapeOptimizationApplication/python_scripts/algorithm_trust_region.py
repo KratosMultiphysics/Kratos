@@ -18,7 +18,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 from algorithm_base import OptimizationAlgorithm
-from custom_math import NormInf3D, Dot, ScalarVectorProduct, Norm2, RowSize, CollSize, HorzCat, Minus, TranslateToNewBasis, TranslateToOriginalBasis, Trans, QuadProg, Prod
+from custom_math import NormInf3D, Dot, ScalarVectorProduct, Norm2, RowSize, CollSize, HorzCat, Minus, TranslateToNewBasis, TranslateToOriginalBasis, Trans, QuadProg, Prod, PerformBisectioning
 from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteNodeCoordinatesToList, WriteListToNodalVariable
 from custom_timer import Timer
 import mapper_factory
@@ -36,9 +36,11 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             "step_length_increase_factor"   : 1.2,
             "min_share_objective"           : 0.1,
             "max_iterations"                : 10,
+            "far_away_length"               : 2.0,
             "subopt_max_itr"                : 50,
             "subopt_tolerance"              : 1e-10,
-            "far_away_length"               : 2.0
+            "bisectioning_max_itr"          : 30,
+            "bisectioning_tolerance"        : 1e-4
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -334,28 +336,47 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __DetermineStep(self, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
 
+        timer = Timer()
+        timer.StartTimer()
+
         # 1. Test projection if there is room for objective improvement
         # I.e., the actual step length to become feasible for an inactive threshold is smaller than 1 and hence a part of the step can be dedicated to objective improvement
         len_obj_test = 0.01
         inactive_threshold = 100
+        nargout = 2
 
-        timer = Timer()
-        timer.StartTimer()
+        norm_inf_dX, is_projection_sucessfull = self.__RunProjectionProcess(len_obj_test, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, inactive_threshold, nargout)
 
-        norm_inf_dX, _, is_projection_sucessfull = self.__RunProjectionProcess(len_obj_test, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, inactive_threshold)
+        print("\n> Time needed for one projection step = ", timer.GetTotalTime(), "s")
 
-        print(norm_inf_dX)
+        bi_tolerance = self.algorithm_settings["bisectioning_tolerance"].GetDouble()
+        bi_max_itr = self.algorithm_settings["bisectioning_max_itr"].GetInt()
+        bi_target = 1
 
-        norm_inf_dX, _, is_projection_sucessfull = self.__RunProjectionProcess(1, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, inactive_threshold)
+        if is_projection_sucessfull:
+            if norm_inf_dX < 1: # Minimizing mode
+                print ("> Computing projection case 1...")
 
-        print(norm_inf_dX)
+                len_obj_min = len_obj_test
+                len_obj_max = 1.1
 
-        norm_inf_dX, _, is_projection_sucessfull = self.__RunProjectionProcess(0, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, 0)
+                func = lambda len_obj: self.__RunProjectionProcess(len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, inactive_threshold, nargout)
 
-        print(norm_inf_dX)
+                len_obj_result, bi_itrs, bi_err = PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
+
+                print(bi_itrs)
+                print(bi_err)
+
+        #     else: # Correction mode
 
 
-        print("\n> Time needed for projection = ", timer.GetLapTime(), "s")
+        # else:
+
+
+
+
+
+
 
 
         # 2. Identify how the step length shares have to be readjusted according the previos finding
@@ -372,10 +393,12 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         # else:
         #     pass
 
+        print("\n> Time needed for determining step = ", timer.GetTotalTime(), "s")
+
         return dX
 
     # --------------------------------------------------------------------------
-    def __RunProjectionProcess(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, threshold):
+    def __RunProjectionProcess(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, threshold, nargout):
         # 1. Filter lengths to consider specified step length shares in case usable and feasible domain is left (lenths are positive)
         len_obj, len_eqs, len_ineqs = self.__FilterStepLengths(len_obj, len_eqs, len_ineqs, threshold)
 
@@ -402,14 +425,17 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             # Backtransformation and multiplication with -1 because the direction vectors are chosen opposite to the gradients such that the lengths are positive if violated
             dX = ScalarVectorProduct(-1, TranslateToOriginalBasis(dX_o, ortho_basis))
             norm_dX = NormInf3D(dX)
-
         else:
             is_projection_sucessfull = False
 
             dX = []
             norm_dX = 1e10
 
-        return norm_dX, dX, is_projection_sucessfull
+        # Allow to specify output arguments to allow a more general definition of algorithms utilizing this function
+        if nargout == 2:
+            return norm_dX, is_projection_sucessfull
+        else:
+            return norm_dX, dX, is_projection_sucessfull
 
     # --------------------------------------------------------------------------
     def __FilterStepLengths(self, len_obj, len_eqs, len_ineqs, threshold):
