@@ -249,7 +249,7 @@ namespace Kratos
         /**
          * @brief This function checks if self weight is present
          */
-        bool CheckSelfWeight() const;
+        bool HasSelfWeight() const;
 
         /**
          * @brief This function calls the constitutive law to get stresses

@@ -272,7 +272,7 @@ void TrussElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   // create+compute RHS
   rRightHandSideVector = -internal_forces;
   // add bodyforces
-  if (this->CheckSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -292,7 +292,7 @@ void TrussElement3D2N::CalculateRightHandSide(
   noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
 
   // add bodyforces
-  if (this->CheckSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -947,7 +947,7 @@ void TrussElement3D2N::load(Serializer &rSerializer) {
 }
 
 
-bool TrussElement3D2N::CheckSelfWeight() const
+bool TrussElement3D2N::HasSelfWeight() const
 {
   const double norm_self_weight =
    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[0]*
