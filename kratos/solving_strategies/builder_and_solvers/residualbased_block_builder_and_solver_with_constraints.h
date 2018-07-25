@@ -129,6 +129,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
+    typedef Geometry<NodeType> GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -714,51 +715,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
     }
 
-    /*     // This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
-    template<class TContainerType>
-    void ApplyConstraints(  ModelPart& rModelPart,
-                            typename TContainerType::Pointer pCurrentContainer,
-                            typename TContainerType::EquationIdVectorType& rEquationIds,
-                            ProcessInfo& rCurrentProcessInfo
-                        )
-    {
-        const SizeType number_of_nodes = pCurrentContainer->GetGeometry().PointsNumber();
-                int num_not_found = 0;
-        // For each node check if it is a slave or not If it is .. we change the Transformation matrix
-        for (IndexType j = 0; j < number_of_nodes; j++) {
-            DofsVectorType element_dofs;
-            pCurrentContainer->GetDofList(element_dofs, rCurrentProcessInfo);
-            SizeType number_dofs_per_node = element_dofs.size() / number_of_nodes;
-            if (pCurrentContainer->GetGeometry()[j].Is(SLAVE)) {
-
-                IndexType slave_equation_id;
-                IndexType start_position_node_dofs = number_dofs_per_node * (j);
-
-                for (IndexType i = 0; i < number_dofs_per_node; i++) {
-                    slave_equation_id = element_dofs[start_position_node_dofs + i]->EquationId(); // consider everything as a slave.
-                    // Get the global constraint equation for this slave.
-                    auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
-                    if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
-                    { // if a equation exists for this slave
-                        typename TContainerType::EquationIdVectorType master_equation_ids;
-                        global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids, rCurrentProcessInfo); // get the slave and master equation ids for this slave.
-                        for (auto& master_eq_id : master_equation_ids) {
-                            // Add the current slaves master eq ids to the equation ids
-                            rEquationIds.push_back(master_eq_id);
-                        }
-                    }
-                    else
-                    {
-                        num_not_found++;
-                        //KRATOS_WARNING("ApplyConstraints")<<"Slave equation ID not found for the slave dof :: "<< *element_dofs[start_position_node_dofs + i]<<std::endl;
-                    }
-                }
-            }
-        }
-                if(num_not_found > 0)
-                    std::cout<<"################## Number of constraints not found :: "<<num_not_found<<std::endl;
-    } */
-
     // This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
     template <class TContainerType>
     void ApplyConstraints(ModelPart &rModelPart,
@@ -766,19 +722,24 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                           typename TContainerType::EquationIdVectorType &rEquationIds,
                           ProcessInfo &rCurrentProcessInfo)
     {
-        DofsVectorType element_dofs;
-        pCurrentContainer->GetDofList(element_dofs, rCurrentProcessInfo);
+        // If no slave is found for this container , no need of going on
+        if (! HasSlaveNode(pCurrentContainer->GetGeometry()))
+        {
+            return;
+        }
+        DofsVectorType container_dofs;
+        typename TContainerType::EquationIdVectorType master_equation_ids;
+        pCurrentContainer->GetDofList(container_dofs, rCurrentProcessInfo);
         IndexType slave_equation_id;
 
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
-        for (IndexType j = 0; j < element_dofs.size(); j++)
+        for (IndexType j = 0; j < container_dofs.size(); j++)
         {
-            slave_equation_id = element_dofs[j]->EquationId(); // consider everything as a slave.
+            slave_equation_id = container_dofs[j]->EquationId(); // consider everything as a slave.
             // Get the global constraint equation for this slave.
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
             if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
             { // if a equation exists for this slave
-                typename TContainerType::EquationIdVectorType master_equation_ids;
                 global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids, rCurrentProcessInfo); // get the slave and master equation ids for this slave.
                 for (auto &master_eq_id : master_equation_ids)
                 {
@@ -800,22 +761,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // This function modifies LHS and RHS contributions with T and C matrices of the constraints present in this current pElement
 
         KRATOS_TRY
-        bool slaveFound = false;
-        auto &geometry = pCurrentContainer->GetGeometry();
-        const SizeType number_of_nodes = geometry.PointsNumber();
-        for (IndexType j = 0; j < number_of_nodes; j++)
-        {
-            bool node_is_slave = false;
-            if (geometry[j].IsDefined(SLAVE))
-                node_is_slave = geometry[j].Is(SLAVE);
-            if (node_is_slave)
-            { // temporary, will be checked once at the beginning only
-                slaveFound = true;
-                break;
-            }
-        }
         // If no slave is found for this container , no need of going on
-        if (!slaveFound)
+        if (! HasSlaveNode(pCurrentContainer->GetGeometry()))
         {
             return;
         }
@@ -1011,6 +958,23 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             rDx[slave_equation_id] = slave_dx_value;
         }
+    }
+
+
+    bool HasSlaveNode(GeometryType& rGeometry)
+    {
+        bool slave_found = false;
+        const SizeType number_of_nodes = rGeometry.PointsNumber();
+        for (IndexType j = 0; j < number_of_nodes; j++)
+        {
+            if (rGeometry[j].IsDefined(SLAVE))
+                slave_found = rGeometry[j].Is(SLAVE);
+            if (slave_found)
+            {
+                break;
+            }
+        }
+        return slave_found;
     }
 
     ///@}
