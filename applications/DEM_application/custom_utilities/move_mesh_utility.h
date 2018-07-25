@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Klauss B Sautter (based on Riccardo Rossi's work)
+//  Main authors:    Klauss B Sautter
 //
 //
 

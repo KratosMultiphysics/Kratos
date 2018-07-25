@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Klauss B Sautter (based on Riccardo Rossi's work)
+//  Main authors:    Klauss B Sautter
 //
 // System includes
 
@@ -32,23 +32,37 @@ namespace  Kratos
 
         const int num_nodes = static_cast<int>(rNodes.size());
 
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i)
+
+        if(!rSetDeltaDisplacement)
         {
-            auto it_node = rNodes.begin() + i;
-
-            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
-
-            if (rSetDeltaDisplacement)
+            #pragma omp parallel for
+            for(int i = 0; i < num_nodes; ++i)
             {
-                it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT) =
-                 it_node->FastGetSolutionStepValue(DISPLACEMENT,0)
-                 -it_node->FastGetSolutionStepValue(DISPLACEMENT,1);
+                auto it_node = rNodes.begin() + i;
+
+                noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+                noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
             }
         }
 
-        std::cout << " DEM MESH MOVED " << std::endl;
+        else
+        {
+            #pragma omp parallel for
+            for(int i = 0; i < num_nodes; ++i)
+            {
+                auto it_node = rNodes.begin() + i;
+
+                noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+                noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+                noalias(it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) =
+                    it_node->FastGetSolutionStepValue(DISPLACEMENT,0)
+                    -it_node->FastGetSolutionStepValue(DISPLACEMENT,1);
+
+            }
+        }
+
+        KRATOS_INFO("MoveMeshUtility") << " DEM MESH MOVED " << std::endl;
         KRATOS_CATCH("")
     }
 } //  Kratos
