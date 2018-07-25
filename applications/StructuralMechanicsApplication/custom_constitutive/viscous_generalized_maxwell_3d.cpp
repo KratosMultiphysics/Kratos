@@ -49,8 +49,8 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLa
 {
     // Integrate Stress Damage
     const Properties &material_props = rValues.GetMaterialProperties();
-    Vector &integrated_stress_vector = rValues.GetStressVector(); // To be updated
-    const Vector &strain_vector = rValues.GetStrainVector();
+    Vector& integrated_stress_vector = rValues.GetStressVector(); // To be updated
+    const Vector& strain_vector = rValues.GetStrainVector();
     Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const ProcessInfo &process_info = rValues.GetProcessInfo();
     const double time_step = process_info[DELTA_TIME];
@@ -63,17 +63,16 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLa
     Matrix C;
     this->CalculateElasticMatrix(C, material_props);
 
-    const Vector &PreviousStrain = this->GetPreviousStrainVector();
-    const Vector &PreviousStress = this->GetPreviousStressVector();
-    const Vector &strain_increment = strain_vector - PreviousStrain;
+    const Vector& previous_strain = this->GetPreviousStrainVector();
+    const Vector& previous_stress = this->GetPreviousStressVector();
+    const Vector& strain_increment = strain_vector - previous_strain;
 
     const double coef = viscous_parameter * time_step / ((1.0 + viscous_parameter) * 2.0 * delay_time);
-    const Vector &Aux = -(strain_vector - strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + strain_vector * (1.0 - coef);
+    const Vector& auxiliar_strain = -(strain_vector - strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + strain_vector * (1.0 - coef);
 
-    noalias(integrated_stress_vector) = PreviousStress * std::exp(-time_step / delay_time) + prod(C, Aux);
+    noalias(integrated_stress_vector) = previous_stress * std::exp(-time_step / delay_time) + prod(C, auxiliar_strain);
 
-    if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true)
-    {
+    if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         noalias(tangent_tensor) = C;
         this->SetNonConvPreviousStressVector(integrated_stress_vector);
         this->SetNonConvPreviousStrainVector(strain_vector);
@@ -86,7 +85,7 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLa
 void ViscousGeneralizedMaxwell3D::FinalizeSolutionStep(
     const Properties &rMaterialProperties,
     const GeometryType &rElementGeometry,
-    const Vector &rShapeFunctionsValues,
+    const Vector& rShapeFunctionsValues,
     const ProcessInfo &rCurrentProcessInfo)
 {
     // Update the required vectors
