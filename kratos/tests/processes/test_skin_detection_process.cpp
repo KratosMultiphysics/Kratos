@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
+//                   Vicente Mataix Ferrandiz
 //
 
 // Project includes
@@ -26,9 +27,13 @@ namespace Testing
 
 typedef Node<3> NodeType;
 
-KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
+// KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, SkinDetectionProcessSuite)
 {
     ModelPart model_part("test_model_part");
+    model_part.SetBufferSize(2);
+
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);;
 
     NodeType::Pointer p_node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -44,20 +49,9 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
     array_nodes2.push_back(p_node_3);
     array_nodes2.push_back(p_node_4);
 
-    Properties::Pointer material_properties;
-    material_properties->SetValue(YOUNG_MODULUS, 210e9);
-    material_properties->SetValue(POISSON_RATIO, 0.22);
-
-    Element::Pointer p_elem_1 = Element().Clone(1,array_nodes1);
-    Element::Pointer p_elem_2 = Element().Clone(1,array_nodes2);
-
-    model_part.AddNode(p_node_1);
-    model_part.AddNode(p_node_2);
-    model_part.AddNode(p_node_3);
-    model_part.AddNode(p_node_4);
-
-    model_part.AddElement(p_elem_1);
-    model_part.AddElement(p_elem_2);
+    Properties::Pointer p_elem_prop = model_part.pGetProperties(0);
+    Element::Pointer p_elem_1 = model_part.CreateNewElement("Element2D3N", 1,PointerVector<NodeType>{array_nodes1}, p_elem_prop);
+    Element::Pointer p_elem_2 = model_part.CreateNewElement("Element2D3N", 2,PointerVector<NodeType>{array_nodes2}, p_elem_prop);
 
     Parameters default_parameters = Parameters(R"(
         {
@@ -73,8 +67,16 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
     // We generate in several iterations to see if it crashes
     for (int i = 0; i < 2; i++) {
         skin_process.Execute();
+        KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 4);
     }
-}
 
+    // Now we remove one element
+    p_elem_2->Set(TO_ERASE);
+    model_part.RemoveElementsFromAllLevels(TO_ERASE);
+
+    // We execute again
+    skin_process.Execute();
+    KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
+}
 } // namespace Testing
 } // namespace Kratos
