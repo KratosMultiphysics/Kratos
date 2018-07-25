@@ -175,7 +175,7 @@ public:
         KRATOS_TRY
 
         if ((mDeltaTime.PredictionLevel > 0) && (!BaseType::SchemeIsInitialized())) {
-        CalculateDeltaTime(rModelPart);
+            CalculateDeltaTime(rModelPart);
         }
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -267,9 +267,11 @@ public:
 
         // Auxiliar values
         const array_1d<double, 3> zero_array(3, 0.0);
-        //
+        // Initializing the variables
         VariableUtils().SetVectorVar(FORCE_RESIDUAL, zero_array,r_nodes);
-        VariableUtils().SetVectorVar(MOMENT_RESIDUAL,zero_array,r_nodes);
+        const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
+        if (has_dof_for_rot_z)
+            VariableUtils().SetVectorVar(MOMENT_RESIDUAL,zero_array,r_nodes);
 
         KRATOS_CATCH("")
     }
