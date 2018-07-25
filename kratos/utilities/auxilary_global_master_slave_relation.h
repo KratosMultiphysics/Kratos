@@ -19,7 +19,6 @@
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
-#include "includes/process_info.h"
 
 namespace Kratos
 {
@@ -80,8 +79,8 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
      * @param RHSValue the value of the lhs (the slave dof value)
      */
-    void SetRHSValue(double const &RhsValue) { mRhsValue = RhsValue; }
-    void UpdateRHSValue(double const &RhsValueUpdate)
+    void SetRHSValue(const double &RhsValue) { mRhsValue = RhsValue; }
+    void UpdateRHSValue(const double &RhsValueUpdate)
     {
         mRhsValue += RhsValueUpdate;
     }
@@ -95,11 +94,9 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     /**
      * @brief this determines the master equation IDs connected to this constraint
      * @param rResult the elemental equation ID vector
-     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(IndexType &rSlaveEquationId,
-                                  EquationIdVectorType &rMasterEquationIds,
-                                  ProcessInfo &rCurrentProcessInfo)
+                                  EquationIdVectorType &rMasterEquationIds)
     {
         if (rMasterEquationIds.size() != 0 || rMasterEquationIds.size() == 0)
             rMasterEquationIds.resize(this->GetNumberOfMasters(), false);
@@ -118,11 +115,9 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * matrix and the right hand side
      * @param rMasterWeightsVector the elemental left hand side matrix
      * @param rConstant the elemental right hand side
-     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalSystem(VectorType &rMasterWeightsVector,
-                                      double &rConstant,
-                                      ProcessInfo &rCurrentProcessInfo)
+                                      double &rConstant)
     {
         if (rMasterWeightsVector.size() != 0 || rMasterWeightsVector.size() == 0)
         {
