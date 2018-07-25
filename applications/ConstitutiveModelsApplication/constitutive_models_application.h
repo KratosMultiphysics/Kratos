@@ -69,6 +69,7 @@
 #include "custom_models/elasticity_models/isochoric_neo_hookean_lnJ_squared_model.hpp"
 #include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
+#include "custom_models/elasticity_models/tamagnini_model.hpp"
 #include "custom_models/elasticity_models/ogden_model.hpp"
 #include "custom_models/elasticity_models/isochoric_ogden_model.hpp"
 
@@ -281,6 +282,7 @@ namespace Kratos {
     const IsochoricNeoHookeanLnJSquaredModel       mIsochoricNeoHookeanLnJSquaredModel;
     const IncompressibleNeoHookeanModel            mIncompressibleNeoHookeanModel;
     const BorjaModel                               mBorjaModel;
+    const TamagniniModel                           mTamagniniModel;
     const OgdenModel                               mOgdenModel;
     const OgdenModel                               mIsochoricOgdenModel;
 

@@ -134,9 +134,23 @@ namespace Kratos
        TracePlasticPotDerivative += rPlasticPotentialDerivative(i,i);
     
 
+    MatrixType DevPlasticPotDerivative = rPlasticPotentialDerivative;
+    for (unsigned int i = 0; i <3; i++)
+       DevPlasticPotDerivative(i,i) -= TracePlasticPotDerivative/3.0;
 
-    rDeltaHardening = (-MeanStressT) * rhos * rPS * (TracePlasticPotDerivative);
-    rDeltaHardening += (-MeanStressT) * ( 1.0 + k) * (rhot) * rPT * ( -fabs(TracePlasticPotDerivative) );
+    double NormPlasticPotDerivative = 0.0;
+    for (unsigned int i = 0; i <3; i++) {
+       for (unsigned int j = 0; j < 3; j++) {
+          NormPlasticPotDerivative += pow( DevPlasticPotDerivative(i,j), 2.0);
+       }
+    }
+    NormPlasticPotDerivative = sqrt( NormPlasticPotDerivative); 
+
+    const double & chis = rMaterialProperties[ALPHA];
+    const double & chit = rMaterialProperties[BETA];
+
+    rDeltaHardening = (-MeanStressT) * rhos * (+rPS )* (TracePlasticPotDerivative + chis * sqrt(2.0/3.0) * NormPlasticPotDerivative );
+ rDeltaHardening += (-MeanStressT) * ( 1.0 + k) * (rhot) * (-rPT) * ( fabs(TracePlasticPotDerivative) + chit*sqrt(2.0/3.0) * NormPlasticPotDerivative);
 
 
     return rDeltaHardening;	

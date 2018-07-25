@@ -21,7 +21,7 @@
 #include "custom_models/plasticity_models/hardening_rules/gens_nova_hardening_rule.hpp"
 #include "custom_models/plasticity_models/yield_surfaces/gens_nova_yield_surface.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
-
+#include "custom_models/elasticity_models/tamagnini_model.hpp"
 
 
 
@@ -61,7 +61,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) GensNovaModel : public NonAssociativePlasticityModel<BorjaModel, GensNovaYieldSurface<GensNovaHardeningRule> >
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) GensNovaModel : public NonAssociativePlasticityModel<TamagniniModel, GensNovaYieldSurface<GensNovaHardeningRule> >
    {
       public:
 
@@ -69,7 +69,8 @@ namespace Kratos
          ///@{
 
          //elasticity model
-         typedef BorjaModel                                     ElasticityModelType;
+         //typedef BorjaModel                                     ElasticityModelType;
+         typedef TamagniniModel                                     ElasticityModelType;
          typedef ElasticityModelType::Pointer                ElasticityModelPointer;
 
          //yield surface
@@ -368,7 +369,9 @@ namespace Kratos
                double rhos = rMaterialProperties[RHOS];
                double rhot = rMaterialProperties[RHOT];
                double k =  rMaterialProperties[KSIM];
-
+      
+               const double & chis = rMaterialProperties[ALPHA];
+               const double & chit = rMaterialProperties[BETA];
 
                MatrixType StressMatrix;
                // evaluate constitutive matrix and plastic flow
@@ -428,11 +431,12 @@ namespace Kratos
                   DevPlasticIncr += pow( DeltaGamma * DeltaStressYieldCondition(i) - VolPlasticIncr/3.0, 2.0);
                for (unsigned int i = 3; i < 6; i++)
                   DevPlasticIncr += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i) /2.0 , 2.0);
-               rPlasticDevDef += sqrt(DevPlasticIncr);
+               DevPlasticIncr = sqrt(DevPlasticIncr);
+               rPlasticDevDef += DevPlasticIncr;
 
 
-               double hs =  rhos * rPS * (VolPlasticIncr + 0.0);
-               double ht = rhot * rPT * ( -fabs(VolPlasticIncr)  + 0.0);
+               double hs = rhos * ( rPS) * (     VolPlasticIncr  + chis*sqrt(2.0/3.0) * DevPlasticIncr );
+               double ht = rhot * (-rPT) * (fabs(VolPlasticIncr) + chit*sqrt(2.0/3.0) * DevPlasticIncr );
 
                rPS -= hs;
                rPT -= ht;

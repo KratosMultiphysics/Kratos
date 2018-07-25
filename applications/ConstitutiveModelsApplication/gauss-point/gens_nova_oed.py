@@ -26,10 +26,12 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         NumberIncrements = 100
         IncrementalF = self._set_identity_matrix()
         IncrementalF[0,0] = 0.999
+        #IncrementalF[1,1] = 0.999
+        #IncrementalF[2,2] = 0.999
 
-        for pt in np.arange(100.0,700.0, 100.0):
+        for pt in np.arange(-4.0,0.0, 0.990):
             self._create_material_model_and_law()
-            self.properties.SetValue( KratosMultiphysics.ConstitutiveModelsApplication.PT,  pt)
+            self.properties.SetValue( KratosMultiphysics.ConstitutiveModelsApplication.ALPHA,  pt)
             self.parameters.SetMaterialProperties( self.properties )
     
             self._compute_strain_driven_problem(IncrementalF, NumberIncrements)
@@ -46,10 +48,9 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         
         NumberIncrements = 100
-
-        for pt in np.arange(100.0,700.0, 100.0):
+        for pt in np.arange(-0.1,0.1, 0.0999990):
             self._create_material_model_and_law()
-            self.properties.SetValue( KratosMultiphysics.ConstitutiveModelsApplication.PT,  pt)
+            self.properties.SetValue( KratosMultiphysics.ConstitutiveModelsApplication.BETA,  pt)
             self.parameters.SetMaterialProperties( self.properties )
 
             self._test_TriaxialCompression()
@@ -83,7 +84,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         k0 = 0.5
         sigma_h = sigma_v * k0
 
-        for iteracio in range(0, 100):
+        for iteracio in range(0, 200):
             stress = self.parameters.GetStressVector()
 
             residual = 0.0*stress + stress;
@@ -102,7 +103,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             #print(norm)
             if (norm < 1e-9):
                 break
-            if ( iteracio > 95):
+            if ( iteracio > 195):
                 pNode
 
 
@@ -332,18 +333,20 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
                 "model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.GensNovaModel"
             },
             "variables": {
-                "KratosMultiphysics.PRE_CONSOLIDATION_STRESS": 80.0,
+                "KratosMultiphysics.PRE_CONSOLIDATION_STRESS": 1000000.0,
                 "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 1.0,
-                "KratosMultiphysics.SWELLING_SLOPE": 0.0078,
+                "KratosMultiphysics.SWELLING_SLOPE": 7.850,
                 "KratosMultiphysics.NORMAL_COMPRESSION_SLOPE": 0.085,
-                "KratosMultiphysics.INITIAL_SHEAR_MODULUS": 40000.0,
+                "KratosMultiphysics.INITIAL_SHEAR_MODULUS": 160500.0,
                 "KratosMultiphysics.ALPHA_SHEAR": 0.0,
                 "KratosMultiphysics.CRITICAL_STATE_LINE": 1.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.KSIM": 0.2,
-                "KratosMultiphysics.ConstitutiveModelsApplication.PS": 800.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.PT": 100.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.ALPHA": 0.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.BETA": 0.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.KSIM": 3.70,
+                "KratosMultiphysics.ConstitutiveModelsApplication.PS": 400.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.PT": 216.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.RHOS": 12.9533678756,
-                "KratosMultiphysics.ConstitutiveModelsApplication.RHOT": -30.0
+                "KratosMultiphysics.ConstitutiveModelsApplication.RHOT": -8.0
             },
             "element_type": "Tetrahedra3D4",
             "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],

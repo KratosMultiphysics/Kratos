@@ -372,8 +372,8 @@ namespace Kratos
 
                KRATOS_TRY
 
-      // 1. Add what I think it is a missing term
-      Matrix ExtraMatrix(6,6);
+               // 1. Add what I think it is a missing term
+               Matrix ExtraMatrix(6,6);
                noalias(ExtraMatrix)= ZeroMatrix(6,6);
                MatrixType Identity;
                noalias(Identity) = identity_matrix<double>(3);
