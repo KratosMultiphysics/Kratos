@@ -784,6 +784,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
             { // if a equation exists for this slave
                 global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids); // get the slave and master equation ids for this slave.
+                rEquationIds.reserve(master_equation_ids.size());
                 for (auto &master_eq_id : master_equation_ids)
                 {
                     // Add the current slaves master eq ids to the equation ids
