@@ -208,7 +208,7 @@ namespace Kratos
                 for(unsigned int i=0; i<vertices.size(); ++i)
                 {
                   vertices[i].Set(BLOCKED);
-                  if(i_mp->Is(FLUID)) {
+                  if(i_mp->Is(FLUID) && vertices[i].IsNot(RIGID)) {
                     vertices[i].Set(FLUID);
                   }
                 }
