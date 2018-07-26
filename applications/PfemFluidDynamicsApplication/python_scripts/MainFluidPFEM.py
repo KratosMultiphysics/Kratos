@@ -251,7 +251,7 @@ class Solution(object):
         self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report);
 
         # Calculate Nodal_Area
-        KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part,self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]).Execute()
+        self.CalculateNodalArea()
 
     def SolveSolutionStep(self):
 
@@ -371,6 +371,9 @@ class Solution(object):
         if( report ):
             used_time = time_fp - time_ip
             print("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+
+    def CalculateNodalArea(self):
+        pass
 
     #### Main internal methods ####
 
