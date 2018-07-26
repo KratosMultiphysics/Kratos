@@ -18,6 +18,7 @@ class SaveRestartProcess(KratosMultiphysics.Process):
         """
         ## Settings string in json format
         default_settings = KratosMultiphysics.Parameters("""{
+            "help"                         : "This process is used in order to save/load the problem databse with the serializer the current problem",
             "model_part_name"              : "",
             "echo_level"                   : 0,
             "serializer_trace"             : "no_trace",
