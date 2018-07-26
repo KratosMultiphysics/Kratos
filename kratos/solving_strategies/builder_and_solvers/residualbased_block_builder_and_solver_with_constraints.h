@@ -111,9 +111,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     typedef AuxilaryGlobalMasterSlaveRelation AuxilaryGlobalMasterSlaveRelationType;
 
     typedef PointerVectorSet<AuxilaryGlobalMasterSlaveRelationType, IndexedObject> GlobalMasterSlaveRelationContainerType;
-    typedef std::size_t SizeType;
-    typedef std::vector<SizeType> EquationIdVectorType;
-    typedef std::vector<SizeType> VectorIndexType;
+    typedef std::vector<IndexType> EquationIdVectorType;
+    typedef std::vector<IndexType> VectorIndexType;
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
@@ -585,7 +584,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // First delete the existing ones
         mGlobalMasterSlaveRelations.clear();
         // Getting the array of the conditions
-        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        IndexType number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // Getting the beginning iterator
 
         ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
@@ -596,7 +595,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         EquationIdVectorType slave_equation_ids = EquationIdVectorType(0);
         EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
 
-        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+        for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + i_constraints;
 
@@ -658,12 +657,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void ResetConstraintRelations(ModelPart& rModelPart)
     {
         KRATOS_TRY
-        const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
+        IndexType number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
         // Getting the beginning iterator
 
         GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveRelations.begin();
 
-        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+        for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
             (*it).SetLHSValue(0.0);
@@ -683,12 +682,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // Reset the constraint equations
         ResetConstraintRelations(rModelPart);
         // Getting the array of the conditions
-        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        IndexType number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // Getting the beginning iterator
         ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
 
-        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+        for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + i_constraints;
 
@@ -820,7 +819,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         typename TContainerType::EquationIdVectorType equation_ids = rEquationIds;
         // Saving th original system size
-        const SizeType initial_sys_size = rLHSContribution.size1();
+        const IndexType initial_sys_size = rLHSContribution.size1();
 
         // Formulating which are the internal, slave indices locally.
         VectorIndexType local_index_vector;
@@ -830,7 +829,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         // first fill in the rEquationIds using the above function (overloaded one)
         ApplyConstraints<TContainerType>(rModelPart, rCurrentContainer, rEquationIds, rCurrentProcessInfo); // now rEquationIds has all the slave equation ids appended to it.
-        SizeType total_number_of_masters = rEquationIds.size() - initial_sys_size;
+        IndexType total_number_of_masters = rEquationIds.size() - initial_sys_size;
         // Calculating the local indices corresponding to internal, master, slave dofs of this container
         CalculateLocalSlaveIndices(equation_ids, local_slave_index_vector);
         CalculateLocalInternalIndices(equation_ids, local_slave_index_vector, local_internal_index_vector);
@@ -886,10 +885,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @param   FinalSize the final size of the resized quantities.
      */
     void ResizeAndInitializeLocalMatrices(MatrixType& rMatrix, VectorType& rVector,
-                                            SizeType FinalSize)
+                                            IndexType FinalSize)
     {
         KRATOS_TRY
-        const SizeType initial_sys_size = rMatrix.size1();
+        const IndexType initial_sys_size = rMatrix.size1();
 
         rMatrix.resize(FinalSize, FinalSize, true); //true for Preserving the data and resizing the matrix
         rVector.resize(FinalSize, true);
@@ -1032,10 +1031,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @param   rLocalMasterIndexVector reference to the vector of master indices
      * @param   rTotalNumberOfMasters total number of masters for the given element or condition.
      */
-    void CalculateLocalMasterIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalMasterIndexVector, SizeType& rTotalNumberOfMasters)
+    void CalculateLocalMasterIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalMasterIndexVector, IndexType& rTotalNumberOfMasters)
     {
         // Get number of master indices for this current container
-        for (SizeType i = rEquationIds.size(); i < rTotalNumberOfMasters + rEquationIds.size(); i++)
+        for (IndexType i = rEquationIds.size(); i < rTotalNumberOfMasters + rEquationIds.size(); i++)
             rLocalMasterIndexVector.push_back(i);
     }
 
@@ -1053,7 +1052,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         TSystemVectorType& rb)
     {
         KRATOS_TRY
-        const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
+        IndexType number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
         // Getting the beginning iterator
 
         GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveRelations.begin();
@@ -1064,7 +1063,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         IndexType slave_equation_id = 0;
         EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
 
-        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+        for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
 
