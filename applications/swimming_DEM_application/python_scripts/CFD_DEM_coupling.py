@@ -28,12 +28,12 @@ class ProjectionModule:
         self.flow_field                  = flow_field
 
         # Create projector_parameters
-        self.projector_parameters = KratosMultiphysics.Parameters("{}")
+        self.projector_parameters = Parameters("{}")
         self.projector_parameters.AddValue("min_fluid_fraction",pp.CFD_DEM["min_fluid_fraction"])
         self.projector_parameters.AddValue("coupling_type",pp.CFD_DEM["coupling_weighing_type"])
         self.projector_parameters.AddValue("time_averaging_type",pp.CFD_DEM["time_averaging_type"])
         self.projector_parameters.AddValue("viscosity_modification_type",pp.CFD_DEM["viscosity_modification_type"])
-        self.projector_parameters.AddValue("n_particles_per_depth_distance",pp.CFD_DEM["n_particles_per_depth_distance"])
+        self.projector_parameters.AddValue("n_particles_per_depth_distance",pp.CFD_DEM["n_particles_in_depth"])
         self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name",pp.CFD_DEM["body_force_per_unit_mass_variable_name"])
 
         if self.dimension == 3:
