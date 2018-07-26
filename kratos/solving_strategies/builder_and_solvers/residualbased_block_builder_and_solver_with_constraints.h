@@ -67,8 +67,8 @@ namespace Kratos
  * @author Aditya Ghantasala
  */
 template <class TSparseSpace,
-          class TDenseSpace,  //= DenseSpace<double>,
-          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+          class TDenseSpace,
+          class TLinearSolver
           >
 class ResidualBasedBlockBuilderAndSolverWithConstraints
     : public ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -198,44 +198,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             BaseType::BuildAndSolve(pScheme, rModelPart, A, Dx, b);
     }
 
-    void BuildAndSolveWithConstraints(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b)
-    {
-        KRATOS_TRY
-
-        Timer::Start("Build");
-        this->UpdateConstraintsForBuilding(rModelPart);
-
-        Build(pScheme, rModelPart, A, b);
-
-        Timer::Stop("Build");
-
-        this->ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
-
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
-                                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
-
-        const double start_solve = OpenMPUtils::GetCurrentTime();
-        Timer::Start("Solve");
-
-        this->SystemSolveWithPhysics(A, Dx, b, rModelPart);
-
-        ReconstructSlaveSolutionAfterSolve(rModelPart, A, Dx, b);
-
-        Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
-
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) << "After the solution of the system"
-                                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
     void InitializeSolutionStep(
         ModelPart &rModelPart,
         TSystemMatrixType &A,
@@ -246,11 +208,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-#pragma omp for schedule(guided, 512)
+        auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+#pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; k++)
         {
-            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + k;
+            auto it = constraints_begin + k;
             it->InitializeSolutionStep(); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
         }
 
@@ -267,11 +229,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_TRY
         BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-#pragma omp for schedule(guided, 512)
+        auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+#pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; k++)
         {
-            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + k;
+            auto it = constraints_begin + k;
             it->FinalizeSolutionStep();
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to finalize")
@@ -317,38 +279,43 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
     }
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
+    void BuildAndSolveWithConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart &rModelPart,
+        TSystemMatrixType &A,
+        TSystemVectorType &Dx,
+        TSystemVectorType &b)
+    {
+        KRATOS_TRY
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
+        Timer::Start("Build");
+        this->UpdateConstraintsForBuilding(rModelPart);
 
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
+        Build(pScheme, rModelPart, A, b);
 
-    ///@}
+        Timer::Stop("Build");
 
-  private:
-    ///@name Static Member Variables
-    ///@{
+        this->ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
+                                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-    // This is the set of condenced global constraints.
-    GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveRelations; //This can be changed to more efficient implementation later on.
+        const double start_solve = OpenMPUtils::GetCurrentTime();
+        Timer::Start("Solve");
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+        this->SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+        ReconstructSlaveSolutionAfterSolve(rModelPart, A, Dx, b);
+
+        Timer::Stop("Solve");
+        const double stop_solve = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) << "After the solution of the system"
+                                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+
+        KRATOS_CATCH("")
+    }
 
     /*
     * This function is exactly same as the ConstructMatrixStructure() function in base class except that the function
@@ -570,6 +537,38 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     }
 
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+  private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    // This is the set of condenced global constraints.
+    GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveRelations; //This can be changed to more efficient implementation later on.
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     /**
      * @brief   this method condences the MasterSlaveConstraints which are added on the rModelPart
@@ -584,7 +583,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // First delete the existing ones
         mGlobalMasterSlaveRelations.clear();
         // Getting the array of the conditions
-        IndexType number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // Getting the beginning iterator
 
         ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
@@ -595,7 +594,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         EquationIdVectorType slave_equation_ids = EquationIdVectorType(0);
         EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
 
-        for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+#pragma omp parallel for schedule(guided, 512) firstprivate(number_of_constraints, constraints_begin, relation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
+        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + i_constraints;
 
@@ -682,12 +682,13 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // Reset the constraint equations
         ResetConstraintRelations(rModelPart);
         // Getting the array of the conditions
-        IndexType number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // Getting the beginning iterator
         ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
 
-        for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+#pragma omp parallel for schedule(guided, 512) firstprivate(number_of_constraints, constraints_begin)
+        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + i_constraints;
 
@@ -1052,7 +1053,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         TSystemVectorType& rb)
     {
         KRATOS_TRY
-        IndexType number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
+        int number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
         // Getting the beginning iterator
 
         GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveRelations.begin();
@@ -1063,7 +1064,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         IndexType slave_equation_id = 0;
         EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
 
-        for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+#pragma omp parallel for schedule(guided, 512) firstprivate(number_of_constraints, constraints_begin, slave_equation_id, master_equation_ids, master_weights_vector, constant)
+        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
 
@@ -1080,7 +1082,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             }
             slave_dx_value += constant;
 
-            rDx[slave_equation_id] = slave_dx_value;
+            rDx[slave_equation_id] = slave_dx_value; // this access is always unique for an object so no need of special care for openmp
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ReconstructSlaveSolutionAfterSolve failed ..");
     }
