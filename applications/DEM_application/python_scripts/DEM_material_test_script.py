@@ -325,28 +325,22 @@ class MaterialTest(object):
     prepare_check = [0,0,0,0]
     self.total_check = 0
 
-    for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
-      if(self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, TOP)):
+    for smp in self.RigidFace_model_part.SubModelParts:
+        if smp[TOP]:
+            self.top_mesh_nodes = smp.Nodes
+            prepare_check[0] = 1
+        if smp[BOTTOM]:
+            self.bot_mesh_nodes = smp.Nodes
+            prepare_check[1] = 1
 
-        self.top_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
-        prepare_check[0] = 1
+    for smp in self.spheres_model_part.SubModelParts:
+        if smp[TOP]:
+            self.top_mesh_nodes = smp.Nodes
+            prepare_check[2] = -1
 
-      if(self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, BOTTOM)):
-
-        self.bot_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
-        prepare_check[1] = 1
-
-    for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
-
-      if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, TOP)):
-
-        self.top_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
-        prepare_check[2] = -1
-
-      if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, BOTTOM)):
-
-        self.bot_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
-        prepare_check[3] = -1
+        if smp[BOTTOM]:
+            self.bot_mesh_nodes = smp.Nodes
+            prepare_check[3] = -1
 
     for it in range(len(prepare_check)):
 
@@ -419,9 +413,9 @@ class MaterialTest(object):
 
   def PrintGraph(self, time):
 
-    for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
-        if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, TOP)):
-            self.mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
+    for smp in self.RigidFace_model_part.SubModelParts:
+        if smp[TOP]:
+            self.mesh_nodes = smp.Nodes
 
     if(self.graph_counter == self.graph_frequency):
 
