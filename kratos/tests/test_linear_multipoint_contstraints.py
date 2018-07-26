@@ -14,10 +14,6 @@ except ImportError as e:
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
                                     '{0}'.format(e)).group(1)
 
-# Other imports
-import os
-
-
 class TestLinearMultipointConstraints(KratosUnittest.TestCase):
     def setUp(self):
         pass
