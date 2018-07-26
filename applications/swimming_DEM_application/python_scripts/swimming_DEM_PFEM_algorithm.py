@@ -8,6 +8,7 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 import swimming_DEM_algorithm
 import swimming_DEM_procedures as SDP
 import variables_management as vars_man
+import CFD_DEM_coupling
 
 sys.path.insert(0,'')
 #import DEM_explicit_solver_var as DEM_parameters
@@ -64,6 +65,18 @@ class Algorithm(BaseAlgorithm):
                 body_model_part_name = bodies_parts_list[i]["body_name"].GetString()
                 source_model_part = self.fluid_solution.main_model_part.GetSubModelPart(body_model_part_name)
                 SwimmingDemInPfemUtils().TransferWalls(source_model_part, destination_model_part)
+
+    def SetProjectionModule(self):
+        self.fluid_acceleration_variable = 'VOLUME_ACCELERATION'
+
+        self.projection_module = CFD_DEM_coupling.ProjectionModule(
+            self.fluid_model_part,
+            self.spheres_model_part,
+            self.rigid_face_model_part,
+            self.pp,
+            flow_field=self.GetFieldUtility(),
+            self.fluid_acceleration_variable
+            )
 
     def FluidInitialize(self):
 

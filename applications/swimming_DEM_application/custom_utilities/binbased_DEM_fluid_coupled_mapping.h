@@ -128,24 +128,32 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 //----------------------------------------------------------------
 
 
-BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
-                               const int coupling_type,
-                               const int time_averaging_type,
-                               const int viscosity_modification_type,
-                               const int n_particles_per_depth_distance = 1)
+BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
                              : mMustCalculateMaxNodalArea(true),
                                mFluidDeltaTime(0.0),
                                mFluidLastCouplingFromDEMTime(0.0),
-                               mMinFluidFraction(min_fluid_fraction),
                                mMaxNodalAreaInv(0.0),
-                               mCouplingType(coupling_type),
-                               mTimeAveragingType(time_averaging_type),
-                               mViscosityModificationType(viscosity_modification_type),
-                               mParticlesPerDepthDistance(n_particles_per_depth_distance),
                                mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
-
-
 {
+    Parameters default_parameters( R"(
+        {
+            "min_fluid_fraction": 0.2,
+            "coupling_type": 1,
+            "time_averaging_type": 0,
+            "viscosity_modification_type" : 0,
+            "n_particles_per_depth_distance" : 1,
+            "fluid_acceleration_variable" : "BODY_FORCE"
+        }  )" );
+
+    rParameters.ValidateAndAssignDefaults(default_parameters);
+
+    mMinFluidFraction = rParameters["min_fluid_fraction"].GetDouble();
+    mCouplingType = rParameters["coupling_type"].GetInt();
+    mTimeAveragingType = rParameters["time_averaging_type"].GetInt();
+    mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();
+    mParticlesPerDepthDistance = rParameters["n_particles_per_depth_distance"].GetInt();
+    mFluidAccelerationVariable = KratosComponents<Variable<array_1d<double,3> > >::Get(rParameters["fluid_acceleration_variable"].GetString());
+
     if (TDim == 3){
         mParticlesPerDepthDistance = 1;
     }
@@ -284,6 +292,8 @@ std::map<VariableData, bool> mIsFirstTimeFiltering;
 PointPointSearch::Pointer mpPointPointSearch;
 
 FluidFieldUtility mFlowField;
+
+Variable< array_1d<double,3> > mFluidAccelerationVariable;
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius

@@ -9,7 +9,7 @@ import sys
 
 class ProjectionModule:
 
-    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, pp, flow_field = None):
+    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, pp, flow_field = None, fluid_acceleration_variable = 'BODY_FORCE'):
 
         self.fluid_model_part            = fluid_model_part
         self.particles_model_part        = balls_model_part
@@ -26,21 +26,29 @@ class ProjectionModule:
         self.do_impose_flow_from_field   = pp.CFD_DEM["do_impose_flow_from_field_option"].GetBool()
         self.flow_field                  = flow_field
 
+        self.projector_parameters = KratosMultiphysics.Parameters("{}")
+        self.projector_parameters.AddEmptyValue("min_fluid_fraction").SetDouble(self.min_fluid_fraction)
+        self.projector_parameters.AddEmptyValue("coupling_type").SetInt(self.coupling_type)
+        self.projector_parameters.AddEmptyValue("time_averaging_type").SetInt(self.time_averaging_type)
+        self.projector_parameters.AddEmptyValue("viscosity_modification_type").SetInt(self.viscosity_modification_type)
+        self.projector_parameters.AddEmptyValue("n_particles_per_depth_distance").SetInt(self.n_particles_in_depth)
+        self.projector_parameters.AddEmptyValue("fluid_acceleration_variable").SetString(fluid_acceleration_variable)
+
         if self.dimension == 3:
 
             if pp.CFD_DEM["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type)
+                self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters)
 
             else:
-                self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type)
+                self.projector = BinBasedDEMFluidCoupledMapping3D(self.projector_parameters)
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
             if pp.CFD_DEM["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = BinBasedNanoDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type, self.n_particles_in_depth)
+                self.projector = BinBasedNanoDEMFluidCoupledMapping2D(self.projector_parameters)
 
             else:
-                self.projector = BinBasedDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type, self.n_particles_in_depth)
+                self.projector = BinBasedDEMFluidCoupledMapping2D(self.projector_parameters)
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
 
         # telling the projector which variables we are interested in modifying

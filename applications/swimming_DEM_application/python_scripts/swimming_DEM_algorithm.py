@@ -387,13 +387,8 @@ class Algorithm(object):
             elif self.spheres_model_part.NumberOfElements(0) == 0:
                 self.pp.CFD_DEM["meso_scale_length"].SetDouble(1.0)
 
-            self.projection_module = CFD_DEM_coupling.ProjectionModule(
-                self.fluid_model_part,
-                self.spheres_model_part,
-                self.rigid_face_model_part,
-                self.pp,
-                flow_field=self.GetFieldUtility()
-                )
+            self.SetProjectionModule()
+
             self.projection_module.UpdateDatabase(self.h_min)
 
         # creating a custom functions calculator for the implementation of
@@ -528,6 +523,15 @@ class Algorithm(object):
         self.PerformZeroStepInitializations()
 
         self.post_utils.Writeresults(self.time)
+
+    def SetProjectionModule(self):
+        self.projection_module = CFD_DEM_coupling.ProjectionModule(
+            self.fluid_model_part,
+            self.spheres_model_part,
+            self.rigid_face_model_part,
+            self.pp,
+            flow_field=self.GetFieldUtility()
+            )
 
     def AddExtraProcessInfoVariablesToFluid(self):
         vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.fluid_model_part)
