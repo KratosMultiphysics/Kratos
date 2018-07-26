@@ -26,12 +26,23 @@
 
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-#include "includes/condition.h"  
+#include "includes/condition.h"
+
+//#include "includes/kernel.h"
+//#include "includes/kratos_flags.h"
+//#include "containers/flags.h"
 
 #include "geometries/geometry.h"
 
 
 namespace Kratos {
+
+    ////FLAGS
+    //KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_DISPLACEMENT_X, 0);
+    //KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_DISPLACEMENT_Y, 1);
+    //KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_DISPLACEMENT_Z, 2);
+    //KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_ROTATION_X,    3);
+
 
 KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication() :
     KratosApplication("IGAStructuralMechanicsApplication"),
@@ -49,6 +60,7 @@ KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication
     mLoadCurveDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mLoadSurfaceDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mSupportPenaltyCurveDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mSupportStrongDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessLagrangeCouplingCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessLagrangeCouplingCondition2(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     //mContinuityConditionPenalty(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -121,6 +133,7 @@ KRATOS_REGISTER_CONDITION("LoadPointDiscreteCondition", mLoadPointDiscreteCondit
 KRATOS_REGISTER_CONDITION("LoadCurveDiscreteCondition", mLoadCurveDiscreteCondition)
 KRATOS_REGISTER_CONDITION("LoadSurfaceDiscreteCondition", mLoadSurfaceDiscreteCondition)
 KRATOS_REGISTER_CONDITION("SupportPenaltyCurveDiscreteCondition", mSupportPenaltyCurveDiscreteCondition)
+KRATOS_REGISTER_CONDITION("SupportStrongDiscreteCondition", mSupportStrongDiscreteCondition)
 
 // Register meshless condition
 KRATOS_REGISTER_CONDITION("MeshlessSupportRotationCondition", mMeshlessSupportRotationCondition)

@@ -21,21 +21,18 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define_python.h"
 
 
 namespace Kratos
 {
+    namespace Python
+    {
 
-	namespace Python
-	{
+        void  AddCustomUtilitiesToPython(pybind11::module& m);
 
-		void  AddCustomUtilitiesToPython(pybind11::module& m);
-
-	}  // namespace Python.
-
+    }  // namespace Python.
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined 

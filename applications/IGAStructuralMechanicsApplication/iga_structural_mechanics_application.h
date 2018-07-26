@@ -55,6 +55,7 @@
 #include "custom_conditions/load_curve_discrete_condition.h"
 #include "custom_conditions/load_surface_discrete_condition.h"
 #include "custom_conditions/support_penalty_curve_discrete_condition.h"
+#include "custom_conditions/support_strong_discrete_condition.h"
 
 
 #include "custom_conditions/meshless_support_rotation_condition.h"
@@ -69,6 +70,13 @@ namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
+
+/// Local Flags
+    //KRATOS_DEFINE_LOCAL_FLAG(FIXED_DISPLACEMENT_X);
+    //KRATOS_DEFINE_LOCAL_FLAG(FIXED_DISPLACEMENT_Y);
+    //KRATOS_DEFINE_LOCAL_FLAG(FIXED_DISPLACEMENT_Z);
+    //KRATOS_DEFINE_LOCAL_FLAG(FIXED_ROTATION_T2);
+
     //IGA-DEM
     KRATOS_DEFINE_VARIABLE(Vector, COORDINATES)
 
@@ -274,6 +282,7 @@ private:
     const LoadCurveDiscreteCondition           mLoadCurveDiscreteCondition;
     const LoadSurfaceDiscreteCondition         mLoadSurfaceDiscreteCondition;
     const SupportPenaltyCurveDiscreteCondition mSupportPenaltyCurveDiscreteCondition;
+    const SupportStrongDiscreteCondition       mSupportStrongDiscreteCondition;
 
     const MeshlessSupportRotationCondition         mMeshlessSupportRotationCondition;
     const MeshlessSurfaceSupportCondition          mMeshlessSurfaceSupportCondition;

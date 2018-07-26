@@ -21,6 +21,7 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
+#include "custom_utilities/iga_flags.h"
 
 namespace Kratos
 {
@@ -32,6 +33,17 @@ namespace Python
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
+
+    // Adding the flags that can be used for application of enforcements on conditions
+    class_< IGAFlags > iga_flags = class_< IGAFlags >(m, "IGAFlags")
+        .def(init<>())
+        ;
+
+    iga_flags.attr("FIX_DISPLACEMENT_X") = IGAFlags::FIX_DISPLACEMENT_X;
+    iga_flags.attr("FIX_DISPLACEMENT_Y") = IGAFlags::FIX_DISPLACEMENT_Y;
+    iga_flags.attr("FIX_DISPLACEMENT_Z") = IGAFlags::FIX_DISPLACEMENT_Z;
+    iga_flags.attr("FIX_ROTATION_X") = IGAFlags::FIX_ROTATION_X;
+
 }
 
 }  // namespace Python.
