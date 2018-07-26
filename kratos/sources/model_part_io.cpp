@@ -194,12 +194,14 @@ namespace Kratos
                 if (it_constitutive_law_begin != std::string::npos) {
                     aux_string.erase(it_constitutive_law_begin, it_constitutive_law_end);
                 }
-                ConstitutiveLaw::Pointer p_law = i_properties->GetValue(CONSTITUTIVE_LAW);
+                const ConstitutiveLaw::Pointer p_law = i_properties->GetValue(CONSTITUTIVE_LAW);
                 auto components_cl = KratosComponents<ConstitutiveLaw>::GetComponents();
                 std::string cl_name = "";
-                for (auto& comp_cl : components_cl) {
-                    if (typeid(*(comp_cl.second)).name() == typeid(*p_law).name())
+                for (const auto& comp_cl : components_cl) {
+                    if (p_law->HasSameType(p_law.get(), comp_cl.second)) {
                         cl_name = comp_cl.first;
+                        break;
+                    }
                 }
                 if (cl_name != "") aux_string += "CONSTITUTIVE_LAW " + cl_name;
             }
