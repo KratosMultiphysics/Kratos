@@ -29,6 +29,7 @@ class SaveRestartProcess(KratosMultiphysics.Process):
 
         ## Overwrite the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_settings)
+        params.RemoveValue("help")
         self.params = params
         self.model = model
 
