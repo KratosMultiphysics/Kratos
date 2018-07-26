@@ -14,11 +14,13 @@
 #define AUXILARY_GLOBAL_MASTER_SLAVE_RELATION
 // System includes
 #include <vector>
-
+#include <mutex>
+#include <atomic>
 // project includes
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
+
 
 namespace Kratos
 {
@@ -79,10 +81,13 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
      * @param RHSValue the value of the lhs (the slave dof value)
      */
-    void SetRHSValue(const double &RhsValue) { mRhsValue = RhsValue; }
+    void SetRHSValue(const double &RhsValue)
+    {
+        mRhsValue = RhsValue;
+    }
     void UpdateRHSValue(const double &RhsValueUpdate)
     {
-        mRhsValue += RhsValueUpdate;
+        mRhsValue = mRhsValue + RhsValueUpdate;
     }
 
     // Get number of masters for this slave
@@ -148,21 +153,29 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 
     void Clear()
     {
-        mMasterEquationIdVector.clear();
-        mMasterWeightsVector.clear();
+        mMtx.lock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
+            //clearing the contents
+            mMasterEquationIdVector.clear();
+            mMasterWeightsVector.clear();
+            //shrinking the memory
+            mMasterEquationIdVector.shrink_to_fit();
+            mMasterWeightsVector.shrink_to_fit();
+        mMtx.unlock(); // unlocking
     }
 
     void AddMaster(IndexType MasterEquationId, double Weight)
     {
-        int index = MasterEquationIdExists(MasterEquationId);
-        if (index > 0)
-        {
-            mMasterWeightsVector[index] += Weight;
-        } else
-        {
-            mMasterEquationIdVector.push_back(MasterEquationId);
-            mMasterWeightsVector.push_back(Weight);
-        }
+        mMtx.lock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
+            int index = MasterEquationIdExists(MasterEquationId);
+            if (index > 0)
+            {
+                mMasterWeightsVector[index] += Weight;
+            } else
+            {
+                mMasterEquationIdVector.push_back(MasterEquationId);
+                mMasterWeightsVector.push_back(Weight);
+            }
+        mMtx.unlock(); // unlocking
     }
 
   private:
@@ -177,7 +190,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     }
 
     void load(Serializer &rSerializer) override
-    {   
+    {
         // No need to load anything from this class as they will be reconstructed
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
     }
@@ -192,13 +205,15 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     }
 
     ///@}
-    double mLhsValue;
-    double mRhsValue;
+    std::atomic<double> mLhsValue;
+    std::atomic<double> mRhsValue;
 
     std::vector<IndexType> mMasterEquationIdVector;
     std::vector<double> mMasterWeightsVector;
 
-    double mConstant;
+    std::atomic<double> mConstant;
+
+    std::mutex mMtx;
 
 }; // End of ConstraintEquation class
 
