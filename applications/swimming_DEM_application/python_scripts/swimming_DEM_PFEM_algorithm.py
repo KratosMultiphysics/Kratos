@@ -10,7 +10,7 @@ import swimming_DEM_procedures as SDP
 import variables_management as vars_man
 
 sys.path.insert(0,'')
-import DEM_explicit_solver_var as DEM_parameters
+#import DEM_explicit_solver_var as DEM_parameters
 BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 
 class Algorithm(BaseAlgorithm):
