@@ -33,6 +33,7 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process):
         )
 
         settings.ValidateAndAssignDefaults(default_settings)
+        settings.RemoveValue("help")
 
         KratosMultiphysics.Process.__init__(self)
         model_part = Model[settings["computing_model_part_name"].GetString()]
