@@ -22,6 +22,7 @@ from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNo
 from custom_timer import Timer
 import mapper_factory
 import data_logger_factory
+import copy
 
 # ==============================================================================
 class AlgorithmTrustRegion(OptimizationAlgorithm):
@@ -41,7 +42,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             "subopt_tolerance"              : 1e-10,
             "bisectioning_max_itr"          : 30,
             "bisectioning_tolerance"        : 1e-4,
-            "obj_share_during_correction"   : 0
+            "obj_share_during_correction"   : 0.5
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -62,6 +63,11 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.geometry_utilities = GeometryUtilities(self.design_surface)
         self.optimization_utilities = OptimizationUtilities(self.design_surface, optimization_settings)
 
+        self.is_damping_specified = optimization_settings["design_variables"]["damping"]["perform_damping"].GetBool()
+        if self.is_damping_specified:
+            damping_regions = self.model_part_controller.GetDampingRegions()
+            self.damping_utilities = DampingUtilities(self.design_surface, damping_regions, optimization_settings)
+
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
         if self.specified_objectives.size() > 1:
@@ -72,15 +78,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.number_of_design_variables = 3*self.design_surface.NumberOfNodes()
 
         self.x_init = WriteNodeCoordinatesToList(self.design_surface)
-
-        self.value_history = {}
-        self.value_history["val_obj"] = []
-        self.value_history["val_eqs"] = []
-        self.value_history["val_ineqs"] = []
-        self.value_history["len_obj"] = []
-        self.value_history["len_eqs"] = []
-        self.value_history["len_ineqs"] = []
-        self.value_history["step_length"] = []
 
         self.model_part_controller.ImportOptimizationModelPart()
         self.model_part_controller.InitializeMeshController()
@@ -128,23 +125,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             self.__LogCurrentOptimizationStep()
 
-            self.value_history["val_obj"].append(val_obj)
-            self.value_history["val_eqs"].append(val_ineqs)
-            self.value_history["val_ineqs"].append(val_ineqs)
-            self.value_history["len_obj"].append(len_obj)
-            self.value_history["len_eqs"].append(len_eqs)
-            self.value_history["len_ineqs"].append(len_ineqs)
-            self.value_history["step_length"].append(step_length)
-
-            print("--------------------------------------------")
-            print("val_obj = ", val_obj)
-            print("val_eqs = ", val_eqs)
-            print("val_ineqs = ", val_ineqs)
-            print("len_obj = ", len_obj)
-            print("len_eqs = ", len_eqs)
-            print("len_ineqs = ", len_ineqs)
-            print("step_length = ", step_length)
-            print("--------------------------------------------")
+            print("\n--------------------------------------------")
             if self.opt_iteration == 1:
                 obj_id = self.specified_objectives[0]["identifier"].GetString()
                 self.initial_obj_val = self.communicator.getValue(obj_id)
@@ -155,11 +136,22 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 percentual_improvement = (1-obj_val/self.initial_obj_val)*100
                 print("J1_val = ", obj_val)
                 print("percentual_improvement = ", percentual_improvement)
+            print("\nval_obj = ", val_obj)
+            print("len_obj = ", len_obj)
+            print("\n--------------------------------------------")
 
             for itr in range(self.specified_constraints.size()):
                 con_id = self.specified_constraints[itr]["identifier"].GetString()
                 print("C1_val = ", self.communicator.getValue(con_id))
-            print("--------------------------------------------")
+
+            print("\nval_ineqs = ", val_ineqs)
+            print("len_ineqs = ", len_ineqs)
+            print("\nval_eqs = ", val_eqs)
+            print("len_eqs = ", len_eqs)
+            print("\n--------------------------------------------")
+
+            print("step_length = ", step_length)
+            print("\n--------------------------------------------")
 
 
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
@@ -216,8 +208,14 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         if obj["project_gradient_on_surface_normals"].GetBool():
             self.__PerformProjectionOnNormals(nodal_variable)
 
+        if self.is_damping_specified:
+            self.damping_utilities.DampNodalVariable(nodal_variable)
+
         nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
         self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+
+        if self.is_damping_specified:
+            self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
 
         # Process constraint results
         eq_values = []
@@ -239,8 +237,14 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 if con["project_gradient_on_surface_normals"].GetBool():
                     self.__PerformProjectionOnNormals(nodal_variable)
 
+                if self.is_damping_specified:
+                    self.damping_utilities.DampNodalVariable(nodal_variable)
+
                 nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
                 self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+
+                if self.is_damping_specified:
+                    self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
 
             # Process inequality constraints
             else:
@@ -255,8 +259,14 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 if con["project_gradient_on_surface_normals"].GetBool():
                     self.__PerformProjectionOnNormals(nodal_variable)
 
+                if self.is_damping_specified:
+                    self.damping_utilities.DampNodalVariable(nodal_variable)
+
                 nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
                 self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+
+                if self.is_damping_specified:
+                    self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
 
         return obj_value, eq_values, ineq_values
 
@@ -362,7 +372,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __DetermineStep(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
 
-        print("\n> Starting determination of step...")
+        print("\n--------------------------------------------")
+        print("> Starting determination of step...")
 
         timer = Timer()
         timer.StartTimer()
@@ -383,12 +394,12 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         print("> Time needed for one projection step = ", timer.GetTotalTime(), "s")
 
-        print("Test norm_inf_dX = ",norm_inf_dX)
+        print("\nTest norm_inf_dX = ",norm_inf_dX)
 
         # 2. Determine step following two different modes depending on the previos found step length to the feasible domain
         if is_projection_sucessfull:
             if norm_inf_dX < 1: # Minimizing mode
-                print ("> Computing projection case 1...")
+                print ("\n> Computing projection case 1...")
 
                 nargout = 2
                 len_obj_min = len_obj_test
@@ -399,28 +410,30 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 nargout = 3
                 norm_inf_dX, dX, is_projection_sucessfull = projector.RunProjection(len_obj_result, inactive_threshold, nargout)
 
-                print(bi_itrs)
-                print(bi_err)
-                print(norm_inf_dX)
+                print("\nlen_obj_result = ", len_obj_result)
+                print("bi_itrs = ", bi_itrs)
+                print("bi_err = ", bi_err)
+                print("norm_inf_dX = ", norm_inf_dX)
 
             else: # Correction mode
-                print ("> Computing projection case 2...")
+                print ("\n> Computing projection case 2...")
 
                 nargout = 2
                 len_obj = self.algorithm_settings["obj_share_during_correction"].GetDouble()
                 threshold_min = 0
-                threshold_max = 1.1
+                threshold_max = 1.5
                 func = lambda threshold: projector.RunProjection(len_obj, threshold, nargout)
                 l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr)
 
                 nargout = 3
                 norm_inf_dX, dX, is_projection_sucessfull = projector.RunProjection(len_obj, l_threshold_result, nargout)
 
-                print(bi_itrs)
-                print(bi_err)
-                print(norm_inf_dX)
+                print("\nl_threshold_result = ", l_threshold_result)
+                print("bi_itrs = ", bi_itrs)
+                print("bi_err = ", bi_err)
+                print("norm_inf_dX = ", norm_inf_dX)
         else:
-            raise RuntimeError("Case of not converged test projection not yet implemented!")
+            raise RuntimeError("Case of not converged test projection not yet implemented yet!")
 
         print("\n> Time needed for determining step = ", timer.GetTotalTime(), "s")
 
@@ -428,6 +441,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __ComputeShapeUpdate(self, dx):
+        print("\n--------------------------------------------")
         print("NormInf3D of dx = ", NormInf3D(dx))
 
         WriteListToNodalVariable(dx, self.design_surface, SHAPE_UPDATE)
@@ -536,8 +550,8 @@ class Projector():
         if threshold<len_obj:
             len_obj = threshold
 
-        len_eqs = self.len_eqs
-        len_ineqs = self.len_ineqs
+        len_eqs = copy.deepcopy(self.len_eqs)
+        len_ineqs = copy.deepcopy(self.len_ineqs)
 
         for itr in range(self.num_eqs):
             len_eqs[itr] = min(max(self.len_eqs[itr],-threshold),threshold)
