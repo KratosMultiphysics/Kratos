@@ -1351,7 +1351,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
 
   //based in existance of neighbour elements (proper detection for triangles and tetrahedra)
   WeakPointerVector<Element>& neighb_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
-  unsigned int counter=0;
+  unsigned int face=0;
   for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
   {
     if (ne->Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
@@ -1363,14 +1363,14 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
 
       for(unsigned int i = 1; i < NodesInFaces.size1(); ++i)
       {
-        Nodes.push_back(NodesInFaces(i,counter));  //set boundary nodes
-        if(rGeometry[NodesInFaces(i,counter)].Is(RIGID) || rGeometry[NodesInFaces(i,counter)].Is(SOLID)){
+        Nodes.push_back(NodesInFaces(i,face));  //set boundary nodes
+        if(rGeometry[NodesInFaces(i,face)].Is(RIGID) || rGeometry[NodesInFaces(i,face)].Is(SOLID)){
           ++WallNodes;
         }
-        if(rGeometry[NodesInFaces(i,counter)].Is(FREE_SURFACE)){
+        if(rGeometry[NodesInFaces(i,face)].Is(FREE_SURFACE)){
           ++FreeSurfaceNodes;
         }
-        if(rGeometry[NodesInFaces(i,counter)].Is(INLET)){
+        if(rGeometry[NodesInFaces(i,face)].Is(INLET)){
           ++InletNodes;
         }
 
@@ -1381,7 +1381,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
             Faces.push_back(Nodes);
     }
 
-    counter++;
+    face++;
   }
 
   KRATOS_CATCH( "" )
