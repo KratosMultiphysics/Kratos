@@ -85,7 +85,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     {
         mRhsValue = RhsValue;
     }
-    void UpdateRHSValue(const double &RhsValueUpdate)
+    void UpdateRHSValue(const double RhsValueUpdate)
     {
         mRhsValue = mRhsValue + RhsValueUpdate;
     }
