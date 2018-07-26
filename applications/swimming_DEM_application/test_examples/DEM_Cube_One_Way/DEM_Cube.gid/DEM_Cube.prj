@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gid version="13.5">
+  <pre>
+    <layer_to_use name="Layer0"/>
+    <groups>
+      <group id="1" name="DEMElem0" color="#608fbfff"/>
+      <group id="2" name="Fluid1" color="#0000ffff"/>
+      <group id="3" name="-AKGSkinMesh3D" color="#ff00ffff" state="hidden"/>
+      <group id="4" name="SKIN_SPHERE_DO_NOT_DELETE" color="#00ffffff"/>
+      <group id="5" name="-AKGDEMSkinMesh3D" color="#a60021ff" state="hidden"/>
+    </groups>
+    <entities_groups>
+      <entities_group name="points">
+        <vector name="entity_ids" length="1" type="integer">25</vector>
+        <vector name="entity_num_groups" length="1" type="ushort">2</vector>
+        <vector name="entity_groups" length="2" type="ushort">1 4</vector>
+      </entities_group>
+      <entities_group name="lines">
+        <vector name="entity_ids" length="12" type="integer">1 5 9 10 13 15:17 19 20 22 25</vector>
+        <vector name="entity_num_groups" length="12" type="ushort">1x12</vector>
+        <vector name="entity_groups" length="12" type="ushort">5x12</vector>
+      </entities_group>
+      <entities_group name="surfaces">
+        <vector name="entity_ids" length="6" type="integer">1 3 4 8:10</vector>
+        <vector name="entity_num_groups" length="6" type="ushort">1x6</vector>
+        <vector name="entity_groups" length="6" type="ushort">3x6</vector>
+      </entities_group>
+      <entities_group name="volumes">
+        <vector name="entity_ids" length="1" type="integer">1</vector>
+        <vector name="entity_num_groups" length="1" type="ushort">1</vector>
+        <vector name="entity_groups" length="1" type="ushort">2</vector>
+      </entities_group>
+      <entities_group name="nodes">
+        <vector name="entity_ids" length="1997" type="integer">1:1997</vector>
+        <vector name="entity_num_groups" length="1997" type="ushort">1 3 3 2 3 3 2x6 3 3 2x6 3 3 2x11 3 3 2x11 1 2x3 3 3 2 1 2 1x3 2 2 1 2x9 1x4 2x3 1 2x3 1 2 3 3 1x4 2 2 1 2 2 3 3 1 1 2 2 1x4 2x3 3 3 2 1x4 2 2 1 3 3 1 3 3 1x3 2 2 1 2 1 3 3 1 1 3 3 1x6 2x3 1x6 3 3 1 2 2 1x6 3 3 1x13 3 3 1 1 2 2 1 2 2 1x10 2 1x6 2 1 1 3 3 1x6 3x4 1 1 2 2 1 1 2 1x11 2 2 1 2 2 1x7 2 1 1 2 1 2 2 1 1 3 3 1x5 2 2 1x7 2 1x7 2 1x4 2 2 1 2 2 1x11 2 1 2 1 2 1 1 2x3 1x3 2 1x5 2 2 1x5 2 1 2 1x6 2 1 1 2 1x3 2 1x4 2 1x3 3 3 1x5 2 2 1 1 2x3 1 1 2 1x10 2 1x6 3 3 2 2 1 2 1 2 1x7 2 1x13 2 2 1x4 2 1x8 2 2 1x5 2 1 2 2 1 2 1 1 2x3 1 1 2 2 1 2 1 2 1 2 1x7 2 1x3 2 1x9 2 2 1 1 2x3 1 1 2 1x4 2 1x4 3 3 2 2 1x5 2 1 2 1x5 2 2 1x7 3 3 1x7 2 2 1x8 2 1x7 2 2 1 1 2 2 1x5 2 1x7 2 2 1 1 2x4 1 2 1x7 2 2 1x4 2 2 1x3 2 1 1 2 1 2 2 1x11 2 1 2 1 2 2 1x5 2 1 1 2 1 1 2 1 2 1 2 1x5 3 3 1x3 2 1x14 2 1 3 3 2 1x5 2 1 1 2 2 1 1 2 1x3 2 1x3 2 2 1x4 2 1 1 2 2 1x3 2 2 1x4 2 1x4 2 1 2 1 2 2 1x4 2 1x3 2x3 1 1 2 1x4 2 1 1 2 1x3 2 1 1 2 1x4 2 1 1 2 1 2 1x13 2 1 2 1 2 1 1 3 3 1x9 2 1x12 2 3 3 1x3 2 1x3 2 1x4 2 1x3 2 1x3 2 2 1x4 2x3 1 1 2 2 1 2x3 1 1 2 1x5 2 1x5 2 1x8 2x4 1 2 2 1x6 2 1x3 2 1 2 1x3 2 1 1 2 1x4 2 1x8 2 1x4 2x3 1x12 2 1x6 2 2 1x4 3 3 2 1x3 3 3 2 1x6 2 1x8 2 2 1x5 2 1x4 2x4 1x4 2 1 2x3 1x3 2x3 1x9 2 1 2x3 1x10 2 1 1 2 1x3 2 1 2 1x3 2 1 2 1x4 2 1 1 2 1 1 2 1x7 2 1x10 2 1x5 2 1 2 1x4 2 1 2 1x4 3x4 1 2 1x5 2 2 1 2 1x3 2 1x13 2 1x5 2x3 1x3 2 1 2 2 1x3 2 2 1x3 2 1x5 2 1 2 1 1 2 1x7 2 1x6 2 2 1 2 1 1 2 1x7 2 2 1 2 1x4 2 1 2 1x3 2 1x6 2 1x10 2 1 2 1 1 2 1 1 2 2 1x4 2 1 3 3 1 2x3 1x4 3 3 1x6 2 1 2 1 2 1 2x3 1x14 2 2 1 2 2 1x3 2 2 1x19 2 1 1 2 1 1 2 1x3 2 2 1x5 2 1x9 2 2 1 2 2 1 2 1 1 2x4 1x3 2 1 2 1 2 1 2 1 1 2 1 1 2x3 1 2 1x4 2 2 1 3 3 1 1 2 1x7 3 3 1 1 2 1x8 2 1x5 2 1x3 2 1x8 2 2 1x3 2 2 1x10 2 2 1x11 2 1x5 2 1 2x4 1x4 2x3 1 2 2 1 2 2 1 1 2 1 1 2 1x3 2 1 1 2 1 2 2 1x8 2x3 1 1 2 1 2 2 1x9 2 1 2 1x11 3 3 1x8 3 3 1x9 2 2 1x13 2 2 1x4 2 2 1x5 2 2 1x3 2 1x13 2 1 2 1 2x3 1 1 2 2 1 1 2 1 1 2 2 1x3 2 2 1 1 2x3 1 2 1 1 2 2 1x7 2 1 1 2 1x5 2 1 1 2 2 1x14 3 3 2 2 1x3 2 1x8 3 3 1x14 2 2 1 1 2x3 1 1 2 2 1x16 2 1x8 2 1 1 2 1 1 2 2 1 1 2 2 1 2 1 1 2 1 2 2 1 2 1x4 2x5 1x3 2x3 1 2 1x4 2 1x12 2 1x7 2 2 1x3 2 1x7 2 3 3 1x3 2 1 1 2 2 1x12 3 3 2 1x14 2 2 1 1 2x3 1x9 2x3 1 2 2 1x3 3 3 1 2 3 3 1 2 2 1 2 2 1 1 2x4 3 3 1 2 1 2 1 2x5 1 2 3 3 2x4 1 2x8 3 3 2x5 1 1 2x8 1 2x4 3 3 1 3 3 2x13 1 2 2 3 3 2 2 3 3 2 2 1 2x3 3 3 2 3x4 2 2 3x4 2 2 3 3 2 2 3x10</vector>
+        <vector name="entity_groups" length="2821" type="ushort">1 5 3 2 5 3 2 3 2 5 3 2 5 3 2 3 2 3 2 3 2 3 2 3 2 3 2 5 3 2 5 3 2 3 2 3 2 3 2 3 2 3 2 3 2 5 3 2 5 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 5 3 2 5 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 2 3 2 3 2 3 2 5 3 2 5 3 2 3 2 2 3 2x4 3 2 3 2 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2x5 3 2 3 2 3 2 2 3 2 3 2 3 2 2 3 2 5 3 2 5 3 2x5 3 2 3 2 2 3 2 3 2 5 3 2 5 3 2x3 3 2 3 2x5 3 2 3 2 3 2 5 3 2 5 3 2 3 2x5 3 2 3 2 2 5 3 2 5 3 2 2 5 3 2 5 3 2x4 3 2 3 2 2 3 2 2 5 3 2 5 3 2x3 5 3 2 5 3 2x7 3 2 3 2 3 2x7 5 3 2 5 3 2 2 3 2 3 2x7 5 3 2 5 3 2x14 5 3 2 5 3 2x3 3 2 3 2 2 3 2 3 2x11 3 2x7 3 2x3 5 3 2 5 3 2x7 5 3 2 5 3 2 5 3 2 5 3 2x3 3 2 3 2x3 3 2x12 3 2 3 2 2 3 2 3 2x8 3 2x3 3 2 2 3 2 3 2x3 5 3 2 5 3 2x6 3 2 3 2x8 3 2x8 3 2x5 3 2 3 2 2 3 2 3 2x12 3 2 2 3 2 2 3 2x3 3 2 3 2 3 2x4 3 2x6 3 2 3 2x6 3 2 2 3 2x7 3 2x3 3 2x4 3 2x5 3 2x4 5 3 2 5 3 2x6 3 2 3 2x3 3 2 3 2 3 2x3 3 2x11 3 2x7 5 3 2 5 3 2 3 2 3 2 2 3 2 2 3 2x8 3 2x14 3 2 3 2x5 3 2x9 3 2 3 2x6 3 2 2 3 2 3 2 2 3 2x3 3 2 3 2 3 2x3 3 2 3 2 2 3 2 2 3 2 2 3 2x8 3 2x4 3 2x10 3 2 3 2x3 3 2 3 2 3 2x3 3 2x5 3 2x5 5 3 2 5 3 2 3 2 3 2x6 3 2 2 3 2x6 3 2 3 2x8 5 3 2 5 3 2x8 3 2 3 2x9 3 2x8 3 2 3 2x3 3 2 3 2x6 3 2x8 3 2 3 2x3 3 2 3 2 3 2 3 2 2 3 2x8 3 2 3 2x5 3 2 3 2x4 3 2x3 3 2 2 3 2 3 2x12 3 2 2 3 2 2 3 2 3 2x6 3 2x3 3 2x3 3 2 2 3 2 2 3 2x6 5 3 2 5 3 2x4 3 2x15 3 2 2 5 3 2 5 3 2 3 2x6 3 2x3 3 2 3 2x3 3 2x4 3 2x4 3 2 3 2x5 3 2x3 3 2 3 2x4 3 2 3 2x5 3 2x5 3 2 2 3 2 2 3 2 3 2x5 3 2x4 3 2 3 2 3 2x3 3 2x5 3 2x3 3 2x4 3 2x3 3 2x5 3 2x3 3 2 2 3 2x14 3 2 2 3 2 2 3 2x3 5 3 2 5 3 2x10 3 2x13 3 2 5 3 2 5 3 2x4 3 2x4 3 2x5 3 2x4 3 2x4 3 2 3 2x5 3 2 3 2 3 2x3 3 2 3 2 2 3 2 3 2 3 2x3 3 2x6 3 2x6 3 2x9 3 2 3 2 3 2 3 2 2 3 2 3 2x7 3 2x4 3 2 2 3 2x4 3 2x3 3 2x5 3 2x9 3 2x5 3 2 3 2 3 2x13 3 2x7 3 2 3 2x5 5 3 2 5 3 2 3 2x4 5 3 2 5 3 2 3 2x7 3 2x9 3 2 3 2x6 3 2x5 3 2 3 2 3 2 3 2x5 3 2 2 3 2 3 2 3 2x4 3 2 3 2 3 2x10 3 2 2 3 2 3 2 3 2x11 3 2x3 3 2x4 3 2 2 3 2x4 3 2 2 3 2x5 3 2x3 3 2x3 3 2x8 3 2x11 3 2x6 3 2 2 3 2x5 3 2 2 3 2x5 5 3 2 5 3 2 5 3 2 5 3 2 2 3 2x6 3 2 3 2 2 3 2x4 3 2x14 3 2x6 3 2 3 2 3 2x4 3 2 2 3 2 3 2x4 3 2 3 2x4 3 2x6 3 2 2 3 2x3 3 2x8 3 2x7 3 2 3 2 2 3 2x3 3 2x8 3 2 3 2 2 3 2x5 3 2 2 3 2x4 3 2x7 3 2x11 3 2 2 3 2x3 3 2x3 3 2 3 2x5 3 2 2 5 3 2 5 3 2 2 3 2 3 2 3 2x5 5 3 2 5 3 2x7 3 2 2 3 2 2 3 2 2 3 2 3 2 3 2x15 3 2 3 2 2 3 2 3 2x4 3 2 3 2x20 3 2x3 3 2x3 3 2x4 3 2 3 2x6 3 2x10 3 2 3 2 2 3 2 3 2 2 3 2x3 3 2 3 2 3 2 3 2x4 3 2 2 3 2 2 3 2 2 3 2x3 3 2x3 3 2 3 2 3 2 2 3 2x5 3 2 3 2 2 5 3 2 5 3 2x3 3 2x8 5 3 2 5 3 2x3 3 2x9 3 2x6 3 2x4 3 2x9 3 2 3 2x4 3 2 3 2x11 3 2 3 2x12 3 2x6 3 2 2 3 2 3 2 3 2 3 2x5 3 2 3 2 3 2 2 3 2 3 2 2 3 2 3 2x3 3 2x3 3 2x4 3 2x3 3 2 2 3 2 3 2x9 3 2 3 2 3 2x3 3 2 2 3 2 3 2x10 3 2 2 3 2x12 5 3 2 5 3 2x9 5 3 2 5 3 2x10 3 2 3 2x14 3 2 3 2x5 3 2 3 2x6 3 2 3 2x4 3 2x14 3 2 2 3 2 2 3 2 3 2 3 2x3 3 2 3 2x3 3 2x3 3 2 3 2x4 3 2 3 2x3 3 2 3 2 3 2 2 3 2x3 3 2 3 2x8 3 2x3 3 2x6 3 2x3 3 2 3 2x15 5 3 2 5 3 2 3 2 3 2x4 3 2x9 5 3 2 5 3 2x15 3 2 3 2x3 3 2 3 2 3 2x3 3 2 3 2x17 3 2x9 3 2x3 3 2x3 3 2 3 2x3 3 2 3 2 2 3 2x3 3 2 2 3 2 3 2 2 3 2x5 3 2 3 2 3 2 3 2 3 2x4 3 2 3 2 3 2 2 3 2x5 3 2x13 3 2x8 3 2 3 2x4 3 2x8 3 2 5 3 2 5 3 2x4 3 2x3 3 2 3 2x13 5 3 2 5 3 2 3 2x15 3 2 3 2x3 3 2 3 2 3 2x10 3 2 3 2 3 2 2 3 2 3 2x4 5 3 2 5 3 2 2 3 2 5 3 2 5 3 2 2 3 2 3 2 2 3 2 3 2x3 3 2 3 2 3 2 3 2 5 3 2 5 3 2 2 3 2 2 3 2 2 3 2 3 2 3 2 3 2 3 2 2 3 2 5 3 2 5 3 2 3 2 3 2 3 2 3 2 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 5 3 2 5 3 2 3 2 3 2 3 2 3 2 3 2x3 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 2 3 2 3 2 3 2 3 2 5 3 2 5 3 2 2 5 3 2 5 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 3 2 2 3 2 3 2 5 3 2 5 3 2 3 2 3 2 5 3 2 5 3 2 3 2 3 2 2 3 2 3 2 3 2 5 3 2 5 3 2 3 2 5 3 2 5 3 2 5 3 2 5 3 2 3 2 3 2 5 3 2 5 3 2 5 3 2 5 3 2 3 2 3 2 5 3 2 5 3 2 3 2 3 2 5 3 2 5 3 2 5 3 2 5 3 2 5 3 2 5 3 2 5 3 2 5 3 2 5 3 2 5 3 2</vector>
+      </entities_group>
+      <entities_group name="elements">
+        <vector name="entity_ids" length="10926" type="integer">1:10926</vector>
+        <vector name="entity_num_groups" length="10926" type="ushort">1x10925 2</vector>
+        <vector name="entity_groups" length="10927" type="ushort">2x9529 3x1396 1 4</vector>
+      </entities_group>
+      <entities_group name="faces">
+        <vector name="entity_ids" length="232" type="integer">9530:9577 9888:9913 10021 10042 10047 10050 10052:10055 10058:10083 10191 10212 10217 10220 10222:10225 10228:10253 10361 10382 10387 10390 10392:10395 10398:10423 10537 10550 10552 10559 10562:10565 10568:10615</vector>
+        <vector name="entity_num_faces" length="232" type="uchar">2 1x9 2 1x7 2 1x3 2 1x25 2 1x4 2 1x10 2 1 2 1x15 2 1x4 2 1x10 2 1 2 1x15 2 1x4 2 1x10 2 1 2 1x15 2 1x4 2 1x10 2 1 2 1x15 2 1x9 2 1x7 2 1x3 2 1x25</vector>
+        <vector name="entity_faces" length="256" type="uchar">1 3 1x10 2 1x7 3 1x5 2 1x26 3 1x5 2 1x11 2 1 3 1x8 3 3 2 2 1x4 3 1x6 2 1x10 2 1 1 3 1x8 3 3 2 2 1x4 3 1x6 2 1x10 2 1 1 3 1x8 3 3 2 2 1x5 3 1x5 2 1x11 2 1 3 1x8 3 2 2 3 1x5 3 1x10 2 1x7 3 1x5 2 1x25</vector>
+        <vector name="face_num_groups" length="256" type="ushort">1x256</vector>
+        <vector name="face_groups" length="256" type="ushort">5x256</vector>
+      </entities_group>
+    </entities_groups>
+  </pre>
+</gid>

@@ -1,0 +1,105 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 6.0.0-feeca7e
+Importing    KratosExternalSolversApplication 
+Initializing KratosExternalSolversApplication... 
+Importing    KratosPfemApplication     
+            ___  __                     
+     KRATOS| _ \/ _|___ _ __            
+           |  _/  _/ -_) '  \            
+           |_| |_| \___|_|_|_|APPLICATION 
+Initializing KratosPfemApplication    ...        
+Importing    KratosPfemFluidDynamicsApplication 
+            ___  __           ___ _      _    _          
+     KRATOS| _ \/ _|___ _ __ | __| |_  _(_)__| |         
+           |  _/  _/ -_) '  \| _|| | || | / _` |         
+           |_| |_| \___|_|_|_|_| |_|\_,_|_\__,_|DYNAMICS 
+Initializing KratosPfemFluidDynamicsApplication...       
+Importing    KratosSolidMechanicsApplication 
+            ___      _ _    _          
+     KRATOS/ __| ___| (_)__| |         
+           \__ \/ _ \ | / _` |         
+           |___/\___/_|_\__,_|MECHANICS
+Initializing KratosSolidMechanicsApplication...  
+ModelPartIO:   [Reading Nodes    : 2337 nodes read]
+ModelPartIO:   [Reading Elements : 9583 elements read] [Type: TwoStepUpdatedLagrangianVPFluidElement3D]
+ModelPartIO:   [Reading Elements : 1718 elements read] [Type: Element3D3N]
+ModelPartIO:   [Total Lines Read : 28758]
+InletManagementProcess:  inlet_management CONSTRUCTOR RemoveMeshNodesForFluidsProcess:  remove_mesh_nodes_process_for_fluids Constructing Delaunay tetrahedralization.
+Delaunay seconds:  0.054686
+
+Writing nodes.
+Writing elements.
+NOT writing an .face file.
+Writing neighbors.
+
+Output seconds:  0.004402
+Total running seconds:  0.059463
+
+Statistics:
+
+  Input points: 2286
+
+  Mesh points: 2286
+  Mesh tetrahedra: 11310
+  Mesh faces: 23504
+  Mesh edges: 14479
+  Convex hull faces: 1768
+
+TwoStepVPStrategy: 
+                   Solve with two_step_vp strategy at t=0.01s
+TwoStepVPStrategy: iteration(20) Final Velocity error: 0.000799288 velTol: 1e-05
+TwoStepVPStrategy:        iteration(20) Final Pressure error: 0.000353515 presTol: 1e-05
+Constructing Delaunay tetrahedralization.
+Delaunay seconds:  0.051933
+
+Writing nodes.
+Writing elements.
+NOT writing an .face file.
+Writing neighbors.
+
+Output seconds:  0.004162
+Total running seconds:  0.056242
+
+Statistics:
+
+  Input points: 2286
+
+  Mesh points: 2286
+  Mesh tetrahedra: 11347
+  Mesh faces: 23578
+  Mesh edges: 14516
+  Convex hull faces: 1768
+
+SLIVER! Volume=8.75218e-10 VS Critical Volume=1.2899e-07
+SLIVER! Volume=6.98343e-09 VS Critical Volume=1.2899e-07
+SLIVER! Volume=6.89049e-09 VS Critical Volume=1.2899e-07
+TwoStepVPStrategy: 
+                   Solve with two_step_vp strategy at t=0.02s
+TwoStepVPStrategy: iteration(20) Final Velocity error: 0.00018015 velTol: 1e-05
+TwoStepVPStrategy:        iteration(20) Final Pressure error: 6.78835e-06 presTol: 1e-05
+Constructing Delaunay tetrahedralization.
+Delaunay seconds:  0.050402
+
+Writing nodes.
+Writing elements.
+NOT writing an .face file.
+Writing neighbors.
+
+Output seconds:  0.004297
+Total running seconds:  0.054889
+
+Statistics:
+
+  Input points: 2286
+
+  Mesh points: 2286
+  Mesh tetrahedra: 11374
+  Mesh faces: 23632
+  Mesh edges: 14543
+  Convex hull faces: 1768
+
+SLIVER! Volume=3.32258e-08 VS Critical Volume=1.27901e-07
+SLIVER! Volume=4.37469e-08 VS Critical Volume=1.27901e-07
