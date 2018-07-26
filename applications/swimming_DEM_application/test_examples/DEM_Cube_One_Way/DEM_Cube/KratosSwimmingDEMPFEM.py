@@ -15,7 +15,7 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 #from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.PfemApplication import *
+from KratosMultiphysics.DelaunayMeshingApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PfemSolidMechanicsApplication import *
 from KratosMultiphysics.PfemFluidDynamicsApplication import *
