@@ -2060,7 +2060,6 @@ namespace Kratos {
 	    }
 
     }
-	}
         FirstRow += TDim;
 
     }
