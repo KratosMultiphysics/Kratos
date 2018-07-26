@@ -851,15 +851,17 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // of RHS constribution. Later on lhs_contribution is modified to apply the constraint.
         // rhs_h =  T'*(rhs - K*g)
         VectorType temp_vec = ( rhs_contribution - prod(lhs_contribution, constant_vector_local) );
-        rhs_contribution = prod( trans(transformation_matrix_local), temp_vec );
+        noalias(rhs_contribution) = prod( trans(transformation_matrix_local), temp_vec );
         // lhs_h = T'*K*T
         MatrixType temp_mat = prod(lhs_contribution, transformation_matrix_local);
-        lhs_contribution = prod( trans(transformation_matrix_local),  temp_mat);
-        // rhs_h(s,s) = rhs(s,s)
+        noalias(lhs_contribution) = prod( trans(transformation_matrix_local),  temp_mat);
+        // rhs_h(s,s) = rhs(s,s) : that is reassigning the slave part of the matrix back. We do not modify the (slave, slave) block
+        // this is to facilitate the solution of the linear system of equation.
         for (auto &slave_index : local_slave_index_vector)
             for (auto &slave_index_other : local_slave_index_vector)
                 lhs_contribution(slave_index, slave_index_other) = rLHSContribution(slave_index, slave_index_other);
         // rhs_h(s,i) = 0 and rhs_h(i,s) = 0
+        // making this blocks zero will ensure that the slaves are not connected to internal dofs
         for (auto &slave_index : local_slave_index_vector)
             for (auto &internal_index : local_internal_index_vector)
             {
@@ -870,8 +872,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (auto &slave_index : local_slave_index_vector)
             rhs_contribution(slave_index) = 0.0;
 
-        rLHSContribution = lhs_contribution;
-        rRHSContribution = rhs_contribution;
+        noalias(rLHSContribution) = lhs_contribution;
+        noalias(rRHSContribution) = rhs_contribution;
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
     }
@@ -931,18 +933,16 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (auto &slave_index : rLocalSlaveIndexVector)
         {
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
-            if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
+            KRATOS_DEBUG_ERROR_IF (global_master_slave_constraint != mGlobalMasterSlaveRelations.end()) <<
+                             "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
+
+            global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids);
+            global_master_slave_constraint->CalculateLocalSystem(master_weights_vector, slave_constant);
+            for (IndexType i_master = 0; i_master < master_equation_ids.size(); i_master++)
             {
-                global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids);
-                global_master_slave_constraint->CalculateLocalSystem(master_weights_vector, slave_constant);
-                for (IndexType i_master = 0; i_master < master_equation_ids.size(); i_master++)
-                {
-                    rTransformationMatrixLocal(slave_index, i_masters_total) += master_weights_vector(i_master);
-                    i_masters_total++;
-                }
+                rTransformationMatrixLocal(slave_index, i_masters_total) += master_weights_vector(i_master);
+                i_masters_total++;
             }
-            else
-                KRATOS_ERROR << "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
         }
 
         for (auto &master_index : rLocalMasterIndexVector)
@@ -1016,9 +1016,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void CalculateLocalInternalIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalSlaveIndexVector, VectorIndexType& rLocalInternalIndexVector)
     {
         KRATOS_TRY
-        VectorIndexType local_index_vector;
+        VectorIndexType local_index_vector(rEquationIds.size());
         for (IndexType i = 0; i<rEquationIds.size(); ++i)
-            local_index_vector.push_back(i);
+            local_index_vector[i] = i;
 
         std::sort(local_index_vector.begin(), local_index_vector.end());
         std::sort(rLocalSlaveIndexVector.begin(), rLocalSlaveIndexVector.end());
