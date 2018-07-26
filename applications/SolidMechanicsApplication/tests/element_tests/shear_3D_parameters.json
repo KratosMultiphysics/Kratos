@@ -16,7 +16,7 @@
 		"solver_type" : "SuperLUSolver",
 		"scaling"     : false
             }
-        }	
+        }
     },
     "constraints_process_list" : [{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto6",

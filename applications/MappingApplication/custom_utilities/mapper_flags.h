@@ -13,7 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_FLAGS_H_INCLUDED )
+#if !defined(KRATOS_MAPPER_FLAGS_H_INCLUDED)
 #define  KRATOS_MAPPER_FLAGS_H_INCLUDED
 
 // System includes
@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup MappingApplication
 ///@{
 
 ///@name Kratos Globals
@@ -67,9 +67,11 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ADD_VALUES );
     KRATOS_DEFINE_LOCAL_FLAG( CONSERVATIVE );
     KRATOS_DEFINE_LOCAL_FLAG( REMESHED );
-    KRATOS_DEFINE_LOCAL_FLAG( NON_CONFORMING_INTERFACE );
-    KRATOS_DEFINE_LOCAL_FLAG( INTERPOLATE_VALUES );
-    KRATOS_DEFINE_LOCAL_FLAG( NON_HISTORICAL_DATA );
+    KRATOS_DEFINE_LOCAL_FLAG( USE_TRANSPOSE );
+    KRATOS_DEFINE_LOCAL_FLAG( ORIGIN_ONLY );
+    KRATOS_DEFINE_LOCAL_FLAG( DESTINATION_ONLY );
+    KRATOS_DEFINE_LOCAL_FLAG( TO_NON_HISTORICAL );
+    KRATOS_DEFINE_LOCAL_FLAG( FROM_NON_HISTORICAL );
 
     ///@}
     ///@name Life Cycle

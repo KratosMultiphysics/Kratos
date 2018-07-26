@@ -20,7 +20,10 @@
 // Project includes
 #include "NurbsBrepModeler.h"
 #include "utilities/math_utils.h"
-#include "../../kratos/includes/node.h"
+#include "includes/node.h"
+
+#include "spatial_containers/bins_dynamic_objects.h"
+#include "custom_search/bins_iga_configure.h"
 
 //#include "nurbs_utilities.h"
 
@@ -480,6 +483,34 @@ namespace Kratos
 	void NurbsBrepModeler::GetInterfaceConditions(ModelPart& rParticleModelPart, ModelPart& rConditionModelPart, ModelPart& rSearchModelPart)
 	{
 		//std::cout << "Number of elements: " << rParticleModelPart.Elements().size() << std::endl;
+        tree search_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
+
+        for iga_elements:
+            BinsIGAObjs.push_back(BinsIgaObject(iga_elem_ptr));
+
+
+        iga_bins_structure = BinsObjectDynamic<BinsIgaConfigure>(BinsIGAObjs->begin(), BinsIGAObjs->end();
+
+        num_interface_obj_bin = BinsIGAObjs.size()
+
+        BinsIgaConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
+        std::vector<double> neighbor_distances(num_interface_obj_bin);
+
+        auto particle_obj = Kratos::make_shared<BinsIgaObject>(array_1d<double, 3>(0.0));
+
+            auto results_itr = neighbor_results.begin();
+            auto distance_itr = neighbor_distances.begin();
+
+            particle_obj->UpdateCoordinates(particle.GetGeometry[0].Cooridnates());
+
+            const SizeType number_of_results = iga_bins_structure.SearchObjectsInRadius(
+                particle_obj, search_radius, results_itr,
+                distance_itr, num_interface_obj_bin);
+
+            for i in number_of_results:
+                particle.SetValue(results_itr[i]);
+
+
 		for (auto element = rParticleModelPart.ElementsBegin(); element != rParticleModelPart.ElementsEnd(); element++)
 		{
 			//std::cout << "Check here for more information: X: " << element->GetGeometry()[0].X() << ", Y: " << element->GetGeometry()[0].Y() << ", Z: " << element->GetGeometry()[0].Z() << std::endl;
@@ -502,7 +533,6 @@ namespace Kratos
 					(list_of_nodes).push_back(*(i_node.base()));
 				}
 				const int bucket_size = 20;
-				tree search_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 				*node = element->GetGeometry()[0];
 				node_on_geometry = search_tree.SearchNearestPoint(*node);
 				//}
