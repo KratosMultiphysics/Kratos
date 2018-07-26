@@ -480,6 +480,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<SwimmingDemInPfemUtils> (m, "SwimmingDemInPfemUtils")
+        .def(init<>())
         .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 
