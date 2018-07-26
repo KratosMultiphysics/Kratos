@@ -26,6 +26,7 @@
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 
+
 namespace Kratos
 {
 namespace Python
