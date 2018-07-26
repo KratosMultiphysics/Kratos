@@ -179,18 +179,35 @@ namespace Kratos
         std::string aux_string;
         const std::string string_to_remove = "This properties contains 0 tables";
 
-        for(PropertiesContainerType::const_iterator i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; i_properties++)
-        {
+        for(PropertiesContainerType::const_iterator i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; i_properties++) {
             std::ostringstream aux_ostream;
             (*mpStream) << "Begin Properties " << i_properties->Id() << std::endl;
             i_properties->PrintData(aux_ostream);
 
             aux_string = aux_ostream.str();
-            std::string::size_type i = aux_string.find(string_to_remove);
 
-            if (i != std::string::npos)
-            {
-                aux_string.erase(i, string_to_remove.length());
+            // We remove the line of Constitutive Laws and we add it manually
+            if (i_properties->Has(CONSTITUTIVE_LAW)) {
+                std::string::size_type it_constitutive_law_begin = aux_string.find("CONSTITUTIVE_LAW");
+                std::string::size_type it_constitutive_law_end = aux_string.find("\n", it_constitutive_law_begin);
+
+                if (it_constitutive_law_begin != std::string::npos) {
+                    aux_string.erase(it_constitutive_law_begin, it_constitutive_law_end);
+                }
+                ConstitutiveLaw::Pointer p_law = i_properties->GetValue(CONSTITUTIVE_LAW);
+                auto components_cl = KratosComponents<ConstitutiveLaw>::GetComponents();
+                std::string cl_name = "";
+                for (auto& comp_cl : components_cl) {
+                    if (typeid(*(comp_cl.second)).name() == typeid(*p_law).name())
+                        cl_name = comp_cl.first;
+                }
+                if (cl_name != "") aux_string += "CONSTITUTIVE_LAW " + cl_name;
+            }
+
+            std::string::size_type it_to_remove = aux_string.find(string_to_remove);
+
+            if (it_to_remove != std::string::npos) {
+                aux_string.erase(it_to_remove, string_to_remove.length());
             }
 
             aux_string.erase(std::remove(aux_string.begin(), aux_string.end(), ':'), aux_string.end());
