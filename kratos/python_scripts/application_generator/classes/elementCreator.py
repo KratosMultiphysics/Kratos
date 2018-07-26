@@ -129,7 +129,7 @@ class ElementCreator(ClassCreator):
             '\n'
         ]
 
-        # Assamble the code
+        # Assemble the code
         for dofName in dofList:
             upperName = dofName.upper()
             if upperName != dofName:

@@ -7,13 +7,18 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Michael Andre
+//  Main authors:    
 //
 
-#if !defined(KRATOS_RESPONSE_FUNCTIONS_PYTHON_H_INCLUDED)
-#define KRATOS_RESPONSE_FUNCTIONS_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED
 
-#include "pybind11/pybind11.h"
+// System includes
+#include <pybind11/pybind11.h>
+
+// External includes
+
+// Project includes
 
 namespace Kratos
 {
@@ -21,10 +26,10 @@ namespace Kratos
 namespace Python
 {
 
-  void AddResponseFunctionsToPython(pybind11::module& m);
+void AddResponseFunctionsToPython(pybind11::module& m);
 
-} // namespace Python
+}  // namespace Python.
 
-} // namespace Kratos
+}  // namespace Kratos.
 
-#endif // KRATOS_RESPONSE_FUNCTIONS_PYTHON_H_INCLUDED
+#endif // KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED  defined
