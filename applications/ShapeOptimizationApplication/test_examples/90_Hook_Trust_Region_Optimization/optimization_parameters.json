@@ -17,9 +17,9 @@
         }],
         "constraints" : [{
             "identifier" : "strain_energy",
-            "type"       : "=",
-            "reference"  : "initial_value",
-            "tolerance"  : 1e-3,
+            "type"       : "<",
+            "reference"  : "specified_value",
+            "reference_value" : 3.0,
             "use_kratos" : true,
             "kratos_response_settings":{
                 "response_type"          : "strain_energy",
@@ -88,9 +88,7 @@
         "optimization_algorithm" : {
             "name"                  : "trust_region",
             "max_step_length"       : 3.0,
-            "max_iterations"        : 10,
-            "min_share_objective"   : 0.1,
-            "max_share_constraints" : [10]
+            "max_iterations"        : 100
         },
         "output" : {
             "output_directory"        : "Optimization_Results",
