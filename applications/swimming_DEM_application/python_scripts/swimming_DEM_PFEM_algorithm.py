@@ -30,6 +30,7 @@ class Algorithm(BaseAlgorithm):
 
         self.pp.Dt = self.fluid_solution.GetDeltaTimeFromParameters()
         super(Algorithm,self).SetBetaParameters()
+        self.pp.CFD_DEM["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
 
     #def SetCouplingParameters(self, varying_parameters):
         #parameters_file = open("ProjectParametersDEM.json",'r')
@@ -66,17 +67,14 @@ class Algorithm(BaseAlgorithm):
                 source_model_part = self.fluid_solution.main_model_part.GetSubModelPart(body_model_part_name)
                 SwimmingDemInPfemUtils().TransferWalls(source_model_part, destination_model_part)
 
-    def SetProjectionModule(self):
-        self.fluid_acceleration_variable = 'VOLUME_ACCELERATION'
+    def TransferGravityFromDisperseToFluid(self):
+        # setting fluid's body force to the same as DEM's
+        if self.pp.CFD_DEM["body_force_on_fluid_option"].GetBool():
 
-        self.projection_module = CFD_DEM_coupling.ProjectionModule(
-            self.fluid_model_part,
-            self.spheres_model_part,
-            self.rigid_face_model_part,
-            self.pp,
-            flow_field=self.GetFieldUtility(),
-            self.fluid_acceleration_variable
-            )
+            for node in self.fluid_model_part.Nodes:
+                node.SetSolutionStepValue(VOLUME_ACCELERATION_X, 0, self.pp.CFD_DEM["GravityX"].GetDouble())
+                node.SetSolutionStepValue(VOLUME_ACCELERATION_Y, 0, self.pp.CFD_DEM["GravityY"].GetDouble())
+                node.SetSolutionStepValue(VOLUME_ACCELERATION_Z, 0, self.pp.CFD_DEM["GravityZ"].GetDouble())
 
     def FluidInitialize(self):
 

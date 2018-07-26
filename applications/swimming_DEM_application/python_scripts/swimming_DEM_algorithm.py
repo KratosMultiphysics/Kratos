@@ -263,6 +263,9 @@ class Algorithm(object):
 
         self.pp.fluid_fraction_fields.append(field1)
 
+        # Setting body_force_per_unit_mass_variable_name
+        Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
+
     def SetDoSolveDEMVariable(self):
         self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
@@ -387,7 +390,13 @@ class Algorithm(object):
             elif self.spheres_model_part.NumberOfElements(0) == 0:
                 self.pp.CFD_DEM["meso_scale_length"].SetDouble(1.0)
 
-            self.SetProjectionModule()
+            self.projection_module = CFD_DEM_coupling.ProjectionModule(
+                self.fluid_model_part,
+                self.spheres_model_part,
+                self.rigid_face_model_part,
+                self.pp,
+                flow_field=self.GetFieldUtility()
+                )
 
             self.projection_module.UpdateDatabase(self.h_min)
 
@@ -523,15 +532,6 @@ class Algorithm(object):
         self.PerformZeroStepInitializations()
 
         self.post_utils.Writeresults(self.time)
-
-    def SetProjectionModule(self):
-        self.projection_module = CFD_DEM_coupling.ProjectionModule(
-            self.fluid_model_part,
-            self.spheres_model_part,
-            self.rigid_face_model_part,
-            self.pp,
-            flow_field=self.GetFieldUtility()
-            )
 
     def AddExtraProcessInfoVariablesToFluid(self):
         vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.fluid_model_part)

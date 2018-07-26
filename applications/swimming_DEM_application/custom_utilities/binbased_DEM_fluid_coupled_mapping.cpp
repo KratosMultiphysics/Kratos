@@ -1149,8 +1149,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Distribu
 {
     if (mCouplingType == 0){
 
-        if (*r_destination_variable == mFluidAccelerationVariable){
-            TransferWithConstantWeighing(p_elem, N, p_node, mFluidAccelerationVariable, HYDRODYNAMIC_FORCE);
+        if (*r_destination_variable == mrBodyForcePerUnitMassVariable){
+            TransferWithConstantWeighing(p_elem, N, p_node, mrBodyForcePerUnitMassVariable, HYDRODYNAMIC_FORCE);
         }
 
         else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
@@ -1160,8 +1160,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Distribu
 
     else if (mCouplingType == 1){
 
-        if (*r_destination_variable == mFluidAccelerationVariable){
-            TransferWithLinearWeighing(p_elem, N, p_node, mFluidAccelerationVariable, HYDRODYNAMIC_FORCE);
+        if (*r_destination_variable == mrBodyForcePerUnitMassVariable){
+            TransferWithLinearWeighing(p_elem, N, p_node, mrBodyForcePerUnitMassVariable, HYDRODYNAMIC_FORCE);
         }
 
         else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
@@ -1171,8 +1171,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Distribu
 
     else if (mCouplingType == 2){
 
-        if (*r_destination_variable == mFluidAccelerationVariable){
-            TransferWithLinearWeighing(p_elem, N, p_node, mFluidAccelerationVariable, HYDRODYNAMIC_FORCE);
+        if (*r_destination_variable == mrBodyForcePerUnitMassVariable){
+            TransferWithLinearWeighing(p_elem, N, p_node, mrBodyForcePerUnitMassVariable, HYDRODYNAMIC_FORCE);
         }
 
         else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
@@ -1182,8 +1182,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Distribu
 
     else if (mCouplingType == - 1){
 
-        if (*r_destination_variable == mFluidAccelerationVariable){
-            TransferWithLinearWeighing(p_elem, N, p_node, mFluidAccelerationVariable, HYDRODYNAMIC_FORCE);
+        if (*r_destination_variable == mrBodyForcePerUnitMassVariable){
+            TransferWithLinearWeighing(p_elem, N, p_node, mrBodyForcePerUnitMassVariable, HYDRODYNAMIC_FORCE);
         }
 
         else if (*r_destination_variable == PARTICLE_VEL_FILTERED){
@@ -1200,9 +1200,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeH
     const DistanceType& weights,
     const VariableData *r_destination_variable)
 {
-    if (*r_destination_variable == mFluidAccelerationVariable){
-        //TransferByAveraging(p_node, neighbours, weights, mFluidAccelerationVariable, HYDRODYNAMIC_FORCE);
-        TransferByAveraging(particle, neighbours, weights, mFluidAccelerationVariable, HYDRODYNAMIC_FORCE);
+    if (*r_destination_variable == mrBodyForcePerUnitMassVariable){
+        //TransferByAveraging(p_node, neighbours, weights, mrBodyForcePerUnitMassVariable, HYDRODYNAMIC_FORCE);
+        TransferByAveraging(particle, neighbours, weights, mrBodyForcePerUnitMassVariable, HYDRODYNAMIC_FORCE);
     }
 
     if (*r_destination_variable == PARTICLE_VEL_FILTERED){
@@ -1549,7 +1549,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
 
         for (unsigned int i = 0; i < TDim + 1; ++i){
             array_1d<double, 3>& hydrodynamic_reaction      = geom[i].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
-            array_1d<double, 3>& body_force                 = geom[i].FastGetSolutionStepValue(mFluidAccelerationVariable);
+            array_1d<double, 3>& body_force                 = geom[i].FastGetSolutionStepValue(mrBodyForcePerUnitMassVariable);
             const double& fluid_fraction                    = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
             const double& nodal_volume                      = geom[i].FastGetSolutionStepValue(NODAL_AREA);
             const double& density                           = geom[i].FastGetSolutionStepValue(DENSITY);
@@ -1753,7 +1753,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             noalias(contribution) = - weights[i] * origin_data / (area * fluid_density * fluid_fraction);
             //neighbours[i]->FastGetSolutionStepValue(r_destination_variable) += contribution;
             array_1d<double, 3>& hydrodynamic_reaction      = neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
-            array_1d<double, 3>& body_force                 = neighbours[i]->FastGetSolutionStepValue(mFluidAccelerationVariable);
+            array_1d<double, 3>& body_force                 = neighbours[i]->FastGetSolutionStepValue(mrBodyForcePerUnitMassVariable);
             hydrodynamic_reaction += contribution;
 
             if (mTimeAveragingType == 0){
@@ -1881,7 +1881,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ResetFlu
             }
         }
 
-        array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(mFluidAccelerationVariable);
+        array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(mrBodyForcePerUnitMassVariable);
         array_1d<double, 3>& hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
         hydrodynamic_reaction = ZeroVector(3);
         body_force = gravity;

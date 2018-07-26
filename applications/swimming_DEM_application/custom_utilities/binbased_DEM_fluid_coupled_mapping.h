@@ -133,7 +133,8 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
                                mFluidDeltaTime(0.0),
                                mFluidLastCouplingFromDEMTime(0.0),
                                mMaxNodalAreaInv(0.0),
-                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
+                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0),
+                               mrBodyForcePerUnitMassVariable(BODY_FORCE)
 {
     Parameters default_parameters( R"(
         {
@@ -142,7 +143,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
             "time_averaging_type": 0,
             "viscosity_modification_type" : 0,
             "n_particles_per_depth_distance" : 1,
-            "fluid_acceleration_variable" : "BODY_FORCE"
+            "body_force_per_unit_mass_variable_name" : "BODY_FORCE"
         }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -152,7 +153,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
     mTimeAveragingType = rParameters["time_averaging_type"].GetInt();
     mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();
     mParticlesPerDepthDistance = rParameters["n_particles_per_depth_distance"].GetInt();
-    mFluidAccelerationVariable = KratosComponents<Variable<array_1d<double,3> > >::Get(rParameters["fluid_acceleration_variable"].GetString());
+    mrBodyForcePerUnitMassVariable = KratosComponents<Variable<array_1d<double,3> > >::Get(rParameters["body_force_per_unit_mass_variable_name"].GetString());
 
     if (TDim == 3){
         mParticlesPerDepthDistance = 1;
@@ -293,7 +294,7 @@ PointPointSearch::Pointer mpPointPointSearch;
 
 FluidFieldUtility mFlowField;
 
-Variable< array_1d<double,3> > mFluidAccelerationVariable;
+Variable<array_1d<double,3>>& mrBodyForcePerUnitMassVariable;
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
