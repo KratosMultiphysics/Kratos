@@ -16,6 +16,7 @@ import math
 
 # ==============================================================================
 def Norm2(_X):
+    _X = SafeConvertMatrixToVector(_X)
     temp_vec = [x**2 for x in _X]
     temp_sum = sum(temp_vec)
     return math.sqrt(temp_sum)
@@ -28,6 +29,11 @@ def NormInf3D(_X):
 
 # ------------------------------------------------------------------------------
 def Dot(_X, _Y):
+    _X = SafeConvertDoubleToVector(_X)
+    _Y = SafeConvertDoubleToVector(_Y)
+    _X = SafeConvertMatrixToVector(_X)
+    _Y = SafeConvertMatrixToVector(_Y)
+
     if len(_X) != len(_Y):
         raise RuntimeError("custom_math::Dot: Dot product to be computed but _X and _Y do not have the same dimension!")
     return sum( [_X[i]*_Y[i] for i in range(len(_X))] )
@@ -77,6 +83,7 @@ def ElemwiseProd(_X,_Y):
 
 # ------------------------------------------------------------------------------
 def Trans(_A):
+    _A = SafeConvertVectorToMatrix(_A)
     if IsEmpty(_A):
         return []
     return list(map(list, zip(*_A)))
@@ -134,10 +141,28 @@ def VertCat(_A,_B):
         return _C
 
 # ------------------------------------------------------------------------------
+def SafeConvertDoubleToVector(_X):
+    if isinstance(_X,float):
+        return [_X]
+    else:
+        if IsVector(_X):
+            return _X
+        else:
+            raise ValueError("custom_math::SafeConvertDoubleToVector: No safe conversion possible.")
+
+# ------------------------------------------------------------------------------
 def SafeConvertVectorToMatrix(_X):
     if IsVector(_X):
         return [_X]
     return _X
+
+# ------------------------------------------------------------------------------
+def SafeConvertMatrixToVector(_A):
+    if IsVector(_A):
+        return _A
+    if CollSize(_A)>1:
+        raise ValueError("custom_math::SafeConvertMatrixToVector: No safe conversion possible.")
+    return _A[0]
 
 # ------------------------------------------------------------------------------
 def IsEmpty(_A):

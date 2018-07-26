@@ -22,6 +22,7 @@ from design_logger_vtk import DesignLoggerVTK
 
 from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
+from response_logger_trust_region import ResponseLoggerTrustRegion
 
 # ==============================================================================
 def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
@@ -48,6 +49,8 @@ class DataLogger():
             return ResponseLoggerSteepestDescent( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "penalized_projection":
             return ResponseLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings )
+        elif AlgorithmName == "trust_region":
+            return ResponseLoggerTrustRegion( self.Communicator, self.OptimizationSettings )
         else:
             raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + AlgorithmName)
 
