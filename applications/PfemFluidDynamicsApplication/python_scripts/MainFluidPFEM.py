@@ -250,6 +250,9 @@ class Solution(object):
 
         self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report);
 
+        # Calculate Nodal_Area
+        KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part,self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]).Execute()
+
     def SolveSolutionStep(self):
 
         self.clock_time = self.StartTimeMeasuring();
