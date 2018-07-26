@@ -179,7 +179,7 @@ namespace Kratos
         std::string aux_string;
         const std::string string_to_remove = "This properties contains 0 tables";
 
-        for(PropertiesContainerType::const_iterator i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; i_properties++) {
+        for (auto i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; ++i_properties) {
             std::ostringstream aux_ostream;
             (*mpStream) << "Begin Properties " << i_properties->Id() << std::endl;
             i_properties->PrintData(aux_ostream);
