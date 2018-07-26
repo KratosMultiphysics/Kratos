@@ -288,8 +288,13 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
 
-        Timer::Start("Build");
+        const double start_update_constraints = OpenMPUtils::GetCurrentTime();
         this->UpdateConstraintsForBuilding(rModelPart);
+        const double stop_update_constraints = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraints update time : " << stop_update_constraints - start_update_constraints << std::endl;
+
+
+        Timer::Start("Build");
 
         Build(pScheme, rModelPart, A, b);
 
@@ -302,13 +307,16 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
-
         this->SystemSolveWithPhysics(A, Dx, b, rModelPart);
-
-        ReconstructSlaveSolutionAfterSolve(rModelPart, A, Dx, b);
-
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
+
+        const double start_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
+        ReconstructSlaveSolutionAfterSolve(rModelPart, A, Dx, b);
+        const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
+
+
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) << "After the solution of the system"
@@ -580,6 +588,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void FormulateGlobalMasterSlaveRelations(ModelPart& rModelPart)
     {
         KRATOS_TRY
+        const double start_formulate = OpenMPUtils::GetCurrentTime();
         // First delete the existing ones
         mGlobalMasterSlaveRelations.clear();
         // Getting the array of the conditions
@@ -616,6 +625,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 AssembleSlaves(slave_equation_ids, master_equation_ids, relation_matrix);
             }
         }
+        const double stop_formulate = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Formulate global constraints time: " << stop_formulate - start_formulate << std::endl;
+
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
     }
 
@@ -852,10 +864,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // of RHS constribution. Later on lhs_contribution is modified to apply the constraint.
         // rhs_h =  T'*(rhs - K*g)
         VectorType temp_vec = ( rhs_contribution - prod(lhs_contribution, constant_vector_local) );
-        noalias(rhs_contribution) = prod( trans(transformation_matrix_local), temp_vec );
+        (rhs_contribution) = prod( trans(transformation_matrix_local), temp_vec );
         // lhs_h = T'*K*T
         MatrixType temp_mat = prod(lhs_contribution, transformation_matrix_local);
-        noalias(lhs_contribution) = prod( trans(transformation_matrix_local),  temp_mat);
+        (lhs_contribution) = prod( trans(transformation_matrix_local),  temp_mat);
         // rhs_h(s,s) = rhs(s,s) : that is reassigning the slave part of the matrix back. We do not modify the (slave, slave) block
         // this is to facilitate the solution of the linear system of equation.
         for (auto &slave_index : local_slave_index_vector)
@@ -873,8 +885,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (auto &slave_index : local_slave_index_vector)
             rhs_contribution(slave_index) = 0.0;
 
-        noalias(rLHSContribution) = lhs_contribution;
-        noalias(rRHSContribution) = rhs_contribution;
+        (rLHSContribution) = lhs_contribution;
+        (rRHSContribution) = rhs_contribution;
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
     }
@@ -934,7 +946,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (auto &slave_index : rLocalSlaveIndexVector)
         {
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
-            KRATOS_DEBUG_ERROR_IF (global_master_slave_constraint != mGlobalMasterSlaveRelations.end()) <<
+            KRATOS_DEBUG_ERROR_IF (global_master_slave_constraint == mGlobalMasterSlaveRelations.end()) <<
                              "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
 
             global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids);
@@ -1036,6 +1048,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void CalculateLocalMasterIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalMasterIndexVector, IndexType& rTotalNumberOfMasters)
     {
         // Get number of master indices for this current container
+        rLocalMasterIndexVector.reserve(rTotalNumberOfMasters + rEquationIds.size() );
         for (IndexType i = rEquationIds.size(); i < rTotalNumberOfMasters + rEquationIds.size(); i++)
             rLocalMasterIndexVector.push_back(i);
     }
