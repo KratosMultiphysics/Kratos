@@ -25,7 +25,7 @@ class GiDOutputProcess(Process):
             "nodal_flags_results": [],
             "gauss_point_results": [],
             "gauss_point_flags_results": [],
-            "gauss_point_local_data_results": [],
+            "gauss_point_nonhistorical_results": [],
             "additional_list_files": []
         },
         "point_data_configuration": []
@@ -141,7 +141,7 @@ class GiDOutputProcess(Process):
         # Process nodal and gauss point output
         self.nodal_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_results"])
         self.gauss_point_variables = self._GenerateVariableListFromInput(result_file_configuration["gauss_point_results"])
-        self.gauss_point_local_data_variables = self._GenerateVariableListFromInput(result_file_configuration["gauss_point_local_data_results"])
+        self.gauss_point_nonhistorical_variables = self._GenerateVariableListFromInput(result_file_configuration["gauss_point_nonhistorical_results"])
         self.nodal_nonhistorical_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_nonhistorical_results"])
         self.nodal_flags = self._GenerateFlagsListFromInput(result_file_configuration["nodal_flags_results"])
         self.nodal_flags_names =[]
@@ -225,7 +225,7 @@ class GiDOutputProcess(Process):
             self.__initialize_results(label)
             self.__write_nodal_results(label)
             self.__write_gp_results(label)
-            self.__write_gp_local_data_results(label)
+            self.__write_gp_nonhistorical_results(label)
             self.__write_nonhistorical_nodal_results(label)
             self.__write_nodal_flags(label)
             self.__write_gauss_point_flags(label)
@@ -275,7 +275,7 @@ class GiDOutputProcess(Process):
 
         self.__write_nodal_results(time)
         self.__write_gp_results(time)
-        self.__write_gp_local_data_results(time)
+        self.__write_gp_nonhistorical_results(time)
         self.__write_nonhistorical_nodal_results(time)
         self.__write_nodal_flags(time)
         self.__write_gauss_point_flags(time)
@@ -539,12 +539,12 @@ class GiDOutputProcess(Process):
         # Gauss point results depend on the type of element!
         # they are not implemented for cuts (which are generic Condition3D)
 
-    def __write_gp_local_data_results(self, label):
+    def __write_gp_nonhistorical_results(self, label):
 
         #if self.body_io is not None:
         if self.body_output: # Note: if we only print nodes, there are no GaussPoints
-            for variable in self.gauss_point_local_data_variables:
-                self.body_io.PrintLocalDataOnGaussPoints(variable, self.model_part, label)
+            for variable in self.gauss_point_nonhistorical_variables:
+                self.body_io.PrintNonHistoricalOnGaussPoints(variable, self.model_part, label)
 
         # Gauss point results depend on the type of element!
         # they are not implemented for cuts (which are generic Condition3D)
