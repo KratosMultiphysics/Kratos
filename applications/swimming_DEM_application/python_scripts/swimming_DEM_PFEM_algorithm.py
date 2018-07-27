@@ -8,7 +8,6 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 import swimming_DEM_algorithm
 import swimming_DEM_procedures as SDP
 import variables_management as vars_man
-import CFD_DEM_coupling
 
 sys.path.insert(0,'')
 #import DEM_explicit_solver_var as DEM_parameters
