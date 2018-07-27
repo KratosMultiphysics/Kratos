@@ -108,7 +108,7 @@ public:
         {
           ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-          if( it->Is(ISOLATED) || (it->Is(RIGID) && (it->IsNot(SOLID) && it->IsNot(FLUID)) ) ){
+          if( it->Is(ISOLATED) || (it->Is(RIGID) && (it->IsNot(SOLID) && it->IsNot(FLUID))) ){
 
 	    it->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
 	    it->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
@@ -156,6 +156,8 @@ public:
 
             // std::cout<<"POST POSITION "<<it->Coordinates()<<"  ACCELERATION "<<it->FastGetSolutionStepValue(ACCELERATION)<<std::endl;
             // std::cout<<"DISPLACEMENT "<<it->FastGetSolutionStepValue(DISPLACEMENT)<<"  VELOCITY "<<it->FastGetSolutionStepValue(VELOCITY)<<std::endl;
+
+            //std::cout<<" ISOLATED Node ["<<it->Id()<<"] Displacement"<<it->FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
 
             if( !mBoundingBox.IsInside( it->Coordinates() ) )
               it->Set(TO_ERASE);

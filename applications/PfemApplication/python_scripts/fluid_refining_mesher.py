@@ -89,8 +89,8 @@ class FluidRefiningMesher(mesher.Mesher):
         #set_active_flag = KratosPfem.SetActiveEntities(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
         #self.mesher.SetPreMeshingProcess(set_active_flag)
 
-        inlet_management = KratosPfem.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
-        self.mesher.SetPreMeshingProcess(inlet_management)
+        #inlet_management = KratosPfem.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
+        #self.mesher.SetPreMeshingProcess(inlet_management)
 
         remove_mesh_nodes = KratosPfem.RemoveFluidNodes(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)

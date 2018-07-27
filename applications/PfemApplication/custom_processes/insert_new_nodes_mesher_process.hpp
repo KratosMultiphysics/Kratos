@@ -725,6 +725,8 @@ class InsertNewNodesMesherProcess
       (*it)->Set(FLUID);
       (*it)->Set(ACTIVE);
 
+      //std::cout<<" New Node [ "<<(*it)->Id()<<"]: Displacement "<<(*it)->FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<(*it)->Coordinates()<<std::endl;
+
       //correct contact_normal interpolation
       if( (*it)->SolutionStepsDataHas(CONTACT_FORCE) )
         noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;

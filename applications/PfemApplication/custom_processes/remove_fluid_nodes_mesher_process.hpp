@@ -513,6 +513,8 @@ private:
 		      	  in->FastGetSolutionStepValue(VELOCITY_Z,1)=sumOfPreviousVelocities[2]/counter;
 		      	}
 
+                        //std::cout<<" Moved Node ["<<in->Id()<<"] Displacement"<<in->FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<in->Coordinates()<<std::endl;
+
 		      } else{
 			//look if we are already erasing any of the other nodes
 			unsigned int erased_nodes = 0;

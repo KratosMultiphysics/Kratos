@@ -19,7 +19,7 @@
         "processes_parts_list"  : ["VELOCITY_Velocity"]
     },
     "problem_data"        : {
-	"echo_level"      : 1,
+	"echo_level"      : 0,
         "threads"         : 1,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
@@ -35,6 +35,7 @@
 			"integration_method"     : "Newmark"
 		    },
 		    "solving_strategy_settings" : {
+			"reform_dofs_at_each_step"    : true,
 			"iterative_update"            : false,
 			"max_iteration"               : 20
 		    },
@@ -62,6 +63,7 @@
 			"time_integration_order" : 1
 		    },
 		    "solving_strategy_settings" : {
+			"reform_dofs_at_each_step"    : true,
 			"iterative_update"            : false,
 			"compute_reactions"           : false,
 			"max_iteration"               : 22
