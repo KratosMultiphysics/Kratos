@@ -1,6 +1,5 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.AdjointFluidApplication import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 import random
 
