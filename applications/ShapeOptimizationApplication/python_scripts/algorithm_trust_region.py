@@ -79,6 +79,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         self.x_init = WriteNodeCoordinatesToList(self.design_surface)
 
+        self.value_history = {}
+        self.value_history["val_obj"] = []
+        self.value_history["step_length"] = []
+
         self.model_part_controller.ImportOptimizationModelPart()
         self.model_part_controller.InitializeMeshController()
         self.mapper.InitializeMapping()
@@ -107,23 +111,20 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             len_ineqs, dir_ineqs =  self.__ReduceToRelevantInequalityConstraints(len_ineqs, dir_ineqs)
 
-            # Apply step length control
-            step_length = self.algorithm_settings["max_step_length"].GetDouble()
+            step_length = self.__ApplyStepLengthRule()
 
             # Express lengths in step length unit (indicated by the term "bar")
             len_bar_obj = 1/step_length * len_obj
             len_bar_eqs = ScalarVectorProduct(1/step_length, len_eqs)
             len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
 
-            # Compute step direction in step length units
+            # Compute step
             x_bar = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
-
-            # Compute actual shape update
             dx = ScalarVectorProduct(step_length,x_bar)
 
             self.__ComputeShapeUpdate(dx)
 
-            self.__LogCurrentOptimizationStep()
+            self.__LogCurrentOptimizationStep(val_obj, step_length)
 
             print("\n--------------------------------------------")
             if self.opt_iteration == 1:
@@ -142,7 +143,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             for itr in range(self.specified_constraints.size()):
                 con_id = self.specified_constraints[itr]["identifier"].GetString()
-                print("C1_val = ", self.communicator.getValue(con_id))
+                print("C"+str(itr+1)+"_val = ", self.communicator.getValue(con_id))
 
             print("\nval_ineqs = ", val_ineqs)
             print("len_ineqs = ", len_ineqs)
@@ -329,6 +330,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
 
                 ineq_value = self.communicator.getStandardizedValue(ineq_id)
+                print("#################################### ", ineq_value)
                 ineq_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
                 ineq_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
 
@@ -368,6 +370,25 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 dir_ineqs_relevant.append(dir_i)
 
         return len_ineqs_relevant, dir_ineqs_relevant
+
+    # --------------------------------------------------------------------------
+    def __ApplyStepLengthRule(self):
+        if self.opt_iteration < 4:
+            return self.algorithm_settings["max_step_length"].GetDouble()
+        else:
+            objective_is_oscillating = False
+
+            obj_history = self.value_history["val_obj"]
+            step_history = self.value_history["step_length"]
+
+            is_decrease_1 = (obj_history[-1]-obj_history[-2])< 0
+            is_decrease_2 = (obj_history[-2]-obj_history[-3])<0
+            is_decrease_3 = (obj_history[-1]-obj_history[-4])< 0
+            if (is_decrease_1 and is_decrease_2== False and is_decrease_3) or (is_decrease_1== False and is_decrease_2 and is_decrease_3==False):
+                objective_is_oscillating = True
+
+            if objective_is_oscillating:
+                return step_history[-1]*self.algorithm_settings["step_size_reduction_factor"].GetDouble()
 
     # --------------------------------------------------------------------------
     def __DetermineStep(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
@@ -452,7 +473,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         print("NormInf3D of dxAbsolute = ", NormInf3D(dxAbsolute))
 
     # --------------------------------------------------------------------------
-    def __LogCurrentOptimizationStep(self):
+    def __LogCurrentOptimizationStep(self, val_obj, step_length):
+        self.value_history["val_obj"].append(val_obj)
+        self.value_history["step_length"].append(step_length)
+
         self.data_logger.LogCurrentData(self.opt_iteration)
 
 # ==============================================================================
