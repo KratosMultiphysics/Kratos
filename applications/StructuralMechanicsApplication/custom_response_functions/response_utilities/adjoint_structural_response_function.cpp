@@ -701,8 +701,9 @@ namespace Kratos
                                     response_gradient[k]);
 
                         this->AssembleElementSensitivityContribution(
-                                  rOutputVariable, sensitivity_vector[k], *it);	
+                                  rOutputVariable, sensitivity_vector[k], *it);
 
+                        std::cout << "Element id: " << it->Id() << std::endl;
                         for(unsigned int i = 0; i <sensitivity_matrix[k].size2(); i++)
                             std::cout <<   sensitivity_matrix[k](0,i) << std::endl;
                         std::cout << "************************************"<< std::endl;            	

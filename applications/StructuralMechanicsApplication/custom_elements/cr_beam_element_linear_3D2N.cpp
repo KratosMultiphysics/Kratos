@@ -214,6 +214,12 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
 
   Vector stress = prod(left_hand_side_matrix, nodal_deformation);
 
+  BoundedVector<double, msElementSize> body_forces = this->CalculateBodyForces();
+  body_forces =
+      prod(Matrix(trans(transformation_matrix)), body_forces);
+
+  //stress += body_forces;
+
   // rOutput[GP 1,2,3][x,y,z]
 
   if (rVariable == MOMENT) {

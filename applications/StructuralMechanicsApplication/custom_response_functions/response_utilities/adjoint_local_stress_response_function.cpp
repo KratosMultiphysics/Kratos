@@ -137,7 +137,7 @@ namespace Kratos
 
             KRATOS_ERROR_IF(rResponseGradient.size() != stress_displ_deriv.size1())
                  << "Size of stress displacement derivative does not fit!" << std::endl;
-
+            std::cout << "************************************"<< std::endl;  
             for (int dof_it = 0 ; dof_it < num_of_dofs; dof_it++)
             {
                 if(mStressTreatment == mean)
@@ -165,8 +165,12 @@ namespace Kratos
 
                 }
                 rResponseGradient[dof_it] = (-1) * stress_displ_deriv_value;
+
+                std::cout <<    rResponseGradient[dof_it] << std::endl;
+                         
                 stress_displ_deriv_value = 0.0;
             }
+            std::cout << "************************************"<< std::endl;  
         }
     }
 
