@@ -66,6 +66,12 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def reportGradient(self, response_id, gradient):
+        dimension = len(list(gradient.values())[0])
+        if dimension == 1:
+            gradient = {key: [value[0], 0.0, 0.0] for key, value in gradient.items()}
+        elif dimension == 2:
+            gradient = {key: [value[0], value[1], 0.0] for key, value in gradient.items()}
+
         standardized_gradient = self.__translateGradientToStandardForm(response_id, gradient)
         self.__storeStandardizedGradient(response_id, standardized_gradient)
 
