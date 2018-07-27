@@ -90,12 +90,6 @@ public:
         {
             mdepends_on_space = false;
         }
-
-        // check if it depends on time
-        if (function_body.find(std::string("t")) == std::string::npos)
-        {
-            mdepends_on_time = false;
-        }
     }
 
 //         PythonGenericFunctionUtility(  pybind11::object obj, const Matrix& R, const Vector& xc): mpy_obj(obj), muse_local_system(true), mR(R), mxc(xc)
@@ -115,11 +109,6 @@ public:
     bool DependsOnSpace()
     {
         return mdepends_on_space;
-    }
-
-    bool DependsOnTime()
-    {
-        return mdepends_on_time;
     }
 
     double RotateAndCallFunction(const double x, const double y, const double z, const double t)
@@ -156,7 +145,6 @@ private:
     pybind11::object mbytecode;
 
     bool mdepends_on_space = true;
-    bool mdepends_on_time = true;
     bool muse_local_system = false;
     boost::numeric::ublas::bounded_matrix<double, 3, 3> mR;
     array_1d<double, 3> mxc;

@@ -383,11 +383,6 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
-    .def("GetSubIntervalNb", &IntervalUtility::GetSubIntervalNb)
-    .def("GetSubInterval", &IntervalUtility::GetSubInterval)
-    .def("GetSubIntervalBegin", &IntervalUtility::GetSubIntervalBegin)
-    .def("GetSubIntervalEnd", &IntervalUtility::GetSubIntervalEnd)
-    .def("RemoveSubInterval", &IntervalUtility::RemoveSubInterval)
     ;
 
     // Adding table from table stream to python
