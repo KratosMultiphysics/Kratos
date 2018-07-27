@@ -16,7 +16,7 @@ class Solution(main_script.Solution):
     def Run(self):
         
         self.nvidia_wrapper = FlexWrapper()
-        self.nvidia_wrapper.FlexWrapperFunction()
+        self.nvidia_wrapper.RunSimulation()
         super(Solution, self).Run()
 
 if __name__=="__main__":

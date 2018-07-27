@@ -19,7 +19,7 @@ namespace Kratos {
 
         class_<FlexWrapper, FlexWrapper::Pointer>(m, "FlexWrapper")
             .def(init<>())
-            .def("FlexWrapperFunction", &FlexWrapper::FlexWrapperFunction)
+            .def("RunSimulation", &FlexWrapper::RunSimulation)
             ;
         }
     }  // namespace Python
