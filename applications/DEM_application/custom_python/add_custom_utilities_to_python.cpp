@@ -27,6 +27,7 @@
 #include "custom_utilities/AuxiliaryUtilities.h"
 #include "custom_utilities/excavator_utility.h"
 #include "custom_utilities/analytic_tools/particles_history_watcher.h"
+#include "custom_utilities/move_mesh_utility.h"
 
 namespace Kratos {
 
@@ -337,6 +338,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     class_<ParticlesHistoryWatcher, ParticlesHistoryWatcher::Pointer, AnalyticWatcher>(m, "ParticlesHistoryWatcher")
         .def(init<>())
         .def("GetNewParticlesData", &ParticlesHistoryWatcher::GetNewParticlesData)
+        ;
+
+    class_<MoveMeshUtility, MoveMeshUtility::Pointer>(m, "MoveMeshUtility")
+        .def(init<>())
+        .def("MoveDemMesh", &MoveMeshUtility::MoveDemMesh)
         ;
     }
 
