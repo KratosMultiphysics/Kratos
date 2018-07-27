@@ -411,11 +411,10 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM["coupling_level_type"].GetInt() >= 1 and pp.CFD_DEM["print_FLUID_FRACTION_GRADIENT_PROJECTED_option"].GetBool():
         pp.coupling_dem_vars += [FLUID_FRACTION_GRADIENT_PROJECTED]
 
-    if pp.CFD_DEM["coupling_level_type"].GetInt() > 1:
-        pp.coupling_dem_vars += [POWER_LAW_K]
+    if pp.CFD_DEM["drag_force_type"].GetInt() in {2} or pp.CFD_DEM["lift_force_type"].GetInt() == 1:
         pp.coupling_dem_vars += [POWER_LAW_N]
+        pp.coupling_dem_vars += [POWER_LAW_K]
         pp.coupling_dem_vars += [YIELD_STRESS]
-
 
     if pp.CFD_DEM["lift_force_type"].GetInt() == 1:
         pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
