@@ -292,7 +292,7 @@ void TrussElement3D2N::CalculateRightHandSide(
   noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
 
   // add bodyforces
-  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
+if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -415,17 +415,17 @@ void TrussElement3D2N::GetValueOnIntegrationPoints(
 }
 
 int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
-    const SizeType number_of_nodes = this->GetGeometry().size();
+  const double numerical_limit = std::numeric_limits<double>::epsilon();
+  const SizeType number_of_nodes = this->GetGeometry().size();
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
     if (mpConstitutiveLaw != nullptr) {
         this->mpConstitutiveLaw->Check(this->GetProperties(),this->GetGeometry(),rCurrentProcessInfo);
     }
 
-    if (dimension != msDimension || number_of_nodes != msNumberOfNodes) {
+if (dimension != msDimension || number_of_nodes != msNumberOfNodes) {
         KRATOS_ERROR << "The truss element works only in 3D and with 2 noded elements" << std::endl;
     }
 
@@ -448,23 +448,23 @@ int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
     }
 
-    if (this->GetProperties().Has(CROSS_AREA) == false ||
-        this->GetProperties()[CROSS_AREA] <= numerical_limit) {
-        KRATOS_ERROR << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
-    }
+  if (this->GetProperties().Has(CROSS_AREA) == false ||
+      this->GetProperties()[CROSS_AREA] <= numerical_limit) {
+  KRATOS_ERROR << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
+  }
 
-    if (this->GetProperties().Has(YOUNG_MODULUS) == false ||
-        this->GetProperties()[YOUNG_MODULUS] <= numerical_limit) {
-        KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
-    }
+  if (this->GetProperties().Has(YOUNG_MODULUS) == false ||
+      this->GetProperties()[YOUNG_MODULUS] <= numerical_limit) {
+     KRATOS_ERROR << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
+  }
 
-    if (this->GetProperties().Has(DENSITY) == false) {
-        KRATOS_ERROR << "DENSITY not provided for this element" << this->Id() << std::endl;
-    }
+  if (this->GetProperties().Has(DENSITY) == false) {
+ KRATOS_ERROR << "DENSITY not provided for this element" << this->Id() << std::endl;
+  }
 
-    return 0;
+  return 0;
 
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 double TrussElement3D2N::CalculateGreenLagrangeStrain() {
@@ -539,8 +539,8 @@ void TrussElement3D2N::UpdateInternalForces(
   this->mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
 
 
-  const double normal_force =
-      ((temp_internal_stresses[3] + prestress) * l * A) / L0;
+    const double normal_force =
+        ((temp_internal_stresses[3] + prestress) * l * A) / L0;
 
   // internal force vectors
   BoundedVector<double, msLocalSize> f_local = ZeroVector(msLocalSize);
@@ -647,8 +647,8 @@ void TrussElement3D2N::AddExplicitContribution(
     if (rRHSVariable == RESIDUAL_VECTOR &&
         rDestinationVariable == FORCE_RESIDUAL) {
 
-      BoundedVector<double, msLocalSize> damping_residual_contribution =
-          ZeroVector(msLocalSize);
+    BoundedVector<double, msLocalSize> damping_residual_contribution =
+        ZeroVector(msLocalSize);
       Vector current_nodal_velocities = ZeroVector(msLocalSize);
       this->GetFirstDerivativesVector(current_nodal_velocities);
       Matrix damping_matrix;
