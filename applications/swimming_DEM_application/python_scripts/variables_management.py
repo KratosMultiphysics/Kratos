@@ -342,6 +342,7 @@ def ConstructListsOfVariablesForCoupling(pp):
     pp.coupling_fluid_vars += [MATERIAL_ACCELERATION]
 
     pp.coupling_fluid_vars += [BODY_FORCE]
+    pp.coupling_fluid_vars += [VOLUME_ACCELERATION]
 
     if pp.CFD_DEM["fluid_model_type"].GetInt() == 0:
         pp.coupling_fluid_vars += [AVERAGED_FLUID_VELOCITY]
