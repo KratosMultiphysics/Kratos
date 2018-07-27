@@ -50,19 +50,19 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Initialize(ModelPart& rModelPart)
+    virtual void Initialize()
     {
     }
 
-    virtual void InitializeSolutionStep(ModelPart& rModelPart)
+    virtual void InitializeSolutionStep()
     {
     }
 
-    virtual void FinalizeSolutionStep(ModelPart& rModelPart)
+    virtual void FinalizeSolutionStep()
     {
     }
 
-    virtual void Check(ModelPart const& rModelPart)
+    virtual void Check()
     {
     }
 
@@ -71,7 +71,7 @@ public:
     }
 
     /// Calculate the response function value.
-    virtual double CalculateValue(ModelPart const& rModelPart)
+    virtual double CalculateValue()
     {
         KRATOS_TRY;
 
@@ -82,7 +82,7 @@ public:
     }
 
     // Update the sensitivities of the response function.
-    virtual void UpdateSensitivities(ModelPart& rModelPart) = 0;
+    virtual void UpdateSensitivities() = 0;
 
     /// Calculate the local gradient w.r.t. the primal variable.
     /**

@@ -95,7 +95,7 @@ public:
         KRATOS_TRY;
 
         BaseType::Initialize(rModelPart);
-        mpResponseFunction->Initialize(rModelPart);
+        mpResponseFunction->Initialize();
 
         KRATOS_CATCH("");
     }
@@ -108,7 +108,7 @@ public:
         KRATOS_TRY;
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-        mpResponseFunction->InitializeSolutionStep(rModelPart);
+        mpResponseFunction->InitializeSolutionStep();
 
         KRATOS_CATCH("");
     }
@@ -121,7 +121,7 @@ public:
         KRATOS_TRY;
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-        mpResponseFunction->FinalizeSolutionStep(rModelPart);
+        mpResponseFunction->FinalizeSolutionStep();
 
         KRATOS_CATCH("");
     }
@@ -166,7 +166,7 @@ public:
             r_comm.SynchronizeNodalSolutionStepsData();
         }
 
-        mpResponseFunction->UpdateSensitivities(rModelPart);
+        mpResponseFunction->UpdateSensitivities();
 
         KRATOS_CATCH("");
     }

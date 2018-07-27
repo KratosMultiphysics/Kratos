@@ -136,7 +136,7 @@ public:
             }
         }
 
-        mpResponseFunction->Initialize(rModelPart);
+        mpResponseFunction->Initialize();
 
         InitializeNodeNeighbourCount(rModelPart.Nodes());
 
@@ -186,7 +186,7 @@ public:
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
-        mpResponseFunction->InitializeSolutionStep(rModelPart);
+        mpResponseFunction->InitializeSolutionStep();
 
         KRATOS_CATCH("");
     }
@@ -262,7 +262,7 @@ public:
 
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_FLUID_VECTOR_1);
 
-        mpResponseFunction->FinalizeSolutionStep(rModelPart);
+        mpResponseFunction->FinalizeSolutionStep();
 
         KRATOS_CATCH("");
     }
@@ -421,7 +421,7 @@ public:
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_2);
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_3);
 
-        mpResponseFunction->UpdateSensitivities(rModelPart);
+        mpResponseFunction->UpdateSensitivities();
 
         KRATOS_CATCH("");
     }

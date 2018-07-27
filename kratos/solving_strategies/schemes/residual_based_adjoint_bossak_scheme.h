@@ -115,7 +115,7 @@ public:
         mAdjointSecondDerivsVector.resize(num_threads);
         mAdjointAuxiliaryVector.resize(num_threads);
 
-        this->mpResponseFunction->Initialize(rModelPart);
+        this->mpResponseFunction->Initialize();
 
         InitializeNodeNeighbourCount(rModelPart.Nodes());
 
@@ -145,7 +145,7 @@ public:
 
         CalculateNodeNeighbourCount(rModelPart);
 
-        this->mpResponseFunction->InitializeSolutionStep(rModelPart);
+        this->mpResponseFunction->InitializeSolutionStep();
 
         KRATOS_CATCH("");
     }
@@ -162,7 +162,7 @@ public:
 
         this->UpdateAuxiliaryVariable(rModelPart);
 
-        this->mpResponseFunction->FinalizeSolutionStep(rModelPart);
+        this->mpResponseFunction->FinalizeSolutionStep();
 
         KRATOS_CATCH("");
     }
@@ -181,7 +181,7 @@ public:
         // Update adjoint variables associated to time integration.
         this->UpdateTimeSchemeAdjoints(rModelPart);
 
-        this->mpResponseFunction->UpdateSensitivities(rModelPart);
+        this->mpResponseFunction->UpdateSensitivities();
 
         KRATOS_CATCH("");
     }

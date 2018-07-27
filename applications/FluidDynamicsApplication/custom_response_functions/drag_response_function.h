@@ -127,11 +127,11 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize(ModelPart& /*rModelPart*/) override
+    void Initialize() override
     {
         KRATOS_TRY;
 
-        Check(mrModelPart);
+        Check();
 
         for (const std::string& r_label : mNodalSensitivityVariables)
             SetNodalSensitivityVariableToZero(r_label, mrModelPart.Nodes());
@@ -149,7 +149,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void Check(ModelPart const& /*rModelPart*/) override
+    void Check() override
     {
         KRATOS_TRY;
 
@@ -164,7 +164,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void UpdateSensitivities(ModelPart& /*rModelPart*/) override
+    void UpdateSensitivities() override
     {
         KRATOS_TRY;
 
