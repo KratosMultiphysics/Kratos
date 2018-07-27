@@ -276,10 +276,10 @@ class SelectFluidElementsMesherProcess
           else{
 
             if( numboundary==nds && (numsolid !=0 || numrigid!=0) ){
-              Alpha*=0.95;
+              Alpha*=1.05;
             }
             else{
-              Alpha*=1.04;
+              Alpha*=1.10;
             }
           }
 
@@ -311,7 +311,7 @@ class SelectFluidElementsMesherProcess
           else{
 
             if( numboundary==nds && (numsolid !=0 || numrigid !=0) ){
-              Alpha*=1.15;
+              Alpha*=0.95;
             }
             else{
               Alpha*=1.55;
@@ -353,7 +353,7 @@ class SelectFluidElementsMesherProcess
         }
 
         //do not accept full rigid elements (no fluid)
-        if(numrigid==nds && numfluid<nds)
+        if(numrigid==nds && (numfluid<nds || numfreesurf<nds))
           accepted=false;
 
         //do not accept full rigid-solid elements (no fluid)

@@ -20,7 +20,7 @@
     },
     "problem_data"        : {
 	"echo_level"      : 0,
-        "threads"         : 1,
+        "threads"         : 4,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
     "solver_settings" : {
@@ -93,7 +93,7 @@
         "Parameters"    : {
             "model_part_name"       : "main_domain",
             "meshing_control_type"  : "step",
-            "meshing_frequency"     : 1.0,
+            "meshing_frequency"     : 5.0,
             "meshing_before_output" : true,
             "meshing_domains"       : [{
                 "model_part_name"                 : "Body1",

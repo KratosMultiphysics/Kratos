@@ -44,7 +44,7 @@ class Solution(object):
         self._set_parallel_size(num_threads)
 
         print(" ")
-        print(self._class_prefix()+" [OMP USING",num_threads,"THREADS ]")
+        print(self._class_prefix()+" [OMP USING",num_threads,"THREADS]")
 
 
     def Run(self):
@@ -151,7 +151,7 @@ class Solution(object):
         self.main_model_part.CloneTimeStep(self.time)
 
         if(self.echo_level >= 0):
-            print("  [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
+            print("  [STEP:"+str(self.step)+" TIME:"+"{0:1.{1}f}".format(self.time,6)+"]")
 
         # Processes to be executed at the begining of the solution step
         self.processes.ExecuteInitializeSolutionStep()
@@ -176,6 +176,9 @@ class Solution(object):
 
         # Step by step (3)
         #self.solver.FinalizeSolutionStep()
+
+        iterations = self.process_info[KratosMultiphysics.NL_ITERATION_NUMBER]
+        print("   (-ITER:"+str(iterations)+" CPU:%.2f" % round((timer.clock()-self.clock_time),2)+"s-)")
 
         self._stop_time_measuring(self.clock_time,"Solve Step", self.report);
 

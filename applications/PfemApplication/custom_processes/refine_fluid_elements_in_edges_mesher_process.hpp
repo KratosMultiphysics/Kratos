@@ -185,11 +185,11 @@ class RefineFluidElementsInEdgesMesherProcess
           }
         }
       }
-      if( is_full_rigid_boundary )
-        std::cout<<" is full rigid boundary "<<std::endl;
+      // if( is_full_rigid_boundary )
+      //   std::cout<<" is full rigid boundary "<<std::endl;
 
-      if( is_full_fluid_boundary )
-        std::cout<<" is full fluid boundary "<<std::endl;
+      // if( is_full_fluid_boundary )
+      //   std::cout<<" is full fluid boundary "<<std::endl;
 
       if( is_full_rigid_boundary || is_full_fluid_boundary ){
         rBoundaryEdgedElements.push_back(*(i_elem.base()));

@@ -597,14 +597,14 @@ private:
         }
       }
 
-
-      // if(dimension==2){
-      //   if(rigidNodes==2)
-      //     EraseCriticalNodes2D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-      // }else if(dimension==3){
-      //   if(rigidNodes>1)
-      //     EraseCriticalNodes3D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-      // }
+      //Need to review this, problems because it deletes useful elements
+      if(dimension==2){
+        if(rigidNodes==2)
+          EraseCriticalNodes2D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
+      }else if(dimension==3){
+        if(rigidNodes>1)
+          EraseCriticalNodes3D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
+      }
 
 
     }
@@ -714,7 +714,8 @@ private:
 
 	////// if the node is very close to the wall is erased in any case
     	if(height<(0.5*safetyCoefficient2D*wallLength)){
-	  Element[i].Set(TO_ERASE);
+          if( norm_2(Element[i].FastGetSolutionStepValue(VELOCITY)) > 1e-3)
+            Element[i].Set(TO_ERASE);
 	  erased_nodes += 1;
 	  inside_nodes_removed++;
 	}
@@ -779,7 +780,8 @@ private:
       for(unsigned int i=0; i<Element.size(); ++i)
 	{
 	  if(Element[i].IsNot(RIGID) && Element[i].IsNot(SOLID) && Element[i].IsNot(TO_ERASE)){
-	    Element[i].Set(TO_ERASE);
+            if( norm_2(Element[i].FastGetSolutionStepValue(VELOCITY)) > 1e-3)
+              Element[i].Set(TO_ERASE);
 	    if( mEchoLevel > 1)
 	      std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
 	    erased_nodes += 1;
@@ -908,12 +910,13 @@ private:
     	 Element[SecondEdgeNode[i]].IsNot(TO_ERASE)&&
     	 Edges[i]<safetyCoefficient3D*wallLength){
     	if(Element[FirstEdgeNode[i]].IsNot(RIGID) && Element[FirstEdgeNode[i]].IsNot(SOLID) && Element[FirstEdgeNode[i]].IsNot(TO_ERASE) && Element[FirstEdgeNode[i]].IsNot(ISOLATED)){
-
-    	  Element[FirstEdgeNode[i]].Set(TO_ERASE);
+          if( norm_2(Element[FirstEdgeNode[i]].FastGetSolutionStepValue(VELOCITY)) > 1e-3)
+            Element[FirstEdgeNode[i]].Set(TO_ERASE);
     	  inside_nodes_removed++;
     	  erased_nodes += 1;
     	}else if(Element[SecondEdgeNode[i]].IsNot(RIGID) && Element[SecondEdgeNode[i]].IsNot(SOLID) && Element[SecondEdgeNode[i]].IsNot(TO_ERASE) && Element[SecondEdgeNode[i]].IsNot(ISOLATED)){
-    	  Element[SecondEdgeNode[i]].Set(TO_ERASE);
+          if( norm_2(Element[SecondEdgeNode[i]].FastGetSolutionStepValue(VELOCITY)) > 1e-3)
+            Element[SecondEdgeNode[i]].Set(TO_ERASE);
     	  inside_nodes_removed++;
     	  erased_nodes += 1;
     	}
