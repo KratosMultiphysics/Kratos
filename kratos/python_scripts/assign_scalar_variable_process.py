@@ -21,7 +21,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 "interval"        : [0.0, 1e30],
                 "constrained"     : true,
                 "value"           : 0.0,
-                "local_axes"      : {},
+                "local_axes"      : {}
             }
             """
             )

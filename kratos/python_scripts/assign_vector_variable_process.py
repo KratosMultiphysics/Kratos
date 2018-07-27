@@ -19,7 +19,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 "interval"             : [0.0, 1e30],
                 "value"                : [10.0, "3*t", "x+y"],
                 "constrained"          : [true,true,true],
-                "local_axes"           : {},
+                "local_axes"           : {}
             }
             """
             )
