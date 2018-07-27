@@ -19,7 +19,7 @@
         "processes_parts_list"  : ["VELOCITY_Velocity_Auto1"]
     },
     "problem_data" : {
-        "echo_level"      : 0,
+        "echo_level"      : 1,
         "threads"         : 2,
         "gravity_vector"  : [0.0,0.0,-9.81]
     },
@@ -95,6 +95,7 @@
         "python_module" : "remesh_fluid_domains_process",
         "process_name"  : "RemeshFluidDomainsProcess",
         "Parameters"    : {
+	    "echo_level"            : 0,
             "model_part_name"       : "main_domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,

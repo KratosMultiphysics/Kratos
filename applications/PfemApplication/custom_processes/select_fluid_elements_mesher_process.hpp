@@ -305,14 +305,17 @@ class SelectFluidElementsMesherProcess
 
           }
 
-          if(numrigid==0 && numfreesurf==0 && numisolated==0){
+          if(numrigid==0 && numsolid==0 && numfreesurf==0 && numisolated==0){
             Alpha*=1.75;
-          }else{
-            Alpha*=1.125;
           }
+          else{
 
-          if(numrigid==nds || (numrigid+numsolid)>=nds){
-            Alpha*=0.95;
+            if( numboundary==nds && (numsolid !=0 || numrigid !=0) ){
+              Alpha*=1.15;
+            }
+            else{
+              Alpha*=1.55;
+            }
           }
 
         }
@@ -320,8 +323,6 @@ class SelectFluidElementsMesherProcess
         if(firstMesh==true){
           Alpha*=1.25;
         }
-
-        // Alpha*=1.175;
 
         bool accepted=false;
 
@@ -352,7 +353,7 @@ class SelectFluidElementsMesherProcess
         }
 
         //do not accept full rigid elements (no fluid)
-        if(numrigid==nds && numfluid==0)
+        if(numrigid==nds && numfluid<nds)
           accepted=false;
 
         //do not accept full rigid-solid elements (no fluid)

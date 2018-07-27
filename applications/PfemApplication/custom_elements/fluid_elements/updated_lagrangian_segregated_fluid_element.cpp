@@ -25,6 +25,7 @@ namespace Kratos
 UpdatedLagrangianSegregatedFluidElement::UpdatedLagrangianSegregatedFluidElement()
     : FluidElement()
 {
+  mStepVariable = VELOCITY_STEP;
 }
 
 
@@ -34,6 +35,7 @@ UpdatedLagrangianSegregatedFluidElement::UpdatedLagrangianSegregatedFluidElement
 UpdatedLagrangianSegregatedFluidElement::UpdatedLagrangianSegregatedFluidElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : FluidElement( NewId, pGeometry )
 {
+  mStepVariable = VELOCITY_STEP;
 }
 
 
@@ -103,6 +105,7 @@ Element::Pointer UpdatedLagrangianSegregatedFluidElement::Clone( IndexType NewId
     NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
   }
 
+  //commented: it raises a segmentation fault in make_shared bad alloc
   NewElement.mStepVariable = mStepVariable;
 
   NewElement.SetData(this->GetData());
@@ -625,6 +628,7 @@ void UpdatedLagrangianSegregatedFluidElement::SetElementData(ElementDataType& rV
       array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
       std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<" (Cur: "<<CurrentPosition<<") "<<std::endl;
       std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
+      std::cout<<" ---Vel: "<<GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)<<" (Pre: "<<GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1)<<")"<<std::endl;
     }
 
     KRATOS_ERROR << " UPDATED LAGRANGIAN SEGREGATED FLUID ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;

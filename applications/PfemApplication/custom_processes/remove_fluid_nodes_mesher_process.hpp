@@ -373,8 +373,8 @@ private:
     double initialMeanRadius=0;
     initialMeanRadius=mrRemesh.Refine->InitialRadius;
 
-    if( mEchoLevel > 1 )
-      std::cout<<"initialMeanRadius "<<initialMeanRadius<<std::endl;
+    //std::cout<<"initialMeanRadius "<<initialMeanRadius<<std::endl;
+
     double size_for_distance_inside       = 0.6 * initialMeanRadius;//compared to element radius
     double size_for_distance_boundary     = 0.6 * initialMeanRadius; //compared to element radius
     double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
@@ -466,7 +466,7 @@ private:
 
 	    if (n_points_in_radius>1)
 	      {
-
+                //std::cout<< " points in radius "<< n_points_in_radius <<std::endl;
 		if (  in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) )
 		  {
 		    if( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) ){
@@ -596,13 +596,13 @@ private:
       }
 
 
-      if(dimension==2){
-        if(rigidNodes==2)
-          EraseCriticalNodes2D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-      }else if(dimension==3){
-        if(rigidNodes>1)
-          EraseCriticalNodes3D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-      }
+      // if(dimension==2){
+      //   if(rigidNodes==2)
+      //     EraseCriticalNodes2D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
+      // }else if(dimension==3){
+      //   if(rigidNodes>1)
+      //     EraseCriticalNodes3D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
+      // }
 
 
     }

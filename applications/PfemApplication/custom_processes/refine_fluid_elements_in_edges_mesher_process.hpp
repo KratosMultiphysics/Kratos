@@ -167,17 +167,29 @@ class RefineFluidElementsInEdgesMesherProcess
       is_full_fluid_boundary = true;
       for(unsigned int i=0; i<rGeometry.size(); ++i)
       {
-        if( rGeometry[i].IsNot(FREE_SURFACE) || rGeometry[i].IsNot(FLUID) ){
+        if( rGeometry[i].IsNot(FREE_SURFACE) || rGeometry[i].Is(RIGID) || rGeometry[i].Is(SOLID) ){
           is_full_fluid_boundary = false;
           break;
         }
 
-        if( rGeometry[i].GetValue(NEIGHBOUR_ELEMENTS).size() > 1 ){
-          is_full_fluid_boundary = false;
-          break;
+        // if ( rGeometry[i].GetValue(NEIGHBOUR_NODES).size() > rGeometry.size()-1 ){
+        //   is_full_fluid_boundary = false;
+        //   break;
+        // }
+
+        WeakPointerVector<Node<3> >& rN = rGeometry[i].GetValue(NEIGHBOUR_NODES);
+        for(unsigned int j = 0; j < rN.size(); ++j)
+        {
+          if( rN[j].Is(SOLID) ){
+            is_full_fluid_boundary = false;
+          }
         }
       }
+      // if( is_full_rigid_boundary )
+      //   std::cout<<" is full rigid boundary "<<std::endl;
 
+      // if( is_full_fluid_boundary )
+      //   std::cout<<" is full fluid boundary "<<std::endl;
 
       if( is_full_rigid_boundary || is_full_fluid_boundary ){
         rBoundaryEdgedElements.push_back(*(i_elem.base()));

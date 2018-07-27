@@ -409,6 +409,8 @@ class RefineElementsInEdgesMesherProcess
         pNode->Set(SOLID);
 
       pNode->Set(NEW_ENTITY);
+      pNode->Set(ACTIVE);
+
       //unset boundary flags
       pNode->Set(BOUNDARY,false);
       pNode->Set(FREE_SURFACE,false);
@@ -418,7 +420,6 @@ class RefineElementsInEdgesMesherProcess
       this->SetNewNodeVariables(rModelPart, pNode);
 
       rListOfNewNodes.push_back(pNode);
-
 
       id++;
     }

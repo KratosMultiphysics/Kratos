@@ -746,7 +746,7 @@ namespace Kratos
 		      p_cond->SetValue(MASTER_NODES,MasterNodes);
 		    }
 
-		    rModelPart.Conditions().push_back(Condition::Pointer(p_cond));
+		    rModelPart.Conditions().push_back(p_cond);
 		    // Set new conditions: end
 
 		  } //end face condition

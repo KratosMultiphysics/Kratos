@@ -1301,8 +1301,11 @@ namespace Kratos
 		  pe = temporal_elements.find( result_point->Id() );
 		}
 
-		Element::Pointer PreviousElement   = Element::Pointer( *pe.base() );
-		PointsArrayType& vertices          = PreviousElement->GetGeometry().Points();
+		Element::Pointer PreviousElement   = ( *pe.base() );
+		PointsArrayType& vertices          = (*pe.base())->GetGeometry().Points();
+
+                if( vertices.size() < 3 )
+                  std::cout<<" Vertices have not the size "<<std::endl;
 
 		if( fabs(ResultDistance) > 1e-30 ){
 
@@ -1313,7 +1316,7 @@ namespace Kratos
 		  // }
 		  // std::cout<<"] "<<std::endl;
 
-		  // std::cout<<" Pre Id: "<<PreviousElement->Id()<<" Connectivities : ["<<vertices[0].Id();
+		  // std::cout<<" Pre Id: "<<(*pe.base())->Id()<<" Connectivities : ["<<vertices[0].Id();
 		  // for(unsigned int pn=1; pn<vertices.size(); ++pn){
 		  //   std::cout<<", "<<vertices[pn].Id();
 		  // }
@@ -1326,7 +1329,7 @@ namespace Kratos
 		  // // }
 		  // // std::cout<<"] "<<std::endl;
 
-		  // // std::cout<<" Pre Id: "<<PreviousElement->Id()<<" Connectivities : ["<<vertices[0].Coordinates();
+		  // // std::cout<<" Pre Id: "<<(*pe.base())->Id()<<" Connectivities : ["<<vertices[0].Coordinates();
 		  // // for(unsigned int pn=1; pn<vertices.size(); ++pn){
 		  // //   std::cout<<", "<<vertices[pn].Coordinates();
 		  // // }
@@ -1348,11 +1351,11 @@ namespace Kratos
                   KRATOS_ERROR << "list of new vertices out of bounds " << (*i_center)->Id()-1 << " > " <<list_of_new_vertices.size()<<std::endl;
 
 		// inside of the loop create the element, set the variables, and push_back the new element to the model part
-		Element::Pointer new_element = PreviousElement->Clone((*i_center)->Id(), list_of_new_vertices[(*i_center)->Id()-1]);
+		Element::Pointer new_element = (*pe.base())->Clone((*i_center)->Id(), list_of_new_vertices[(*i_center)->Id()-1]);
 
 		//set transfer variables
 		new_element->SetValue(MODEL_PART_NAME,vertices[0].GetValue(MODEL_PART_NAME)); //MODEL_PART_NAME set as a variable
-		new_element->AssignFlags(*PreviousElement);
+		new_element->AssignFlags(*(*pe.base()));
 
 		//check
 		//new_element->PrintInfo(std::cout);

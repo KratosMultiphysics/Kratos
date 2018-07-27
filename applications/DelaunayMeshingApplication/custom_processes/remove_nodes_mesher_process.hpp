@@ -1202,7 +1202,7 @@ private:
 
 		      PointsArrayType  PointsArray;
 		      PointsArray.push_back( *(in.base()) );
-		      //PointsArray.push_back( Node<3>::Pointer(&Node2) );
+		      //PointsArray.push_back( &Node2 );
 		      PointsArray.push_back( rConditionGeom2(1) );
 
 		      Geometry<Node<3> > geom( PointsArray );

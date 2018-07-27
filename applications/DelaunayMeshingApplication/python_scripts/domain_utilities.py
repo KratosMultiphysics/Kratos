@@ -163,12 +163,16 @@ class DomainUtilities(object):
                 raise Exception("SolidMechanicsApplication not imported and needed in this operation")
 
             transfer_flags = [KratosMultiphysics.BOUNDARY,KratosMultiphysics.NOT_FLUID]
-            assign_flags = [KratosMultiphysics.NOT_FLUID]
             entity_type = "Nodes"
             for fluid_part in model_part.SubModelParts:
                 if (fluid_part.IsNot(KratosMultiphysics.ACTIVE) and fluid_part.Is(KratosMultiphysics.FLUID)):
                     for part in model_part.SubModelParts:
                         if part.IsNot(KratosMultiphysics.ACTIVE):
                             if( part.Is(KratosMultiphysics.SOLID) or part.Is(KratosMultiphysics.RIGID) ):
-                                transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags,assign_flags)
+                                transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags)
                                 transfer_process.Execute()
+                                #transfer fluid flags
+                                #transfer_flags = [KratosMultiphysics.RIGID]
+                                #assign_flags = [KratosMultiphysics.NOT_FLUID]
+                                #transfer_flags_process = KratosSolid.AssignFlagsToEntitiesProcess(fluid_part,entity_type,assign_flags,transfer_flags)
+                                #transfer_flags_process.Execute()

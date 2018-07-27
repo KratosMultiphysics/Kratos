@@ -1,7 +1,7 @@
 {
     "time_settings" : {
         "time_step"  : 0.01,
-        "end_time"   : 0.1
+        "end_time"   : 10
     },
     "model_settings"           : {
 	"model_name"     : "main_domain",
@@ -19,7 +19,7 @@
         "processes_parts_list"  : ["VELOCITY_Velocity"]
     },
     "problem_data"        : {
-	"echo_level"      : 0,
+	"echo_level"      : 1,
         "threads"         : 1,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
@@ -45,7 +45,7 @@
 		    "linear_solver_settings"    : {
 		    "solver_type"         : "BICGSTABSolver",
 			"max_iteration"       : 5000,
-			"tolerance"           : 1e-5,
+			"tolerance"           : 1e-6,
 			"preconditioner_type" : "None",
 			"scaling"             : false
 		    },
@@ -200,7 +200,7 @@
     }],
     "loads_process_list"       : [],
     "output_process_list"      : [],
-    "check_process_list" : [
+    "_check_process_list" : [
         {
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
@@ -226,7 +226,7 @@
         }
     }
     ],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",

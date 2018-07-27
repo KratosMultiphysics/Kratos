@@ -375,10 +375,9 @@ namespace Kratos
       //*************  Erase old node neighbours  *************//
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
+          (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mAverageElements);
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-	  rE.erase(rE.begin(),rE.end() );
-
-	  (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mAverageElements);
+	  rE.erase(rE.begin(),rE.end());
 
 	  ResetFlagOptions(*in);
         }
