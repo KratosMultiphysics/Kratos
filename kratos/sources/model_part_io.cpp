@@ -203,7 +203,7 @@ namespace Kratos
                         break;
                     }
                 }
-                if (cl_name != "") aux_string += "CONSTITUTIVE_LAW " + cl_name;
+                if (cl_name != "") aux_string += "CONSTITUTIVE_LAW " + cl_name + "\n";
             }
 
             std::string::size_type it_to_remove = aux_string.find(string_to_remove);
