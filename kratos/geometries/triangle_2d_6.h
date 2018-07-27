@@ -660,21 +660,22 @@ public:
         // faces in columns
         if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(4,3,false);
-        //face 1
-        NodesInFaces(0,0)=0;//contrary node to the face
+
+	//compatible to Edges() function. Triangle library considers a different order
+        NodesInFaces(0,0)=0;//face or master node
         NodesInFaces(1,0)=1;
-        NodesInFaces(2,0)=2;
-        NodesInFaces(3,0)=4;//quadratic nodes after edge nodes
-        //face 2
-        NodesInFaces(0,1)=1;//contrary node to the face
+        NodesInFaces(2,0)=4;
+        NodesInFaces(3,0)=2;
+
+        NodesInFaces(0,1)=1;//face or master node
         NodesInFaces(1,1)=2;
-        NodesInFaces(2,1)=0;
-        NodesInFaces(3,1)=5;//quadratic nodes after edge nodes
-        //face 3
-        NodesInFaces(0,2)=2;//contrary node to the face
+        NodesInFaces(2,1)=5;
+        NodesInFaces(3,1)=0;
+
+        NodesInFaces(0,2)=2;//face or master node
         NodesInFaces(1,2)=0;
-        NodesInFaces(2,2)=1;
-        NodesInFaces(3,2)=3;//quadratic nodes after edge nodes
+        NodesInFaces(2,2)=3;
+        NodesInFaces(3,2)=1;
 
     }
 
