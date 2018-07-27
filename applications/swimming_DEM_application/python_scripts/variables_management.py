@@ -341,8 +341,7 @@ def ConstructListsOfVariablesForCoupling(pp):
     pp.coupling_fluid_vars = []
     pp.coupling_fluid_vars += [MATERIAL_ACCELERATION]
 
-    pp.coupling_fluid_vars += [BODY_FORCE]
-    pp.coupling_fluid_vars += [VOLUME_ACCELERATION]
+    pp.coupling_fluid_vars += [KratosGlobals.GetVariable( pp.CFD_DEM["body_force_per_unit_mass_variable_name"].GetString() )]
 
     if pp.CFD_DEM["fluid_model_type"].GetInt() == 0:
         pp.coupling_fluid_vars += [AVERAGED_FLUID_VELOCITY]
