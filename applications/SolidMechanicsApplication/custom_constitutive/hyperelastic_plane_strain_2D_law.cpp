@@ -43,8 +43,7 @@ HyperElasticPlaneStrain2DLaw::HyperElasticPlaneStrain2DLaw(const HyperElasticPla
 
 ConstitutiveLaw::Pointer HyperElasticPlaneStrain2DLaw::Clone() const
 {
-    HyperElasticPlaneStrain2DLaw::Pointer p_clone(new HyperElasticPlaneStrain2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlaneStrain2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -132,7 +131,7 @@ void HyperElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 

@@ -93,7 +93,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
 
@@ -142,7 +142,7 @@ protected:
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables, 
+    virtual void CalculateKinematics(ConditionVariables& rVariables,
 				     const double& rPointNumber) override;
 
     /**
@@ -226,4 +226,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_AXISYMMETRIC_LINE_ELASTIC_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_AXISYMMETRIC_LINE_ELASTIC_CONDITION_H_INCLUDED defined

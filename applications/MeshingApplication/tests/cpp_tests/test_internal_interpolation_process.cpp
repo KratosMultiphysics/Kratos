@@ -232,7 +232,7 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT1, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -328,7 +328,7 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessLST1, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessLST1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -429,7 +429,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT2, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -526,7 +526,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessLST2, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessLST2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -627,7 +627,7 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsCPT1, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsCPT1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -704,7 +704,7 @@ namespace Kratos
         * Test triangle 
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsLST1, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsLST1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -786,7 +786,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsCPT2, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsCPT2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -864,7 +864,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsLST2, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsLST2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);

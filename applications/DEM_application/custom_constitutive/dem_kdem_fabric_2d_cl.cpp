@@ -11,12 +11,12 @@ namespace Kratos {
     }
 
     void DEM_KDEMFabric2D::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning DEM_KDEMFabric2D to Properties " << pProp->Id() << std::endl;
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_KDEMFabric2D to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
     void DEM_KDEMFabric2D::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
-        
+
         KRATOS_TRY
         double radius_sum = radius + other_radius;
         double equiv_radius = radius * other_radius / radius_sum;
@@ -35,17 +35,17 @@ namespace Kratos {
                                                     double equiv_poisson,
                                                     double indentation) {
         KRATOS_TRY
-        
+
         double fabric_coefficient = element->GetProperties()[FABRIC_COEFFICIENT];
-        
+
         DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem,
                                                    ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
-        
+
         DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, fabric_coefficient);
         DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, fabric_coefficient);
 
         //mContactMoment *= 1.0; // TODO: Hardcoded the reduction of a 90% of the flection in relation to KDEM
-        
+
         KRATOS_CATCH("")
     }
 } // namespace Kratos

@@ -101,7 +101,7 @@ class KratosTrilinosApplication : public KratosApplication {
 
     ///// Print object's data.
     void PrintData(std::ostream& rOStream) const override {
-        KRATOS_WATCH("in KratosALEApplication application");
+        KRATOS_WATCH("in KratosMeshMovingApplication application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);

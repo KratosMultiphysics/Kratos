@@ -2,6 +2,8 @@
 //
 
 // Project includes
+// Project includes
+#include "analytic_particle_watcher.h"
 
 // System includes
 #include <limits>
@@ -14,8 +16,6 @@
 #include <omp.h>
 #endif
 
-// Project includes
-#include "analytic_particle_watcher.h"
 
 namespace Kratos
 {
@@ -25,7 +25,7 @@ typedef Kratos::AnalyticSphericParticle AnalyticParticle;
 
 void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 {
-    const double current_time = analytic_model_part.GetProcessInfo()[TIME];    
+    const double current_time = analytic_model_part.GetProcessInfo()[TIME];
 
     std::vector<InterParticleImpactDataOfAllParticlesSingleTimeStep> time_step_database_by_threads(OpenMPUtils::GetNumThreads(), current_time);
     std::vector<FaceParticleImpactDataOfAllParticlesSingleTimeStep> face_time_step_database_by_threads(OpenMPUtils::GetNumThreads(), current_time);
@@ -34,7 +34,7 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
     inter_particle_impact_data_of_all_time_steps_by_threads.resize(OpenMPUtils::GetNumThreads());
 
     std::vector<std::map<int, FaceParticleImpactDataOfAllTimeStepsSingleParticle> > face_particle_impact_data_of_all_time_steps_by_threads;
-    face_particle_impact_data_of_all_time_steps_by_threads.resize(OpenMPUtils::GetNumThreads());    
+    face_particle_impact_data_of_all_time_steps_by_threads.resize(OpenMPUtils::GetNumThreads());
 
     #pragma omp parallel for if(analytic_model_part.NumberOfElements(0)>100)
     for (int k=0; k<(int)analytic_model_part.NumberOfElements(0); k++) {
@@ -45,7 +45,7 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 
         const int id = int(i_elem->Id());
         InterParticleImpactDataOfAllTimeStepsSingleParticle& particle_database = GetParticleDataBase(id, inter_particle_impact_data_of_all_time_steps_by_threads[OpenMPUtils::ThisThread()]);
-        if (n_collisions){            
+        if (n_collisions){
             const array_1d<int, 4> &colliding_ids = particle.GetCollidingIds();
             const array_1d<double, 4> &colliding_normal_vel = particle.GetCollidingNormalRelativeVelocity();
             const array_1d<double, 4> &colliding_tangential_vel = particle.GetCollidingTangentialRelativeVelocity();
@@ -59,7 +59,7 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 
         const int n_collisions_with_walls = particle.GetNumberOfCollisionsWithFaces();
         FaceParticleImpactDataOfAllTimeStepsSingleParticle& flat_wall_particle_database = GetParticleFaceDataBase(id, face_particle_impact_data_of_all_time_steps_by_threads[OpenMPUtils::ThisThread()]);
-        if (n_collisions_with_walls){                       
+        if (n_collisions_with_walls){
             const array_1d<int, 4> &colliding_ids_with_walls = particle.GetCollidingFaceIds();
             const array_1d<double, 4> &colliding_normal_vel = particle.GetCollidingFaceNormalRelativeVelocity();
             const array_1d<double, 4> &colliding_tangential_vel = particle.GetCollidingFaceTangentialRelativeVelocity();
@@ -82,21 +82,18 @@ void AnalyticParticleWatcher::MakeMeasurements(ModelPart& analytic_model_part)
         for(std::map<int, InterParticleImpactDataOfAllTimeStepsSingleParticle>::iterator it = inter_particle_impact_data_of_all_time_steps_by_threads[i].begin(); it != inter_particle_impact_data_of_all_time_steps_by_threads[i].end(); ++it) {
             if (mInterParticleImpactDataOfAllTimeSteps.find(it->first) == mInterParticleImpactDataOfAllTimeSteps.end() ) {
                 mInterParticleImpactDataOfAllTimeSteps[it->first] = it->second;
-            }             
+            }
         }
         for(std::map<int, FaceParticleImpactDataOfAllTimeStepsSingleParticle>::iterator it = face_particle_impact_data_of_all_time_steps_by_threads[i].begin(); it != face_particle_impact_data_of_all_time_steps_by_threads[i].end(); ++it) {
             if (mFaceParticleImpactDataOfAllTimeSteps.find(it->first) == mFaceParticleImpactDataOfAllTimeSteps.end() ) {
                 mFaceParticleImpactDataOfAllTimeSteps[it->first] = it->second;
-            } 
+            }
         }
     }
 
     mInterParticleImpactDataOfAllParticles.push_back(time_step_database);
     mFaceParticleImpactDataOfAllParticles.push_back(face_time_step_database);
 
-    auto d1 = GetParticleDataBase(1, inter_particle_impact_data_of_all_time_steps_by_threads[0]);
-    auto dumb1 = GetParticleDataBase(1, mInterParticleImpactDataOfAllTimeSteps);
-    auto dumb2 = GetParticleDataBase(2, mInterParticleImpactDataOfAllTimeSteps);    
 
 }
 
@@ -109,7 +106,7 @@ void AnalyticParticleWatcher::SetNodalMaxImpactVelocities(ModelPart& analytic_mo
 
         double& current_max_normal_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(NORMAL_IMPACT_VELOCITY);
         double& current_max_tangential_velocity = particle.GetGeometry()[0].FastGetSolutionStepValue(TANGENTIAL_IMPACT_VELOCITY);
-        
+
         const int id = int(i_elem->Id());
         InterParticleImpactDataOfAllTimeStepsSingleParticle& particle_database = GetParticleDataBase(id, mInterParticleImpactDataOfAllTimeSteps);
         double db_normal_impact_velocity = 0.0;
@@ -148,78 +145,84 @@ void AnalyticParticleWatcher::SetNodalMaxLinearImpulse(ModelPart& analytic_model
     for (int k=0; k<(int)analytic_model_part.NumberOfElements(0); k++) {
         ElementsIteratorType i_elem = analytic_model_part.ElementsBegin() + k;
         AnalyticParticle& particle = dynamic_cast<Kratos::AnalyticSphericParticle&>(*(*(i_elem.base())));
-        
+
         double& current_max_linear_impulse = particle.GetGeometry()[0].FastGetSolutionStepValue(LINEAR_IMPULSE);
         const int id = int(i_elem->Id());
         InterParticleImpactDataOfAllTimeStepsSingleParticle& particle_database = GetParticleDataBase(id, mInterParticleImpactDataOfAllTimeSteps);
         double db_linear_impulse = 0.0;
-        particle_database.GetMaxLinearImpulseFromDatabase(db_linear_impulse);            
+        particle_database.GetMaxLinearImpulseFromDatabase(db_linear_impulse);
         // choose max between current and database
         current_max_linear_impulse = std::max(current_max_linear_impulse, db_linear_impulse);
     }
 }
 
 void AnalyticParticleWatcher::GetParticleData(int id,
-                                              std::list<double> times,
-                                              std::list<int> neighbour_ids,
-                                              std::list<double> normal_relative_vel,
-                                              std::list<double> tangential_relative_vel)
+                                              pybind11::list times,
+                                              pybind11::list neighbour_ids,
+                                              pybind11::list normal_relative_vel,
+                                              pybind11::list tangential_relative_vel)
 {
     mInterParticleImpactDataOfAllTimeSteps[id].FillUpPythonLists(times, neighbour_ids, normal_relative_vel, tangential_relative_vel);
 }
 
 void AnalyticParticleWatcher::GetAllParticlesData(ModelPart& analytic_model_part,
-                                                  std::list<double> times,
-                                                  std::list<int> neighbour_ids,
-                                                  std::list<double> normal_relative_vel,
-                                                  std::list<double> tangential_relative_vel)
+                                                  pybind11::list& times,
+                                                  pybind11::list& neighbour_ids,
+                                                  pybind11::list& normal_relative_vel,
+                                                  pybind11::list& tangential_relative_vel)
 {
-    times.clear();
-    neighbour_ids.clear();
-    normal_relative_vel.clear();
-    tangential_relative_vel.clear();
+    times.attr("clear")();
+    neighbour_ids.attr("clear")();
+    normal_relative_vel.attr("clear")();
+    tangential_relative_vel.attr("clear")();
 
     for (ElementsIteratorType i_elem = analytic_model_part.ElementsBegin(); i_elem != analytic_model_part.ElementsEnd(); ++i_elem){
-        std::list<double> times_i;
-        std::list<int> neighbour_ids_i;
-        std::list<double> normal_relative_vel_i;
-        std::list<double> tangential_relative_vel_i;
+        pybind11::list times_i;
+        pybind11::list neighbour_ids_i;
+        pybind11::list normal_relative_vel_i;
+        pybind11::list tangential_relative_vel_i;
 
         const int id = int(i_elem->Id());
 
         GetParticleData(id, times_i, neighbour_ids_i, normal_relative_vel_i, tangential_relative_vel_i);
-        times.insert(times.end(), times_i.begin(), times_i.end());
-        neighbour_ids.insert(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
-        normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
-        tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
+
+        times.append(times_i[id]);
+        neighbour_ids.append(neighbour_ids_i[id]);
+        normal_relative_vel.append(normal_relative_vel_i[id]);
+        tangential_relative_vel.append(tangential_relative_vel_i[id]);
+        //times.append(times.end(), times_i.begin(), times_i.end());
     }
 
 }
 
-void AnalyticParticleWatcher::GetTimeStepsData(std::list<int> ids,
-                                               std::list<int> neighbour_ids,
-                                               std::list<double> normal_relative_vel,
-                                               std::list<double> tangential_relative_vel)
+void AnalyticParticleWatcher::GetTimeStepsData(pybind11::list& ids,
+                                               pybind11::list& neighbour_ids,
+                                               pybind11::list& normal_relative_vel,
+                                               pybind11::list& tangential_relative_vel)
 {
-    ids.clear();
-    neighbour_ids.clear();
-    normal_relative_vel.clear();
-    tangential_relative_vel.clear();
+    ids.attr("clear")();
+    neighbour_ids.attr("clear")();
+    normal_relative_vel.attr("clear")();
+    tangential_relative_vel.attr("clear")();
 
     const int n_time_steps = mInterParticleImpactDataOfAllParticles.size();
 
-    std::list<int> ids_i;
-    std::list<int> neighbour_ids_i;
-    std::list<double> normal_relative_vel_i;
-    std::list<double> tangential_relative_vel_i;
-    
+    pybind11::list ids_i;
+    pybind11::list neighbour_ids_i;
+    pybind11::list normal_relative_vel_i;
+    pybind11::list tangential_relative_vel_i;
+
     for (int i = 0; i < n_time_steps; ++i){
         mInterParticleImpactDataOfAllParticles[i].FillUpPythonLists(ids_i, neighbour_ids_i, normal_relative_vel_i, tangential_relative_vel_i);
-        
-        ids.insert(ids.end(), ids_i.begin(), ids_i.end());
-        neighbour_ids.insert(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
-        normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
-        tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
+
+        ids.append(ids_i[i]);
+        neighbour_ids.append(neighbour_ids_i[i]);
+        normal_relative_vel.append(normal_relative_vel_i[i]);
+        tangential_relative_vel.append(tangential_relative_vel_i[i]);
+
+        //neighbour_ids.append(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
+        //normal_relative_vel.append(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
+        //tangential_relative_vel.append(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
 }
 
@@ -229,7 +232,7 @@ AnalyticParticleWatcher::InterParticleImpactDataOfAllTimeStepsSingleParticle& An
     if (mInterParticleImpactDataOfAllTimeSteps.find(id) == mInterParticleImpactDataOfAllTimeSteps.end()){
         #ifdef KRATOS_DEBUG
         KRATOS_ERROR_IF(&data_base == &mInterParticleImpactDataOfAllTimeSteps)<< "Adding an element to the database is not safe here. Should have been done before!! "<< std::endl;
-        #endif 
+        #endif
         AnalyticParticleWatcher::InterParticleImpactDataOfAllTimeStepsSingleParticle new_particle_database(id);
         data_base[id] = new_particle_database;
         return data_base[id];
@@ -244,7 +247,7 @@ AnalyticParticleWatcher::FaceParticleImpactDataOfAllTimeStepsSingleParticle& Ana
     if (mFaceParticleImpactDataOfAllTimeSteps.find(id) == mFaceParticleImpactDataOfAllTimeSteps.end()){
         #ifdef KRATOS_DEBUG
         KRATOS_ERROR_IF(&data_base == &mFaceParticleImpactDataOfAllTimeSteps)<< "Adding an element to the database is not safe here. Should have been done before!! "<< std::endl;
-        #endif 
+        #endif
         AnalyticParticleWatcher::FaceParticleImpactDataOfAllTimeStepsSingleParticle new_particle_database(id);
         data_base[id] = new_particle_database;
         return data_base[id];

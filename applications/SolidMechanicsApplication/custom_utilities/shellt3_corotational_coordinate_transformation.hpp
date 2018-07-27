@@ -20,8 +20,8 @@ namespace Kratos
 
 /** \brief EICR ShellT3_CorotationalCoordinateTransformation
  *
- * This class represents a corotational (nonlinear) coordinate transformation 
- * that can be used by any element whose geometry is a TRIANGLE 3 in 3D space, 
+ * This class represents a corotational (nonlinear) coordinate transformation
+ * that can be used by any element whose geometry is a TRIANGLE 3 in 3D space,
  * with 6 D.O.F.s per node.
  * It's main aim is to:
  * 1) Create the local coordinate system
@@ -31,7 +31,7 @@ namespace Kratos
  *    with rigid body displacements and rotations.
  *
  * Updated version:
- * - Makes use of Quaternions (Euler Parameters) to parametrize finite rotations 
+ * - Makes use of Quaternions (Euler Parameters) to parametrize finite rotations
  *   in an efficient and robust way.
  *
  * References:
@@ -51,7 +51,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
 
   typedef double RealType;
 
-  typedef bounded_matrix<RealType, 3, 3> TransformationMatrixType;
+  typedef BoundedMatrix<RealType, 3, 3> TransformationMatrixType;
 
   typedef array_1d<RealType, 3> Vector3Type;
 
@@ -75,14 +75,14 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
 
  public:
 
-  virtual ShellT3_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const
+  ShellT3_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry) const override
   {
     return ShellT3_CorotationalCoordinateTransformation::Pointer( new ShellT3_CorotationalCoordinateTransformation( pGeometry ) );
   }
 
-  virtual void Initialize()
+  void Initialize() override
   {
-    KRATOS_TRY 
+    KRATOS_TRY
 
         if(!mInitialized)
         {
@@ -108,7 +108,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     KRATOS_CATCH("")
         }
 
-  virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override
   {
     for(int i = 0; i < 3; i++)
     {
@@ -116,8 +116,8 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
       mQN[i] = mQN_converged[i];
     }
   }
-    
-  virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+
+  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override
   {
     for(int i = 0; i < 3; i++)
     {
@@ -125,12 +125,12 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
       mQN_converged[i] = mQN[i];
     }
   }
-    
-  virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+
+  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
   {
   }
-    
-  virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+
+  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
   {
     const GeometryType & geom = GetGeometry();
     Vector3Type incrementalRotation;
@@ -147,7 +147,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     }
   }
 
-  virtual ShellT3_LocalCoordinateSystem CreateLocalCoordinateSystem()const
+  ShellT3_LocalCoordinateSystem CreateLocalCoordinateSystem() const override
   {
     const GeometryType & geom = GetGeometry();
 
@@ -180,9 +180,9 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     // F = R*U -> find R such that R'*F = U
     double alpha = std::atan2( f21 - f12, f11 + f22 );
 
-    // this final coordinate system is the one in which 
+    // this final coordinate system is the one in which
     // the deformation gradient is equal to the stretch tensor
-    return ShellT3_LocalCoordinateSystem( geom[0], geom[1], geom[2], alpha ); 
+    return ShellT3_LocalCoordinateSystem( geom[0], geom[1], geom[2], alpha );
 
 #else
 
@@ -192,8 +192,8 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
 
   }
 
-  virtual VectorType CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem & LCS, 
-                                                 const VectorType & globalDisplacements)
+  VectorType CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem & LCS,
+                                                 const VectorType & globalDisplacements) override
   {
     const GeometryType & geom = GetGeometry();
 
@@ -214,7 +214,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
       unsigned int index = i * 6;
 
       // get deformational displacements
-            
+
       noalias( deformationalDisplacements )  = prod( T , geom[i] - C );
       noalias( deformationalDisplacements ) -= prod( T0, geom[i].GetInitialPosition() - mC0 );
 
@@ -226,21 +226,21 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
 
       QuaternionType Qd = Q * mQN[i] * mQ0.conjugate();
 
-      Qd.ToRotationVector( localDisplacements[index + 3], 
-                           localDisplacements[index + 4], 
+      Qd.ToRotationVector( localDisplacements[index + 3],
+                           localDisplacements[index + 4],
                            localDisplacements[index + 5] );
     }
 
     return localDisplacements;
   }
 
-  virtual void FinalizeCalculations(const ShellT3_LocalCoordinateSystem & LCS,
-                                    const VectorType & globalDisplacements,
-                                    const VectorType & localDisplacements,
-                                    MatrixType & rLeftHandSideMatrix,
-                                    VectorType & rRightHandSideVector,
-                                    const bool RHSrequired,
-                                    const bool LHSrequired)
+  void FinalizeCalculations(const ShellT3_LocalCoordinateSystem & LCS,
+                            const VectorType & globalDisplacements,
+                            const VectorType & localDisplacements,
+                            MatrixType & rLeftHandSideMatrix,
+                            VectorType & rRightHandSideVector,
+                            const bool RHSrequired,
+                            const bool LHSrequired) override
   {
     // Get the total rotation matrix (local - to - global)
     // Note: do NOT include the warpage correction matrix!
@@ -267,23 +267,23 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     // so projectedLocalForces = - P' * Ke * U
 
     VectorType projectedLocalForces( prod( trans( P ), rRightHandSideVector ) );
-        
+
     // Compute the Right-Hand-Side vector in global coordinate system (- T' * P' * Km * U).
     // At this point the computation of the Right-Hand-Side is complete.
 
     noalias( rRightHandSideVector ) = prod( trans( T ), projectedLocalForces );
 
     // Begin the computation of the Left-Hand-Side Matrix :
-        
+
     if(!LHSrequired) return; // avoid useless calculations!
-        
+
     // This is a temporary matrix to store intermediate values
     // to avoid extra dynamic memory allocations!
 
     MatrixType temp(18, 18);
 
     // H: Axial Vector Jacobian
-    MatrixType H( EICR::Compute_H(localDisplacements) );  
+    MatrixType H( EICR::Compute_H(localDisplacements) );
 
     // Step 1: ( K.M : Material Stiffness Matrix )
     // Apply the projector to the Material Stiffness Matrix (Ke = P' * Km * H * P)
@@ -329,9 +329,9 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     noalias( rLeftHandSideMatrix ) = prod( trans( T ), temp );
   }
 
-  virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
-                                                         const Vector& globalDisplacements,
-                                                         size_t nodeid)
+  MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
+                                                 const Vector& globalDisplacements,
+                                                 size_t nodeid) override
   {
     if(nodeid>2) return IdentityMatrix(3,3);
 
@@ -344,9 +344,9 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     return R;
   }
 
-  virtual MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
-                                                         const Vector& globalDisplacements,
-                                                         const Vector& N)
+  MatrixType GetNodalDeformationalRotationTensor(const ShellT3_LocalCoordinateSystem & LCS,
+                                                 const Vector& globalDisplacements,
+                                                 const Vector& N) override
   {
     QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
 
@@ -451,7 +451,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     }
 
     return G;
-  } 
+  }
 #else
   inline MatrixType RotationGradient(const ShellT3_LocalCoordinateSystem& LCS)
   {
@@ -559,7 +559,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
 
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer) const
+  void save(Serializer& rSerializer) const override
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation );
     rSerializer.save("init", mInitialized);
@@ -571,7 +571,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
     rSerializer.save("RV_conv", mRV_converged);
   }
 
-  virtual void load(Serializer& rSerializer)
+  void load(Serializer& rSerializer) override
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  ShellT3_CoordinateTransformation );
     rSerializer.load("init", mInitialized);

@@ -101,8 +101,8 @@ public:
         const array_1d<double,3>& rLinePoint1, 
         const array_1d<double,3>& rLinePoint2, 
         array_1d<double,3>& rIntersectionPoint,
-		const double epsilon = std::numeric_limits<double>::epsilon()) {
-		
+		const double epsilon = 1e-12) {
+
 		// This is the adaption of the implemnetation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
 
@@ -152,11 +152,11 @@ public:
 
 		// Get and test parametric coords
 		const double s = (uv * wv - vv * wu) / D;
-		if (s < 0.0 || s > 1.0){
+		if (s < 0.0 - epsilon || s > 1.0 + epsilon){
 			return 0;	// Intersection point is outside the triangle
 		}			
 		const double t = (uv * wu - uu * wv) / D;
-		if (t < 0.0 || (s + t) > 1.0){
+		if (t < 0.0 - epsilon || (s + t) > 1.0 + epsilon){
 			return 0;	// Intersection point is outside the triangle
 		}  	
 
@@ -180,7 +180,7 @@ public:
         const array_1d<double,3>& rLinePoint0, 
         const array_1d<double,3>& rLinePoint1, 
         array_1d<double,3>& rIntersectionPoint,
-		const double epsilon = std::numeric_limits<double>::epsilon()) {
+		const double epsilon = 1e-12) {
 
 		const array_1d<double,3> r = rLineGeometry[1] - rLineGeometry[0];
 		const array_1d<double,3> s = rLinePoint1 - rLinePoint0;

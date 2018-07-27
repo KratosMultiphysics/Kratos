@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_conditions/boundary_condition.hpp"
-
+#include "includes/variables.h"
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -48,6 +48,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+
     // Counted pointer of ElasticCondition
     KRATOS_CLASS_POINTER_DEFINITION( ElasticCondition );
 
@@ -57,7 +60,7 @@ public:
 
     /// Empty constructor needed for serialization
     ElasticCondition();
-  
+
     /// Default constructor.
     ElasticCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
@@ -97,7 +100,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
     //************************************************************************************
@@ -110,7 +113,7 @@ public:
      * @param rCurrentProcessInfo
      */
     virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -127,24 +130,30 @@ public:
 
 protected:
     ///@name Protected static Member Variables
-    ///@{    
+    ///@{
     ///@}
     ///@name Protected member Variables
-    ///@{    
+    ///@{
     ///@}
     ///@name Protected Operators
-    ///@{    
+    ///@{
     ///@}
     ///@name Protected Operations
     ///@{
 
 
     /**
-     * Check condition rotation dofs
-     */    
-    virtual bool HasRotationDofs() override {return false;};
+     * Check dof for a vector variable
+     */
+    bool HasVariableDof(VariableVectorType& rVariable) override
+    {
+      if(rVariable == ROTATION)
+        return false;
+      else
+        return BoundaryCondition::HasVariableDof(rVariable);
+    };
 
-    
+
     /**
      * Calculate the External Load of the Condition
      */
@@ -158,20 +167,20 @@ protected:
 				     double& rIntegrationWeight) override;
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
 					       double& rIntegrationWeight) override;
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
 						  ConditionVariables& rVariables,
 						  double& rIntegrationWeight,
 						  const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -216,4 +225,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_ELASTIC_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_ELASTIC_CONDITION_H_INCLUDED defined

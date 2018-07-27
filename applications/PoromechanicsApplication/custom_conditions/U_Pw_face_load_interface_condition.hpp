@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_U_PW_FACE_LOAD_INTERFACE_CONDITION_H_INCLUDED )
 #define  KRATOS_U_PW_FACE_LOAD_INTERFACE_CONDITION_H_INCLUDED
@@ -13,7 +19,6 @@
 
 // Application includes
 #include "custom_conditions/U_Pw_condition.hpp"
-#include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
@@ -75,12 +80,12 @@ protected:
     
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
-    void CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& rRotationMatrix,
+    void CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,TDim,TDim>& rRotationMatrix,
                             const double& MinimumJointWidth, const GeometryType& Geom);
 
-    void CalculateJointWidth( double& rJointWidth, const boost::numeric::ublas::bounded_matrix<double,TDim,TDim*TNumNodes>& Nu,
+    void CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,TDim,TDim*TNumNodes>& Nu,
                                 const array_1d<double,TDim*TNumNodes>& DisplacementVector, array_1d<double,TDim>& rRelDispVector,
-                                const boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& RotationMatrix,
+                                const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
                                 array_1d<double,TDim>& rLocalRelDispVector, const double& MinimumJointWidth, const unsigned int& GPoint );
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth);

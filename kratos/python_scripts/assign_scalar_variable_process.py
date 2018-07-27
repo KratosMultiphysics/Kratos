@@ -15,6 +15,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         #The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"            : "This process sets a given scalar value for a certain variable in all the nodes of a submodelpart",
                 "mesh_id"         : 0,
                 "model_part_name" : "please_specify_model_part_name",
                 "variable_name"   : "SPECIFY_VARIABLE_NAME",

@@ -21,7 +21,6 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/turbulence_statistics_container.h"

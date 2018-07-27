@@ -1,6 +1,11 @@
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError as e:
+    have_external_solvers = False
+
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -17,6 +22,7 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class NavierStokesWallConditionTest(UnitTest.TestCase):
     def testNavierStokesWallCondition(self):
         self.setUp()
@@ -29,7 +35,7 @@ class NavierStokesWallConditionTest(UnitTest.TestCase):
         self.ext_pres_res = 1000.0
         self.check_tolerance = 2e-2
         self.print_output = False
-        self.work_folder = "NavierStokesWallConditionTest"   
+        self.work_folder = "NavierStokesWallConditionTest"
         self.settings = "NavierStokesWallConditionTestParameters.json"
 
     def tearDown(self):
@@ -44,19 +50,17 @@ class NavierStokesWallConditionTest(UnitTest.TestCase):
             with open(self.settings, 'r') as parameter_file:
                 self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-            self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-            Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
+            self.model = KratosMultiphysics.Model()
 
             ## Solver construction
             import python_solvers_wrapper_fluid
-            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
+            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
             self.solver.AddVariables()
 
             ## Read the model - note that SetBufferSize is done here
             self.solver.ImportModelPart()
+            self.solver.PrepareModelPart()
 
             ## Add AddDofs
             self.solver.AddDofs()
@@ -64,24 +68,16 @@ class NavierStokesWallConditionTest(UnitTest.TestCase):
             ## Solver initialization
             self.solver.Initialize()
 
-            ## Get the list of the skin submodel parts in the object Model
-            for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
-                skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-                Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
-
-            ## Get the gravity submodel part in the object Model
-            for i in range(self.ProjectParameters["gravity"].size()):
-                gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-                Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
-
             ## Processes construction
             import process_factory
-            self.list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
 
             ## Processes initialization
             for process in self.list_of_processes:
                 process.ExecuteInitialize()
+
+            self.main_model_part = self.model.GetModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
 
     def runTest(self):
         with WorkFolderScope(self.work_folder):
@@ -108,16 +104,15 @@ class NavierStokesWallConditionTest(UnitTest.TestCase):
 
             while(time <= end_time):
 
-                Dt = self.solver.ComputeDeltaTime()
-                step += 1
-                time += Dt
-                self.main_model_part.CloneTimeStep(time)
-                self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+                time = self.solver.AdvanceInTime(time)
 
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()
 
-                self.solver.Solve()
+                self.solver.InitializeSolutionStep()
+                self.solver.Predict()
+                self.solver.SolveSolutionStep()
+                self.solver.FinalizeSolutionStep()
 
                 for process in self.list_of_processes:
                     process.ExecuteFinalizeSolutionStep()
@@ -154,4 +149,4 @@ if __name__ == '__main__':
     test.runTest()
     test.tearDown()
     test.checkResults()
-    
+

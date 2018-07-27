@@ -5,7 +5,7 @@
     "solver_settings" :{
 	"Parameters": {
 	    "time_integration_settings":{
-		"time_integration": "Simo"
+		"integration_method": "Simo"
 	    }
 	}
     },

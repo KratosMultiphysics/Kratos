@@ -17,7 +17,7 @@
 
 namespace Kratos
 {
- 
+
     KRATOS_CREATE_LOCAL_FLAG( FlowRule, IMPLEX_ACTIVE,                0 );
     KRATOS_CREATE_LOCAL_FLAG( FlowRule, PLASTIC_REGION,               1 );
     KRATOS_CREATE_LOCAL_FLAG( FlowRule, PLASTIC_RATE_REGION,          2 );

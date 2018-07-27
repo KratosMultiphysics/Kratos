@@ -12,6 +12,7 @@
 //                   Felix Nagel
 //  contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Bodhinanda Chandra
 //
 
 #if !defined(KRATOS_QUADRILATERAL_3D_4_H_INCLUDED )
@@ -23,6 +24,7 @@
 
 // Project includes
 #include "geometries/line_3d_2.h"
+#include "geometries/triangle_3d_3.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 
@@ -1020,7 +1022,7 @@ public:
     }
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 4 )
             NumberNodesInFaces.resize(4,false);
@@ -1032,7 +1034,7 @@ public:
 
     }
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 4)
             NodesInFaces.resize(3,4,false);
@@ -1054,7 +1056,31 @@ public:
         NodesInFaces(2,3)=2;
     }
 
-    
+    /** This method checks if an axis-aliged bounding box (AABB)
+    intersects the quadrilateral
+
+    @return bool if the quadrilateral overlaps the box
+    @param rLowPoint first corner of the box
+    @param rHighPoint second corner of the box
+    @see Triangle3D3::HasIntersection
+    */
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    {
+        Triangle3D3<PointType> triangle_0 (this->pGetPoint( 0 ),
+                                           this->pGetPoint( 1 ),
+                                           this->pGetPoint( 2 )
+        );
+        Triangle3D3<PointType> triangle_1 (this->pGetPoint( 2 ),
+                                           this->pGetPoint( 3 ),
+                                           this->pGetPoint( 0 )
+        );
+
+        if      ( triangle_0.HasIntersection(rLowPoint, rHighPoint) ) return true;
+        else if ( triangle_1.HasIntersection(rLowPoint, rHighPoint) ) return true;
+        else return false;
+    }
+
+
     /**
      * Returns all faces of the current geometry.
      * This is only implemented for 3D geometries, since 2D geometries
@@ -1391,7 +1417,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1482,8 +1508,8 @@ private:
         const bool IsInside = false
         )
     {
-        bounded_matrix<double,3,4> X;
-        bounded_matrix<double,3,2> DN;
+        BoundedMatrix<double,3,4> X;
+        BoundedMatrix<double,3,2> DN;
         for(IndexType i=0; i<this->size();i++) {
             X(0, i) = this->GetPoint( i ).X();
             X(1, i) = this->GetPoint( i ).Y();

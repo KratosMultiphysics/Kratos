@@ -97,7 +97,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const&
-                              ThisNodes,  PropertiesType::Pointer pProperties) const;
+                              ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -108,7 +108,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone(IndexType NewId,
-			     NodesArrayType const& ThisNodes) const;
+			     NodesArrayType const& ThisNodes) const override;
 
 
     ///@}
@@ -142,24 +142,24 @@ protected:
      /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables,
+    void CalculateKinematics(ConditionVariables& rVariables,
 				     const ProcessInfo& rCurrentProcessInfo,
-				     const double& rPointNumber);
+				     const double& rPointNumber) override;
 
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     ConditionVariables& rVariables,
-                                    double& rIntegrationWeight);
+                                    double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     ConditionVariables& rVariables,
-                                    double& rIntegrationWeight);
+                                    double& rIntegrationWeight) override;
 
     /**
      * Calculation of the contidion radius (axisymmetry)
@@ -171,7 +171,7 @@ protected:
     /**
      * Calculation of the Contact Force Factors
      */
-    void CalculateContactFactors(ConditionVariables &rContact);
+    void CalculateContactFactors(ConditionVariables &rContact) override;
 
     ///@}
     ///@name Protected  Access
@@ -216,12 +216,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointRigidContactPenalty2DCondition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointRigidContactPenalty2DCondition )
     }

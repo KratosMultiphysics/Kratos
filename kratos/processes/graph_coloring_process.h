@@ -52,7 +52,7 @@ public:
 
     /** Defining a dense matrix of integer as graph type
     */
-    typedef matrix<int> GraphType;
+    typedef DenseMatrix<int> GraphType;
 
     ///@}
     ///@name Life Cycle

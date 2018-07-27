@@ -43,7 +43,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class BeamPointRigidContactLM3DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) BeamPointRigidContactLM3DCondition
     : public BeamPointRigidContactCondition
 {
 protected:
@@ -51,9 +51,9 @@ protected:
     typedef struct
      {
         bool   Slip;
-        double Sign; 
-       
-        double DeltaTime; 
+        double Sign;
+
+        double DeltaTime;
         double PreviousTangentForceModulus;
 
         double FrictionCoefficient;
@@ -69,14 +69,14 @@ public:
    ///@name Type Definitions
 
     ///Tensor order 1 definition
-    //typedef bounded_vector<double, 3>                     PointType;
+    //typedef BoundedVector<double, 3>                     PointType;
     typedef array_1d<double, 3>                             PointType;
 
     ///@{
     // Counted pointer of BeamPointRigidContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( BeamPointRigidContactLM3DCondition );
     ///@}
- 
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -87,7 +87,7 @@ public:
     BeamPointRigidContactLM3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     BeamPointRigidContactLM3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
-  
+
 
     /// Copy constructor
     BeamPointRigidContactLM3DCondition( BeamPointRigidContactLM3DCondition const& rOther);
@@ -119,7 +119,7 @@ public:
     /**
      * Called at the beginning of each step
      */
-  
+
     virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 
@@ -206,7 +206,7 @@ protected:
     /**
      * Initialize General Variables
      */
-    void InitializeConditionVariables(ConditionVariables& rVariables, 
+    void InitializeConditionVariables(ConditionVariables& rVariables,
 				    const ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -230,7 +230,7 @@ protected:
 				     double& rIntegrationWeight);
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
 					      ConditionVariables& rVariables,
@@ -244,7 +244,7 @@ protected:
 
 
     double& CalculateNormalForceModulus( double& rNormalForceModulus, ConditionVariables& rVariables );
-    
+
     double& CalculateTangentRelativeMovement( double& rTangentRelativeMovement, ConditionVariables& rVariables );
 
     double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, ConditionVariables& rVariables );
@@ -343,7 +343,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_RIGID_CONTACT_LM_3D_CONDITION_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_POINT_RIGID_CONTACT_LM_3D_CONDITION_H_INCLUDED  defined

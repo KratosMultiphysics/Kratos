@@ -546,10 +546,10 @@ private:
     unsigned int mm;
     bool mBlocksAreAllocated;
     bool mis_initialized;
-    boost::numeric::ublas::vector<unsigned int> mpressure_indices;
-    boost::numeric::ublas::vector<unsigned int> mother_indices;
-    boost::numeric::ublas::vector<int> mglobal_to_local_indexing;
-    boost::numeric::ublas::vector<int> mis_pressure_block;
+    DenseVector<unsigned int> mpressure_indices;
+    DenseVector<unsigned int> mother_indices;
+    DenseVector<int> mglobal_to_local_indexing;
+    DenseVector<int> mis_pressure_block;
     SparseMatrixType mK;
     SparseMatrixType mG;
     SparseMatrixType mD;
@@ -852,7 +852,7 @@ private:
 
         //KRATOS_WATCH(804)
 
-        typedef boost::numeric::ublas::vector<int> IndexVector;
+        typedef DenseVector<int> IndexVector;
         //typedef typename SparseMatrixType::iterator1 OuterIt;
         //typedef typename SparseMatrixType::iterator2 InnerIt;
         typedef typename boost::numeric::ublas::matrix_row< SparseMatrixType > RowType;
@@ -995,7 +995,7 @@ private:
         SparseMatrixType& rL
     )
     {
-        typedef boost::numeric::ublas::vector<int> IndexVector;
+        typedef DenseVector<int> IndexVector;
         typedef OpenMPUtils::PartitionVector PartitionVector;
         //typedef typename SparseMatrixType::iterator1 OuterIt;
         //typedef typename SparseMatrixType::iterator2 InnerIt;

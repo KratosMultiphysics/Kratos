@@ -173,30 +173,30 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     class_<VectorField<3>, VectorField<3>::Pointer> (m, "VectorField3D").def(init<>())
         ;
 
-    //typedef void (VelocityField::*Evaluate)(const double, const vector<double>&, vector<double>&, const int);
+    //typedef void (VelocityField::*Evaluate)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     //Evaluate EvaluateVector = &VelocityField::Evaluate;
 
-    typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const int);
+    typedef void (VelocityField::*CalculateTimeDerivative)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
 
     typedef void (VelocityField::*CalculateGradient)(const double,
                                                      const array_1d<double, 3>&,
-                                                     vector< double>&,
-                                                     vector< double>&,
-                                                     vector< double>&,
+                                                     DenseVector< double>&,
+                                                     DenseVector< double>&,
+                                                     DenseVector< double>&,
                                                      const int);
     CalculateGradient CalculateGradientVector = &VelocityField::CalculateGradient;
 
-    typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&, const int);
+    typedef double (VelocityField::*CalculateDivergence)(const double, const DenseVector<double>&, const int);
     CalculateDivergence CalculateDivergenceVector = &VelocityField::CalculateDivergence;
 
-    typedef void (VelocityField::*CalculateRotational)(const double, const vector<double>&, vector<double>&, const int);
+    typedef void (VelocityField::*CalculateRotational)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateRotational CalculateRotationalVector = &VelocityField::CalculateRotational;
 
-    typedef void (VelocityField::*CalculateLaplacian)(const double, const vector<double>&, vector<double>&, const int);
+    typedef void (VelocityField::*CalculateLaplacian)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateLaplacian CalculateLaplacianVector = &VelocityField::CalculateLaplacian;
 
-    typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const int);
+    typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
 
@@ -260,6 +260,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<BoundingBoxRule, SpaceTimeRule > (m, "BoundingBoxRule")
+        .def(init<>())
         .def(init<const double, const double, const double, const double, const double, const double, const double, const double>())
         .def("SetTimeBoundingInterval", &BoundingBoxRule::SetTimeBoundingInterval)
         .def("SetXBoundingInterval", &BoundingBoxRule::SetXBoundingInterval)
@@ -483,6 +484,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<MeshRotationUtility> (m, "MeshRotationUtility")
+        .def(init<Parameters&>())
         .def("RotateMesh", &MeshRotationUtility::RotateMesh)
         .def("RotateDEMMesh", &MeshRotationUtility::RotateDEMMesh)
         .def("SetStationaryField", &MeshRotationUtility::SetStationaryField)

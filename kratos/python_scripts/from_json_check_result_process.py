@@ -37,6 +37,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "help"                 : "This process checks the solution obtained from a given json file. It can be used for generating tests for a problem",
             "check_variables"      : [],
             "gauss_points_check_variables" : [],
             "input_file_name"      : "",

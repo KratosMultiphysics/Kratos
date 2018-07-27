@@ -1,28 +1,13 @@
-/*
-==============================================================================
-Kratos Click2Cast Application
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2014
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-COPYRIGHT RESERVED.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Jordi Rubio$
-//   Date:                $Date: 2015-05-20 14:14:49 $
-//   Revision:            $Revision: 1.4 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Jordi Rubio
 //
 
 
@@ -41,7 +26,6 @@ COPYRIGHT RESERVED.
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 #include "custom_elements/SUPG_conv_3d.h"
@@ -177,7 +161,7 @@ protected:
     //                                 );
 
     //const double ComputeDiscontinuityCapturingDiffusion(
-    //    const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& DN_DX,
+    //    const BoundedMatrix<double, 4, 3 >& DN_DX,
     //    const array_1d<double,3>& gradT,
     //    const double& norm_gradT,
     //    const double& residual,

@@ -21,7 +21,6 @@
 #include "spatial_containers/spatial_containers.h"
 
 #include "custom_processes/adaptive_time_interval_process.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "geometries/triangle_2d_3.h"
@@ -105,7 +104,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
 
       KRATOS_TRY
@@ -468,22 +467,22 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "AdaptiveTimeIntervalProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "AdaptiveTimeIntervalProcess";
     }
 
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
     }
 
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 

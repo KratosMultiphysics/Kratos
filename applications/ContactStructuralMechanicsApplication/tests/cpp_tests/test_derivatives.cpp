@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 
 /* Utilities */
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/derivatives_utilities.h"
@@ -110,6 +111,7 @@ namespace Kratos
             Vector error_vector_slave(NumberIterations, 0.0);
             Vector error_vector_master(NumberIterations, 0.0);
             for (IndexType iter = 0; iter < NumberIterations; ++iter) {
+                ThisModelPart.GetProcessInfo()[STEP] = iter + 1;
                 for (IndexType i_per = 0; i_per < NodesPerturbation.size(); ++i_per) {
                     // We add displacement to the corresponding node
                     array_1d<double, 3> aux_delta_disp = ZeroVector(3);
@@ -182,8 +184,8 @@ namespace Kratos
                     rVariables.Initialize();
 
                     // Update slave element info
-                    rDerivativeData.UpdateMasterPair(MasterCondition1->GetGeometry());
-                    rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry());
+                    rDerivativeData.UpdateMasterPair(MasterCondition1->GetGeometry(), ThisModelPart.GetProcessInfo());
+                    rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry(), ThisModelPart.GetProcessInfo());
                     
                     if (conditions_points_slave.size() == conditions_points_slave0.size()) {// Just in case we have the "same configuration"
                         DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_1, normal_slave_1, MasterCondition1->GetGeometry(), rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method);
@@ -240,7 +242,7 @@ namespace Kratos
 
                                     GeometryType::CoordinatesArrayType slave_gp_global;
                                     slave_geometry_0.GlobalCoordinates( slave_gp_global, local_point_parent );
-                                    MortarUtilities::FastProjectDirection( master_geometry_0, slave_gp_global, projected_gp_global, normal_master_0, -gp_normal ); // The opposite direction
+                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_0, slave_gp_global, projected_gp_global, normal_master_0, -gp_normal ); // The opposite direction
 
                                     GeometryType::CoordinatesArrayType projected_gp_local;
 
@@ -266,7 +268,7 @@ namespace Kratos
                                     gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, slave_geometry_1);
 
                                     slave_geometry_1.GlobalCoordinates( slave_gp_global, local_point_parent );
-                                    MortarUtilities::FastProjectDirection( master_geometry_1, slave_gp_global, projected_gp_global, normal_master_1, -gp_normal ); // The opposite direction
+                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_1, slave_gp_global, projected_gp_global, normal_master_1, -gp_normal ); // The opposite direction
 
                                     master_geometry_1.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
@@ -411,8 +413,7 @@ namespace Kratos
                         }
                     } else
                         KRATOS_ERROR << "YOUR INITIAL SPLITTING DOES NOT COINCIDE WITH THE CURRENT ONE" << std::endl;
-                }
-                else
+                } else
                     KRATOS_ERROR << "WRONG, YOU ARE SUPPOSED TO HAVE AN INTERSECTION" << std::endl;
             }
 
@@ -461,7 +462,7 @@ namespace Kratos
          * Case 1 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -549,7 +550,7 @@ namespace Kratos
          * Case 2 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -637,7 +638,7 @@ namespace Kratos
          * Case 1 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -724,7 +725,7 @@ namespace Kratos
          * Case 2 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -811,7 +812,7 @@ namespace Kratos
          * Case 1 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -899,7 +900,7 @@ namespace Kratos
          * Case 2 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -987,7 +988,7 @@ namespace Kratos
          * Case 1 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1074,7 +1075,7 @@ namespace Kratos
          * Case 2 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1161,7 +1162,7 @@ namespace Kratos
          * Case 3 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine3, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine3, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1248,7 +1249,7 @@ namespace Kratos
          * Case 4 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine4, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine4, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1335,7 +1336,7 @@ namespace Kratos
          * Case 1 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1429,7 +1430,7 @@ namespace Kratos
          * Case 2 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1523,7 +1524,7 @@ namespace Kratos
          * Case 1 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1625,7 +1626,7 @@ namespace Kratos
          * Case 1 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1719,7 +1720,7 @@ namespace Kratos
          * Case 2 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1813,7 +1814,7 @@ namespace Kratos
          * Case 3 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle3, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle3, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1907,7 +1908,7 @@ namespace Kratos
          * Case 4 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle4, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle4, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2001,7 +2002,7 @@ namespace Kratos
          * Case 1 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2103,7 +2104,7 @@ namespace Kratos
          * Case 2 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2205,7 +2206,7 @@ namespace Kratos
          * Case 3 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral3, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral3, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2306,7 +2307,7 @@ namespace Kratos
          * Case 1 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2400,7 +2401,7 @@ namespace Kratos
          * Case 2 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2494,7 +2495,7 @@ namespace Kratos
          * Case 1 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2595,7 +2596,7 @@ namespace Kratos
          * Case 1 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2689,7 +2690,7 @@ namespace Kratos
          * Case 2 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2783,7 +2784,7 @@ namespace Kratos
          * Case 3 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle3, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle3, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2879,7 +2880,7 @@ namespace Kratos
          * Case 4 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle4, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle4, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2977,7 +2978,7 @@ namespace Kratos
          * Case 5 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle5, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle5, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -3071,7 +3072,7 @@ namespace Kratos
          * Case 1 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesQuadrilateral1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);

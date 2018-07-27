@@ -132,10 +132,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 2, 2>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 2, 2>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 2, 2>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 2, 2>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 2> LMSlaveNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 2> LMMasterNormal = MortarUtilities::GetVariableVector<2>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -145,11 +145,11 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
     // const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
     // Mortar operators derivatives
-    const array_1d<bounded_matrix<double, 2, 2>, 8>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
-    const array_1d<bounded_matrix<double, 2, 2>, 8>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
+    const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -248,10 +248,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 3, 3>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 3, 3>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 3, 3>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 3, 3>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 3> LMSlaveNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 3> LMMasterNormal = MortarUtilities::GetVariableVector<3>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -261,11 +261,11 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     // const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
     // Mortar operators derivatives
-    const array_1d<bounded_matrix<double, 3, 3>, 18>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
-    const array_1d<bounded_matrix<double, 3, 3>, 18>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
+    const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -676,10 +676,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 4, 3>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 4, 3>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 4, 3>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 4, 3>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 4> LMSlaveNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 4> LMMasterNormal = MortarUtilities::GetVariableVector<4>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -689,11 +689,11 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     // const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
     // Mortar operators derivatives
-    const array_1d<bounded_matrix<double, 4, 4>, 24>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
-    const array_1d<bounded_matrix<double, 4, 4>, 24>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
+    const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -2056,10 +2056,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 2, 2>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 2, 2>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 2, 2>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 2, 2>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 2> LMSlaveNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 2> LMMasterNormal = MortarUtilities::GetVariableVector<2>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -2069,11 +2069,11 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
     // const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
     // Mortar operators derivatives
-    const array_1d<bounded_matrix<double, 2, 2>, 8>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
-    const array_1d<bounded_matrix<double, 2, 2>, 8>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
+    const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -2172,10 +2172,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 3, 3>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 3, 3>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 3, 3>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 3, 3>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 3> LMSlaveNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 3> LMMasterNormal = MortarUtilities::GetVariableVector<3>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -2185,11 +2185,11 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     // const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
     // Mortar operators derivatives
-    const array_1d<bounded_matrix<double, 3, 3>, 18>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
-    const array_1d<bounded_matrix<double, 3, 3>, 18>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
+    const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -2600,10 +2600,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 4, 3>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 4, 3>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 4, 3>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 4, 3>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 4> LMSlaveNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 4> LMMasterNormal = MortarUtilities::GetVariableVector<4>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -2613,11 +2613,11 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     // const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
     // Mortar operators derivatives
-    const array_1d<bounded_matrix<double, 4, 4>, 24>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
-    const array_1d<bounded_matrix<double, 4, 4>, 24>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
+    const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
+    const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -3988,10 +3988,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 2, 2>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 2, 2>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 2, 2>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 2, 2>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 2> LMSlaveNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 2> LMMasterNormal = MortarUtilities::GetVariableVector<2>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -4001,8 +4001,8 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, fals
     // const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -4053,10 +4053,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 3, 3>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 3, 3>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 3, 3>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 3, 3>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 3> LMSlaveNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 3> LMMasterNormal = MortarUtilities::GetVariableVector<3>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -4066,8 +4066,8 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, fals
     // const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -4190,10 +4190,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 4, 3>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 4, 3>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 4, 3>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 4, 3>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 4> LMSlaveNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 4> LMMasterNormal = MortarUtilities::GetVariableVector<4>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -4203,8 +4203,8 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, fals
     // const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -4543,10 +4543,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 2, 2>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 2, 2>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 2, 2>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 2, 2>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 2> LMSlaveNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 2> LMMasterNormal = MortarUtilities::GetVariableVector<2>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -4556,8 +4556,8 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<2,2, true
     // const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -4608,10 +4608,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 3, 3>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 3, 3>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 3, 3>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 3, 3>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 3> LMSlaveNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 3> LMMasterNormal = MortarUtilities::GetVariableVector<3>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -4621,8 +4621,8 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,3, true
     // const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {
@@ -4745,10 +4745,10 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
 	)
 {
     // Initialize values
-    // const bounded_matrix<double, 4, 3>& u1 = rDerivativeData.u1;
-    // const bounded_matrix<double, 4, 3>& u2 = rDerivativeData.u2;
-    // const bounded_matrix<double, 4, 3>& X1 = rDerivativeData.X1;
-    // const bounded_matrix<double, 4, 3>& X2 = rDerivativeData.X2;
+    // const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
+    // const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
+    // const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
+    // const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
     
     const array_1d<double, 4> LMSlaveNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
     const array_1d<double, 4> LMMasterNormal = MortarUtilities::GetVariableVector<4>(this->GetPairedGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
@@ -4758,8 +4758,8 @@ void DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<3,4, true
     // const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
     
     // Mortar operators
-    const bounded_matrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
-    const bounded_matrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
+    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     if (rActiveInactive == 0 )
     {

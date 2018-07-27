@@ -131,7 +131,7 @@ public:
     * @return counter: The number of iterations needed
     */
     unsigned int FindNodesInElement(Element::Pointer& pelement,
-                                    boost::numeric::ublas::vector<int>& positions,
+                                    DenseVector<int>& positions,
                                     Matrix& Nmat,
                                     const unsigned int max_results,
                                     PointIterator work_results,

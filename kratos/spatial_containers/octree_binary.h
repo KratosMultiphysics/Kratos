@@ -31,10 +31,11 @@
 #ifdef KRATOS_INDEPENDENT
 #else
 #include "includes/define.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
 #endif
 
 #include "octree_binary_cell.h"
-
 
 #define KRATOS_WATCH_3(name) std::cout << #name << " : " << name[0] << ", " << name[1] << ", " << name[2] << std::endl;
 
@@ -1256,7 +1257,7 @@ namespace Kratos {
 
 
     /// detect if  triangle and box are intersected
-    virtual bool HasIntersection(Element::GeometryType& geom_1, const Point& rLowPoint, const Point& rHighPoint )
+      virtual bool HasIntersection(Geometry<Node<3> >& geom_1, const Point& rLowPoint, const Point& rHighPoint )
     {
 //        const BaseType& geom_1 = rGeometry;
 
@@ -1286,7 +1287,7 @@ namespace Kratos {
 
 
         // Having 4 Intersection nodes, one can build 4 triangles. The 4 possible combinations are defined by indices in a matrix.
-        bounded_matrix<unsigned int,4,3> IndexNodesTriangles;
+        BoundedMatrix<unsigned int,4,3> IndexNodesTriangles;
 
         IndexNodesTriangles(0,0) = 0;
         IndexNodesTriangles(0,1) = 1;

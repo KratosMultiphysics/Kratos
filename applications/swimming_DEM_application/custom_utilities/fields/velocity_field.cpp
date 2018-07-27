@@ -14,8 +14,8 @@ void VelocityField::Evaluate(const double time,
 }
 
 void VelocityField::Evaluate(const double time,
-                             const vector<double>& coor,
-                             vector<double>& result,
+                             const DenseVector<double>& coor,
+                             DenseVector<double>& result,
                              const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
@@ -36,8 +36,8 @@ void VelocityField::CalculateTimeDerivative(const double time,
 }
 
 void VelocityField::CalculateTimeDerivative(const double time,
-                                            const vector<double>& coor,
-                                            vector<double>& deriv,
+                                            const DenseVector<double>& coor,
+                                            DenseVector<double>& deriv,
                                             const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
@@ -65,9 +65,9 @@ void VelocityField::CalculateGradient(const double time,
 
 void VelocityField::CalculateGradient(const double time,
                                       const array_1d<double, 3>& coor,
-                                      vector< double>& gradient_x,
-                                      vector< double>& gradient_y,
-                                      vector< double>& gradient_z,
+                                      DenseVector< double>& gradient_x,
+                                      DenseVector< double>& gradient_y,
+                                      DenseVector< double>& gradient_z,
                                       const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
@@ -89,7 +89,7 @@ double VelocityField::CalculateDivergence(const double time, const array_1d<doub
     return div;
 }
 
-double VelocityField::CalculateDivergence(const double time, const vector<double>& coor, const int i_thread)
+double VelocityField::CalculateDivergence(const double time, const DenseVector<double>& coor, const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     double div = U0D0(i_thread) + U1D1(i_thread) + U2D2(i_thread);
@@ -108,8 +108,8 @@ void VelocityField::CalculateRotational(const double time,
 }
 
 void VelocityField::CalculateRotational(const double time,
-                                        const vector<double>& coor,
-                                        vector<double>& rot,
+                                        const DenseVector<double>& coor,
+                                        DenseVector<double>& rot,
                                         const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
@@ -131,8 +131,8 @@ void VelocityField::CalculateLaplacian(const double time,
 }
 
 void VelocityField::CalculateLaplacian(const double time,
-                                       const vector<double>& coor,
-                                       vector<double>& lapl,
+                                       const DenseVector<double>& coor,
+                                       DenseVector<double>& lapl,
                                        const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
@@ -161,8 +161,8 @@ void VelocityField::CalculateMaterialAcceleration(const double time,
 }
 
 void VelocityField::CalculateMaterialAcceleration(const double time,
-                                                  const vector<double>& coor,
-                                                  vector<double>& accel,
+                                                  const DenseVector<double>& coor,
+                                                  DenseVector<double>& accel,
                                                   const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
@@ -197,8 +197,8 @@ void VelocityField::CalculateConvectiveDerivative(const double time,
 }
 
 void VelocityField::CalculateConvectiveDerivative(const double time,
-                                                  const vector<double>& coor,
-                                                  vector<double>& accel,
+                                                  const DenseVector<double>& coor,
+                                                  DenseVector<double>& accel,
                                                   const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);

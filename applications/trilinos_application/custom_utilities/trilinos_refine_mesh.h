@@ -747,7 +747,7 @@ public:
     )
     {
         KRATOS_TRY
-        boost::numeric::ublas::matrix<int> new_conectivity;
+        DenseMatrix<int> new_conectivity;
 
         int total_existing_elements = -1;
         int local_existing_elements = this_model_part.Elements().size();
@@ -1347,7 +1347,7 @@ protected:
     {
         KRATOS_TRY
 
-        boost::numeric::ublas::matrix<int> new_conectivity;
+        DenseMatrix<int> new_conectivity;
 
         int total_existing_Conditions = -1;
         int local_existing_Conditions = this_model_part.Conditions().size();

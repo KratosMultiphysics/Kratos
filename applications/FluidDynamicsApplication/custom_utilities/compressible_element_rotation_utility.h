@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -188,22 +188,22 @@ public:
 				//this->RotationOperator<TLocalMatrixType>(Rotation,);
 				if(this->GetDomainSize() == 3)
 				{
-					boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+					BoundedMatrix<double,3,3> rRot;
 					this->LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
 					for(unsigned int i = 0; i < 3; i++) momentum[i] = rMomentum[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(rRot,momentum);
+					noalias(Tmp) = prod(rRot,momentum);
 					for(unsigned int i = 0; i < 3; i++) rMomentum[i] = Tmp[i];
 				}
 				else
 				{
-					boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+					BoundedMatrix<double,2,2> rRot;
 					this->LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
 					for(unsigned int i = 0; i < 2; i++) momentum[i] = rMomentum[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(rRot,momentum);
+					noalias(Tmp) = prod(rRot,momentum);
 					for(unsigned int i = 0; i < 2; i++) rMomentum[i] = Tmp[i];
 				}
 			}
@@ -225,22 +225,22 @@ public:
 			{
 				if(this->GetDomainSize() == 3)
 				{
-					boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+					BoundedMatrix<double,3,3> rRot;
 					this->LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
 					for(unsigned int i = 0; i < 3; i++) momentum[i] = rMomentum[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(rRot),momentum);
+					noalias(Tmp) = prod(trans(rRot),momentum);
 					for(unsigned int i = 0; i < 3; i++) rMomentum[i] = Tmp[i];
 				}
 				else
 				{
-					boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+					BoundedMatrix<double,2,2> rRot;
 					this->LocalRotationOperatorPure(rRot,*itNode);
 
 					array_1d<double,3>& rMomentum = itNode->FastGetSolutionStepValue(MOMENTUM);
 					for(unsigned int i = 0; i < 2; i++) momentum[i] = rMomentum[i];
-					noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(rRot),momentum);
+					noalias(Tmp) = prod(trans(rRot),momentum);
 					for(unsigned int i = 0; i < 2; i++) rMomentum[i] = Tmp[i];
 				}
 			}

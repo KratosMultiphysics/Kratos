@@ -25,6 +25,8 @@
 #include "includes/condition.h"
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
+#include "includes/master_slave_constraint.h"
+#include "includes/linear_master_slave_constraint.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -64,7 +66,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpMatrixVariables(rOther.mpMatrixVariables),
           mpArray1DVariableComponents(rOther.mpArray1DVariableComponents),
           mpElements(rOther.mpElements),
-          mpConditions(rOther.mpConditions) {}
+          mpConditions(rOther.mpConditions),
+          mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
 
     /// Destructor.
     virtual ~KratosApplication() {}
@@ -162,6 +165,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpConditions;
     }
 
+    KratosComponents<MasterSlaveConstraint>::ComponentsContainerType& GetMasterSlaveConstraints() {
+        return *mpMasterSlaveConstraints;
+    }
+
     void SetComponents(
         KratosComponents<VariableData>::ComponentsContainerType const&
             VariableDataComponents)
@@ -211,6 +218,13 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         // It's better to make a loop over new components and add them if they are NOT already exist in application. Or make an ERROR for incompatibility between applications.
 
         mpElements->insert(ElementComponents.begin(), ElementComponents.end());
+    }
+
+    void SetComponents(KratosComponents<MasterSlaveConstraint>::ComponentsContainerType const&
+            MasterSlaveConstraintComponents)
+
+    {
+        mpMasterSlaveConstraints->insert(MasterSlaveConstraintComponents.begin(), MasterSlaveConstraintComponents.end());
     }
 
     void SetComponents(
@@ -300,24 +314,29 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@{
     std::string mApplicationName;
 
-    //general conditions must be defined
+    // General conditions must be defined
 
-    //point conditions
+    // Point conditions
     const Condition mPointCondition2D1N;
     const Condition mPointCondition3D1N;
-    //line conditions
+    // Line conditions
     const Condition mLineCondition2D2N;
     const Condition mLineCondition2D3N;
     const Condition mLineCondition3D2N;
     const Condition mLineCondition3D3N;
-    //surface conditions
+    // Surface conditions
     const Condition mSurfaceCondition3D3N;
     const Condition mSurfaceCondition3D6N;
     const Condition mSurfaceCondition3D4N;
     const Condition mSurfaceCondition3D8N;
     const Condition mSurfaceCondition3D9N;
 
-    //deprecated conditions start
+
+    // Master-Slave base constraint
+    const MasterSlaveConstraint mMasterSlaveConstraint;
+    const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
+
+    // Deprecated conditions start
     const Condition mCondition;
     const Condition mCondition2D;
     const Condition mCondition2D2N;
@@ -329,14 +348,14 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Condition mCondition3D4N;
     const Condition mCondition3D8N;
     const Condition mCondition3D9N;
-    //deprecated conditions end
+    // Deprecated conditions end
 
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
     const PeriodicCondition mPeriodicConditionEdge;
     const PeriodicCondition mPeriodicConditionCorner;
 
-    //general elements must be defined
+    // General elements must be defined
     const Element mElement;
     const Element mElement2D2N;
     const Element mElement2D3N;
@@ -349,37 +368,33 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Element mElement3D8N;
     const Element mElement3D10N;
 
+
+
     const ConstitutiveLaw mConstitutiveLaw;
 
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
 
     KratosComponents<Variable<int> >::ComponentsContainerType* mpIntVariables;
 
-    KratosComponents<Variable<unsigned int> >::ComponentsContainerType*
-        mpUnsignedIntVariables;
+    KratosComponents<Variable<unsigned int> >::ComponentsContainerType* mpUnsignedIntVariables;
 
-    KratosComponents<Variable<double> >::ComponentsContainerType*
-        mpDoubleVariables;
+    KratosComponents<Variable<double> >::ComponentsContainerType* mpDoubleVariables;
 
-    KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType*
-        mpArray1DVariables;
+    KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType* mpArray1DVariables;
 
-    KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType*
-        mpQuaternionVariables;
+    KratosComponents<Variable<Quaternion<double> > >::ComponentsContainerType* mpQuaternionVariables;
 
-    KratosComponents<Variable<Vector> >::ComponentsContainerType*
-        mpVectorVariables;
+    KratosComponents<Variable<Vector> >::ComponentsContainerType* mpVectorVariables;
 
-    KratosComponents<Variable<Matrix> >::ComponentsContainerType*
-        mpMatrixVariables;
+    KratosComponents<Variable<Matrix> >::ComponentsContainerType* mpMatrixVariables;
 
-    KratosComponents<
-        VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::
-        ComponentsContainerType* mpArray1DVariableComponents;
+    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::ComponentsContainerType* mpArray1DVariableComponents;
 
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;
+
+    KratosComponents<MasterSlaveConstraint>::ComponentsContainerType* mpMasterSlaveConstraints;
 
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;
 

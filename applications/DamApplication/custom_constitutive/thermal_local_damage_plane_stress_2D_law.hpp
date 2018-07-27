@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class ThermalLocalDamagePlaneStress2DLaw : public ThermalLocalDamagePlaneStrain2DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalLocalDamagePlaneStress2DLaw : public ThermalLocalDamagePlaneStrain2DLaw
 {
 
 public:
@@ -59,7 +59,7 @@ protected:
 
     void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient ) override;
 
-    void CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables) override;
+    void CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables, double & rNodalReferenceTemperature) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

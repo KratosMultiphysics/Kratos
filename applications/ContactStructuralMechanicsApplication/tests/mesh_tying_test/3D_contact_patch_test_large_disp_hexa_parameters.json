@@ -67,7 +67,7 @@
     "contact_process_list" :[
     {
         "python_module"   : "mesh_tying_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module"   : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {

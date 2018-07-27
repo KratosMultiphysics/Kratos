@@ -148,13 +148,8 @@ public:
     {
         KRATOS_TRY
 
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
-        {
-            if(i_dof->IsFree())
-            {
-                i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
-            }
-        }
+        mpDofUpdater->UpdateDofs(rDofSet,Dx);
+
         KRATOS_CATCH("")
     }
 
@@ -177,7 +172,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    
+
     /**
      * It initializes a non-linear iteration (for the element)
      * @param rModelPart The model of the problem to solve
@@ -215,13 +210,13 @@ public:
                 itElem->InitializeNonLinearIteration(CurrentProcessInfo);
             }
         }
-        
+
         // Initializes the non-linear iteration for all the conditions
         ConditionsArrayType& rConditions = rModelPart.Conditions();
-        
+
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
-        
+
         #pragma omp parallel
         {
             const unsigned int k = OpenMPUtils::ThisThread();
@@ -361,6 +356,11 @@ public:
         KRATOS_CATCH("")
     }
 
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
+    }
+
 
     /*@} */
     /**@name Operations */
@@ -428,6 +428,8 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
     /*@} */
     /**@name Private Operators*/

@@ -208,8 +208,6 @@ public:
         DenseMatrixType& Eigenvectors
     ) override
     {
-        using boost::numeric::ublas::trans;
-
         SizeType size = K.size1();
         SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         double tolerance = BaseType::GetTolerance();
@@ -394,25 +392,6 @@ public:
         {
             Eigenvectors(0,i) = x[i] / beta;
         }
-    }
-
-    /**
-     * This method returns directly the first eigen value obtained
-     * @param K: The stiffness matrix
-     * @param M: The mass matrix
-     * @return The first eigenvalue
-     */
-    double GetEigenValue(
-        SparseMatrixType& K,
-        SparseMatrixType& M
-        )
-    {
-        DenseVectorType eigen_values;
-        DenseMatrixType eigen_vectors;
-
-        Solve(K, M, eigen_values, eigen_vectors);
-
-        return eigen_values[0];
     }
 
     ///@}

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ THE SOFTWARE.
  * \brief   Sparse matrix operations for matrices that provide row_iterator.
  */
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/value_type/interface.hpp>
 
@@ -40,14 +40,14 @@ namespace backend {
 namespace detail {
 
 template <class Matrix, class Enable = void>
-struct use_builtin_matrix_ops : boost::false_type {};
+struct use_builtin_matrix_ops : std::false_type {};
 
 } // namespace detail
 
 template <class Alpha, class Matrix, class Vector1, class Beta, class Vector2>
 struct spmv_impl<
     Alpha, Matrix, Vector1, Beta, Vector2,
-    typename boost::enable_if_c<
+    typename std::enable_if<
         detail::use_builtin_matrix_ops<Matrix>::value &&
         math::static_rows<typename value_type<Matrix>::type>::value == math::static_rows<typename value_type<Vector1>::type>::value &&
         math::static_rows<typename value_type<Matrix>::type>::value == math::static_rows<typename value_type<Vector2>::type>::value
@@ -85,8 +85,8 @@ struct spmv_impl<
 template <class Matrix, class Vector1, class Vector2, class Vector3>
 struct residual_impl<
     Matrix, Vector1, Vector2, Vector3,
-    typename boost::enable_if<
-        typename detail::use_builtin_matrix_ops<Matrix>::type
+    typename std::enable_if<
+        detail::use_builtin_matrix_ops<Matrix>::value
         >::type
     >
 {

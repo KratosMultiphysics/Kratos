@@ -115,6 +115,8 @@ namespace Kratos {
             ModelPart& mp = *smp_it;
 
             CheckSubModelPart(mp);
+            mp[MAXIMUM_RADIUS] = 1.5 * mp[RADIUS];
+            mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
 
             int mesh_size = smp_it->NumberOfNodes();
             if (!mesh_size) continue;
@@ -184,7 +186,7 @@ namespace Kratos {
 
     void DEM_Inlet::DettachElements(ModelPart& r_modelpart, unsigned int& max_Id) {
 
-        vector<unsigned int> ElementPartition;
+        DenseVector<unsigned int> ElementPartition;
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
         // This vector collects the ids of the particles that have been dettached
@@ -291,6 +293,46 @@ namespace Kratos {
         node.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
     }
 
+    void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
+    {
+            DenseVector<unsigned int> ElementPartition;
+            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+            typedef ElementsArrayType::iterator ElementIterator;
+            #pragma omp parallel
+            {
+            #pragma omp for
+            for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
+                ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;
+            if (elem_it->Is(BLOCKED)) continue;
+
+                SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
+
+            if (!(*(spheric_particle.mpInlet))[DENSE_INLET]) continue;
+                Node<3>& node = spheric_particle.GetGeometry()[0];
+
+            if (!node.Is(DEMFlags::CUMULATIVE_ZONE)) continue;
+
+            const array_1d<double,3>& inlet_velocity = (*(spheric_particle.mpInlet))[VELOCITY];
+                const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);
+                const array_1d<double, 3> unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;
+
+                const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
+                const array_1d<double,3>& coordinates = node.Coordinates();
+                const array_1d<double,3> distance = coordinates - initial_coordinates;
+            const double reference_distance = 15.0 * (*(spheric_particle.mpInlet))[RADIUS];
+
+                /// Projection over injection axis
+                const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
+
+            if (projected_distance > reference_distance) {
+                    node.Set(DEMFlags::CUMULATIVE_ZONE, false);
+                    spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, false);
+
+                }
+            }
+            }
+    }
+
     void DEM_Inlet::RemoveInjectionConditions(Element& element)
     {
         Node<3>& node = element.GetGeometry()[0];
@@ -322,7 +364,7 @@ namespace Kratos {
 
     void DEM_Inlet::DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id) {
 
-        vector<unsigned int> ElementPartition;
+        DenseVector<unsigned int> ElementPartition;
         typedef ElementsArrayType::iterator ElementIterator;
         std::vector<int> ids_to_remove;
 
@@ -393,6 +435,23 @@ namespace Kratos {
         return false;
     }
 
+
+
+    void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {
+
+        bool is_there_any_dense_inlet = false;
+        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
+            ModelPart& mp = *smp_it;
+            if (mp[DENSE_INLET]) {
+                is_there_any_dense_inlet = true;
+                break;
+        }
+        }
+        if (is_there_any_dense_inlet){
+            CheckDistanceAndSetFlag(r_modelpart);}
+
+    }
+
     void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {
         InitializeStep(r_modelpart);
         unsigned int& max_Id=creator.mMaxNodeId;
@@ -441,7 +500,7 @@ namespace Kratos {
                     const double estimated_mass_of_a_particle = density * 4.0/3.0 * Globals::Pi * mean_radius * mean_radius * mean_radius;
                     const double maximum_time_until_release = estimated_mass_of_a_particle * mesh_size_elements / mass_flow;
                     const double minimum_velocity = mean_radius * 3.0 / maximum_time_until_release; //The distance necessary to get out of the injector, over the time.
-                    array_1d<double, 3> & proposed_velocity = mp[VELOCITY];
+                    array_1d<double, 3> & proposed_velocity = mp[INLET_INITIAL_PARTICLES_VELOCITY];
                     const double modulus_of_proposed_velocity = DEM_MODULUS_3(proposed_velocity);
                     const double factor = 2.0;
                     DEM_MULTIPLY_BY_SCALAR_3(proposed_velocity, factor * minimum_velocity / modulus_of_proposed_velocity);
@@ -583,7 +642,6 @@ namespace Kratos {
                         }
 
                         else {
-                            KRATOS_WATCH(new_component_spheres.size())
                             for (unsigned int i = 0; i < new_component_spheres.size(); ++i) {
                                 mOriginInletSubmodelPartIndexes[new_component_spheres[i]->Id()] = smp_it->Name();
                                 UpdateInjectedParticleVelocity(*new_component_spheres[i], *p_injector_element);
@@ -669,11 +727,11 @@ namespace Kratos {
     void DEM_Inlet::ThrowWarningTooSmallInlet(const ModelPart& mp) {
         if(!mWarningTooSmallInlet) {
 
-            std::cout<<std::endl;
-            std::cout<<std::endl;
-            std::cout<<"WARNING: At Inlet, the number of injected DEM particles has been reduced to match the available number of nodes for injecting, which was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
-            std::cout<<std::endl;
-            std::cout<<std::endl<<std::flush;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<"WARNING: At Inlet, the number of injected DEM particles has been reduced to match the available number of nodes for injecting, which was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl<<std::flush;
 
             mWarningTooSmallInlet = true;
         }
@@ -682,11 +740,11 @@ namespace Kratos {
     void DEM_Inlet::ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp) {
         if(!mWarningTooSmallInletForMassFlow) {
 
-            std::cout<<std::endl;
-            std::cout<<std::endl;
-            std::cout<<"WARNING: At Inlet, the mass flow can not be fulfilled because the number of nodes for injecting was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
-            std::cout<<std::endl;
-            std::cout<<std::endl<<std::flush;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<"WARNING: At Inlet, the mass flow can not be fulfilled because the number of nodes for injecting was too small. Increase the size of inlet called '"<<mp.Name()<<"'."<<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<std::endl<<std::flush;
 
             mWarningTooSmallInletForMassFlow = true;
         }
@@ -768,3 +826,4 @@ namespace Kratos {
 
 
 } // namespace Kratos
+

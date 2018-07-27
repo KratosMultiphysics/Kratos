@@ -218,6 +218,50 @@ public:
     {
         KRATOS_TRY
         
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
+        // Set to zero the weighted gap
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        NodesArrayType& nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
+        const bool frictional = r_model_part.Is(SLIP);
+
+        // We predict contact pressure in case of contact problem
+        if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+            if (frictional) {
+                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
+            }
+
+            ConditionsArrayType& conditions_array = r_model_part.GetSubModelPart("ComputingContact").Conditions();
+
+            KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+                (conditions_array.begin() + i)->AddExplicitContribution(r_model_part.GetProcessInfo());
+
+            // We predict a contact pressure
+            ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+            const std::size_t step = r_process_info[STEP];
+
+            if (step == 1) {
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                    auto it_node = nodes_array.begin() + i;
+                    noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+                }
+            } else {
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                    auto it_node = nodes_array.begin() + i;
+                    noalias(it_node->Coordinates()) += (it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1));
+
+                }
+            }
+        }
+
 //         BaseType::Predict();  // NOTE: May cause problems in dynamics!!! 
 // 
 //         // Set to zero the weighted gap // NOTE: This can be done during the search if the predict is deactivated
@@ -278,6 +322,11 @@ public:
         BaseType::Initialize();
         mFinalizeWasPerformed = false;
 
+        // Initializing NL_ITERATION_NUMBER
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        r_process_info[NL_ITERATION_NUMBER] = 1;
+
         KRATOS_CATCH("");
     }
     
@@ -310,7 +359,7 @@ public:
     {
         BaseType::InitializeSolutionStep();
         
-        // TODO: Add something if necessary
+        mFinalizeWasPerformed = false;
     }
     
     /**

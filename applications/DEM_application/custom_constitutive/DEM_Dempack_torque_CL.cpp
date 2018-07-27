@@ -18,7 +18,7 @@ namespace Kratos {
     }
 
     void DEM_Dempack_torque::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning DEM_Dempack_torque to Properties " << pProp->Id() << std::endl;
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack_torque to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
@@ -36,11 +36,11 @@ namespace Kratos {
                                                     double equiv_poisson,
                                                     double indentation) {
 
-        KRATOS_TRY 
+        KRATOS_TRY
         //double LocalRotationalMoment[3]     = {0.0};
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
-        
+
         array_1d<double, 3> GlobalDeltaRotatedAngle;
         noalias(GlobalDeltaRotatedAngle) = element->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE) - neighbor->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
         array_1d<double, 3> GlobalDeltaAngularVelocity;
@@ -49,30 +49,30 @@ namespace Kratos {
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaRotatedAngle, LocalDeltaRotatedAngle);
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaAngularVelocity, LocalDeltaAngularVelocity);
         //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mContactMoment, LocalRotationalMoment);
-        
+
         const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
         const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
         const double rot_k = 1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
-                        
+
         const double element_mass  = element->GetMass();
         const double neighbor_mass = neighbor->GetMass();
         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
-        
+
         // Viscous parameter taken from J.S.Marshall, 'Discrete-element modeling of particle aerosol flows', section 4.3. Twisting resistance
         const double alpha = 0.9; // Hardcoded only for testing purposes. This value depends on the restitution coefficient and goes from 0.1 to 1.0
         const double visc_param = 0.5 * equivalent_radius * equivalent_radius * alpha * sqrt(1.33333333333333333 * equiv_mass * equiv_young * equivalent_radius);
-             
+
         //equiv_young or G in torsor (LocalRotationalMoment[2]) ///////// TODO
-        
+
         ElasticLocalRotationalMoment[0] = -rot_k * equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
         ElasticLocalRotationalMoment[1] = -rot_k * equiv_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance;
         ElasticLocalRotationalMoment[2] = -rot_k * equiv_young * Inertia_J * LocalDeltaRotatedAngle[2] / distance;
-        
+
         ViscoLocalRotationalMoment[0] = -visc_param * LocalDeltaAngularVelocity[0];
         ViscoLocalRotationalMoment[1] = -visc_param * LocalDeltaAngularVelocity[1];
         ViscoLocalRotationalMoment[2] = -visc_param * LocalDeltaAngularVelocity[2];
-        
+
         // Judge if the rotation spring is broken or not
         /*
         double ForceN  = LocalElasticContactForce[2];

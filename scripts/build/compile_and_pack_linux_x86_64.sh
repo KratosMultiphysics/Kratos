@@ -77,7 +77,7 @@ cmake ..  																		                                 \
 -DSTRUCTURAL_APPLICATION=ON 													                         \
 -DCONVECTION_DIFFUSION_APPLICATION=ON 											                   \
 -DFLUID_DYNAMICS_APPLICATION=ON 												                       \
--DALE_APPLICATION=ON 															                             \
+-DMESH_MOVING_APPLICATION=ON 															                             \
 -DDEM_APPLICATION=ON 															                             \
 -DFSI_APPLICATION=ON 															                             \
 -DOPENCL_APPLICATION=OFF														                           \

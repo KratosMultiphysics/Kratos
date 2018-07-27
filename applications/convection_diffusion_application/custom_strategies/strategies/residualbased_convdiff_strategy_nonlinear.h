@@ -1,22 +1,20 @@
-/* *********************************************************
- *
- *   Last Modified by:    $Author: rrossi $
- *   Date:                $Date: 2007-03-06 10:30:32 $
- *   Revision:            $Revision: 1.2 $
- *
- * ***********************************************************/
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Riccardo Rossi
+//
 
 #if !defined(KRATOS_RESIDUALBASED_CONVECTION_DIFFUSION_STRATEGY_NONLINEAR )
 #define  KRATOS_RESIDUALBASED_CONVECTION_DIFFUSION_STRATEGY_NONLINEAR
 
-
 /* System includes */
 
-
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -98,7 +96,7 @@ public:
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedConvectionDiffusionStrategyNonLinear);
- 
+
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -188,21 +186,21 @@ public:
     //*********************************************************************************
     //**********************************************************************
 
-    double Solve()
+    double Solve() override
     {
       KRATOS_TRY
-	
+
         //calculate the BDF coefficients
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
       double Dt = rCurrentProcessInfo[DELTA_TIME];
       int stationary= rCurrentProcessInfo[STATIONARY];
-	
+
       unsigned int iter = 0;
       double ratio;
       bool is_converged = false;
       double dT_norm = 0.0;
       double T_norm = 0.0;
-      
+
       if(stationary==1){
 	iter = 0;
         //ratio;
@@ -215,7 +213,7 @@ public:
             dT_norm = mstep1->Solve();
             T_norm = CalculateTemperatureNorm();
             CalculateProjection();
-	    
+
             ratio = 1.00;
             if (T_norm != 0.00)
 	      ratio = dT_norm / T_norm;
@@ -223,30 +221,30 @@ public:
 	      {
                 std::cout << "T_norm = " << T_norm << " dT_norm = " << dT_norm << std::endl;
 	      }
-	    
+
             if (dT_norm < 1e-11)
 	      ratio = 0; //converged
-	    
+
             if (ratio < mtoll)
 	      is_converged = true;
-	    
+
             std::cout << " iter = " << iter << " ratio = " << ratio << std::endl;
 	  }
       }
       else{
-	
+
         if (mOldDt == 0.00) //needed for the first step
 	  mOldDt = Dt;
         if (mtime_order == 2)
 	  {
             if (BaseType::GetModelPart().GetBufferSize() < 3)
 	      KRATOS_THROW_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
-		
+
                 double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-	    
+
             double rho = dt_old / Dt;
             double coeff = 1.0 / (Dt * rho * rho + Dt * rho);
-	    
+
             rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
             BDFcoeffs[0] = coeff * (rho * rho + 2.0 * rho); //coefficient for step n+1
@@ -260,20 +258,20 @@ public:
             BDFcoeffs[0] = 1.0 / Dt; //coefficient for step n+1
             BDFcoeffs[1] = -1.0 / Dt; //coefficient for step n
         }
-	
+
 	iter = 0;
         //ratio;
         is_converged = false;
         dT_norm = 0.0;
         T_norm = 0.0;
-	
+
         while (iter++ < mmax_iter && is_converged == false)
 	  {
             rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
             dT_norm = mstep1->Solve();
             T_norm = CalculateTemperatureNorm();
             CalculateProjection();
-	    
+
             ratio = 1.00;
             if (T_norm != 0.00)
 	      ratio = dT_norm / T_norm;
@@ -281,17 +279,17 @@ public:
             {
 	      std::cout << "T_norm = " << T_norm << " dT_norm = " << dT_norm << std::endl;
             }
-	    
+
             if (dT_norm < 1e-11)
 	      ratio = 0; //converged
-	    
+
             if (ratio < mtoll)
 	      is_converged = true;
-	    
+
             std::cout << " iter = " << iter << " ratio = " << ratio << std::endl;
 	  }
       }
-      
+
       return dT_norm;
       KRATOS_CATCH("")
 	}
@@ -373,17 +371,17 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         mstep1->SetEchoLevel(Level);
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mstep1->Clear();
     }
 
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY
 

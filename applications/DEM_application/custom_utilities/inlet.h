@@ -56,7 +56,7 @@ namespace Kratos {
         }
         virtual void CheckSubModelPart(ModelPart& smp);
         virtual void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum = false);
-        virtual void InitializeStep(ModelPart&){}
+        virtual void InitializeStep(ModelPart& r_modelpart);
         void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id);
         void DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id);
         bool OneNeighbourInjectorIsInjecting(const Element::Pointer& element);
@@ -81,6 +81,8 @@ namespace Kratos {
         virtual void UpdatePartialThroughput(SphericParticle& r_spheric_particle, const int i);
         virtual void UpdatePartialThroughput(Cluster3D& r_cluster, const int i);
         double GetInputNumberOfParticles(const ModelPart& mp);
+        virtual void CheckDistanceAndSetFlag(ModelPart& r_modelpart);
+
 
         Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
         Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
@@ -101,7 +103,7 @@ namespace Kratos {
         double mNormalizedMaxIndentationForRelease;
         double mNormalizedMaxIndentationForNewParticleCreation;
         std::vector<PropertiesProxy> mFastProperties;
-        boost::numeric::ublas::vector<bool> mLayerRemoved;
+        DenseVector<bool> mLayerRemoved;
         //std::vector<int> mTotalNumberOfDetachedParticles;
         ModelPart& mInletModelPart; //The model part used to insert elements
 
@@ -113,3 +115,4 @@ namespace Kratos {
 }// namespace Kratos.
 
 #endif // DEM_INLET_H defined
+

@@ -17,14 +17,11 @@
 // System includes
 #include <unordered_map>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {
@@ -69,6 +66,9 @@ namespace Kratos
  * combinations of submodelparts each node, condition and element belongs to.
  * Modelpart key is 0. Each submodelpart has 1, 2... key. A submodelpart
  * combination has another key
+ * This class has two limitations:
+ * - A sub_sub_model_part name should not be duplicated
+ * - This class allows two sub_model_part levels
  * @author Miguel Maso Sotomayor
  * @author Vicente Mataix Ferrandiz
  */
@@ -79,10 +79,16 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
     ///@{
 
     /// The map containing the id for each component and the corresponding colors integers
-    typedef std::unordered_map<int,int> IntIntMapType;
+    typedef std::unordered_map<IndexType,IndexType> IndexIntMapType;
 
     /// The map containing the colors integers and the names of the submodelparts related
-    typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
+    typedef std::unordered_map<IndexType,std::vector<std::string>> IntStringMapType;
+
+    /// The map containing the colors integers and the pointers of the submodelparts related
+    //typedef std::unordered_map<int,std::vector<ModelPart>> IntModelPartPtrMapType;
+
+    /// The map containing the intersections of submodelparts combinations
+    typedef std::map<std::pair<IndexType,IndexType>, IndexType> PairIntMapType;
 
     /// Pointer definition of SubModelPartsListUtility
     KRATOS_CLASS_POINTER_DEFINITION( SubModelPartsListUtility );
@@ -121,9 +127,9 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
      * @param rColors Map where the keys (colors) and associated submodelparts combinations are stored
      */
     void ComputeSubModelPartsList(
-        IntIntMapType& rNodeColors,
-        IntIntMapType& rCondColors,
-        IntIntMapType& rElemColors,
+        IndexIntMapType& rNodeColors,
+        IndexIntMapType& rCondColors,
+        IndexIntMapType& rElemColors,
         IntStringMapType& rColors
         );
 
@@ -144,6 +150,11 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
         ModelPart& ThisModelPart,
         const std::string& SubModelPartName
         );
+
+    /**
+     * @brief This method can be used to debug complex model parts directly on python
+     */
+    void DebugComputeSubModelPartsList();
 
     ///@}
     ///@name Access
@@ -230,8 +241,7 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                       /// The model part to compute
-    std::unordered_map<int,std::vector<std::string>> mColors;     /// Where the sub model parts IDs are stored
+    ModelPart& mrModelPart;             /// The model part to compute
 
     ///@}
     ///@name Private Operators

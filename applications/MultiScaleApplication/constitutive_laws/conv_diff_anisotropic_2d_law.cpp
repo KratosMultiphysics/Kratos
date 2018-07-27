@@ -50,7 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	ConvDiffAnisotropic2DLaw::ConvDiffAnisotropic2DLaw() 
+	ConvDiffAnisotropic2DLaw::ConvDiffAnisotropic2DLaw()
 		: ConstitutiveLaw()
 		, m_initialized(false)
 		, m_init_gradT()
@@ -121,7 +121,7 @@ namespace Kratos
 			if (rValue.size() != 3)
 				rValue.resize(3, false);
 			rValue(0) = mStressVector(0); // 1.0e6; //  //[W/mm^2]
-			rValue(1) = mStressVector(1); // 1.0e6; // 
+			rValue(1) = mStressVector(1); // 1.0e6; //
 			rValue(2) = 0.0;
 			//std::stringstream ss;
 			//ss << "HEAT_FLUX_RVE = " << rValue << ", " << std::endl;
@@ -283,7 +283,7 @@ namespace Kratos
 		{
 			CalculateStress(props, strainVector, stressVector);
 		}
-		
+
 		if (compute_constitutive_tensor)
 		{
 			CalculateConstitutiveMatrix(props, strainVector, stressVector, constitutiveMatrix);
@@ -328,7 +328,7 @@ namespace Kratos
 		double CONDUCTIVITY_11_22 = props[CONDUCTIVITY_1122];
 		double CONDUCTIVITY_22_11 = props[CONDUCTIVITY_2211];
 		double CONDUCTIVITY_22_22 = props[CONDUCTIVITY_2222];
-		
+
 		SizeType strain_size = strainVector.size();
 
 		Matrix constitutiveMatrix(strain_size, strain_size, false);
@@ -336,13 +336,13 @@ namespace Kratos
 		constitutiveMatrix(0, 1) = CONDUCTIVITY_11_22;
 		constitutiveMatrix(1, 0) = CONDUCTIVITY_22_11;
 		constitutiveMatrix(1, 1) = CONDUCTIVITY_22_22;
-		
+
 		mStressVector.clear();
 		mStressVector = prod(constitutiveMatrix, strainVector - m_init_gradT);
-		
+
 		// mStressVector(0) = conductivity*(strainVector(0) - m_init_gradT(0));
 		// mStressVector(1) = conductivity*(strainVector(1) - m_init_gradT(1));
-		
+
 		noalias(stressVector) = mStressVector;
 	}
 
@@ -372,7 +372,7 @@ namespace Kratos
 		double CONDUCTIVITY_11_22 = props[CONDUCTIVITY_1122];
 		double CONDUCTIVITY_22_11 = props[CONDUCTIVITY_2211];
 		double CONDUCTIVITY_22_22 = props[CONDUCTIVITY_2222];
-		
+
 		constitutiveMatrix.clear();
 		constitutiveMatrix(0, 0) = CONDUCTIVITY_11_11;
 		constitutiveMatrix(0, 1) = CONDUCTIVITY_11_22;

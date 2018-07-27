@@ -7,6 +7,7 @@
 #include <limits>
 #include <iostream>
 #include <iomanip>
+#include <list>
 
 // Project includes
 #include "includes/define.h"

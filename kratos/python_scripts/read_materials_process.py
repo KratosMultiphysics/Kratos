@@ -1,4 +1,9 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Other imports
 import sys
 
 def Factory(settings, Model):
@@ -28,11 +33,10 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         """
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
-            {
+        {
             "materials_filename" : "please specify the file to be opened"
-            }
-            """
-        )
+        }
+        """)
 
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
@@ -92,7 +96,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         """
         return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
 
-    def _GetConstitutiveLaw(self, my_string):
+    def _GetConstitutiveLaw(self, param):
         """Return the python object of a Constitutive Law named by the string argument.
 
         Example:
@@ -104,7 +108,18 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
         """
-        return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
+        my_string = param["name"].GetString()
+        splitted = my_string.split(".")
+
+        if len(splitted) == 0:
+            raise Exception("Something wrong. Trying to split the string " + my_string)
+        if len(splitted) > 3:
+            raise Exception("Something wrong. String " + my_string + " has too many arguments")
+
+        cl_name = splitted[-1]
+        param["name"].SetString(cl_name)
+        cl = self._get_attribute(cl_name, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
+        return cl.Create(param)
 
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
@@ -126,7 +141,18 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                     "RESIDUAL_VECTOR" : [1.5,0.3,-2.58],
                     "LOCAL_INERTIA_TENSOR" : [[0.27,0.0],[0.0,0.27]]
                 },
-                "Tables" : {}
+                "Tables" : {
+                    "Table1" : {
+                        "input_variable" : "TEMPERATURE",
+                        "output_variable" : "YOUNG_MODULUS",
+                        "data" : [
+                            [0.0,  100.0],
+                            [20.0, 90.0],
+                            [30.0, 85.0],
+                            [35.0, 80.0]
+                        ]
+                    }
+                }
             }
         }
         """
@@ -137,9 +163,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         prop = model_part.GetProperties(property_id, mesh_id)
 
         if len(data["Material"]["Variables"].keys()) > 0 and prop.HasVariables():
-                KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has variables." )
+            KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has variables." )
         if len(data["Material"]["Tables"].keys()) > 0 and prop.HasTables():
-                KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has tables." )
+            KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has tables." )
 
         # Assign the properties to the model part's elements and conditions.
         for elem in model_part.Elements:
@@ -151,9 +177,12 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         mat = data["Material"]
 
         # Set the CONSTITUTIVE_LAW for the current properties.
-        constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
+        if (mat.Has("constitutive_law")):
+            constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"] )
 
-        prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
+            prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
+        else:
+            KratosMultiphysics.Logger.PrintWarning("::[Reading materials process]:: ", "Not constitutive law defined for material ID: ", property_id)
 
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():

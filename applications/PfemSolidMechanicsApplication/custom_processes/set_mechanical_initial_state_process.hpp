@@ -82,7 +82,7 @@ namespace Kratos
             Execute();
          }
 
-         virtual void Execute();
+         void Execute() override;
 
       protected:
 
