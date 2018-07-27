@@ -127,54 +127,54 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize(ModelPart& rModelPart) override
+    void Initialize(ModelPart& /*rModelPart*/) override
     {
         KRATOS_TRY;
 
-        Check(rModelPart);
+        Check(mrModelPart);
 
         for (const std::string& r_label : mNodalSensitivityVariables)
-            SetNodalSensitivityVariableToZero(r_label, rModelPart.Nodes());
+            SetNodalSensitivityVariableToZero(r_label, mrModelPart.Nodes());
 
-        VariableUtils().SetFlag(STRUCTURE, false, rModelPart.Nodes());
+        VariableUtils().SetFlag(STRUCTURE, false, mrModelPart.Nodes());
         VariableUtils().SetFlag(
-            STRUCTURE, true, rModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
+            STRUCTURE, true, mrModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
 
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                            rModelPart.Nodes());
+                                            mrModelPart.Nodes());
         VariableUtils().SetNonHistoricalVariable(
             UPDATE_SENSITIVITIES, true,
-            rModelPart.GetSubModelPart(mSensitivityModelPartName).Nodes());
+            mrModelPart.GetSubModelPart(mSensitivityModelPartName).Nodes());
 
         KRATOS_CATCH("");
     }
 
-    void Check(ModelPart const& rModelPart) override
+    void Check(ModelPart const& /*rModelPart*/) override
     {
         KRATOS_TRY;
 
-        if (rModelPart.HasSubModelPart(mStructureModelPartName) == false)
+        if (mrModelPart.HasSubModelPart(mStructureModelPartName) == false)
             KRATOS_ERROR << "No sub model part \"" << mStructureModelPartName
                          << "\"" << std::endl;
 
-        if (rModelPart.HasSubModelPart(mSensitivityModelPartName) == false)
+        if (mrModelPart.HasSubModelPart(mSensitivityModelPartName) == false)
             KRATOS_ERROR << "No sub model part \"" << mSensitivityModelPartName
                          << "\"" << std::endl;
 
         KRATOS_CATCH("");
     }
 
-    void UpdateSensitivities(ModelPart& rModelPart) override
+    void UpdateSensitivities(ModelPart& /*rModelPart*/) override
     {
         KRATOS_TRY;
 
         double delta_time;
         if (mIntegrateInTime)
-            delta_time = -rModelPart.GetProcessInfo()[DELTA_TIME];
+            delta_time = -mrModelPart.GetProcessInfo()[DELTA_TIME];
         else
             delta_time = 1.0;
         for (const std::string& r_label : mNodalSensitivityVariables)
-            BuildNodalSolutionStepSensitivities(r_label, rModelPart, delta_time);
+            BuildNodalSolutionStepSensitivities(r_label, mrModelPart, delta_time);
 
         KRATOS_CATCH("");
     }
