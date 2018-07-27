@@ -52,12 +52,12 @@ namespace  Kratos
             {
                 auto it_node = rNodes.begin() + i;
 
+                BoundedVector<double,3> previous_position = it_node->Coordinates();
                 noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
                 noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
                 noalias(it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) =
-                    it_node->FastGetSolutionStepValue(DISPLACEMENT,0)
-                    -it_node->FastGetSolutionStepValue(DISPLACEMENT,1);
+                    it_node->Coordinates()-previous_position;
 
             }
         }
