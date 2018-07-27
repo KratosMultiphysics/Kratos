@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ THE SOFTWARE.
  * \brief  Support for various value types.
  */
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 namespace amgcl {
 namespace math {
@@ -50,15 +50,15 @@ struct rhs_of {
 
 /// Whether the value type is a statically sized matrix.
 template <class T, class Enable = void>
-struct is_static_matrix : boost::false_type {};
+struct is_static_matrix : std::false_type {};
 
 /// Number of rows for statically sized matrix types.
 template <class T, class Enable = void>
-struct static_rows : boost::integral_constant<int, 1> {};
+struct static_rows : std::integral_constant<int, 1> {};
 
 /// Number of columns for statically sized matrix types.
 template <class T, class Enable = void>
-struct static_cols : boost::integral_constant<int, 1> {};
+struct static_cols : std::integral_constant<int, 1> {};
 
 
 /// Default implementation for conjugate transpose.

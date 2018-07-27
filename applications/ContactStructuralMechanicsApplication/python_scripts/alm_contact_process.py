@@ -55,6 +55,7 @@ class ALMContactProcess(KM.Process):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
+            "help"                        : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",

@@ -1,16 +1,17 @@
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2009-01-22 17:13:57 $
-//   Revision:            $Revision: 1.5 $
+//  License:		 BSD License
+//                       license: MeshingApplication/license.txt
 //
+//  Main authors:    
 //
-
 
 #if !defined(KRATOS_TRIGEN_DROPLET_MODELER_H_INCLUDED )
 #define  KRATOS_TRIGEN_DROPLET_MODELER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -1313,69 +1314,66 @@ private:
     
     void InterpolateOnEdge( Geometry<Node<3> >& geom, int point1, int point2, unsigned int step_data_size, Node<3>::Pointer pnode)
     {
-	unsigned int buffer_size = pnode->GetBufferSize();
-	KRATOS_WATCH(buffer_size)
+		unsigned int buffer_size = pnode->GetBufferSize();
+		KRATOS_INFO("TriGenDropletModeler") << "buffer_size: " << buffer_size << std::endl;
 
-	for(unsigned int step = 0; step<buffer_size; step++)
-	{	
-	    //getting the data of the solution step
-	    double* step_data = (pnode)->SolutionStepData().Data(step);
+		for(unsigned int step = 0; step<buffer_size; step++) {	
+			//getting the data of the solution step
+			double* step_data = (pnode)->SolutionStepData().Data(step);
 				
-	    if (point1>2 or point1<0 or point2>2 or point2<0 or (point1==point2))
-	    {
-		KRATOS_WATCH(point1)
-		KRATOS_WATCH(point2)
-		KRATOS_THROW_ERROR(std::logic_error,"THE EDGE POINTS ARE INVALID ", "");
-	    }
+			if (point1>2 || point1<0 || point2>2 || point2<0 || (point1==point2)) {
+				KRATOS_INFO("TriGenDropletModeler") << "point1: " << point1 << std::endl;
+				KRATOS_INFO("TriGenDropletModeler") << "point2: " << point2 << std::endl;
+				KRATOS_ERROR << "THE EDGE POINTS ARE INVALID " << std::endl;
+			}
 											
-	    double* node0_data = geom[point1].SolutionStepData().Data(step);
-	    double* node1_data = geom[point2].SolutionStepData().Data(step);						
+			double* node0_data = geom[point1].SolutionStepData().Data(step);
+			double* node1_data = geom[point2].SolutionStepData().Data(step);						
 				
-	    //copying this data in the position of the vector we are interested in
-	    for(unsigned int j= 0; j<step_data_size; j++)
-	    { 
-		step_data[j] = 0.5*(node0_data[j] + node1_data[j]);
-	    }						
-	}
-	//now we assure that the flag variables are set coorect!! since we add nodes inside of the fluid volume only
-	//we manually reset the IS_BOUNDARY, IS_FLUID, IS_STRUCTURE, IS_FREE_SURFACE values in a right way
-	//not to have values, like 0.33 0.66 resulting if we would have been interpolating them in the same way 		
-	//as the normal variables, like Velocity etc		
+			//copying this data in the position of the vector we are interested in
+			for(unsigned int j= 0; j<step_data_size; j++) { 
+				step_data[j] = 0.5*(node0_data[j] + node1_data[j]);
+			}						
+		}
+		//now we assure that the flag variables are set coorect!! since we add nodes inside of the fluid volume only
+		//we manually reset the IS_BOUNDARY, IS_FLUID, IS_STRUCTURE, IS_FREE_SURFACE values in a right way
+		//not to have values, like 0.33 0.66 resulting if we would have been interpolating them in the same way 		
+		//as the normal variables, like Velocity etc		
 		      
-	//pnode->FastGetSolutionStepValue(IS_BOUNDARY)=1.0;
-	//pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=1.0;			
+		//pnode->FastGetSolutionStepValue(IS_BOUNDARY)=1.0;
+		//pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=1.0;			
 
-	pnode->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)=0.0;
-	pnode->FastGetSolutionStepValue(IS_BOUNDARY)=1.0;
-	pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
-	pnode->FastGetSolutionStepValue(TRIPLE_POINT)=0.0;
-	pnode->FastGetSolutionStepValue(CONTACT_ANGLE)=0.0;
-	//pnode->FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT_X)=0.0;
+		pnode->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)=0.0;
+		pnode->FastGetSolutionStepValue(IS_BOUNDARY)=1.0;
+		pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
+		pnode->FastGetSolutionStepValue(TRIPLE_POINT)=0.0;
+		pnode->FastGetSolutionStepValue(CONTACT_ANGLE)=0.0;
+		//pnode->FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT_X)=0.0;
 			
-	pnode->Set(TO_ERASE,false);
+		pnode->Set(TO_ERASE,false);
 
-	if (pnode->FastGetSolutionStepValue(IS_INTERFACE)>0.9)
-	    pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
-	else 
-	    pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
-	if (pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)>0.9)
-	    pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=1.0;
-	else 
-	    pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
-	if (pnode->FastGetSolutionStepValue(FLAG_VARIABLE)>0.9)
-	    pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=1.0;
-	else 
-	    pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=0.0;	
-	if (pnode->FastGetSolutionStepValue(IS_STRUCTURE)>0.9)
-	{
-	    pnode->FastGetSolutionStepValue(IS_STRUCTURE)=1.0;
-	    pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
-	    pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
-	}
-	else 
-	    pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;	
+		if (pnode->FastGetSolutionStepValue(IS_INTERFACE)>0.9)
+			pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
+		else 
+			pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
+		if (pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)>0.9)
+			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=1.0;
+		else 
+			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
+		if (pnode->FastGetSolutionStepValue(FLAG_VARIABLE)>0.9)
+			pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=1.0;
+		else 
+			pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=0.0;	
+		if (pnode->FastGetSolutionStepValue(IS_STRUCTURE)>0.9)
+		{
+			pnode->FastGetSolutionStepValue(IS_STRUCTURE)=1.0;
+			pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
+			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
+		}
+		else 
+			pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;	
 	
-      };
+	 };
     
     
     ///@}

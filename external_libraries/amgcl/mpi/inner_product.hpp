@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include <mpi.h>
 
 #include <amgcl/backend/builtin.hpp>
+#include <amgcl/value_type/interface.hpp>
 #include <amgcl/mpi/util.hpp>
 #include <amgcl/util.hpp>
 
@@ -43,21 +44,21 @@ namespace mpi {
 struct inner_product {
     communicator comm;
 
-    inner_product(MPI_Comm comm) : comm(comm) {}
+    inner_product(communicator comm) : comm(comm) {}
 
     template <class Vec1, class Vec2>
-    typename backend::value_type<Vec1>::type
+    typename math::inner_product_impl<
+        typename backend::value_type<Vec1>::type
+        >::return_type
     operator()(const Vec1 &x, const Vec2 &y) const {
-        AMGCL_TIC("inner product");
         typedef typename backend::value_type<Vec1>::type value_type;
+        typedef typename math::inner_product_impl<value_type>::return_type coef_type;
 
-        value_type lsum = backend::inner_product(x, y);
-        value_type gsum;
-
-        MPI_Allreduce(&lsum, &gsum, 1, datatype<value_type>(), MPI_SUM, comm);
-
+        AMGCL_TIC("inner product");
+        coef_type sum = comm.reduce(MPI_SUM, backend::inner_product(x, y));
         AMGCL_TOC("inner product");
-        return gsum;
+
+        return sum;
     }
 };
 
