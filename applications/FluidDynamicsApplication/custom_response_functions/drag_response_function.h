@@ -59,7 +59,8 @@ public:
     ///@{
 
     /// Constructor.
-    DragResponseFunction(Parameters& rParameters)
+    DragResponseFunction(Parameters& rParameters, ModelPart& rModelPart)
+    : mrModelPart(rModelPart)
     {
         KRATOS_TRY;
 
@@ -235,6 +236,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    ModelPart& mrModelPart;
     std::string mStructureModelPartName;
     std::string mSensitivityModelPartName;
     std::vector<std::string> mNodalSensitivityVariables;

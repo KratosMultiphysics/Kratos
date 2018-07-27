@@ -20,13 +20,13 @@ void AddCustomResponseFunctionsToPython(pybind11::module& m)
         DragResponseFunction<2>,
         typename DragResponseFunction<2>::Pointer,
         ResponseFunction>(m,"DragResponseFunction2D")
-        .def(init<Parameters&>());
+        .def(init<Parameters&, ModelPart&>());
 
     class_<
         DragResponseFunction<3>,
         typename DragResponseFunction<3>::Pointer,
         ResponseFunction>(m,"DragResponseFunction3D")
-        .def(init<Parameters&>());
+        .def(init<Parameters&, ModelPart&>());
 
 }
 
