@@ -58,7 +58,6 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 i_params.AddValue("value",settings["value"][variable_i[0]])
                 i_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + variable_i[1])
                 i_params.AddValue("local_axes",settings["local_axes"])
-                i_params.AddValue("step_type",settings["step_type"])
                 self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, i_params) )
 
     def ExecuteBeforeSolutionLoop(self):
