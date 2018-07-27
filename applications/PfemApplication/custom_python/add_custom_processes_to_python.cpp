@@ -71,7 +71,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //**********MESHER PROCESSES*********//
 
-  class_<RemoveFluidNodesMesherProcess, RemoveFluidNodesMesherProcess::Pointer, MesherProcess>
+  class_<RemoveFluidNodesMesherProcess, RemoveFluidNodesMesherProcess::Pointer, RemoveNodesMesherProcess>
       (m, "RemoveFluidNodes")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 

@@ -92,8 +92,8 @@ class FluidRefiningMesher(mesher.Mesher):
         #inlet_management = KratosPfem.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPreMeshingProcess(inlet_management)
 
-        remove_mesh_nodes = KratosPfem.RemoveFluidNodes(self.model_part, self.MeshingParameters, self.echo_level)
-        self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
+        #remove_mesh_nodes = KratosPfem.RemoveFluidNodes(self.model_part, self.MeshingParameters, self.echo_level)
+        #self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
 
         if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_INSERT_NODES) ):
             generate_new_nodes  = KratosPfem.InsertNewNodes(self.model_part, self.MeshingParameters, self.echo_level)
