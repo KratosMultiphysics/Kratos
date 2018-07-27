@@ -23,9 +23,8 @@ class GiDOutputProcess(Process):
             "nodal_results": [],
             "nodal_nonhistorical_results": [],
             "nodal_flags_results": [],
+            "elemental_conditional_flags_results": [],
             "gauss_point_results": [],
-            "gauss_point_flags_results": [],
-            "gauss_point_nonhistorical_results": [],
             "additional_list_files": []
         },
         "point_data_configuration": []
@@ -141,16 +140,15 @@ class GiDOutputProcess(Process):
         # Process nodal and gauss point output
         self.nodal_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_results"])
         self.gauss_point_variables = self._GenerateVariableListFromInput(result_file_configuration["gauss_point_results"])
-        self.gauss_point_nonhistorical_variables = self._GenerateVariableListFromInput(result_file_configuration["gauss_point_nonhistorical_results"])
         self.nodal_nonhistorical_variables = self._GenerateVariableListFromInput(result_file_configuration["nodal_nonhistorical_results"])
         self.nodal_flags = self._GenerateFlagsListFromInput(result_file_configuration["nodal_flags_results"])
         self.nodal_flags_names =[]
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
-        self.gauss_point_flags = self._GenerateFlagsListFromInput(result_file_configuration["gauss_point_flags_results"])
-        self.gauss_point_flags_names =[]
-        for i in range(result_file_configuration["gauss_point_flags_results"].size()):
-            self.gauss_point_flags_names.append(result_file_configuration["gauss_point_flags_results"][i].GetString())
+        self.elemental_conditional_flags = self._GenerateFlagsListFromInput(result_file_configuration["elemental_conditional_flags_results"])
+        self.elemental_conditional_flags_names =[]
+        for i in range(result_file_configuration["elemental_conditional_flags_results"].size()):
+            self.elemental_conditional_flags_names.append(result_file_configuration["elemental_conditional_flags_results"][i].GetString())
 
         # Set up output frequency and format
         output_file_label = result_file_configuration["file_label"].GetString()
@@ -224,11 +222,9 @@ class GiDOutputProcess(Process):
             self.__write_mesh(label)
             self.__initialize_results(label)
             self.__write_nodal_results(label)
-            self.__write_gp_results(label)
-            self.__write_gp_nonhistorical_results(label)
             self.__write_nonhistorical_nodal_results(label)
             self.__write_nodal_flags(label)
-            self.__write_gauss_point_flags(label)
+            self.__write_elemental_conditional_flags(label)
             self.__finalize_results()
 
         if self.point_output_process is not None:
@@ -275,10 +271,9 @@ class GiDOutputProcess(Process):
 
         self.__write_nodal_results(time)
         self.__write_gp_results(time)
-        self.__write_gp_nonhistorical_results(time)
         self.__write_nonhistorical_nodal_results(time)
         self.__write_nodal_flags(time)
-        self.__write_gauss_point_flags(time)
+        self.__write_elemental_conditional_flags(time)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
@@ -539,16 +534,6 @@ class GiDOutputProcess(Process):
         # Gauss point results depend on the type of element!
         # they are not implemented for cuts (which are generic Condition3D)
 
-    def __write_gp_nonhistorical_results(self, label):
-
-        #if self.body_io is not None:
-        if self.body_output: # Note: if we only print nodes, there are no GaussPoints
-            for variable in self.gauss_point_nonhistorical_variables:
-                self.body_io.PrintNonHistoricalOnGaussPoints(variable, self.model_part, label)
-
-        # Gauss point results depend on the type of element!
-        # they are not implemented for cuts (which are generic Condition3D)
-
 
     def __write_nonhistorical_nodal_results(self, label):
 
@@ -571,15 +556,15 @@ class GiDOutputProcess(Process):
             for flag in range(len(self.nodal_flags)):
                 self.cut_io.WriteNodalFlags(self.nodal_flags[flag], self.nodal_flags_names[flag], self.cut_model_part.Nodes, label)
 
-    def __write_gauss_point_flags(self, label):
+    def __write_elemental_conditional_flags(self, label):
         if self.body_io is not None:
-            for flag in range(len(self.gauss_point_flags)):
-                self.body_io.PrintFlagsOnGaussPoints(self.gauss_point_flags[flag], self.gauss_point_flags_names[flag], self.model_part, label)
+            for flag in range(len(self.elemental_conditional_flags)):
+                self.body_io.PrintFlagsOnGaussPoints(self.elemental_conditional_flags[flag], self.elemental_conditional_flags_names[flag], self.model_part, label)
 
         if self.cut_io is not None:
             self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
-            for flag in range(len(self.gauss_point_flags)):
-                self.cut_io.PrintFlagsOnGaussPoints(self.gauss_point_flags[flag], self.gauss_point_flags_names[flag], self.cut_model_part, label)
+            for flag in range(len(self.elemental_conditional_flags)):
+                self.cut_io.PrintFlagsOnGaussPoints(self.elemental_conditional_flags[flag], self.elemental_conditional_flags_names[flag], self.cut_model_part, label)
 
     def __finalize_results(self):
 
