@@ -38,7 +38,7 @@ namespace Kratos
 ///@{
 
 
-class AxisymContactDomainLM2DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) AxisymContactDomainLM2DCondition
     : public ContactDomainLM2DCondition
 {
 public:
@@ -59,7 +59,7 @@ public:
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
-	
+
 
     ///Tensor order 1 definition
     typedef ContactDomainUtilities::PointType               PointType;
@@ -114,11 +114,14 @@ public:
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    //************* GETTING METHODS
-
-
-    //************* COMPUTING  METHODS
-
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
     //************************************************************************************
@@ -171,14 +174,14 @@ protected:
     /**
      * Initialize Variables
      */
-    void InitializeConditionVariables (ConditionVariables& rVariables, 
+    void InitializeConditionVariables (ConditionVariables& rVariables,
 				     const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Condition Kinematics
      */
-    void CalculateKinematics(ConditionVariables& rVariables, 
-			     ProcessInfo& rCurrentProcessInfo, 
+    void CalculateKinematics(ConditionVariables& rVariables,
+			     ProcessInfo& rCurrentProcessInfo,
 			     const unsigned int& rPointNumber) override;
 
     /**
@@ -187,19 +190,19 @@ protected:
     void CalculateRadius(double & rCurrentRadius,
 			 double & rReferenceRadius,
 			 const Vector& rN);
-	
+
     /**
      * Calculate LHS
      */
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-			    ConditionVariables& rVariables, 
+			    ConditionVariables& rVariables,
 			    double& rIntegrationWeight) override;
 
     /**
      * Calculate RHS
      */
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-			    ConditionVariables& rVariables, 
+			    ConditionVariables& rVariables,
 			    double& rIntegrationWeight) override;
 
 
@@ -278,4 +281,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_CONTACT_DOMAIN_LM_2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_CONTACT_DOMAIN_LM_2D_CONDITION_H_INCLUDED  defined

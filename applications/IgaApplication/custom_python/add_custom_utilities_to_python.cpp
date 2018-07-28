@@ -24,12 +24,10 @@
 #include "custom_utilities/node_curve_geometry_3d.h"
 #include "custom_utilities/node_surface_geometry_3d.h"
 
-namespace py = pybind11;
-
 namespace Kratos {
 namespace Python {
 
-void AddCustomUtilitiesToPython(py::module& m)
+void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11::literals;
 

@@ -16,7 +16,7 @@
 
 namespace Kratos
 {
-  
+
   //*******************************CONSTRUCTOR******************************************
   //************************************************************************************
 
@@ -24,8 +24,8 @@ namespace Kratos
     :HardeningRule()
   {
     //Combined isotropic-kinematic 0<mTheta<1
-    //Pure isotropic hardening mTheta=1;  
-    //Pure kinematic hardening mTheta=0;    
+    //Pure isotropic hardening mTheta=1;
+    //Pure kinematic hardening mTheta=0;
   }
 
 
@@ -53,7 +53,7 @@ namespace Kratos
 
   HardeningRule::Pointer SimoExponentialHardeningRule::Clone() const
   {
-    return ( HardeningRule::Pointer(new SimoExponentialHardeningRule(*this)) );
+    return Kratos::make_shared<SimoExponentialHardeningRule>(*this);
   }
 
 
@@ -74,14 +74,14 @@ namespace Kratos
     KRATOS_TRY
 
     rHardening = this->CalculateAndAddIsotropicHardening(rVariables,rHardening);
-    
+
     rHardening = this->CalculateAndAddKinematicHardening(rVariables,rHardening);
-    
+
     return rHardening;
-	
+
     KRATOS_CATCH(" ")
   }
-  
+
   //*******************************CALCULATE ISOTROPIC HARDENING************************
   //************************************************************************************
 
@@ -90,15 +90,15 @@ namespace Kratos
     KRATOS_TRY
 
     const ModelDataType& rModelData = rVariables.GetModelData();
-      
-    //get values   
+
+    //get values
     const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
 
     //linear hardening properties
     const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
     double  YieldStress                    = rMaterialProperties[YIELD_STRESS];
     double  KinematicHardeningConstant     = rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
-	
+
     //exponential saturation properties
     double  K_reference         =  rMaterialProperties[REFERENCE_HARDENING_MODULUS];
     double  K_infinity          =  rMaterialProperties[INFINITY_HARDENING_MODULUS];
@@ -116,13 +116,13 @@ namespace Kratos
 
     //Linear Hardening rule: (mTheta = 1)
     rIsotropicHardening += YieldStress + mTheta * KinematicHardeningConstant * rEquivalentPlasticStrain;
-	
+
     //Exponential Saturation:
     rIsotropicHardening += (K_infinity-K_reference) * (1.0 - exp( (-1.0) * Delta * rEquivalentPlasticStrain ) );
-	
-    return rIsotropicHardening;	
 
-	
+    return rIsotropicHardening;
+
+
     KRATOS_CATCH(" ")
   }
 
@@ -143,9 +143,9 @@ namespace Kratos
 
     //Linear Hardening rule:
     rKinematicHardening  += (1.0 - mTheta) * KinematicHardeningConstant;
-	
+
     return rKinematicHardening;
- 	
+
     KRATOS_CATCH(" ")
   }
 
@@ -162,8 +162,8 @@ namespace Kratos
 
     rDeltaHardening = this->CalculateAndAddDeltaKinematicHardening(rVariables, rDeltaHardening);
 
-   return rDeltaHardening;	
-	
+   return rDeltaHardening;
+
     KRATOS_CATCH(" ")
   }
 
@@ -182,7 +182,7 @@ namespace Kratos
     //linear hardening properties
     const Properties& rMaterialProperties  =  rModelData.GetMaterialProperties();
     double  KinematicHardeningConstant     =  rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
-	
+
     //exponential saturation properties
     double  K_reference           =  rMaterialProperties[REFERENCE_HARDENING_MODULUS];
     double  K_infinity            =  rMaterialProperties[INFINITY_HARDENING_MODULUS];
@@ -198,11 +198,11 @@ namespace Kratos
 
     //Linear Hardening rule: (mTheta = 1)
     rDeltaIsotropicHardening += mTheta * KinematicHardeningConstant;
-	
+
     //Exponential Saturation:
     rDeltaIsotropicHardening += Delta * (K_infinity-K_reference) * ( exp( (-1.0) * Delta * rEquivalentPlasticStrain ) );
-	
-    return rDeltaIsotropicHardening;	
+
+    return rDeltaIsotropicHardening;
 
     KRATOS_CATCH(" ")
   }
@@ -216,7 +216,7 @@ namespace Kratos
     KRATOS_TRY
 
     return rDeltaKinematicHardening;
-	
+
     KRATOS_CATCH(" ")
   }
 
@@ -229,9 +229,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rThermalFactor = 1.0;  
+    rThermalFactor = 1.0;
     return rThermalFactor;
-	
+
     KRATOS_CATCH(" ")
   }
 
@@ -242,9 +242,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rThermalFactor = 1.0;  
+    rThermalFactor = 1.0;
     return rThermalFactor;
- 	
+
     KRATOS_CATCH(" ")
   }
 
