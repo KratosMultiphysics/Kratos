@@ -179,21 +179,24 @@ namespace Kratos
         std::string aux_string;
         const std::string string_to_remove = "This properties contains 0 tables";
 
-        for (const auto i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; ++i_properties) {
+        for (auto i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; ++i_properties) {
             std::ostringstream aux_ostream;
             (*mpStream) << "Begin Properties " << i_properties->Id() << std::endl;
             i_properties->PrintData(aux_ostream);
 
             aux_string = aux_ostream.str();
 
-            // We remove the line of Constitutive Laws and we add it manually
+            // We remove the line of Constitutive Laws and we add it manually. We do this because when calling the Info() method to the data_value_container it returns the address of the pointer, and we are interested in the name
             if (i_properties->Has(CONSTITUTIVE_LAW)) {
+		// First we remove the entire line (we will add it by ourselves later) 
                 std::string::size_type it_constitutive_law_begin = aux_string.find("CONSTITUTIVE_LAW");
                 std::string::size_type it_constitutive_law_end = aux_string.find("\n", it_constitutive_law_begin);
 
                 if (it_constitutive_law_begin != std::string::npos) {
                     aux_string.erase(it_constitutive_law_begin, it_constitutive_law_end);
                 }
+		    
+		// Now we look for the constitutive law name, we do something similar to elements and conditions. We iterate over the database of the Kratos Components until the type is the same. The IsSameType should be implemented properly in the CL class 
                 const ConstitutiveLaw::Pointer p_law = i_properties->GetValue(CONSTITUTIVE_LAW);
                 auto components_cl = KratosComponents<ConstitutiveLaw>::GetComponents();
                 std::string cl_name = "";
@@ -206,6 +209,7 @@ namespace Kratos
                 if (cl_name != "") aux_string += "CONSTITUTIVE_LAW " + cl_name + "\n";
             }
 
+		
             std::string::size_type it_to_remove = aux_string.find(string_to_remove);
 
             if (it_to_remove != std::string::npos) {
