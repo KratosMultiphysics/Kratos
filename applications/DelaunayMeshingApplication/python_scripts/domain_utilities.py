@@ -171,8 +171,3 @@ class DomainUtilities(object):
                             if( part.Is(KratosMultiphysics.SOLID) or part.Is(KratosMultiphysics.RIGID) ):
                                 transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags)
                                 transfer_process.Execute()
-                                #transfer fluid flags
-                                #transfer_flags = [KratosMultiphysics.RIGID]
-                                #assign_flags = [KratosMultiphysics.NOT_FLUID]
-                                #transfer_flags_process = KratosSolid.AssignFlagsToEntitiesProcess(fluid_part,entity_type,assign_flags,transfer_flags)
-                                #transfer_flags_process.Execute()

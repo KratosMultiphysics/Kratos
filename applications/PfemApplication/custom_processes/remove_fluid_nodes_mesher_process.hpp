@@ -364,13 +364,13 @@ class RemoveFluidNodesMesherProcess
       }
 
       //Need to review this, problems because it deletes useful elements
-      if(dimension==2){
-        if(rigidNodes==2)
-          EraseCriticalNodes2D(rModelPart,ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-      }else if(dimension==3){
-        if(rigidNodes>1)
-          EraseCriticalNodes3D(rModelPart,ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-      }
+      // if(dimension==2){
+      //   if(rigidNodes==2)
+      //     EraseCriticalNodes2D(rModelPart,ie->GetGeometry(),erased_nodes,inside_nodes_removed);
+      // }else if(dimension==3){
+      //   if(rigidNodes>1)
+      //     EraseCriticalNodes3D(rModelPart,ie->GetGeometry(),erased_nodes,inside_nodes_removed);
+      // }
 
 
     }

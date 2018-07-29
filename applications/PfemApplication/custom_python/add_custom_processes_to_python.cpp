@@ -24,9 +24,6 @@
 #include "custom_processes/assign_properties_to_nodes_process.hpp"
 #include "custom_processes/manage_isolated_nodes_process.hpp"
 
-// Mesher initialization and finalization processes
-#include "custom_processes/settle_fluid_model_structure_process.hpp"
-
 // PreMeshing processes
 #include "custom_processes/set_active_entities_mesher_process.hpp"
 #include "custom_processes/recover_volume_losses_mesher_process.hpp"
@@ -62,11 +59,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
   class_<Variable<PropertiesContainerPointerType>, VariableData>(m,"PropertiesVectorPointerVariable")
       .def( "__repr__", &Variable<PropertiesContainerPointerType>::Info )
       ;
-
-  //**********MODEL STRUCTURE*********//
-  class_<SettleFluidModelStructureProcess, SettleFluidModelStructureProcess::Pointer, SettleModelStructureProcess>
-      (m, "FluidModelStructure")
-      .def(init<ModelPart&, Flags, int>());
 
 
   //**********MESHER PROCESSES*********//

@@ -113,16 +113,7 @@ class SelectFluidElementsMesherProcess
     std::fill( mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0 );
     mrRemesh.MeshElementsSelectedFlag = true;
 
-
     mrRemesh.Info->NumberOfElements=0;
-
-    const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-    double currentTime = rCurrentProcessInfo[TIME];
-    double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-    bool firstMesh=false;
-    if(currentTime<2*timeInterval){
-      firstMesh=true;
-    }
 
     bool box_side_element = false;
     bool wrong_added_node = false;
@@ -171,10 +162,9 @@ class SelectFluidElementsMesherProcess
         unsigned int  numfluid =0;
         unsigned int  numinlet =0;
         unsigned int  numisolated =0;
-        unsigned int  numnewentities =0;
-        // unsigned int  numinsertednodes =0;
-        std::vector<double > normVelocityP;
-        normVelocityP.resize(nds);
+
+        std::vector<double> velocity_modulus;
+        velocity_modulus.resize(nds);
         unsigned int  checkedNodes =0;
         box_side_element = false;
 
@@ -199,41 +189,36 @@ class SelectFluidElementsMesherProcess
             break;
           }
 
-          //vertices.push_back( *((rNodes).find( OutElementList[el*nds+pn] ).base() ) );
           vertices.push_back(rNodes(OutElementList[el*nds+pn]));
 
           //check flags on nodes
           if(vertices.back().Is(ISOLATED)){
-            numisolated++;
+            ++numisolated;
           }
 
           if(vertices.back().Is(BOUNDARY)){
-            numboundary++;
+            ++numboundary;
           }
 
           if(vertices.back().Is(RIGID)){
-            numrigid++;
+            ++numrigid;
           }
 
           if(vertices.back().Is(SOLID)){
-            numsolid++;
-          }
-
-          if(vertices.back().Is(NEW_ENTITY)){
-            numnewentities++;
+            ++numsolid;
           }
 
           if( vertices.back().Is(FREE_SURFACE) ){
-            numfreesurf++;
+            ++numfreesurf;
           }
 
           if(vertices.back().Is(FLUID)){
-            numfluid++;
+            ++numfluid;
           }
 
           if(vertices.back().Is(FREE_SURFACE) || vertices.back().Is(ISOLATED)){
-            const array_1d<double,3> &velocityP0=vertices.back().FastGetSolutionStepValue(VELOCITY,0);
-            normVelocityP[pn]=norm_2(velocityP0);
+            const array_1d<double,3>& node_velocity=vertices.back().FastGetSolutionStepValue(VELOCITY);
+            velocity_modulus[pn]=norm_2(node_velocity);
             checkedNodes++;
           }
 
@@ -244,84 +229,140 @@ class SelectFluidElementsMesherProcess
 
 
         if(box_side_element || wrong_added_node){
-          std::cout<<" ,,,,,,,,,,,,,,,,,,,,,,,,,,,,, Box_Side_Element "<<std::endl;
+          std::cout<<" Box_Side_Element//Wrong_Added_Node "<<std::endl;
           continue;
         }
-
 
         double Alpha =  mrRemesh.AlphaParameter; //*nds;
 
         if(dimension==2){
 
-          if( (numisolated+numfreesurf)==nds && firstMesh==false ){
+          if( (numisolated+numfreesurf)==nds && numisolated>0 ){
             if(checkedNodes==nds){
               const double maxValue=1.5;
               const double minValue=1.0/maxValue;
-              if(normVelocityP[0]/normVelocityP[1]>maxValue || normVelocityP[0]/normVelocityP[1]<minValue ||
-                 normVelocityP[0]/normVelocityP[2]>maxValue || normVelocityP[0]/normVelocityP[2]<minValue ||
-                 normVelocityP[1]/normVelocityP[2]>maxValue || normVelocityP[1]/normVelocityP[2]<minValue){
-                Alpha*=0;
+              if(velocity_modulus[0]/velocity_modulus[1]>maxValue || velocity_modulus[0]/velocity_modulus[1]<minValue ||
+                 velocity_modulus[0]/velocity_modulus[2]>maxValue || velocity_modulus[0]/velocity_modulus[2]<minValue ||
+                 velocity_modulus[1]/velocity_modulus[2]>maxValue || velocity_modulus[1]/velocity_modulus[2]<minValue){
+                Alpha=0;
               }
             }else{
-              KRATOS_INFO( "ATTENTION!!! CHECKED NODES= " ) <<checkedNodes<<" != "<<nds<<" [numfreesurf:"<<numfreesurf<<" numisolated:"<<numisolated<<std::endl;
-              Alpha*=0;
+              KRATOS_INFO( "ATTENTION!!! CHECKED NODES= " ) <<checkedNodes<<" != "<<nds<<" [numfreesurf:"<<numfreesurf<<" numisolated:"<<numisolated<<"]"<<std::endl;
+              Alpha=0;
             }
           }
 
 
+          if(numfluid!=nds){ //element formed with a wall
 
-          if(numrigid==0 && numsolid==0 && numfreesurf==0 && numisolated==0){
-            Alpha*=1.75;
-          }
-          else{
-
-            if( numboundary==nds && (numsolid !=0 || numrigid!=0) ){
-              Alpha*=1.05;
+            if( numfluid==0 || (numrigid==1 || numsolid==1) || ((numrigid==2 || numsolid==2) && numfreesurf==1) ){
+              Alpha = 0;
             }
             else{
+
+              Triangle2D3<Node<3> > CurrentTriangle (vertices);
+              double CurrentArea = CurrentTriangle.Area();
+
+              Geometry<Node<3> > moved_vertices;
+              for(unsigned int i=0; i<vertices.size(); ++i)
+              {
+                Node<3>::Pointer pNode = vertices[i].Clone();
+                pNode->Coordinates() += (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
+                moved_vertices.push_back(pNode);
+              }
+              Triangle2D3<Node<3> > MovedTriangle (moved_vertices);
+              double MovedArea = MovedTriangle.Area();
+
+              //std::cout<<" control fluid  "<<MovedArea<<" "<<CurrentArea<<std::endl;
+              double tolerance = 1e-8;
+              if(MovedArea+tolerance<CurrentArea)
+                Alpha*=0.95;
+              else
+                Alpha=0;
+            }
+          }
+          else{
+            if( numfreesurf==3 ){
+              Alpha*=0.85;
+            }
+            else if( (numrigid==1 || numsolid==1) && numfreesurf>=2){
+              Alpha*=1.05;
+            }
+            else if( (numrigid==2 || numsolid==2) && numfreesurf>=1){
               Alpha*=1.10;
+            }
+            else{
+              Alpha*=1.75;
             }
           }
 
         }
         else if(dimension==3){
 
-           if( (numisolated+numfreesurf)==nds ){
+          if( (numisolated+numfreesurf)==nds && numisolated>0 ){
             if(checkedNodes==nds){
               const double maxValue=1.5;
               const double minValue=1.0/maxValue;
-              if(normVelocityP[0]/normVelocityP[1]<minValue || normVelocityP[0]/normVelocityP[2]<minValue || normVelocityP[0]/normVelocityP[3]<minValue ||
-                 normVelocityP[0]/normVelocityP[1]>maxValue || normVelocityP[0]/normVelocityP[2]<maxValue || normVelocityP[0]/normVelocityP[3]>maxValue ||
-                 normVelocityP[1]/normVelocityP[2]<minValue || normVelocityP[1]/normVelocityP[3]<minValue ||
-                 normVelocityP[1]/normVelocityP[2]>maxValue || normVelocityP[1]/normVelocityP[3]<maxValue ||
-                 normVelocityP[2]/normVelocityP[3]<minValue ||
-                 normVelocityP[2]/normVelocityP[3]>maxValue){
-                Alpha*=0;
+              if(velocity_modulus[0]/velocity_modulus[1]<minValue || velocity_modulus[0]/velocity_modulus[2]<minValue || velocity_modulus[0]/velocity_modulus[3]<minValue ||
+                 velocity_modulus[0]/velocity_modulus[1]>maxValue || velocity_modulus[0]/velocity_modulus[2]<maxValue || velocity_modulus[0]/velocity_modulus[3]>maxValue ||
+                 velocity_modulus[1]/velocity_modulus[2]<minValue || velocity_modulus[1]/velocity_modulus[3]<minValue ||
+                 velocity_modulus[1]/velocity_modulus[2]>maxValue || velocity_modulus[1]/velocity_modulus[3]<maxValue ||
+                 velocity_modulus[2]/velocity_modulus[3]<minValue ||
+                 velocity_modulus[2]/velocity_modulus[3]>maxValue){
+                Alpha=0;
               }
             }else{
-              KRATOS_INFO( "ATTENTION!!! CHECKED NODES= " ) <<checkedNodes<<" != "<<nds<<" [numfreesurf:"<<numfreesurf<<" numisolated:"<<numisolated<<std::endl;
-              Alpha*=0;
+              KRATOS_INFO( "ATTENTION!!! CHECKED NODES= " ) <<checkedNodes<<" != "<<nds<<" [numfreesurf:"<<numfreesurf<<" numisolated:"<<numisolated<<"]"<<std::endl;
+              Alpha=0;
             }
 
           }
 
-          if(numrigid==0 && numsolid==0 && numfreesurf==0 && numisolated==0){
-            Alpha*=1.75;
+          if(numfluid!=nds){ //element formed with a wall
+
+            if( numfluid==0 || (numrigid==1 || numsolid==1) || ((numrigid==3 || numsolid==3) && numfreesurf==1) ){
+              Alpha = 0;
+            }
+            else{
+
+              Tetrahedra3D4<Node<3> > CurrentTetrahedron (vertices);
+              double CurrentVolume = CurrentTetrahedron.Volume();
+
+              Geometry<Node<3> > moved_vertices;
+              for(unsigned int i=0; i<vertices.size(); ++i)
+              {
+                Node<3>::Pointer pNode = vertices[i].Clone();
+                pNode->Coordinates() += (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
+                moved_vertices.push_back(pNode);
+              }
+              Tetrahedra3D4<Node<3> > MovedTetrahedron (moved_vertices);
+              double MovedVolume = MovedTetrahedron.Volume();
+
+              //std::cout<<" control fluid  "<<MovedVolume<<" "<<CurrentVolume<<std::endl;
+              double tolerance = 1e-6;
+              if(MovedVolume+tolerance<CurrentVolume)
+                Alpha*=0.95;
+              else
+                Alpha = 0;
+            }
           }
           else{
 
-            if( numboundary==nds && (numsolid !=0 || numrigid !=0) ){
-              Alpha*=0.95;
+            if( (numrigid==1 || numsolid==1) && numfreesurf==3 ){
+              Alpha*=0.85;
+            }
+            else if ( (numrigid==3 || numsolid==3) && numfreesurf==3 ){
+              Alpha*=1.05;
+            }
+            else if( (numrigid==2 || numsolid==2) && numfreesurf==2 ){
+              Alpha*=1.10;
             }
             else{
-              Alpha*=1.55;
+              Alpha*=1.75;
             }
+
           }
 
-        }
-
-        if(firstMesh==true){
-          Alpha*=1.25;
         }
 
         bool accepted=false;
@@ -353,7 +394,7 @@ class SelectFluidElementsMesherProcess
         }
 
         //do not accept full rigid elements (no fluid)
-        if(numrigid==nds && (numfluid<nds || numfreesurf<nds))
+        if(numrigid==nds && (numfluid<nds))
           accepted=false;
 
         //do not accept full rigid-solid elements (no fluid)
