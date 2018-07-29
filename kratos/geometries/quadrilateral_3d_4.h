@@ -319,7 +319,7 @@ public:
         return typename BaseType::Pointer( new Quadrilateral3D4( ThisPoints ) );
     }
 
-    
+
     // Geometry< Point<3> >::Pointer  Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -419,9 +419,9 @@ public:
         {
            area += temp[i] * integration_points[i].Weight();
         }
-        
+
         return area;
-        
+
 //         // 24/01/2014 - Massimo Petracca
 //         // the following procedure calculates the area of a general
 //         // quadrilateral (flat or warped) using the parametric representation
@@ -429,31 +429,31 @@ public:
 //         // the integration of the normal is then performed with a 2x2 gauss quadrature
 //         // in the U-V domain [0,1].
 //         // results explicitly written after symbolic calculation.
-// 
+//
 //         const TPointType& p1 = this->Points()[0];
 //         const TPointType& p2 = this->Points()[1];
 //         const TPointType& p3 = this->Points()[2];
 //         const TPointType& p4 = this->Points()[3];
-// 
+//
 //         const double& p1x = p1.X();
 //         const double& p1y = p1.Y();
 //         const double& p1z = p1.Z();
-// 
+//
 //         const double& p2x = p2.X();
 //         const double& p2y = p2.Y();
 //         const double& p2z = p2.Z();
-// 
+//
 //         const double& p3x = p3.X();
 //         const double& p3y = p3.Y();
 //         const double& p3z = p3.Z();
-// 
+//
 //         const double& p4x = p4.X();
 //         const double& p4y = p4.Y();
 //         const double& p4z = p4.Z();
-// 
+//
 //         const double pos = 0.5 + 0.5 / std::sqrt(3.0);
 //         const double w = 0.25;
-// 
+//
 //         const double C1  = pos*(p1z - p2z + p3z - p4z);
 //         const double C2  = pos*(p1y - p2y + p3y - p4y);
 //         const double C3  = pos*(p1x - p2x + p3x - p4x);
@@ -469,11 +469,11 @@ public:
 //         const double C13 = C1 + p1z - p4z;
 //         const double C14 = C2 + p1y - p4y;
 //         const double C15 = C3 + p1x - p4x;
-// 
+//
 //         return w * (
-//             std::sqrt( std::pow(C4*C11 - C7*C10, 2) + std::pow(C4*C12 - C8*C10, 2) + std::pow(C7*C12 - C8*C11, 2)) + 
-//             std::sqrt( std::pow(C5*C11 - C6*C10, 2) + std::pow(C5*C12 - C9*C10, 2) + std::pow(C6*C12 - C9*C11, 2)) + 
-//             std::sqrt( std::pow(C4*C14 - C7*C13, 2) + std::pow(C4*C15 - C8*C13, 2) + std::pow(C7*C15 - C8*C14, 2)) + 
+//             std::sqrt( std::pow(C4*C11 - C7*C10, 2) + std::pow(C4*C12 - C8*C10, 2) + std::pow(C7*C12 - C8*C11, 2)) +
+//             std::sqrt( std::pow(C5*C11 - C6*C10, 2) + std::pow(C5*C12 - C9*C10, 2) + std::pow(C6*C12 - C9*C11, 2)) +
+//             std::sqrt( std::pow(C4*C14 - C7*C13, 2) + std::pow(C4*C15 - C8*C13, 2) + std::pow(C7*C15 - C8*C14, 2)) +
 //             std::sqrt( std::pow(C5*C14 - C6*C13, 2) + std::pow(C5*C15 - C9*C13, 2) + std::pow(C6*C15 - C9*C14, 2))
 //             );
     }
@@ -502,19 +502,19 @@ public:
     {
         return Area();
     }
-    
+
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         PointLocalCoordinatesImplementation( rResult, rPoint, true );
@@ -529,16 +529,16 @@ public:
 
         return false;
     }
-    
+
     /**
      * Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    CoordinatesArrayType& PointLocalCoordinates( 
+    CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
-        const CoordinatesArrayType& rPoint 
+        const CoordinatesArrayType& rPoint
         ) override
     {
         return PointLocalCoordinatesImplementation(rResult, rPoint);
@@ -565,9 +565,9 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    JacobiansType& Jacobian( 
+    JacobiansType& Jacobian(
         JacobiansType& rResult,
-        IntegrationMethod ThisMethod 
+        IntegrationMethod ThisMethod
         ) const override
     {
         // Getting derivatives of shape functions
@@ -590,7 +590,7 @@ public:
         {
             // Defining single jacobian matrix
             Matrix jacobian = ZeroMatrix( 3, 2 );
-            
+
             // Loop over all nodes
             for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
             {
@@ -627,15 +627,15 @@ public:
      * point index of given integration method.
      *
      * @param DeltaPosition Matrix with the nodes position increment which describes
-     * the configuration where the jacobian has to be calculated.     
+     * the configuration where the jacobian has to be calculated.
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    JacobiansType& Jacobian( 
+    JacobiansType& Jacobian(
         JacobiansType& rResult,
         IntegrationMethod ThisMethod,
-        Matrix & DeltaPosition 
+        Matrix & DeltaPosition
         ) const override
     {
         // Getting derivatives of shape functions
@@ -701,10 +701,10 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    Matrix& Jacobian( 
+    Matrix& Jacobian(
         Matrix& rResult,
         IndexType IntegrationPointIndex,
-        IntegrationMethod ThisMethod 
+        IntegrationMethod ThisMethod
         ) const override
     {
         // Setting up size of jacobian matrix
@@ -713,7 +713,7 @@ public:
         noalias(rResult) = ZeroMatrix(3, 2);
         // Derivatives of shape functions
         Matrix shape_functions_gradients = msGeometryData.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod );
-        
+
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
@@ -791,9 +791,9 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    Vector& DeterminantOfJacobian( 
+    Vector& DeterminantOfJacobian(
         Vector& rResult,
-        IntegrationMethod ThisMethod 
+        IntegrationMethod ThisMethod
         ) const override
     {
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
@@ -804,16 +804,16 @@ public:
 
         JacobiansType jacobian;
         this->Jacobian( jacobian, ThisMethod);
-        
+
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             const double det_j = std::pow(jacobian[pnt](0,1),2)*(std::pow(jacobian[pnt](1,0),2) + std::pow(jacobian[pnt](2,0),2)) + std::pow(jacobian[pnt](1,1)*jacobian[pnt](2,0) - jacobian[pnt](1,0)*jacobian[pnt](2,1),2) - 2.0*jacobian[pnt](0,0)*jacobian[pnt](0,1)*(jacobian[pnt](1,0)*jacobian[pnt](1,1) + jacobian[pnt](2,0)*jacobian[pnt](2,1)) + std::pow(jacobian[pnt](0,0),2)*(std::pow(jacobian[pnt](1,1),2) + std::pow(jacobian[pnt](2,1),2));
-            
+
             if (det_j < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
-            
+
             rResult[pnt] = std::sqrt(det_j);
         }
-        
+
         return rResult;
     }
 
@@ -839,19 +839,19 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    double DeterminantOfJacobian( 
+    double DeterminantOfJacobian(
         IndexType IntegrationPointIndex,
-        IntegrationMethod ThisMethod 
+        IntegrationMethod ThisMethod
         ) const override
     {
         Matrix jacobian( 3, 2 );
-         
+
         this->Jacobian( jacobian, IntegrationPointIndex, ThisMethod);
-            
+
         const double det_j = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2) + std::pow(jacobian(2,0),2)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2) + std::pow(jacobian(2,1),2));
-            
+
         if (det_j < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
-        
+
         return std::sqrt(det_j);
     }
 
@@ -883,13 +883,13 @@ public:
     double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
         Matrix jacobian( 3, 2 );
-         
+
         this->Jacobian( jacobian, rPoint);
-        
+
         const double det_j = std::pow(jacobian(0,1),2)*(std::pow(jacobian(1,0),2) + std::pow(jacobian(2,0),2)) + std::pow(jacobian(1,1)*jacobian(2,0) - jacobian(1,0)*jacobian(2,1),2) - 2.0*jacobian(0,0)*jacobian(0,1)*(jacobian(1,0)*jacobian(1,1) + jacobian(2,0)*jacobian(2,1)) + std::pow(jacobian(0,0),2)*(std::pow(jacobian(1,1),2) + std::pow(jacobian(2,1),2));
-            
+
         if (det_j < 0.0) KRATOS_ERROR << "WARNING::NEGATIVE VALUE: NOT POSSIBLE TO EVALUATE THE JACOBIAN DETERMINANT" << std::endl;
-        
+
         return std::sqrt(det_j);
     }
 
@@ -1038,20 +1038,20 @@ public:
     {
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 4)
             NodesInFaces.resize(3,4,false);
-
-        NodesInFaces(0,0)=0;//face or other node
+        //face 1
+        NodesInFaces(0,0)=0;//contrary node to the face
         NodesInFaces(1,0)=2;
         NodesInFaces(2,0)=3;
-
-        NodesInFaces(0,1)=1;//face or other node 
+        //face 2
+        NodesInFaces(0,1)=1;//contrary node to the face
         NodesInFaces(1,1)=3;
         NodesInFaces(2,1)=0;
-
-        NodesInFaces(0,2)=2;//face or other node
+        //face 3
+        NodesInFaces(0,2)=2;//contrary node to the face
         NodesInFaces(1,2)=0;
         NodesInFaces(2,2)=1;
-
-        NodesInFaces(0,3)=3;//face or other node
+        //face 4
+        NodesInFaces(0,3)=3;//contrary node to the face
         NodesInFaces(1,3)=1;
         NodesInFaces(2,3)=2;
     }
@@ -1093,7 +1093,7 @@ public:
     {
         return GeometriesArrayType();
     }
-    
+
     ///@}
     ///@name Shape Function
     ///@{
@@ -1126,7 +1126,7 @@ public:
 
         return 0;
     }
-    
+
     /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -1145,7 +1145,7 @@ public:
         rResult[1] =  0.25*( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] );
         rResult[2] =  0.25*( 1.0 + rCoordinates[0] )*( 1.0 + rCoordinates[1] );
         rResult[3] =  0.25*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] );
-            
+
         return rResult;
     }
 
@@ -1309,9 +1309,9 @@ public:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    Matrix& ShapeFunctionsLocalGradients( 
+    Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
-        const CoordinatesArrayType& rPoint 
+        const CoordinatesArrayType& rPoint
         ) const override
     {
         rResult.resize( 4, 2, false );
@@ -1336,9 +1336,9 @@ public:
      * shape functions in given point
      * @param rPoint the given point the gradients are calculated in
      */
-    virtual Matrix& ShapeFunctionsGradients( 
-        Matrix& rResult, 
-        PointType& rPoint 
+    virtual Matrix& ShapeFunctionsGradients(
+        Matrix& rResult,
+        PointType& rPoint
         )
     {
         rResult.resize( 4, 2, false );
@@ -1359,9 +1359,9 @@ public:
      * @param rResult a third order tensor which contains the second derivatives
      * @param rPoint the given point the second order derivatives are calculated in
      */
-    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( 
-        ShapeFunctionsSecondDerivativesType& rResult, 
-        const CoordinatesArrayType& rPoint 
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives(
+        ShapeFunctionsSecondDerivativesType& rResult,
+        const CoordinatesArrayType& rPoint
         ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
@@ -1402,9 +1402,9 @@ public:
      * @param rResult a fourth order tensor which contains the third derivatives
      * @param rPoint the given point the third order derivatives are calculated in
      */
-    ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( 
-        ShapeFunctionsThirdDerivativesType& rResult, 
-        const CoordinatesArrayType& rPoint 
+    ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives(
+        ShapeFunctionsThirdDerivativesType& rResult,
+        const CoordinatesArrayType& rPoint
         ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
@@ -1496,7 +1496,7 @@ private:
     ///@{
 
     /**
-     * @brief Returns the local coordinates of a given arbitrary point 
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
@@ -1570,7 +1570,7 @@ private:
 
         return rResult;
     }
-    
+
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1802,5 +1802,4 @@ GeometryData Quadrilateral3D4<TPointType>::msGeometryData(
 );
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined 
-
+#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined

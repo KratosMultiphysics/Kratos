@@ -57,8 +57,8 @@ namespace Kratos {
         /// Destructor.
 
         virtual ~ContinuumExplicitSolverStrategy() {
-            Timer::SetOuputFile("TimesPartialRelease");
-            Timer::PrintTimingInformation();
+            //Timer::SetOuputFile("TimesPartialRelease");
+            //Timer::PrintTimingInformation();
         }
 
         virtual void Initialize() override;
