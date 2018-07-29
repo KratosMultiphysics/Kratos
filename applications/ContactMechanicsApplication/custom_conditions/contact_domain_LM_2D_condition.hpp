@@ -37,7 +37,7 @@ namespace Kratos
 ///@{
 
 
-class ContactDomainLM2DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ContactDomainLM2DCondition
     : public ContactDomainCondition
 {
 public:
@@ -58,8 +58,8 @@ public:
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
-	
-    ///Tensor order 1 definition   
+
+    ///Tensor order 1 definition
     typedef ContactDomainUtilities::PointType             PointType;
     ///SurfaceVector
     typedef ContactDomainUtilities::SurfaceVector      SurfaceVector;
@@ -112,11 +112,14 @@ public:
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    //************* GETTING METHODS
-
-
-    //************* COMPUTING  METHODS
-
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
     //************************************************************************************
@@ -176,7 +179,7 @@ protected:
      * Calculate Tau stabilization or Penalty factor
      */
     void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo) override;
-	
+
 
     /**
      * Calculation of the Contact Previous Gap
@@ -311,4 +314,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_CONTACT_DOMAIN_LM_2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_CONTACT_DOMAIN_LM_2D_CONDITION_H_INCLUDED  defined

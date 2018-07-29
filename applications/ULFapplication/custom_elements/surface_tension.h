@@ -25,14 +25,19 @@
 #include <ctime>
 #include <stdlib.h>
 #include <iomanip>
+#include <math.h>
 
 
 // External includes
-//#include "boost/smart_ptr.hpp"
+// #include "boost/smart_ptr.hpp"
 
 
 
 // Project includes
+#include <pybind11/pybind11.h>
+#include "includes/define.h"
+#include "includes/define_python.h"
+
 #include "containers/array_1d.h"
 
 #include "includes/checks.h"
@@ -40,12 +45,13 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
-#include "includes/variables.h"
 #include "ULF_application_variables.h"
+#include "includes/variables.h"
+// #include "ULF_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/deprecated_variables.h"
-#include "boost/make_shared.hpp"
+// #include "boost/make_shared.hpp"
 
 namespace Kratos
 {
@@ -126,7 +132,7 @@ public:
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
      typedef array_1d<double, TNumNodes> ShapeFunctionsType;
-     typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
+     typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
 
     ///@}
     ///@name Life Cycle
@@ -171,7 +177,7 @@ public:
     {}
 
     /// Destructor.
-     virtual ~SurfaceTension()
+    ~SurfaceTension() override
     {}
 
 
@@ -193,19 +199,19 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
 	
-        return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         
         //return Element::Pointer(new SurfaceTension(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
     
       Element::Pointer Create(IndexType NewId,
                              GeometryType::Pointer pGeom,
-                             PropertiesType::Pointer pProperties) const
+                             PropertiesType::Pointer pProperties) const override
       {
-          return boost::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, pGeom, pProperties);
+          return Kratos::make_shared< SurfaceTension<TDim, TNumNodes> >(NewId, pGeom, pProperties);
       }
 
     /// Provides local contributions from body forces and OSS projection terms
@@ -218,9 +224,9 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -239,8 +245,8 @@ public:
      * @param rLeftHandSideMatrix Local matrix, will be filled with zeros
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -260,8 +266,8 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance from the ModelPart. It is
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -274,7 +280,7 @@ public:
         // Calculate this element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -309,7 +315,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -322,7 +328,7 @@ public:
         // Get the element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -364,9 +370,9 @@ public:
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -380,7 +386,7 @@ public:
         // Get this element's geometric properties
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -462,8 +468,22 @@ public:
 		  k++;
 	      }
 	    }	  
-	    
+	    if(k >= 3)
+	      this->ApplySurfaceTensionContribution3D(rDampingMatrix, rRightHandSideVector, node_indx, k, rCurrentProcessInfo);
 	}
+	
+	
+	// Viscous stress
+	k = 0;
+	for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+	{
+	  if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_WATER) == 0.0)
+	  {
+	    k++;
+	  }
+	}
+	if(TDim < 3 && k > 2)
+	    this->AddViscousStress2D();
 
         // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
         VectorType U = ZeroVector(LocalSize);
@@ -484,7 +504,7 @@ public:
         noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
     }
 
@@ -501,9 +521,9 @@ public:
      * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
      * @see MarkForRefinement for a use of the error ratio
      */
-   virtual void Calculate(const Variable<double>& rVariable,
+   void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ERROR_RATIO)
         {
@@ -515,7 +535,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Carefully write results to nodal variables, to avoid parallelism problems
@@ -540,16 +560,16 @@ public:
      * @param Output Will be overwritten with the elemental momentum error
      * @param rCurrentProcessInfo Process info instance (unused)
      */
-   virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+   void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ADVPROJ) // Compute residual projections for OSS
         {
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
@@ -590,7 +610,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
@@ -657,30 +677,30 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult,
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList,
+                            ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0);
+    void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0);
+    void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**
@@ -692,9 +712,9 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Obtain a double elemental variable, evaluated on gauss points.
     /**
@@ -708,15 +728,15 @@ public:
      * @param Output Will be filled with the values of the variable on integrartion points
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable == TAU)
         {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double, 3 > AdvVel;
@@ -756,7 +776,7 @@ public:
         {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             rValues.resize(1, false);
@@ -766,7 +786,7 @@ public:
         {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double, 3 > AdvVel;
@@ -843,21 +863,21 @@ public:
     }
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-   virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+   void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     ///@}
@@ -877,7 +897,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -1084,9 +1104,9 @@ protected:
                                     const double TauOne,
                                     const double TauTwo,
                                     const array_1d<double, TNumNodes>& rShapeFunc,
-                                    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                                    const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                                     const double Weight,
-                                    const double DeltaTime = 1.0)
+                                    const double DeltaTime = 1.0) 
     {
         const unsigned int BlockSize = TDim + 1;
 
@@ -1188,7 +1208,7 @@ protected:
                           const array_1d<double, 3 > & rAdvVel,
                           const double TauOne,
                           const array_1d<double, TNumNodes>& rShapeFunc,
-                          const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                          const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                           const double Weight)
     {
         const unsigned int BlockSize = TDim + 1;
@@ -1234,7 +1254,7 @@ protected:
             const double TauOne,
             const double TauTwo,
             const array_1d< double, TNumNodes >& rShapeFunc,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+            const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
             const double Weight)
     {
         const unsigned int BlockSize = TDim + 1;
@@ -1331,6 +1351,13 @@ protected:
     {
 	const double gamma = rCurrentProcessInfo[SURFACE_TENSION_COEF]; //surface tension coefficient between air and water [N m-1]	
 	
+	//adding dissipative_forces varialbes
+        double zeta_dissapative_JM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_JM];
+        double zeta_dissapative_BM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_BM];
+        double zeta_dissapative_SM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_SM];
+// 	double gamma_sl = rCurrentProcessInfo[SOLID_LIQIUD_SURFTENS_COEFF];
+// 	double gamma_sv = rCurrentProcessInfo[SOLID_AIR_SURFTENS_COEFF];
+	
 	double dt = rCurrentProcessInfo[DELTA_TIME];
 	
 	double theta_s = rCurrentProcessInfo[CONTACT_ANGLE_STATIC];
@@ -1381,6 +1408,7 @@ protected:
 	    jj = node_indx[1];
 	
 	    if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+//             if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
 	    {
 		  ii = node_indx[1];
 		  jj = node_indx[0];	    
@@ -1536,9 +1564,9 @@ protected:
 	array_1d<double,2> norm_eq;
 	
 	//elemental variables for the laplacian
-	boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;
+	BoundedMatrix<double,3,3> msWorkMatrix;
         msWorkMatrix = ZeroMatrix(3,3);
-	boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
+	BoundedMatrix<double,3,2> msDN_Dx;
         msDN_Dx = ZeroMatrix(3,2);
 	array_1d<double,3> msN; //dimension = number of nodes
         msN = ZeroVector(3);
@@ -1582,14 +1610,46 @@ protected:
 		  double coef = 1.0;
 		  //MODEL 1 - contact angle condition with vector tangent to the surface:
 		  rRightHandSideVector[3*ii] 	-= coef*gamma*(m[0]-x12[0]);
- 		  rRightHandSideVector[3*ii+1]	-= coef*gamma*(m[1]-x12[1]);    
+ 		  rRightHandSideVector[3*ii+1]	-= coef*gamma*(m[1]-x12[1]);
  		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) = -coef*gamma*(m[0] - x12[0]);
- 		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef*gamma*(m[1] - x12[1]);		  	  
+	  	  
+//  		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef*gamma*(m[1] - x12[1]);
 		  
-
+		  //start of adding dissipative force: where v_clx here is the x_velocity at the contact line; and v_cly is the y_velocity at the contact line
+                  double v_clx = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X);
+                  double v_cly = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_Y);
+//          
+                  double mu;
+                  mu  = this->GetGeometry()[ii].FastGetSolutionStepValue(VISCOSITY);
+                
+                  //capillary
+		  double v_clx_abs = fabs (v_clx);
+		  double v_cly_abs = fabs (v_cly) ;
 		  
-  	  
-		  
+                  double cap_x   =  mu *  v_clx_abs / gamma;
+                  double cap_y   =  mu *  v_cly_abs / gamma;
+                  // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
+                  rRightHandSideVector[3*ii]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_x,0.702)); 
+                  rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_y,0.702)); 
+//                 
+//                   // using Bracke's model : gamma 2.24 ca ^(0.54)
+                  rRightHandSideVector[3*ii]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_x,0.54); 
+                  rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_y,0.54); 
+//                 
+//                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+                  double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y));
+                  if (cap > 0.01)
+                  {
+                    rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_x,0.54); 
+                    rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_y,0.54);  
+                  }
+                  else
+                  {
+                    rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_x,0.42); 
+                    rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_y,0.42);  
+                  }
+                  // end of adding disppative force
+                  
 	      }
 	      else
 	      {
@@ -1666,6 +1726,762 @@ protected:
 	}
     }
     
+    
+    void ApplySurfaceTensionContribution3D(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector,
+            const array_1d< double, 4 >& node_indx, const int& k, const ProcessInfo& rCurrentProcessInfo)
+    {
+	double dt = rCurrentProcessInfo[DELTA_TIME];
+	double gamma = rCurrentProcessInfo[SURFACE_TENSION_COEF];
+	double theta_s = rCurrentProcessInfo[CONTACT_ANGLE_STATIC];
+	
+	//Flag counter to identify contact element:
+	double flag_surf = 0.0;
+	flag_surf += this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE);
+	flag_surf += this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE);
+	flag_surf += this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_FREE_SURFACE);
+	flag_surf += this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(IS_FREE_SURFACE);
+	double flag_trip = 0.0;
+	flag_trip += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	flag_trip += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	flag_trip += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	flag_trip += (this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
+	double flag_struct = 0.0;
+	flag_struct += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	
+	int ii = 5;
+	int jj = 6;
+	int kk = 7;
+	int ll = 8;
+	double avg_curv = 0.0;
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//Set the indexes as follows:
+	// node "ii" and "jj" -> triple point, if the element has (at least) two (those with one are not taken into account)
+	// node "kk" -> node with flag either TRIPLE_POINT (corner element) or IS_FREE_SURFACE
+	// node "ll" -> in elements with 4 nodes at the boundary:
+	//		- if "ii" and "jj" are TRIPLE_POINT, "ll" has flag IS_STRUCTURE (besides IS_FREE_SURFACE)
+	//		- if there is no TRIPLE_POINT, "ll" is another IS_FREE_SURFACE node
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if(k == 3) //General element with three nodes at the interface
+	{
+	    //Step to detect triple point. Nodes with index ii and jj are TRIPLE_POINT, and node with index kk is IS_FREE_SURFACE
+	    ii = node_indx[0];
+	    jj = node_indx[1];
+	    kk = node_indx[2];
+	
+	    if(flag_trip == 1)
+	    {
+	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
+//               if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
+	      {
+		  ii = node_indx[1];
+		  jj = node_indx[0];
+	      }
+	      if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
+//               if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
+	      {
+		  ii = node_indx[2];
+		  kk = node_indx[0];
+	      }	      
+	    }
+	    if(flag_trip > 1)
+	    {
+	      if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+//               if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))  < 1e-15 )
+	      {
+		  ii = node_indx[1];
+		  jj = node_indx[2];
+		  kk = node_indx[0];
+	      }
+	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+//               if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
+	      {
+		  jj = node_indx[2];
+		  kk = node_indx[1];
+	      }	     	      
+	    }
+	}
+	else //Element with four nodes at the free surface OR one at free surface, two triple point and one at the structure OR one at free surface and three triple points
+	{
+	  ii = node_indx[0];
+	  jj = node_indx[1];
+	  kk = node_indx[2];
+	  ll = node_indx[3];
+	  if(flag_trip == 0.0) //four nodes at interface
+//           if(flag_trip < 1e-15)
+	  {
+	    if(flag_struct == 0.0) //four nodes that are free surface
+//             if(flag_struct < 1e-15)
+	    {
+	      for(int i = 0; i < 4; i++)
+	      {
+		avg_curv += 0.25*(this->GetGeometry()[i].FastGetSolutionStepValue(MEAN_CURVATURE_3D));
+	      }
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > avg_curv)
+	      {
+		ii = node_indx[0];
+		jj = node_indx[1];
+		kk = node_indx[2];
+		ll = node_indx[3];
+	      }
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > avg_curv)
+	      {
+		ii = node_indx[1];
+		jj = node_indx[0];
+		kk = node_indx[2];
+		ll = node_indx[3];
+	      }
+	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > avg_curv)
+	      {
+		ii = node_indx[2];
+		jj = node_indx[0];
+		kk = node_indx[1];
+		ll = node_indx[3];
+	      }
+	      if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > avg_curv)
+	      {
+		ii = node_indx[3];
+		jj = node_indx[0];
+		kk = node_indx[1];
+		ll = node_indx[2];
+	      }	      
+	    }
+	    else //first time step, TRIPLE_POINT has not been set yet, but the element has three IS_STRUCTURE nodes
+	    {
+	      //OPTION 1
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		kk = node_indx[0];
+		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[1]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[2]; //TRIPLE_POINT
+		    ll = node_indx[3]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[3]; //TRIPLE_POINT
+		    ll = node_indx[2]; //IS_STRUCTURE
+		  }		  
+		}
+		if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[2]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[1]; //TRIPLE_POINT
+		    ll = node_indx[3]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[3]; //TRIPLE_POINT
+		    ll = node_indx[1]; //IS_STRUCTURE
+		  }		  
+		}
+		if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[3]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[1]; //TRIPLE_POINT
+		    ll = node_indx[2]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[2]; //TRIPLE_POINT
+		    ll = node_indx[1]; //IS_STRUCTURE
+		  }		  
+		}		
+	      }
+	      
+	      //OPTION 2
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		kk = node_indx[1];
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[0]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[2]; //TRIPLE_POINT
+		    ll = node_indx[3]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[3]; //TRIPLE_POINT
+		    ll = node_indx[2]; //IS_STRUCTURE
+		  }		  
+		}
+		if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[2]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[0]; //TRIPLE_POINT
+		    ll = node_indx[3]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[3]; //TRIPLE_POINT
+		    ll = node_indx[0]; //IS_STRUCTURE
+		  }		  
+		}
+		if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[3]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[0]; //TRIPLE_POINT
+		    ll = node_indx[2]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[2]; //TRIPLE_POINT
+		    ll = node_indx[0]; //IS_STRUCTURE
+		  }		  
+		}		
+	      }
+	      
+	      //OPTION 3
+	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		kk = node_indx[2];
+		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[1]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[0]; //TRIPLE_POINT
+		    ll = node_indx[3]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[3]; //TRIPLE_POINT
+		    ll = node_indx[0]; //IS_STRUCTURE
+		  }		  
+		}
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[0]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[1]; //TRIPLE_POINT
+		    ll = node_indx[3]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[3]; //TRIPLE_POINT
+		    ll = node_indx[1]; //IS_STRUCTURE
+		  }		  
+		}
+		if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[3]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[1]; //TRIPLE_POINT
+		    ll = node_indx[0]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[0]; //TRIPLE_POINT
+		    ll = node_indx[1]; //IS_STRUCTURE
+		  }		  
+		}		
+	      }
+	      
+	      //OPTION 4
+	      if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+	      {
+		kk = node_indx[3];
+		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[1]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[2]; //TRIPLE_POINT
+		    ll = node_indx[0]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[0]; //TRIPLE_POINT
+		    ll = node_indx[2]; //IS_STRUCTURE
+		  }		  
+		}
+		if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[2]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[1]; //TRIPLE_POINT
+		    ll = node_indx[0]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[0]; //TRIPLE_POINT
+		    ll = node_indx[1]; //IS_STRUCTURE
+		  }		  
+		}
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		{
+		  ii = node_indx[0]; //TRIPLE_POINT
+		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[1]; //TRIPLE_POINT
+		    ll = node_indx[2]; //IS_STRUCTURE
+		  }
+		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
+		  {
+		    jj = node_indx[2]; //TRIPLE_POINT
+		    ll = node_indx[1]; //IS_STRUCTURE
+		  }		  
+		}		
+	      }	      
+	      
+	    }
+	  }
+	  if (flag_trip == 2) //Element has two nodes with TRIPLE_POINT (those with one are not taken into accounts)
+	  {
+	    //OPTION 1
+	    if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[0];
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		jj = node_indx[1];
+		if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+		{
+		  kk = node_indx[2]; //IS_FREE_SURFACE
+		  ll = node_indx[3]; //IS_STRUCTURE
+		}
+		else
+		{
+		  kk = node_indx[3]; //IS_FREE_SURFACE
+		  ll = node_indx[2]; //IS_STRUCTURE		  
+		}
+	      }
+	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		jj = node_indx[2];
+		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+		{
+		  kk = node_indx[1]; //IS_FREE_SURFACE
+		  ll = node_indx[3]; //IS_STRUCTURE
+		}
+		else
+		{
+		  kk = node_indx[3]; //IS_FREE_SURFACE
+		  ll = node_indx[1]; //IS_STRUCTURE		  
+		}
+	      }	      
+	      if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		jj = node_indx[3];
+		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+		{
+		  kk = node_indx[1]; //IS_FREE_SURFACE
+		  ll = node_indx[2]; //IS_STRUCTURE
+		}
+		else
+		{
+		  kk = node_indx[2]; //IS_FREE_SURFACE
+		  ll = node_indx[1]; //IS_STRUCTURE		  
+		}
+	      }	      	      
+	    }
+	    //OPTION 2
+	    if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[1];
+	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		jj = node_indx[2];
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+		{
+		  kk = node_indx[0]; //IS_FREE_SURFACE
+		  ll = node_indx[3]; //IS_STRUCTURE
+		}
+		else
+		{
+		  kk = node_indx[3]; //IS_FREE_SURFACE
+		  ll = node_indx[0]; //IS_STRUCTURE		  
+		}
+	      }
+	      if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		jj = node_indx[3];
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+		{
+		  kk = node_indx[0]; //IS_FREE_SURFACE
+		  ll = node_indx[2]; //IS_STRUCTURE
+		}
+		else
+		{
+		  kk = node_indx[2]; //IS_FREE_SURFACE
+		  ll = node_indx[0]; //IS_STRUCTURE		  
+		}
+	      }	      	      	      
+	    }
+	    //OPTION 3
+	    if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[2];
+	      if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		jj = node_indx[3];
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+		{
+		  kk = node_indx[0]; //IS_FREE_SURFACE
+		  ll = node_indx[1]; //IS_STRUCTURE
+		}
+		else
+		{
+		  kk = node_indx[1]; //IS_FREE_SURFACE
+		  ll = node_indx[0]; //IS_STRUCTURE		  
+		}
+	      }	      	      
+	    }	    
+	  }
+	  if (flag_trip == 3) //Element has three nodes with TRIPLE_POINT (those with one are not taken into account)
+	  {
+	    //OPTION 1
+	    if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {
+	      ii = node_indx[0];
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      {
+		jj = node_indx[1];
+		if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+		{
+		  kk = node_indx[2]; //TRIPLE_POINT
+		  ll = node_indx[3]; //IS_FREE_SURFACE
+		}
+		else
+		{
+		  kk = node_indx[3]; //TRIPLE_POINT
+		  ll = node_indx[2]; //IS_FREE_SURFACE
+		}
+	      }
+	      else //if second node is not triple point, the only option is that the rest are triple points and this one is free surface
+	      {
+		jj = node_indx[2];
+		kk = node_indx[3];
+		ll = node_indx[1];
+	      }
+	    }
+	    else //if first node is not triple point, the only option is that the rest are triple points and this one is free surface
+	    {
+	      ii = node_indx[1];
+	      jj = node_indx[2];
+	      kk = node_indx[3];
+	      ll = node_indx[0];
+	    }
+	  }
+	}
+	
+	array_1d<double,3> An1 = this->GetGeometry()[ii].FastGetSolutionStepValue(NORMAL_GEOMETRIC);
+	array_1d<double,3> An2 = this->GetGeometry()[jj].FastGetSolutionStepValue(NORMAL_GEOMETRIC);
+	array_1d<double,3> An3 = this->GetGeometry()[kk].FastGetSolutionStepValue(NORMAL_GEOMETRIC);
+	
+	array_1d<double,3> m1 = - this->GetGeometry()[ii].FastGetSolutionStepValue(NORMAL_CONTACT_LINE) + this->GetGeometry()[ii].FastGetSolutionStepValue(NORMAL_CONTACT_LINE_EQUILIBRIUM);
+	array_1d<double,3> m2 = - this->GetGeometry()[jj].FastGetSolutionStepValue(NORMAL_CONTACT_LINE) + this->GetGeometry()[jj].FastGetSolutionStepValue(NORMAL_CONTACT_LINE_EQUILIBRIUM);
+	array_1d<double,3> m3 = - this->GetGeometry()[kk].FastGetSolutionStepValue(NORMAL_CONTACT_LINE) + this->GetGeometry()[kk].FastGetSolutionStepValue(NORMAL_CONTACT_LINE_EQUILIBRIUM);
+	
+	double fsign1 = this->GetGeometry()[ii].FastGetSolutionStepValue(CONTACT_ANGLE) - theta_s;
+	fsign1 = 1.0;//fsign1/sqrt(fsign1*fsign1);
+	double fsign2 = this->GetGeometry()[jj].FastGetSolutionStepValue(CONTACT_ANGLE) - theta_s;
+	fsign2 = 1.0;//fsign2/sqrt(fsign2*fsign2);
+	double fsign3 = this->GetGeometry()[kk].FastGetSolutionStepValue(CONTACT_ANGLE) - theta_s;
+	fsign3 = 1.0;//fsign3/sqrt(fsign3*fsign3);
+    	
+	//Check if there is a node with TRIPLE_POINT flag which shouldn't be
+	if (flag_trip == 3)
+	{
+	    double temp = 0.0;
+	    array_1d<double,3> vec_temp = ZeroVector(3);
+	    for(unsigned int i_node = 0; i_node < 4; ++i_node)
+	    {
+		vec_temp = this->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL);
+		NormalizeVec3D(vec_temp);
+		temp = -(vec_temp[2]);
+		if ( temp > 0.99 && this->GetGeometry()[i_node].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+		    this->GetGeometry()[i_node].FastGetSolutionStepValue(TRIPLE_POINT) = 0.0;
+	    }
+	}
+	
+	double curv1 = this->GetGeometry()[ii].FastGetSolutionStepValue(MEAN_CURVATURE_3D);
+	double curv2 = this->GetGeometry()[jj].FastGetSolutionStepValue(MEAN_CURVATURE_3D);
+	double curv3 = this->GetGeometry()[kk].FastGetSolutionStepValue(MEAN_CURVATURE_3D);
+	
+	double nlen1 = this->GetGeometry()[ii].FastGetSolutionStepValue(NODAL_LENGTH);
+	double nlen2 = this->GetGeometry()[jj].FastGetSolutionStepValue(NODAL_LENGTH);
+	double nlen3 = this->GetGeometry()[kk].FastGetSolutionStepValue(NODAL_LENGTH);
+
+	double x1 = this->GetGeometry()[ii].X();
+	double y1 = this->GetGeometry()[ii].Y();
+	double z1 = this->GetGeometry()[ii].Z();
+	double x2 = this->GetGeometry()[jj].X();
+	double y2 = this->GetGeometry()[jj].Y();
+	double z2 = this->GetGeometry()[jj].Z();
+	double x3 = this->GetGeometry()[kk].X();
+	double y3 = this->GetGeometry()[kk].Y();
+	double z3 = this->GetGeometry()[kk].Z();
+	
+	array_1d<double,3> r12 = Vector3D(x1,y1,z1,x2,y2,z2);
+	array_1d<double,3> r13 = Vector3D(x1,y1,z1,x3,y3,z3);
+	array_1d<double,3> r23 = Vector3D(x2,y2,z2,x3,y3,z3);
+	array_1d<double,3> cprod = CrossProduct3D(r12,r13);
+	double area_tr = 0.5*Norm3D(cprod);
+	
+
+	
+	//elemental variables for the laplacian
+	BoundedMatrix<double,4,4> msWorkMatrix = ZeroMatrix(4,4);
+	BoundedMatrix<double,4,3> msDN_Dx = ZeroMatrix(4,3);
+	array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
+	double Volume;
+	GeometryUtils::CalculateGeometryData(this->GetGeometry(),msDN_Dx,msN,Volume);
+	// 4 by 4 matrix that stores the laplacian
+ 	msWorkMatrix = 0.333333333333 * gamma * area_tr * prod(msDN_Dx,trans(msDN_Dx)) * dt;
+	
+	double coef_i = 0.333333333333; // 0.333333333333 | (1/num_neighs_i) | 1.0/(num_neighs_i-1)
+	double coef_j = 0.333333333333; // 0.333333333333 | (1/num_neighs_j) | 1.0/(num_neighs_j-1)
+	double coef_k = 0.333333333333; // 0.333333333333 | (1/num_neighs_k) | 1.0/(num_neighs_k-1)
+	
+        if(flag_trip == 0)
+//         if(flag_trip < 1e-15)
+	{
+	  rRightHandSideVector[4*ii]   -= coef_i*gamma*curv1*An1[0]*area_tr;
+	  rRightHandSideVector[4*ii+1] -= coef_i*gamma*curv1*An1[1]*area_tr;
+	  rRightHandSideVector[4*ii+2] -= coef_i*gamma*curv1*An1[2]*area_tr;
+	  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) = -coef_i*gamma*curv1*An1[0]*area_tr;
+	  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef_i*gamma*curv1*An1[1]*area_tr;
+	  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Z) = -coef_i*gamma*curv1*An1[2]*area_tr;
+
+	  rRightHandSideVector[4*jj]   -= coef_j*gamma*curv2*An2[0]*area_tr;
+	  rRightHandSideVector[4*jj+1] -= coef_j*gamma*curv2*An2[1]*area_tr;
+	  rRightHandSideVector[4*jj+2] -= coef_j*gamma*curv2*An2[2]*area_tr;
+	  this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE_X) = -coef_j*gamma*curv2*An2[0]*area_tr;
+	  this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE_Y) = -coef_j*gamma*curv2*An2[1]*area_tr;
+	  this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE_Z) = -coef_j*gamma*curv2*An2[2]*area_tr;
+
+	  rRightHandSideVector[4*kk]   -= coef_k*gamma*curv3*An3[0]*area_tr;
+	  rRightHandSideVector[4*kk+1] -= coef_k*gamma*curv3*An3[1]*area_tr;
+	  rRightHandSideVector[4*kk+2] -= coef_k*gamma*curv3*An3[2]*area_tr;
+	  this->GetGeometry()[kk].FastGetSolutionStepValue(FORCE_X) = -coef_k*gamma*curv3*An3[0]*area_tr;
+	  this->GetGeometry()[kk].FastGetSolutionStepValue(FORCE_Y) = -coef_k*gamma*curv3*An3[1]*area_tr;
+	  this->GetGeometry()[kk].FastGetSolutionStepValue(FORCE_Z) = -coef_k*gamma*curv3*An3[2]*area_tr;
+	}
+	
+	double beta = 1.0;
+	if(flag_trip >= 1)
+	{
+	  if(this->GetGeometry()[ii].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	  {
+	    coef_i = 0.5;
+	    rRightHandSideVector[4*ii]   -= coef_i*beta*fsign1*(gamma*m1[0]*nlen1);// + this->GetGeometry()[ii].FastGetSolutionStepValue(ADHESION_FORCE_X));
+	    rRightHandSideVector[4*ii+1] -= coef_i*beta*fsign1*(gamma*m1[1]*nlen1);// + this->GetGeometry()[ii].FastGetSolutionStepValue(ADHESION_FORCE_Y));
+	    rRightHandSideVector[4*ii+2] -= coef_i*beta*fsign1*(gamma*m1[2]*nlen1);// + this->GetGeometry()[ii].FastGetSolutionStepValue(ADHESION_FORCE_Z));
+	    this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE) = -coef_i*beta*fsign1*(gamma*m1*nlen1);
+            // + this->GetGeometry()[ii].FastGetSolutionStepValue(ADHESION_FORCE_X));
+            
+            
+	    rDampingMatrix(4*ii,4*ii)     += 0.5*gamma*dt*msN[ii]*msN[ii]*nlen1 - msWorkMatrix(ii,ii);
+	    rDampingMatrix(4*ii+1,4*ii+1) += 0.5*gamma*dt*msN[ii]*msN[ii]*nlen1 - msWorkMatrix(ii,ii);
+	    rDampingMatrix(4*ii+2,4*ii+2) += 0.5*gamma*dt*msN[ii]*msN[ii]*nlen1 - msWorkMatrix(ii,ii);
+	    rDampingMatrix(4*ii,4*jj)     += 0.5*gamma*dt*msN[ii]*msN[jj]*0.5*(nlen1 + nlen2) - msWorkMatrix(ii,jj);
+	    rDampingMatrix(4*ii+1,4*jj+1) += 0.5*gamma*dt*msN[ii]*msN[jj]*0.5*(nlen1 + nlen2) - msWorkMatrix(ii,jj);
+	    rDampingMatrix(4*ii+2,4*jj+2) += 0.5*gamma*dt*msN[ii]*msN[jj]*0.5*(nlen1 + nlen2) - msWorkMatrix(ii,jj);	    
+	  }
+	  else
+	  {
+	    rRightHandSideVector[4*ii]   -= coef_i*beta*gamma*curv1*An1[0]*area_tr;
+	    rRightHandSideVector[4*ii+1] -= coef_i*beta*gamma*curv1*An1[1]*area_tr;
+	    rRightHandSideVector[4*ii+2] -= coef_i*beta*gamma*curv1*An1[2]*area_tr;
+	    this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) = -coef_i*beta*gamma*curv1*An1[0]*area_tr;
+	    this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef_i*beta*gamma*curv1*An1[1]*area_tr;
+	    this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Z) = -coef_i*beta*gamma*curv1*An1[2]*area_tr;
+	  }
+	  
+// 	  beta = 1.0;
+	  if(this->GetGeometry()[jj].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	  {	    
+	    coef_j = 0.5;
+	    rRightHandSideVector[4*jj]   -= coef_j*beta*fsign2*(gamma*m2[0]*nlen2);// + this->GetGeometry()[jj].FastGetSolutionStepValue(ADHESION_FORCE_X));
+	    rRightHandSideVector[4*jj+1] -= coef_j*beta*fsign2*(gamma*m2[1]*nlen2);// + this->GetGeometry()[jj].FastGetSolutionStepValue(ADHESION_FORCE_Y));
+	    rRightHandSideVector[4*jj+2] -= coef_j*beta*fsign2*(gamma*m2[2]*nlen2);// + this->GetGeometry()[jj].FastGetSolutionStepValue(ADHESION_FORCE_Z));
+	    this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE) = -coef_j*beta*fsign2*(gamma*m2*nlen2);// + this->GetGeometry()[jj].FastGetSolutionStepValue(ADHESION_FORCE_X));
+	    
+	    rDampingMatrix(4*jj,4*jj)     += 0.5*gamma*dt*msN[jj]*msN[jj]*nlen2 - msWorkMatrix(jj,jj);
+	    rDampingMatrix(4*jj+1,4*jj+1) += 0.5*gamma*dt*msN[jj]*msN[jj]*nlen2 - msWorkMatrix(jj,jj);
+	    rDampingMatrix(4*jj+2,4*jj+2) += 0.5*gamma*dt*msN[jj]*msN[jj]*nlen2 - msWorkMatrix(jj,jj);
+	    rDampingMatrix(4*jj,4*ii)     += 0.5*gamma*dt*msN[jj]*msN[ii]*0.5*(nlen1 + nlen2) - msWorkMatrix(jj,ii);
+	    rDampingMatrix(4*jj+1,4*ii+1) += 0.5*gamma*dt*msN[jj]*msN[ii]*0.5*(nlen1 + nlen2) - msWorkMatrix(jj,ii);
+	    rDampingMatrix(4*jj+2,4*ii+2) += 0.5*gamma*dt*msN[jj]*msN[ii]*0.5*(nlen1 + nlen2) - msWorkMatrix(jj,ii);	    
+	  }  
+	  else
+	  {
+	    rRightHandSideVector[4*jj]   -= coef_j*beta*gamma*curv2*An2[0]*area_tr;
+	    rRightHandSideVector[4*jj+1] -= coef_j*beta*gamma*curv2*An2[1]*area_tr;
+	    rRightHandSideVector[4*jj+2] -= coef_j*beta*gamma*curv2*An2[2]*area_tr;
+	    this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE_X) = -coef_j*beta*gamma*curv2*An2[0]*area_tr;
+	    this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE_Y) = -coef_j*beta*gamma*curv2*An2[1]*area_tr;
+	    this->GetGeometry()[jj].FastGetSolutionStepValue(FORCE_Z) = -coef_j*beta*gamma*curv2*An2[2]*area_tr;	 	    
+	  }
+
+// 	  beta = 1.0;
+	  if(this->GetGeometry()[kk].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	  {    
+	    coef_k = 0.5;
+	    rRightHandSideVector[4*kk]   -= coef_k*beta*fsign3*(gamma*m3[0]*nlen3);// + this->GetGeometry()[kk].FastGetSolutionStepValue(ADHESION_FORCE_X));
+	    rRightHandSideVector[4*kk+1] -= coef_k*beta*fsign3*(gamma*m3[1]*nlen3);// + this->GetGeometry()[kk].FastGetSolutionStepValue(ADHESION_FORCE_Y));
+	    rRightHandSideVector[4*kk+2] -= coef_k*beta*fsign3*(gamma*m3[2]*nlen3);// + this->GetGeometry()[kk].FastGetSolutionStepValue(ADHESION_FORCE_Z));
+	    this->GetGeometry()[kk].FastGetSolutionStepValue(FORCE_X) = -coef_k*beta*fsign3*(gamma*m3[0]*nlen3);// + this->GetGeometry()[kk].FastGetSolutionStepValue(ADHESION_FORCE_X));
+	    this->GetGeometry()[kk].FastGetSolutionStepValue(FORCE_Y) = -coef_k*beta*fsign3*(gamma*m3[1]*nlen3);// + this->GetGeometry()[kk].FastGetSolutionStepValue(ADHESION_FORCE_Y));
+	    this->GetGeometry()[kk].FastGetSolutionStepValue(FORCE_Z) = -coef_k*beta*fsign3*(gamma*m3[2]*nlen3);// + this->GetGeometry()[kk].FastGetSolutionStepValue(ADHESION_FORCE_Z));
+	  }
+	  else
+	  {
+	    rRightHandSideVector[4*kk]   -= coef_k*beta*gamma*curv3*An3[0]*area_tr;
+	    rRightHandSideVector[4*kk+1] -= coef_k*beta*gamma*curv3*An3[1]*area_tr;
+	    rRightHandSideVector[4*kk+2] -= coef_k*beta*gamma*curv3*An3[2]*area_tr;
+	    this->GetGeometry()[kk].FastGetSolutionStepValue(FORCE_X) = -coef_k*beta*gamma*curv3*An3[0]*area_tr;
+	    this->GetGeometry()[kk].FastGetSolutionStepValue(FORCE_Y) = -coef_k*beta*gamma*curv3*An3[1]*area_tr;
+	    this->GetGeometry()[kk].FastGetSolutionStepValue(FORCE_Z) = -coef_k*beta*gamma*curv3*An3[2]*area_tr;		    	    
+	  }
+	}
+	
+	//Implicit treatment of surface tension
+	rDampingMatrix(4*ii,4*ii)     += msWorkMatrix(ii,ii);
+	rDampingMatrix(4*ii+1,4*ii+1) += msWorkMatrix(ii,ii);
+	rDampingMatrix(4*ii+2,4*ii+2) += msWorkMatrix(ii,ii);
+	
+	rDampingMatrix(4*ii,4*jj)     += msWorkMatrix(ii,jj);
+	rDampingMatrix(4*ii+1,4*jj+1) += msWorkMatrix(ii,jj);
+	rDampingMatrix(4*ii+2,4*jj+2) += msWorkMatrix(ii,jj);	
+	
+	rDampingMatrix(4*ii,4*kk)     += msWorkMatrix(ii,kk);
+	rDampingMatrix(4*ii+1,4*kk+1) += msWorkMatrix(ii,kk);
+	rDampingMatrix(4*ii+2,4*kk+2) += msWorkMatrix(ii,kk);	
+	
+	rDampingMatrix(4*jj,4*ii)     += msWorkMatrix(jj,ii);
+	rDampingMatrix(4*jj+1,4*ii+1) += msWorkMatrix(jj,ii);
+	rDampingMatrix(4*jj+2,4*ii+2) += msWorkMatrix(jj,ii);
+	
+	rDampingMatrix(4*kk,4*ii)     += msWorkMatrix(kk,ii);
+	rDampingMatrix(4*kk+1,4*ii+1) += msWorkMatrix(kk,ii);
+	rDampingMatrix(4*kk+2,4*ii+2) += msWorkMatrix(kk,ii);	
+	    
+	rDampingMatrix(4*jj,4*jj)     += msWorkMatrix(jj,jj);
+	rDampingMatrix(4*jj+1,4*jj+1) += msWorkMatrix(jj,jj);
+	rDampingMatrix(4*jj+2,4*jj+2) += msWorkMatrix(jj,jj);
+	
+	rDampingMatrix(4*jj,4*kk)     += msWorkMatrix(jj,kk);
+	rDampingMatrix(4*jj+1,4*kk+1) += msWorkMatrix(jj,kk);
+	rDampingMatrix(4*jj+2,4*kk+2) += msWorkMatrix(jj,kk);	
+	
+	rDampingMatrix(4*kk,4*jj)     += msWorkMatrix(kk,jj);
+	rDampingMatrix(4*kk+1,4*jj+1) += msWorkMatrix(kk,jj);
+	rDampingMatrix(4*kk+2,4*jj+2) += msWorkMatrix(kk,jj);	
+	
+	rDampingMatrix(4*kk,4*kk)     += msWorkMatrix(kk,kk);
+	rDampingMatrix(4*kk+1,4*kk+1) += msWorkMatrix(kk,kk);
+	rDampingMatrix(4*kk+2,4*kk+2) += msWorkMatrix(kk,kk);
+		
+	
+	if(k > 3 && ll != 8)
+	{
+	    array_1d<double,3> An4 = this->GetGeometry()[ll].FastGetSolutionStepValue(NORMAL_GEOMETRIC);
+	    array_1d<double,3> m4 = this->GetGeometry()[ll].FastGetSolutionStepValue(NORMAL_EQUILIBRIUM) - this->GetGeometry()[ll].FastGetSolutionStepValue(NORMAL_TRIPLE_POINT);	    
+	    
+	    double fsign4 = this->GetGeometry()[ll].FastGetSolutionStepValue(CONTACT_ANGLE) - theta_s;
+	    fsign4 = fsign4/abs(fsign4);	    
+	    
+	    int num_neighs_l = 0;
+	    WeakPointerVector< Node<3> >& neighb_l = this->GetGeometry()[ll].GetValue(NEIGHBOUR_NODES);
+	    for (unsigned int i = 0; i < neighb_l.size(); i++)
+	    {
+	      if (neighb_l[i].FastGetSolutionStepValue(IS_BOUNDARY) != 0.0)
+		num_neighs_l++;
+	    }	
+	    double coef_l = 0.333333333333; // 0.333333333333 | (1/num_neighs_l) | 1.0/(num_neighs_l-1)
+	    
+	    double curv4 = this->GetGeometry()[ll].FastGetSolutionStepValue(MEAN_CURVATURE_3D);
+	    double nlen4 = this->GetGeometry()[ll].FastGetSolutionStepValue(NODAL_LENGTH);
+	    
+// 	    beta = 1.0;
+	    if(this->GetGeometry()[ll].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    {    
+	      coef_l = 0.5;
+	      rRightHandSideVector[4*ll]   -= coef_l*beta*fsign4*(gamma*m4[0]*nlen4);// + this->GetGeometry()[ll].FastGetSolutionStepValue(ADHESION_FORCE_X));
+	      rRightHandSideVector[4*ll+1] -= coef_l*beta*fsign4*(gamma*m4[1]*nlen4);// + this->GetGeometry()[ll].FastGetSolutionStepValue(ADHESION_FORCE_Y));
+	      rRightHandSideVector[4*ll+2] -= coef_l*beta*fsign4*(gamma*m4[2]*nlen4);// + this->GetGeometry()[ll].FastGetSolutionStepValue(ADHESION_FORCE_Z));
+	      this->GetGeometry()[ll].FastGetSolutionStepValue(FORCE_X) = -coef_l*beta*fsign4*(gamma*m4[0]*nlen4);// + this->GetGeometry()[ll].FastGetSolutionStepValue(ADHESION_FORCE_X));
+	      this->GetGeometry()[ll].FastGetSolutionStepValue(FORCE_Y) = -coef_l*beta*fsign4*(gamma*m4[1]*nlen4);// + this->GetGeometry()[ll].FastGetSolutionStepValue(ADHESION_FORCE_Y));
+	      this->GetGeometry()[ll].FastGetSolutionStepValue(FORCE_Z) = -coef_l*beta*fsign4*(gamma*m4[2]*nlen4);// + this->GetGeometry()[ll].FastGetSolutionStepValue(ADHESION_FORCE_Z));
+	    }
+	    else
+	    {
+	      rRightHandSideVector[4*ll]   -= coef_l*beta*gamma*curv4*An4[0]*area_tr;
+	      rRightHandSideVector[4*ll+1] -= coef_l*beta*gamma*curv4*An4[1]*area_tr;
+	      rRightHandSideVector[4*ll+2] -= coef_l*beta*gamma*curv4*An4[2]*area_tr;
+	      this->GetGeometry()[ll].FastGetSolutionStepValue(FORCE) = -coef_l*beta*gamma*curv4*An4*area_tr;
+	    }
+        }
+	
+    } 
+    
+    /// Add the viscous stress to air domain in two dimensions
+    // AddViscousStress2D();
+    void AddViscousStress2D()
+    {
+	BoundedMatrix<double,3,2> DN_DX;
+	array_1d<double,3> N;
+	double Area;
+	GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+	
+	double x1 = this->GetGeometry()[0].X();
+	double y1 = this->GetGeometry()[0].Y();
+	double x2 = this->GetGeometry()[1].X();
+	double y2 = this->GetGeometry()[1].Y();
+	double x3 = this->GetGeometry()[2].X();
+	double y3 = this->GetGeometry()[2].Y();
+	
+	double u1 = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
+	double v1 = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
+	double u2 = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_X);
+	double v2 = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_Y);
+	double u3 = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_X);
+	double v3 = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_Y);
+	
+	double x13 = x1 - x3;
+	double x23 = x2 - x3;
+	double y13 = y1 - y3;
+	double y23 = y2 - y3;
+	
+	double du_dx = (0.5/Area)*(y23*(u1 - u3) - y13*(u2 - u3));
+	double du_dy = (0.5/Area)*(-x23*(u1 - u3) + x13*(u2 - u3));
+	double dv_dx = (0.5/Area)*(y23*(v1 - v3) - y13*(v2 - v3));
+	double dv_dy = (0.5/Area)*(-x23*(v1 - v3) + x13*(y2 - y3));	
+	
+	double mu,rho;
+	for(unsigned int i = 0; i < TNumNodes; ++i)
+	{
+	  mu = this->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
+	  rho = this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+	  mu *= rho;
+	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSX_X) += mu * ( 2*du_dx );
+	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSY_X) += mu * ( du_dy + dv_dx );
+	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSX_Y) += mu * ( dv_dx + du_dy );
+	  this->GetGeometry()[i].FastGetSolutionStepValue(VISCOUS_STRESSY_Y) += mu * ( 2*dv_dy );  
+	}	
+	
+    }    
 
     /// Assemble the contribution from an integration point to the element's residual.
     /** Note that the dynamic term is not included in the momentum equation.
@@ -1677,7 +2493,7 @@ protected:
                                            array_1d< double, 3 > & rElementalMomRes,
                                            double& rElementalMassRes,
                                            const array_1d< double, TNumNodes >& rShapeFunc,
-                                           const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                           const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                            const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1716,7 +2532,7 @@ protected:
                          const double Density,
                          array_1d< double, 3 > & rElementalMomRes,
                          const array_1d< double, TNumNodes >& rShapeFunc,
-                         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                         const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                          const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1755,7 +2571,7 @@ protected:
                         const double Density,
                         array_1d< double, 3 > & rElementalMomRes,
                         const array_1d< double, TNumNodes >& rShapeFunc,
-                        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                        const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                         const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1799,9 +2615,9 @@ protected:
      */
     virtual double EffectiveViscosity(double Density,
                                       const array_1d< double, TNumNodes > &rN,
-                                      const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX,
+                                      const BoundedMatrix<double, TNumNodes, TDim > &rDN_DX,
                                       double ElemSize,
-                                      const ProcessInfo &rProcessInfo)
+                                      const ProcessInfo &rProcessInfo) 
     {
         const double Csmag = (static_cast< const SurfaceTension<TDim> * >(this) )->GetValue(C_SMAGORINSKY);
         double Viscosity = 0.0;
@@ -1829,7 +2645,7 @@ protected:
      * @param rDN_DX Shape function derivatives at the integration point.
      * @return GammaDot = (2SijSij)^0.5.
      */
-    double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX) const;
+    double EquivalentStrainRate(const BoundedMatrix<double, TNumNodes, TDim > &rDN_DX) const;
 
 
     /// Write the advective velocity evaluated at this point to an array
@@ -1839,8 +2655,8 @@ protected:
      * @param rAdvVel: Output array
      * @param rShapeFunc: Shape functions evaluated at the point of interest
      */
-    virtual void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
-                                 const array_1d< double, TNumNodes >& rShapeFunc)
+    void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
+                                 const array_1d< double, TNumNodes >& rShapeFunc) 
     {
         // Compute the weighted value of the advective velocity in the (Gauss) Point
         GeometryType& rGeom = this->GetGeometry();
@@ -1878,7 +2694,7 @@ protected:
      */
     void GetConvectionOperator(array_1d< double, TNumNodes >& rResult,
                                const array_1d< double, 3 > & rVelocity,
-                               const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+                               const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv)
     {
         // Evaluate (and weight) the a * Grad(Ni) operator in the integration point, for each node i
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) // Loop over nodes
@@ -1902,7 +2718,7 @@ protected:
      */
     virtual void EvaluateInPoint(double& rResult,
                                  const Variable< double >& rVariable,
-                                 const array_1d< double, TNumNodes >& rShapeFunc)
+                                 const array_1d< double, TNumNodes >& rShapeFunc) 
     {
         // Compute the weighted value of the nodal variable in the (Gauss) Point
         GeometryType& rGeom = this->GetGeometry();
@@ -1923,7 +2739,7 @@ protected:
      */
     virtual void EvaluateInPoint(array_1d< double, 3 > & rResult,
                                  const Variable< array_1d< double, 3 > >& rVariable,
-                                 const array_1d< double, TNumNodes >& rShapeFunc)
+                                 const array_1d< double, TNumNodes >& rShapeFunc) 
     {
         // Compute the weighted value of the nodal variable in the (Gauss) Point
         GeometryType& rGeom = this->GetGeometry();
@@ -1951,7 +2767,7 @@ protected:
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
     virtual void AddViscousTerm(MatrixType& rDampingMatrix,
-                                const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                 const double Weight);
 
     /// Adds the contribution of the viscous term to the momentum equation (alternate).
@@ -1966,11 +2782,11 @@ protected:
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
     void AddBTransCB(MatrixType& rDampingMatrix,
-                     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                 BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                      const double Weight)
     {
-        boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes)/2, TDim*TNumNodes > B;
-        boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes)/2, (TDim*TNumNodes)/2 > C;
+        BoundedMatrix<double, (TDim * TNumNodes)/2, TDim*TNumNodes > B;
+        BoundedMatrix<double, (TDim * TNumNodes)/2, (TDim*TNumNodes)/2 > C;
         this->CalculateB(B,rShapeDeriv);
         this->CalculateC(C,Weight);
 
@@ -2008,7 +2824,7 @@ protected:
     }
 
     void ModulatedGradientDiffusion(MatrixType& rDampingMatrix,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rDN_DX,
+            const BoundedMatrix<double, TNumNodes, TDim >& rDN_DX,
             const double Weight)
     {
         const GeometryType& rGeom = this->GetGeometry();
@@ -2105,8 +2921,8 @@ protected:
      * @param rB Strain rate matrix
      * @param rShapeDeriv Nodal shape funcion derivatives
      */
-    void CalculateB( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
-                     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv);
+    void CalculateB( BoundedMatrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
+                     const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv);
 
     /// Calculate a matrix that provides the stress given the strain rate
     /**
@@ -2116,7 +2932,7 @@ protected:
      * @param rC Matrix representation of the stress tensor (output)
      * @param Viscosity Effective viscosity, in dynamic units, weighted by the integration point area
      */
-    virtual void CalculateC( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
+    virtual void CalculateC( BoundedMatrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
                              const double Viscosity);
 
     double ConsistentMassCoef(const double Area);
@@ -2127,7 +2943,7 @@ protected:
         // Get the element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -2174,6 +2990,75 @@ protected:
         //this->SetValue(ERROR_RATIO, ErrorRatio);
         return ErrorRatio;
     }
+    
+    
+    
+    array_1d<double,2> Vector2D(const double x0, const double y0, const double x1, const double y1)
+    {
+      array_1d<double,2> r01;
+      r01[0] = x1 - x0;
+      r01[1] = y1 - y0;
+      return (r01);
+    }
+    
+    array_1d<double,3> Vector3D(const double x0, const double y0, const double z0, const double x1, const double y1, const double z1)
+    {
+      array_1d<double,3> r01;
+      r01[0] = x1 - x0;
+      r01[1] = y1 - y0;
+      r01[2] = z1 - z0;
+      return (r01);
+    }
+    
+    array_1d<double,3> CrossProduct3D(const array_1d<double,3>& a, const array_1d<double,3>& b)
+    {
+      array_1d<double,3> c;
+      c[0] = a[1]*b[2] - a[2]*b[1];
+      c[1] = a[2]*b[0] - a[0]*b[2];
+      c[2] = a[0]*b[1] - a[1]*b[0];
+      return (c);
+    }
+    
+    double Norm2D(const array_1d<double,2>& a)
+    {
+      return sqrt(a[0]*a[0] + a[1]*a[1]);
+    }    
+    
+    double Norm3D(const array_1d<double,3>& a)
+    {
+      return sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+    }
+    
+    void NormalizeVec2D(array_1d<double,2>& input)
+    {
+      double norm = Norm2D(input);
+      if (norm != 0.0)
+      {
+	input[0] /= norm;
+	input[1] /= norm;
+      }
+    }        
+    
+    void NormalizeVec3D(array_1d<double,3>& input)
+    {
+      double norm = Norm3D(input);
+      if (norm != 0.0)
+      {
+	input[0] /= norm;
+	input[1] /= norm;
+	input[2] /= norm;
+      }
+    }
+
+    double DotProduct2D(const array_1d<double,2>& a, const array_1d<double,2>& b)
+    {
+      return (a[0]*b[0] + a[1]*b[1]);
+    }    
+    
+    double DotProduct3D(const array_1d<double,3>& a, const array_1d<double,3>& b)
+    {
+      return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
+    }    
 
     ///@}
     ///@name Protected  Access
@@ -2210,12 +3095,12 @@ private:
 
 
 
-     virtual void save(Serializer& rSerializer) const
+     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

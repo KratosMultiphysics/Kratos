@@ -73,6 +73,9 @@ class Solution(object):
         self.problem_name = self.GetProblemTypeFilename()
         [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name))
 
+        # Prepare modelparts
+        self.CreateModelParts()
+
         self.SetGraphicalOutput()
         self.report = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
@@ -84,9 +87,6 @@ class Solution(object):
         self.p_frequency = 100   # activate every 100 steps
         self.step_count = 0
         self.p_count = self.p_frequency
-
-        # Prepare modelparts
-        self.CreateModelParts()
 
         self.solver = self.SetSolver()
         #self.final_time = DEM_parameters.FinalTime
@@ -539,6 +539,9 @@ class Solution(object):
 
     def SetGraphicalOutput(self):
         self.demio = DEM_procedures.DEMIo(self.DEM_parameters, self.post_path)
+        if self.DEM_parameters["post_vtk_option"].GetBool():
+            import dem_vtk_output
+            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):
         self.demio.Initialize(self.DEM_parameters)
@@ -565,6 +568,9 @@ class Solution(object):
 
         self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
         os.chdir(self.main_path)
+
+        if self.DEM_parameters["post_vtk_option"].GetBool():
+            self.vtk_output.WriteResults(self.time)
 
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()

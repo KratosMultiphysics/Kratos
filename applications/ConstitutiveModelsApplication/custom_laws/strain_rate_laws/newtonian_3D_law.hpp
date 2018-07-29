@@ -29,10 +29,10 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) Newtonian3DLaw : public ConstitutiveLaw
   {
   public:
-  
+
     ///@name Type Definitions
     ///@{
-	
+
     /// Pointer definition of Newtonian3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(Newtonian3DLaw);
 
@@ -42,7 +42,7 @@ namespace Kratos
 
     /// Default constructor.
     Newtonian3DLaw();
-    
+
     /// Copy constructor.
     Newtonian3DLaw (const Newtonian3DLaw& rOther);
 
@@ -59,11 +59,11 @@ namespace Kratos
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * Material parameters are inizialized
      */
@@ -79,7 +79,22 @@ namespace Kratos
      */
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
-    
+    /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseCauchy(Parameters & rValues) override;
+
+
+    /// Law Dimension
+    SizeType WorkingSpaceDimension() override { return 3; }
+
+    /// Law Voigt Strain Size
+    SizeType GetStrainSize() override { return 6; }
+
+
     /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
@@ -97,7 +112,7 @@ namespace Kratos
      * @return
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -138,12 +153,12 @@ namespace Kratos
 
     ///@}
 
-    
+
   protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -151,7 +166,7 @@ namespace Kratos
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -171,20 +186,20 @@ namespace Kratos
     /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * @param rConstitutiveMatrix constitutive matrix return value
-     * @param rMaterialProperties properties of the material     
+     * @param rMaterialProperties properties of the material
      */
 
     virtual void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
 					     const Properties& rMaterialProperties);
-    
-    
+
+
     ///@}
 
   private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -241,6 +256,6 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-    
+
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED  defined

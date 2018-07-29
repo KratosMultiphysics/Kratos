@@ -1,9 +1,9 @@
 //--------------------------------------------------------
 //          ___  __                                      .
 //  KRATOS | _ \/ _|___ _ __                             .
-//         |  _/  _/ -_) '  \                            .  
+//         |  _/  _/ -_) '  \                            .
 //         |_| |_| \___|_|_|_| APPLICATION               .
-//                                                       .    
+//                                                       .
 //  License:(BSD)         PfemApplication/license.txt    .
 //  Main authors:         Josep Maria Carbonell          .
 //                        ..                             .
@@ -12,7 +12,7 @@
 //   Project Name:        KratosPfemApplication     $
 //   Created by:          $Author:      JMCarbonell $
 //   Last modified by:    $Co-Author:               $
-//   Date:                $Date:      February 2016 $
+//   Date:                $Date:           May 2018 $
 //   Revision:            $Revision:            0.0 $
 //
 //
@@ -25,52 +25,41 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/variables.h"
+#include "includes/cfd_variables.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_application.h"
 
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
   ///@name Type Definitions
   ///@{
-  typedef array_1d<double,3> Vector3;
-  typedef array_1d<double,6> Vector6;
-  typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
   ///@}
+
+  typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
+  typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
 
   ///@name Kratos Globals
   ///@{
 
   //Define Variables
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, FLUID_PRESSURE )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, FLUID_PRESSURE_VELOCITY )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, FLUID_PRESSURE_ACCELERATION )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, FLUID_PRESSURE_REACTION )
 
-  //nodal dofs
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( PFEM_APPLICATION, OFFSET )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, SHRINK_FACTOR )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, PropertiesContainerPointerType, PROPERTIES_VECTOR )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, Vector, MATERIAL_PERCENTAGE )
 
-
-
-  //domain definition
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, bool, INITIALIZED_DOMAINS )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, bool, MESHING_STEP_PERFORMED )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, std::string, MODEL_PART_NAME )
-
-  //boundary definition
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, int,                               RIGID_WALL )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, Condition::Pointer,          MASTER_CONDITION )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, WeakPointerVector< Element >, MASTER_ELEMENTS )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, WeakPointerVector< Node<3> >,    MASTER_NODES )
-
-  //condition variables
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, ConditionContainerType, CHILDREN_CONDITIONS)
-    
-  //modeler criteria
-  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, MEAN_ERROR )
-
+  //Adaptive time step (review needed)
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, INITIAL_DELTA_TIME )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, CURRENT_DELTA_TIME )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION,   bool, TIME_INTERVAL_CHANGED )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION,   bool, BAD_VELOCITY_CONVERGENCE )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION,   bool, BAD_PRESSURE_CONVERGENCE )
 
   ///@}
 
 }
 
-#endif	/* KRATOS_PFEM_APPLICATION_VARIABLES_H_INCLUDED */
+#endif	// KRATOS_PFEM_APPLICATION_VARIABLES_H_INCLUDED defined

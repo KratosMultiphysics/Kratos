@@ -7,6 +7,7 @@
 
 // Project includes
 #include "DEM_application.h"
+#include "includes/kernel.h"
 #include "includes/kratos_flags.h"
 #include "containers/flags.h"
 #include "geometries/point_3d.h"
@@ -449,14 +450,7 @@ void KratosDEMApplication::Register() {
     KRATOS_INFO("DEM") << std::endl;
     KRATOS_INFO("DEM") << "Importing DEMApplication... ";
 
-#ifdef KRATOS_BUILD_TYPE
-#define ____CONVERT_INNER_VALUE_TO_STRING(S) ____CONVERT_TO_STRING(S)
-#define ____CONVERT_TO_STRING(S) #S
-    KRATOS_INFO("") << "( compiled in mode \""
-              << ____CONVERT_INNER_VALUE_TO_STRING(KRATOS_BUILD_TYPE) << "\" )";
-#undef ____CONVERT_INNER_VALUE_TO_STRING
-#undef ____CONVERT_TO_STRING
-#endif
+    KRATOS_INFO("") << "( compiled in mode \"" << Kernel::BuildType() << "\" )";
 
     KRATOS_REGISTER_VARIABLE(CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
     KRATOS_REGISTER_VARIABLE(NODE_TO_NEIGH_ELEMENT_POINTER)

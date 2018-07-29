@@ -55,7 +55,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         # Construct the base solver.
         super(EigenSolver, self).__init__(custom_settings)
 
-        print("::[Eigen_Scheme]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
+        print("::[----Eigen_Scheme---]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
     #### Private functions ####
 

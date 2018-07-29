@@ -229,7 +229,7 @@
             <Item id="MinZ" pid="Min Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Z"/>
             <Item id="StartTime" pid="Start Time" DEM-BBox="Yes" dv="0.0" help="Time at which the bounding box gets active."/>
             <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
-            <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="No" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
+            <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="Yes" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
         </Container>
         <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" icon="advanced_options2.gif" help="DEM general physical options" open="0">
             <Item id="GravityValue" pid="Gravity value" dv="9.81" help="Gravity value"/>
