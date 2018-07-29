@@ -11,7 +11,7 @@
 //                   Jordi Cotela
 //
 
-#include "fsi_application.h"
+#include "includes/fsi_variables.h"
 #include "variable_redistribution_utility.h"
 
 namespace Kratos
@@ -252,7 +252,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
         }
     }
 
-    KRATOS_WARNING_IF("VariableRedistributionUtility", iteration == MaximumIterations) 
+    KRATOS_WARNING_IF("VariableRedistributionUtility", iteration == MaximumIterations)
         << "DistributePointValues did not converge in " << iteration << " iterations. L2 error norm: " << error_l2_norm << std::endl;
 }
 
@@ -328,7 +328,7 @@ void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_L
     rMassMatrix(1, 1) = 2.0/6.0;
 }
 
- 
+
 template<>
 void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_Triangle, 3 >(
     BoundedMatrix<double, 3, 3>& rMassMatrix)
@@ -369,7 +369,7 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
         ModelPart::NodesContainerType::iterator node_iter = rModelPart.NodesBegin() + i_node;
         node_iter->SetValue(rhs_variable, rhs_zero );
     }
-    
+
     // Calculate updated RHS
     #pragma omp parallel for
     for (int i_condition = 0; i_condition < number_of_conditions_in_model_part; i_condition++)
@@ -378,7 +378,7 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
         Geometry< Node<3> >& r_geometry = condition_iterator->GetGeometry();
 
         const double size = r_geometry.DomainSize();
-        
+
         for (unsigned int j = 0; j < TNumNodes; j++)
         {
             TValueType rhs_j = rhs_zero;
