@@ -357,7 +357,7 @@ public:
             BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
         } else {
             TSparseSpace::SetToZero(Dx);
-            KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 0) << "ATTENTION! setting the RHS to zero!" << std::endl;
+            KRATOS_WARNING("ResidualBasedBlockBuilderAndSolver") << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
         // Prints informations about the current time
