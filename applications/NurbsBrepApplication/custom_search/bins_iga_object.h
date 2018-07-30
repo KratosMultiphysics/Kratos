@@ -27,6 +27,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "nurbs_brep_application.h"
+#include "nurbs_brep_application_variables.h"
 
 
 namespace Kratos
@@ -83,11 +84,11 @@ public:
     BinsIgaObject() : Point()
     { };
 
-    BinsIgaObject() : Point(rCoordinates), mpElement(pElement)
+    BinsIgaObject(const CoordinatesArrayType& rCoordinates, ElementPointerType& pElement) : Point(rCoordinates), mpElement(pElement)
     {
         Vector coords = ZeroVector(3);
-        ProcessInfo process_info();
-        mpElement->Calculate(COORDINATES, coords, process_info);
+        const ProcessInfo process_info();
+        pElement->Calculate(COORDINATES, coords, process_info);
         noalias(Coordinates()) = coords;
     };
 
@@ -279,5 +280,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_INTERFACE_SEARCH_OBJECT_INCLUDED_H_INCLUDED  defined
-
-
