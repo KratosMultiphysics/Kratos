@@ -24,6 +24,9 @@
 
 namespace Kratos
 {
+
+KRATOS_DEFINE_VARIABLE(double, NURBS_CONTROLPOINT_WEIGHT)
+
 } // namespace Kratos
 
 #endif // !defined(KRATOS_IGA_APPLICATION_VARIABLES_H_INCLUDED)
