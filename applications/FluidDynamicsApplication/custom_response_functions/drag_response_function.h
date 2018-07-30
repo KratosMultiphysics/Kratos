@@ -137,7 +137,7 @@ protected:
                                      Vector& rPartialSensitivity,
                                      ProcessInfo const& rProcessInfo) const override
     {
-        mpResponseFunction->CalculatePartialSensitivity2(
+        mpResponseFunction->CalculatePartialSensitivity(
             rVariable, rElement, rSensitivityMatrix, rPartialSensitivity, rProcessInfo);
     }
 
@@ -322,7 +322,7 @@ public:
 
     // This is a temporary crutch to upgrade the response function base class
     // without completely breaking the tests.
-    virtual void CalculatePartialSensitivity2(Variable<array_1d<double, 3>> const& rVariable,
+    virtual void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
                                              Element const& rElement,
                                              Matrix const& rSensitivityMatrix,
                                              Vector& rPartialSensitivity,

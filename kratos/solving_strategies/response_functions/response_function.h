@@ -174,7 +174,7 @@ public:
 
     // This is a temporary crutch to upgrade the response function base class
     // without completely breaking the tests.
-    virtual void CalculatePartialSensitivity2(Variable<array_1d<double, 3>> const& rVariable,
+    virtual void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
                                              Element const& rElement,
                                              Matrix const& rSensitivityMatrix,
                                              Vector& rPartialSensitivity,
