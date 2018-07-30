@@ -37,6 +37,7 @@ class SPRISMProcess(KM.Process):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
+            "help"                           :"This class is used in order to compute some pre and post process on the SPRISM solid shell elements",
             "mesh_id"                        : 0,
             "model_part_name"                : "Structure",
             "preprocess_shell_to_solidshell" : false,

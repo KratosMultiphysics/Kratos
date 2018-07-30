@@ -11,10 +11,6 @@ End Properties
 Begin Properties 3
 End Properties
 Begin Properties 4
-    THICKNESS   1.00000E-02 
-    DENSITY   7.85000E+03 
-    YOUNG_MODULUS   2.06900E+11 
-    POISSON_RATIO   3.00000E-01 
 End Properties
 
 Begin Nodes
