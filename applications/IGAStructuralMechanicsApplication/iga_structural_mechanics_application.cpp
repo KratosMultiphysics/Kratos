@@ -37,13 +37,6 @@
 
 namespace Kratos {
 
-    ////FLAGS
-    //KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_DISPLACEMENT_X, 0);
-    //KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_DISPLACEMENT_Y, 1);
-    //KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_DISPLACEMENT_Z, 2);
-    //KRATOS_CREATE_LOCAL_FLAG(IGAFlags, FIX_ROTATION_X,    3);
-
-
 KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication() :
     KratosApplication("IGAStructuralMechanicsApplication"),
     mMeshlessElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),

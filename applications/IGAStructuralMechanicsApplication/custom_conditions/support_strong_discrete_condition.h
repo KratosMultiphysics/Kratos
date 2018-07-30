@@ -97,15 +97,6 @@ namespace Kratos
 
     private:
 
-        void CalculateRotation(const Matrix& ShapeFunctionDerivatives,
-            Vector& Phi_r, array_1d<double, 2>& Phi);
-
-        void GetBaseVectorsSurface(
-            const Matrix& DN_De,
-            Vector& g1,
-            Vector& g2,
-            Vector& g3);
-
         /**
         * This functions calculates both the RHS and the LHS
         * @param rLeftHandSideMatrix: The LHS

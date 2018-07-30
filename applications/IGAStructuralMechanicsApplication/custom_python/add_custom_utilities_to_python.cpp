@@ -43,6 +43,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     iga_flags.attr("FIX_DISPLACEMENT_Y") = IGAFlags::FIX_DISPLACEMENT_Y;
     iga_flags.attr("FIX_DISPLACEMENT_Z") = IGAFlags::FIX_DISPLACEMENT_Z;
     iga_flags.attr("FIX_ROTATION_X") = IGAFlags::FIX_ROTATION_X;
+    iga_flags.attr("FIX_ROTATION_Y") = IGAFlags::FIX_ROTATION_Y;
+    iga_flags.attr("FIX_ROTATION_Z") = IGAFlags::FIX_ROTATION_Z;
 
 }
 

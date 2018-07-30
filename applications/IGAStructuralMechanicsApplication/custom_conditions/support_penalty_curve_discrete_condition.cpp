@@ -24,6 +24,8 @@
 #include "iga_structural_mechanics_application_variables.h"
 #include "iga_structural_mechanics_application.h"
 
+#include "custom_utilities/iga_flags.h"
+
 namespace Kratos
 {
     void SupportPenaltyCurveDiscreteCondition::Initialize()
@@ -214,7 +216,7 @@ namespace Kratos
 
         double Penalty = GetProperties()[PENALTY_FACTOR];
 
-        const array_1d<double, 3>& displacement = this->GetValue(DISPLACEMENT);
+
         //KRATOS_WATCH(displacement)
         //ROTATIONS
         if (Has(ROTATION))
@@ -237,39 +239,41 @@ namespace Kratos
             }
         }
 
-        // DISPLACEMENTS
-        Matrix Stiffness = ZeroMatrix(3, mat_size);
-        for (unsigned int i = 0; i < number_of_control_points; i++)
+        if (Has(DISPLACEMENT))
         {
-            //if (displacement[0] != NULL)
-                Stiffness(0, 3 * i) = N[i];
-            //if (displacement[1] != NULL)
-                Stiffness(1, 3 * i + 1) = N[i];
-            //if (displacement[2] != NULL)
-                Stiffness(2, 3 * i + 2) = N[i];
+            // DISPLACEMENTS
+            Matrix Stiffness = ZeroMatrix(3, mat_size);
+            for (unsigned int i = 0; i < number_of_control_points; i++)
+            {
+                if (Is(IGAFlags::FIX_DISPLACEMENT_X))
+                {
+                    Stiffness(0, 3 * i) = N[i];
+                }
+                if (Is(IGAFlags::FIX_DISPLACEMENT_Y))
+                {
+                    Stiffness(1, 3 * i + 1) = N[i];
+                }
+                if (Is(IGAFlags::FIX_DISPLACEMENT_Z))
+                {
+                    Stiffness(2, 3 * i + 2) = N[i];
+                }
+            }
+
+            const array_1d<double, 3>& displacement = this->GetValue(DISPLACEMENT);
+
+            Vector TDisplacements(mat_size);
+            for (unsigned int i = 0; i < number_of_control_points; i++)
+            {
+                const array_1d<double, 3> disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+                int index = 3 * i;
+                TDisplacements[index] = (disp[0] - displacement[0]);
+                TDisplacements[index + 1] = (disp[1] - displacement[1]);
+                TDisplacements[index + 2] = (disp[2] - displacement[2]);
+            }
+
+            noalias(rLeftHandSideMatrix) += prod(trans(Stiffness), Stiffness);
+            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, TDisplacements);
         }
-
-        //Remove deactivated NULL values
-        array_1d<double, 3> initial_displacement = displacement;
-        //if (displacement[0] == NULL)
-            initial_displacement[0] = 0.0;
-        //if (displacement[1] == NULL)
-            initial_displacement[1] = 0.0;
-        //if (displacement[2] == NULL)
-            initial_displacement[2] = 0.0;
-
-        Vector TDisplacements(mat_size);
-        for (unsigned int i = 0; i < number_of_control_points; i++)
-        {
-            const array_1d<double, 3> disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-            int index = 3 * i;
-            TDisplacements[index]     = (disp[0] - initial_displacement[0]);
-            TDisplacements[index + 1] = (disp[1] - initial_displacement[1]);
-            TDisplacements[index + 2] = (disp[2] - initial_displacement[2]);
-        }
-
-        noalias(rLeftHandSideMatrix)  += prod(trans(Stiffness), Stiffness);
-        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, TDisplacements);
         //noalias(rRightHandSideVector) -= prod(prod(trans(Stiffness), Stiffness), TDisplacements);
 
         Vector t2 = ZeroVector(3);
