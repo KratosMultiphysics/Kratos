@@ -369,11 +369,12 @@ public:
         // The first iterator of the array of nodes
         auto it_begin = rModelPart.NodesBegin();
 
-        /// Initialise the databse of the nodes
+        /// Initialise the database of the nodes
         const array_1d<double, 3> zero_array(3, 0.0);
         #pragma omp parallel for firstprivate(it_begin)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             auto it_node = (it_begin + i);
+            it_node->SetValue(NODAL_MASS, 0.0);
             it_node->SetValue(MIDDLE_VELOCITY, zero_array);
             it_node->SetValue(MIDDLE_ANGULAR_VELOCITY, zero_array);
             it_node->SetValue(NODAL_INERTIA, zero_array);

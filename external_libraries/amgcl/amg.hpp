@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,20 +34,13 @@ THE SOFTWARE.
 #include <iostream>
 #include <iomanip>
 #include <list>
-
-#include <boost/io/ios_state.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/static_assert.hpp>
+#include <memory>
 
 #ifdef AMGCL_ASYNC_SETUP
-#  include <boost/atomic.hpp>
-#  include <boost/thread/thread.hpp>
-#  include <boost/thread/condition_variable.hpp>
-#  include <boost/thread/locks.hpp>
+#  include <atomic>
+#  include <thread>
+#  include <mutex>
+#  include <condition_variable>
 #endif
 
 #include <amgcl/backend/builtin.hpp>
@@ -76,7 +69,7 @@ namespace amgcl {
  */
 template <
     class Backend,
-    class Coarsening,
+    template <class> class Coarsening,
     template <class> class Relax
     >
 class amg {
@@ -86,6 +79,8 @@ class amg {
         typedef typename Backend::value_type value_type;
         typedef typename Backend::matrix     matrix;
         typedef typename Backend::vector     vector;
+
+        typedef Coarsening<Backend>          coarsening_type;
         typedef Relax<Backend>               relax_type;
 
         typedef typename backend::builtin<value_type>::matrix build_matrix;
@@ -101,7 +96,7 @@ class amg {
          * component of the method as well as some universal parameters.
          */
         struct params {
-            typedef typename Coarsening::params coarsening_params;
+            typedef typename coarsening_type::params coarsening_params;
             typedef typename relax_type::params relax_params;
 
             coarsening_params coarsening;   ///< Coarsening parameters.
@@ -160,6 +155,7 @@ class amg {
 #endif
             {}
 
+#ifdef BOOST_VERSION
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, coarsening),
                   AMGCL_PARAMS_IMPORT_CHILD(p, relax),
@@ -174,15 +170,11 @@ class amg {
                 , AMGCL_PARAMS_IMPORT_VALUE(p, async_setup)
 #endif
             {
+                check_params(p, {"coarsening", "relax", "coarse_enough",  "direct_coarse", "max_levels", "npre", "npost", "ncycle",  "pre_cycles"
 #ifdef AMGCL_ASYNC_SETUP
-                AMGCL_PARAMS_CHECK(p, (coarsening)(relax)(coarse_enough)
-                        (direct_coarse)(max_levels)(npre)(npost)(ncycle)
-                        (pre_cycles)(async_setup));
-#else
-                AMGCL_PARAMS_CHECK(p, (coarsening)(relax)(coarse_enough)
-                        (direct_coarse)(max_levels)(npre)(npost)(ncycle)
-                        (pre_cycles));
+                        , "async_setup"
 #endif
+                        });
 
                 precondition(max_levels > 0, "max_levels should be positive");
             }
@@ -205,6 +197,7 @@ class amg {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, async_setup);
 #endif
             }
+#endif
         } prm;
 
         /// Builds the AMG hierarchy for the system matrix.
@@ -224,7 +217,7 @@ class amg {
                 const backend_params &bprm = backend_params()
            ) : prm(p)
         {
-            std::shared_ptr<build_matrix> A = std::make_shared<build_matrix>(M);
+            auto A = std::make_shared<build_matrix>(M);
             sort_rows(*A);
 
             do_init(A, bprm);
@@ -265,15 +258,7 @@ class amg {
          * \param x   Solution vector.
          */
         template <class Vec1, class Vec2>
-        void cycle(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void cycle(const Vec1 &rhs, Vec2 &&x) const {
             cycle(levels.begin(), rhs, x);
         }
 
@@ -285,15 +270,7 @@ class amg {
          * \param x   Solution vector.
          */
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             if (prm.pre_cycles) {
                 backend::clear(x);
                 for(unsigned i = 0; i < prm.pre_cycles; ++i)
@@ -304,8 +281,12 @@ class amg {
         }
 
         /// Returns the system matrix from the finest level.
+        std::shared_ptr<matrix> system_matrix_ptr() const {
+            return levels.front().A;
+        }
+
         const matrix& system_matrix() const {
-            return *levels.front().A;
+            return *system_matrix_ptr();
         }
 
     private:
@@ -344,12 +325,11 @@ class amg {
 
             std::shared_ptr<build_matrix> step_down(
                     std::shared_ptr<build_matrix> A,
-                    params &prm, const backend_params &bprm)
+                    coarsening_type &C, const backend_params &bprm)
             {
                 AMGCL_TIC("transfer operators");
                 std::shared_ptr<build_matrix> P, R;
-                boost::tie(P, R) = Coarsening::transfer_operators(
-                        *A, prm.coarsening);
+                std::tie(P, R) = C.transfer_operators(*A);
 
                 if(backend::cols(*P) == 0) {
                     // Zero-sized coarse level in amgcl (diagonal matrix?)
@@ -366,7 +346,7 @@ class amg {
                 AMGCL_TOC("move to backend");
 
                 AMGCL_TIC("coarse operator");
-                A = Coarsening::coarse_operator(*A, *P, *R, prm.coarsening);
+                A = C.coarse_operator(*A, *P, *R);
                 sort_rows(*A);
                 AMGCL_TOC("coarse operator");
 
@@ -401,10 +381,10 @@ class amg {
 
         std::list<level> levels;
 #ifdef AMGCL_ASYNC_SETUP
-        boost::thread init_thread;
-        boost::atomic<bool> done;
-        mutable boost::mutex levels_mx;
-        mutable boost::condition_variable ready_to_cycle;
+        std::thread init_thread;
+        std::atomic<bool> done;
+        mutable std::mutex levels_mx;
+        mutable std::condition_variable ready_to_cycle;
 #endif
 
         void init(
@@ -419,11 +399,13 @@ class amg {
 
             bool direct_coarse_solve = true;
 
-            while( backend::rows(*A) > prm.coarse_enough && levels.size() < prm.max_levels) {
+            coarsening_type C(prm.coarsening);
+
+            while( backend::rows(*A) > prm.coarse_enough) {
                 {
 #ifdef AMGCL_ASYNC_SETUP
                     if (done) break;
-                    boost::lock_guard<boost::mutex> lock(levels_mx);
+                    std::lock_guard<std::mutex> lock(levels_mx);
 #endif
                     levels.push_back( level(A, prm, bprm) );
                 }
@@ -433,7 +415,7 @@ class amg {
 #endif
                 if (levels.size() >= prm.max_levels) break;
 
-                A = levels.back().step_down(A, prm, bprm);
+                A = levels.back().step_down(A, C, bprm);
                 if (!A) {
                     // Zero-sized coarse level. Probably the system matrix on
                     // this level is diagonal, should be easily solvable with a
@@ -456,14 +438,14 @@ class amg {
 
                     {
 #ifdef AMGCL_ASYNC_SETUP
-                        boost::lock_guard<boost::mutex> lock(levels_mx);
+                        std::lock_guard<std::mutex> lock(levels_mx);
 #endif
                         levels.push_back( l );
                     }
                 } else {
                     {
 #ifdef AMGCL_ASYNC_SETUP
-                        boost::lock_guard<boost::mutex> lock(levels_mx);
+                        std::lock_guard<std::mutex> lock(levels_mx);
 #endif
                         levels.push_back( level(A, prm, bprm) );
                     }
@@ -483,9 +465,9 @@ class amg {
 #ifdef AMGCL_ASYNC_SETUP
             done = false;
             if (prm.async_setup) {
-                init_thread = boost::thread(&amg::init, this, A, bprm);
+                init_thread = std::thread(&amg::init, this, A, bprm);
                 {
-                    boost::unique_lock<boost::mutex> lock(levels_mx);
+                    std::unique_lock<std::mutex> lock(levels_mx);
                     while(levels.empty()) ready_to_cycle.wait(lock);
                 }
             } else
@@ -501,7 +483,7 @@ class amg {
 
             {
 #ifdef AMGCL_ASYNC_SETUP
-                boost::lock_guard<boost::mutex> lock(levels_mx);
+                std::lock_guard<std::mutex> lock(levels_mx);
 #endif
                 ++nxt;
                 end = levels.end();
@@ -514,15 +496,15 @@ class amg {
                     AMGCL_TOC("coarse");
                 } else {
                     AMGCL_TIC("relax");
-                    lvl->relax->apply_pre(*lvl->A, rhs, x, *lvl->t, prm.relax);
-                    lvl->relax->apply_post(*lvl->A, rhs, x, *lvl->t, prm.relax);
+                    lvl->relax->apply_pre(*lvl->A, rhs, x, *lvl->t);
+                    lvl->relax->apply_post(*lvl->A, rhs, x, *lvl->t);
                     AMGCL_TOC("relax");
                 }
             } else {
                 for (size_t j = 0; j < prm.ncycle; ++j) {
                     AMGCL_TIC("relax");
                     for(size_t i = 0; i < prm.npre; ++i)
-                        lvl->relax->apply_pre(*lvl->A, rhs, x, *lvl->t, prm.relax);
+                        lvl->relax->apply_pre(*lvl->A, rhs, x, *lvl->t);
                     AMGCL_TOC("relax");
 
                     backend::residual(rhs, *lvl->A, x, *lvl->t);
@@ -536,27 +518,28 @@ class amg {
 
                     AMGCL_TIC("relax");
                     for(size_t i = 0; i < prm.npost; ++i)
-                        lvl->relax->apply_post(*lvl->A, rhs, x, *lvl->t, prm.relax);
+                        lvl->relax->apply_post(*lvl->A, rhs, x, *lvl->t);
                     AMGCL_TOC("relax");
                 }
             }
         }
 
-    template <class B, class C, template <class> class R>
+    template <class B, template <class> class C, template <class> class R>
     friend std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a);
 };
 
 /// Sends information about the AMG hierarchy to output stream.
-template <class B, class C, template <class> class R>
+template <class B, template <class> class C, template <class> class R>
 std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
 {
     typedef typename amg<B, C, R>::level level;
-    boost::io::ios_all_saver stream_state(os);
+    std::ios_base::fmtflags ff(os.flags());
+    auto fp = os.precision();
 
     size_t sum_dof = 0;
     size_t sum_nnz = 0;
 
-    BOOST_FOREACH(const level &lvl, a.levels) {
+    for(const level &lvl : a.levels) {
         sum_dof += lvl.rows();
         sum_nnz += lvl.nonzeros();
     }
@@ -570,7 +553,7 @@ std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
         << "---------------------------------\n";
 
     size_t depth = 0;
-    BOOST_FOREACH(const level &lvl, a.levels) {
+    for(const level &lvl : a.levels) {
         os << std::setw(5)  << depth++
             << std::setw(13) << lvl.rows()
             << std::setw(15) << lvl.nonzeros() << " ("
@@ -579,6 +562,8 @@ std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
             << "%)" << std::endl;
     }
 
+    os.flags(ff);
+    os.precision(fp);
     return os;
 }
 

@@ -19,6 +19,7 @@
 #include "custom_elements/truss_element_3D2N.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "includes/checks.h"
 
 
 namespace Kratos {
@@ -83,7 +84,7 @@ void TrussElement3D2N::GetDofList(DofsVectorType &rElementalDofList,
 void TrussElement3D2N::Initialize() {
   KRATOS_TRY
   if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-        this->mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        this->mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
     }
   else
     KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
@@ -115,7 +116,6 @@ void TrussElement3D2N::CalculateDampingMatrix(
     MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
-
   MatrixType stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 
   this->CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
@@ -161,7 +161,7 @@ void TrussElement3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
     for (int j = 0; j < msDimension; ++j) {
       int index = i * msDimension + j;
 
-      rMassMatrix(index, index) = total_mass*0.50;
+      rMassMatrix(index, index) = total_mass * 0.50;
     }
   }
   KRATOS_CATCH("")
@@ -272,7 +272,7 @@ void TrussElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
   // create+compute RHS
   rRightHandSideVector = -internal_forces;
   // add bodyforces
-  if (this->CheckSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -292,7 +292,7 @@ void TrussElement3D2N::CalculateRightHandSide(
   noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
 
   // add bodyforces
-  if (this->CheckSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -346,7 +346,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
   if (rVariable == PK2_STRESS_VECTOR) {
 
     array_1d<double, 3 > truss_stresses;
-    this->mConstitutiveLaw->GetValue(FORCE,truss_stresses);
+    this->mpConstitutiveLaw->GetValue(FORCE,truss_stresses);
 
     rOutput[0] = truss_stresses;
   }
@@ -381,7 +381,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     const double l = this->CalculateCurrentLength();
 
     array_1d<double, 3 > truss_stresses;
-    this->mConstitutiveLaw->GetValue(FORCE,truss_stresses);
+    this->mpConstitutiveLaw->GetValue(FORCE,truss_stresses);
 
     truss_forces[0] =
         ((truss_stresses[0] + prestress) * l * A) / L0;
@@ -417,46 +417,31 @@ void TrussElement3D2N::GetValueOnIntegrationPoints(
 int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
   const double numerical_limit = std::numeric_limits<double>::epsilon();
+  const SizeType number_of_nodes = this->GetGeometry().size();
+  const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
+  if(this->mpConstitutiveLaw != nullptr) {
+    this->mpConstitutiveLaw->Check(this->GetProperties(),this->GetGeometry(),rCurrentProcessInfo);
+  }
 
-  this->mConstitutiveLaw->Check(this->GetProperties(),this->GetGeometry(),rCurrentProcessInfo);
-
-  if (this->GetGeometry().WorkingSpaceDimension() != msDimension ||
-      this->GetGeometry().PointsNumber() != msNumberOfNodes) {
+  if (dimension != msDimension ||number_of_nodes != msNumberOfNodes) {
     KRATOS_ERROR << "The truss element works only in 3D and with 2 noded elements" << std::endl;
       }
   // verify that the variables are correctly initialized
-  if (VELOCITY.Key() == 0)
-    KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  if (DISPLACEMENT.Key() == 0)
-    KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  if (ACCELERATION.Key() == 0)
-    KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  if (DENSITY.Key() == 0)
-    KRATOS_ERROR << "DENSITY has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  if (CROSS_AREA.Key() == 0)
-    KRATOS_ERROR << "CROSS_AREA has Key zero! (check if the application is "
-                    "correctly registered"
-                 << "" << std::endl;
-  // verify that the dofs exist
-  for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
-    if (this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-      KRATOS_ERROR << "missing variable DISPLACEMENT on node "
-                   << this->GetGeometry()[i].Id() << std::endl;
-    if (this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false ||
-        this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false ||
-        this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-      KRATOS_ERROR
-          << "missing one of the dofs for the variable DISPLACEMENT on node "
-          << GetGeometry()[i].Id() << std::endl;
+  KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+  KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+  KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+  KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+  KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
+
+  // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+  for (IndexType i = 0; i < number_of_nodes; ++i) {
+    NodeType &rnode = this->GetGeometry()[i];
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, rnode);
+
+    KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode);
+    KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode);
+    KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode);
   }
 
   if (this->GetProperties().Has(CROSS_AREA) == false ||
@@ -548,7 +533,7 @@ void TrussElement3D2N::UpdateInternalForces(
   Vector temp_internal_stresses = ZeroVector(msLocalSize);
   ProcessInfo temp_process_information;
   ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
-  this->mConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
+  this->mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
 
 
   const double normal_force =
@@ -600,7 +585,7 @@ void TrussElement3D2N::CreateTransformationMatrix(
     direction_vector_z[0] = 1.0;
   }
 
-  if (fabs(direction_vector_x[2]) != 1.00) {
+  if (std::abs(direction_vector_x[2]) != 1.00) {
     MathUtils<double>::UnitCrossProduct(direction_vector_y, direction_vector_x,
                                         global_z_vector);
     MathUtils<double>::UnitCrossProduct(direction_vector_z, direction_vector_y,
@@ -659,8 +644,8 @@ void TrussElement3D2N::AddExplicitContribution(
     if (rRHSVariable == RESIDUAL_VECTOR &&
         rDestinationVariable == FORCE_RESIDUAL) {
 
-      BoundedVector<double, msLocalSize> damping_residual_contribution =
-          ZeroVector(msLocalSize);
+    BoundedVector<double, msLocalSize> damping_residual_contribution =
+        ZeroVector(msLocalSize);
       Vector current_nodal_velocities = ZeroVector(msLocalSize);
       this->GetFirstDerivativesVector(current_nodal_velocities);
       Matrix damping_matrix;
@@ -716,7 +701,7 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
 
   double E = 0.00;
   ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
-  this->mConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
+  this->mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
 
   const double A = this->GetProperties()[CROSS_AREA];
 
@@ -815,7 +800,7 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
 
   double E = 0.00;
   ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
-  this->mConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
+  this->mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
 
   double A = this->GetProperties()[CROSS_AREA];
 
@@ -897,7 +882,7 @@ void TrussElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessIn
 {
   KRATOS_TRY;
   Vector temp_shape_function = ZeroVector(3);
-  this->mConstitutiveLaw->FinalizeNonLinearIteration(this->GetProperties(),
+  this->mpConstitutiveLaw->FinalizeNonLinearIteration(this->GetProperties(),
 	this->GetGeometry(),temp_shape_function,rCurrentProcessInfo);
   KRATOS_CATCH("");
 }
@@ -908,14 +893,14 @@ BoundedVector<double,TrussElement3D2N::msLocalSize>
    ProcessInfo& rCurrentProcessInfo,const bool& rSaveInternalVariables)
 {
     KRATOS_TRY;
-    Vector strain_vector = ZeroVector(this->mConstitutiveLaw->GetStrainSize());
-    Vector stress_vector = ZeroVector(this->mConstitutiveLaw->GetStrainSize());
+    Vector strain_vector = ZeroVector(this->mpConstitutiveLaw->GetStrainSize());
+    Vector stress_vector = ZeroVector(this->mpConstitutiveLaw->GetStrainSize());
     strain_vector[0] = this->CalculateGreenLagrangeStrain();
 
     Matrix temp_matrix;
     Vector temp_vector;
 
-    this->mConstitutiveLaw->CalculateMaterialResponse(strain_vector,
+    this->mpConstitutiveLaw->CalculateMaterialResponse(strain_vector,
     temp_matrix,stress_vector,temp_matrix,rCurrentProcessInfo,this->GetProperties(),
     this->GetGeometry(),temp_vector,true,true,rSaveInternalVariables);
 
@@ -943,7 +928,7 @@ void TrussElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY;
   Vector temp_shape_function = ZeroVector(3);
-  this->mConstitutiveLaw->FinalizeSolutionStep(this->GetProperties(),
+  this->mpConstitutiveLaw->FinalizeSolutionStep(this->GetProperties(),
 	this->GetGeometry(),temp_shape_function,rCurrentProcessInfo);
   KRATOS_CATCH("");
 }
@@ -951,15 +936,14 @@ void TrussElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 
 void TrussElement3D2N::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-  rSerializer.save("mConstitutiveLaw", mConstitutiveLaw);
+  rSerializer.save("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 void TrussElement3D2N::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-  rSerializer.load("mConstitutiveLaw", mConstitutiveLaw);
+  rSerializer.load("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 
-
-bool TrussElement3D2N::CheckSelfWeight() const
+bool TrussElement3D2N::HasSelfWeight() const
 {
   const double norm_self_weight =
    this->GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[0]*
@@ -972,6 +956,8 @@ bool TrussElement3D2N::CheckSelfWeight() const
   if (norm_self_weight<=std::numeric_limits<double>::epsilon()) return false;
   else return true;
 }
+
+
 
 
 
