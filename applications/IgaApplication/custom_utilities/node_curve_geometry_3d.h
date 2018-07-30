@@ -144,7 +144,7 @@ public:
     ScalarType Weight(
         const int Index) const override
     {
-        auto& node = *Node(Index);
+        const auto& node = *Node(Index);
  
         return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
     }

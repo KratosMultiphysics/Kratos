@@ -161,7 +161,7 @@ public:
         const int IndexU,
         const int IndexV) const override
     {
-        auto& node = *Node(IndexU, IndexV);
+        const auto& node = *Node(IndexU, IndexV);
 
         return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
     }
