@@ -94,6 +94,7 @@ class AdjointFluidSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
+        self.response_function.InitializeSolutionStep()
 
     def Predict(self):
         self.solver.Predict()
@@ -103,6 +104,8 @@ class AdjointFluidSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
+        self.response_function.FinalizeSolutionStep()
+        self.sensitivity_builder.UpdateSensitivities()
 
     def Check(self):
         (self.solver).Check()

@@ -136,8 +136,6 @@ public:
             }
         }
 
-        mpResponseFunction->Initialize();
-
         InitializeNodeNeighbourCount(rModelPart.Nodes());
 
         KRATOS_CATCH("");
@@ -185,8 +183,6 @@ public:
         }
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-
-        mpResponseFunction->InitializeSolutionStep();
 
         KRATOS_CATCH("");
     }
@@ -261,8 +257,6 @@ public:
 //         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_FLUID_VECTOR_1);
-
-        mpResponseFunction->FinalizeSolutionStep();
 
         KRATOS_CATCH("");
     }

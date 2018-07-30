@@ -115,8 +115,6 @@ public:
         mAdjointSecondDerivsVector.resize(num_threads);
         mAdjointAuxiliaryVector.resize(num_threads);
 
-        this->mpResponseFunction->Initialize();
-
         InitializeNodeNeighbourCount(rModelPart.Nodes());
 
         KRATOS_CATCH("");
@@ -145,8 +143,6 @@ public:
 
         CalculateNodeNeighbourCount(rModelPart);
 
-        this->mpResponseFunction->InitializeSolutionStep();
-
         KRATOS_CATCH("");
     }
 
@@ -161,8 +157,6 @@ public:
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
         this->UpdateAuxiliaryVariable(rModelPart);
-
-        this->mpResponseFunction->FinalizeSolutionStep();
 
         KRATOS_CATCH("");
     }

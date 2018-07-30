@@ -161,13 +161,13 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        (self.solver).Initialize()
-        (self.sensitivity_builder).Initialize()
-
         (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
+        (self.solver).Initialize()
+        (self.response_function).Initialize()
+        (self.sensitivity_builder).Initialize()
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Monolithic MPI solver initialization finished.")
