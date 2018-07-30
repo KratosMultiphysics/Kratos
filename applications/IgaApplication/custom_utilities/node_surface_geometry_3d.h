@@ -49,10 +49,10 @@ protected:
 public:
     /** Creates a new NodeSurfaceGeometry3D.
      *
-     *  \param DegreeU Degree in u direction
-     *  \param DegreeV Degree in v direction
-     *  \param NumberOfNodesU Number of nodes in u direction
-     *  \param NumberOfNodesU Number of nodes in v direction
+     *  @param DegreeU Degree in u direction
+     *  @param DegreeV Degree in v direction
+     *  @param NumberOfNodesU Number of nodes in u direction
+     *  @param NumberOfNodesU Number of nodes in v direction
      */
     NodeSurfaceGeometry3D(
         const int DegreeU,
@@ -67,8 +67,8 @@ public:
 
     /** Gets the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
      * 
      * @return Kratos node at the given index.
      */
@@ -86,8 +86,8 @@ public:
 
     /** Sets the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
      */
     void SetNode(
         const int IndexU,
@@ -104,8 +104,8 @@ public:
 
     /** Gets the location of the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
      * 
      * @return Location of the Kratos node at the given index.
      */
@@ -125,9 +125,9 @@ public:
 
     /** Sets the location of the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
-     * \param Value New location of the Kratos node
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
+     * @param Value New location of the Kratos node
      */
     void SetPole(
         const int IndexU,
@@ -153,8 +153,8 @@ public:
 
     /** Gets the weight of the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
      * 
      * @return Weight of the Kratos node at the given index.
      */
@@ -169,9 +169,9 @@ public:
 
     /** Sets the weight of the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
-     * \param Value New weight of the Kratos node
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
+     * @param Value New weight of the Kratos node
      */
     void SetWeight(
         const int IndexU,
@@ -185,9 +185,9 @@ public:
 
     /** Gets the value of a nodal Kratos variable on a point at the surface.
      * 
-     * \param Variable Kratos variable
-     * \param U Surface parameter in u direction
-     * \param V Surface parameter in v direction
+     * @param Variable Kratos variable
+     * @param U Surface parameter in u direction
+     * @param V Surface parameter in v direction
      * 
      * @return The value of the variable at the given surface point.
      */
@@ -205,10 +205,10 @@ public:
     /** Gets the derivatives of a nodal Kratos variable on a point at the
      * surface.
      * 
-     * \param Variable Kratos variable
-     * \param U Surface parameter in u direction
-     * \param V Surface parameter in v direction
-     * \param Order Order of the highest derivative to compute
+     * @param Variable Kratos variable
+     * @param U Surface parameter in u direction
+     * @param V Surface parameter in v direction
+     * @param Order Order of the highest derivative to compute
      * 
      * @return The value and the derivatives of the variable at the given
      * surface point.
