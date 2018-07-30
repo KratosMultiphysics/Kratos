@@ -29,6 +29,7 @@ namespace Python {
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Array3D = Kratos::array_1d<double, 3>;
