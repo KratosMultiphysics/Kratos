@@ -103,9 +103,9 @@ public:
         const auto& node = *Node(Index);
  
         VectorType pole;
-        pole[0] = node[0];
-        pole[1] = node[1];
-        pole[2] = node[2];
+        for (size_t i = 0; i < 3; i++) {
+            pole[i] = node[i];
+        }
  
         return pole;
     }
@@ -121,9 +121,9 @@ public:
     {
         auto& node = *Node(Index);
  
-        node[0] = Value[0];
-        node[1] = Value[1];
-        node[2] = Value[2];
+        for (size_t i = 0; i < 3; i++) {
+            node[i] = Value[i];
+        }
     }
 
     /** Gets a value indicating whether or not the NURBS curve is rational.
