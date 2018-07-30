@@ -69,8 +69,7 @@ void AddResponseFunctionsToPython(pybind11::module& m)
         .def("CalculateFirstDerivativesGradient", (void (ResponseFunction::*)(Condition const&,Matrix const&,Vector&,ProcessInfo const& ) const )  &ResponseFunction::CalculateFirstDerivativesGradient)
         .def("CalculateSecondDerivativesGradient", (void (ResponseFunction::*)(Element const&,Matrix const&,Vector&,ProcessInfo const& ) const )  &ResponseFunction::CalculateSecondDerivativesGradient)
         .def("CalculateSecondDerivativesGradient", (void (ResponseFunction::*)(Condition const&,Matrix const&,Vector&,ProcessInfo const& ) const )  &ResponseFunction::CalculateSecondDerivativesGradient)
-        .def("CalculateValue", &ResponseFunction::CalculateValue)
-        .def("UpdateSensitivities", &ResponseFunction::UpdateSensitivities);
+        .def("CalculateValue", &ResponseFunction::CalculateValue);
 }
 
 }  // namespace Python.

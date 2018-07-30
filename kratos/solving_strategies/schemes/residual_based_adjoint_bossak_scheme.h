@@ -181,8 +181,6 @@ public:
         // Update adjoint variables associated to time integration.
         this->UpdateTimeSchemeAdjoints(rModelPart);
 
-        this->mpResponseFunction->UpdateSensitivities();
-
         KRATOS_CATCH("");
     }
 

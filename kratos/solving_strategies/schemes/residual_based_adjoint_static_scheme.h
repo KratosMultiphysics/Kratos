@@ -166,8 +166,6 @@ public:
             r_comm.SynchronizeNodalSolutionStepsData();
         }
 
-        mpResponseFunction->UpdateSensitivities();
-
         KRATOS_CATCH("");
     }
 

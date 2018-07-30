@@ -73,9 +73,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    // Update the sensitivities of the response function.
-    virtual void UpdateSensitivities() = 0;
-
     /// Calculate the local gradient w.r.t. the primal variable.
     /**
      * @param[in]     rElement          local adjoint element.

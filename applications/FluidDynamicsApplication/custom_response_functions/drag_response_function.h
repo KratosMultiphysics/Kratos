@@ -293,10 +293,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    void UpdateSensitivities() override
-    {
-    }
-
     void CalculateGradient(Element const& rElement,
                            Matrix const& rAdjointMatrix,
                            Vector& rResponseGradient,

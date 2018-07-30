@@ -421,8 +421,6 @@ public:
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_2);
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_3);
 
-        mpResponseFunction->UpdateSensitivities();
-
         KRATOS_CATCH("");
     }
 
