@@ -133,8 +133,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
                                mFluidDeltaTime(0.0),
                                mFluidLastCouplingFromDEMTime(0.0),
                                mMaxNodalAreaInv(0.0),
-                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0),
-                               mrBodyForcePerUnitMassVariable(BODY_FORCE)
+                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
 {
     Parameters default_parameters( R"(
         {
@@ -153,7 +152,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
     mTimeAveragingType = rParameters["time_averaging_type"].GetInt();
     mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();
     mParticlesPerDepthDistance = rParameters["n_particles_per_depth_distance"].GetInt();
-    mrBodyForcePerUnitMassVariable = KratosComponents<Variable<array_1d<double,3> > >::Get(rParameters["body_force_per_unit_mass_variable_name"].GetString());
+    mpBodyForcePerUnitMassVariable = &( KratosComponents< Variable<array_1d<double,3>> >::Get(rParameters["body_force_per_unit_mass_variable_name"].GetString()) );
 
     if (TDim == 3){
         mParticlesPerDepthDistance = 1;
@@ -294,7 +293,7 @@ PointPointSearch::Pointer mpPointPointSearch;
 
 FluidFieldUtility mFlowField;
 
-Variable<array_1d<double,3>>& mrBodyForcePerUnitMassVariable;
+const Variable<array_1d<double,3>>* mpBodyForcePerUnitMassVariable;
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
@@ -330,27 +329,27 @@ void Distribute(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_nod
 void ComputeHomogenizedNodalVariable(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const VariableData *r_destination_variable);
 void CalculateFluidFraction(ModelPart& r_fluid_model_part);
 void CalculateFluidMassFraction(ModelPart& r_fluid_model_part);
-void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_origin_variable, Variable<array_1d<double, 3> >& r_destination_variable);
-void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_origin_variable, Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
-void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<double>& r_origin_variable, Variable<double>& r_destination_variable);
-void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<double>& r_origin_variable, Variable<double>& r_destination_variable, double alpha);
+void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable);
+void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
+void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable);
+void Interpolate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable, double alpha);
 void CalculateVelocityProjectedRate(Node<3>::Pointer p_node);
-void InterpolateAcceleration(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_destination_variable);
-void InterpolateShearRate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<double>& r_destination_variable);
-void InterpolateShearRate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<double>& r_destination_variable, double alpha);
-void InterpolateVorticity(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_destination_variable);
-void InterpolateVorticity(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
-void TransferWithConstantWeighing(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_destination_variable, Variable<array_1d<double, 3> >& r_origin_variable);
-void TransferWithLinearWeighing(Element::Pointer p_elem, const array_1d<double,TDim + 1>& N, Node<3>::Pointer p_node, Variable<array_1d<double, 3> >& r_destination_variable, Variable<array_1d<double, 3> >& r_origin_variable);
+void InterpolateAcceleration(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable);
+void InterpolateShearRate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_destination_variable);
+void InterpolateShearRate(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<double>& r_destination_variable, double alpha);
+void InterpolateVorticity(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable);
+void InterpolateVorticity(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable, double alpha);
+void TransferWithConstantWeighing(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
+void TransferWithLinearWeighing(Element::Pointer p_elem, const array_1d<double,TDim + 1>& N, Node<3>::Pointer p_node, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
 void CalculateNodalFluidFractionWithConstantWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void CalculateNodalFluidFractionWithLinearWeighing(Element::Pointer p_elem, const Vector& N, ParticleType& particle);
 void CalculateNodalFluidFractionByLumpedL2Projection(Element::Pointer p_elem, const Vector& N, Node<3>::Pointer p_node);
 //void CalculateFluidFractionGradient(ModelPart& r_model_part);
-void TransferByAveraging(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, Variable<array_1d<double, 3> >& r_destination_variable, Variable<array_1d<double, 3> >& r_origin_variable);
+void TransferByAveraging(const ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights, const Variable<array_1d<double, 3> >& r_destination_variable, const Variable<array_1d<double, 3> >& r_origin_variable);
 void CalculateNodalFluidFractionByAveraging(ParticleType& particle, const ResultNodesContainerType& neighbours, const DistanceType& weights);
 void CalculateNodalSolidFractionByAveraging(const Node<3>::Pointer p_node, const ResultNodesContainerType& neighbours, const DistanceType& weights, const double averaging_volume_inv);
-void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<double>& r_variable, const double& factor);
-void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<array_1d<double, 3> >& r_variable, const double& factor);
+void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<double>& r_variable, const double& factor);
+void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_variable, const double& factor);
 void ResetDEMVariables(ModelPart& r_dem_model_part);
 void ResetFluidVariables(ModelPart& r_fluid_model_part);
 void ResetFLuidVelocityRate(const NodeIteratorType& node_it);
@@ -363,6 +362,7 @@ inline unsigned int GetNearestNode(const Vector& N);
 void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part);
 double inline CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* b);
 double inline GetAlpha(const VariableData& r_variable);
+const Variable<array_1d<double,3>>& GetBodyForcePerUnitMassVariable() const;
 //***************************************************************************************************************
 //***************************************************************************************************************
 
