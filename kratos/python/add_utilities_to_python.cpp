@@ -54,6 +54,7 @@
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/variable_redistribution_utility.h"
 
 namespace Kratos
 {
@@ -490,6 +491,28 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
     .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
+
+    // VariableRedistributionUtility
+    typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
+    typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);
+
+    DistributePointDoubleType DistributePointDouble = &VariableRedistributionUtility::DistributePointValues;
+    DistributePointArrayType  DistributePointArray  = &VariableRedistributionUtility::DistributePointValues;
+
+    typedef void (*ConvertDistributedDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&);
+    typedef void (*ConvertDistributedArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&);
+
+    ConvertDistributedDoubleType ConvertDistributedDouble = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
+    ConvertDistributedArrayType  ConvertDistributedArray  = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
+
+    // Note: The StaticMethod thing should be done only once for each set of overloads
+    class_< VariableRedistributionUtility >(m,"VariableRedistributionUtility")
+    .def_static("DistributePointValues",DistributePointDouble)
+    .def_static("DistributePointValues",DistributePointArray)
+    .def_static("ConvertDistributedValuesToPoint",ConvertDistributedDouble)
+    .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
+    ;
+
 }
 
 } // namespace Python.

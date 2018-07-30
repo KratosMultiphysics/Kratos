@@ -29,9 +29,29 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Prism3D15
+ * @ingroup KratosCore
+ * @brief A fifteen node prism geometry with quadratic shape functions
+ * @details The node ordering corresponds with: 
+ *                 3                          
+ *               ,/|`\                    
+ *             12  |  14               
+ *           ,/    |    `\          
+ *          4------13-----5       
+ *          |      9      |        
+ *          |      |      |        
+ *          |      |      |       
+ *          |      |      |       
+ *          10     |      11       
+ *          |      0      |        
+ *          |    ,/ `\    |       
+ *          |  ,6     `8  |        
+ *          |,/         `\|       
+ *          1------7------2          
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Prism3D15 : public Geometry<TPointType>
 {
 public:

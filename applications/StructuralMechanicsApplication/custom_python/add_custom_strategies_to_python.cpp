@@ -144,7 +144,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Explicit Central Differences Scheme Type
     class_< ExplicitCentralDifferencesSchemeType,typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType >(m,"ExplicitCentralDifferencesScheme")
-    .def(init< const double, const double, const double>() );
+    .def(init< const double, const double, const double>())
+    .def(init< Parameters>())
+    ;
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
