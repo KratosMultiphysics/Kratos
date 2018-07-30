@@ -11,6 +11,7 @@ include_directories(
 )
 
 file(GLOB KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/custom_search/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.h"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/knot_span/*.cpp"

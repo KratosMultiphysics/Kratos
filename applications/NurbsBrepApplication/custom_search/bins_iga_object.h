@@ -81,12 +81,15 @@ public:
     ///@{
 
     BinsIgaObject() : Point()
-    { }
+    { };
 
     BinsIgaObject() : Point(rCoordinates), mpElement(pElement)
     {
-        noalias(Coordinates()) = mpElement->Calculate(COORDINATES);
-    }
+        Vector coords = ZeroVector(3);
+        ProcessInfo process_info();
+        mpElement->Calculate(COORDINATES, coords, process_info);
+        noalias(Coordinates()) = coords;
+    };
 
     /// Destructor.
     virtual ~BinsIgaObject(){}
@@ -104,7 +107,7 @@ public:
     void UpdateCoordinates(const CoordinatesArrayType& rCoordinates)
     {
         noalias(Coordinates()) = rCoordinates;
-    }
+    };
 
     ///@}
     ///@name Access
@@ -112,7 +115,7 @@ public:
 
     ElementPointerType pGetBaseElement() const
     {
-        return mpElement
+        return mpElement;
     }
 
 
