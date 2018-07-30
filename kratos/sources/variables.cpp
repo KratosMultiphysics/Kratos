@@ -26,6 +26,7 @@
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
+#include "includes/master_slave_constraint.h"
 
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -211,8 +212,13 @@ KRATOS_CREATE_VARIABLE(bool, UPDATE_SENSITIVITIES)
 //for Electric application
 
 // For MeshingApplication
-KRATOS_CREATE_VARIABLE(double, NODAL_ERROR)
+KRATOS_CREATE_VARIABLE(double, NODAL_ERROR )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(NODAL_ERROR_COMPONENTS)
+KRATOS_CREATE_VARIABLE(double, ELEMENT_ERROR )
+KRATOS_CREATE_VARIABLE(double, ELEMENT_H )
+KRATOS_CREATE_VARIABLE(Vector, RECOVERED_STRESS )
+KRATOS_CREATE_VARIABLE(double, ERROR_INTEGRATION_POINT )
+KRATOS_CREATE_VARIABLE(double, CONTACT_PRESSURE )
 
 //for PFEM fluids application:
 KRATOS_CREATE_VARIABLE(double, NODAL_AREA)
@@ -489,6 +495,10 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mSurfaceCondition3D4N( 0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mSurfaceCondition3D8N( 0, Element::GeometryType::Pointer(new Quadrilateral3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mSurfaceCondition3D9N( 0, Element::GeometryType::Pointer(new Quadrilateral3D9<NodeType >(Element::GeometryType::PointsArrayType(9)))),
+
+      // Master-Slave Constraint 
+      mMasterSlaveConstraint(),
+      mLinearMasterSlaveConstraint(),
 
       // Deprecated conditions start
       mCondition2D( 0, Element::GeometryType::Pointer(new Geometry<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -816,7 +826,12 @@ void KratosApplication::RegisterVariables() {
     //--------------- Meshing ApplicationApplication -------------------//
 
     KRATOS_REGISTER_VARIABLE(NODAL_ERROR)
-    KRATOS_REGISTER_VARIABLE(NODAL_ERROR_COMPONENTS)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_ERROR_COMPONENTS)
+    KRATOS_REGISTER_VARIABLE(ELEMENT_ERROR )
+    KRATOS_REGISTER_VARIABLE(ELEMENT_H )
+    KRATOS_REGISTER_VARIABLE(RECOVERED_STRESS )
+    KRATOS_REGISTER_VARIABLE(ERROR_INTEGRATION_POINT )
+    KRATOS_REGISTER_VARIABLE(CONTACT_PRESSURE )
 
     //--------------- PFEM fluids Application -------------------//
 
@@ -959,7 +974,9 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
+
     KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
+
 
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
@@ -972,6 +989,8 @@ void KratosApplication::RegisterVariables() {
     //Register objects with specific definition ( non essential, must be deleted in future )
     Serializer::Register("Node3D", NodeType());
     Serializer::Register("DofDouble", Dof<double>());
+
+    Serializer::Register("MasterSlaveConstraint", MasterSlaveConstraint());
 
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
 
@@ -989,6 +1008,10 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D4N", mSurfaceCondition3D4N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D8N", mSurfaceCondition3D8N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D9N", mSurfaceCondition3D9N);
+
+    //master-slave constraints
+    KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
+    KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
 
     //deprecated conditions start
     KRATOS_REGISTER_CONDITION("Condition2D", mCondition2D);

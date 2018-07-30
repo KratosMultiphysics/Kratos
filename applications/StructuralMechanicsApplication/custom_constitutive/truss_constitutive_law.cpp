@@ -88,7 +88,7 @@ double& TrussConstitutiveLaw::CalculateValue(
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    if(rThisVariable == TANGENT_MODULUS) rValue = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]; 
+    if(rThisVariable == TANGENT_MODULUS) rValue = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS];
     else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     return rValue;
 }
@@ -101,8 +101,8 @@ Vector& TrussConstitutiveLaw::CalculateValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
 {
-    
-    if(rThisVariable == NORMAL_STRESS) 
+
+    if(rThisVariable == NORMAL_STRESS)
     {
         constexpr SizeType dofs = 6;
         rValue = ZeroVector(dofs);
@@ -127,7 +127,7 @@ void TrussConstitutiveLaw::CalculateMaterialResponse(
     const double youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
 
     if (rStressVector.size() != 1) rStressVector.resize(1);
-    rStressVector[0] = youngs_modulus*axial_strain; 
+    rStressVector[0] = youngs_modulus*axial_strain;
     this->mStressState = rStressVector[0];
 }
 

@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-class ThermalModifiedMisesNonlocalDamage3DLaw : public ThermalNonlocalDamage3DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalModifiedMisesNonlocalDamage3DLaw : public ThermalNonlocalDamage3DLaw
 {
 
 public:

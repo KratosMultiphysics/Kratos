@@ -40,7 +40,7 @@ namespace Kratos
         static constexpr int msNumberOfNodes = 2;
         static constexpr int msDimension = 3;
         static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
-        ConstitutiveLaw::Pointer mConstitutiveLaw = nullptr; 
+        ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     public:
         KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
@@ -239,6 +239,26 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
+
+        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+        /**
+         * @brief This function checks if self weight is present
+         */
+        bool HasSelfWeight() const;
+
+        /**
+         * @brief This function calls the constitutive law to get stresses
+         * @param rCurrentProcessInfo Current process info
+         * @param rSaveInternalVariables Boolean to save internal constit. law variables
+         */
+        virtual BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
+            ProcessInfo& rCurrentProcessInfo,
+            const bool& rSaveInternalVariables);
 
     private:
         friend class Serializer;

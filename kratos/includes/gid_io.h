@@ -42,8 +42,6 @@
 #include "utilities/timer.h"
 #include "containers/flags.h"
 
-#include "dem_variables.h" //TODO: must be removed eventually
-
 namespace Kratos
 {
 /**
@@ -1227,12 +1225,16 @@ public:
 
         GiD_fBeginElements( mMeshFile );
 
+        // DEM variables
+        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+
         /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-            GiD_fWriteSphereMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+            GiD_fWriteSphereMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), node_iterator->FastGetSolutionStepValue(particle_material));
 //             mNodeList.push_back(*node_iterator);
         }*/
 
@@ -1241,7 +1243,7 @@ public:
                 ++element_iterator)
         {
             unsigned int node_id = element_iterator->GetGeometry()[0].Id();
-            GiD_fWriteSphereMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS), element_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL)/*element_iterator->GetProperties().Id()*/);
+            GiD_fWriteSphereMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(radius), element_iterator->GetGeometry()[0].FastGetSolutionStepValue(particle_material)/*element_iterator->GetProperties().Id()*/);
         }
         GiD_fEndElements( mMeshFile );
         GiD_fEndMesh( mMeshFile);
@@ -1279,12 +1281,17 @@ void WriteCircleMesh( MeshType& rThisMesh )
         double nx = 0.0;
         double ny = 0.0;
         double nz = 1.0;
+
+        // DEM variables
+        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+
         for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-            GiD_fWriteCircleMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), nx, ny, nz, node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+            GiD_fWriteCircleMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), nx, ny, nz, node_iterator->FastGetSolutionStepValue(particle_material));
         }
         GiD_fEndElements( mMeshFile );
         GiD_fEndMesh( mMeshFile);
@@ -1318,12 +1325,16 @@ void WriteClusterMesh( MeshType& rThisMesh )
 
         GiD_fBeginElements( mMeshFile );
 
+        // DEM variables
+        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+
         /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-            GiD_fWriteClusterMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+            GiD_fWriteClusterMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), node_iterator->FastGetSolutionStepValue(particle_material));
 //             mNodeList.push_back(*node_iterator);
         }*/
 
@@ -1332,7 +1343,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                 ++element_iterator)
         {
             unsigned int node_id = element_iterator->GetGeometry()[0].Id();
-            GiD_fWriteClusterMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL)/*element_iterator->GetProperties().Id()*/);
+            GiD_fWriteClusterMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(particle_material)/*element_iterator->GetProperties().Id()*/);
         }
         GiD_fEndElements( mMeshFile );
         GiD_fEndMesh( mMeshFile);
@@ -1410,13 +1421,36 @@ void WriteClusterMesh( MeshType& rThisMesh )
 
 
     ///functions for printing results on gauss points
+
+    /**
+    * @brief Writes elemental and conditional flags
+    * @param rFlag the flag
+    * @param rFlagName the given flag name
+    * @param rModelPart the current model part
+    */
+    void PrintFlagsOnGaussPoints(
+        Kratos::Flags rFlag,
+        std::string rFlagName,
+        ModelPart& rModelPart,
+        double SolutionTag
+        )
+    {
+        Timer::Start("Writing Results");
+
+        for ( auto it =  mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
+            it->PrintFlagsResults( mResultFile, rFlag, rFlagName, rModelPart, SolutionTag );
+        }
+
+        Timer::Stop("Writing Results");
+    }
+
     /**
      * Prints variables of type double on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& r_model_part,
-                                     double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
 
@@ -1427,7 +1461,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                 it != mGidGaussPointContainers.end(); it++ )
         {
 
-            it->PrintResults( mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Results");
@@ -1438,10 +1472,10 @@ void WriteClusterMesh( MeshType& rThisMesh )
     /**
      * Prints variables of type int on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<int>& rVariable, ModelPart& r_model_part,
-                                     double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<int>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
 
@@ -1452,7 +1486,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                 it != mGidGaussPointContainers.end(); it++ )
         {
 
-            it->PrintResults( mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Results");
@@ -1463,9 +1497,9 @@ void WriteClusterMesh( MeshType& rThisMesh )
     /**
      * Prints variables of type double on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<array_1d<double,3> >& rVariable, ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<array_1d<double,3> >& rVariable, ModelPart& rModelPart, double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
 
@@ -1475,7 +1509,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
-            it->PrintResults(  mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Results");
@@ -1486,10 +1520,10 @@ void WriteClusterMesh( MeshType& rThisMesh )
     /**
      * Prints variables of type double on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<Vector>& rVariable, ModelPart& r_model_part,
-                                     double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<Vector>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
         Timer::Start("Writing Results");
@@ -1498,7 +1532,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
-            it->PrintResults(  mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
 
         }
 
@@ -1510,10 +1544,10 @@ void WriteClusterMesh( MeshType& rThisMesh )
     /**
      * Prints variables of type double on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<Matrix>& rVariable, ModelPart& r_model_part,
-                                     double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<Matrix>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
         Timer::Start("Writing Results");
@@ -1522,7 +1556,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                 it != mGidGaussPointContainers.end(); it++ )
         {
 
-            it->PrintResults(  mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Results");

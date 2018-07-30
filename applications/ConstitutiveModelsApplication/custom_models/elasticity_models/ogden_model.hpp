@@ -94,9 +94,9 @@ namespace Kratos
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override; 
+    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
 
-    
+
     /**
      * Check
      */
@@ -170,7 +170,7 @@ namespace Kratos
      * Calculate Constitutive Tensor
      */
     virtual void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix) override;
-    
+
     virtual void CalculateAndAddConstitutiveTensorB(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
 
     /**
@@ -187,7 +187,7 @@ namespace Kratos
     void GetEigenCoincidence(const array_1d<double,3>& rStrainEigenValues,
 			     array_1d<unsigned int,3>& Order,
 			     unsigned int& option);
-    
+
     /**
      * Calculate Derivative of a general isotropic tensor
      */
@@ -201,14 +201,14 @@ namespace Kratos
 					       double &rCabcd,
 					       const unsigned int& a, const unsigned int& b,
 					       const unsigned int& c, const unsigned int& d);
-    
+
 
     /**
      * Calculate Tensor Derivative Factors
      */
     void CalculateDerivativeFactors(array_1d<double,6>& rDerivativeFactors, const MatrixType& rStressDerivatives, const array_1d<double,3>& rStressEigenValues, const array_1d<double,3>& rStrainEigenValues, const array_1d<unsigned int,3>& rOrder);
 
-    
+
     //************// Strain Data
 
 
@@ -263,7 +263,7 @@ namespace Kratos
     ///@{
 
     using HyperElasticModel::AddConstitutiveComponent;
-    
+
     ///@}
     ///@name Private  Access
     ///@{

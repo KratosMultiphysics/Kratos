@@ -81,7 +81,7 @@ public:
         //do movement
         array_1d<double, 3 > veulerian;
         array_1d<double, 3 > acc_particle;
-        array_1d<double, TDim + 1 > N;
+        Vector N;
         const int max_results = rModelPart.Nodes().size();
 
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
@@ -101,6 +101,7 @@ public:
             Element::Pointer pelement;
             bool is_found = false;
 
+            array_1d<double, 3> aux_point_local_coordinates;
 
             while(substep++ < subdivisions)
             {
@@ -112,7 +113,9 @@ public:
 
                 if(substep > 1 ) //first check if it falls within the same element
                 {
-                    is_found = mpSearchStructure->CalculatePosition(pelement->GetGeometry(), current_position[0], current_position[1], current_position[2], N);
+                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                    is_found = geom.IsInside(current_position, aux_point_local_coordinates, 1.0e-5);
+                    geom.ShapeFunctionsValues(N, aux_point_local_coordinates);
 
                     if(is_found == false)
                         is_found = mpSearchStructure->FindPointOnMesh(current_position, N, pelement, result_begin, max_results);

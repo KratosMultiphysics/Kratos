@@ -239,6 +239,7 @@ public:
 
     /**
      * @brief This utility computes the exact integration of the mortar condition and returns the area
+     * @param rMainModelPart The main model part
      * @param SlaveCond The slave condition
      * @return The total area integrated
      */
@@ -248,7 +249,13 @@ public:
         );
 
     /**
-    * @brief This method is used for debugging purposes
+     * @brief This method is used for debugging purposes. Generates a GiD mesh to check
+     * @param rMainModelPart The main model part
+     */
+    void TestGiDDebug(ModelPart& rMainModelPart);
+
+    /**
+    * @brief This method is used for debugging purposes. Generates a mesh of Mathematica
     * @param IndexSlave The index of the slave geometry
     * @param SlaveGeometry The slave geometry
     * @param IndexMaster The index of the master geometry

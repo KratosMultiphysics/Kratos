@@ -61,7 +61,7 @@ namespace Kratos
     typedef YieldSurface<THardeningRule>                                 BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
-    
+
     /// Pointer definition of MisesHuberThermalYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( MisesHuberThermalYieldSurface );
 
@@ -71,7 +71,7 @@ namespace Kratos
 
     /// Default constructor.
     MisesHuberThermalYieldSurface() : DerivedType() {}
-    
+
     /// Copy constructor.
     MisesHuberThermalYieldSurface(MisesHuberThermalYieldSurface const& rOther) : DerivedType(rOther) {}
 
@@ -81,13 +81,13 @@ namespace Kratos
       DerivedType::operator=(rOther);
       return *this;
     }
-    
+
     /// Clone.
     virtual BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new MisesHuberThermalYieldSurface(*this));
+      return Kratos::make_shared<MisesHuberThermalYieldSurface>(*this);
     }
-    
+
     /// Destructor.
     virtual ~MisesHuberThermalYieldSurface() {}
 
@@ -96,12 +96,12 @@ namespace Kratos
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
 
-    
+
     /**
      * Calculate Plastic Dissipation
      */
@@ -112,13 +112,13 @@ namespace Kratos
 
       const ModelDataType& rModelData = rVariables.GetModelData();
 
-      //get values        
+      //get values
       const double& rDeltaGamma              = rVariables.GetDeltaInternalVariables()[0];
       const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
       double Hardening = 0;
       Hardening = this->mHardeningRule.CalculateHardening(rVariables,Hardening);
-      
+
       double EquivalentStress =  sqrt(2.0/3.0) * ( Hardening );
 
       rPlasticDissipation = 0.9 * EquivalentStress * rDeltaGamma * ( 1.0/rDeltaTime );
@@ -127,21 +127,21 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate Plastic Dissipation derivative
      */
-    
+
     double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
-	
+
       const ModelDataType& rModelData = rVariables.GetModelData();
 
-      //get values        
+      //get values
       const double& rDeltaGamma              = rVariables.GetDeltaInternalVariables()[0];
       const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
-      
+
       const MaterialDataType& rMaterialParameters  = rModelData.GetMaterialParameters();
       const double& rLameMuBar = rMaterialParameters.GetLameMuBar();
 
@@ -156,10 +156,10 @@ namespace Kratos
       double DeltaThermalHardening = 0;
       DeltaThermalHardening = this->mHardeningRule.CalculateDeltaThermalHardening(rVariables, DeltaThermalHardening);
 
-      rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime); 
+      rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime);
       rDeltaPlasticDissipation *= ( (-1) * DeltaThermalHardening );
       rDeltaPlasticDissipation *= (rDeltaGamma - ( EquivalentStress + DeltaHardening * rDeltaGamma * (2.0/3.0) )/( 2.0 * rLameMuBar + (2.0/3.0) * DeltaHardening ) );
-      
+
 
       return rDeltaPlasticDissipation;
 
@@ -172,10 +172,10 @@ namespace Kratos
     double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
     {
       KRATOS_TRY
-	
+
       const ModelDataType& rModelData = rVariables.GetModelData();
 
-      //get values        
+      //get values
       const double& rDeltaGamma              = rVariables.GetDeltaInternalVariables()[0];
       const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
@@ -188,28 +188,28 @@ namespace Kratos
       rPlasticDissipation = 0.9 * EquivalentStress * rDeltaGamma * ( 1.0/rDeltaTime );
 
       return rPlasticDissipation;
-    
+
       KRATOS_CATCH(" ")
-    }      
-    
+    }
+
     /**
      * Calculate Implex Plastic Dissipation derivative
      */
-    
+
     double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
-	
+
       const ModelDataType& rModelData = rVariables.GetModelData();
 
-      //get values        
+      //get values
       const double& rDeltaGamma              = rVariables.GetDeltaInternalVariables()[0];
       const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
-      
+
       double DeltaThermalHardening = 0;
       DeltaThermalHardening = this->mHardeningRule.CalculateDeltaThermalHardening(rVariables, DeltaThermalHardening);
 
-      rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime); 
+      rDeltaPlasticDissipation  = (0.9 * sqrt(2.0/3.0)/rDeltaTime);
       rDeltaPlasticDissipation *= ( (-1) * DeltaThermalHardening );
       rDeltaPlasticDissipation *= rDeltaGamma ;
 
@@ -217,11 +217,11 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-          
+
     ///@}
     ///@name Access
     ///@{
-        
+
 
     ///@}
     ///@name Inquiry
@@ -268,8 +268,8 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -321,7 +321,7 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
@@ -331,12 +331,12 @@ namespace Kratos
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
     }
-    
+
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -367,6 +367,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MISES_HUBER_THERMAL_YIELD_SURFACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MISES_HUBER_THERMAL_YIELD_SURFACE_H_INCLUDED  defined

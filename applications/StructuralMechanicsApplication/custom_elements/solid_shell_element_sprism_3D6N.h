@@ -97,6 +97,9 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
 
+    // The vector containing the weak pointers to the nodes
+    typedef WeakPointerVector<NodeType> WeakPointerVectorNodesType;
+
     /// Counted pointer of SolidShellElementSprism3D6N
     KRATOS_CLASS_POINTER_DEFINITION(SolidShellElementSprism3D6N);
 
@@ -189,12 +192,6 @@ public:
         IndexType NewId,
         NodesArrayType const& ThisNodes
         ) const override;
-
-    /**
-     * @brief Returns the currently selected integration method
-     * @return current integration method selected
-     */
-     IntegrationMethod GetIntegrationMethod() const override;
 
     /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -837,14 +834,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /* Currently selected integration methods */
-    IntegrationMethod mThisIntegrationMethod;
-
     /* Finalize and Initialize label*/
     bool mFinalizedStep;
 
     /* Auxiliar vector of matrices container used for different pourposes in TL and UL */
-    std::vector< Matrix > mHistoricalF0; /// Container for historical total Jacobians for Total Lagrangian
+    std::vector< Matrix > mAuxContainer; /// Container for historical total Jacobians for Total Lagrangian
                                          /// Container for historical total elastic deformation measure F0 = dx/dX  for Updated Lagrangian
 
     /* Elemental flags */
@@ -959,7 +953,7 @@ protected:
      * @param J The Jacobian of the element
      * @param Jinv The inverse of the Jacobian
      * @param detJ Determinant of the Jacobian
-     * @param rPointNumber The integration points of the prism
+     * @param rPointNumber The integration point index
      * @param ZetaGauss The transversal local coordinates
      */
     void CalculateJacobianCenterGauss(
@@ -1021,7 +1015,7 @@ protected:
      * @param CartesianDerivativesCenter The cartesian derivatives in the plane
      * @param Part The enum that indicates upper or lower face
      */
-    void CalculateCartesianDerOnCenterPlane(
+    void CalculateCartesianDerivativesOnCenterPlane(
         BoundedMatrix<double, 2, 4 >& CartesianDerivativesCenter,
         const OrthogonalBase& ThisOrthogonalBase,
         const GeometricLevel Part
@@ -1345,7 +1339,7 @@ protected:
      * @brief Set Variables of the Element to the Parameters of the Constitutive Law
      * @param rVariables The internal variables in the element
      * @param rValues Values of the ContstitutiveLaw
-     * @param rPointNumber The integration points of the prism
+     * @param rPointNumber The integration point index
      */
     void SetGeneralVariables(
         GeneralVariables& rVariables,
@@ -1374,13 +1368,15 @@ protected:
     /**
      * @brief Calculate Element Kinematics
      * @param rVariables The internal variables in the element
-     * @param rPointNumber The integration points of the prism
+     * @param rIntegrationPoints The integration points of the prism
+     * @param rPointNumber The integration point index
      * @param AlphaEAS The internal variable for the EAS
      * @param ZetaGauss The zeta coordinate for the Gauss Quadrature
      */
     void CalculateKinematics(
         GeneralVariables& rVariables,
         const CommonComponents& rCommonComponents,
+        const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
         const IndexType rPointNumber,
         const double AlphaEAS,
         const double ZetaGauss
@@ -1390,7 +1386,7 @@ protected:
      * @brief Calculate Fbar from Cbar
      * @details Assuming that the rotation matrix of the polar decomposition of the F_bar is the same of the polar decomposition of F
      * @param rVariables The internal variables in the element
-     * @param rPointNumber The integration points of the prism
+     * @param rPointNumber The integration point index
      */
     void CbartoFbar(
         GeneralVariables& rVariables,
@@ -1419,7 +1415,7 @@ protected:
     /**
      * @brief Finalize Element Internal Variables
      * @param rVariables The internal variables in the element
-     * @param rPointNumber The integration points of the prism
+     * @param rPointNumber The integration point index
      */
     void FinalizeStepVariables(
         GeneralVariables & rVariables,
@@ -1429,7 +1425,7 @@ protected:
     /**
      * @brief Get the Historical Deformation Gradient to calculate aTransverseGradientFter finalize the step
      * @param rVariables The internal variables in the element
-     * @param rPointNumber The integration points of the prism
+     * @param rPointNumber The integration point index
      */
     void GetHistoricalVariables(
         GeneralVariables& rVariables,
