@@ -6,8 +6,8 @@ from KratosMultiphysics.IgaApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from NodeCurveGeometry3DTests import NodeCurveGeometry3DTests
-from NodeSurfaceGeometry3DTests import NodeSurfaceGeometry3DTests
+from node_curve_geometry_3d_tests import NodeCurveGeometry3DTests
+from node_surface_geometry_3d_tests import NodeSurfaceGeometry3DTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
