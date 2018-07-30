@@ -6,7 +6,8 @@ from KratosMultiphysics.IgaApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-
+from NodeCurveGeometry3DTests import NodeCurveGeometry3DTests
+from NodeSurfaceGeometry3DTests import NodeSurfaceGeometry3DTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -22,6 +23,8 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        NodeCurveGeometry3DTests,
+        NodeSurfaceGeometry3DTests,
     ]))
 
     nightSuite = suites['nightly']
