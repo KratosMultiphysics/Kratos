@@ -16,6 +16,11 @@ using namespace pybind11;
 
 void AddCustomResponseFunctionsToPython(pybind11::module& m)
 {
+    class_<SensitivityBuilder>(m, "SensitivityBuilder")
+        .def(init<Parameters&, ModelPart&, ResponseFunction::Pointer>())
+        .def("Initialize", &SensitivityBuilder::Initialize)
+        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
+
     class_<
         DragResponseFunction<2>,
         typename DragResponseFunction<2>::Pointer,

@@ -26,6 +26,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             "response_function_settings" : {
                 "response_type" : "drag"
             },
+            "sensitivity_settings" : {},
             "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
@@ -104,6 +105,8 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
+        self.sensitivity_builder = KratosCFD.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
+
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
             self.time_scheme = KratosMultiphysics.ResidualBasedAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
@@ -127,6 +130,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         (self.solver).Initialize()
+        (self.sensitivity_builder).Initialize()
 
         (self.solver).Check()
 
@@ -134,6 +138,10 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+    
+    def SolveSolutionStep(self):
+        super(AdjointVMSMonolithicSolver, self).SolveSolutionStep()
+        (self.sensitivity_builder).UpdateSensitivities()
 
     def _set_physical_properties(self):
         # Transfer density and (kinematic) viscostity to the nodes
