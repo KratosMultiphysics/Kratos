@@ -387,9 +387,8 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
     {
         caseId = 30;
     }
-    else if (rVariable == SHEAR_ANGLE) {
-        caseId = 40;
-    }
+
+
 
     if (caseId > 19)
     {
@@ -463,11 +462,6 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
                 }
 
                 CalculateVonMisesStress(data, rVariable, resultDouble);
-            }
-            else if (caseId == 40) {
-                DecimalCorrection(data.generalizedStrains);
-                const double pi = 3.14159265;
-                resultDouble = std::atan(0.5*data.generalizedStrains[2]) * 180 / pi;
             }
             else
             {
