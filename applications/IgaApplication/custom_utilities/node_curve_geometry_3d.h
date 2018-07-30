@@ -49,8 +49,8 @@ protected:
 public:
     /** Creates a new NodeCurveGeometry3D.
      *
-     *  \param Degree Degree of the curve
-     *  \param NumberOfNodes Number of nodes
+     *  @param Degree Degree of the curve
+     *  @param NumberOfNodes Number of nodes
      */
     NodeCurveGeometry3D(
         const int Degree,
@@ -62,7 +62,7 @@ public:
 
     /** Gets the Kratos node at a given index.
      * 
-     * \param Index Index of the node
+     * @param Index Index of the node
      * 
      * @return Kratos node at the given index.
      */
@@ -78,7 +78,7 @@ public:
 
     /** Sets the Kratos node at a given index.
      * 
-     * \param Index Index of the node
+     * @param Index Index of the node
      */
     void SetNode(
         const int Index,
@@ -93,7 +93,7 @@ public:
 
     /** Gets the location of the Kratos node at a given index.
      * 
-     * \param Index Index of the node
+     * @param Index Index of the node
      * 
      * @return Location of the Kratos node at the given index.
      */
@@ -112,8 +112,8 @@ public:
 
     /** Sets the location of the Kratos node at a given index.
      * 
-     * \param Index Index of the node
-     * \param Value New location of the Kratos node
+     * @param Index Index of the node
+     * @param Value New location of the Kratos node
      */
     void SetPole(
         const int Index,
@@ -137,7 +137,7 @@ public:
 
     /** Gets the weight of the Kratos node at a given index.
      * 
-     * \param Index Index of the node
+     * @param Index Index of the node
      * 
      * @return Weight of the Kratos node at the given index.
      */
@@ -151,8 +151,8 @@ public:
 
     /** Sets the weight of the Kratos node at a given index.
      * 
-     * \param Index Index of the node
-     * \param Value New weight of the Kratos node
+     * @param Index Index of the node
+     * @param Value New weight of the Kratos node
      */
     void SetWeight(
         const int Index,
@@ -165,8 +165,8 @@ public:
 
     /** Gets the value of a nodal Kratos variable on a point at the curve.
      * 
-     * \param Variable Kratos variable
-     * \param T Curve parameter
+     * @param Variable Kratos variable
+     * @param T Curve parameter
      * 
      * @return The value of the variable at the given curve point.
      */
@@ -182,9 +182,9 @@ public:
 
     /** Gets the derivatives of a nodal Kratos variable on a point at the curve.
      * 
-     * \param Variable Kratos variable
-     * \param T Curve parameter
-     * \param Order Order of the highest derivative to compute
+     * @param Variable Kratos variable
+     * @param T Curve parameter
+     * @param Order Order of the highest derivative to compute
      * 
      * @return The value and the derivatives of the variable at the given
      * curve point.
