@@ -1,5 +1,9 @@
 from KratosMultiphysics import *
-from KratosMultiphysics.FSIApplication import *
+try:
+    from KratosMultiphysics.FSIApplication import *
+    have_fsi = True
+except ImportError:
+    have_fsi = False
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -16,6 +20,7 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipUnless(have_fsi,"Missing required application: FSIApplication")
 class VariableRedistributionTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -64,7 +69,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
         def ReferenceSolution(node,variable):
             node.SetSolutionStepValue(variable, 10.*node.X + node.Y)
 
-        
+
         self.RunTestCase(
             FlagDefinedCheck,
             ReferenceSolution,
@@ -81,7 +86,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
         def ReferenceSolution(node,variable):
             node.SetSolutionStepValue(variable, node.X*node.X + node.Y*node.Z)
 
-        
+
         self.RunTestCase(
             FlagDefinedCheck,
             ReferenceSolution,
@@ -102,7 +107,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
             value[2] = 500
             node.SetSolutionStepValue(variable, value)
 
-        
+
         self.RunTestCase(
             FlagDefinedCheck,
             ReferenceSolution,
@@ -116,7 +121,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
         with WorkFolderScope(self.work_folder):
 
             self.SetUpProblem()
-            
+
             for node in self.model_part.Nodes:
                 if inteface_check(node):
                     node.Set(INTERFACE,True)
@@ -150,11 +155,11 @@ class VariableRedistributionTest(UnitTest.TestCase):
 
     def testNodalArea(self):
         self.input_file = "square10"
-        
+
         with WorkFolderScope(self.work_folder):
 
             self.SetUpProblem()
-            
+
             for node in self.model_part.Nodes:
                 node.Set(INTERFACE,True)
                 node.SetSolutionStepValue(PRESSURE,1.0)

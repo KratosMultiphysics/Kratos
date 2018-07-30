@@ -54,13 +54,13 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Helper utility to transform between point-wise nodal variables and distributed values. 
+  /// Helper utility to transform between point-wise nodal variables and distributed values.
   /** The functions are desinged so that both sets of values have the same L2 norm over the
    *  conditions of the provided ModelPart (up to tolerance).
    *  A typical use case is to transform a set of point forces to area-distributed loads
    *  or vice-versa.
    */
-  class VariableRedistributionUtility
+  class KRATOS_API(KRATOS_CORE) VariableRedistributionUtility
     {
     public:
       ///@name Type Definitions
@@ -96,7 +96,7 @@ namespace Kratos
           const Variable< double >& rDistributedVariable,
           const Variable< double >& rPointVariable);
 
-      
+
       /// Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
       /** The origin and destination values have the same L2 norm over the set of conditions.
        *  A typical use case is to transform a distributed load into an equivalent set of point loads.
@@ -183,7 +183,7 @@ namespace Kratos
 
     /**
      * @brief Specialization of ConvertDistributeValuesToPoint according to the variable value type
-     * 
+     *
      * @tparam TValueType variables value type (double or array_1<double,3>)
      * @param rModelPart model part in where the point values accumulation is done
      * @param rDistributedVariable origin distributed variable
@@ -197,7 +197,7 @@ namespace Kratos
 
     /**
      * @brief Specialization of DistributePointValues according to the variable value type
-     * 
+     *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
      * @param rPointVariable origin point variable
@@ -215,7 +215,7 @@ namespace Kratos
 
     /**
      * @brief ConvertDistributedValuesToPoint specialization according to geometry family, points number and value type
-     * 
+     *
      * @tparam TFamily geometry family in the model part in where the accumulation is done
      * @tparam TPointNumber points number in the geometries in where the accumulation is done
      * @tparam TValueType variables value type (double or array_1d<double,3>)
@@ -231,10 +231,10 @@ namespace Kratos
 
     /**
      * @brief DummyConvertDistributedValuesToPoint
-     * This class does nothing, it is only used in case there is no conditions in the current 
+     * This class does nothing, it is only used in case there is no conditions in the current
      * partition to perform the communication operations that are done in the "standard" case.
      * Otherwise, the MPI synchronism is broken
-     * 
+     *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the point values accumulation is done
      * @param rDistributedVariable origin distributed variable
@@ -248,7 +248,7 @@ namespace Kratos
 
     /**
      * @brief DistributePointValues specialization according to geometry family, points number and value type
-     * 
+     *
      * @tparam TFamily geometry family in the model part in where the distribution is done
      * @tparam TPointNumber points number in the geometries in where the distribution is done
      * @tparam TValueType variables value type (double or array_1d<double,3>)
@@ -268,10 +268,10 @@ namespace Kratos
 
     /**
      * @brief Dummy SpecializedDistributePointValues.
-     * This class does nothing, it is only used in case there is no conditions in the current 
+     * This class does nothing, it is only used in case there is no conditions in the current
      * partition to perform the communication operations that are done in the "standard" case.
      * Otherwise, the MPI synchronism is broken
-     * 
+     *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
      * @param rDistributedVariable destination distributed variable
@@ -287,14 +287,14 @@ namespace Kratos
 
     /**
      * @brief This function computes the NODAL_MAUX values
-     * 
+     *
      * @param rModelPart model part in where the NODAL_MAUX is computed
      */
       static void ComputeNodalSizes(ModelPart& rModelPart);
 
     /**
      * @brief Fills the given matrix with the consistent mass matrix values
-     * 
+     *
      * @tparam TFamily geometry family in the model part in where the operation is done
      * @tparam TNumNodes nodes number of the geometries in where the operation is done
      * @param rMassMatrix computed consistent mass matrix that is to be filled
@@ -304,7 +304,7 @@ namespace Kratos
 
     /**
      * @brief Computes the RHS of the distribution problem
-     * 
+     *
      * @tparam TNumNodes nodes number of the geometries in where the operation is done
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
@@ -321,10 +321,10 @@ namespace Kratos
 
     /**
      * @brief Dummy computation of the RHS of the distribution problem
-     * This class does nothing, it is only used in case there is no conditions in the current 
+     * This class does nothing, it is only used in case there is no conditions in the current
      * partition to perform the communication operations that are done in the "standard" case
      * Otherwise, the MPI synchronism is broken
-     * 
+     *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
      * @param rDistributedVariable destination distributed variable
@@ -336,7 +336,7 @@ namespace Kratos
 
     /**
      * @brief Function that solves the distribution problem. It is called at each iteration.
-     * 
+     *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
      * @param rDistributedVariable destination distributed variable
@@ -349,7 +349,7 @@ namespace Kratos
 
     /**
      * @brief Auxiliar method to retrieve the variable used in the RHS of the distribution problem
-     * 
+     *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rVariable reference to the RHS variable of the distribution problem
      * @return const Variable< TValueType >& reference to the RHS variable of the distribution problem
@@ -358,10 +358,10 @@ namespace Kratos
       static const Variable< TValueType >& GetRHSVariable(const Variable<TValueType>& rVariable);
 
     /**
-     * @brief Auxiliar function to compute the error norm according to the variable value type 
-     * 
+     * @brief Auxiliar function to compute the error norm according to the variable value type
+     *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
-     * @param NodalValue nodal value 
+     * @param NodalValue nodal value
      * @param NodalSize area associated to the current node
      * @return double product of the nodal value norm times the nodal size
      */
@@ -370,14 +370,14 @@ namespace Kratos
 
     /**
      * @brief Auxiliar function to perform a threadsafe addition
-     * 
+     *
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rLHS left hand side of the summation (accumulated value)
      * @param rRHS right hand side of the summation (value to be accumulated in the LHS)
      */
       template< class TValueType >
       static void ThreadsafeAdd(TValueType& rLHS, const TValueType& rRHS);
-            
+
       ///@}
       ///@name Private  Access
       ///@{

@@ -21,6 +21,7 @@ class MmgProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "help"                             : "This process remeshes using MMG library. This process uses different utilities and processes",
             "mesh_id"                          : 0,
             "filename"                         : "out",
             "model_part_name"                  : "MainModelPart",
