@@ -7,11 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Michael Andre, https://github.com/msandre
+//  Main authors:    
 //
 
-#if !defined(KRATOS_RESPONSE_FUNCTION_SENSITIVITY_BUILDER_UTILITY_H_INCLUDED)
-#define KRATOS_RESPONSE_FUNCTION_SENSITIVITY_BUILDER_UTILITY_H_INCLUDED
+#if !defined(KRATOS_NODAL_SENSITIVITY_BUILDER_H_INCLUDED)
+#define KRATOS_NODAL_SENSITIVITY_BUILDER_H_INCLUDED
 
 // System includes
 
@@ -28,8 +28,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility for assembling sensitivities from a model part and a response function.
-class ResponseFunctionSensitivityBuilderUtility
+class NodalSensitivityBuilder
 {
 public:
     ///@name Type Definitions
@@ -37,18 +36,11 @@ public:
 
     typedef Geometry<Node<3>> GeometryType;
 
-    typedef ModelPart::NodesContainerType NodesContainerType;
-
-    typedef ModelPart::ElementsContainerType ElementsContainerType;
-
-    typedef ModelPart::ConditionsContainerType ConditionsContainerType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
-    ResponseFunctionSensitivityBuilderUtility(ModelPart& rModelPart,
-                                              AdjointResponseFunction::Pointer pResponseFunction)
+    NodalSensitivityBuilder(ModelPart& rModelPart, AdjointResponseFunction::Pointer pResponseFunction)
         : mrModelPart(rModelPart), mpResponseFunction(pResponseFunction)
     {
     }
@@ -293,4 +285,4 @@ private:
 ///@} // Kratos Classes
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_RESPONSE_FUNCTION_SENSITIVITY_BUILDER_UTILITY_H_INCLUDED defined */
+#endif /* KRATOS_NODAL_SENSITIVITY_BUILDER_H_INCLUDED defined */

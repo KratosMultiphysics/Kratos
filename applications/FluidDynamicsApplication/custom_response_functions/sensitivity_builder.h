@@ -24,7 +24,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/variable_utils.h"
 #include "response_functions/adjoint_response_function.h"
-#include "solving_strategies/response_functions/response_function_sensitivity_builder_utility.h"
+#include "solving_strategies/response_functions/nodal_sensitivity_builder.h"
 
 namespace Kratos
 {
@@ -111,9 +111,9 @@ public:
         else
             delta_time = 1.0;
 
-        ResponseFunctionSensitivityBuilderUtility sensitivity_builder_utility(mrModelPart, mpResponseFunction);
+        NodalSensitivityBuilder nodal_sensitivity_builder(mrModelPart, mpResponseFunction);
         for (const std::string& r_label : mNodalSensitivityVariables)
-            sensitivity_builder_utility.BuildNodalSolutionStepSensitivities(r_label, delta_time);
+            nodal_sensitivity_builder.BuildNodalSolutionStepSensitivities(r_label, delta_time);
 
         KRATOS_CATCH("");
     }
