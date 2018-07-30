@@ -191,18 +191,16 @@ namespace Kratos
                         DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_0, normal_slave_0, MasterCondition0->GetGeometry(), rDerivativeData0, rVariables0, consider_normal_variation, conditions_points_slave0, this_integration_method);
 
                         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
-                            PointerVector< PointType > points_array; // The points are stored as local coordinates, we calculate the global coordinates of this points
-                            points_array.reserve(TDim);
-                            PointerVector< PointType > points_array0;
-                            points_array0.reserve(TDim);
+                            PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                            PointerVector< PointType > points_array0(TDim);
                             array_1d<BelongType, TDim> belong_array;
                             for (IndexType i_node = 0; i_node < TDim; ++i_node) {
                                 PointType global_point;
                                 slave_geometry_1.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                                points_array.push_back(Kratos::make_shared<PointType>(PointType(global_point)));
+                                points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                                 belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
                                 slave_geometry_0.GlobalCoordinates(global_point, conditions_points_slave0[i_geom][i_node]);
-                                points_array0.push_back(Kratos::make_shared<PointType>(PointType(global_point)));
+                                points_array0(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                             }
 
                             if (Check == LEVEL_DEBUG || Check == LEVEL_FULL_DEBUG) KRATOS_WATCH(belong_array);
