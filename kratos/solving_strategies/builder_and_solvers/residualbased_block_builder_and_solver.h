@@ -348,22 +348,19 @@ public:
         else
             norm_b = 0.00;
 
-        if (norm_b != 0.00)
-        {
+        if (norm_b != 0.00) {
             //provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
                 BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
 
             //do solve
             BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
-        }
-        else
-        {
+        } else {
             TSparseSpace::SetToZero(Dx);
             KRATOS_WARNING("ResidualBasedBlockBuilderAndSolver") << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
-        //prints informations about the current time
+        // Prints informations about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
