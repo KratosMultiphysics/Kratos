@@ -72,8 +72,7 @@ public:
      * 
      * @return Kratos node at the given index.
      */
-    NodePointer
-    Node(
+    NodePointer Node(
         const int IndexU,
         const int IndexV) const
     {
@@ -90,8 +89,7 @@ public:
      * \param IndexU Index in u direction
      * \param IndexV Index in v direction
      */
-    void
-    SetNode(
+    void SetNode(
         const int IndexU,
         const int IndexV,
         NodePointer Value)
@@ -111,8 +109,7 @@ public:
      * 
      * @return Location of the Kratos node at the given index.
      */
-    VectorType
-    Pole(
+    VectorType Pole(
         const int IndexU,
         const int IndexV) const override
     {
@@ -132,8 +129,7 @@ public:
      * \param IndexV Index in v direction
      * \param Value New location of the Kratos node
      */
-    void
-    SetPole(
+    void SetPole(
         const int IndexU,
         const int IndexV,
         const VectorType& Value) override
@@ -149,8 +145,7 @@ public:
      * 
      * @return True whether the surface is rational, otherwise false.
      */
-    bool
-    IsRational() const override
+    bool IsRational() const override
     {
         return true;
     }
@@ -162,8 +157,7 @@ public:
      * 
      * @return Weight of the Kratos node at the given index.
      */
-    ScalarType
-    Weight(
+    ScalarType Weight(
         const int IndexU,
         const int IndexV) const override
     {
@@ -178,8 +172,7 @@ public:
      * \param IndexV Index in v direction
      * \param Value New weight of the Kratos node
      */
-    void
-    SetWeight(
+    void SetWeight(
         const int IndexU,
         const int IndexV,
         const ScalarType Value) override
@@ -198,8 +191,7 @@ public:
      * @return The value of the variable at the given surface point.
      */
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
-    TDataType
-    ValueAt(
+    TDataType ValueAt(
         const TVariableType& Variable,
         const double U,
         const double V) const
@@ -221,8 +213,7 @@ public:
      * surface point.
      */
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
-    std::vector<TDataType>
-    ValueAt(
+    std::vector<TDataType> ValueAt(
         const TVariableType& Variable,
         const double U,
         const double V,

@@ -66,8 +66,7 @@ public:
      * 
      * @return Kratos node at the given index.
      */
-    NodePointer
-    Node(
+    NodePointer Node(
         const int Index
     ) const
     {
@@ -81,8 +80,7 @@ public:
      * 
      * \param Index Index of the node
      */
-    void
-    SetNode(
+    void SetNode(
         const int Index,
         NodePointer Value
     )
@@ -99,8 +97,7 @@ public:
      * 
      * @return Location of the Kratos node at the given index.
      */
-    VectorType
-    Pole(
+    VectorType Pole(
         const int Index) const override
     {
         const auto& node = *Node(Index);
@@ -118,8 +115,7 @@ public:
      * \param Index Index of the node
      * \param Value New location of the Kratos node
      */
-    void
-    SetPole(
+    void SetPole(
         const int Index,
         const VectorType& Value) override
     {
@@ -134,8 +130,7 @@ public:
      * 
      * @return True whether the curve is rational, otherwise false.
      */
-    bool
-    IsRational() const override
+    bool IsRational() const override
     {
         return true;
     }
@@ -146,8 +141,7 @@ public:
      * 
      * @return Weight of the Kratos node at the given index.
      */
-    ScalarType
-    Weight(
+    ScalarType Weight(
         const int Index) const override
     {
         auto& node = *Node(Index);
@@ -160,8 +154,7 @@ public:
      * \param Index Index of the node
      * \param Value New weight of the Kratos node
      */
-    void
-    SetWeight(
+    void SetWeight(
         const int Index,
         const ScalarType Value) override
     {
@@ -178,8 +171,7 @@ public:
      * @return The value of the variable at the given curve point.
      */
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
-    TDataType
-    ValueAt(
+    TDataType ValueAt(
         const TVariableType& Variable,
         const double T) const
     {
@@ -198,8 +190,7 @@ public:
      * curve point.
      */
     template <typename TDataType, typename TVariableType = Variable<TDataType>>
-    std::vector<TDataType>
-    ValueAt(
+    std::vector<TDataType> ValueAt(
         const TVariableType& Variable,
         const double T,
         const int Order) const
