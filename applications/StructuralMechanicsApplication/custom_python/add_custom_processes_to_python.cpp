@@ -47,12 +47,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
         .def(init<ModelPart&>())
         ;
-    
 
-    class_<CableNetMpcProcess, CableNetMpcProcess::Pointer, ApplyMultipointConstraintsProcess>(m,"CableNetMpcProcess")
+
+/*     class_<CableNetMpcProcess, CableNetMpcProcess::Pointer, ApplyMultipointConstraintsProcess>(m,"CableNetMpcProcess")
         .def(init<ModelPart&,Parameters&>())
         .def("CoupleModelParts", &CableNetMpcProcess::CoupleModelParts)
-        ;    
+        ;  */
 
     class_<PrismNeighboursProcess, PrismNeighboursProcess::Pointer, Process>(m, "PrismNeighboursProcess")
         .def(init<ModelPart&>())

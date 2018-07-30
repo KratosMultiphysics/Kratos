@@ -11,6 +11,11 @@
 //
 //
 
+
+// this process does not work at the moment
+// base class was moved to the core
+
+
 #ifndef CABLE_NET_MPC_PROCESS_H
 #define CABLE_NET_MPC_PROCESS_H
 
@@ -54,7 +59,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
-    
+
 
     /// Pointer definition of ApplyMultipointConstraintsProcess
     KRATOS_CLASS_POINTER_DEFINITION(CableNetMpcProcess);
@@ -103,8 +108,8 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 
             int nr_searches(0);
             while (number_of_neighbors<1)
-            {        
-                nr_searches++;    
+            {
+                nr_searches++;
                 neighbor_nodes.clear();
                 resulting_squared_distances.clear();
                 //1.) find nodal neighbors
@@ -113,7 +118,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                                                                         neighbor_nodes.begin(),
                                                                         resulting_squared_distances.begin(),
                                                                         max_number_of_neighbors );
-                
+
                 (nr_searches>1000.0)?(KRATOS_ERROR << "found no neighbor for slave node "
                  << node_i.Id() << " " << node_i.Coordinates() << std::endl):neighbor_search_radius*=2.0;
             }
@@ -128,7 +133,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
             //DoubleVector list_of_weights2( number_of_neighbors, 0.0 );
             //test new function to calculate weight
             //this->ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights2);
-            
+
 
             //if(mParameters["debug_info"].GetBool()) KRATOS_WATCH(list_of_weights);
 
@@ -166,7 +171,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                 if(mParameters["debug_info"].GetBool()){
                     std::cout << rNeighborNodes[master_iterator]->Id() << "-----" << rCurrentSlaveNode.Id() << "-----" << rNodalNeighborWeights[master_iterator] << std::endl;
                 }
-                
+
             } // each master node
         }  // each dof
 
@@ -204,8 +209,8 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
         if((rNumberOfNeighbors==1)&&(std::abs(rResultingSquaredDistances[0])<numerical_limit))
          {rNodalNeighborWeights[0] = 1.00;}
         else
-        {   
-            for (SizeType i=0;i<rNumberOfNeighbors;++i) total_nodal_distance+=std::sqrt(rResultingSquaredDistances[i]);   
+        {
+            for (SizeType i=0;i<rNumberOfNeighbors;++i) total_nodal_distance+=std::sqrt(rResultingSquaredDistances[i]);
             for (SizeType i=0;i<rNumberOfNeighbors;++i)
             {
                 double current_weight = std::sqrt(rResultingSquaredDistances[rNumberOfNeighbors-(i+1)])/total_nodal_distance;
@@ -219,8 +224,8 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 
     void ExecuteInitializeSolutionStep() override
     {
-        if (this->GetmIsInitialized()) 
-            {if (mParameters["reform_every_step"].GetBool()) 
+        if (this->GetmIsInitialized())
+            {if (mParameters["reform_every_step"].GetBool())
                 {this->CoupleModelParts();}
             }
         else this->CoupleModelParts();
@@ -291,23 +296,23 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 
         for (SizeType slave_element_counter(0);slave_element_counter<r_slave_elements.size();slave_element_counter++)
         {
-            auto slave_current_element = slave_element_begin+slave_element_counter; 
+            auto slave_current_element = slave_element_begin+slave_element_counter;
             const GeometryType& r_element_geometry = slave_current_element->GetGeometry();
             const NodeType& r_node_a = r_element_geometry[0];
-            const NodeType& r_node_b = r_element_geometry[1]; 
+            const NodeType& r_node_b = r_element_geometry[1];
 
             VectorType right_hand_side = ZeroVector(6);
-            ProcessInfo &r_current_process_info = rSlaveModelPart.GetProcessInfo(); 
+            ProcessInfo &r_current_process_info = rSlaveModelPart.GetProcessInfo();
             slave_current_element->CalculateRightHandSide(right_hand_side,r_current_process_info);
             const double internal_truss_force = std::sqrt(std::pow(right_hand_side[3],2)+
                 std::pow(right_hand_side[4],2)+std::pow(right_hand_side[5],2));
-            
+
             const double friction_coeff = 10.0;
             const double friction_stiff = friction_coeff*internal_truss_force;
 
             for (SizeType master_element_counter(0);master_element_counter<r_master_elements.size();master_element_counter++)
-            {   
-            }    
+            {
+            }
         }
     }
 
@@ -315,7 +320,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 
 
     void SetmIsInitialized(const bool& check) {this->mIsInitialized = check;}
-    bool GetmIsInitialized() const {return this->mIsInitialized;} 
+    bool GetmIsInitialized() const {return this->mIsInitialized;}
 
 
 
@@ -325,8 +330,8 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 
     bool mIsInitialized = false;
 
-}; // Class 
+}; // Class
 
-}; // namespace 
+}; // namespace
 
-#endif 
+#endif
