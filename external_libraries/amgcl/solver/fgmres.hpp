@@ -84,7 +84,7 @@ class fgmres {
                   abstol(std::numeric_limits<scalar_type>::min())
             { }
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, M),
                   AMGCL_PARAMS_IMPORT_VALUE(p, maxiter),
@@ -235,9 +235,27 @@ class fgmres {
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
+        size_t bytes() const {
+            size_t b = 0;
+
+            b += H.size() * sizeof(coef_type);
+            b += backend::bytes(s);
+            b += backend::bytes(cs);
+            b += backend::bytes(sn);
+            b += backend::bytes(*r);
+
+            for(const auto &x : v) b += backend::bytes(*x);
+            for(const auto &x : z) b += backend::bytes(*x);
+
+            return b;
+        }
 
         friend std::ostream& operator<<(std::ostream &os, const fgmres &s) {
-            return os << "fgmres(" << s.prm.M << "): " << s.n << " unknowns";
+            return os
+                << "Type:             FGMRES(" << s.prm.M << ")"
+                << "\nUnknowns:         " << s.n
+                << "\nMemory footprint: " << human_readable_memory(s.bytes())
+                << std::endl;
         }
     private:
         size_t n;

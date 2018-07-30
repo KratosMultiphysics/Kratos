@@ -109,11 +109,21 @@ struct spai0 {
         backend::vmul(math::identity<scalar_type>(), *M, rhs, math::zero<scalar_type>(), x);
     }
 
-    private:
-        std::shared_ptr<matrix_diagonal> M;
+    std::shared_ptr<matrix_diagonal> M;
 };
 
 } // namespace relaxation
+
+namespace backend {
+
+template <class Backend>
+struct bytes_impl< relaxation::spai0<Backend> > {
+    static size_t get(const relaxation::spai0<Backend> &R) {
+        return backend::bytes(*R.M);
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 #endif

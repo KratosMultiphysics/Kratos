@@ -69,7 +69,7 @@ struct iluk {
 
         params() : k(1), damping(1) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, k)
             , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
@@ -182,6 +182,10 @@ struct iluk {
         ilu->solve(x);
     }
 
+    size_t bytes() const {
+        return ilu->bytes();
+    }
+
     private:
         std::shared_ptr<ilu_solve> ilu;
 
@@ -269,6 +273,17 @@ struct iluk {
 };
 
 } // namespace relaxation
+
+namespace backend {
+
+template <class Backend>
+struct bytes_impl< relaxation::iluk<Backend> > {
+    static size_t get(const relaxation::iluk<Backend> &R) {
+        return R.bytes();
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 #endif
