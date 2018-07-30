@@ -100,7 +100,7 @@ public:
     VectorType Pole(
         const int Index) const override
     {
-        const auto& node = *Node(Index);
+        const Kratos::Node<3>& node = *Node(Index);
  
         VectorType pole;
         for (size_t i = 0; i < 3; i++) {
@@ -119,8 +119,8 @@ public:
         const int Index,
         const VectorType& Value) override
     {
-        auto& node = *Node(Index);
- 
+        Kratos::Node<3>& node = *Node(Index);
+
         for (size_t i = 0; i < 3; i++) {
             node[i] = Value[i];
         }
@@ -144,7 +144,7 @@ public:
     ScalarType Weight(
         const int Index) const override
     {
-        const auto& node = *Node(Index);
+        const Kratos::Node<3>& node = *Node(Index);
  
         return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
     }
@@ -158,7 +158,7 @@ public:
         const int Index,
         const ScalarType Value) override
     {
-        auto& node = *Node(Index);
+        Kratos::Node<3>& node = *Node(Index);
 
         node.SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
     }
