@@ -6,6 +6,7 @@
 
 // Application includes
 #include "custom_response_functions/drag_response_function.h"
+#include "custom_response_functions/sensitivity_builder.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos

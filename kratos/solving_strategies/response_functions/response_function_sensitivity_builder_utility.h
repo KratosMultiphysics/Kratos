@@ -21,22 +21,17 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "response_functions/adjoint_response_function.h"
 
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
 
-/// Implementation for assembling sensitivities from local contributions.
-/**
- * The utility is intended to be inherited by a concrete response function,
- * which customizes CalculatePartialSensitivity and calls the provided
- * build functions to assemble its sensitivity variables.
- *
- */
+/// Utility for assembling sensitivities from a model part and a response function.
 class ResponseFunctionSensitivityBuilderUtility
 {
-protected:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -52,81 +47,17 @@ protected:
     ///@name Life Cycle
     ///@{
 
-    /// Destructor.
-    ~ResponseFunctionSensitivityBuilderUtility() = default;
+    ResponseFunctionSensitivityBuilderUtility(ModelPart& rModelPart,
+                                              AdjointResponseFunction::Pointer pResponseFunction)
+        : mrModelPart(rModelPart), mpResponseFunction(pResponseFunction)
+    {
+    }
 
     ///@}
-    ///@name Protected Operations
+    ///@name Operations
     ///@{
 
-    /// Calculate the local gradient w.r.t. the sensitivity variable.
-    /**
-     * Defines the local contribution from an element for a sensitivity variable.
-     * This is overridden by the derived response function and called in the
-     * assembly loop.
-     *
-     * @param[in]     rVariable             sensitivity variable.
-     * @param[in]     rElement              local adjoint element.
-     * @param[in]     rSensitivityMatrix    transposed gradient of the residual
-     *                                      w.r.t. the sensitivity variable.
-     * @param[out]    rPartialSensitivity   gradient of the response function
-     *                                      w.r.t. the sensitivity variable.
-     * @param[in]     rProcessInfo          current process info.
-     */
-    virtual void CalculatePartialSensitivity(Variable<double> const& rVariable,
-                                             Element& rElement,
-                                             Matrix const& rSensitivityMatrix,
-                                             Vector& rPartialSensitivity,
-                                             ProcessInfo const& rProcessInfo) const
-    {
-        KRATOS_TRY;
-
-        KRATOS_ERROR << "Calling the base class method." << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    virtual void CalculatePartialSensitivity(Variable<double> const& rVariable,
-                                             Condition& rCondition,
-                                             Matrix const& rSensitivityMatrix,
-                                             Vector& rPartialSensitivity,
-                                             ProcessInfo const& rProcessInfo) const
-    {
-        KRATOS_TRY;
-
-        KRATOS_ERROR << "Calling the base class method." << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    virtual void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
-                                             Element& rElement,
-                                             Matrix const& rSensitivityMatrix,
-                                             Vector& rPartialSensitivity,
-                                             ProcessInfo const& rProcessInfo) const
-    {
-        KRATOS_TRY;
-
-        KRATOS_ERROR << "Calling the base class method." << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    virtual void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
-                                             Condition& rCondition,
-                                             Matrix const& rSensitivityMatrix,
-                                             Vector& rPartialSensitivity,
-                                             ProcessInfo const& rProcessInfo) const
-    {
-        KRATOS_TRY;
-
-        KRATOS_ERROR << "Calling the base class method." << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
     void BuildNodalSolutionStepSensitivities(std::string const& rVariable,
-                                             ModelPart& rModelPart,
                                              double ScalingFactor = 1.0)
     {
         KRATOS_TRY;
@@ -135,13 +66,13 @@ protected:
         {
             const Variable<double>& r_variable =
                 KratosComponents<Variable<double>>::Get(rVariable);
-            BuildNodalSolutionStepSensitivities(r_variable, rModelPart, ScalingFactor);
+            BuildNodalSolutionStepSensitivities(r_variable, ScalingFactor);
         }
         else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariable) == true)
         {
             const Variable<array_1d<double, 3>>& r_variable =
                 KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariable);
-            BuildNodalSolutionStepSensitivities(r_variable, rModelPart, ScalingFactor);
+            BuildNodalSolutionStepSensitivities(r_variable, ScalingFactor);
         }
         else
             KRATOS_ERROR << "Unsupported variable: " << rVariable << "." << std::endl;
@@ -149,14 +80,20 @@ protected:
         KRATOS_CATCH("");
     }
 
+    ///@}
+
+private:
+
+    ///@name Private Operations
+    ///@{
+
     template <class TDataType>
     void BuildNodalSolutionStepSensitivities(Variable<TDataType> const& rVariable,
-                                             ModelPart& rModelPart,
-                                             double ScalingFactor = 1.0)
+                                             double ScalingFactor)
     {
         KRATOS_TRY;
 
-        Communicator& r_comm = rModelPart.GetCommunicator();
+        Communicator& r_comm = mrModelPart.GetCommunicator();
         if (r_comm.TotalProcesses() > 1)
         {
 // Make sure we only add the old sensitivity once when we assemble.
@@ -164,19 +101,16 @@ protected:
             {
                 ModelPart::NodeIterator nodes_begin;
                 ModelPart::NodeIterator nodes_end;
-                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
+                OpenMPUtils::PartitionedIterators(mrModelPart.Nodes(), nodes_begin, nodes_end);
                 for (auto it = nodes_begin; it != nodes_end; ++it)
                     if (it->FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
                         it->FastGetSolutionStepValue(rVariable) = rVariable.Zero();
             }
         }
 
-        BuildNodalSolutionStepElementContributions(
-            rVariable, ScalingFactor, rModelPart.Elements(), rModelPart.GetProcessInfo());
+        BuildNodalSolutionStepElementContributions(rVariable, ScalingFactor);
 
-        BuildNodalSolutionStepConditionContributions(rVariable, ScalingFactor,
-                                                     rModelPart.Conditions(),
-                                                     rModelPart.GetProcessInfo());
+        BuildNodalSolutionStepConditionContributions(rVariable, ScalingFactor);
 
         r_comm.AssembleCurrentData(rVariable);
 
@@ -186,16 +120,24 @@ protected:
     ///@}
 
 private:
+    ///@name Member Variables
+    ///@{
+
+    ModelPart& mrModelPart;
+    AdjointResponseFunction::Pointer mpResponseFunction;
+
+    ///@}
     ///@name Private Operations
     ///@{
 
     template <class TDataType>
     void BuildNodalSolutionStepElementContributions(Variable<TDataType> const& rVariable,
-                                                    double ScalingFactor,
-                                                    ElementsContainerType& rElements,
-                                                    ProcessInfo const& rProcessInfo)
+                                                    double ScalingFactor)
     {
         KRATOS_TRY;
+
+        auto& r_elements = mrModelPart.Elements();
+        const auto& r_process_info = mrModelPart.GetProcessInfo();
 
         const int num_threads = OpenMPUtils::GetNumThreads();
         std::vector<Vector> local_sensitivity(num_threads);
@@ -207,7 +149,7 @@ private:
         {
             ModelPart::ElementIterator elements_begin;
             ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(rElements, elements_begin, elements_end);
+            OpenMPUtils::PartitionedIterators(r_elements, elements_begin, elements_end);
             int k = OpenMPUtils::ThisThread();
 
             for (auto it = elements_begin; it != elements_end; ++it)
@@ -217,10 +159,11 @@ private:
                 if (HasActiveNodes(r_geom) == false)
                     continue;
 
-                it->CalculateSensitivityMatrix(rVariable, sensitivity_matrix[k], rProcessInfo);
+                it->CalculateSensitivityMatrix(rVariable, sensitivity_matrix[k], r_process_info);
 
-                CalculatePartialSensitivity(rVariable, *it, sensitivity_matrix[k],
-                                            partial_sensitivity[k], rProcessInfo);
+                mpResponseFunction->CalculatePartialSensitivity(
+                    *it, rVariable, sensitivity_matrix[k],
+                    partial_sensitivity[k], r_process_info);
 
                 it->GetValuesVector(adjoint_vector[k]);
 
@@ -241,11 +184,12 @@ private:
 
     template <class TDataType>
     void BuildNodalSolutionStepConditionContributions(Variable<TDataType> const& rVariable,
-                                                      double ScalingFactor,
-                                                      ConditionsContainerType& rConditions,
-                                                      ProcessInfo const& rProcessInfo)
+                                                      double ScalingFactor)
     {
         KRATOS_TRY;
+
+        auto& r_conditions = mrModelPart.Conditions();
+        const auto& r_process_info = mrModelPart.GetProcessInfo();
 
         const int num_threads = OpenMPUtils::GetNumThreads();
         std::vector<Vector> local_sensitivity(num_threads);
@@ -257,20 +201,21 @@ private:
         {
             ModelPart::ConditionIterator conditions_begin;
             ModelPart::ConditionIterator conditions_end;
-            OpenMPUtils::PartitionedIterators(rConditions, conditions_begin, conditions_end);
+            OpenMPUtils::PartitionedIterators(r_conditions, conditions_begin, conditions_end);
             int k = OpenMPUtils::ThisThread();
 
             for (auto it = conditions_begin; it != conditions_end; ++it)
             {
                 Condition::GeometryType& r_geom = it->GetGeometry();
 
-                it->CalculateSensitivityMatrix(rVariable, sensitivity_matrix[k], rProcessInfo);
+                it->CalculateSensitivityMatrix(rVariable, sensitivity_matrix[k], r_process_info);
 
                 if (sensitivity_matrix[k].size1() == 0 || HasActiveNodes(r_geom) == false)
                     continue;
 
-                CalculatePartialSensitivity(rVariable, *it, sensitivity_matrix[k],
-                                            partial_sensitivity[k], rProcessInfo);
+                mpResponseFunction->CalculatePartialSensitivity(
+                    *it, rVariable, sensitivity_matrix[k],
+                    partial_sensitivity[k], r_process_info);
 
                 it->GetValuesVector(adjoint_vector[k]);
 
