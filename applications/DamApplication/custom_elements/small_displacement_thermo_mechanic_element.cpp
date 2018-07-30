@@ -1,9 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        
-//   Last modified by:    $Author:          
-//   Date:                $Date:            
-//   Revision:            $Revision:     
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Lorenzo Gracia
+//
+
 
 /* Project includes */
 #include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
@@ -177,7 +183,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
         {
             // Quadrilateral_2d_4 with GI_GAUSS_2
             BoundedMatrix<double,4,4> ExtrapolationMatrix;
-            ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+            PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
             
             BoundedMatrix<double,4,3> AuxNodalStress;
             noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
@@ -224,7 +230,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
         {
             // Hexahedra_3d_8 with GI_GAUSS_2
             BoundedMatrix<double,8,8> ExtrapolationMatrix;
-            ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+            PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
             
             BoundedMatrix<double,8,6> AuxNodalStress;
             noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);

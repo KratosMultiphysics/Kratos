@@ -19,6 +19,7 @@ class EigenSolutionOutputProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"            : "This process generates a postprocess file in a HDF5 file for eigenvalues",
                 "model_part_name" : "PLEASE_SPECIFY_MODEL_PART",
                 "file_settings" : {
                 },
