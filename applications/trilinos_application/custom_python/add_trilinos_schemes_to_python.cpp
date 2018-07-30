@@ -67,7 +67,7 @@
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
 
 // AdjointFluidApplication
-#include "solving_strategies/response_functions/response_function.h"
+#include "response_functions/adjoint_response_function.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 
@@ -232,19 +232,19 @@ void  AddSchemes(pybind11::module& m)
     typedef ResidualBasedAdjointStaticScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> ResidualBasedAdjointStaticSchemeType;
     class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, TrilinosBaseSchemeType>
         (m, "TrilinosResidualBasedAdjointStaticScheme")
-        .def(init<ResponseFunction::Pointer>());
+        .def(init<AdjointResponseFunction::Pointer>());
 
     class_<ResidualBasedAdjointSteadyScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
            typename ResidualBasedAdjointSteadyScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
            ResidualBasedAdjointStaticSchemeType>
            (m, "TrilinosResidualBasedAdjointSteadyScheme")
-           .def( init<ResponseFunction::Pointer>());
+           .def( init<AdjointResponseFunction::Pointer>());
 
     class_<
         AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
         typename AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >( m,"TrilinosAdjointBossakScheme")
-        .def(init<Parameters&, ResponseFunction::Pointer>() );
+        .def(init<Parameters&, AdjointResponseFunction::Pointer>() );
 }
 
 } // namespace Python.

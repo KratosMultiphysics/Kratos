@@ -74,7 +74,7 @@ protected:
      * @param[in]     rProcessInfo          current process info.
      */
     virtual void CalculatePartialSensitivity(Variable<double> const& rVariable,
-                                             Element const& rElement,
+                                             Element& rElement,
                                              Matrix const& rSensitivityMatrix,
                                              Vector& rPartialSensitivity,
                                              ProcessInfo const& rProcessInfo) const
@@ -87,7 +87,7 @@ protected:
     }
 
     virtual void CalculatePartialSensitivity(Variable<double> const& rVariable,
-                                             Condition const& rCondition,
+                                             Condition& rCondition,
                                              Matrix const& rSensitivityMatrix,
                                              Vector& rPartialSensitivity,
                                              ProcessInfo const& rProcessInfo) const
@@ -100,7 +100,7 @@ protected:
     }
 
     virtual void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
-                                             Element const& rElement,
+                                             Element& rElement,
                                              Matrix const& rSensitivityMatrix,
                                              Vector& rPartialSensitivity,
                                              ProcessInfo const& rProcessInfo) const
@@ -113,7 +113,7 @@ protected:
     }
 
     virtual void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
-                                             Condition const& rCondition,
+                                             Condition& rCondition,
                                              Matrix const& rSensitivityMatrix,
                                              Vector& rPartialSensitivity,
                                              ProcessInfo const& rProcessInfo) const

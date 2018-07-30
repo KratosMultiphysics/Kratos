@@ -26,7 +26,7 @@
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
-#include "solving_strategies/response_functions/response_function.h"
+#include "response_functions/adjoint_response_function.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -64,7 +64,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointBossakScheme(Parameters& rParameters, ResponseFunction::Pointer pResponseFunction)
+    AdjointBossakScheme(Parameters& rParameters, AdjointResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY;
@@ -634,7 +634,7 @@ private:
     double mInvDt;
     double mInvGamma;
     double mInvGammaMinusOne;
-    ResponseFunction::Pointer mpResponseFunction;
+    AdjointResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValuesVector;
     std::vector<LocalSystemVectorType> mAdjointFirstDerivsVector;
     std::vector<LocalSystemVectorType> mAdjointSecondDerivsVector;

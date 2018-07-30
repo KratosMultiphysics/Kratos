@@ -59,7 +59,7 @@ public:
     ///@{
 
     /// Constructor.
-    ResidualBasedAdjointSteadyScheme(ResponseFunction::Pointer pResponseFunction)
+    ResidualBasedAdjointSteadyScheme(AdjointResponseFunction::Pointer pResponseFunction)
         : ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>(pResponseFunction)
     {
     }

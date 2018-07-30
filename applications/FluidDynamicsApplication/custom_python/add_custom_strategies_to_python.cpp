@@ -145,7 +145,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         AdjointBossakScheme<SparseSpaceType, LocalSpaceType>,
         typename AdjointBossakScheme<SparseSpaceType, LocalSpaceType>::Pointer,
         BaseSchemeType>(m,"AdjointBossakScheme")
-        .def(init<Parameters&, ResponseFunction::Pointer>())
+        .def(init<Parameters&, AdjointResponseFunction::Pointer>())
         ;
 }
 

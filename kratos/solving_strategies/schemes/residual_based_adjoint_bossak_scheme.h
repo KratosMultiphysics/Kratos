@@ -57,7 +57,7 @@ public:
     ///@{
 
     /// Constructor.
-    ResidualBasedAdjointBossakScheme(Parameters& rParameters, ResponseFunction::Pointer pResponseFunction):
+    ResidualBasedAdjointBossakScheme(Parameters& rParameters, AdjointResponseFunction::Pointer pResponseFunction):
         ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>(pResponseFunction),
         mVelocityUpdateAdjointVariable(VELOCITY),
         mAccelerationUpdateAdjointVariable(VELOCITY),
@@ -465,7 +465,7 @@ protected:
     virtual void UpdateTimeSchemeAdjoints(ModelPart& rModelPart)
     {
         Communicator& r_communicator = rModelPart.GetCommunicator();
-        ResponseFunction& r_response_function = *(this->mpResponseFunction);
+        auto& r_response_function = *(this->mpResponseFunction);
 
         const double a22 = 1.0 - mGammaNewmark/mBetaNewmark;
         const double a23 = -1.0 / (mBetaNewmark*mTimeStep);
@@ -557,7 +557,7 @@ protected:
 
     virtual void UpdateAuxiliaryVariable(ModelPart& rModelPart)
     {
-        ResponseFunction& r_response_function = *(this->mpResponseFunction);
+        auto& r_response_function = *(this->mpResponseFunction);
 
         // Process the part that does not require assembly first
         const int number_of_nodes = rModelPart.NumberOfNodes();

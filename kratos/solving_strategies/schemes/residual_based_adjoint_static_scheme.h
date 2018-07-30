@@ -24,7 +24,7 @@
 #include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/response_functions/response_function.h"
+#include "response_functions/adjoint_response_function.h"
 
 namespace Kratos
 {
@@ -68,7 +68,7 @@ public:
     ///@{
 
     /// Constructor.
-    ResidualBasedAdjointStaticScheme(ResponseFunction::Pointer pResponseFunction)
+    ResidualBasedAdjointStaticScheme(AdjointResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         mpResponseFunction = pResponseFunction;
@@ -275,7 +275,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ResponseFunction::Pointer mpResponseFunction;
+    AdjointResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
 
     ///@}

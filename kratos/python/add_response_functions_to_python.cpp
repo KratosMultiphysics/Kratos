@@ -18,8 +18,6 @@
 #include "includes/define_python.h"
 #include "add_response_functions_to_python.h"
 #include "response_functions/adjoint_response_function.h"
-// Deprecated!!! To be removed after porting to new response function.
-#include "solving_strategies/response_functions/response_function.h"
 
 namespace Kratos
 {
@@ -49,7 +47,7 @@ void AddResponseFunctionsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<AdjointResponseFunction, PyAdjointResponseFunction> adjoint_response_function(
+    py::class_<AdjointResponseFunction, PyAdjointResponseFunction, AdjointResponseFunction::Pointer> adjoint_response_function(
         m, "AdjointResponseFunction");
     adjoint_response_function
         .def(py::init<>())
@@ -57,19 +55,6 @@ void AddResponseFunctionsToPython(pybind11::module& m)
         .def("InitializeSolutionStep", &AdjointResponseFunction::InitializeSolutionStep)
         .def("FinalizeSolutionStep", &AdjointResponseFunction::FinalizeSolutionStep)
         .def("CalculateValue", &AdjointResponseFunction::CalculateValue);
-
-      // Deprecated!!! To be removed after porting to new response function.
-      py::class_<ResponseFunction, ResponseFunction::Pointer>(m,"ResponseFunction")
-        .def("Initialize", &ResponseFunction::Initialize)
-        .def("InitializeSolutionStep", &ResponseFunction::InitializeSolutionStep)
-        .def("FinalizeSolutionStep", &ResponseFunction::FinalizeSolutionStep)
-        .def("CalculateGradient", (void (ResponseFunction::*)(Element const&,Matrix const&,Vector&,ProcessInfo const& ) const )  &ResponseFunction::CalculateGradient)
-        .def("CalculateGradient", (void (ResponseFunction::*)(Condition const&,Matrix const&,Vector&,ProcessInfo const& ) const )  &ResponseFunction::CalculateGradient)
-        .def("CalculateFirstDerivativesGradient", (void (ResponseFunction::*)(Element const&,Matrix const&,Vector&,ProcessInfo const& ) const )  &ResponseFunction::CalculateFirstDerivativesGradient)
-        .def("CalculateFirstDerivativesGradient", (void (ResponseFunction::*)(Condition const&,Matrix const&,Vector&,ProcessInfo const& ) const )  &ResponseFunction::CalculateFirstDerivativesGradient)
-        .def("CalculateSecondDerivativesGradient", (void (ResponseFunction::*)(Element const&,Matrix const&,Vector&,ProcessInfo const& ) const )  &ResponseFunction::CalculateSecondDerivativesGradient)
-        .def("CalculateSecondDerivativesGradient", (void (ResponseFunction::*)(Condition const&,Matrix const&,Vector&,ProcessInfo const& ) const )  &ResponseFunction::CalculateSecondDerivativesGradient)
-        .def("CalculateValue", &ResponseFunction::CalculateValue);
 }
 
 }  // namespace Python.

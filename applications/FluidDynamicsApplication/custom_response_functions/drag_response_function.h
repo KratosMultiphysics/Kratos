@@ -24,7 +24,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/variable_utils.h"
-#include "solving_strategies/response_functions/response_function.h"
+#include "response_functions/adjoint_response_function.h"
 #include "solving_strategies/response_functions/response_function_sensitivity_builder_utility.h"
 
 namespace Kratos
@@ -48,7 +48,7 @@ public:
     ///@{
 
     /// Constructor.
-    SensitivityBuilder(Parameters& rParameters, ModelPart& rModelPart, ResponseFunction::Pointer pResponseFunction)
+    SensitivityBuilder(Parameters& rParameters, ModelPart& rModelPart, AdjointResponseFunction::Pointer pResponseFunction)
     : mrModelPart(rModelPart), mpResponseFunction(pResponseFunction)
     {
         KRATOS_TRY;
@@ -132,13 +132,13 @@ protected:
     ///@{
 
     void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
-                                     Element const& rElement,
+                                     Element& rElement,
                                      Matrix const& rSensitivityMatrix,
                                      Vector& rPartialSensitivity,
                                      ProcessInfo const& rProcessInfo) const override
     {
         mpResponseFunction->CalculatePartialSensitivity(
-            rVariable, rElement, rSensitivityMatrix, rPartialSensitivity, rProcessInfo);
+            rElement, rVariable, rSensitivityMatrix, rPartialSensitivity, rProcessInfo);
     }
 
     ///@}
@@ -148,7 +148,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    ResponseFunction::Pointer mpResponseFunction;
+    AdjointResponseFunction::Pointer mpResponseFunction;
     std::string mSensitivityModelPartName;
     std::vector<std::string> mNodalSensitivityVariables;
     bool mIntegrateInTime;
@@ -212,7 +212,7 @@ private:
  * if "integrate_in_time" is true.
  */
 template <unsigned int TDim>
-class DragResponseFunction : public ResponseFunction
+class DragResponseFunction : public AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -293,46 +293,54 @@ public:
         KRATOS_CATCH("");
     }
 
-    void CalculateGradient(Element const& rElement,
-                           Matrix const& rAdjointMatrix,
+    void CalculateGradient(const Element& rAdjointElement,
+                           const Matrix& rResidualGradient,
                            Vector& rResponseGradient,
-                           ProcessInfo const& rProcessInfo) const override
+                           const ProcessInfo& rProcessInfo) override
     {
         CalculateDragContribution(
-            rAdjointMatrix, rElement.GetGeometry().Points(), rResponseGradient);
+            rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
     }
 
-    void CalculateFirstDerivativesGradient(Element const& rElement,
-                                           Matrix const& rAdjointMatrix,
+    void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
+                                           const Matrix& rResidualGradient,
                                            Vector& rResponseGradient,
-                                           ProcessInfo const& rProcessInfo) const override
+                                           const ProcessInfo& rProcessInfo) override
     {
         CalculateDragContribution(
-            rAdjointMatrix, rElement.GetGeometry().Points(), rResponseGradient);
+            rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
     }
 
-    void CalculateSecondDerivativesGradient(Element const& rElement,
-                                            Matrix const& rAdjointMatrix,
+    void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
+                                            const Matrix& rResidualGradient,
                                             Vector& rResponseGradient,
-                                            ProcessInfo const& rProcessInfo) const override
+                                            const ProcessInfo& rProcessInfo) override
     {
         CalculateDragContribution(
-            rAdjointMatrix, rElement.GetGeometry().Points(), rResponseGradient);
+            rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
     }
 
     // This is a temporary crutch to upgrade the response function base class
     // without completely breaking the tests.
-    virtual void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
-                                             Element const& rElement,
-                                             Matrix const& rSensitivityMatrix,
-                                             Vector& rPartialSensitivity,
-                                             ProcessInfo const& rProcessInfo) const override
+    virtual void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo) override
     {
         KRATOS_TRY;
 
         CalculateDragContribution(
-            rSensitivityMatrix, rElement.GetGeometry().Points(), rPartialSensitivity);
+            rSensitivityMatrix, rAdjointElement.GetGeometry().Points(), rSensitivityGradient);
 
+        KRATOS_CATCH("");
+    }
+
+    double CalculateValue() override
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR
+            << "DragResponseFunction::CalculateValue() is not implemented!!!\n";
         KRATOS_CATCH("");
     }
 
