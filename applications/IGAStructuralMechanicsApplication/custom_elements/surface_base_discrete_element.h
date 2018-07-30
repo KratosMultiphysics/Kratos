@@ -73,9 +73,9 @@ protected:
     */
     struct ConstitutiveVariables
     {
-        Vector E;
-        Vector S;
-        Matrix D;
+        Vector E; //strain
+        Vector S; //stress
+        Matrix D; //constitutive matrix
 
         /**
         * The default constructor
@@ -229,21 +229,6 @@ protected:
     virtual void CalculateMetric(
         MetricVariables& metric);
 
-    /**
-    * This functions updates the constitutive variables
-    * @param rActual
-    Metric: The actual metric
-    * @param rThisConstitutiveVariables: The constitutive variables to be calculated
-    * @param rValues: The CL parameters
-    * @param ThisStressMeasure: The stress measure considered
-    */
-    virtual void CalculateConstitutiveVariables(
-        MetricVariables& rActualMetric,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    );
-
     void CalculateStrain(
         Vector& StrainVector,
         Vector& gab,
@@ -267,12 +252,8 @@ protected:
         const MetricVariables& rMetric);
 
     void CalculateSecondVariationStrainCurvature(
-        Matrix& Strain_in_Q_coordinates11,
-        Matrix& Strain_in_Q_coordinates22,
-        Matrix& Strain_in_Q_coordinates12,
-        Matrix& Curvature_in_Q_coordinates11,
-        Matrix& Curvature_in_Q_coordinates22,
-        Matrix& Curvature_in_Q_coordinates12,
+        SecondVariations& rSecondVariationsStrain,
+        SecondVariations& rSecondVariationsCurvature,
         const MetricVariables& rMetric);
     ///@}
 

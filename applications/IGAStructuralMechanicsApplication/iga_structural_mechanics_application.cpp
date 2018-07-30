@@ -42,6 +42,7 @@ KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication
     mMeshlessElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
     mTrussDiscreteElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
     mMembraneDiscreteElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
+    mShellKLDiscreteElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessMembraneElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessLaplaceElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessShellElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
@@ -120,6 +121,7 @@ KRATOS_REGISTER_ELEMENT("MeshlessShellKLThickElement", mMeshlessShellKLThickElem
 // Register discrete integration point elements
 KRATOS_REGISTER_ELEMENT("TrussDiscreteElement", mTrussDiscreteElement)
 KRATOS_REGISTER_ELEMENT("MembraneDiscreteElement", mMembraneDiscreteElement)
+KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
 
 // Register discrete integration point conditions
 KRATOS_REGISTER_CONDITION("LoadPointDiscreteCondition", mLoadPointDiscreteCondition)

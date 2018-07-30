@@ -35,6 +35,7 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/curve_base_discrete_element.cpp
 
 	# Adding the discrete elements
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_discrete_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_discrete_element.cpp
 

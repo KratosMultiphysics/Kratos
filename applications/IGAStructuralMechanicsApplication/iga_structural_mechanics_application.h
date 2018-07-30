@@ -45,6 +45,7 @@
 
 #include "custom_elements/truss_discrete_element.h"
 #include "custom_elements/membrane_discrete_element.h"
+#include "custom_elements/shell_kl_discrete_element.h"
 //#include "custom_conditions/ContinuityConditionLagrange.h"
 //#include "custom_conditions/ContinuityConditionPenalty.h"
 //#include "custom_conditions/LoadCondition.h"
@@ -274,8 +275,9 @@ private:
     const MeshlessShellKLElement      mMeshlessShellKLElement;
     const MeshlessShellKLThickElement mMeshlessShellKLThickElement;
 
-    const TrussDiscreteElement        mTrussDiscreteElement;
-    const MembraneDiscreteElement     mMembraneDiscreteElement;
+    const TrussDiscreteElement    mTrussDiscreteElement;
+    const MembraneDiscreteElement mMembraneDiscreteElement;
+    const ShellKLDiscreteElement  mShellKLDiscreteElement;
 
     // Meshless Conditions
     const LoadPointDiscreteCondition           mLoadPointDiscreteCondition;

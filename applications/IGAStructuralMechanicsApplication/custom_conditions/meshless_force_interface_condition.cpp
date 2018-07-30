@@ -147,6 +147,7 @@ namespace Kratos
 			KRATOS_ERROR << "No SHAPE_FUNCTION_VALUES assigned!" << std::endl;
 		if (!this->Has(EXTERNAL_FORCES_VECTOR))
 			KRATOS_ERROR << "EXTERNAL_FORCES_VECTOR not assigned!" << std::endl;
+        return 1;
 		KRATOS_CATCH("")
 	}
 

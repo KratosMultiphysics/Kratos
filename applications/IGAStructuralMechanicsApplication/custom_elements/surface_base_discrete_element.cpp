@@ -111,17 +111,6 @@ namespace Kratos
         KRATOS_ERROR << "You have called to the CalculateMetric from the base class for meshless surface elements" << std::endl;
     }
 
-    //************************************************************************************
-    //************************************************************************************
-    void SurfaceBaseDiscreteElement::CalculateConstitutiveVariables(
-        MetricVariables& rActualMetric,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure)
-    {
-        KRATOS_ERROR << "You have called to the CalculateMetric from the base class for meshless surface elements" << std::endl;
-    }
-
     //***********************************************************************************
     //***********************************************************************************
     void SurfaceBaseDiscreteElement::CalculateStrain(
@@ -340,12 +329,8 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
     void SurfaceBaseDiscreteElement::CalculateSecondVariationStrainCurvature(
-        Matrix& Strain_in_Q_coordinates11,
-        Matrix& Strain_in_Q_coordinates22,
-        Matrix& Strain_in_Q_coordinates12,
-        Matrix& Curvature_in_Q_coordinates11,
-        Matrix& Curvature_in_Q_coordinates22,
-        Matrix& Curvature_in_Q_coordinates12,
+        SecondVariations& rSecondVariationsStrain,
+        SecondVariations& rSecondVariationsCurvature,
         const MetricVariables& rMetric)
     {
         if (this->Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES) && this->Has(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES))
@@ -446,11 +431,11 @@ namespace Kratos
                                 ddStrain_curvilinear[1] = DN_De(n, 1)*DN_De(m, 1);
                                 ddStrain_curvilinear[2] = 0.5*(DN_De(n, 0)*DN_De(m, 1) + DN_De(n, 1)*DN_De(m, 0));
 
-                                Strain_in_Q_coordinates11(3 * n + i, 3 * m + j) = mInitialMetric.Q(0, 0)*ddStrain_curvilinear[0]
+                                rSecondVariationsStrain.B11(3 * n + i, 3 * m + j) = mInitialMetric.Q(0, 0)*ddStrain_curvilinear[0]
                                     + mInitialMetric.Q(0, 1)*ddStrain_curvilinear[1] + mInitialMetric.Q(0, 2)*ddStrain_curvilinear[2];
-                                Strain_in_Q_coordinates22(3 * n + i, 3 * m + j) = mInitialMetric.Q(1, 0)*ddStrain_curvilinear[0]
+                                rSecondVariationsStrain.B22(3 * n + i, 3 * m + j) = mInitialMetric.Q(1, 0)*ddStrain_curvilinear[0]
                                     + mInitialMetric.Q(1, 1)*ddStrain_curvilinear[1] + mInitialMetric.Q(1, 2)*ddStrain_curvilinear[2];
-                                Strain_in_Q_coordinates12(3 * n + i, 3 * m + j) = mInitialMetric.Q(2, 0)*ddStrain_curvilinear[0]
+                                rSecondVariationsStrain.B12(3 * n + i, 3 * m + j) = mInitialMetric.Q(2, 0)*ddStrain_curvilinear[0]
                                     + mInitialMetric.Q(2, 1)*ddStrain_curvilinear[1] + mInitialMetric.Q(2, 2)*ddStrain_curvilinear[2];
 
                             }
@@ -490,15 +475,15 @@ namespace Kratos
                             ddCurvature_curvilinear[2] = DDN_DDe(n, 2)*dn_m(j, i) + DDN_DDe(m, 2)*dn_n(i, j)
                                 + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2];
 
-                            Curvature_in_Q_coordinates11(3 * n + i, 3 * m + j) =
+                            rSecondVariationsCurvature.B11(3 * n + i, 3 * m + j) =
                                 mInitialMetric.Q(0, 0)*ddCurvature_curvilinear[0]
                                 + mInitialMetric.Q(0, 1)*ddCurvature_curvilinear[1]
                                 + mInitialMetric.Q(0, 2)*ddCurvature_curvilinear[2];
-                            Curvature_in_Q_coordinates22(3 * n + i, 3 * m + j) =
+                            rSecondVariationsCurvature.B22(3 * n + i, 3 * m + j) =
                                 mInitialMetric.Q(1, 0)*ddCurvature_curvilinear[0]
                                 + mInitialMetric.Q(1, 1)*ddCurvature_curvilinear[1]
                                 + mInitialMetric.Q(1, 2)*ddCurvature_curvilinear[2];
-                            Curvature_in_Q_coordinates12(3 * n + i, 3 * m + j) =
+                            rSecondVariationsCurvature.B12(3 * n + i, 3 * m + j) =
                                 mInitialMetric.Q(2, 0)*ddCurvature_curvilinear[0]
                                 + mInitialMetric.Q(2, 1)*ddCurvature_curvilinear[1]
                                 + mInitialMetric.Q(2, 2)*ddCurvature_curvilinear[2];

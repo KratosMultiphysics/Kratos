@@ -1,15 +1,13 @@
-#if !defined(KRATOS_MEMBRANE_DISCRETE_ELEMENT_H_INCLUDED )
-#define  KRATOS_MEMBRANE_DISCRETE_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SHELL_KL_DISCRETE_ELEMENT_H_INCLUDED )
+#define  KRATOS_SHELL_KL_DISCRETE_ELEMENT_H_INCLUDED
 
 
 // System includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "custom_elements/surface_base_discrete_element.h"
@@ -19,51 +17,44 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** Discrete Membrane element.
+/** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
 */
-class MembraneDiscreteElement
+class ShellKLDiscreteElement
     : public SurfaceBaseDiscreteElement
 {
 public:
     ///@name Type Definitions
     ///@{
-    /// Counted pointer of MembraneDiscreteElement
-    KRATOS_CLASS_POINTER_DEFINITION(MembraneDiscreteElement);
+    /// Counted pointer of ShellKLDiscreteElement
+    KRATOS_CLASS_POINTER_DEFINITION(ShellKLDiscreteElement);
     ///@}
     ///@name Life Cycle
     ///@{
     /// Default constructor.
     // Constructor using an array of nodes
-    MembraneDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    ShellKLDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry)
         : SurfaceBaseDiscreteElement(NewId, pGeometry)
     {};
     // Constructor using an array of nodes with properties
-    MembraneDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    ShellKLDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : SurfaceBaseDiscreteElement(NewId, pGeometry, pProperties)
     {};
 
     // default constructor necessary for serialization
-    MembraneDiscreteElement() : SurfaceBaseDiscreteElement() {};
+    ShellKLDiscreteElement() : SurfaceBaseDiscreteElement() {};
 
     /// Destructor.
-    virtual ~MembraneDiscreteElement() override
+    virtual ~ShellKLDiscreteElement() override
     {};
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< MembraneDiscreteElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared< ShellKLDiscreteElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-    * Called to initialize the element.
-    * Must be called before any calculation is done
-    */
-    void Initialize() override;
-
 
     /**
     * This functions calculates both the RHS and the LHS
@@ -88,42 +79,52 @@ public:
     * @param rOutput: The values obtained int the integration points
     * @param rCurrentProcessInfo: the current process info instance
     */
-    void Calculate(
+    void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
-        double& rOutput,
+        std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /**
-    * Calculate a Vector Variable on the Element
+    * Calculate a Vector Variable on the Element Constitutive Law
     * @param rVariable: The variable we want to get
     * @param rOutput: The values obtained int the integration points
     * @param rCurrentProcessInfo: the current process info instance
     */
-    void Calculate(
+    void CalculateOnIntegrationPoints(
         const Variable<Vector>& rVariable,
-        Vector& rValues,
+        std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+
+
     /**
-    * This is called during the assembling process in order to calculate the elemental mass matrix
-    * @param rMassMatrix: the elemental mass matrix
-    * @param rCurrentProcessInfo: the current process info instance
+    * This function provides the place to perform checks on the completeness of the input.
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
     */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void CalculateStresses(
-        Vector& rStresses,
-        const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculatePresstressTensor(
-        Vector& rPrestressTensor,
-        MetricVariables& rMetric);
+
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "KLElement #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "KLElement #" << Id();
+    }
+
     ///@}
 
 protected:
@@ -133,7 +134,7 @@ private:
     ///@{
     ///@name Operations
     ///@{
-    void CalculateMetric( MetricVariables& rMetric ) override;
+    void CalculateMetric( MetricVariables& metric ) override;
 
 
     /**
@@ -145,7 +146,8 @@ private:
     */
     void CalculateConstitutiveVariables(
         MetricVariables& rActualMetric,
-        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     );
@@ -169,9 +171,9 @@ private:
 
     ///@}
 
-};     // Class MembraneDiscreteElement
+};     // Class ShellKLDiscreteElement
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_MEMBRANE_DISCRETE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MESHLESS_SHELL_KL_DISCRETE_ELEMENT_H_INCLUDED  defined
