@@ -212,7 +212,7 @@ private:
  * if "integrate_in_time" is true.
  */
 template <unsigned int TDim>
-class DragResponseFunction : public ResponseFunction, protected ResponseFunctionSensitivityBuilderUtility
+class DragResponseFunction : public ResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -233,10 +233,7 @@ public:
         Parameters default_settings(R"(
         {
             "structure_model_part_name": "PLEASE_SPECIFY_STRUCTURE_MODEL_PART",
-            "sensitivity_model_part_name": "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART",
-            "nodal_sensitivity_variables": ["SHAPE_SENSITIVITY"],
-            "drag_direction": [1.0, 0.0, 0.0],
-            "integrate_in_time": true
+            "drag_direction": [1.0, 0.0, 0.0]
         })");
 
         Parameters custom_settings = rParameters["custom_settings"];
@@ -244,14 +241,6 @@ public:
 
         mStructureModelPartName =
             custom_settings["structure_model_part_name"].GetString();
-
-        mSensitivityModelPartName =
-            custom_settings["sensitivity_model_part_name"].GetString();
-
-        Parameters nodal_sensitivity_variables = custom_settings["nodal_sensitivity_variables"];
-        mNodalSensitivityVariables.resize(nodal_sensitivity_variables.size());
-        for (unsigned int i = 0; i < nodal_sensitivity_variables.size(); ++i)
-            mNodalSensitivityVariables[i] = nodal_sensitivity_variables[i].GetString();
 
         if (custom_settings["drag_direction"].IsArray() == false ||
             custom_settings["drag_direction"].size() != 3)
@@ -275,8 +264,6 @@ public:
                 mDragDirection[d] /= magnitude;
         }
 
-        mIntegrateInTime = custom_settings["integrate_in_time"].GetBool();
-
         KRATOS_CATCH("");
     }
 
@@ -299,35 +286,15 @@ public:
 
         Check();
 
-        for (const std::string& r_label : mNodalSensitivityVariables)
-            SetNodalSensitivityVariableToZero(r_label, mrModelPart.Nodes());
-
         VariableUtils().SetFlag(STRUCTURE, false, mrModelPart.Nodes());
         VariableUtils().SetFlag(
             STRUCTURE, true, mrModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
-
-        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
-                                            mrModelPart.Nodes());
-        VariableUtils().SetNonHistoricalVariable(
-            UPDATE_SENSITIVITIES, true,
-            mrModelPart.GetSubModelPart(mSensitivityModelPartName).Nodes());
 
         KRATOS_CATCH("");
     }
 
     void UpdateSensitivities() override
     {
-        // KRATOS_TRY;
-
-        // double delta_time;
-        // if (mIntegrateInTime)
-        //     delta_time = -mrModelPart.GetProcessInfo()[DELTA_TIME];
-        // else
-        //     delta_time = 1.0;
-        // for (const std::string& r_label : mNodalSensitivityVariables)
-        //     BuildNodalSolutionStepSensitivities(r_label, mrModelPart, delta_time);
-
-        // KRATOS_CATCH("");
     }
 
     void CalculateGradient(Element const& rElement,
@@ -387,16 +354,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculatePartialSensitivity(Variable<array_1d<double, 3>> const& rVariable,
-                                     Element const& rElement,
-                                     Matrix const& rSensitivityMatrix,
-                                     Vector& rPartialSensitivity,
-                                     ProcessInfo const& rProcessInfo) const override
-    {
-        CalculateDragContribution(
-            rSensitivityMatrix, rElement.GetGeometry().Points(), rPartialSensitivity);
-    }
-
     ///@}
 
 private:
@@ -405,10 +362,7 @@ private:
 
     ModelPart& mrModelPart;
     std::string mStructureModelPartName;
-    std::string mSensitivityModelPartName;
-    std::vector<std::string> mNodalSensitivityVariables;
     array_1d<double, TDim> mDragDirection;
-    bool mIntegrateInTime;
 
     ///@}
     ///@name Private Operators
@@ -424,10 +378,6 @@ private:
 
         if (mrModelPart.HasSubModelPart(mStructureModelPartName) == false)
             KRATOS_ERROR << "No sub model part \"" << mStructureModelPartName
-                         << "\"" << std::endl;
-
-        if (mrModelPart.HasSubModelPart(mSensitivityModelPartName) == false)
-            KRATOS_ERROR << "No sub model part \"" << mSensitivityModelPartName
                          << "\"" << std::endl;
 
         KRATOS_CATCH("");
@@ -463,32 +413,6 @@ private:
 
         noalias(rDerivativesOfDrag) = prod(rDerivativesOfResidual, drag_flag_vector);
     }
-
-    void SetNodalSensitivityVariableToZero(std::string const& rVariableName,
-                                           NodesContainerType& rNodes)
-    {
-        KRATOS_TRY;
-
-        if (KratosComponents<Variable<double>>::Has(rVariableName) == true)
-        {
-            const Variable<double>& r_variable =
-                KratosComponents<Variable<double>>::Get(rVariableName);
-
-            VariableUtils().SetScalarVar(r_variable, r_variable.Zero(), rNodes);
-        }
-        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName) == true)
-        {
-            const Variable<array_1d<double, 3>>& r_variable =
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
-
-            VariableUtils().SetVectorVar(r_variable, r_variable.Zero(), rNodes);
-        }
-        else
-            KRATOS_ERROR << "Unsupported variable: " << rVariableName << "." << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
 
     ///@}
 };

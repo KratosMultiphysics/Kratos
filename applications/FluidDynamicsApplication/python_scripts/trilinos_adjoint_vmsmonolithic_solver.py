@@ -33,6 +33,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             "response_function_settings" : {
                 "response_type" : "drag"
             },
+            "sensitivity_settings" : {},
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -131,6 +132,8 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
+        self.sensitivity_builder = FluidDynamicsApplication.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
+
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
             self.time_scheme = TrilinosApplication.TrilinosAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
@@ -159,6 +162,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         (self.solver).Initialize()
+        (self.sensitivity_builder).Initialize()
 
         (self.solver).Check()
 
