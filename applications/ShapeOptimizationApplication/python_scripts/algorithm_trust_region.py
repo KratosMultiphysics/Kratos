@@ -33,8 +33,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             "name"                          : "trust_region",
             "max_step_length"               : 1.0,
             "step_length_tolerance"         : 1e-3,
-            "step_length_decrease_factor"   : 2.0,
-            "step_length_increase_factor"   : 1.2,
+            "step_length_reduction_factor"  : 0.5,
             "min_share_objective"           : 0.1,
             "max_iterations"                : 10,
             "far_away_length"               : 2.0,
@@ -111,18 +110,13 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             len_ineqs, dir_ineqs =  self.__ReduceToRelevantInequalityConstraints(len_ineqs, dir_ineqs)
 
-            step_length = self.__ApplyStepLengthRule()
+            step_length = self.__DetermineStepLength(val_obj)
 
-            # Express lengths in step length unit (indicated by the term "bar")
-            len_bar_obj = 1/step_length * len_obj
-            len_bar_eqs = ScalarVectorProduct(1/step_length, len_eqs)
-            len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
+            len_bar_obj, len_bar_eqs, len_bar_ineqs = self.__ExpressInStepLengthUnit(len_obj, len_eqs, len_ineqs, step_length)
 
-            # Compute step
-            x_bar = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
-            dx = ScalarVectorProduct(step_length,x_bar)
+            dx_bar = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
 
-            self.__ComputeShapeUpdate(dx)
+            self.__ComputeShapeUpdate(dx_bar, step_length)
 
             self.__LogCurrentOptimizationStep(val_obj, step_length)
 
@@ -330,7 +324,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
 
                 ineq_value = self.communicator.getStandardizedValue(ineq_id)
-                print("#################################### ", ineq_value)
                 ineq_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
                 ineq_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
 
@@ -372,7 +365,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return len_ineqs_relevant, dir_ineqs_relevant
 
     # --------------------------------------------------------------------------
-    def __ApplyStepLengthRule(self):
+    def __DetermineStepLength(self, val_obj):
         if self.opt_iteration < 4:
             return self.algorithm_settings["max_step_length"].GetDouble()
         else:
@@ -381,14 +374,23 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             obj_history = self.value_history["val_obj"]
             step_history = self.value_history["step_length"]
 
-            is_decrease_1 = (obj_history[-1]-obj_history[-2])< 0
-            is_decrease_2 = (obj_history[-2]-obj_history[-3])<0
-            is_decrease_3 = (obj_history[-1]-obj_history[-4])< 0
+            is_decrease_1 = (val_obj-obj_history[-1])< 0
+            is_decrease_2 = (obj_history[-1]-obj_history[-2])<0
+            is_decrease_3 = (val_obj-obj_history[-3])< 0
             if (is_decrease_1 and is_decrease_2== False and is_decrease_3) or (is_decrease_1== False and is_decrease_2 and is_decrease_3==False):
                 objective_is_oscillating = True
 
             if objective_is_oscillating:
-                return step_history[-1]*self.algorithm_settings["step_size_reduction_factor"].GetDouble()
+                return step_history[-1]*self.algorithm_settings["step_length_reduction_factor"].GetDouble()
+            else:
+                return step_history[-1]
+
+    # --------------------------------------------------------------------------
+    def __ExpressInStepLengthUnit(self, len_obj, len_eqs, len_ineqs, step_length):
+        len_bar_obj = 1/step_length * len_obj
+        len_bar_eqs = ScalarVectorProduct(1/step_length, len_eqs)
+        len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
+        return len_bar_obj, len_bar_eqs, len_bar_ineqs
 
     # --------------------------------------------------------------------------
     def __DetermineStep(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
@@ -461,7 +463,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return dX
 
     # --------------------------------------------------------------------------
-    def __ComputeShapeUpdate(self, dx):
+    def __ComputeShapeUpdate(self, dx_bar, step_length):
+        # Compute update in regular units
+        dx = ScalarVectorProduct(step_length,dx_bar)
+
         print("\n--------------------------------------------")
         print("NormInf3D of dx = ", NormInf3D(dx))
 
@@ -674,7 +679,7 @@ class Projector():
     #     return True
 
     # # --------------------------------------------------------------------------
-    # def __ApplyStepLengthRule(self, val_obj, len_eqs, len_ineqs):
+    # def __DetermineStepLength(self, val_obj, len_eqs, len_ineqs):
 
     #     max_step_length = self.algorithm_settings["max_step_length"].GetDouble()
     #     step_length_decrease_factor = self.algorithm_settings["step_length_decrease_factor"].GetDouble()
