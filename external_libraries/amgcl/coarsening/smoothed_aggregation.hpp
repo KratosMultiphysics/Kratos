@@ -103,7 +103,7 @@ struct smoothed_aggregation {
 
         params() : relax(1.0f), estimate_spectral_radius(false), power_iters(0) { }
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_CHILD(p, aggr),
               AMGCL_PARAMS_IMPORT_CHILD(p, nullspace),

@@ -69,7 +69,7 @@ class make_solver {
 
             params() {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, precond),
                   AMGCL_PARAMS_IMPORT_CHILD(p, solver)
@@ -191,7 +191,7 @@ class make_solver {
             return P.system_matrix();
         }
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         /// Stores the parameters used during construction into the property tree \p p.
         void get_params(boost::property_tree::ptree &p) const {
             prm.get(p);
@@ -203,8 +203,14 @@ class make_solver {
             return n;
         }
 
+        size_t bytes() const {
+            return backend::bytes(S) + backend::bytes(P);
+        }
+
         friend std::ostream& operator<<(std::ostream &os, const make_solver &p) {
-            return os << p.S << std::endl << p.P;
+            return os
+                << "Solver\n======\n" << p.S << std::endl
+                << "Preconditioner\n==============\n" << p.P;
         }
     private:
         size_t           n;
@@ -377,7 +383,16 @@ class make_scaling_solver {
         std::shared_ptr<vector> t;
 };
 
+namespace backend {
 
+template <class P, class S>
+struct bytes_impl< make_solver<P, S> > {
+    static size_t get(const make_solver<P, S> &s) {
+        return s.bytes();
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 #endif

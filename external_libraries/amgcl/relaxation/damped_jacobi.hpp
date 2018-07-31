@@ -62,7 +62,7 @@ struct damped_jacobi {
 
         params(scalar_type damping = 0.72) : damping(damping) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, damping)
         {
@@ -134,6 +134,17 @@ struct damped_jacobi {
 };
 
 } // namespace relaxation
+
+namespace backend {
+
+template <class Backend>
+struct bytes_impl< relaxation::damped_jacobi<Backend> > {
+    static size_t get(const relaxation::damped_jacobi<Backend> &R) {
+        return backend::bytes(*R.dia);
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 #endif

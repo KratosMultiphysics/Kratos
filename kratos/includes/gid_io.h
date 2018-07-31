@@ -1421,13 +1421,36 @@ void WriteClusterMesh( MeshType& rThisMesh )
 
 
     ///functions for printing results on gauss points
+
+    /**
+    * @brief Writes elemental and conditional flags
+    * @param rFlag the flag
+    * @param rFlagName the given flag name
+    * @param rModelPart the current model part
+    */
+    void PrintFlagsOnGaussPoints(
+        Kratos::Flags rFlag,
+        std::string rFlagName,
+        ModelPart& rModelPart,
+        double SolutionTag
+        )
+    {
+        Timer::Start("Writing Results");
+
+        for ( auto it =  mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
+            it->PrintFlagsResults( mResultFile, rFlag, rFlagName, rModelPart, SolutionTag );
+        }
+
+        Timer::Stop("Writing Results");
+    }
+
     /**
      * Prints variables of type double on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& r_model_part,
-                                     double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
 
@@ -1438,7 +1461,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                 it != mGidGaussPointContainers.end(); it++ )
         {
 
-            it->PrintResults( mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Results");
@@ -1449,10 +1472,10 @@ void WriteClusterMesh( MeshType& rThisMesh )
     /**
      * Prints variables of type int on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<int>& rVariable, ModelPart& r_model_part,
-                                     double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<int>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
 
@@ -1463,7 +1486,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                 it != mGidGaussPointContainers.end(); it++ )
         {
 
-            it->PrintResults( mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Results");
@@ -1474,9 +1497,9 @@ void WriteClusterMesh( MeshType& rThisMesh )
     /**
      * Prints variables of type double on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<array_1d<double,3> >& rVariable, ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<array_1d<double,3> >& rVariable, ModelPart& rModelPart, double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
 
@@ -1486,7 +1509,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
-            it->PrintResults(  mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Results");
@@ -1497,10 +1520,10 @@ void WriteClusterMesh( MeshType& rThisMesh )
     /**
      * Prints variables of type double on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<Vector>& rVariable, ModelPart& r_model_part,
-                                     double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<Vector>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
         Timer::Start("Writing Results");
@@ -1509,7 +1532,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
-            it->PrintResults(  mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
 
         }
 
@@ -1521,10 +1544,10 @@ void WriteClusterMesh( MeshType& rThisMesh )
     /**
      * Prints variables of type double on gauss points of the complete mesh
      * @param rVariable the given variable name
-     * @param r_model_part the current model part
+     * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<Matrix>& rVariable, ModelPart& r_model_part,
-                                     double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<Matrix>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
         Timer::Start("Writing Results");
@@ -1533,7 +1556,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                 it != mGidGaussPointContainers.end(); it++ )
         {
 
-            it->PrintResults(  mResultFile, rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
         Timer::Stop("Writing Results");

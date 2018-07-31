@@ -28,7 +28,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/buffer.h"
+#include "includes/ublas_interface.h"
+#include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 // #include "containers/variable.h"
 

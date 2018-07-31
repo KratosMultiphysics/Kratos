@@ -31,6 +31,10 @@ THE SOFTWARE.
  * \brief  Runtime wrapper for distributed coarsening schemes.
  */
 
+#ifdef AMGCL_NO_BOOST
+#  error Runtime interface relies on Boost.PropertyTree!
+#endif
+
 #include <boost/property_tree/ptree.hpp>
 
 #include <amgcl/util.hpp>
