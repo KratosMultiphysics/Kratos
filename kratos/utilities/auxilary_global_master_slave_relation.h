@@ -136,8 +136,9 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
             rMasterWeightsVector(i) = mMasterWeightsVector[i];
 
 
-        #pragma omp atomic
+        mLockObject.SetLock();
             mConstant = mRhsValue - mLhsValue;
+        mLockObject.UnSetLock();
         rConstant = mConstant;
     }
 
@@ -209,13 +210,13 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     }
 
     ///@}
-    std::atomic<double> mLhsValue;
-    std::atomic<double> mRhsValue;
+    double mLhsValue;
+    double mRhsValue;
 
     std::vector<IndexType> mMasterEquationIdVector;
     std::vector<double> mMasterWeightsVector;
 
-    std::atomic<double> mConstant;
+    double mConstant;
     LockObject mLockObject;
 
 }; // End of ConstraintEquation class
