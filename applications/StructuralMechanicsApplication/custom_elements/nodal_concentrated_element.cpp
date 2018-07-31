@@ -540,8 +540,8 @@ void NodalConcentratedElement::InitializeNonLinearIteration( ProcessInfo& rCurre
             if (module_internal_force <= 0.0) this->Set(ACTIVE, true);
             else this->Set(ACTIVE, false);
         } else {
-            if (module_internal_force >= 0.0) this->Set(ACTIVE, true);
-            else this->Set(ACTIVE, false);
+            if (module_internal_force >= 0.0) this->Set(ACTIVE, false);
+            else this->Set(ACTIVE, true);
         }
     }
 

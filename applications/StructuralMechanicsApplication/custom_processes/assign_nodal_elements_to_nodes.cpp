@@ -47,7 +47,6 @@ AssignNodalElementsToNodes::AssignNodalElementsToNodes(
         "model_part_name"                : "",
         "rayleigh_damping"               : false,
         "assign_active_flag_node"        : true,
-        "compute_compression_tension"    : "compression_and_tension",
         "interval"                       : [0.0, 1e30]
     })" );
 
@@ -64,10 +63,6 @@ AssignNodalElementsToNodes::AssignNodalElementsToNodes(
         mThisParameters.SetValue("assign_active_flag_node", to_validate_parameters["assign_active_flag_node"]);
     else
         mThisParameters.AddValue("assign_active_flag_node", to_validate_parameters["assign_active_flag_node"]);
-    if (mThisParameters.Has("compute_compression_tension"))
-        mThisParameters.SetValue("compute_compression_tension", to_validate_parameters["compute_compression_tension"]);
-    else
-        mThisParameters.AddValue("compute_compression_tension", to_validate_parameters["compute_compression_tension"]);
     if (mThisParameters.Has("interval"))
         mThisParameters.SetValue("interval", to_validate_parameters["interval"]);
     else
@@ -195,13 +190,12 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
     // We get the reference element
     const bool rayleigh_damping = mThisParameters["rayleigh_damping"].GetBool();
     const bool assign_active_flag_node = mThisParameters["assign_active_flag_node"].GetBool();
-    const NodalConcentratedElement::CompressionTension compression_and_tension = (mThisParameters["compute_compression_tension"].GetString() == "compression") ? NodalConcentratedElement::CompressionTension::COMPRESSION : (mThisParameters["compute_compression_tension"].GetString() == "tension") ? NodalConcentratedElement::CompressionTension::TENSION : NodalConcentratedElement::CompressionTension::COMPRESSION_AND_TENSION;
     std::vector<NodeType::Pointer> aux_node_array(1);
     aux_node_array[0] = *(r_model_part.NodesBegin()).base();
 
     if (domain_size == 2) {
         GeometryType::Pointer p_dummy_geom = Kratos::make_shared<Point2D<NodeType>>(aux_node_array);
-        const Element& rReferenceElement = NodalConcentratedElement(0, p_dummy_geom, rayleigh_damping, assign_active_flag_node, compression_and_tension);
+        const Element& rReferenceElement = NodalConcentratedElement(0, p_dummy_geom, rayleigh_damping, assign_active_flag_node);
 
         std::vector<Element::Pointer> auxiliar_elements_vector;
 
@@ -232,7 +226,7 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
         }
     } else {
         GeometryType::Pointer p_dummy_geom = Kratos::make_shared<Point3D<NodeType>>(aux_node_array);
-        const Element& rReferenceElement = NodalConcentratedElement(0, p_dummy_geom, rayleigh_damping, assign_active_flag_node, compression_and_tension);
+        const Element& rReferenceElement = NodalConcentratedElement(0, p_dummy_geom, rayleigh_damping, assign_active_flag_node);
 
         std::vector<Element::Pointer> auxiliar_elements_vector;
 

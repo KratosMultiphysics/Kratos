@@ -17,7 +17,6 @@ class AssignNodalElementsToNodes(KratosMultiphysics.Process):
             "sub_model_part_name"            : "",
             "rayleigh_damping"               : false,
             "assign_active_flag_node"        : true,
-            "compute_compression_tension"    : "compression_and_tension",
             "interval"                       : [0.0, 1e30]
         }
         """
@@ -34,8 +33,6 @@ class AssignNodalElementsToNodes(KratosMultiphysics.Process):
             to_validate_parameters.AddValue("rayleigh_damping", settings["rayleigh_damping"])
         if (settings.Has("assign_active_flag_node")):
             to_validate_parameters.AddValue("assign_active_flag_node", settings["assign_active_flag_node"])
-        if (settings.Has("compute_compression_tension")):
-            to_validate_parameters.AddValue("compute_compression_tension", settings["compute_compression_tension"])
         if (settings.Has("interval")):
             to_validate_parameters.AddValue("interval", settings["interval"])
 
@@ -61,10 +58,6 @@ class AssignNodalElementsToNodes(KratosMultiphysics.Process):
             settings.SetValue("assign_active_flag_node", to_validate_parameters["assign_active_flag_node"])
         else:
             settings.AddValue("assign_active_flag_node", to_validate_parameters["assign_active_flag_node"])
-        if (settings.Has("compute_compression_tension")):
-            settings.SetValue("compute_compression_tension", to_validate_parameters["compute_compression_tension"])
-        else:
-            settings.AddValue("compute_compression_tension", to_validate_parameters["compute_compression_tension"])
         if (settings.Has("interval")):
             settings.SetValue("interval", to_validate_parameters["interval"])
         else:
