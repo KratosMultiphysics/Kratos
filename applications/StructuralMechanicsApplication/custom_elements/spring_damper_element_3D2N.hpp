@@ -142,27 +142,6 @@ public:
       */
     void Initialize() override;
 
-    /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called for non-linear analysis at the beginning of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-
     //************* COMPUTING  METHODS
 
     /**
@@ -243,6 +222,10 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
+    static constexpr int msNumberOfNodes = 2;
+    static constexpr int msDimension = 3;
+    static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
+    static constexpr unsigned int msElementSize = msLocalSize * 2;
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -257,13 +240,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-
-    /**
-     * Clear Nodal Forces
-     */
-    void ClearNodalForces ();
-
     ///@}
     ///@name Protected  Access
     ///@{
