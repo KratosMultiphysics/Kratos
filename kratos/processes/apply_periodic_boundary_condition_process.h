@@ -196,7 +196,6 @@ class ApplyPeriodicConditionProcess : public Process
 				    is_found = bin_based_point_locator.FindPointOnMesh(transformed_node, shape_function_values, p_host_elem, result_begin, max_results);
                     if(is_found)
                     {
-                        auto& geometry = p_host_elem->GetGeometry();
                         ConstraintSlaveNodeWithElement<TDim>(slave_node, p_host_elem->GetGeometry() , shape_function_values, var_name);
                     }
                 }
