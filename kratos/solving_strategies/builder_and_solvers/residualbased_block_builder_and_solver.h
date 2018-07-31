@@ -1324,8 +1324,10 @@ private:
             unsigned int id_to_find = EquationId[j];
             if(id_to_find > last_found)
                 pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
-            else
+            else if(id_to_find < last_found)
                 pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+            else
+                pos = last_pos;
 
 #ifndef USE_LOCKS_IN_ASSEMBLY
                         double& r = values_vector[pos];

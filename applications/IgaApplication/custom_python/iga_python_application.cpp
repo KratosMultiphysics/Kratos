@@ -36,6 +36,8 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     ;
 
     AddCustomUtilitiesToPython(m);
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NURBS_CONTROLPOINT_WEIGHT)
 }
 
 } // namespace Python
