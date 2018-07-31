@@ -617,9 +617,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             if (constraint_is_active)
             {
                 //get the equation Ids of the constraint
-                (*it).EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                it->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
                 //calculate constraint's T and b matrices
-                (*it).CalculateLocalSystem(relation_matrix, constant_vector, r_current_process_info);
+                it->CalculateLocalSystem(relation_matrix, constant_vector, r_current_process_info);
 
                 //assemble the Constraint contribution
                 AssembleSlaves(slave_equation_ids, master_equation_ids, relation_matrix);
@@ -677,8 +677,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
-            (*it).SetLHSValue(0.0);
-            (*it).SetRHSValue(0.0);
+            it->SetLHSValue(0.0);
+            it->SetRHSValue(0.0);
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ResetConstraintRelations failed ..");
     }
@@ -1085,9 +1085,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             slave_dx_value = 0.0;
             //get the equation Ids of the constraint
-            (*it).EquationIdVector(slave_equation_id, master_equation_ids);
+            it->EquationIdVector(slave_equation_id, master_equation_ids);
             //calculate constraint's T and b matrices
-            (*it).CalculateLocalSystem(master_weights_vector, constant);
+            it->CalculateLocalSystem(master_weights_vector, constant);
             int master_index = 0;
             for (auto &master_equation_id : master_equation_ids)
             {
