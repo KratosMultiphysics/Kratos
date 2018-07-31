@@ -147,15 +147,11 @@ public:
 
             SizeType size_residual;
             if (mInitialResidualIsSet == false) {
-//                 mInitialResidualNorm = TSparseSpace::TwoNorm(b); // NOTE: This doesn't take into account the reaction dofs
                 CalculateResidualNorm(mInitialResidualNorm, size_residual, rDofSet, b);
                 mInitialResidualIsSet = true;
-
-                //KRATOS_INFO("RESIDUAL CRITERION") << "Initial Residual: " << mInitialResidualNorm <<std::endl;
             }
 
             TDataType ratio = 0.0;
-//             mCurrentResidualNorm = TSparseSpace::TwoNorm(b); // NOTE: This doesn't take into account the reaction dofs
             CalculateResidualNorm(mCurrentResidualNorm, size_residual, rDofSet, b);
 
             if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
@@ -164,10 +160,7 @@ public:
                 ratio = mCurrentResidualNorm/mInitialResidualNorm;
             }
 
-            //KRATOS_INFO("RESIDUAL CRITERION") << "Current Residual: " <<  mCurrentResidualNorm << " ratio: "<< ratio << std::endl;
-            
             const TDataType float_size_residual = static_cast<TDataType>(size_residual);
-//             const TDataType float_size_residual = static_cast<TDataType>(size_b);
             const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
 
             KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
