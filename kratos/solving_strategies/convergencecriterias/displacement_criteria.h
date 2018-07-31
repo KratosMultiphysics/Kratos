@@ -131,7 +131,7 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        const TDataType tolerance = std::numeric_limits<TDataType>::epsilon();
+        const TDataType approx_zero_tolerance = std::numeric_limits<TDataType>::epsilon();
         const SizeType size_Dx = Dx.size();
         if (size_Dx != 0) { //if we are solving for something
             SizeType size_solution;
@@ -140,12 +140,12 @@ public:
             TDataType ratio = 0.0;
 
             CalculateReferenceNorm(rDofSet);
-            if (mReferenceDispNorm < tolerance) {
+            if (mReferenceDispNorm < approx_zero_tolerance) {
                 KRATOS_WARNING("DisplacementCriteria") << "NaN norm is detected. Setting reference to convergence criteria" << std::endl;
                 mReferenceDispNorm = final_correction_norm;
             }
 
-            if(final_correction_norm < tolerance) {
+            if(final_correction_norm < approx_zero_tolerance) {
                 ratio = 0.0;
             } else {
                 ratio = final_correction_norm/mReferenceDispNorm;
