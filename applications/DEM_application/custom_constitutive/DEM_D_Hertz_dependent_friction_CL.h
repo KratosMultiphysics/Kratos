@@ -33,7 +33,7 @@ namespace Kratos {
 
         void InitializeDependentContact(SphericParticle* const element1, SphericParticle* const element2, double& equiv_radius, double& equiv_young, double& equiv_shear, const double indentation);
 
-        void InitializeDependentContactWithFEM(SphericParticle* const element, DEMWall* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, const double indentation);
+        void InitializeDependentContactWithFEM(SphericParticle* const element, Condition* const wall, double& effective_radius, double& equiv_young, double& equiv_shear, const double indentation);
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalElasticContactForce[3],
@@ -59,7 +59,7 @@ namespace Kratos {
                                     double ViscoDampingLocalContactForce[3],
                                     double& cohesive_force,
                                     SphericParticle* const element,
-                                    DEMWall* const wall,
+                                    Condition* const wall,
                                     bool& sliding) override;
                 
         double CalculateNormalForce(const double indentation) override;
@@ -69,7 +69,7 @@ namespace Kratos {
                                             const double indentation) override;
 
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
-                                                   DEMWall* const wall,
+                                                   Condition* const wall,
                                                    const double indentation) override;
 
         void CalculateTangentialForce(const double normal_contact_force,
@@ -94,7 +94,7 @@ namespace Kratos {
                                              const double LocalDeltDisp[3],            
                                              bool& sliding,
                                              SphericParticle* const element,
-                                             DEMWall* const wall,
+                                             Condition* const wall,
                                              const double equiv_radius,
                                              const double equiv_young,
                                              double indentation,
@@ -110,7 +110,7 @@ namespace Kratos {
         void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
                                         SphericParticle* const element,
-                                        DEMWall* const wall);
+                                        Condition* const wall);
 
         void CalculateElasticEnergyDEM(double& elastic_energy,
                                        double indentation,

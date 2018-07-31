@@ -21,8 +21,6 @@
 
 namespace Kratos
 {
-    
-KRATOS_CREATE_LOCAL_FLAG(ReplaceElementsAndConditionsProcess,VARIABLE_IS_FIXED, 0);
 
 /***********************************************************************************/
 /***********************************************************************************/

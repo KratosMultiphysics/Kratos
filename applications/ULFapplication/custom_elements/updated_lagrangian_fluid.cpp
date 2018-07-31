@@ -103,11 +103,11 @@ void UpdatedLagrangianFluid::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,3,6> msB;
-    boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
+    BoundedMatrix<double,3,6> msB;
+    BoundedMatrix<double,3,3> ms_constitutive_matrix;
+    BoundedMatrix<double,3,6> ms_temp;
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
+    BoundedMatrix<double,3,2> msDN_Dx;
     array_1d<double,3> msN; //dimension = number of nodes
 
     static array_1d<double,6> ms_temp_vec;
@@ -204,11 +204,11 @@ void UpdatedLagrangianFluid::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 void UpdatedLagrangianFluid::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
 
-    boost::numeric::ublas::bounded_matrix<double,3,6> msB;
-    boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
+    BoundedMatrix<double,3,6> msB;
+    BoundedMatrix<double,3,3> ms_constitutive_matrix;
+    BoundedMatrix<double,3,6> ms_temp;
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
+    BoundedMatrix<double,3,2> msDN_Dx;
     array_1d<double,3> msN; //dimension = number of nodes
     const double& density = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
                                          GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
@@ -305,11 +305,11 @@ void UpdatedLagrangianFluid::CalculateMassMatrix(MatrixType& rMassMatrix, Proces
 void UpdatedLagrangianFluid::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    boost::numeric::ublas::bounded_matrix<double,3,6> msB;
-    boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
+    BoundedMatrix<double,3,6> msB;
+    BoundedMatrix<double,3,3> ms_constitutive_matrix;
+    BoundedMatrix<double,3,6> ms_temp;
 
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
+    BoundedMatrix<double,3,2> msDN_Dx;
     array_1d<double,3> msN; //dimension = number of nodes
 
     unsigned int NumberOfNodes = GetGeometry().size();

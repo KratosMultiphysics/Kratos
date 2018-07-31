@@ -70,7 +70,7 @@
         }
     },{
         "python_module"   : "impose_vector_value_by_components_over_time_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "process_name"          : "ImposeVectorValueByComponentsOverTimeProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
@@ -88,7 +88,7 @@
     "contact_process_list" :[
     {
         "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module"   : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {

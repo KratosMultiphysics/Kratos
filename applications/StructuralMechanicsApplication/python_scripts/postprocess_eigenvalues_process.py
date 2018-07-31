@@ -21,17 +21,19 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(
             """
             {
-                "result_file_name" : "Structure",
+                "help"                         :"This process can be used in order to generate a postprocess files for eigenvalues problems. It uses the C++ class PostprocessEigenvaluesProcess",
+                "result_file_name"             : "Structure",
                 "result_file_format_use_ascii" : false,
-                "computing_model_part_name"   : "computing_domain",
-                "animation_steps"   :  20,
-                "list_of_result_variables" : ["DISPLACEMENT"],
-                "label_type" : "frequency"
+                "computing_model_part_name"    : "computing_domain",
+                "animation_steps"              :  20,
+                "list_of_result_variables"     : ["DISPLACEMENT"],
+                "label_type"                   : "frequency"
             }
             """
         )
 
         settings.ValidateAndAssignDefaults(default_settings)
+        settings.RemoveValue("help")
 
         KratosMultiphysics.Process.__init__(self)
         model_part = Model[settings["computing_model_part_name"].GetString()]

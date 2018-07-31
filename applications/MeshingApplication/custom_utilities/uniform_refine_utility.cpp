@@ -356,7 +356,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInFace(
     NodeType::Pointer middle_node;
 
     // Get the middle node key
-    std::array<IndexType, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
+    std::array<IndexType, 4> node_key = {{rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()}};
     std::sort(node_key.begin(), node_key.end());
 
     // Check if the node is not yet created
@@ -399,7 +399,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInFace(const FaceT
     NodeType::Pointer middle_node;
 
     // Get the middle node key
-    std::array<IndexType, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
+    std::array<IndexType, 4> node_key = {{rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()}};
     std::sort(node_key.begin(), node_key.end());
 
     // Check if the node exist

@@ -36,7 +36,7 @@
     },{
         "model_part_name" : "ROTATION_Rotation_Auto1",
         "variable_name"   : "ROTATION",
-        "value"           : [null,0.0,0.0]        
+        "value"           : [null,0.0,0.0]
     },{
         "model_part_name" : "ANGULAR_VELOCITY_Angular_Velocity_Auto1",
         "variable_name"   : "ANGULAR_VELOCITY",
@@ -45,7 +45,7 @@
         "model_part_name" : "ANGULAR_VELOCITY_Angular_Velocity_Auto2",
         "variable_name"   : "ANGULAR_VELOCITY",
         "value"           : [2.0,0.0,0.0],
-        "interval"        : [0.0,0.0]       
+        "interval"        : [0.0,0.0]
     }],
     "loads_process_list"       : [{
         "python_module" : "assign_modulus_and_direction_to_nodes_process",
@@ -55,7 +55,7 @@
             "variable_name"   : "VOLUME_ACCELERATION",
             "modulus"         : 9.81,
             "direction"       : [0.0,-1.0,0.0]
-	    
+
         }
     }],
     "_output_process_list" : [

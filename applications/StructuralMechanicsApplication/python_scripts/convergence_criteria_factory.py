@@ -84,5 +84,5 @@ class convergence_criterion:
                 self.mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
             else:
                 err_msg =  "The requested convergence criterion \"" + convergence_crit + "\" is not available!\n"
-                err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\, \"adaptative_remesh_criteria\""
+                err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
                 raise Exception(err_msg)

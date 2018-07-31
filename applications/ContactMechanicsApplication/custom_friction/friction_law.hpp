@@ -56,7 +56,7 @@ namespace Kratos
          struct FrictionLawVariables {
             double FrictionCoefficient;
             double Alpha;
-            double Area; 
+            double Area;
 
             double TangentPenalty;
 
@@ -73,7 +73,7 @@ namespace Kratos
                PlasticSlipOld = PS;
                PlasticSlip = PS;
                Area = rArea;
-               TangentPenalty = rTangentPenalty / Area; 
+               TangentPenalty = rTangentPenalty / Area;
                Implex = rImplex;
             };
 
@@ -98,10 +98,7 @@ namespace Kratos
 
          /**
           * Clone function (has to be implemented by any derived class)
-          * @return a pointer to a new instance of this constitutive law
-          * NOTE: implementation scheme:
-          *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
-          *      return p_clone;
+          * @return a pointer to a new instance of this friction law
           */
          virtual FrictionLaw::Pointer Clone() const;
 
@@ -205,7 +202,7 @@ namespace Kratos
          ///@}
          ///@name Member Variables
          ///@{
-         double mPlasticSlip; 
+         double mPlasticSlip;
          double mPlasticSlipNew;
          double mDeltaPlasticSlip;
 

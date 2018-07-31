@@ -23,6 +23,7 @@ class GiDOutputProcess(Process):
             "nodal_results": [],
             "nodal_nonhistorical_results": [],
             "nodal_flags_results": [],
+            "elemental_conditional_flags_results": [],
             "gauss_point_results": [],
             "additional_list_files": []
         },
@@ -144,6 +145,10 @@ class GiDOutputProcess(Process):
         self.nodal_flags_names =[]
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
+        self.elemental_conditional_flags = self._GenerateFlagsListFromInput(result_file_configuration["elemental_conditional_flags_results"])
+        self.elemental_conditional_flags_names =[]
+        for i in range(result_file_configuration["elemental_conditional_flags_results"].size()):
+            self.elemental_conditional_flags_names.append(result_file_configuration["elemental_conditional_flags_results"][i].GetString())
 
         # Set up output frequency and format
         output_file_label = result_file_configuration["file_label"].GetString()
@@ -219,6 +224,7 @@ class GiDOutputProcess(Process):
             self.__write_nodal_results(label)
             self.__write_nonhistorical_nodal_results(label)
             self.__write_nodal_flags(label)
+            self.__write_elemental_conditional_flags(label)
             self.__finalize_results()
 
         if self.point_output_process is not None:
@@ -267,6 +273,7 @@ class GiDOutputProcess(Process):
         self.__write_gp_results(time)
         self.__write_nonhistorical_nodal_results(time)
         self.__write_nodal_flags(time)
+        self.__write_elemental_conditional_flags(time)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
@@ -548,6 +555,16 @@ class GiDOutputProcess(Process):
             self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
             for flag in range(len(self.nodal_flags)):
                 self.cut_io.WriteNodalFlags(self.nodal_flags[flag], self.nodal_flags_names[flag], self.cut_model_part.Nodes, label)
+
+    def __write_elemental_conditional_flags(self, label):
+        if self.body_io is not None:
+            for flag in range(len(self.elemental_conditional_flags)):
+                self.body_io.PrintFlagsOnGaussPoints(self.elemental_conditional_flags[flag], self.elemental_conditional_flags_names[flag], self.model_part, label)
+
+        if self.cut_io is not None:
+            self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
+            for flag in range(len(self.elemental_conditional_flags)):
+                self.cut_io.PrintFlagsOnGaussPoints(self.elemental_conditional_flags[flag], self.elemental_conditional_flags_names[flag], self.cut_model_part, label)
 
     def __finalize_results(self):
 

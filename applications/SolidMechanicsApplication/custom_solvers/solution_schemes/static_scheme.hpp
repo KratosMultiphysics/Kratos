@@ -78,7 +78,20 @@ namespace Kratos
         :BaseType(rTimeVectorIntegrationMethods)
     {
     }
-    
+
+
+    /// Constructor.
+    StaticScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods, Flags& rOptions)
+        :BaseType(rTimeScalarIntegrationMethods, rOptions)
+    {
+    }
+
+    /// Constructor.
+    StaticScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods)
+        :BaseType(rTimeScalarIntegrationMethods)
+    {
+    }
+
     /// Constructor.
     StaticScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
@@ -93,7 +106,7 @@ namespace Kratos
         :BaseType(rTimeVectorIntegrationMethods, rTimeScalarIntegrationMethods)
     {
     }
-    
+
     /// Copy Constructor.
     StaticScheme(StaticScheme& rOther)
         :BaseType(rOther)

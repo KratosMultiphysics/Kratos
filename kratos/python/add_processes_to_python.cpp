@@ -341,6 +341,7 @@ void  AddProcessesToPython(pybind11::module& m)
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&>());
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>());
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >());
+    FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags, const bool >());
 
     // Adding FastTransferBetweenModelPartsProcess related enums
     enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>(FastTransferBetweenModelPartsProcess_Scope, "EntityTransfered")
