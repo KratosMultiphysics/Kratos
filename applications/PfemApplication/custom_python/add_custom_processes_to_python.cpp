@@ -35,7 +35,6 @@
 // MiddleMeshing processes
 
 // PostMeshing processes
-#include "custom_processes/select_fluid_elements_mesher_process.hpp"
 
 
 namespace Kratos
@@ -69,10 +68,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   class_<InsertNewNodesMesherProcess, InsertNewNodesMesherProcess::Pointer, MesherProcess>
       (m, "InsertNewNodes")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
-
-  class_<SelectFluidElementsMesherProcess, SelectFluidElementsMesherProcess::Pointer, MesherProcess>
-      (m, "SelectFluidElements")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
   class_<SetActiveEntitiesMesherProcess, SetActiveEntitiesMesherProcess::Pointer, MesherProcess>

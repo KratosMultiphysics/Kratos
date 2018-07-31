@@ -92,6 +92,7 @@ class FluidRefiningMesher(mesher.Mesher):
         #inlet_management = KratosPfem.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPreMeshingProcess(inlet_management)
 
+        #remove_mesh_nodes = KratosDelaunay.RemoveNodes(self.model_part, self.MeshingParameters, self.echo_level)
         remove_mesh_nodes = KratosPfem.RemoveFluidNodes(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
 
@@ -114,8 +115,7 @@ class FluidRefiningMesher(mesher.Mesher):
         refining_options = refining_parameters.GetRefiningOptions()
 
         #select mesh elements
-        select_mesh_elements  = KratosPfem.SelectFluidElements(self.model_part, self.MeshingParameters, self.echo_level)
-        #select_mesh_elements  = KratosDelaunay.SelectElements(self.main_model_part, self.MeshingParameters, self.echo_level)
+        select_mesh_elements  = KratosDelaunay.SelectElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         #rebuild elements

@@ -278,10 +278,10 @@ class MeshingDomain(object):
                     number_of_nodes += 1
                     mean_nodal_size = mean_nodal_size + node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
 
-            critical_mesh_size = mean_nodal_size / number_of_nodes;
+            critical_mesh_size = 0.25 * mean_nodal_size / number_of_nodes;
             critical_mesh_side = critical_mesh_size * 3
 
-            self.RefiningParameters.SetInitialRadius(critical_mesh_size)
+            #self.RefiningParameters.SetInitialRadius(critical_mesh_size)
 
         self.RefiningParameters.SetCriticalRadius(critical_mesh_size)
         self.RefiningParameters.SetCriticalSide(critical_mesh_side)

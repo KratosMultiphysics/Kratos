@@ -1,7 +1,7 @@
 {
     "time_settings" : {
         "time_step"  : 0.001,
-        "end_time"   : 0.15
+        "end_time"   : 0.5
     },
     "model_settings"           : {
 	"model_name"     : "main_domain",
@@ -271,7 +271,7 @@
             "output_frequency"    : 1,
             "node_output"         : true,
             "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE","NORMAL"],
-	    "nodal_flags_results" : ["FREE_SURFACE","BOUNDARY","ISOLATED","RIGID"],
+	    "nodal_flags_results" : ["FREE_SURFACE","BOUNDARY","ISOLATED","RIGID","SOLID","NEW_ENTITY","BLOCKED","FLUID","TO_SPLIT"],
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR"]
         }
     }

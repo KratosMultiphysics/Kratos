@@ -18,15 +18,6 @@
 // Project includes
 #include "custom_processes/refine_elements_in_edges_mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//StepData:
-//Flags:    (checked)
-//          (set)     TO_SPLIT / VISITED
-//          (modified)
-//          (reset)   TO_SPLIT / VISITED
-//(set):=(set in this process)
-
 namespace Kratos
 {
 
@@ -172,6 +163,7 @@ class RefineFluidElementsInEdgesMesherProcess
           break;
         }
 
+        // this condition fails
         // if ( rGeometry[i].GetValue(NEIGHBOUR_NODES).size() > rGeometry.size()-1 ){
         //   is_full_fluid_boundary = false;
         //   break;
@@ -180,8 +172,9 @@ class RefineFluidElementsInEdgesMesherProcess
         WeakPointerVector<Node<3> >& rN = rGeometry[i].GetValue(NEIGHBOUR_NODES);
         for(unsigned int j = 0; j < rN.size(); ++j)
         {
-          if( rN[j].Is(SOLID) ){
+          if( rN[j].Is(SOLID) || rN[j].Is(RIGID) ){
             is_full_fluid_boundary = false;
+            break;
           }
         }
       }
@@ -193,12 +186,6 @@ class RefineFluidElementsInEdgesMesherProcess
 
       if( is_full_rigid_boundary || is_full_fluid_boundary ){
         rBoundaryEdgedElements.push_back(*(i_elem.base()));
-        i_elem->Set(TO_SPLIT,true);
-        for(unsigned int i=0; i<rGeometry.size(); ++i)
-        {
-          rGeometry[i].Set(TO_SPLIT,true);
-        }
-
       }
 
     }

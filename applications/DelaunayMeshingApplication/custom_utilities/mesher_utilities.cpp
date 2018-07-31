@@ -1219,6 +1219,89 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool MesherUtilities::CheckRelativeVelocities(Geometry<Node<3> >& rVertices, const double& rRelativeFactor)
+  {
+    KRATOS_TRY
+
+    const unsigned int NumberOfVertices = rVertices.size();
+
+    std::vector<double> VelocityModulus(NumberOfVertices);
+
+    for(unsigned int i = 0; i<NumberOfVertices; ++i)
+    {
+      VelocityModulus[i]=norm_2(rVertices[i].FastGetSolutionStepValue(VELOCITY));
+    }
+
+    for(unsigned int i = 0; i<NumberOfVertices-1; ++i)
+    {
+      for(unsigned int j = i+1; j<NumberOfVertices; ++j)
+      {
+        if( VelocityModulus[i]/VelocityModulus[j]>rRelativeFactor || VelocityModulus[j]/VelocityModulus[i]>rRelativeFactor ){
+          return true;
+        }
+      }
+    }
+
+    return false;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool MesherUtilities::CheckVolumeDecrease(GeometryType& rVertices, const unsigned int& rDimension)
+  {
+    bool accepted = false;
+    if(rDimension==2){
+      Triangle2D3<Node<3> > CurrentTriangle(rVertices);
+      double CurrentArea = CurrentTriangle.Area();
+
+      GeometryType MovedVertices;
+      for(unsigned int i=0; i<rVertices.size(); ++i)
+      {
+        Node<3>::Pointer pNode = rVertices[i].Clone();
+        pNode->Coordinates() += (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
+        MovedVertices.push_back(pNode);
+      }
+      Triangle2D3<Node<3> > MovedTriangle(MovedVertices);
+      double MovedArea = MovedTriangle.Area();
+
+      //std::cout<<" control fluid  "<<MovedArea<<" "<<CurrentArea<<std::endl;
+      double tolerance = 1e-8;
+      if(MovedArea+tolerance<CurrentArea){
+        accepted = true;
+      }
+
+    }
+    else if(rDimension==3){
+
+      Tetrahedra3D4<Node<3> > CurrentTetrahedron(rVertices);
+      double CurrentVolume = CurrentTetrahedron.Volume();
+
+      Geometry<Node<3> > MovedVertices;
+      for(unsigned int i=0; i<rVertices.size(); ++i)
+      {
+        Node<3>::Pointer pNode = rVertices[i].Clone();
+        pNode->Coordinates() += (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
+        MovedVertices.push_back(pNode);
+      }
+      Tetrahedra3D4<Node<3> > MovedTetrahedron(MovedVertices);
+      double MovedVolume = MovedTetrahedron.Volume();
+
+      //std::cout<<" control fluid  "<<MovedVolume<<" "<<CurrentVolume<<std::endl;
+      double tolerance = 1e-6;
+      if(MovedVolume+tolerance<CurrentVolume){
+        accepted = true;
+      }
+    }
+
+    return accepted;
+  }
+
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -1649,8 +1732,8 @@ namespace Kratos
 
       }
 
-    //if( minimum_h < rCriticalRadius )
-    //  std::cout<<"  [ FAULT :: CRITICAL MESH SIZE :: supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
+    if( minimum_h < rCriticalRadius )
+      std::cout<<"  [ FAULT :: CRITICAL MESH SIZE :: supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
 
     return minimum_h;
 

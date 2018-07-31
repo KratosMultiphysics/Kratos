@@ -19,15 +19,13 @@
 #include "containers/variables_list_data_value_container.h"
 #include "spatial_containers/spatial_containers.h"
 
-#include "includes/model_part.h"
 #include "custom_utilities/mesher_utilities.hpp"
-#include "geometries/tetrahedra_3d_4.h"
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:
-//StepData: NODAL_H, CONTACT_FORCE
-//Flags:    (checked) TO_ERASE, BOUNDARY, NEW_ENTITY
+//StepData: NODAL_H, CONTACT_FORCE ,VELOCITY, DISPLACEMENT
+//Flags:    (checked) TO_ERASE, BOUNDARY, RIGID, SOLID, FREE_SURFACE, FLUID
 //          (set)
 //          (modified)
 //          (reset)
@@ -45,536 +43,770 @@ namespace Kratos
 
 */
 class SelectElementsMesherProcess
-  : public MesherProcess
+    : public MesherProcess
 {
-public:
-    ///@name Type Definitions
-    ///@{
+ public:
+  ///@name Type Definitions
+  ///@{
 
-    /// Pointer definition of Process
-    KRATOS_CLASS_POINTER_DEFINITION( SelectElementsMesherProcess );
+  /// Pointer definition of Process
+  KRATOS_CLASS_POINTER_DEFINITION( SelectElementsMesherProcess );
 
-    typedef ModelPart::ConditionType         ConditionType;
-    typedef ModelPart::PropertiesType       PropertiesType;
-    typedef ConditionType::GeometryType       GeometryType;
+  typedef ModelPart::ConditionType         ConditionType;
+  typedef ModelPart::PropertiesType       PropertiesType;
+  typedef ConditionType::GeometryType       GeometryType;
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+  ///@}
+  ///@name Life Cycle
+  ///@{
 
-    /// Default constructor.
-    SelectElementsMesherProcess(ModelPart& rModelPart,
+  /// Default constructor.
+  SelectElementsMesherProcess(ModelPart& rModelPart,
 			      MesherUtilities::MeshingParameters& rRemeshingParameters,
 			      int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
+  {
+    mEchoLevel = EchoLevel;
+  }
+
+
+  /// Destructor.
+  virtual ~SelectElementsMesherProcess() {}
+
+
+  ///@}
+  ///@name Operators
+  ///@{
+
+  /// This operator is provided to call the process as a function and simply calls the Execute method.
+  void operator()()
+  {
+    Execute();
+  }
+
+
+  ///@}
+  ///@name Operations
+  ///@{
+
+
+  /// Execute method is used to execute the Process algorithms.
+  void Execute() override
+  {
+    KRATOS_TRY
+
+        if( mEchoLevel > 0 )
+          std::cout<<" [ SELECT MESH ELEMENTS: ("<<mrRemesh.OutMesh.GetNumberOfElements()<<") "<<std::endl;
+
+    const int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
+    mrRemesh.PreservedElements.clear();
+    mrRemesh.PreservedElements.resize(OutNumberOfElements);
+    std::fill( mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0 );
+    mrRemesh.MeshElementsSelectedFlag = true;
+
+    mrRemesh.Info->NumberOfElements=0;
+
+    bool box_side_element = false;
+    bool wrong_added_node = false;
+
+    unsigned int number_of_slivers = 0;
+
+    unsigned int passed_alpha_shape = 0;
+    unsigned int passed_inner_outer = 0;
+
+
+    if(mrRemesh.ExecutionOptions.IsNot(MesherUtilities::SELECT_TESSELLATION_ELEMENTS))
     {
-      mEchoLevel = EchoLevel;
+      for(int el=0; el<OutNumberOfElements; ++el)
+      {
+        mrRemesh.PreservedElements[el]=1;
+        mrRemesh.Info->NumberOfElements+=1;
+      }
+    }
+    else
+    {
+      if( mEchoLevel > 0 )
+        std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
+
+      unsigned int dimension = 0;
+      unsigned int number_of_vertices = 0;
+
+      this->GetElementDimension(dimension,number_of_vertices);
+
+      const int* OutElementList = mrRemesh.OutMesh.GetElementList();
+
+      ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+
+      int el = 0;
+      int number = 0;
+
+      //void CheckIds(OuterElementsList,OutNumberOfElements,number_of_vertices);
+
+      //#pragma omp parallel for reduction(+:number) private(el)
+      for(el=0; el<OutNumberOfElements; ++el)
+      {
+        GeometryType Vertices;
+
+        // std::cout<<" selected vertices ["<<OutElementList[el*number_of_vertices];
+        // for(unsigned int d=1; d<number_of_vertices; ++d)
+        // 	{
+        // 	  std::cout<<", "<<OutElementList[el*number_of_vertices+d];
+        // 	}
+        // std::cout<<"] "<<std::endl;
+
+        wrong_added_node = false;
+        box_side_element = false;
+
+        NodalFlags VerticesFlags;
+        for(unsigned int pn=0; pn<number_of_vertices; ++pn)
+        {
+          //std::cout<<" pn "<<pn<<" id "<<OutElementList[id]<<" size "<<rNodes.size()<<" IDS "<<mrRemesh.NodalPreIds.size()<<" preid "<<mrRemesh.NodalPreIds[OutElementList[id]]<<std::endl;
+          unsigned int id = el*number_of_vertices+pn;
+
+          if(OutElementList[id]<=0)
+            std::cout<<" ERROR: something is wrong: nodal id < 0 "<<el<<std::endl;
+
+          //check if the number of nodes are considered in the nodal pre ids
+          if( (unsigned int)OutElementList[id] >= mrRemesh.NodalPreIds.size() ){
+            if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
+              wrong_added_node = true;
+            std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
+            break;
+          }
+
+          //check if is a vertex of an artificial external bounding box
+          if(mrRemesh.NodalPreIds[OutElementList[id]]<0){
+            if(mrRemesh.Options.IsNot(MesherUtilities::CONTACT_SEARCH))
+              std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
+            box_side_element = true;
+            break;
+          }
+
+          //get node from model part and set it as vertex
+          Vertices.push_back(rNodes(OutElementList[id]));
+
+          //vertices flags
+          VerticesFlags.CountFlags(Vertices.back());
+        }
+
+
+        if(box_side_element || wrong_added_node){
+          //std::cout<<" Box_Side_Element "<<std::endl;
+          continue;
+        }
+
+        bool accepted=false;
+
+        accepted = this->CheckElementBoundaries(Vertices,VerticesFlags);
+
+        //std::cout<<" ******** ELEMENT "<<el+1<<" ********** "<<std::endl;
+
+        double Alpha = mrRemesh.AlphaParameter;
+
+        this->GetAlphaParameter(Alpha,Vertices,VerticesFlags,dimension);
+
+        // std::cout<<" vertices for the contact element "<<std::endl;
+        // if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH)){
+        // 	for( unsigned int n=0; n<number_of_vertices; ++n)
+        // 	  {
+        // 	    std::cout<<" ("<<n+1<<"): ["<<mrRemesh.NodalPreIds[Vertices[n].Id()]<<"] "<<std::endl;
+        // 	  }
+        // }
+        // std::cout<<" vertices for the subdomain element "<<std::endl;
+        // for( unsigned int n=0; n<number_of_vertices; ++n)
+        //  	{
+        //  	  std::cout<<" ("<<n+1<<"): ["<<Vertices[n].Id()<<"]  NodalH "<<Vertices[n].FastGetSolutionStepValue(NODAL_H)<<std::endl;
+        //  	}
+        //std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
+
+
+        MesherUtilities MesherUtils;
+
+        if( accepted )
+        {
+          if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
+          {
+            accepted=MesherUtils.ShrankAlphaShape(Alpha,Vertices,mrRemesh.OffsetFactor,dimension);
+          }
+          else
+          {
+            if(mrModelPart.Is(FLUID)){
+              accepted=MesherUtils.AlphaShape(Alpha,Vertices,dimension,4.0*mrRemesh.Refine->CriticalRadius);
+            }
+            else{ //SOLID
+              accepted=MesherUtils.AlphaShape(Alpha,Vertices,dimension);
+            }
+          }
+        }
+
+        //3.- to control all nodes from the same subdomain (problem, domain is not already set for new inserted particles on mesher)
+        // if(accepted)
+        // {
+        //   std::cout<<" Element passed Alpha Shape "<<std::endl;
+        //     if(mrRemesh.Refine->Options.IsNot(MesherUtilities::CONTACT_SEARCH))
+        //   	accepted=MesherUtilities::CheckSubdomain(Vertices);
+        // }
+
+        //3.1.-
+        bool self_contact = false;
+        if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
+          self_contact = MesherUtils.CheckSubdomain(Vertices);
+
+        //4.- to control that the element is inside of the domain boundaries
+        if(accepted)
+        {
+          ++passed_alpha_shape;
+
+          if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
+          {
+            //problems in 3D: be careful
+            if(self_contact)
+              accepted = MesherUtils.CheckOuterCentre(Vertices,mrRemesh.OffsetFactor, self_contact);
+          }
+          else
+          {
+            //accepted=MesherUtils.CheckInnerCentre(Vertices); //problems in 3D: when slivers are released, a boundary is created and the normals calculated, then elements that are inside suddently its center is calculated as outside... // some corrections are needded.
+          }
+        }
+        // else{
+
+        //  	for( unsigned int n=0; n<number_of_vertices; ++n)
+        // 	  {
+        //  	    std::cout<<" ("<<n+1<<"): ["<<Vertices[n].Id()<<"]  NodalH "<<Vertices[n].FastGetSolutionStepValue(NODAL_H)<<std::endl;
+        // 	  }
+
+        // 	std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
+
+        // }
+
+        //5.- to control that the element has a good shape
+        if(accepted)
+        {
+          ++passed_inner_outer;
+          accepted = this->CheckElementShape(Vertices,VerticesFlags,dimension,number_of_slivers);
+        }
+
+
+        if(accepted)
+        {
+          //std::cout<<" Element ACCEPTED after cheking Center+Sliver "<<number<<std::endl;
+          number+=1;
+          mrRemesh.PreservedElements[el] = number;
+        }
+        // else{
+
+        //   std::cout<<" Element DID NOT pass INNER/OUTER check "<<std::endl;
+        // }
+
+
+      }
+
+      mrRemesh.Info->NumberOfElements=number;
+
     }
 
+    std::cout<<"   [Preserved Elements "<<mrRemesh.Info->NumberOfElements<<"] :: (slivers detected: "<<number_of_slivers<<") "<<std::endl;
+    std::cout<<"   (passed_alpha_shape: "<<passed_alpha_shape<<", passed_inner_outer: "<<passed_inner_outer<<") "<<std::endl;
 
-    /// Destructor.
-    virtual ~SelectElementsMesherProcess() {}
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
+    if(mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES)){
 
 
-    ///@}
-    ///@name Operations
-    ///@{
+      unsigned int dimension = 0;
+      unsigned int number_of_vertices = 0;
 
+      this->GetElementDimension(dimension,number_of_vertices);
 
-    /// Execute method is used to execute the Process algorithms.
-    void Execute() override
-    {
-      KRATOS_TRY
+      int* OutElementList = mrRemesh.OutMesh.GetElementList();
+
+      ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+
+      //check engaged nodes
+      for(int el=0; el<OutNumberOfElements; ++el)
+      {
+        if( mrRemesh.PreservedElements[el] ){
+          for(unsigned int pn=0; pn<number_of_vertices; ++pn)
+          {
+            //set vertices
+            rNodes[OutElementList[el*number_of_vertices+pn]].Set(BLOCKED);
+          }
+        }
+
+      }
+
+      int count_release = 0;
+      for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; ++i_node)
+      {
+        if( i_node->IsNot(BLOCKED)  ){
+          if(!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID))){
+            i_node->Set(TO_ERASE);
+            if( mEchoLevel > 0 )
+              std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
+            if( i_node->Is(BOUNDARY) )
+              std::cout<<" ERROR: node "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
+            ++count_release;
+          }
+        }
+
+        i_node->Reset(BLOCKED);
+      }
 
       if( mEchoLevel > 0 )
-	std::cout<<" [ SELECT MESH ELEMENTS: ("<<mrRemesh.OutMesh.GetNumberOfElements()<<") "<<std::endl;
+        std::cout<<"   NUMBER OF RELEASED NODES "<<count_release<<std::endl;
 
-      int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
-      mrRemesh.PreservedElements.clear();
-      mrRemesh.PreservedElements.resize(OutNumberOfElements);
-      std::fill( mrRemesh.PreservedElements.begin(), mrRemesh.PreservedElements.end(), 0 );
-      mrRemesh.MeshElementsSelectedFlag = true;
+    }
+    else{
 
-      mrRemesh.Info->NumberOfElements=0;
+      ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
 
-      bool box_side_element = false;
-      bool wrong_added_node = false;
-
-      int number_of_slivers = 0;
-
-      unsigned int passed_alpha_shape = 0;
-      unsigned int passed_inner_outer = 0;
-
-
-      if(mrRemesh.ExecutionOptions.IsNot(MesherUtilities::SELECT_TESSELLATION_ELEMENTS))
-	{
-	  for(int el=0; el<OutNumberOfElements; ++el)
-	    {
-	      mrRemesh.PreservedElements[el]=1;
-	      mrRemesh.Info->NumberOfElements+=1;
-	    }
-	}
-      else
-	{
-	  if( mEchoLevel > 0 )
-	    std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
-
-	  unsigned int nds = 3;
-	  unsigned int dimension = 2;
-	  if( mrModelPart.NumberOfElements() ){
-	    ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-	    nds = element_begin->GetGeometry().size();
-	    dimension = element_begin->GetGeometry().WorkingSpaceDimension();
-	  }
-	  else if ( mrModelPart.NumberOfConditions() ){
-	    ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin();
-	    dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
-	    if( dimension == 3 ) //number of nodes of a tetrahedron
-	      nds = 4;
-	    else if( dimension == 2 ) //number of nodes of a triangle
-	      nds = 3;
-	  }
-
-	  int* OutElementList = mrRemesh.OutMesh.GetElementList();
-
-	  ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
-
-	  int el = 0;
-	  int number = 0;
-
-	  //CHECK:
-	  // int max_out_id = 0;
-	  // for(el=0; el<OutNumberOfElements; ++el)
-	  //   {
-	  //     for(unsigned int pn=0; pn<nds; ++pn)
-	  // 	{
-	  // 	  if( max_out_id < OutElementList[el*nds+pn] )
-	  // 	    max_out_id = OutElementList[el*nds+pn];
-	  // 	}
-	  //   }
-
-	  // std::cout<<"   MaxOutID "<<max_out_id<<std::endl;
-	  // std::cout<<"   NumberOfNodes "<<rNodes.size()<<std::endl;
-	  // std::cout<<"   NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
-
-	  // if( max_out_id >= mrRemesh.NodalPreIds.size() )
-	  //   std::cout<<" ERROR ID PRE IDS "<<max_out_id<<" > "<<mrRemesh.NodalPreIds.size()<<std::endl;
-
-	  //#pragma omp parallel for reduction(+:number) private(el)
-	  for(el=0; el<OutNumberOfElements; ++el)
-	    {
-	      Geometry<Node<3> > vertices;
-	      //double Alpha   = 0;
-	      //double nodal_h = 0;
-	      //double param   = 0.3333333;
-
-	      // int  numflying=0;
-	      // int  numlayer =0;
-	      // int  numfixed =0;
-
-	      unsigned int  numfreesurf =0;
-	      unsigned int  numboundary =0;
-
-	      // std::cout<<" selected vertices ["<<OutElementList[el*nds];
-	      // for(unsigned int d=1; d<nds; ++d)
-	      // 	{
-	      // 	  std::cout<<", "<<OutElementList[el*nds+d];
-	      // 	}
-
-	      // std::cout<<"] "<<std::endl;
-	      wrong_added_node = false;
-	      box_side_element = false;
-	      for(unsigned int pn=0; pn<nds; ++pn)
-		{
-		  //std::cout<<" pn "<<pn<<" id "<<OutElementList[el*nds+pn]<<" size "<<rNodes.size()<<" IDS "<<mrRemesh.NodalPreIds.size()<<" preid "<<mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<<std::endl;
-
-		  if(OutElementList[el*nds+pn]<=0)
-		    std::cout<<" ERROR: something is wrong: nodal id < 0 "<<el<<std::endl;
-
-		  //check if the number of nodes are considered in the nodal pre ids
-		  if( (unsigned int)OutElementList[el*nds+pn] >= mrRemesh.NodalPreIds.size() ){
-		      if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
-			  wrong_added_node = true;
-		      std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
-		      break;
-		  }
-
-		  //check if is a vertex of an artificial external bounding box
-		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
-		      if(mrRemesh.Options.IsNot(MesherUtilities::CONTACT_SEARCH))
-			  std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
-		      box_side_element = true;
-		      break;
-		  }
-
-		  //vertices.push_bac( *((rNodes).find( OutElementList[el*nds+pn] ).base() ) );
-		  vertices.push_back(rNodes(OutElementList[el*nds+pn]));
-
-		  //check flags on nodes
-		  if(vertices.back().Is(FREE_SURFACE))
-		    numfreesurf++;
-
-		  if(vertices.back().Is(BOUNDARY))
-		    numboundary++;
-
-		  // if(VertexPa[pn].match(_wall_))
-		  // 	numfixed++;
-
-		  // if(VertexPa[pn].match(_flying_))
-		  // 	numflying++;
-
-		  // if(VertexPa[pn].match(_layer_))
-		  // 	numlayer++;
-
-		  //nodal_h+=vertices.back().FastGetSolutionStepValue(NODAL_H);
-
-		}
-
-
-	      if(box_side_element || wrong_added_node){
-		//std::cout<<" Box_Side_Element "<<std::endl;
-		continue;
-	      }
-
-	      //1.- to not consider wall elements
-	      // if(numfixed==3)
-	      //   Alpha=0;
-
-	      //2.- alpha shape:
-	      //Alpha  = nodal_h * param;
-	      //Alpha *= mrRemesh.AlphaParameter; //1.4; 1.35;
-
-	      //2.1.- correction to avoid big elements on boundaries
-	      // if(numflying>0){
-	      //   Alpha*=0.8;
-	      // }
-	      // else{
-	      //   if(numfixed+numsurf<=2){
-	      //     //2.2.- correction to avoid voids in the fixed boundaries
-	      //     if(numfixed>0)
-	      // 	Alpha*=1.4;
-
-	      //     //2.3.- correction to avoid voids on the free surface
-	      //     if(numsurf>0)
-	      // 	Alpha*=1.3;
-
-	      //     //2.4.- correction to avoid voids in the next layer after fixed boundaries
-	      //     if(numlayer>0 && !numsurf)
-	      // 	Alpha*=1.2;
-	      //   }
-
-	      // }
-
-	      //std::cout<<" ******** ELEMENT "<<el+1<<" ********** "<<std::endl;
-
-	      double Alpha = mrRemesh.AlphaParameter; //*nds;
-	      if(numboundary>=nds-1)
-		Alpha*=1.2;
-
-
-	      // std::cout<<" vertices for the contact element "<<std::endl;
-	      // if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH)){
-	      // 	for( unsigned int n=0; n<nds; ++n)
-	      // 	  {
-	      // 	    std::cout<<" ("<<n+1<<"): ["<<mrRemesh.NodalPreIds[vertices[n].Id()]<<"] "<<std::endl;
-	      // 	  }
-	      // }
-
-	      // std::cout<<" vertices for the subdomain element "<<std::endl;
-	      // for( unsigned int n=0; n<nds; ++n)
-	      //  	{
-	      //  	  std::cout<<" ("<<n+1<<"): ["<<vertices[n].Id()<<"]  NodalH "<<vertices[n].FastGetSolutionStepValue(NODAL_H)<<std::endl;
-	      //  	}
-
-	      //std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
-
-	      bool accepted=false;
-
-	      MesherUtilities MesherUtils;
-
-	      if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
-		{
-		  accepted=MesherUtils.ShrankAlphaShape(Alpha,vertices,mrRemesh.OffsetFactor,dimension);
-		}
-	      else
-		{
-		  accepted=MesherUtils.AlphaShape(Alpha,vertices,dimension);
-		}
-
-	      //3.- to control all nodes from the same subdomain (problem, domain is not already set for new inserted particles on mesher)
-	      // if(accepted)
-	      // {
-	      //   std::cout<<" Element passed Alpha Shape "<<std::endl;
-	      //     if(mrRemesh.Refine->Options.IsNot(MesherUtilities::CONTACT_SEARCH))
-	      //   	accepted=MesherUtilities::CheckSubdomain(vertices);
-	      // }
-
-	      //3.1.-
-	      bool self_contact = false;
-	      if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
-		self_contact = MesherUtils.CheckSubdomain(vertices);
-
-	      //4.- to control that the element is inside of the domain boundaries
-	      if(accepted)
-		{
-		  passed_alpha_shape++;
-
-		  if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
-		    {
-		      //problems in 3D: be careful
-		      if(self_contact)
-			  accepted = MesherUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
-		    }
-		  else
-		    {
-		      //accepted=MesherUtils.CheckInnerCentre(vertices); //problems in 3D: when slivers are released, a boundary is created and the normals calculated, then elements that are inside suddently its center is calculated as outside... // some corrections are needded.
-		    }
-		}
-	      // else{
-
-	      //  	for( unsigned int n=0; n<nds; ++n)
-	      // 	  {
-	      //  	    std::cout<<" ("<<n+1<<"): ["<<vertices[n].Id()<<"]  NodalH "<<vertices[n].FastGetSolutionStepValue(NODAL_H)<<std::endl;
-	      // 	  }
-
-	      // 	std::cout<<" Element "<<el<<" with alpha "<<mrRemesh.AlphaParameter<<"("<<Alpha<<")"<<std::endl;
-
-	      // }
-
-	      //5.- to control that the element has a good shape
-	      int sliver = 0;
-	      if(accepted)
-		{
-		  passed_inner_outer++;
-
-		  if(nds==4){
-		    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
-
-		    accepted = MesherUtils.CheckGeometryShape(*tetrahedron,sliver);
-
-		    if( sliver ){
-
-		      if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
-			accepted = true;
-		      else
-			accepted = false;
-
-		      number_of_slivers++;
-		    }
-		    else{
-
-		      if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
-			accepted = false;
-		      else
-			accepted = true;
-		    }
-
-		    delete tetrahedron;
-		  }
-		}
-
-
-	      if(accepted)
-		{
-		  //std::cout<<" Element ACCEPTED after cheking Center+Sliver "<<number<<std::endl;
-		  number+=1;
-		  mrRemesh.PreservedElements[el] = number;
-		}
-	      // else{
-
-	      //   std::cout<<" Element DID NOT pass INNER/OUTER check "<<std::endl;
-	      // }
-
-
-	    }
-
-	  mrRemesh.Info->NumberOfElements=number;
-
-	}
-
-      std::cout<<"   [Preserved Elements "<<mrRemesh.Info->NumberOfElements<<"] :: (slivers detected: "<<number_of_slivers<<") "<<std::endl;
-      std::cout<<"   (passed_alpha_shape: "<<passed_alpha_shape<<", passed_inner_outer: "<<passed_inner_outer<<") "<<std::endl;
-
-      if(mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES)){
-
-	unsigned int nds = 3;
-	if( mrModelPart.NumberOfElements() ){
-	  ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-	  nds = element_begin->GetGeometry().size();
-	}
-	else if ( mrModelPart.NumberOfConditions() ){
-	  ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin();
-	  unsigned int dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
-	  if( dimension == 3 ) //number of nodes of a tetrahedron
-	    nds = 4;
-	  else if( dimension == 2 ) //number of nodes of a triangle
-	    nds = 3;
-	}
-
-	int* OutElementList = mrRemesh.OutMesh.GetElementList();
-
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
-
-	//check engaged nodes
-	for(int el=0; el<OutNumberOfElements; ++el)
-	  {
-	    if( mrRemesh.PreservedElements[el] ){
-	      for(unsigned int pn=0; pn<nds; ++pn)
-		{
-		  //set vertices
-		  rNodes[OutElementList[el*nds+pn]].Set(BLOCKED);
-		}
-	    }
-
-	  }
-
-	int count_release = 0;
-	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; ++i_node)
-	  {
-	    if( i_node->IsNot(BLOCKED)  ){
-	      if(!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID))){
-		i_node->Set(TO_ERASE);
-		if( mEchoLevel > 0 )
-		  std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
-		if( i_node->Is(BOUNDARY) )
-		  std::cout<<" ERROR: node "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
-		count_release++;
-	      }
-	    }
-
-	    i_node->Reset(BLOCKED);
-	  }
-
-	if( mEchoLevel > 0 )
-	  std::cout<<"   NUMBER OF RELEASED NODES "<<count_release<<std::endl;
-
+      for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; ++i_node)
+      {
+        i_node->Reset(BLOCKED);
       }
-      else{
+    }
 
-	ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
+    // AF for fluids ???
+    // mrRemesh.InputInitializedFlag = false;
+    // mMesherUtilities.SetNodes(mrModelPart,mrRemesh);
+    // mrRemesh.InputInitializedFlag = true;
 
-	for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; ++i_node)
-	  {
-	    i_node->Reset(BLOCKED);
-	  }
+
+    if( mEchoLevel > 0 ){
+      // std::cout<<"   Generated_Elements :"<<OutNumberOfElements<<std::endl;
+      // std::cout<<"   Passed_AlphaShape  :"<<mrRemesh.Info->NumberOfElements<<std::endl;
+      // if(OutNumberOfElements-mrRemesh.Info->NumberOfElements!=0)
+      //   std::cout<<" DELETED ELEMENTS "<<std::endl;
+      std::cout<<"   SELECT MESH ELEMENTS ("<<mrRemesh.Info->NumberOfElements<<") ]; "<<std::endl;
+
+    }
+
+    KRATOS_CATCH( "" )
+
+  }
+
+
+  ///@}
+  ///@name Access
+  ///@{
+
+
+  ///@}
+  ///@name Inquiry
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+  /// Turn back information as a string.
+  std::string Info() const override
+  {
+    return "SelectElementsMesherProcess";
+  }
+
+  /// Print information about this object.
+  void PrintInfo(std::ostream& rOStream) const override
+  {
+    rOStream << "SelectElementsMesherProcess";
+  }
+
+  /// Print object's data.
+  void PrintData(std::ostream& rOStream) const override
+  {
+  }
+
+
+  ///@}
+  ///@name Friends
+  ///@{
+
+  ///@}
+
+ protected:
+
+  ///@name Protected static Member Variables
+  ///@{
+  ///@}
+  ///@name Protected member Variables
+  ///@{
+
+  ModelPart& mrModelPart;
+
+  MesherUtilities::MeshingParameters& mrRemesh;
+
+  MesherUtilities mMesherUtilities;
+
+  int mEchoLevel;
+
+  struct NodalFlags{
+
+    unsigned int  Solid;
+    unsigned int  Fluid;
+    unsigned int  Rigid;
+    unsigned int  Boundary;
+    unsigned int  FreeSurface;
+    unsigned int  Contact;
+    unsigned int  Inlet;
+    unsigned int  Isolated;
+
+    double Radius;
+
+    //constructor
+    NodalFlags()
+    {
+      Solid = 0;
+      Fluid = 0;
+      Rigid = 0;
+      Boundary = 0;
+      FreeSurface = 0;
+      Contact = 0;
+      Inlet = 0;
+      Isolated = 0;
+      Radius = 0;
+    }
+
+    //counter method
+    void CountFlags(const Node<3>& rNode)
+    {
+      if(rNode.Is(SOLID))
+        ++Solid;
+      if(rNode.Is(FLUID))
+        ++Fluid;
+      if(rNode.Is(RIGID))
+        ++Rigid;
+      if(rNode.Is(BOUNDARY))
+        ++Boundary;
+      if(rNode.Is(FREE_SURFACE))
+        ++FreeSurface;
+      if(rNode.Is(CONTACT))
+        ++Contact;
+      if(rNode.Is(INLET))
+        ++Inlet;
+      if(rNode.Is(ISOLATED))
+        ++Isolated;
+
+      Radius+=rNode.FastGetSolutionStepValue(NODAL_H);
+    }
+
+  };
+
+  ///@}
+  ///@name Protected Operators
+  ///@{
+  ///@}
+  ///@name Protected Operations
+  ///@{
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void CheckIds(const int* OutElementList, const int& OutNumberOfElements, const unsigned int number_of_vertices)
+  {
+
+    int max_out_id = 0;
+    for(int el=0; el<OutNumberOfElements; ++el)
+    {
+      for(unsigned int pn=0; pn<number_of_vertices; ++pn)
+      {
+        unsigned int id = el*number_of_vertices+pn;
+        if( max_out_id < OutElementList[id] )
+          max_out_id = OutElementList[id];
+      }
+    }
+
+    if( max_out_id >= mrRemesh.NodalPreIds.size() )
+      std::cout<<" ERROR ID PRE IDS "<<max_out_id<<" > "<<mrRemesh.NodalPreIds.size()<<" (nodes size:"<<mrModelPart.Nodes().size()<<")"<<std::endl;
+
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void GetElementDimension(unsigned int& dimension, unsigned int& number_of_vertices)
+  {
+    if( mrModelPart.NumberOfElements() ){
+      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
+      dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+      number_of_vertices = element_begin->GetGeometry().size();
+    }
+    else if ( mrModelPart.NumberOfConditions() ){
+      ModelPart::ConditionsContainerType::iterator condition_begin = mrModelPart.ConditionsBegin();
+      dimension = condition_begin->GetGeometry().WorkingSpaceDimension();
+      if( dimension == 3 ) //number of nodes of a tetrahedron
+        number_of_vertices = 4;
+      else if( dimension == 2 ) //number of nodes of a triangle
+        number_of_vertices = 3;
+    }
+
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void GetAlphaParameter(double &rAlpha,GeometryType& rVertices,const NodalFlags& rVerticesFlags,const unsigned int& rDimension)
+  {
+    unsigned int NumberOfVertices = rVertices.size();
+
+    rAlpha = mrRemesh.AlphaParameter;
+
+    if( mrModelPart.Is(SOLID) ){
+
+      if( rVerticesFlags.Boundary >= NumberOfVertices )
+        rAlpha*=1.2;
+    }
+    else if( mrModelPart.Is(FLUID) ){
+
+      MesherUtilities MesherUtils;
+
+      //avoid penetrating/scaping isolated nodes at large speeds
+      if( (rVerticesFlags.Isolated+rVerticesFlags.FreeSurface) == NumberOfVertices && rVerticesFlags.Isolated > 0 ){
+        const double MaxRelativeVelocity = 1.5; //arbitrary value, will depend on time step (AF)
+        if( MesherUtils.CheckRelativeVelocities(rVertices, MaxRelativeVelocity) )
+          rAlpha=0;
       }
 
-      if( mEchoLevel > 0 ){
-	// std::cout<<"   Generated_Elements :"<<OutNumberOfElements<<std::endl;
-	// std::cout<<"   Passed_AlphaShape  :"<<mrRemesh.Info->NumberOfElements<<std::endl;
-	// if(OutNumberOfElements-mrRemesh.Info->NumberOfElements!=0)
-	//   std::cout<<" DELETED ELEMENTS "<<std::endl;
-	std::cout<<"   SELECT MESH ELEMENTS ("<<mrRemesh.Info->NumberOfElements<<") ]; "<<std::endl;
+      if(rDimension==2){
+
+        if( rVerticesFlags.Fluid != NumberOfVertices ){ //element formed with a wall
+
+          if( rVerticesFlags.Fluid == 0 ){
+            rAlpha = 0;
+          }
+          else{
+
+            if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension)){
+
+              //one wall vertex or only one free surface vertex for a new element
+              if( (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) || ((rVerticesFlags.Rigid == 2 || rVerticesFlags.Solid == 2) && rVerticesFlags.FreeSurface == 1) ){
+                rAlpha*=0.65;
+              }
+              else if( (rVerticesFlags.Rigid == 2 || rVerticesFlags.Solid == 2) && rVerticesFlags.Isolated == 1){
+                rAlpha*=1.20;
+              }
+              else{
+                rAlpha*=0.75;
+              }
+
+            }
+            else{
+              rAlpha=0;
+              //std::cout<<" VOLUME release [isolated:"<<rVerticesFlags.Isolated<<" rigid:"<<rVerticesFlags.Rigid<<" freesurface:"<<rVerticesFlags.FreeSurface<<"]"<<std::endl;
+            }
+          }
+        }
+        else{ //fluid element
+
+          if( rVerticesFlags.FreeSurface == 3 ){
+           if( (rVerticesFlags.Solid+rVerticesFlags.Rigid)==0 ){
+              if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension))
+                rAlpha*=0.65;
+              else
+                rAlpha=0;
+            }
+            else{
+              rAlpha*=0.85;
+            }
+          }
+          else if( (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) && rVerticesFlags.FreeSurface >= 2 ){
+            rAlpha*=1.05;
+          }
+          else if( (rVerticesFlags.Rigid == 2 || rVerticesFlags.Solid == 2) && rVerticesFlags.FreeSurface >= 1 ){
+            rAlpha*=1.10;
+          }
+          else{
+            rAlpha*=1.75;
+          }
+        }
+
+      }
+      else if(rDimension==3){
+
+        if( rVerticesFlags.Fluid != NumberOfVertices ){ //element formed with a wall
+
+          if( rVerticesFlags.Fluid == 0 ){
+            rAlpha = 0;
+          }
+          else{
+
+            if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension)){
+
+              //one wall vertex or only one free surface vertex for a new element
+              if( (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) || ((rVerticesFlags.Rigid == 3 || rVerticesFlags.Solid == 3) && rVerticesFlags.FreeSurface == 1) )
+                rAlpha *= 0.75;
+              else
+                rAlpha*=0.95;
+
+            }
+            else{
+              rAlpha = 0;
+            }
+          }
+        }
+        else{ //fluid element
+
+          if( rVerticesFlags.FreeSurface == 4 ){
+            if( (rVerticesFlags.Solid+rVerticesFlags.Rigid)==0 ){
+              if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension))
+                rAlpha*=0.75;
+              else
+                rAlpha=0;
+            }
+            else{
+              rAlpha*=0.85;
+            }
+          }
+          else if( (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) && rVerticesFlags.FreeSurface == 3 ){
+            rAlpha*=0.85;
+          }
+          else if( (rVerticesFlags.Rigid == 3 || rVerticesFlags.Solid == 3) && rVerticesFlags.FreeSurface == 3 ){
+            rAlpha*=1.05;
+          }
+          else if( (rVerticesFlags.Rigid == 2 || rVerticesFlags.Solid == 2) && rVerticesFlags.FreeSurface == 2 ){
+            rAlpha*=1.10;
+          }
+          else{
+            rAlpha*=1.75;
+          }
+        }
 
       }
 
-      KRATOS_CATCH( "" )
-
     }
 
-
-    ///@}
-    ///@name Access
-    ///@{
+  }
 
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+  //*******************************************************************************************
+  //*******************************************************************************************
 
+  bool CheckElementBoundaries(const GeometryType& rVertices,const NodalFlags& rVerticesFlags)
+  {
+    bool accepted = true;
+    unsigned int NumberOfVertices = rVertices.size();
 
-    ///@}
-    ///@name Input and output
-    ///@{
+    if ( mrModelPart.Is(FLUID) ){
 
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "SelectElementsMesherProcess";
+      //do not accept full rigid elements (no fluid)
+      if( rVerticesFlags.Rigid == NumberOfVertices && rVerticesFlags.Fluid < NumberOfVertices )
+        accepted=false;
+
+      //do not accept full rigid-solid elements (no fluid)
+      if( (rVerticesFlags.Solid + rVerticesFlags.Rigid) >= NumberOfVertices && rVerticesFlags.Fluid == 0)
+        accepted=false;
+
+      //do not accept full solid elements
+      if( rVerticesFlags.Solid == NumberOfVertices )
+        accepted=false;
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "SelectElementsMesherProcess";
+    return accepted;
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool CheckElementShape(const GeometryType& rVertices,const NodalFlags& rVerticesFlags,const unsigned int& rDimension, unsigned int& number_of_slivers)
+  {
+    bool accepted = true;
+    unsigned int NumberOfVertices = rVertices.size();
+
+    if( mrModelPart.Is(SOLID) ){
+
+      int sliver = 0;
+      if(rDimension == 3 && NumberOfVertices==4){
+
+        Tetrahedra3D4<Node<3> > Tetrahedron(rVertices);
+
+        MesherUtilities MesherUtils;
+        accepted = MesherUtils.CheckGeometryShape(Tetrahedron,sliver);
+
+        if( sliver ){
+          if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
+            accepted = true;
+          else
+            accepted = false;
+
+          ++number_of_slivers;
+        }
+        else{
+
+          if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
+            accepted = false;
+          else
+            accepted = true;
+        }
+
+      }
+
     }
+    else if ( mrModelPart.Is(FLUID) ){
 
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
+      if( rVerticesFlags.FreeSurface > 0 || rVerticesFlags.Boundary == 4 ){
+
+        if(rDimension == 3 && NumberOfVertices==4){
+
+          Tetrahedra3D4<Node<3> > Tetrahedron(rVertices);
+          double Volume = Tetrahedron.Volume();
+
+          if( Volume < 0.01*mrRemesh.Refine->MeanVolume ){
+            KRATOS_INFO("SLIVER")<<" Volume="<<Volume<<" VS Critical Volume="<<0.01*mrRemesh.Refine->MeanVolume<<std::endl;
+            accepted = false;
+            ++number_of_slivers;
+          }
+
+        }
+      }
+
     }
+    return accepted;
+
+  }
 
 
-    ///@}
-    ///@name Friends
-    ///@{
+  ///@}
+  ///@name Protected  Access
+  ///@{
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
+  ///@}
 
-    ///@}
+ private:
 
+  ///@name Private Static Member Variables
+  ///@{
+  ///@}
+  ///@name Private Static Member Variables
+  ///@{
+  ///@}
+  ///@name Private Operators
+  ///@{
+  ///@}
+  ///@name Private Operations
+  ///@{
+  ///@}
+  ///@name Private  Access
+  ///@{
+  ///@}
+  ///@name Private Inquiry
+  ///@{
+  ///@}
+  ///@name Un accessible methods
+  ///@{
 
-private:
-    ///@name Static Member Variables
-    ///@{
+  /// Assignment operator.
+  SelectElementsMesherProcess& operator=(SelectElementsMesherProcess const& rOther);
 
-    ///@}
-    ///@name Static Member Variables
-    ///@{
-    ModelPart& mrModelPart;
+  /// Copy constructor.
+  //Process(Process const& rOther);
 
-    MesherUtilities::MeshingParameters& mrRemesh;
-
-    MesherUtilities mMesherUtilities;
-
-    int mEchoLevel;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    /// Assignment operator.
-    SelectElementsMesherProcess& operator=(SelectElementsMesherProcess const& rOther);
-
-
-    /// this function is a private function
-
-
-    /// Copy constructor.
-    //Process(Process const& rOther);
-
-
-    ///@}
+  ///@}
 
 }; // Class Process
 
@@ -597,11 +829,11 @@ inline std::istream& operator >> (std::istream& rIStream,
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const SelectElementsMesherProcess& rThis)
 {
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+  rThis.PrintInfo(rOStream);
+  rOStream << std::endl;
+  rThis.PrintData(rOStream);
 
-    return rOStream;
+  return rOStream;
 }
 ///@}
 

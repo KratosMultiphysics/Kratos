@@ -24,15 +24,6 @@
 #include "custom_utilities/mesher_utilities.hpp"
 #include "custom_processes/mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//StepData:
-//Flags:    (checked)
-//          (set)     TO_SPLIT / VISITED
-//          (modified)
-//          (reset)   TO_SPLIT / VISITED
-//(set):=(set in this process)
-
 namespace Kratos
 {
 
@@ -100,10 +91,8 @@ class RefineElementsInEdgesMesherProcess
     if( ( mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_ADD_NODES) ||
         mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_INSERT_NODES) ) )
     {
-      //0.- Clean locally used flags
-      this->CleanUsedFlags(mrModelPart);
 
-      //1.- Select Elements TO_SPLIT (edge elements with all nodes as boundary-free surface)
+      //1.- Select Elements to split (edge elements with all nodes as boundary-free surface)
       ModelPart::ElementsContainerType   BoundaryEdgedElements;
       ModelPart::ConditionsContainerType BoundaryEdgedConditions;
       this->SelectFullBoundaryEdgedElements(mrModelPart, BoundaryEdgedElements);
@@ -119,11 +108,12 @@ class RefineElementsInEdgesMesherProcess
 
       //4.- Insert new nodes to model part
       this->SetNodesToModelPart(mrModelPart, ListOfNewNodes);
+    }
 
-      //0.- Clean locally used flags
-      this->CleanUsedFlags(mrModelPart);
-
-
+    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
+    {
+      if(in->Is(TO_SPLIT))
+         std::cout<<" TO SPlIT IS NOT RESET in EDGE REMOVE "<<std::endl;
     }
 
     KRATOS_CATCH(" ")
@@ -192,28 +182,6 @@ class RefineElementsInEdgesMesherProcess
   ///@{
   ///@}
 
-  //**************************************************************************
-  //**************************************************************************
-
-  void CleanUsedFlags(ModelPart& rModelPart)
-  {
-    KRATOS_TRY
-
-    for(ModelPart::ElementsContainerType::const_iterator i_elem = rModelPart.ElementsBegin();
-        i_elem != rModelPart.ElementsEnd(); ++i_elem)
-    {
-      i_elem->Set(TO_SPLIT,false);
-    }
-
-    for(ModelPart::NodesContainerType::const_iterator i_node = rModelPart.NodesBegin();
-        i_node != rModelPart.NodesEnd(); ++i_node)
-    {
-      i_node->Set(TO_SPLIT,false);
-    }
-
-
-    KRATOS_CATCH( "" )
-  }
 
   //**************************************************************************
   //**************************************************************************
@@ -240,12 +208,6 @@ class RefineElementsInEdgesMesherProcess
 
       if( is_full_boundary ){
         rBoundaryEdgedElements.push_back(*(i_elem.base()));
-        i_elem->Set(TO_SPLIT,true);
-        for(unsigned int i=0; i<rGeometry.size(); ++i)
-        {
-          rGeometry[i].Set(TO_SPLIT,true);
-        }
-
       }
 
     }
@@ -287,16 +249,45 @@ class RefineElementsInEdgesMesherProcess
           Condition::NodesArrayType FaceNodes;
           FaceNodes.reserve(NumberNodesInFace);
 
+          unsigned int split_counter=0;
+          unsigned int counter=0;
           for(unsigned int j=1; j<=NumberNodesInFace; ++j)
           {
+            if(rGeometry[lpofa(j,face)].Is(TO_SPLIT))
+              ++split_counter;
             FaceNodes.push_back(rGeometry(lpofa(j,face)));
+
+            //do not SPLIT small edges only big edges if not a lot of volume is added
+            if(mrModelPart.Is(FLUID) && counter>0){
+              if( 4.5 * this->mrRemesh.Refine->CriticalRadius > norm_2(FaceNodes[counter].Coordinates()-FaceNodes[counter-1].Coordinates()) ){
+                split_counter = NumberNodesInFace;
+              }
+            }
+            ++counter;
           }
 
-          Geometry<Node<3> > InsideFace(FaceNodes);
-          rListOfFacesToSplit.push_back(InsideFace);
-          break;
+          if(split_counter<NumberNodesInFace){
+            Geometry<Node<3> > InsideFace(FaceNodes);
+            rListOfFacesToSplit.push_back(InsideFace);
+
+            //set TO_SPLIT to make the insertion unique
+            for(unsigned int i=0; i<FaceNodes.size(); ++i)
+              FaceNodes[i].Set(TO_SPLIT);
+
+            break;
+          }
+
         }
         ++face;
+      }
+    }
+
+    // reset TO_SPLIT
+    for(std::vector<Geometry< Node<3> > >::iterator nf = rListOfFacesToSplit.begin(); nf != rListOfFacesToSplit.end(); ++nf)
+    {
+      for(unsigned int i=0; i<nf->size(); ++i)
+      {
+        (*nf)[i].Set(TO_SPLIT,false);
       }
     }
 
@@ -310,8 +301,8 @@ class RefineElementsInEdgesMesherProcess
   //*******************************************************************************************
 
   void GenerateNewNodes(ModelPart& rModelPart,
-			std::vector<Node<3>::Pointer>& rListOfNewNodes,
-			std::vector<Geometry<Node<3> > >& rListOfFacesToSplit)
+			  std::vector<Node<3>::Pointer>& rListOfNewNodes,
+			  std::vector<Geometry<Node<3> > >& rListOfFacesToSplit)
   {
     KRATOS_TRY
 
@@ -346,6 +337,7 @@ class RefineElementsInEdgesMesherProcess
     {
 
       size = i_face->size();
+
 
       ShapeFunctionsN.resize(size);
 
@@ -408,8 +400,8 @@ class RefineElementsInEdgesMesherProcess
       if( rModelPart.Is(SOLID) )
         pNode->Set(SOLID);
 
-      pNode->Set(NEW_ENTITY);
-      pNode->Set(ACTIVE);
+      pNode->Set(NEW_ENTITY,true);
+      pNode->Set(ACTIVE,true);
 
       //unset boundary flags
       pNode->Set(BOUNDARY,false);

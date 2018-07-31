@@ -111,6 +111,9 @@ class SettleModelStructureProcess
   {
     KRATOS_TRY
 
+    //Clean Nodal and Conditional Flags
+    this->CleanMeshFlags(mrMainModelPart);
+
     //Sort Conditions
     this->SortModelPartConditions();
 
@@ -926,7 +929,7 @@ class SettleModelStructureProcess
     {
 
       i_node->Set(NEW_ENTITY,false); //reset here if the node is labeled as insert
-      i_node->Set(TO_REFINE,false);  //reset here if the node is labeled as refine (to not duplicate bo
+      i_node->Set(TO_REFINE,false);  //reset here if the node is labeled as refine (to not duplicate
 
     }
 

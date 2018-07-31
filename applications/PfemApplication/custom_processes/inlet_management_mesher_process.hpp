@@ -188,7 +188,7 @@ class InletManagementMesherProcess
         if( mEchoLevel > 1 )
           std::cout<<" CheckAndCreateNewInletLayer "<<std::endl;
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-    double maxSeparation=mrRemesh.Refine->CriticalRadius;
+    double maxSeparation=4.0*mrRemesh.Refine->CriticalRadius;
 
     for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
     {

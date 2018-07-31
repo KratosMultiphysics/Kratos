@@ -157,6 +157,7 @@ class InsertNewNodesMesherProcess
       }// elements loop
 
 
+      // Here only splits as vertices as removed nodes !! without cheking the longest vertices
       mrRemesh.Info->RemovedNodes -=ElementsToRefine;
       if(CountNodes<ElementsToRefine){
         mrRemesh.Info->RemovedNodes +=ElementsToRefine-CountNodes;
@@ -173,12 +174,17 @@ class InsertNewNodesMesherProcess
 
     mrRemesh.InputInitializedFlag=false;
 
+    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
+    {
+      if(in->Is(TO_SPLIT))
+         std::cout<<" TO SPlIT IS NOT RESET in INSERT "<<std::endl;
+    }
 
     if( mEchoLevel > 1 )
       std::cout<<"   GENERATE NEW NODES ]; "<<std::endl;
 
     KRATOS_CATCH(" ")
-        }
+  }
 
 
   ///@}
@@ -256,11 +262,12 @@ class InsertNewNodesMesherProcess
   {
     KRATOS_TRY
 
-        const unsigned int nds = Element.size();
+    const unsigned int nds = Element.size();
 
     unsigned int rigidNodes=0;
     unsigned int freesurfaceNodes=0;
     unsigned int inletNodes=0;
+    unsigned int toSplitNodes=0;
     bool toEraseNodeFound=false;
 
     for(unsigned int pn=0; pn<nds; ++pn)
@@ -277,10 +284,14 @@ class InsertNewNodesMesherProcess
       if(Element[pn].Is(INLET)){
         inletNodes++;
       }
+      if(Element[pn].Is(TO_SPLIT)){
+        ++toSplitNodes;
+      }
+
     }
 
 
-    double  limitEdgeLength=1.4*mrRemesh.Refine->CriticalRadius;
+    double  limitEdgeLength=5.0*mrRemesh.Refine->CriticalRadius;
     double safetyCoefficient2D=1.5;
     double penalization=1.0;
     if(rigidNodes>1){
@@ -349,7 +360,7 @@ class InsertNewNodesMesherProcess
       dangerousElement=true;
     }
 
-    if(dangerousElement==false && toEraseNodeFound==false){
+    if(dangerousElement==false && toEraseNodeFound==false && toSplitNodes<2){
 
       // array_1d<double,3> NewPosition(3,0.0);
       unsigned int maxCount=3;
@@ -369,6 +380,10 @@ class InsertNewNodesMesherProcess
 	// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
+
+        Element[FirstEdgeNode[maxCount]].Set(TO_SPLIT);
+        Element[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
+
 	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
 	  NewDofs[CountNodes]=Element[SecondEdgeNode[maxCount]].GetDofs();
 	}else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
@@ -376,6 +391,7 @@ class InsertNewNodesMesherProcess
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
+
 	BiggestVolumes[CountNodes]=ElementalVolume;
 	NewPositions[CountNodes]=NewPosition;
 	CountNodes++;
@@ -402,6 +418,10 @@ class InsertNewNodesMesherProcess
               if(suitableElement==true){
                 NodesIDToInterpolate[nn][0]=Element[FirstEdgeNode[maxCount]].GetId();
                 NodesIDToInterpolate[nn][1]=Element[SecondEdgeNode[maxCount]].GetId();
+
+                Element[FirstEdgeNode[maxCount]].Set(TO_SPLIT);
+                Element[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
+
                 if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
                   NewDofs[nn]=Element[SecondEdgeNode[maxCount]].GetDofs();
                 }else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
@@ -422,10 +442,16 @@ class InsertNewNodesMesherProcess
       }
     }
 
+    // reset TO_SPLIT
+    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
+    {
+      if(in->Is(TO_SPLIT))
+        in->Set(TO_SPLIT,false);
+    }
 
     KRATOS_CATCH( "" )
 
-        }
+  }
 
 
 
@@ -447,6 +473,7 @@ class InsertNewNodesMesherProcess
     unsigned int rigidNodes=0;
     unsigned int freesurfaceNodes=0;
     unsigned int inletNodes=0;
+    unsigned int toSplitNodes=0;
     bool toEraseNodeFound=false;
 
     for(unsigned int pn=0; pn<nds; ++pn)
@@ -463,9 +490,13 @@ class InsertNewNodesMesherProcess
       if(Element[pn].Is(INLET)){
         inletNodes++;
       }
+      if(Element[pn].Is(TO_SPLIT)){
+        ++toSplitNodes;
+      }
+
     }
 
-    double   limitEdgeLength=1.25*mrRemesh.Refine->CriticalRadius;
+    double   limitEdgeLength=5.0*mrRemesh.Refine->CriticalRadius;
     double safetyCoefficient3D=1.6;
     double penalization=1.0;
     if(rigidNodes>2){
@@ -557,7 +588,7 @@ class InsertNewNodesMesherProcess
     }
 
     //just to fill the vector
-    if(dangerousElement==false && toEraseNodeFound==false){
+    if(dangerousElement==false && toEraseNodeFound==false && toSplitNodes<2){
 
       // array_1d<double,3> NewPosition(3,0.0);
       unsigned int maxCount=6;
@@ -577,6 +608,10 @@ class InsertNewNodesMesherProcess
 	// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
+
+        Element[FirstEdgeNode[maxCount]].Set(TO_SPLIT);
+        Element[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
+
 	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
 	  NewDofs[CountNodes]=Element[SecondEdgeNode[maxCount]].GetDofs();
 	}else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
@@ -610,6 +645,10 @@ class InsertNewNodesMesherProcess
               if(suitableElement==true){
                 NodesIDToInterpolate[nn][0]=Element[FirstEdgeNode[maxCount]].GetId();
                 NodesIDToInterpolate[nn][1]=Element[SecondEdgeNode[maxCount]].GetId();
+
+                Element[FirstEdgeNode[maxCount]].Set(TO_SPLIT);
+                Element[SecondEdgeNode[maxCount]].Set(TO_SPLIT);
+
                 if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
                   NewDofs[nn]=Element[SecondEdgeNode[maxCount]].GetDofs();
                 }else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
@@ -628,6 +667,14 @@ class InsertNewNodesMesherProcess
         }
       }
     }
+
+    // reset TO_SPLIT
+    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
+    {
+      if(in->Is(TO_SPLIT))
+        in->Set(TO_SPLIT,false);
+    }
+
 
     KRATOS_CATCH( "" )
 
@@ -725,7 +772,7 @@ class InsertNewNodesMesherProcess
       (*it)->Set(FLUID);
       (*it)->Set(ACTIVE);
 
-      //std::cout<<" New Node [ "<<(*it)->Id()<<"]: Displacement "<<(*it)->FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<(*it)->Coordinates()<<std::endl;
+      // std::cout<<" New Node [ "<<(*it)->Id()<<"]: Displacement "<<(*it)->FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<(*it)->Coordinates()<<std::endl;
 
       //correct contact_normal interpolation
       if( (*it)->SolutionStepsDataHas(CONTACT_FORCE) )

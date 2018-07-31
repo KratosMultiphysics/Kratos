@@ -27,7 +27,7 @@
 ///VARIABLES used:
 //Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
 //StepData: MEAN_ERROR, CONTACT_FORCE
-//Flags:    (checked) TO_ERASE, BOUNDARY, STRUCTURE, TO_SPLIT, CONTACT, NEW_ENTITY, BLOCKED
+//Flags:    (checked) TO_ERASE, BOUNDARY,  CONTACT, NEW_ENTITY, BLOCKED
 //          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)(set), VISITED(nodes)(set)
 //          (modified)
 //          (reset)
@@ -296,8 +296,8 @@ class RemoveNodesMesherProcess
   {
     KRATOS_TRY
 
-        //MESH 0 total domain mesh
-	ModelPart::NodesContainerType temporal_nodes;
+    //MESH 0 total domain mesh
+    ModelPart::NodesContainerType temporal_nodes;
     temporal_nodes.reserve(rModelPart.Nodes().size());
 
     temporal_nodes.swap(rModelPart.Nodes());
@@ -329,8 +329,8 @@ class RemoveNodesMesherProcess
 
 
     //***SIZES :::: parameters do define the tolerance in mesh size:
-    double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius; //compared with element radius
-    double size_for_distance_boundary     = 1.5  * size_for_distance_inside; //compared with element radius
+    double size_for_distance_inside       = 1.0 * mrRemesh.Refine->CriticalRadius; //compared with element radius
+    double size_for_distance_boundary     = 1.5 * size_for_distance_inside; //compared with element radius
 
 
     bool any_node_removed = false;
@@ -374,10 +374,10 @@ class RemoveNodesMesherProcess
           contact_active = true;
       }
 
-      if(contact_active || in->Is(TO_SPLIT) || in->Is(CONTACT) )
+      if(contact_active || in->Is(CONTACT) )
         on_contact_tip = true;
 
-      if( in->IsNot(NEW_ENTITY) )
+      if( in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(TO_ERASE) )
       {
         radius = size_for_distance_inside;
 
@@ -390,36 +390,22 @@ class RemoveNodesMesherProcess
         if (n_points_in_radius>1)
         {
           //std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
-
-          //if( in->IsNot(STRUCTURE) ) {//MEANS DOFS FIXED
-
-          if ( in->IsNot(BOUNDARY) )
+          if( in->IsNot(BOUNDARY) )
           {
             if( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) ){
-              //look if we are already erasing any of the other nodes
-              unsigned int contact_nodes = 0;
-              unsigned int erased_nodes = 0;
-              for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
-              {
-                if( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) )
-                  contact_nodes += 1;
 
-                if( (*nn)->Is(TO_ERASE) )
-                  erased_nodes += 1;
-              }
-
-              if( erased_nodes < 1 && contact_nodes < 1){ //we release the node if no other nodes neighbours are being erased
+              if( !this->CheckEngagedNode((*in),neighbours,neighbour_distances,n_points_in_radius) ){ //we release the node if no other nodes neighbours are being erased
                 in->Set(TO_ERASE);
-                //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
                 any_node_removed = true;
                 inside_nodes_removed++;
                 //distance_remove++;
+                //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
               }
 
             }
 
           }
-          else if ( (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES) && mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)) && (in)->IsNot(TO_ERASE)) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
+          else if ( (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES) && mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)) ) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
           {
 
             //std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
@@ -439,7 +425,7 @@ class RemoveNodesMesherProcess
                   contact_active = true;
               }
 
-              if(contact_active || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
+              if(contact_active || (*nn)->Is(CONTACT) )
                 nn_on_contact_tip = true;
 
               //std::cout<<" radius * extra_factor "<<(extra_factor*radius)<<" >? "<<neighbour_distances[k]<<std::endl;
@@ -455,7 +441,7 @@ class RemoveNodesMesherProcess
               k++;
             }
 
-            if(counter > 1 && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
+            if(counter > 1 && !on_contact_tip ){ //Can be inserted in the boundary refine
               in->Set(TO_ERASE);
               //std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
               any_node_removed = true;
@@ -483,6 +469,61 @@ class RemoveNodesMesherProcess
 
     KRATOS_CATCH(" ")
 
+  }
+
+  //**************************************************************************
+  //**************************************************************************
+
+  virtual bool CheckEngagedNode(Node<3>& rNode, std::vector<Node<3>::Pointer>& rNeighbours, std::vector<double>& rNeighbourDistances, unsigned int& rn_points_in_radius)
+  {
+    KRATOS_TRY
+
+    //look if we are already erasing any of the other nodes
+    bool engaged_node = false;
+
+    //trying to remove the node in the shorter distance anyway
+    double min_distance = std::numeric_limits<double>::max();
+    unsigned int counter = 0;
+    unsigned int closest_node = 0;
+
+    for(std::vector<double>::iterator nd=rNeighbourDistances.begin(); nd!=rNeighbourDistances.begin()+rn_points_in_radius; ++nd)
+    {
+      if( (*nd) < min_distance && (*nd) > 0.0 ){
+        min_distance = (*nd);
+        closest_node = counter;
+      }
+      //std::cout<<" Distances "<<counter<<" "<< (*nd) <<std::endl;
+      ++counter;
+    }
+
+    if( rNeighbours[closest_node]->Is(TO_ERASE) ){
+      engaged_node = true;
+    }
+    else{
+      counter = 0;
+      unsigned int erased_node = 0;
+      for(std::vector<Node<3>::Pointer>::iterator nn=rNeighbours.begin(); nn!=rNeighbours.begin()+rn_points_in_radius; ++nn)
+      {
+        if( (*nn)->Is(CONTACT) || (*nn)->Is(INLET) || (*nn)->Is(TO_ERASE) )
+        {
+          erased_node = counter;
+          engaged_node = true;
+          break;
+        }
+        ++counter;
+      }
+      if( engaged_node ){
+        // if the distance is 5 times smaller remove anyway
+        if( rNeighbourDistances[closest_node] * 5 <  rNeighbourDistances[erased_node] ){
+          engaged_node = false;
+          //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<closest_node<<" "<<erased_node<<std::endl;
+        }
+      }
+    }
+
+    return engaged_node;
+
+    KRATOS_CATCH(" ")
   }
 
   //**************************************************************************
@@ -613,7 +654,7 @@ class RemoveNodesMesherProcess
       bool on_contact_tip = false;
       array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
 
-      if(norm_2(ContactForceNormal)>0 || in->Is(TO_SPLIT) || in->Is(CONTACT) ) // vale, TO_SPLIT is never set when you arrive at this function
+      if(norm_2(ContactForceNormal)>0 || in->Is(CONTACT) )
         on_contact_tip = true;
 
       bool on_contact_tip_strict = false;
@@ -688,7 +729,7 @@ class RemoveNodesMesherProcess
               bool nn_on_contact_tip = false;
               array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
 
-              if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
+              if(norm_2(ContactForceNormal)>0 || (*nn)->Is(CONTACT) )
                 nn_on_contact_tip = true;
 
               bool nn_on_contact_tip_strict = false;
@@ -743,7 +784,7 @@ class RemoveNodesMesherProcess
         bool on_contact_tip = false;
         array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
 
-        if(norm_2(ContactForceNormal)>0 || in->Is(TO_SPLIT) || in->Is(CONTACT) )
+        if(norm_2(ContactForceNormal)>0 || in->Is(CONTACT) )
           on_contact_tip = true;
 
         bool on_contact_tip_strict = false;
@@ -770,7 +811,7 @@ class RemoveNodesMesherProcess
               array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
 
               // alternative definition
-              if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
+              if(norm_2(ContactForceNormal)>0 || (*nn)->Is(CONTACT) )
                 nn_on_contact_tip = true;
               bool nn_on_contact_tip_strict = false;
               if (norm_2(ContactForceNormal) > 0)
@@ -784,8 +825,6 @@ class RemoveNodesMesherProcess
                   std::cout << " THIS IS THE CONTRARY NODE: " << (*nn)->X() << " " << (*nn)->Y() << std::endl;
                   std::cout << " THIS IS THE CONTRARY FORCE: " << ContactForceNormal << std::endl;
                   std::cout << " module " << norm_2(ContactForceNormal) << std::endl;
-                  std::cout << " module " << (*nn)->Is(TO_SPLIT)  << std::endl;
-                  std::cout << " module " << (*nn)->Is(CONTACT) << std::endl;
                 }
               } // first if for C4 Condi
               k++;
@@ -816,33 +855,6 @@ class RemoveNodesMesherProcess
     return any_node_removed;
     KRATOS_CATCH("")
   }
-
-
-  ///@}
-  ///@name Protected  Access
-  ///@{
-  ///@}
-  ///@name Protected Inquiry
-  ///@{
-  ///@}
-  ///@name Protected LifeCycle
-  ///@{
-  ///@}
-
- private:
-
-  ///@name Private Static Member Variables
-  ///@{
-  ///@}
-  ///@name Private Static Member Variables
-  ///@{
-  ///@}
-  ///@name Private Operators
-  ///@{
-  ///@}
-  ///@name Private Operations
-  ///@{
-
 
   //**************************************************************************
   //**************************************************************************
@@ -980,6 +992,33 @@ class RemoveNodesMesherProcess
 
     KRATOS_CATCH(" ")
   }
+
+  ///@}
+  ///@name Protected  Access
+  ///@{
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
+  ///@}
+
+ private:
+
+  ///@name Private Static Member Variables
+  ///@{
+  ///@}
+  ///@name Private Static Member Variables
+  ///@{
+  ///@}
+  ///@name Private Operators
+  ///@{
+  ///@}
+  ///@name Private Operations
+  ///@{
+
+
 
   //**************************************************************************
   //**************************************************************************

@@ -25,7 +25,7 @@
 //Flags:    (checked) BOUNDARY,
 //          (set)     BOUNDARY(nodes), TO_ERASE(conditions), NEW_ENTITY(conditions,nodes)(set),
 //          (modified)
-//          (reset)   TO_SPLIT
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -35,7 +35,7 @@ namespace Kratos
 ///@{
 
 /// Refine Mesh Boundary Process
-/** The process labels the boundary conditions (TO_SPLIT)
+/** The process labels the boundary conditions
     Dependencies: RemoveMeshNodesProcess.Execute()  is needed as a previous step
 
     Determines if new conditions must be inserted in boundary.
