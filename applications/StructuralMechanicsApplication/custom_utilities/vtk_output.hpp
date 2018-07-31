@@ -76,9 +76,9 @@ class VtkOutput
 
         return kratos_id_to_vtk;
     }
-    std::size_t determineVtkCellListSize(ModelPart &model_part)
+    unsigned int determineVtkCellListSize(ModelPart &model_part)
     {
-        std::size_t vtk_cell_list_size = 0;
+        unsigned int vtk_cell_list_size = 0;
 
         for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
         {
@@ -106,7 +106,7 @@ class VtkOutput
         std::string outputFileName = GetOutputFileName(model_part);
         std::ofstream outputFile;
 
-        outputFile.open(outputFileName, std::ios::out | std::ios::binary | std::ios::trunc);
+        outputFile.open(outputFileName.c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
         outputFile << "# vtk DataFile Version 4.0"
                    << "\n";
         outputFile << "vtk output"
@@ -140,9 +140,9 @@ class VtkOutput
         // write nodes
         for (ModelPart::NodeIterator node_i = model_part.NodesBegin(); node_i != model_part.NodesEnd(); ++node_i)
         {
-            double x_coordinate = node_i->X();
-            double y_coordinate = node_i->Y();
-            double z_coordinate = node_i->Z();
+            double x_coordinate = node_i->X0();
+            double y_coordinate = node_i->Y0();
+            double z_coordinate = node_i->Z0();
             outputFile << " " << x_coordinate;
             outputFile << " " << y_coordinate;
             outputFile << " " << z_coordinate << "\n";
@@ -164,10 +164,10 @@ class VtkOutput
         for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
         {
             ModelPart::ConditionType::GeometryType &elem_geometry = elem_i->GetGeometry();
-            const std::size_t numberOfNodes = elem_geometry.size();
+            const unsigned int numberOfNodes = elem_geometry.size();
 
             outputFile << numberOfNodes;
-            for (std::size_t i = 0; i < numberOfNodes; i++)
+            for (unsigned int i = 0; i < numberOfNodes; i++)
                 outputFile << " " << mKratosIdToVtkId[elem_geometry[i].Id()];
 
             outputFile << "\n";
@@ -177,10 +177,10 @@ class VtkOutput
         for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
         {
             ModelPart::ConditionType::GeometryType &condition_geometry = condition_i->GetGeometry();
-            const std::size_t numberOfNodes = condition_geometry.size();
+            const unsigned int numberOfNodes = condition_geometry.size();
 
             outputFile << numberOfNodes;
-            for (std::size_t i = 0; i < numberOfNodes; i++)
+            for (unsigned int i = 0; i < numberOfNodes; i++)
                 outputFile << " " << mKratosIdToVtkId[condition_geometry[i].Id()];
             outputFile << "\n";
         }
@@ -200,8 +200,8 @@ class VtkOutput
         // write elements types
         for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
         {
-            const std::size_t numberOfNodes = elem_i->GetGeometry().size();
-            std::size_t element_type;
+            const unsigned int numberOfNodes = elem_i->GetGeometry().size();
+            unsigned int element_type;
 
             if (numberOfNodes == 3)
                 element_type = 5;
@@ -225,8 +225,8 @@ class VtkOutput
         // write conditions types
         for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
         {
-            const std::size_t numberOfNodes = condition_i->GetGeometry().size();
-            std::size_t element_type;
+            const unsigned int numberOfNodes = condition_i->GetGeometry().size();
+            unsigned int element_type;
 
             if (numberOfNodes == 3)
                 element_type = 5;
@@ -259,11 +259,11 @@ class VtkOutput
         Parameters nodalResults = this->mrOutputSettings["result_file_configuration"]["nodal_results"];
         outputFile << "POINT_DATA " << model_part.NumberOfNodes() << "\n";
 
-        for (std::size_t entry = 0; entry < nodalResults.size(); entry++)
+        for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
         {
             // write nodal results variable header
             std::string nodalResultName = nodalResults[entry].GetString();
-            std::size_t dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if (KratosComponents<Variable<double>>::Has(nodalResultName))
             {
                 dataCharacteristic = 1;
@@ -310,86 +310,72 @@ class VtkOutput
         std::string outputFileName = GetOutputFileName(model_part);
         std::ofstream outputFile;
         outputFile.open(outputFileName, std::ios::out | std::ios::app);
-        std::vector<std::string> elementResults = {"ELEMENTAL_DISTANCES"}; // list of element results
+        Parameters elementResults = this->mrOutputSettings["result_file_configuration"]["elemental_results"];
         // write cells header
-        if (model_part.NumberOfElements() > 0)
-        {
-            outputFile << "CELL_DATA " << model_part.NumberOfElements() << "\n";
-            outputFile << "SCALARS ACTIVE float 1\nLOOKUP_TABLE default\n";
+        outputFile << "CELL_DATA " << model_part.NumberOfElements() + model_part.NumberOfConditions() << "\n";
 
-            // write element results for active
+        for (unsigned int entry = 0; entry < elementResults.size(); entry++)
+        {
+
+            std::string elementResultName = elementResults[entry].GetString();
+            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+            if (KratosComponents<Variable<double>>::Has(elementResultName))
+            {
+                dataCharacteristic = 1;
+                outputFile << "SCALARS " << elementResultName << " float"
+                           << " 1"
+                           << "\n";
+                outputFile << "LOOKUP_TABLE default"
+                           << "\n";
+            }
+            else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(elementResultName))
+            {
+                dataCharacteristic = 2;
+                outputFile << "VECTORS " << elementResultName << " float"
+                           << "\n";
+            }
+
+            // write nodal results
+            outputFile << std::scientific;
+            outputFile << std::setprecision(mDefaultPrecision);
             for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
             {
-                //outputFile << numberOfNodes;
-                if ((elem_i)->IsDefined(ACTIVE))
+                if (dataCharacteristic == 1)
                 {
-
-                    outputFile << elem_i->Is(ACTIVE) << "\n";
+                    Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
+                    double &elementResult = elem_i->GetValue(elementResultVariable);
+                    outputFile << elementResult << "\n";
                 }
-
-                else
-                    outputFile << "1\n";
+                else if (dataCharacteristic == 2)
+                {
+                    Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
+                    array_1d<double, 3> &elementResult = elem_i->GetValue(elementResultVariable);
+                    outputFile << elementResult[0] << " ";
+                    outputFile << elementResult[1] << " ";
+                    outputFile << elementResult[2] << "\n";
+                }
             }
 
-            for (std::size_t entry = 0; entry < elementResults.size(); entry++)
+            for (ModelPart::ConditionIterator elem_i = model_part.ConditionsBegin(); elem_i != model_part.ConditionsEnd(); ++elem_i)
             {
-
-                std::string elementResultName = elementResults[entry];
-                std::size_t dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
-
-                if (KratosComponents<Variable<double>>::Has(elementResultName))
+                if (dataCharacteristic == 1)
                 {
-                    dataCharacteristic = 1;
-                    outputFile << "SCALARS " << elementResultName << " float"
-                               << " 1"
-                               << "\n";
-                    outputFile << "LOOKUP_TABLE default"
-                               << "\n";
+                    Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
+                    double &elementResult = elem_i->GetValue(elementResultVariable);
+                    outputFile << elementResult << "\n";
                 }
-                else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(elementResultName))
+                else if (dataCharacteristic == 2)
                 {
-                    dataCharacteristic = 2;
-                    std::cout<<"RISHITH "<<elementResultName<<std::endl;
-                    outputFile << "VECTORS " << elementResultName << " float"
-                               << "\n";
-                }
-
-                // write nodal results
-                outputFile << std::scientific;
-                outputFile << std::setprecision(mDefaultPrecision);
-                for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
-                {
-                    if (dataCharacteristic == 1)
-                    {
-                        Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
-                        double &elementResult = elem_i->GetValue(elementResultVariable);
-                        outputFile << elementResult << "\n";
-                    }
-                    else if (dataCharacteristic == 2)
-                    {
-                        Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
-                        array_1d<double, 3> &elementResult = elem_i->GetValue(elementResultVariable);
-                        outputFile << elementResult[0] << " ";
-                        outputFile << elementResult[1] << " ";
-                        outputFile << elementResult[2] << "\n";
-                    }
+                    Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
+                    array_1d<double, 3> &elementResult = elem_i->GetValue(elementResultVariable);
+                    outputFile << elementResult[0] << " ";
+                    outputFile << elementResult[1] << " ";
+                    outputFile << elementResult[2] << "\n";
                 }
             }
-
-        outputFile << "SCALARS SPLIT_ELEMENT float 1\nLOOKUP_TABLE default\n";
-
-        // write element results for active
-        for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
-        {
-            //outputFile << numberOfNodes;
-            bool is_split = elem_i->GetValue(SPLIT_ELEMENT);
-            outputFile << is_split << "\n";
         }
 
-
-
-            outputFile.close();
-        }
+        outputFile.close();
     }
 
     //#############################################For creating vtk files in binary format##########################################################
@@ -434,14 +420,14 @@ class VtkOutput
         // write nodes
         for (ModelPart::NodeIterator node_i = model_part.NodesBegin(); node_i != model_part.NodesEnd(); ++node_i)
         {
-            float x_coordinate = node_i->X();
-            float y_coordinate = node_i->Y();
-            float z_coordinate = node_i->Z();
+            float x_coordinate = node_i->X0();
+            float y_coordinate = node_i->Y0();
+            float z_coordinate = node_i->Z0();
             force_big_endian((unsigned char *)&x_coordinate);
             outputFile.write((char *)(&x_coordinate), sizeof(float));
             force_big_endian((unsigned char *)&y_coordinate);
             outputFile.write((char *)(&y_coordinate), sizeof(float));
-            force_big_endian((unsigned char *)&z_coordinate);
+            force_big_endian((unsigned char *)&y_coordinate);
             outputFile.write((char *)(&z_coordinate), sizeof(float));
         }
 
@@ -463,13 +449,13 @@ class VtkOutput
 
             ModelPart::ConditionType::GeometryType &elem_geometry = elem_i->GetGeometry();
 
-            std::size_t numberOfNodes = elem_geometry.size();
+            unsigned int numberOfNodes = elem_geometry.size();
 
             force_big_endian((unsigned char *)&numberOfNodes);
 
-            outputFile.write((char *)(&numberOfNodes), sizeof(std::size_t));
+            outputFile.write((char *)(&numberOfNodes), sizeof(unsigned int));
 
-            for (std::size_t i = 0; i < elem_geometry.size(); i++)
+            for (unsigned int i = 0; i < elem_geometry.size(); i++)
             {
                 int nodenum = mKratosIdToVtkId[elem_geometry[i].Id()];
                 force_big_endian((unsigned char *)&nodenum);
@@ -481,12 +467,12 @@ class VtkOutput
         for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
         {
             ModelPart::ConditionType::GeometryType &condition_geometry = condition_i->GetGeometry();
-            std::size_t numberOfNodes = condition_geometry.size();
+            unsigned int numberOfNodes = condition_geometry.size();
 
             force_big_endian((unsigned char *)&numberOfNodes);
-            outputFile.write((char *)(&numberOfNodes), sizeof(std::size_t));
+            outputFile.write((char *)(&numberOfNodes), sizeof(unsigned int));
 
-            for (std::size_t i = 0; i < condition_geometry.size(); i++)
+            for (unsigned int i = 0; i < condition_geometry.size(); i++)
             {
 
                 int nodenum = mKratosIdToVtkId[condition_geometry[i].Id()];
@@ -510,8 +496,8 @@ class VtkOutput
         // write elements types
         for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
         {
-            const std::size_t numberOfNodes = elem_i->GetGeometry().size();
-            std::size_t element_type;
+            const unsigned int numberOfNodes = elem_i->GetGeometry().size();
+            unsigned int element_type;
 
             if (numberOfNodes == 3)
                 element_type = 5;
@@ -536,8 +522,8 @@ class VtkOutput
         // write conditions types
         for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
         {
-            const std::size_t numberOfNodes = condition_i->GetGeometry().size();
-            std::size_t element_type;
+            const unsigned int numberOfNodes = condition_i->GetGeometry().size();
+            unsigned int element_type;
 
             if (numberOfNodes == 3)
                 element_type = 5;
@@ -571,11 +557,11 @@ class VtkOutput
         Parameters nodalResults = this->mrOutputSettings["result_file_configuration"]["nodal_results"];
         outputFile << "\nPOINT_DATA " << model_part.NumberOfNodes() << "\n";
 
-        for (std::size_t entry = 0; entry < nodalResults.size(); entry++)
+        for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
         {
             // write nodal results variable header
             std::string nodalResultName = nodalResults[entry].GetString();
-            std::size_t dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
             if (KratosComponents<Variable<double>>::Has(nodalResultName))
             {
                 dataCharacteristic = 1;
@@ -627,99 +613,87 @@ class VtkOutput
         std::string outputFileName = GetOutputFileName(model_part);
         std::ofstream outputFile;
         outputFile.open(outputFileName, std::ios::out | std::ios::app);
-        std::vector<std::string> elementResults = {}; //list of element results
-        if (model_part.NumberOfElements() > 0)
-        {
-            // write cells header
-            outputFile << "\nCELL_DATA " << model_part.NumberOfElements() << "\n";
-            outputFile << "SCALARS ACTIVE float \nLOOKUP_TABLE default\n";
+        Parameters elementResults = this->mrOutputSettings["result_file_configuration"]["elemental_results"];
+        // write cells header
+        outputFile << "\nCELL_DATA " << model_part.NumberOfElements() + model_part.NumberOfConditions() << "\n";
 
-            // write element results for active
+        for (unsigned int entry = 0; entry < elementResults.size(); entry++)
+        {
+
+            std::string elementResultName = elementResults[entry].GetString();
+            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+
+            if (KratosComponents<Variable<double>>::Has(elementResultName))
+            {
+                dataCharacteristic = 1;
+                outputFile << "SCALARS " << elementResultName << " float"
+                           << "\n";
+                outputFile << "LOOKUP_TABLE default"
+                           << "\n";
+            }
+            else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(elementResultName))
+            {
+                dataCharacteristic = 2;
+                outputFile << "VECTORS " << elementResultName << " float"
+                           << "\n";
+            }
+
+            // write nodal results
+
             for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
             {
-                //outputFile << numberOfNodes;
-
-                if ((elem_i)->IsDefined(ACTIVE))
+                if (dataCharacteristic == 1)
                 {
-                    float is_active = elem_i->Is(ACTIVE);
-                    force_big_endian((unsigned char *)&is_active);
-                    outputFile.write((char *)(&is_active), sizeof(float));
+                    Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
+                    double elementResult = elem_i->GetValue(elementResultVariable);
+                    force_big_endian((unsigned char *)&elementResult);
+                    outputFile.write((char *)(&elementResult), sizeof(float));
                 }
-
-                else
+                else if (dataCharacteristic == 2)
                 {
-
-                    float is_active = 1;
-                    force_big_endian((unsigned char *)&is_active);
-                    outputFile.write((char *)(&is_active), sizeof(float));
+                    Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
+                    array_1d<double, 3> elementResult = elem_i->GetValue(elementResultVariable);
+                    float num1 = elementResult[0];
+                    force_big_endian((unsigned char *)&num1);
+                    outputFile.write((char *)(&num1), sizeof(float));
+                    float num2 = elementResult[1];
+                    force_big_endian((unsigned char *)&num2);
+                    outputFile.write((char *)(&num2), sizeof(float));
+                    float num3 = elementResult[2];
+                    force_big_endian((unsigned char *)&num3);
+                    outputFile.write((char *)(&num3), sizeof(float));
                 }
             }
 
-            for (std::size_t entry = 0; entry < elementResults.size(); entry++)
+            for (ModelPart::ConditionIterator elem_i = model_part.ConditionsBegin(); elem_i != model_part.ConditionsEnd(); ++elem_i)
             {
-
-                std::string elementResultName = elementResults[entry];
-                std::size_t dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
-
-                if (KratosComponents<Variable<double>>::Has(elementResultName))
+                if (dataCharacteristic == 1)
                 {
-                    dataCharacteristic = 1;
-                    outputFile << "SCALARS " << elementResultName << " float"
-                               << "\n";
-                    outputFile << "LOOKUP_TABLE default"
-                               << "\n";
+                    Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
+                    double elementResult = elem_i->GetValue(elementResultVariable);
+                    force_big_endian((unsigned char *)&elementResult);
+                    outputFile.write((char *)(&elementResult), sizeof(float));
                 }
-                else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(elementResultName))
+                else if (dataCharacteristic == 2)
                 {
-                    dataCharacteristic = 2;
-                    outputFile << "VECTORS " << elementResultName << " float"
-                               << "\n";
-                }
-
-                // write nodal results
-
-                for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
-                {
-                    if (dataCharacteristic == 1)
-                    {
-                        Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
-                        double elementResult = elem_i->GetValue(elementResultVariable);
-                        force_big_endian((unsigned char *)&elementResult);
-                        outputFile.write((char *)(&elementResult), sizeof(float));
-                    }
-                    else if (dataCharacteristic == 2)
-                    {
-                        Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
-                        array_1d<double, 3> elementResult = elem_i->GetValue(elementResultVariable);
-                        float num1 = elementResult[0];
-                        force_big_endian((unsigned char *)&num1);
-                        outputFile.write((char *)(&num1), sizeof(float));
-                        float num2 = elementResult[1];
-                        force_big_endian((unsigned char *)&num2);
-                        outputFile.write((char *)(&num2), sizeof(float));
-                        float num3 = elementResult[2];
-                        force_big_endian((unsigned char *)&num3);
-                        outputFile.write((char *)(&num3), sizeof(float));
-                    }
+                    Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
+                    array_1d<double, 3> elementResult = elem_i->GetValue(elementResultVariable);
+                    float num1 = elementResult[0];
+                    force_big_endian((unsigned char *)&num1);
+                    outputFile.write((char *)(&num1), sizeof(float));
+                    float num2 = elementResult[1];
+                    force_big_endian((unsigned char *)&num2);
+                    outputFile.write((char *)(&num2), sizeof(float));
+                    float num3 = elementResult[2];
+                    force_big_endian((unsigned char *)&num3);
+                    outputFile.write((char *)(&num3), sizeof(float));
                 }
             }
-
-        outputFile << "SCALARS SPLIT_ELEMENT float \nLOOKUP_TABLE default\n";
-
-        // write element results for active
-        for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
-        {
-            //outputFile << numberOfNodes;
-            float is_split = elem_i->GetValue(SPLIT_ELEMENT);
-            force_big_endian((unsigned char *)&is_split);
-            outputFile.write((char *)(&is_split), sizeof(float));
         }
-
-            outputFile.close();
-        }
+        outputFile.close();
     }
 
-    //#################################################################End of Binary vtk ################################################################
+    //################################################################# End of Binary vtk ################################################################
 
     void PrintOutputSubModelPart(ModelPart &modelPart)
     {
@@ -740,7 +714,7 @@ class VtkOutput
             writeHeader(modelPart);
             writeMesh(modelPart);
             writeNodalResultsAsPointData(modelPart);
-            writeElementData(modelPart);
+            //writeElementData(modelPart);
         }
     }
 
@@ -814,10 +788,10 @@ class VtkOutput
     std::string mOutputFilename;
 
     Parameters mrOutputSettings;
-    std::size_t mDefaultPrecision;
+    unsigned int mDefaultPrecision;
     std::map<int, int> mKratosIdToVtkId;
-    std::size_t mVtkCellListSize;
-    std::size_t step;
+    unsigned int mVtkCellListSize;
+    unsigned int step;
     bool mDoneTest;
     bool mShouldSwap;
 
@@ -829,7 +803,7 @@ class VtkOutput
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
-        std::string outputFilename = model_part.Name() + "_" + std::to_string(rank) + "_" + std::to_string(step) + ".vtk";
+        std::string outputFilename = mcaseName + model_part.Name() + "_" + std::to_string(rank) + "_" + std::to_string(step) + ".vtk";
         return outputFilename;
     }
 
