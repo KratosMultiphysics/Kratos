@@ -3,6 +3,17 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+    structural_dependencies = True
+    missing_application = ''
+except ImportError as e:
+    structural_dependencies = False
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
+                                    '{0}'.format(e)).group(1)
+
 from json_utilities import *
 import json
 import os
@@ -29,6 +40,16 @@ class MmgProcess(KratosMultiphysics.Process):
             "level_set_strategy_parameters"              :{
                 "scalar_variable"                  : "DISTANCE",
                 "gradient_variable"                : "DISTANCE_GRADIENT"
+            },
+            "spr_set_strategy_parameters"              :{
+                "error_parameters"                 :
+                {
+                    "error_threshold"                       : 0.05,
+                    "interpolation_error"                   : 0.04
+                },
+                "set_number_of_elements"              : false,
+                "number_of_elements"                  : 1000,
+                "max_iterations"                      : 3
             },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
@@ -151,7 +172,12 @@ class MmgProcess(KratosMultiphysics.Process):
             mesh_dependent_constant = self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if (mesh_dependent_constant == 0.0):
                 self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
-        
+        elif (self.strategy == "superconvergent_patch_recovery"):
+            self.error_threshold = self.settings["spr_set_strategy_parameters"]["error_parameters"]["error_threshold"].GetDouble()
+            self.estimated_error = 0
+            self.remeshing_cycle = 0
+            self.model_part.ProcessInfo[MeshingApplication.EXECUTE_REMESHING] = True
+
         self.internal_variable_interpolation_list = self.__generate_internal_variable_list_from_input(self.settings["internal_variables_parameters"]["internal_variable_interpolation_list"])
         
         # NOTE: Add more model part if interested
@@ -218,13 +244,19 @@ class MmgProcess(KratosMultiphysics.Process):
                             self.step = 0  # Reset
 
     def ExecuteFinalizeSolutionStep(self):
-        pass
+        if (self.strategy == "superconvergent_patch_recovery"):
+            self._ErrorCalculation()
 
     def ExecuteBeforeOutputStep(self):
         pass
 
     def ExecuteAfterOutputStep(self):
-        pass
+        if (self.strategy == "superconvergent_patch_recovery"):
+            if (self.model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE] > self.error_threshold):
+                self.__execute_refinement()
+            self.remeshing_cycle += 1
+            if (self.model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE] <= self.error_threshold or self.remeshing_cycle > self.params["max_iterations"].GetInt()):
+                self.model_part.ProcessInfo[MeshingApplication.EXECUTE_REMESHING] = False
 
     def ExecuteFinalize(self):
         pass
@@ -280,6 +312,27 @@ class MmgProcess(KratosMultiphysics.Process):
                             self.model_part,
                             current_metric_variable,
                             hessian_parameters))
+        elif (self.strategy == "superconvergent_patch_recovery"):
+            assert structural_dependencies
+            spr_parameters = KratosMultiphysics.Parameters("""{}""")
+            spr_parameters.AddValue("minimal_size",self.settings["minimal_size"])
+            spr_parameters.AddValue("maximal_size",self.settings["maximal_size"])
+            spr_parameters.AddValue("error",self.settings["spr_set_strategy_parameters"]["error_parameters"]["interpolation_error"])
+            spr_parameters.AddValue("echo_level", self.settings["echo_level"])
+            spr_parameters.AddValue("set_number_of_elements", self.settings["spr_set_strategy_parameters"]["set_number_of_elements"])
+            spr_parameters.AddValue("number_of_elements", self.settings["spr_set_strategy_parameters"]["number_of_elements"])
+            spr_parameters.AddValue("average_nodal_h", self.settings["spr_set_strategy_parameters"]["average_nodal_h"])
+
+            if (self.dim == 2):
+                self.metric_process = StructuralMechanicsApplication.SPRMetricProcess2D(
+                    self.model_part,
+                    spr_parameters
+                    )
+            else:
+                self.metric_process = StructuralMechanicsApplication.SPRMetricProcess3D(
+                    self.model_part,
+                    spr_parameters
+                    )
 
     def _CreateGradientProcess(self):
         # We compute the scalar value gradient
@@ -299,12 +352,12 @@ class MmgProcess(KratosMultiphysics.Process):
         # Initialize metric
         self.initialize_metric.Execute()
 
-        print("Calculating the metrics")
+        KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Calculating the metrics")
         # Execute metric computation
         for metric_process in self.metric_processes:
             metric_process.Execute()
 
-        print("Remeshing")
+        KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remeshing")
         self.mmg_process.Execute()
 
         if (self.settings["debug_mode"].GetBool() == True):
@@ -323,7 +376,17 @@ class MmgProcess(KratosMultiphysics.Process):
         # We need to set that the model part has been modified (later on we will act in consequence)
         self.model_part.Set(KratosMultiphysics.MODIFIED, True)
 
-        print("Remesh finished")
+        KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remesh finished")
+
+    def _ErrorCalculation(self):
+
+        # Initialize metric
+        self.initialize_metric.Execute()
+
+        KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Calculating the metrics")
+        # Execute metric computation
+        self.metric_process.Execute()
+        self.estimated_error = self.model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE]
 
     def __generate_submodelparts_list_from_input(self,param):
         '''Parse a list of variables from input.'''
