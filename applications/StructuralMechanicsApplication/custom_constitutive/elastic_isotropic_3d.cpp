@@ -195,7 +195,7 @@ int ElasticIsotropic3D::Check(
 )
 {
     KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;;
+    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
 
     KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
     const double& nu = rMaterialProperties[POISSON_RATIO];
