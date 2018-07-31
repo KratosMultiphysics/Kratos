@@ -91,13 +91,6 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
-
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -122,14 +115,16 @@ protected:
         double Beta;
         double NormGradPhi;
         double absorption;
-        double TransientAbsorption;
-        double SigmaVBar;
         double DifSC;
         double AuxDiffusion;
         double CosinusNormals;
         double CosinusGradPhi;
         double LowTolerance;
         double HighTolerance;
+
+        //Transient variables
+        double TransientAbsorption;
+        double TransientResidual;
 
         int IterationNumber;
 
@@ -184,13 +179,13 @@ protected:
 
     void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
-
     void CalculateNormalsAngle(ElementVariables& rVariables);
 
     void CalculateBoundaryLv(ElementVariables& rVariables);
 
     virtual void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+
+    virtual void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
     void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node<3> >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
                                                     const PropertiesType& Prop);

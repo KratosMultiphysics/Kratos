@@ -50,6 +50,121 @@ int TransientConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const Process
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
+void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                        VectorType& rRightHandSideVector,
+                        ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes;
+
+    //Resetting the LHS
+    if ( rLeftHandSideMatrix.size1() != element_size )
+        rLeftHandSideMatrix.resize( element_size, element_size, false );
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
+
+    //Resetting the RHS
+    if ( rRightHandSideVector.size() != element_size )
+        rRightHandSideVector.resize( element_size, false );
+    noalias( rRightHandSideVector ) = ZeroVector( element_size );
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    GeometryData::IntegrationMethod ThisIntegrationMethod = SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( ThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,ThisIntegrationMethod);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,Geom,Prop,rCurrentProcessInfo);
+
+    noalias(Variables.VelInter) = ZeroVector(TDim);
+
+    Variables.IterationNumber = rCurrentProcessInfo[NL_ITERATION_NUMBER];
+
+    //Loop over integration points
+    for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+    {
+        //Compute GradNT
+        noalias(Variables.GradNT) = DN_DXContainer[GPoint];
+
+        //Compute N and Interpolated velocity
+        noalias(Variables.N) = row(NContainer,GPoint);
+
+        // TODO: This will be moved to an utility
+        ElementUtilities::InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
+        this->CalculateDiffusivityVariables(Variables,Prop,rCurrentProcessInfo);
+        this->CalculateHVector(Variables,Prop,rCurrentProcessInfo);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        array_1d <double, TNumNodes> AuxMVector;
+        noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N + 0.5 * prod(Variables.GradNT,Variables.HVector));
+
+        noalias(rLeftHandSideMatrix) += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
+    }
+
+    //Nodal Variables
+
+    array_1d<double,TNumNodes> NodalDtPhi;
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        NodalDtPhi[i] = Geom[i].FastGetSolutionStepValue(DT_PHI);
+    }
+
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, NodalDtPhi);
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    KRATOS_ERROR << "TransientConvectionDiffusionFICElement::CalculateFirstDerivativesLHS not implemented" << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+					      ProcessInfo& rCurrentProcessInfo)
+{
+    const unsigned int element_size = TNumNodes;
+
+    MatrixType AuxLHS;
+
+    //Resetting the LHS
+    if ( AuxLHS.size1() != element_size )
+        AuxLHS.resize( element_size, element_size, false );
+    noalias( AuxLHS ) = ZeroMatrix( element_size, element_size );
+
+    //Resetting the RHS
+    if ( rRightHandSideVector.size() != element_size )
+        rRightHandSideVector.resize( element_size, false );
+    noalias( rRightHandSideVector ) = ZeroVector( element_size );
+
+    this-> CalculateFirstDerivativesContributions(AuxLHS,rRightHandSideVector, rCurrentProcessInfo);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
 void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
 {
     KRATOS_TRY
@@ -265,6 +380,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
 
     const Variable<double>& rReactionVar = my_settings->GetReactionVariable();
     rVariables.absorption = Prop[rReactionVar];
+    //double steady_absorption = rVariables.absorption;
 
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
@@ -295,7 +411,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
             sum_phi = aux_var2;
         }
 
-        if(sum_phi < 1e-5)
+        if(std::abs(sum_phi) < 1e-5)
         {
             sum_phi = 1e-5;
         }
@@ -304,7 +420,11 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     double delta_time = CurrentProcessInfo.GetValue(DELTA_TIME);
     double theta = CurrentProcessInfo.GetValue(THETA);
 
+    // beta = 300
     rVariables.TransientAbsorption = rVariables.rho_dot_c / (theta * delta_time) * 2.0 *tanh(300.0 * (sustr_phi) / (sum_phi));
+
+    //TODO
+    rVariables.TransientAbsorption = 0.0;
 
     rVariables.absorption += rVariables.TransientAbsorption;
 
@@ -388,9 +508,6 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
 
-        rVariables.SigmaVBar = (rVariables.absorption + rVariables.TransientAbsorption) * rVariables.lv * rVariables.lv
-                                / rVariables.AuxDiffusion / (2.0 * rVariables.Peclet);
-
         rVariables.AlphaVBar = 1.0 / tanh(rVariables.Peclet) - 1.0 / rVariables.Peclet;
     }
 
@@ -448,12 +565,44 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
 
     noalias(rVariables.DifMatrixS) = (rVariables.absorption / (TNumNodes + 1)) * BaricenterMatrix;
 
+    //////////////////////////////////////////////////////
+    // Calculate residuals
+    //////////////////////////////////////////////////////
+
+    noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.DifMatrixK);
+    noalias(rVariables.MatrixAux) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT));
+
+    array_1d<double,TNumNodes> NormAux1 = ZeroVector(TNumNodes);
+
+    for (unsigned int i = 0 ; i < TNumNodes ; i++ )
+    {
+        NormAux1 [i] = rVariables.MatrixAux (i,i) * rVariables.NodalPhi [i];
+    }
+
+    double NormAux2 = norm_2(NormAux1);
+
+    rVariables.Residual = rVariables.rho_dot_c * inner_prod (rVariables.VelInter , rVariables.GradPhi)
+                            - NormAux2
+                            + rVariables.absorption * inner_prod(rVariables.N, rVariables.NodalPhi)
+                            - rVariables.QSource;
+
+    array_1d<double,TNumNodes> NodalDtPhi;
+
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        NodalDtPhi[i] = rGeom[i].FastGetSolutionStepValue(DT_PHI);
+    }
+
+    rVariables.TransientResidual = rVariables.Residual + rVariables.rho_dot_c * inner_prod(rVariables.N, NodalDtPhi);
 
     //////////////////////////////////////////////////////
     // Calculate Dr
     //////////////////////////////////////////////////////
 
     // phi = 2 in 2D and 3D
+
+    //TODO
+    //rVariables.SigmaV = (steady_absorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion) / (2.0 * rVariables.Peclet);
 
     rVariables.AlphaR = rVariables.Peclet * (0.5 * rVariables.SigmaV * ((rVariables.XiV + 1.0) / (rVariables.XiV - 1.0)) - rVariables.AlphaV)
                         - 1.0 - (1.0 / rVariables.AuxDiffusion) * inner_prod(rVariables.VelInterHat, prod(rVariables.DifMatrixS, rVariables.VelInterHat));
@@ -480,28 +629,23 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         }
     }
 
-    noalias(rVariables.DifMatrixR) = rVariables.AlphaR * rVariables.AuxDiffusion * outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
+    if(rVariables.Residual < rVariables.LowTolerance)
+    {
+        noalias(rVariables.DifMatrixR) =  rVariables.AlphaR * rVariables.AuxDiffusion
+                                    * outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
+    }
+    else
+    {
+        //TODO
+        //noalias(rVariables.DifMatrixR) =  std::abs(rVariables.TransientResidual / rVariables.Residual) * rVariables.AlphaR * rVariables.AuxDiffusion
+        //                            * outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
+        noalias(rVariables.DifMatrixR) =  rVariables.AlphaR * rVariables.AuxDiffusion
+                                    * outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
+    }
 
     //////////////////////////////////////////////////////
     // Calculate Dsc
     //////////////////////////////////////////////////////
-
-    noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.DifMatrixK);
-    noalias(rVariables.MatrixAux) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT));
-
-    array_1d<double,TNumNodes> NormAux1 = ZeroVector(TNumNodes);
-
-    for (unsigned int i = 0 ; i < TNumNodes ; i++ )
-    {
-        NormAux1 [i] = rVariables.MatrixAux (i,i) * rVariables.NodalPhi [i];
-    }
-
-    double NormAux2 = norm_2(NormAux1);
-
-    rVariables.Residual = rVariables.rho_dot_c * inner_prod (rVariables.VelInter , rVariables.GradPhi)
-                            - NormAux2
-                            + rVariables.absorption * inner_prod(rVariables.N, rVariables.NodalPhi)
-                            - rVariables.QSource;
 
     // Identity matrix
     noalias(rVariables.IdentityMatrix) = ZeroMatrix(TDim,TDim);
@@ -613,8 +757,20 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(El
     }
     else
     {
-        AuxMatrix3 = (2.0 / rVariables.Residual ) * (rVariables.DifMatrixS
-                        + rVariables.AlphaR * rVariables.AuxDiffusion * outer_prod(rVariables.VelInterHat, rVariables.VelInterHat));
+        if(std::abs(rVariables.TransientResidual) < rVariables.LowTolerance)
+        {
+            AuxMatrix3 = (2.0 / rVariables.Residual ) * (rVariables.DifMatrixS
+                            + rVariables.AlphaR * rVariables.AuxDiffusion * outer_prod(rVariables.VelInterHat, rVariables.VelInterHat));
+        }
+        else
+        {
+            // TODO
+            // AuxMatrix3 = (2.0 * (rVariables.TransientResidual / std::abs(rVariables.TransientResidual)) / rVariables.Residual ) * (rVariables.DifMatrixS
+            //                 + rVariables.AlphaR * rVariables.AuxDiffusion * outer_prod(rVariables.VelInterHat, rVariables.VelInterHat));
+
+            AuxMatrix3 = (2.0 / rVariables.Residual ) * (rVariables.DifMatrixS
+                            + rVariables.AlphaR * rVariables.AuxDiffusion * outer_prod(rVariables.VelInterHat, rVariables.VelInterHat));
+        }
 
         rVariables.HrVector = prod(AuxMatrix3, rVariables.GradPhi);
 

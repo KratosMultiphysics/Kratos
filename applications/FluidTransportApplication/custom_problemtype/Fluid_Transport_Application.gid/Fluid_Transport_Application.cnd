@@ -79,9 +79,12 @@ HELP: Units in IS:
 QUESTION: Fixed#CB#(true,false)
 VALUE: true
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
-DEPENDENCIES: (false,HIDE,Imposed_Pressure,Constant)(true,RESTORE,Imposed_Pressure,#CURRENT#)
-QUESTION: Imposed_Pressure#CB#(Constant,Table_Interpolation)
+DEPENDENCIES: (false,HIDE,Imposed_Phi_Value,Constant)(true,RESTORE,Imposed_Phi_Value,#CURRENT#)
+QUESTION: Imposed_Phi_Value#CB#(Constant,Table_Interpolation)
 VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Phi_Value_Table,#CURRENT#)(Table_Interpolation,RESTORE,Phi_Value_Table,#CURRENT#)
+QUESTION: Phi_Value_Table(Time,Value)
+VALUE: #N# 2 0.0 0.0
 END CONDITION
 
 
