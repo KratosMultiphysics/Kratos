@@ -34,7 +34,6 @@ KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_DAMPING_RATIO,      
 KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_ROTATIONAL_DAMPING_RATIO, 5 );
 KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_RAYLEIGH_DAMPING,         6 );
 KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_ACTIVE_NODE_FLAG,         7 );
-KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_ONLY_COMPRESSION,         8 );
 
 //***********************DEFAULT CONSTRUCTOR******************************************
 /***********************************************************************************/
@@ -43,8 +42,7 @@ NodalConcentratedElement::NodalConcentratedElement(
     IndexType NewId, 
     GeometryType::Pointer pGeometry, 
     const bool UseRayleighDamping,
-    const bool ComputeActiveNodeFlag,
-    const CompressionTension ComputeCompressionTension
+    const bool ComputeActiveNodeFlag
     )
     : Element( NewId, pGeometry )
 {
@@ -52,13 +50,6 @@ NodalConcentratedElement::NodalConcentratedElement(
     mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, UseRayleighDamping);
     // If the node is inactive/active the element will be set in correspondance
     mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG, ComputeActiveNodeFlag);
-
-    // If it works only in compression or tension
-    if (ComputeCompressionTension == CompressionTension::COMPRESSION) {
-        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ONLY_COMPRESSION, true);
-    } else if  (ComputeCompressionTension == CompressionTension::TENSION) {
-        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ONLY_COMPRESSION, false);
-    }
 }
 
 
@@ -69,20 +60,12 @@ NodalConcentratedElement::NodalConcentratedElement(
     IndexType NewId, GeometryType::Pointer pGeometry, 
     PropertiesType::Pointer pProperties, 
     const bool UseRayleighDamping,
-    const bool ComputeActiveNodeFlag,
-    const CompressionTension ComputeCompressionTension
+    const bool ComputeActiveNodeFlag
     )
     : Element( NewId, pGeometry, pProperties )
 {
     mELementalFlags.Set(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING, UseRayleighDamping);
     mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG, ComputeActiveNodeFlag);
-
-    // If it works only in compression or tension
-    if (ComputeCompressionTension == CompressionTension::COMPRESSION) {
-        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ONLY_COMPRESSION, true);
-    } else if  (ComputeCompressionTension == CompressionTension::TENSION) {
-        mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ONLY_COMPRESSION, false);
-    }
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -390,13 +373,6 @@ void NodalConcentratedElement::Initialize()
             KRATOS_WARNING_IF("NodalConcentratedElement", rconst_this.Has(NODAL_STIFFNESS) && GetProperties().Has(NODAL_STIFFNESS)) << "NODAL_STIFFNESS is defined both in properties and elemental data. Properties are considered by DEFAULT" << std::endl;
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, true);
             this->SetValue(INITIAL_DISPLACEMENT, zero_array);
-            if( mELementalFlags.IsDefined(NodalConcentratedElement::COMPUTE_ONLY_COMPRESSION)) {
-                if (GetGeometry()[0].SolutionStepsDataHas(NORMAL)) {
-                    this->SetValue(INTERNAL_FORCE, zero_array);
-                } else {
-                    KRATOS_WARNING("NodalConcentratedElement") << "To compute compression/tension on the node the normal must be defined" << std::endl;
-                }
-            }
         } else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, false);
 
@@ -440,26 +416,16 @@ void NodalConcentratedElement::Initialize()
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
     } else {
         // We check the nodal stiffness
-        if (rconst_this.Has(NODAL_STIFFNESS)) {
+        if (rconst_this.Has(NODAL_STIFFNESS))
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, true);
-            this->SetValue(INITIAL_DISPLACEMENT, zero_array);
-            if( mELementalFlags.IsDefined(NodalConcentratedElement::COMPUTE_ONLY_COMPRESSION)) {
-                if (GetGeometry()[0].SolutionStepsDataHas(NORMAL)) {
-                    this->SetValue(INTERNAL_FORCE, zero_array);
-                } else {
-                    KRATOS_WARNING("NodalConcentratedElement") << "To compute compression/tension on the node the normal must be defined" << std::endl;
-                }
-            }
-        }
         else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS, false);
 
         // We check the nodal rotational stiffness
         if (GetGeometry()[0].SolutionStepsDataHas(ROTATION_X) &&
-            rconst_this.Has(NODAL_ROTATIONAL_STIFFNESS)) {
+            rconst_this.Has(NODAL_ROTATIONAL_STIFFNESS))
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, true);
-            this->SetValue(INITIAL_ROTATION, zero_array);
-        } else
+        else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS, false);
 
         // We check the nodal mass
@@ -517,32 +483,6 @@ void NodalConcentratedElement::InitializeNonLinearIteration( ProcessInfo& rCurre
     if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) ) {
         const bool is_active = GetGeometry()[0].IsDefined(ACTIVE) ? GetGeometry()[0].Is(ACTIVE) : true;
         this->Set(ACTIVE, is_active);
-    }
-
-    // In case we need to define the internal force to compute compression/tension
-    if( this->Has(INTERNAL_FORCE) ) {
-        // We get the reference
-        const auto& rconst_this = *this;
-
-        // Compute internal forces
-        const array_1d<double, 3 >& current_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-        const array_1d<double, 3 >& initial_displacement = this->GetValue(INITIAL_DISPLACEMENT);
-        const array_1d<double, 3 >& nodal_stiffness = HasProperties() ? (GetProperties().Has(NODAL_STIFFNESS) ? GetProperties().GetValue(NODAL_STIFFNESS) : rconst_this.GetValue(NODAL_STIFFNESS)) : rconst_this.GetValue(NODAL_STIFFNESS);
-
-        array_1d<double, 3>& internal_force = this->GetValue(INTERNAL_FORCE);
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-        for ( IndexType j = 0; j < dimension; ++j )
-            internal_force[j] = nodal_stiffness[j] * (current_displacement[j] - initial_displacement[j]);
-
-        const array_1d<double, 3>& normal = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
-        const double module_internal_force = inner_prod(internal_force, normal);
-        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ACTIVE_NODE_FLAG) ) {
-            if (module_internal_force <= 0.0) this->Set(ACTIVE, true);
-            else this->Set(ACTIVE, false);
-        } else {
-            if (module_internal_force >= 0.0) this->Set(ACTIVE, false);
-            else this->Set(ACTIVE, true);
-        }
     }
 
     KRATOS_CATCH( "" );
