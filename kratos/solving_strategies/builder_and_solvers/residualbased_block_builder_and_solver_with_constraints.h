@@ -915,10 +915,25 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                                             IndexType FinalSize)
     {
         KRATOS_TRY
+        // storing the initial matrix and vector and their properties
+        KRATOS_ERROR_IF(rMatrix.size1() != rVector.size())<<"ResizeAndInitializeLocalMatrices :: Dimension of the matrix and vector passed are not the same !"<<std::endl;
         const IndexType initial_sys_size = rMatrix.size1();
+        MatrixType matrix(initial_sys_size, initial_sys_size);
+        noalias(matrix) = rMatrix;
+        VectorType vector(initial_sys_size);
+        noalias(vector) = rVector;
 
         rMatrix.resize(FinalSize, FinalSize, true); //true for Preserving the data and resizing the matrix
         rVector.resize(FinalSize, true);
+        // reassigning the original part of the matrix
+        for (IndexType m = 0; m < initial_sys_size; m++)
+        {
+            for (IndexType n = 0; n < initial_sys_size; n++)
+            {
+                rMatrix(m,n) = matrix(m,n);
+            }
+            rVector(m) = vector(m);
+        }
         // Making the extra part of matrix zero
         for (IndexType m = initial_sys_size; m < FinalSize; m++)
         {
