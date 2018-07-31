@@ -106,6 +106,7 @@ void SPRMetricProcess<TDim>::CalculateSuperconvergentStresses()
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
         auto it_node = nodes_array.begin() + i_node;
 
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_ELEMENTS)) << "SPRMetricProcess:: Search didn't work with elements" << std::endl;
         const SizeType neighbour_size = it_node->GetValue(NEIGHBOUR_ELEMENTS).size();
 
         Vector sigma_recovered(SigmaSize, 0.0);
@@ -116,6 +117,7 @@ void SPRMetricProcess<TDim>::CalculateSuperconvergentStresses()
 
             KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
         } else {
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_NODES)) << "SPRMetricProcess:: Search didn't work with nodes" << std::endl;
             auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             for(auto it_neighbour_nodes = neigh_nodes.begin(); it_neighbour_nodes != neigh_nodes.end(); it_neighbour_nodes++) {
 
@@ -242,7 +244,7 @@ void SPRMetricProcess<TDim>::CalculateMetric()
     // Actually computing the metric
     if (meshing_application_compiled) {
         // Getting metric variable
-        const Variable<Vector> metric_variable = KratosComponents<Variable<Vector>>::Get("MMG_METRIC");
+        const Variable<Vector>& metric_variable = KratosComponents<Variable<Vector>>::Get("MMG_METRIC");
 
         // Iteration over all nodes
         NodesArrayType& nodes_array = mThisModelPart.Nodes();
@@ -313,7 +315,7 @@ void SPRMetricProcess<TDim>::CalculatePatch(
     // Determine if contact BC has to be regarded
     // We take the geometry GP from the core
     const double tolerance = std::numeric_limits<double>::epsilon();
-    const bool regard_contact = std::abs(itNode->GetValue(CONTACT_PRESSURE)) > tolerance ? true : false;
+    const bool regard_contact = itNode->Has(CONTACT_PRESSURE) ? (std::abs(itNode->GetValue(CONTACT_PRESSURE)) > tolerance ? true : false) : false;
     
     // NOTE: Code commented. Could be of interest in the future
 //     regard_contact = itPatchNode->Has(CONTACT_PRESSURE);
