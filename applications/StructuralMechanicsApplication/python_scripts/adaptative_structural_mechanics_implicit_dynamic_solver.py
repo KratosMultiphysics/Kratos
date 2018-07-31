@@ -28,14 +28,13 @@ def CreateSolver(model, custom_settings):
     return AdaptativeImplicitMechanicalSolver(model, custom_settings)
 
 class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
-    """The structural mechanics static solver. (Fot adaptative remeshing)
+    """The structural mechanics implicit dynamic solver. (Fot adaptative remeshing)
 
-    This class creates the mechanical solvers for static analysis. It currently
-    supports line search, linear, arc-length, form-finding and Newton-Raphson
-    strategies.
+    This class creates the mechanical solvers for implicit dynamic analysis.
+    It currently supports Newmark, Bossak and dynamic relaxation schemes.
 
     Public member variables:
-    arc_length_settings -- settings for the arc length method.
+    dynamic_settings -- settings for the implicit dynamic solvers.
 
     See structural_mechanics_solver.py for more information.
     """

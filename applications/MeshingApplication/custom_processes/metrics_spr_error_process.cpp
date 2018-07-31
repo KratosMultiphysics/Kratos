@@ -301,6 +301,7 @@ void SPRMetricProcess<TDim>::CalculatePatch(
     const double tolerance = std::numeric_limits<double>::epsilon();
     const bool regard_contact = std::abs(itNode->GetValue(CONTACT_PRESSURE)) > tolerance ? true : false;
     
+    // NOTE: Code commented. Could be of interest in the future
 //     regard_contact = itPatchNode->Has(CONTACT_PRESSURE);
 //     if(regard_contact == false) {
 //         for( auto& i_neighbour_nodes : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
@@ -328,8 +329,11 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
     Vector& rSigmaRecovered
     )
 {
+    // Triangle and tetrahedra have only one GP by default
     std::vector<Vector> stress_vector(1);
     std::vector<array_1d<double,3>> coordinates_vector(1);
+
+    // Our interest is to assemble the system A and b to solve a local problem for the element and estimate the new element size
     BoundedMatrix<double, TDim + 1, TDim + 1> A = ZeroMatrix(TDim + 1,TDim + 1);
     BoundedMatrix<double, TDim + 1, SigmaSize> b = ZeroMatrix(TDim + 1,SigmaSize);
     BoundedMatrix<double, 1, TDim + 1> p_k;
@@ -353,6 +357,7 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
         if(TDim == 3)
             p_k(0,3)=coordinates_vector[0][2] - itPatchNode->Z();
         
+        // Finally we add the contributiosn to our local system (A, b)
         noalias(A) += prod(trans(p_k), p_k);
         noalias(b) += prod(trans(p_k), sigma);
     }
@@ -362,6 +367,7 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
 
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl << invA << std::endl << det<< std::endl;
 
+    // We do a little correction trick in case of almost zero determinant
     const double tolerance = std::numeric_limits<double>::epsilon();
     if(det < tolerance){
         KRATOS_WARNING_IF("SPRMetricProcess", mEchoLevel == 2) << A << std::endl;
@@ -397,10 +403,11 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     SizeType NeighbourSize,
     Vector& rSigmaRecovered)
 {
-
+    // Triangle and tetrahedra have only one GP by default
     std::vector<Vector> stress_vector(1);
     std::vector<array_1d<double,3>> coordinates_vector(1);
 
+    // Our interest is to assemble the system A and b to solve a local problem for the element and estimate the new element size
     CompressedMatrix A(SigmaSize * (TDim + 1), SigmaSize * (TDim + 1), 0.0);
     BoundedMatrix<double, SigmaSize * (TDim+1),1> b = ZeroMatrix(SigmaSize * (TDim+1), 1);
     BoundedMatrix<double, SigmaSize, SigmaSize * (TDim+1)> p_k;
@@ -434,6 +441,7 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
                 p_k(j, j * (TDim+1) + 3) = coordinates_vector[0][2] - itPatchNode->Z();
         }
         
+        // Finally we add the contributiosn to our local system (A, b)
         noalias(A) += prod(trans(p_k), p_k);
         noalias(b) += prod(trans(p_k), sigma);
     }
@@ -506,8 +514,9 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 
     noalias(A1) = prod(trans(p_k),trans(T_k1));
     noalias(A2) = prod(T_k1,p_k);
-    noalias(A) += mPenaltyTangent*prod(A1, A2);
 
+    // Finally we add the contributiosn to our local system (A, b)
+    noalias(A) += mPenaltyTangent*prod(A1, A2);
     noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k)) * itNode->GetValue(CONTACT_PRESSURE);
 
     //PART 2: Contributions from contact nodes: regard all nodes from the patch which are in contact
@@ -533,10 +542,12 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 
         noalias(A1) = prod(trans(p_k),trans(T_k1));
         noalias(A2) = prod(T_k1,p_k);
-        noalias(A) += mPenaltyTangent*prod(A1, A2);
-        //noalias(A) += mPenaltyNormal*prod(prod(trans(p_k),trans(N_k)),prod(N_k,p_k));
-        //noalias(A) += mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k1)),T_k1),p_k);
 
+        // Finally we add the contributiosn to our local system (A, b)
+        noalias(A) += mPenaltyTangent*prod(A1, A2);
+        // NOTE: Code commented. Could be of interest in the future
+//         noalias(A) += mPenaltyNormal*prod(prod(trans(p_k),trans(N_k)),prod(N_k,p_k));
+//         noalias(A) += mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k1)),T_k1),p_k);
         noalias(b) -= mPenaltyNormal*prod(trans(p_k),trans(N_k))*itPatchNode->GetValue(CONTACT_PRESSURE);
     }
 
@@ -567,8 +578,9 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 
             noalias(A1) = prod(trans(p_k),trans(T_k1));
             noalias(A2) = prod(T_k1,p_k);
-            noalias(A) += mPenaltyTangent*prod(A1, A2);
 
+            // Finally we add the contributiosn to our local system (A, b)
+            noalias(A) += mPenaltyTangent*prod(A1, A2);
             noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k))*i_neighbour_node.GetValue(CONTACT_PRESSURE);
         }
     }
@@ -591,9 +603,9 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     for (IndexType i=0; i<SigmaSize*(TDim + 1); ++i)
         coeff_matrix(i, 0) = coeff[i];
     
+    // Asssign the stress recovered
     noalias(sigma) = prod(p_k, coeff_matrix);
-
-    rSigmaRecovered = row(sigma,0);
+    noalias(rSigmaRecovered) = row(sigma,0);
     
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 1) <<" Recovered pressure: "<< prod(N_k,sigma) <<", LM: "<<itNode->GetValue(CONTACT_PRESSURE)<<std::endl;
 }
@@ -606,11 +618,13 @@ void SPRMetricProcess<TDim>::ComputeElementSize(ElementItType itElement)
 {
     auto& this_geometry = itElement->GetGeometry(); 
     
+    // Here we compute the element size. This process is designed for triangles and tetrahedra, so we only specify for this geometries. Otherwise we take the length (and we throw a warning)
     if (this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3){ // Triangular elements
         itElement->SetValue(ELEMENT_H, 2.0 * this_geometry.Circumradius());
     } else if(this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){ // Tetrahedral elements
         itElement->SetValue(ELEMENT_H,std::pow(12.0 * this_geometry.Volume()/std::sqrt(2.0), 1.0/3.0));
     } else { // In any othe case just considers the length of the element
+        KRATOS_WARNING("SPRMetricProcess") << "This process is designed for tetrahedra (3D) and triangles (2D). Error expected" << std::endl;
         itElement->SetValue(ELEMENT_H, this_geometry.Length());
     }
 }
