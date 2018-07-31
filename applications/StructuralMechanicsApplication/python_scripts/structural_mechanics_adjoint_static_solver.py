@@ -84,6 +84,15 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         else:
             super(StructuralMechanicsAdjointStaticSolver, self).Solve()
 
+
+    def InitializeSolutionStep(self):
+        super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
+        self.response_function.InitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
+        self.response_function.FinalizeSolutionStep()
+
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
             self._SolveSolutionStepSpecialLinearStrainEnergy()
