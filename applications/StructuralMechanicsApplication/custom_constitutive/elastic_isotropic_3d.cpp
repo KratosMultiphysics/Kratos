@@ -200,10 +200,10 @@ int ElasticIsotropic3D::Check(
     KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = static_cast<bool>((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
-    KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;;
+    KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;
 
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is invalid value " << std::endl;;
+    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is invalid value " << std::endl;
 
     return 0;
 }
