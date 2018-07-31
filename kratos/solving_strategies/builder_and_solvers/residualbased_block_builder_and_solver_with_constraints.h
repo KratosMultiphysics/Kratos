@@ -111,6 +111,15 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     typedef AuxilaryGlobalMasterSlaveRelation AuxilaryGlobalMasterSlaveRelationType;
 
     typedef PointerVectorSet<AuxilaryGlobalMasterSlaveRelationType, IndexedObject> GlobalMasterSlaveRelationContainerType;
+
+
+/*    typedef PointerVectorSet<
+		            AuxilaryGlobalMasterSlaveRelationType,
+		            IndexedObject,
+		            std::less<typename SetIdentityFunction<AuxilaryGlobalMasterSlaveRelationType>::result_type>,
+		            std::equal_to<typename SetIdentityFunction<AuxilaryGlobalMasterSlaveRelationType>::result_type>,
+		            Kratos::unique_ptr<AuxilaryGlobalMasterSlaveRelationType> > GlobalMasterSlaveRelationContainerType ;*/
+
     typedef std::vector<IndexType> EquationIdVectorType;
     typedef std::vector<IndexType> VectorIndexType;
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
@@ -864,10 +873,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // of RHS constribution. Later on lhs_contribution is modified to apply the constraint.
         // rhs_h =  T'*(rhs - K*g)
         VectorType temp_vec = ( rhs_contribution - prod(lhs_contribution, constant_vector_local) );
-        (rhs_contribution) = prod( trans(transformation_matrix_local), temp_vec );
+        noalias(rhs_contribution) = prod( trans(transformation_matrix_local), temp_vec );
         // lhs_h = T'*K*T
         MatrixType temp_mat = prod(lhs_contribution, transformation_matrix_local);
-        (lhs_contribution) = prod( trans(transformation_matrix_local),  temp_mat);
+        noalias(lhs_contribution) = prod( trans(transformation_matrix_local),  temp_mat);
         // rhs_h(s,s) = rhs(s,s) : that is reassigning the slave part of the matrix back. We do not modify the (slave, slave) block
         // this is to facilitate the solution of the linear system of equation.
         for (auto &slave_index : local_slave_index_vector)
@@ -885,8 +894,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (auto &slave_index : local_slave_index_vector)
             rhs_contribution(slave_index) = 0.0;
 
-        (rLHSContribution) = lhs_contribution;
-        (rRHSContribution) = rhs_contribution;
+        rLHSContribution.resize(rEquationIds.size(), rEquationIds.size());
+        rRHSContribution.resize(rEquationIds.size());
+        noalias(rLHSContribution) = lhs_contribution;
+        noalias(rRHSContribution) = rhs_contribution;
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
     }
