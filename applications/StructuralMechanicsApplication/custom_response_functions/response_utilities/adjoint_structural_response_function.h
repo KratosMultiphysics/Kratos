@@ -6,8 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
-//   
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
 
 #ifndef ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
 #define ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
@@ -54,7 +54,7 @@ public:
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
     typedef std::size_t IndexType;
-    
+
     typedef std::size_t SizeType;
 
     ///@}
@@ -84,9 +84,9 @@ public:
 
     virtual void Initialize();
 
-    virtual void InitializeSolutionStep();
+    virtual void InitializeSolutionStep(){};
 
-    virtual void FinalizeSolutionStep();
+    virtual void FinalizeSolutionStep(){};
 
     virtual void Check();
 
@@ -148,25 +148,25 @@ protected:
     template <typename TDataType>
     void UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
 
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem, 
+    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
                                               ProcessInfo& rProcessInfo);
 
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition, 
+    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
                                               ProcessInfo& rProcessInfo);
 
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem, 
+    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
                                               ProcessInfo& rProcessInfo);
 
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition, 
+    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -196,8 +196,8 @@ protected:
                                               Vector const& rSensitivityVector,
                                               Element::GeometryType& rGeom);
 
-    void ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables, 
-        std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings); 
+    void ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables,
+        std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings);
     ///@}
 
 private:
@@ -217,12 +217,12 @@ private:
 
     ///@}
     ///@name Private Operators
-    ///@{  
+    ///@{
 
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     ///@}
 };
 

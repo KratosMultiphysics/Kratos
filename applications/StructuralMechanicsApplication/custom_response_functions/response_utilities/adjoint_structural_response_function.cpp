@@ -91,17 +91,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStructuralResponseFunction::InitializeSolutionStep(){}
-
-    void AdjointStructuralResponseFunction::FinalizeSolutionStep()
-    {
-        KRATOS_TRY;
-
-        this->UpdateSensitivities();
-
-        KRATOS_CATCH("");
-    }
-
     void AdjointStructuralResponseFunction::Check()
     {
         KRATOS_TRY;
