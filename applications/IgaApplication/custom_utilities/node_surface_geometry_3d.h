@@ -37,6 +37,7 @@ protected:
     using NodePointer = typename Node<3>::Pointer;
 
 public:
+    using NodeType = Node<3>;
     using SurfaceGeometryBaseType = SurfaceGeometryBase<double,
         Kratos::array_1d<double, 3>>;
     using typename SurfaceGeometryBaseType::KnotsType;
@@ -113,7 +114,7 @@ public:
         const int IndexU,
         const int IndexV) const override
     {
-        const Kratos::Node<3>& node = *Node(IndexU, IndexV);
+        const NodeType& node = *Node(IndexU, IndexV);
 
         VectorType pole;
         for (size_t i = 0; i < 3; i++) {
@@ -134,7 +135,7 @@ public:
         const int IndexV,
         const VectorType& Value) override
     {
-        Kratos::Node<3>& node = *Node(IndexU, IndexV);
+        NodeType& node = *Node(IndexU, IndexV);
 
         VectorType pole;
         for (size_t i = 0; i < 3; i++) {
@@ -162,7 +163,7 @@ public:
         const int IndexU,
         const int IndexV) const override
     {
-        const Kratos::Node<3>& node = *Node(IndexU, IndexV);
+        const NodeType& node = *Node(IndexU, IndexV);
 
         return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
     }
@@ -178,7 +179,7 @@ public:
         const int IndexV,
         const ScalarType Value) override
     {
-        Kratos::Node<3>& node = *Node(IndexU, IndexV);
+        NodeType& node = *Node(IndexU, IndexV);
 
         node.SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
     }

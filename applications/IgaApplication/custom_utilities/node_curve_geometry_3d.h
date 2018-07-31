@@ -37,6 +37,7 @@ protected:
     using NodePointer = typename Node<3>::Pointer;
 
 public:
+    using NodeType = Node<3>;
     using CurveGeometryBaseType = ANurbs::CurveGeometryBase<double,
         Kratos::array_1d<double, 3>>;
     using typename CurveGeometryBaseType::KnotsType;
@@ -100,7 +101,7 @@ public:
     VectorType Pole(
         const int Index) const override
     {
-        const Kratos::Node<3>& node = *Node(Index);
+        const NodeType& node = *Node(Index);
  
         VectorType pole;
         for (size_t i = 0; i < 3; i++) {
@@ -119,7 +120,7 @@ public:
         const int Index,
         const VectorType& Value) override
     {
-        Kratos::Node<3>& node = *Node(Index);
+        NodeType& node = *Node(Index);
 
         for (size_t i = 0; i < 3; i++) {
             node[i] = Value[i];
@@ -144,7 +145,7 @@ public:
     ScalarType Weight(
         const int Index) const override
     {
-        const Kratos::Node<3>& node = *Node(Index);
+        const NodeType& node = *Node(Index);
  
         return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
     }
@@ -158,7 +159,7 @@ public:
         const int Index,
         const ScalarType Value) override
     {
-        Kratos::Node<3>& node = *Node(Index);
+        NodeType& node = *Node(Index);
 
         node.SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
     }
