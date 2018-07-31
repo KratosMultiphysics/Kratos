@@ -14,12 +14,11 @@
 #define AUXILARY_GLOBAL_MASTER_SLAVE_RELATION
 // System includes
 #include <vector>
-#include <mutex>
-#include <atomic>
 // project includes
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
+#include "includes/lock_object.h"
 
 
 namespace Kratos
@@ -72,22 +71,26 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief Function to set the lefthand side of the constraint (the slave dof value)
      * @param LhsValue the value of the lhs (the slave dof value)
      */
-    void SetLHSValue(double const &LhsValue)
+    void SetLHSValue(const double& LhsValue)
     {
-        mLhsValue = LhsValue;
+        mLockObject.SetLock();
+            mLhsValue = LhsValue;
+        mLockObject.UnSetLock();
     }
 
     /**
      * @brief Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
      * @param RHSValue the value of the lhs (the slave dof value)
      */
-    void SetRHSValue(const double &RhsValue)
+    void SetRHSValue(const double& RhsValue)
     {
         mRhsValue = RhsValue;
     }
     void UpdateRHSValue(const double RhsValueUpdate)
     {
-        mRhsValue = mRhsValue + RhsValueUpdate;
+        mLockObject.SetLock();
+            mRhsValue = mRhsValue + RhsValueUpdate;
+        mLockObject.UnSetLock();
     }
 
     // Get number of masters for this slave
@@ -100,8 +103,8 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief this determines the master equation IDs connected to this constraint
      * @param rResult the elemental equation ID vector
      */
-    virtual void EquationIdVector(IndexType &rSlaveEquationId,
-                                  EquationIdVectorType &rMasterEquationIds)
+    virtual void EquationIdVector(IndexType& rSlaveEquationId,
+                                  EquationIdVectorType& rMasterEquationIds)
     {
         if (rMasterEquationIds.size() != 0 || rMasterEquationIds.size() == 0)
             rMasterEquationIds.resize(this->GetNumberOfMasters(), false);
@@ -133,7 +136,8 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
             rMasterWeightsVector(i) = mMasterWeightsVector[i];
 
 
-        mConstant = mRhsValue - mLhsValue;
+        #pragma omp atomic
+            mConstant = mRhsValue - mLhsValue;
         rConstant = mConstant;
     }
 
@@ -153,19 +157,19 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 
     void Clear()
     {
-        mMtx.lock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
+        mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
             //clearing the contents
             mMasterEquationIdVector.clear();
             mMasterWeightsVector.clear();
             //shrinking the memory
             mMasterEquationIdVector.shrink_to_fit();
             mMasterWeightsVector.shrink_to_fit();
-        mMtx.unlock(); // unlocking
+        mLockObject.UnSetLock(); // unlocking
     }
 
     void AddMaster(IndexType MasterEquationId, double Weight)
     {
-        mMtx.lock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
+        mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
             int index = MasterEquationIdExists(MasterEquationId);
             if (index > 0)
             {
@@ -175,7 +179,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
                 mMasterEquationIdVector.push_back(MasterEquationId);
                 mMasterWeightsVector.push_back(Weight);
             }
-        mMtx.unlock(); // unlocking
+        mLockObject.UnSetLock(); // unlocking
     }
 
   private:
@@ -212,8 +216,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     std::vector<double> mMasterWeightsVector;
 
     std::atomic<double> mConstant;
-
-    std::mutex mMtx;
+    LockObject mLockObject;
 
 }; // End of ConstraintEquation class
 
