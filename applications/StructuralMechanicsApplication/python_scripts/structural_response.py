@@ -296,7 +296,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
         startTime = timer.time()
         self.adjoint_analysis._GetSolver().Predict()
         self.adjoint_analysis._GetSolver().SolveSolutionStep()
-        self._GetResponseFunctionUtility().UpdateSensitivities()
         print("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
 
