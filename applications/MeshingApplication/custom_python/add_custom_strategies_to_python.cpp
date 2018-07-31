@@ -13,8 +13,6 @@
 // System includes
 
 // External includes
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -54,7 +52,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom scheme types
 
     // Custom convergence criterion types
+#ifdef INCLUDE_MMG
     typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
+#endif
     
     // Custom builder and solvers types
     
@@ -70,10 +70,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
-    // Displacement Convergence Criterion
-    class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria") 
-            .def(init<ModelPart&, Parameters>())
-            ;
+    // Error mesh Convergence Criterion
+#ifdef INCLUDE_MMG
+    class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria")
+        .def(init<Parameters>())
+        ;
+#endif
             
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
