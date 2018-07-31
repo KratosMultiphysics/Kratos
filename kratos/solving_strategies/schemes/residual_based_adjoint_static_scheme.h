@@ -24,7 +24,7 @@
 #include "includes/ublas_interface.h"
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/response_functions/response_function.h"
+#include "response_functions/adjoint_response_function.h"
 
 namespace Kratos
 {
@@ -68,7 +68,7 @@ public:
     ///@{
 
     /// Constructor.
-    ResidualBasedAdjointStaticScheme(ResponseFunction::Pointer pResponseFunction)
+    ResidualBasedAdjointStaticScheme(AdjointResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         mpResponseFunction = pResponseFunction;
@@ -95,7 +95,6 @@ public:
         KRATOS_TRY;
 
         BaseType::Initialize(rModelPart);
-        mpResponseFunction->Initialize(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -108,7 +107,6 @@ public:
         KRATOS_TRY;
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-        mpResponseFunction->InitializeSolutionStep(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -121,7 +119,6 @@ public:
         KRATOS_TRY;
 
         BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-        mpResponseFunction->FinalizeSolutionStep(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -165,8 +162,6 @@ public:
             // reduce communication here.
             r_comm.SynchronizeNodalSolutionStepsData();
         }
-
-        mpResponseFunction->UpdateSensitivities(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -277,7 +272,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ResponseFunction::Pointer mpResponseFunction;
+    AdjointResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
 
     ///@}

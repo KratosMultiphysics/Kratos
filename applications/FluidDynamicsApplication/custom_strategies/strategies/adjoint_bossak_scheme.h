@@ -26,7 +26,7 @@
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
-#include "solving_strategies/response_functions/response_function.h"
+#include "response_functions/adjoint_response_function.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -64,7 +64,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointBossakScheme(Parameters& rParameters, ResponseFunction::Pointer pResponseFunction)
+    AdjointBossakScheme(Parameters& rParameters, AdjointResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY;
@@ -136,8 +136,6 @@ public:
             }
         }
 
-        mpResponseFunction->Initialize(rModelPart);
-
         InitializeNodeNeighbourCount(rModelPart.Nodes());
 
         KRATOS_CATCH("");
@@ -185,8 +183,6 @@ public:
         }
 
         rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-
-        mpResponseFunction->InitializeSolutionStep(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -261,8 +257,6 @@ public:
 //         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_FLUID_VECTOR_1);
-
-        mpResponseFunction->FinalizeSolutionStep(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -420,8 +414,6 @@ public:
 
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_2);
         rModelPart.GetCommunicator().AssembleCurrentData(ADJOINT_FLUID_VECTOR_3);
-
-        mpResponseFunction->UpdateSensitivities(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -636,7 +628,7 @@ private:
     double mInvDt;
     double mInvGamma;
     double mInvGammaMinusOne;
-    ResponseFunction::Pointer mpResponseFunction;
+    AdjointResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValuesVector;
     std::vector<LocalSystemVectorType> mAdjointFirstDerivsVector;
     std::vector<LocalSystemVectorType> mAdjointSecondDerivsVector;

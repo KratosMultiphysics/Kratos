@@ -286,17 +286,17 @@ namespace Kratos
 
         class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, BaseSchemeType>
             (m, "ResidualBasedAdjointStaticScheme")
-            .def( init<ResponseFunction::Pointer>())
+            .def( init<AdjointResponseFunction::Pointer>())
             ;
 
         class_<ResidualBasedAdjointSteadySchemeType, typename  ResidualBasedAdjointSteadySchemeType::Pointer, ResidualBasedAdjointStaticSchemeType>
             (m,"ResidualBasedAdjointSteadyScheme")
-            .def(init<ResponseFunction::Pointer>())
+            .def(init<AdjointResponseFunction::Pointer>())
             ;
 
         class_<ResidualBasedAdjointBossakSchemeType, typename ResidualBasedAdjointBossakSchemeType::Pointer, ResidualBasedAdjointStaticSchemeType>
             (m, "ResidualBasedAdjointBossakScheme")
-            .def(init<Kratos::Parameters&, ResponseFunction::Pointer>())
+            .def(init<Kratos::Parameters&, AdjointResponseFunction::Pointer>())
             ;
 
             //********************************************************************

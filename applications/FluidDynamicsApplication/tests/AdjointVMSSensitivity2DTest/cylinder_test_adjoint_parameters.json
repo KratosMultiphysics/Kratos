@@ -39,12 +39,15 @@
         },
         "response_function_settings" : {
             "response_type"            : "drag",
-            "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
                 "structure_model_part_name" : "NoSlip2D_Cylinder",
-                "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
+        },
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name": "NoSlip2D_Cylinder",
+            "nodal_sensitivity_variables": ["SHAPE_SENSITIVITY"],
+            "integrate_in_time": true
         },
         "dynamic_tau"                  : 1.0,
         "oss_switch"                   : 0,

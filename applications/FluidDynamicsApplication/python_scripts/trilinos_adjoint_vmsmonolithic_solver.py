@@ -33,6 +33,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             "response_function_settings" : {
                 "response_type" : "drag"
             },
+            "sensitivity_settings" : {},
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -123,13 +124,15 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.response_function = FluidDynamicsApplication.DragResponseFunction2D(self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction2D(self.settings["response_function_settings"], self.main_model_part)
             elif (domain_size == 3):
-                self.response_function = FluidDynamicsApplication.DragResponseFunction3D(self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction3D(self.settings["response_function_settings"], self.main_model_part)
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
+
+        self.sensitivity_builder = FluidDynamicsApplication.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
 
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
             self.time_scheme = TrilinosApplication.TrilinosAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
@@ -158,12 +161,13 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        (self.solver).Initialize()
-
         (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
+        (self.solver).Initialize()
+        (self.response_function).Initialize()
+        (self.sensitivity_builder).Initialize()
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Monolithic MPI solver initialization finished.")
