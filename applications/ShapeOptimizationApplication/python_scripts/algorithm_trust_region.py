@@ -492,9 +492,6 @@ class Projector():
         # Store some working variables
         self.len_eqs = len_eqs
         self.len_ineqs = len_ineqs
-        self.dir_obj = dir_obj
-        self.dir_eqs = dir_eqs
-        self.dir_ineqs = dir_ineqs
         self.subopt_max_itr = settings["subopt_max_itr"].GetInt()
         self.subopt_tolerance = settings["subopt_tolerance"].GetDouble()
         self.num_eqs = len(len_eqs)
@@ -504,11 +501,9 @@ class Projector():
         self.ortho_basis = self.__PerformGramSchmidtOrthogonalization(dir_obj, dir_eqs, dir_ineqs)
 
         # Transform directions to orthogonal space since they don't change with different projections
-        dir_HS = HorzCat(dir_obj, dir_ineqs)
-        dir_HP = dir_eqs
-
-        self.dir_HS_o = TranslateToNewBasis(dir_HS, self.ortho_basis)
-        self.dir_HP_o = TranslateToNewBasis(dir_HP, self.ortho_basis)
+        self.dir_obj_o = TranslateToNewBasis(dir_obj, self.ortho_basis)
+        self.dir_eqs_o = TranslateToNewBasis(dir_eqs, self.ortho_basis)
+        self.dir_ineqs_o = TranslateToNewBasis(dir_ineqs, self.ortho_basis)
 
     # --------------------------------------------------------------------------
     def RunProjection(self, len_obj, threshold, nargout):
@@ -517,14 +512,10 @@ class Projector():
         len_obj, len_eqs, len_ineqs = self.__AdjustHalfSpaces(len_obj, threshold)
 
         # Determine position of border of halfspaces and hyperplanes
-        pos_HS, pos_HP = self.__DetermineConstraintBorders(len_obj, len_eqs, len_ineqs)
-
-        # Translate to orthogonal basis
-        pos_HS_o = TranslateToNewBasis(pos_HS, self.ortho_basis)
-        pos_HP_o = TranslateToNewBasis(pos_HP, self.ortho_basis)
+        pos_obj_o, pos_eqs_o, pos_ineqs_o = self.__DetermineConstraintBorders(len_obj, len_eqs, len_ineqs)
 
         # Project to adjusted halfspaces (suboptimization)
-        dX_o, subopt_itr, error, exit_code = self.__ProjectToHalfSpaces(pos_HS_o)
+        dX_o, subopt_itr, error, exit_code = self.__ProjectToHalfSpaces(HorzCat(pos_ineqs_o, pos_obj_o), HorzCat(self.dir_ineqs_o, self.dir_obj_o))
 
         # Determine return values
         if exit_code == 0:
@@ -592,23 +583,24 @@ class Projector():
 
     # --------------------------------------------------------------------------
     def __DetermineConstraintBorders(self, len_obj, len_eqs, len_ineqs):
-        pos_HS = []
-        pos_HP = []
+        pos_obj = []
+        pos_eqs = []
+        pos_ineqs = []
 
-        pos_HS.append(ScalarVectorProduct(-len_obj,self.dir_obj))
+        pos_obj.append(ScalarVectorProduct(-len_obj,self.dir_obj_o))
 
         for i in range(self.num_eqs):
-            pos_HP.append(ScalarVectorProduct(-len_eqs[i],self.dir_eqs[i]))
+            pos_eqs.append(ScalarVectorProduct(-len_eqs[i],self.dir_eqs_o[i]))
 
         for i in range(self.num_ineqs):
-            pos_HS.append(ScalarVectorProduct(-len_ineqs[i],self.dir_ineqs[i]))
+            pos_ineqs.append(ScalarVectorProduct(-len_ineqs[i],self.dir_ineqs_o[i]))
 
-        return pos_HS, pos_HP
+        return pos_obj, pos_eqs, pos_ineqs
 
     # --------------------------------------------------------------------------
-    def __ProjectToHalfSpaces(self, pos_HS_o):
-        A = Trans(self.dir_HS_o)
-        b = [ Dot(pos_HS_o[i],self.dir_HS_o[i]) for i in range(RowSize(A)) ]
+    def __ProjectToHalfSpaces(self, pos_hss, dir_hss):
+        A = Trans(dir_hss)
+        b = [ Dot(pos_hss[i],dir_hss[i]) for i in range(RowSize(A)) ]
 
         dX_o, subopt_itr, error, exit_code = QuadProg(A, b, self.subopt_max_itr, self.subopt_tolerance)
 
