@@ -104,7 +104,7 @@ public:
         const NodeType& node = *Node(Index);
  
         VectorType pole;
-        for (size_t i = 0; i < 3; i++) {
+        for (std::size_t i = 0; i < 3; i++) {
             pole[i] = node[i];
         }
  
@@ -122,7 +122,7 @@ public:
     {
         NodeType& node = *Node(Index);
 
-        for (size_t i = 0; i < 3; i++) {
+        for (std::size_t i = 0; i < 3; i++) {
             node[i] = Value[i];
         }
     }
