@@ -79,7 +79,7 @@ J. Z. Zhu, and extended for contact mechanics. In the papers:
  * @author Anna Rehr
  */
 template<SizeType TDim>
-class SPRMetricProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SPRMetricProcess
     : public Process
 {
 public:
