@@ -15,8 +15,90 @@ from __future__ import print_function, absolute_import, division
 import math
 
 # ==============================================================================
+def SafeConvertVectorToMatrix(_L):
+    if IsVector(_L):
+        return [_L]
+    else:
+        return _L
+
+# ------------------------------------------------------------------------------
+def IsVector(_X):
+    if len(_X)==0 or isinstance(_X[0],(float,int)):
+        return True
+    else:
+        return False
+
+# ------------------------------------------------------------------------------
+def IsEmpty(_A):
+    _A = SafeConvertVectorToMatrix(_A)
+
+    if len(_A)==0 or len(_A[0])==0:
+        return True
+    return False
+
+# ------------------------------------------------------------------------------
+def Zeros(n):
+    return [0.0 for i in range(n)]
+
+# ------------------------------------------------------------------------------
+def Ones(n):
+    return [1.0 for i in range(n)]
+
+# ------------------------------------------------------------------------------
+def RowSize(_A):
+    _A = SafeConvertVectorToMatrix(_A)
+
+    if len(_A)==0:
+        return 0
+    return len(_A[0])
+
+# ------------------------------------------------------------------------------
+def CollSize(_A):
+    _A = SafeConvertVectorToMatrix(_A)
+
+    return len(_A)
+
+# ------------------------------------------------------------------------------
+# horizontal concatenation
+def HorzCat(_A,_B):
+    _A = SafeConvertVectorToMatrix(_A)
+    _B = SafeConvertVectorToMatrix(_B)
+
+    if IsEmpty(_B):
+        return _A
+    if IsEmpty(_A):
+        return _B
+
+    return _A+_B
+
+# ------------------------------------------------------------------------------
+# vertical concatenation
+def VertCat(_A,_B):
+    _A = SafeConvertVectorToMatrix(_A)
+    _B = SafeConvertVectorToMatrix(_B)
+
+    if IsEmpty(_B):
+        return _A
+    if IsEmpty(_A):
+        return _B
+
+    coll_size_A = CollSize(_A)
+    coll_size_B = CollSize(_B)
+
+    if coll_size_A!=coll_size_B:
+        raise ValueError("custom_math::VertCat: Wrong size in vertical concatenation detected!")
+
+    _C = []
+    for i in range(coll_size_A):
+        _C.append(_A[i]+_B[i])
+
+    if CollSize(_C) == 1:
+        return _C[0]
+    else:
+        return _C
+
+# ------------------------------------------------------------------------------
 def Norm2(_X):
-    _X = SafeConvertMatrixToVector(_X)
     temp_vec = [x**2 for x in _X]
     temp_sum = sum(temp_vec)
     return math.sqrt(temp_sum)
@@ -29,11 +111,6 @@ def NormInf3D(_X):
 
 # ------------------------------------------------------------------------------
 def Dot(_X, _Y):
-    _X = SafeConvertDoubleToVector(_X)
-    _Y = SafeConvertDoubleToVector(_Y)
-    _X = SafeConvertMatrixToVector(_X)
-    _Y = SafeConvertMatrixToVector(_Y)
-
     if len(_X) != len(_Y):
         raise RuntimeError("custom_math::Dot: Dot product to be computed but _X and _Y do not have the same dimension!")
     return sum( [_X[i]*_Y[i] for i in range(len(_X))] )
@@ -75,7 +152,6 @@ def Prod(_A,_B):
         return result
 
 # ------------------------------------------------------------------------------
-# Elementwise product
 def ElemwiseProd(_X,_Y):
     if len(_X)!=len(_Y):
         raise ValueError("custom_math::ElemwiseProd: Wrong size of input vectors!")
@@ -84,118 +160,32 @@ def ElemwiseProd(_X,_Y):
 # ------------------------------------------------------------------------------
 def Trans(_A):
     _A = SafeConvertVectorToMatrix(_A)
+
     if IsEmpty(_A):
         return []
     return list(map(list, zip(*_A)))
-
-# ------------------------------------------------------------------------------
-def RowSize(_A):
-    if len(_A)==0:
-        return 0
-    return len(_A[0])
-
-# ------------------------------------------------------------------------------
-def CollSize(_A):
-    return len(_A)
-
 # ------------------------------------------------------------------------------
 def Minus(_X,_Y):
     return [ _X[i]-_Y[i] for i in range(len(_X))]
 
 # ------------------------------------------------------------------------------
-# horizontal concatenation
-def HorzCat(_A,_B):
+def TranslateToNewBasis(_A, basis):
     _A = SafeConvertVectorToMatrix(_A)
-    _B = SafeConvertVectorToMatrix(_B)
 
-    if IsEmpty(_B):
-        return _A
     if IsEmpty(_A):
-        return _B
-
-    return _A+_B
-
-# ------------------------------------------------------------------------------
-# vertical concatenation
-def VertCat(_A,_B):
-    _A = SafeConvertVectorToMatrix(_A)
-    _B = SafeConvertVectorToMatrix(_B)
-    if IsEmpty(_B):
-        return _A
-    if IsEmpty(_A):
-        return _B
-
-    coll_size_A = CollSize(_A)
-    coll_size_B = CollSize(_B)
-
-    if coll_size_A!=coll_size_B:
-        raise ValueError("custom_math::VertCat: Wrong size in vertical concatenation detected!")
-
-    _C = []
-    for i in range(coll_size_A):
-        _C.append(_A[i]+_B[i])
-
-    if CollSize(_C) == 1:
-        return _C[0]
-    else:
-        return _C
-
-# ------------------------------------------------------------------------------
-def SafeConvertDoubleToVector(_X):
-    if isinstance(_X,float):
-        return [_X]
-    else:
-        if IsVector(_X):
-            return _X
-        else:
-            raise ValueError("custom_math::SafeConvertDoubleToVector: No safe conversion possible.")
-
-# ------------------------------------------------------------------------------
-def SafeConvertVectorToMatrix(_X):
-    if IsVector(_X):
-        return [_X]
-    return _X
-
-# ------------------------------------------------------------------------------
-def SafeConvertMatrixToVector(_A):
-    if IsVector(_A):
-        return _A
-    if CollSize(_A)>1:
-        raise ValueError("custom_math::SafeConvertMatrixToVector: No safe conversion possible.")
-    return _A[0]
-
-# ------------------------------------------------------------------------------
-def IsEmpty(_A):
-    if len(_A)==0 or len(_A[0])==0:
-        return True
-    return False
-
-# ------------------------------------------------------------------------------
-def IsVector(_X):
-    if len(_X)==0 or isinstance(_X[0],(float,int)):
-        return True
-    else:
-        return False
-
-# ------------------------------------------------------------------------------
-def TranslateToNewBasis(_X, basis):
-    if IsEmpty(_X):
         return []
 
     trans_basis = Trans(basis)
-    return Prod(trans_basis,_X)
+    return Prod(trans_basis,_A)
 
 # ------------------------------------------------------------------------------
-def TranslateToOriginalBasis(_X, basis):
-    return Prod(basis,_X)
+def TranslateToOriginalBasis(_A, basis):
+    _A = SafeConvertVectorToMatrix(_A)
 
-# ------------------------------------------------------------------------------
-def Zeros(n):
-    return [0.0 for i in range(n)]
+    if IsEmpty(_A):
+        return []
 
-# ------------------------------------------------------------------------------
-def Ones(n):
-    return [1.0 for i in range(n)]
+    return Prod(basis,_A)
 
 # ------------------------------------------------------------------------------
 def SolveLinearSystem(A,b):

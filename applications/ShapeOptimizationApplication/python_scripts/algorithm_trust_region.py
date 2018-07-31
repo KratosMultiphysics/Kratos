@@ -17,7 +17,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 from algorithm_base import OptimizationAlgorithm
-from custom_math import NormInf3D, Dot, ScalarVectorProduct, Norm2, RowSize, CollSize, HorzCat, Minus, TranslateToNewBasis, TranslateToOriginalBasis, Trans, QuadProg, Prod, PerformBisectioning, SafeConvertVectorToMatrix
+from custom_math import NormInf3D, Dot, ScalarVectorProduct, Norm2, RowSize, CollSize, HorzCat, Minus, TranslateToNewBasis, TranslateToOriginalBasis, Trans, QuadProg, Prod, PerformBisectioning
 from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteNodeCoordinatesToList, WriteListToNodalVariable
 from custom_timer import Timer
 import mapper_factory
