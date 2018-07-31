@@ -49,15 +49,15 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
         import assign_scalar_variable_process
 
         # loop over components X, Y and Z
-        for variable_i in enumerate(["_X", "_Y", "_Z"]):
-            if(not settings["value"][variable_i[0]].IsNull()):
+        for indice,variable in enumerate(["_X", "_Y", "_Z"]):
+            if(not settings["value"][indice].IsNull()):
                 i_params = KratosMultiphysics.Parameters("{}")
                 i_params.AddValue("model_part_name",settings["model_part_name"])
                 i_params.AddValue("mesh_id",settings["mesh_id"])
-                i_params.AddEmptyValue("constrained").SetBool(settings["constrained"][variable_i[0]].GetBool())
+                i_params.AddEmptyValue("constrained").SetBool(settings["constrained"][indice].GetBool())
                 i_params.AddValue("interval",settings["interval"])
-                i_params.AddValue("value",settings["value"][variable_i[0]])
-                i_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + variable_i[1])
+                i_params.AddValue("value",settings["value"][indice])
+                i_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + variable)
                 i_params.AddValue("local_axes",settings["local_axes"])
                 self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, i_params) )
 
