@@ -272,12 +272,9 @@ class AdjointResponseFunction(ResponseFunctionBase):
         # TODO if primal_analysis.status==solved: return
         print("\n> Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
-        self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
-        self.primal_analysis.InitializeSolutionStep()
-        self.primal_analysis._GetSolver().Predict()
-        self.primal_analysis._GetSolver().SolveSolutionStep()
-        self.primal_analysis.FinalizeSolutionStep()
-        self.primal_analysis.OutputSolutionStep()
+        if not self.primal_analysis.time < self.primal_analysis.end_time:
+            self.primal_analysis.end_time += 1
+        self.primal_analysis.RunSolutionLoop()
         print("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
         # TODO the response value calculation for stresses currently only works on the adjoint modelpart
@@ -299,8 +296,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
         startTime = timer.time()
         self.adjoint_analysis._GetSolver().Predict()
         self.adjoint_analysis._GetSolver().SolveSolutionStep()
-        self.adjoint_analysis.FinalizeSolutionStep()
-        self.adjoint_analysis.OutputSolutionStep()
+        self._GetResponseFunctionUtility().UpdateSensitivities()
         print("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
 
@@ -316,8 +312,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
 
     def FinalizeSolutionStep(self):
-        # TODO reset DISPLACEMENT, ROTATION ADJOINT_DISPLACEMENT and ADJOINT_ROTATION
-        pass
+        self.adjoint_analysis.FinalizeSolutionStep()
+        self.adjoint_analysis.OutputSolutionStep()
 
 
     def Finalize(self):
@@ -342,102 +338,14 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Z = primal_node.Z
 
 # ==============================================================================
-class AdjointLinearStrainEnergyResponse(ResponseFunctionBase):
-    """Linear static adjoint response function.
-    - runs the primal analysis (writes the primal results to an .h5 file)
-    - reads the primal results from the .h5 file into the adjoint model part
-    - uses primal results to calculate value
-    - uses primal results to calculate gradient
-
-    Note: because of the special property of the adjoint strain energy response,
-    NO adjoint solution is necessary. This is why there is no adjoint solver and
-    the response function utility is owned by this class. Except from that it
-    works the same as 'AdjointResponseFunction'.
-
-    Attributes
-    ----------
-    primal_analysis : Primal analysis object of the response function
-    response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
-    """
+class AdjointLinearStrainEnergyResponse(AdjointResponseFunction):
     def __init__(self, identifier, project_parameters, model_part):
-        self.identifier = identifier
-        self.response_function_utility = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction( model_part, project_parameters )
-
-        model = Model()
-        model.AddModelPart(model_part)
-        self.primal_model_part = model_part
-
-        # Create the primal solver
-        with open(project_parameters["primal_settings"].GetString()) as parameters_file:
-            self.ProjectParametersPrimal = Parameters(parameters_file.read())
-        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, self.ProjectParametersPrimal)
-
-        self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
-
-        # Add variables to save the solution of the adjoint problem
-        self.primal_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
-        if self.ProjectParametersPrimal["solver_settings"]["rotation_dofs"].GetBool():
-            self.primal_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
-        self.primal_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
-
-        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = False
-
-    def Initialize(self):
-        self.primal_analysis.Initialize()
-
-    def InitializeSolutionStep(self):
-        print("\n> Starting primal analysis for response:", self.identifier)
-        startTime = timer.time()
-        self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
-        self.primal_analysis.InitializeSolutionStep()
-        self.primal_analysis._GetSolver().Predict()
-        self.primal_analysis._GetSolver().SolveSolutionStep()
-        self.primal_analysis.FinalizeSolutionStep()
-        self.primal_analysis.OutputSolutionStep()
-        print("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+        super(AdjointLinearStrainEnergyResponse, self).__init__(identifier, project_parameters, model_part)
 
     def CalculateValue(self):
         startTime = timer.time()
-        value = self.response_function_utility.CalculateValue(self.primal_model_part)
+        #The linear strain energy response needs the primal model part to calculate the response value!
+        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
         print("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
-
-    def CalculateGradient(self):
-        # Replace elements and conditions by its adjoint equivalents
-        self.__PerformReplacementProcess()
-        self.response_function_utility.Initialize()
-
-        # 'Solve' the adjoint problem
-        for node in self.primal_model_part.Nodes:
-            adjoint_displacement = 0.5 * node.GetSolutionStepValue(DISPLACEMENT)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement)
-            if self.primal_analysis._GetSolver().settings["rotation_dofs"].GetBool():
-                adjoint_rotation = 0.5 * node.GetSolutionStepValue(ROTATION)
-                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation)
-
-        # Compute Sensitivities in a post-processing step
-        self.response_function_utility.FinalizeSolutionStep()
-
-        # Replace elements and conditions back to its origins
-        self.__PerformReplacementProcess()
-
-    def GetValue(self):
-        return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
-
-    def GetShapeGradient(self):
-        gradient = {}
-        for node in self.primal_model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
-        return gradient
-
-    def Finalize(self):
-        self.primal_analysis.Finalize()
-
-    def __PerformReplacementProcess(self):
-        if(self.primal_model_part.ProcessInfo[DOMAIN_SIZE] != 3):
-            raise Exception("there are currently only 3D adjoint elements available")
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
-            self.primal_model_part).Execute()
-
-    def _GetResponseFunctionUtility(self):
-        return self.response_function_utility
