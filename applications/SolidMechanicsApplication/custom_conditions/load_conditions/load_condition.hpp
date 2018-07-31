@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_conditions/boundary_condition.hpp"
 #include "includes/variables.h"
+#include "includes/kratos_flags.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 namespace Kratos
@@ -49,7 +50,10 @@ public:
 
     ///@name Type Definitions
     ///@{
-  
+
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+
     // Counted pointer of LoadCondition
     KRATOS_CLASS_POINTER_DEFINITION( LoadCondition );
 
@@ -59,7 +63,7 @@ public:
 
     /// Empty constructor needed for serialization
     LoadCondition();
-  
+
     /// Default constructor.
     LoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
@@ -99,7 +103,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
     //************************************************************************************
@@ -112,7 +116,7 @@ public:
      * @param rCurrentProcessInfo
      */
     virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -129,7 +133,7 @@ public:
 
 protected:
     ///@name Protected static Member Variables
-    ///@{   
+    ///@{
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -142,7 +146,7 @@ protected:
 
     /**
      * Check dof for a vector variable
-     */    
+     */
     bool HasVariableDof(VariableVectorType& rVariable) override
     {
       if(rVariable == ROTATION)
@@ -150,11 +154,11 @@ protected:
       else
         return BoundaryCondition::HasVariableDof(rVariable);
     };
-    
+
     /**
      * Initialize General Variables
      */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -164,7 +168,7 @@ protected:
 
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
@@ -172,7 +176,7 @@ protected:
 
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
 						  ConditionVariables& rVariables,
@@ -223,4 +227,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_LOAD_CONDITION_H_INCLUDED defined

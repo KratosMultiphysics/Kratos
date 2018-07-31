@@ -11,12 +11,6 @@ End Properties
 Begin Properties 3
 End Properties
 Begin Properties 4 // GUI property identifier: Property1
-// GUI material identifier: Steel_AISI1059
- DENSITY 1
- YOUNG_MODULUS 4.32e8
- POISSON_RATIO 0.0
- THICKNESS 0.25
- BODY_FORCE [3] (0.0, 0.0, 0.0)
 End Properties
 
 Begin Nodes // GUI group identifier: shell

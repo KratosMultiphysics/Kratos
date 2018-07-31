@@ -32,6 +32,7 @@
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
 #include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
+#include "custom_processes/set_active_flag_mesher_process.hpp"
 #include "custom_processes/adaptive_time_interval_process.hpp"
 #include "custom_processes/transfer_model_part_elements_process.hpp"
 
@@ -50,29 +51,29 @@ namespace Kratos
 
       using namespace pybind11;
       typedef Process                                         ProcessBaseType;
-      typedef ModelStartEndMeshingProcess     ModelStartEndMeshingProcessType;
+      typedef SettleModelStructureProcess     ModelStartEndMeshingProcessType;
 
 
 
-      class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, ProcessBaseType>
+      class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, MesherProcess>
 	(m, "RecoverVolumeLosses")
-	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
+	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
-      class_<RemoveMeshNodesForFluidsProcess, RemoveMeshNodesForFluidsProcess::Pointer, ProcessBaseType>
+      class_<RemoveMeshNodesForFluidsProcess, RemoveMeshNodesForFluidsProcess::Pointer, MesherProcess>
       	(m, "RemoveMeshNodesForFluids")
-	.def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>());
+	.def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-      class_<GenerateNewNodesBeforeMeshingProcess, GenerateNewNodesBeforeMeshingProcess::Pointer, ProcessBaseType>
+      class_<GenerateNewNodesBeforeMeshingProcess, GenerateNewNodesBeforeMeshingProcess::Pointer, MesherProcess>
       	(m, "GenerateNewNodesBeforeMeshing")
-	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
+	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
-      class_<SelectMeshElementsForFluidsProcess, SelectMeshElementsForFluidsProcess::Pointer, ProcessBaseType>
+      class_<SelectMeshElementsForFluidsProcess, SelectMeshElementsForFluidsProcess::Pointer, MesherProcess>
 	(m, "SelectMeshElementsForFluids")
-	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
+	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
-      class_<InletManagementProcess, InletManagementProcess::Pointer, ProcessBaseType>
+      class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>
       	(m, "InletManagement")
-	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
+	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
       class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>
       	(m, "SetInlet")
@@ -82,10 +83,15 @@ namespace Kratos
 	(m,"SplitElementsProcess")
 	.def(init<ModelPart&, int>());
 
-      class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, ProcessBaseType>
+      class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>
 	(m, "SetActiveFlagProcess")
 	.def(init<ModelPart&, bool, bool, int>());
 
+     class_<SetActiveFlagMesherProcess, SetActiveFlagMesherProcess::Pointer, SetActiveFlagProcess>
+	(m, "SetActiveFlagMesherProcess")
+	.def(init<ModelPart&, bool, bool, int>());
+
+      
       class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, ProcessBaseType>
       	(m, "AdaptiveTimeIntervalProcess")
 	.def(init<ModelPart&, int>());

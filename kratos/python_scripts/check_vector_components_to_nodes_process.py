@@ -16,6 +16,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
 
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"                 : "This process checks analytically from a function the solution (vector) in a set of nodes belonging a certain submodelpart",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",

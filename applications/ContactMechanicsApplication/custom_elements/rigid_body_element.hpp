@@ -5,7 +5,7 @@
 //   Date:                $Date:                  July 2016 $
 //   Revision:            $Revision:                    0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_RIGID_BODY_ELEMENT_H_INCLUDED )
 #define  KRATOS_RIGID_BODY_ELEMENT_H_INCLUDED
@@ -54,7 +54,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyElement
 public:
 
     ///@name Type Definitions
-    ///@{    
+    ///@{
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw                          ConstitutiveLawType;
     ///Pointer type for constitutive laws
@@ -65,14 +65,14 @@ public:
     typedef GeometryData::IntegrationMethod            IntegrationMethod;
     ///Type definition for beam utilities
     typedef BeamMathUtils<double>                      BeamMathUtilsType;
-    ///Type definition for quaternion 
+    ///Type definition for quaternion
     typedef Quaternion<double>                            QuaternionType;
     ///Type for nodes
     typedef Node<3>                                             NodeType;
-    ///Type for nodes container    
+    ///Type for nodes container
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
- 
+
     /// Counted pointer of RigidBodyElement
     KRATOS_CLASS_POINTER_DEFINITION( RigidBodyElement );
 
@@ -106,7 +106,7 @@ protected:
     {
         //section properties
         RigidBodyProperties RigidBody;
- 
+
         Matrix DeltaPosition;
     };
 
@@ -121,8 +121,8 @@ protected:
     struct LocalSystemComponents
     {
     private:
-      
-      //for calculation local system with compacted LHS and RHS 
+
+      //for calculation local system with compacted LHS and RHS
       MatrixType *mpLeftHandSideMatrix;
       VectorType *mpRightHandSideVector;
 
@@ -145,7 +145,7 @@ protected:
       MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
 
       VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
- 
+
     };
 
 
@@ -194,7 +194,7 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-  
+
 
     //************* GETTING METHODS
 
@@ -252,7 +252,7 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize() override;
-  
+
       /**
      * Called at the beginning of each solution step
      */
@@ -306,7 +306,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the second derivatives contributions for the LHS and RHS 
+     * to calculate the second derivatives contributions for the LHS and RHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
@@ -353,7 +353,7 @@ public:
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
@@ -454,18 +454,18 @@ protected:
 
     /**
      * Transform Vector Variable from Global Frame to the Spatial Local Frame
-     */    
+     */
     Vector& MapToInitialLocalFrame(Vector& rVariable);
 
 
     /**
      * Get Current Value, buffer 0 with FastGetSolutionStepValue
-     */    
+     */
     Vector& GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
 
     /**
      * Get Previous Value, buffer 1 with FastGetSolutionStepValue
-     */    
+     */
     Vector& GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
 
 
@@ -479,9 +479,9 @@ protected:
      * Calculation of the Rigid Body Properties
      */
     void CalculateRigidBodyProperties(RigidBodyProperties & rRigidBody);
-  
 
- 
+
+
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
@@ -557,9 +557,9 @@ private:
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const override;
-  
+
     virtual void load(Serializer& rSerializer) override;
-  
+
     ///@name Private Inquiry
     ///@{
     ///@}

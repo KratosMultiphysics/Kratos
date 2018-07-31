@@ -43,22 +43,22 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class BeamPointPressureCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) BeamPointPressureCondition
 : public Condition
 {
 protected:
 
 
 public:
-    
-    
+
+
 
    ///@name Type Definitions
 
     ///Tensor order 1 definition
     typedef Vector                              VectorType;
     typedef Node<3>::Pointer              PointPointerType;
-    
+
     std::vector<PointPointerType> mNodesList;
     array_1d<double, 3 > mForce;
 
@@ -73,7 +73,7 @@ public:
     BeamPointPressureCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     BeamPointPressureCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
-  
+
 
     /// Copy constructor
     BeamPointPressureCondition( BeamPointPressureCondition const& rOther);
@@ -88,10 +88,10 @@ public:
     virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
     virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
     void         GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo);
-    void         EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo); 
-    void AddExplicitContribution(const VectorType& rRHSVector, 
-						 const Variable<VectorType>& rRHSVariable, 
-						 Variable<array_1d<double,3> >& rDestinationVariable, 
+    void         EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void AddExplicitContribution(const VectorType& rRHSVector,
+						 const Variable<VectorType>& rRHSVariable,
+						 Variable<array_1d<double,3> >& rDestinationVariable,
 						 const ProcessInfo& rCurrentProcessInfo);
     void InitializeSystemMatrices( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector);
     void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
@@ -126,7 +126,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BEAM_PRESSURE_CONDITION_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_BEAM_PRESSURE_CONDITION_H_INCLUDED  defined
