@@ -414,6 +414,16 @@ void NodalConcentratedElement::Initialize()
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, true);
         } else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
+
+        // We check the initial displacement
+        if (!this->Has(INITIAL_DISPLACEMENT)) {
+            this->SetValue(INITIAL_DISPLACEMENT, zero_array);
+        }
+
+        // We check the initial rotation
+        if (!this->Has(INITIAL_ROTATION)) {
+            this->SetValue(INITIAL_ROTATION, zero_array);
+        }
     } else {
         // We check the nodal stiffness
         if (rconst_this.Has(NODAL_STIFFNESS))
@@ -453,6 +463,14 @@ void NodalConcentratedElement::Initialize()
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, true);
         else
             mELementalFlags.Set(NodalConcentratedElement::COMPUTE_ROTATIONAL_DAMPING_RATIO, false);
+
+        // We check the initial displacement
+        if (!rconst_this.Has(INITIAL_DISPLACEMENT))
+            this->SetValue(INITIAL_DISPLACEMENT, zero_array);
+
+        // We check the initial rotation
+        if (!rconst_this.Has(INITIAL_ROTATION))
+            this->SetValue(INITIAL_ROTATION, zero_array);
     }
 
     KRATOS_CATCH( "" );
