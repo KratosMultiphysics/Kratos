@@ -55,6 +55,7 @@ class ApplyPeriodicConditionProcess : public Process
     typedef Node<3> NodeType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
+    typedef Geometry<NodeType> GeomertyType;
 
     ApplyPeriodicConditionProcess(ModelPart &model_part,
                                   Parameters rParameters) : Process(Flags()), mrMainModelPart(model_part), mParameters(rParameters)
@@ -166,7 +167,6 @@ class ApplyPeriodicConditionProcess : public Process
     template <int TDim>
     void ApplyConstraintsForPeriodicConditions()
     {
-
         ModelPart &slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
         ModelPart &master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
         int num_vars = mParameters["variable_names"].size();
@@ -185,52 +185,60 @@ class ApplyPeriodicConditionProcess : public Process
             std::string var_name = mParameters["variable_names"][j].GetString();
             if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
             {   // Checking if the variable is a vector variable
-                VariableComponentType r_var_x = KratosComponents<VariableComponentType>::Get(var_name + std::string("_X"));
-                VariableComponentType r_var_y = KratosComponents<VariableComponentType>::Get(var_name + std::string("_Y"));
-                VariableComponentType r_var_z = KratosComponents<VariableComponentType>::Get(var_name + std::string("_Z"));
-
                 for (auto& slave_node : slave_model_part.Nodes())
                 {
+                    // Transforming the slave point to the master modelpart
+                    array_1d<double, 3 > transformed_node;
+                    TransformNode(slave_node.Coordinates(), transformed_node);
+
                     // Finding the host element for this node
                 	bool is_found = false;
-				    is_found = bin_based_point_locator.FindPointOnMesh(slave_node.Coordinates(), shape_function_values, p_host_elem, result_begin, max_results);
+				    is_found = bin_based_point_locator.FindPointOnMesh(transformed_node, shape_function_values, p_host_elem, result_begin, max_results);
                     if(is_found)
                     {
                         auto& geometry = p_host_elem->GetGeometry();
-                        IndexType master_index = 0;
-                        for (auto& master_node : geometry)
-                        {
-                            int current_num_constraint = mrMainModelPart.NumberOfMasterSlaveConstraints();
-
-                            double master_weight = mSign * shape_function_values(master_index);
-                            double constant_x(0.0), constant_y(0.0), constant_z(0.0);
-
-                            constant_x = master_weight * mTransformationMatrix(0,3);
-                            constant_y = master_weight * mTransformationMatrix(1,3);
-                            constant_z = master_weight * mTransformationMatrix(2,3);
-
-                            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, slave_node, r_var_x, master_weight * mTransformationMatrix(0,0), constant_x);
-                            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, slave_node, r_var_x, master_weight * mTransformationMatrix(0,1), constant_x);
-                            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, slave_node, r_var_x, master_weight * mTransformationMatrix(0,2), constant_x);
-
-                            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, slave_node, r_var_y, master_weight * mTransformationMatrix(1,0), constant_y);
-                            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, slave_node, r_var_y, master_weight * mTransformationMatrix(1,1), constant_y);
-                            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, slave_node, r_var_y, master_weight * mTransformationMatrix(1,2), constant_y);
-
-                            if (TDim == 3)
-                            {
-                                mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, slave_node, r_var_z, master_weight * mTransformationMatrix(2,0), constant_z);
-                                mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, slave_node, r_var_z, master_weight * mTransformationMatrix(2,1), constant_z);
-                                mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, slave_node, r_var_z, master_weight * mTransformationMatrix(2,2), constant_z);
-                            }
-
-                            master_index++;
-                        }
+                        ConstraintSlaveNodeWithElement<TDim>(slave_node, p_host_elem->GetGeometry() , shape_function_values, var_name);
                     }
                 }
             }
         }
+    }
 
+    template <int TDim>
+    void ConstraintSlaveNodeWithElement(NodeType& rSalveNode, GeomertyType& rHosteGeometry, VectorType& rWeights, const std::string& rVarName )
+    {
+        VariableComponentType r_var_x = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
+        VariableComponentType r_var_y = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
+        VariableComponentType r_var_z = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Z"));
+
+        IndexType master_index = 0;
+        for (auto& master_node : rHosteGeometry)
+        {
+            int current_num_constraint = mrMainModelPart.NumberOfMasterSlaveConstraints();
+
+            double master_weight = mSign * rWeights(master_index);
+            double constant_x(0.0), constant_y(0.0), constant_z(0.0);
+
+            constant_x = master_weight * mTransformationMatrix(0,3);
+            constant_y = master_weight * mTransformationMatrix(1,3);
+            constant_z = master_weight * mTransformationMatrix(2,3);
+
+            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSalveNode, r_var_x, master_weight * mTransformationMatrix(0,0), constant_x);
+            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSalveNode, r_var_x, master_weight * mTransformationMatrix(0,1), constant_x);
+            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSalveNode, r_var_x, master_weight * mTransformationMatrix(0,2), constant_x);
+
+            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSalveNode, r_var_y, master_weight * mTransformationMatrix(1,0), constant_y);
+            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSalveNode, r_var_y, master_weight * mTransformationMatrix(1,1), constant_y);
+            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSalveNode, r_var_y, master_weight * mTransformationMatrix(1,2), constant_y);
+
+            if (TDim == 3)
+            {
+                mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSalveNode, r_var_z, master_weight * mTransformationMatrix(2,0), constant_z);
+                mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSalveNode, r_var_z, master_weight * mTransformationMatrix(2,1), constant_z);
+                mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSalveNode, r_var_z, master_weight * mTransformationMatrix(2,2), constant_z);
+            }
+            master_index++;
+        }
     }
 
     /**
@@ -287,8 +295,7 @@ class ApplyPeriodicConditionProcess : public Process
         double a = U[0];
         double b = U[1];
         double c = U[2];
-        //double eps = 1e-12;
-
+  
         double t2 = cos(mTheta);
         double t3 = sin(mTheta);
         double t4 = a * a;
@@ -317,6 +324,28 @@ class ApplyPeriodicConditionProcess : public Process
         mTransformationMatrix(2,2) = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
         mTransformationMatrix(2,3) = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
         mTransformationMatrix(3,3) = 1.0;
+    }
+
+
+    /*
+     * @brief Rotates a given point(node_cords) in space around a given mAxisOfRoationVector by an angle thetha
+     */
+    void TransformNode(array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rRotatedCoordinates)
+    {
+        std::vector<double> originalNode(4, 0.0f);
+        std::vector<double> rotatedNode(4, 0.0f);
+
+        originalNode[0] = rCoordinates(0); originalNode[1] = rCoordinates(1); originalNode[2] = rCoordinates(2); originalNode[3] = 1.0;
+        // Multiplying the point to get the rotated point
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                rotatedNode[i] += mTransformationMatrix(i,j) * originalNode[j];
+            }
+        }
+
+        rRotatedCoordinates(0) = rotatedNode[0]; rRotatedCoordinates(1) = rotatedNode[1]; rRotatedCoordinates(2) = rotatedNode[2];
     }
 
 };
