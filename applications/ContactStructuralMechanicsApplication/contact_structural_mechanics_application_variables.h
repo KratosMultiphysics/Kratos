@@ -39,7 +39,7 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    enum NormalDerivativesComputation {NO_DERIVATIVES_COMPUTATION = 0, ELEMENTAL_DERIVATIVES = 1, NODAL_ELEMENTAL_DERIVATIVES = 2};
+    enum NormalDerivativesComputation {NO_DERIVATIVES_COMPUTATION = 0, ELEMENTAL_DERIVATIVES = 1, NODAL_ELEMENTAL_DERIVATIVES = 2, NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE = 3};
 
 ///@}
 ///@name  Functions

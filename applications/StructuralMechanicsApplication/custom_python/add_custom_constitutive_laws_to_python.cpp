@@ -35,6 +35,15 @@
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
+// CL
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_factory_3d.h"
+#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
+#include "custom_constitutive/viscous_generalized_kelvin_3d.h"
+#include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
+
 namespace Kratos
 {
 namespace Python
@@ -112,6 +121,230 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     class_< LinearIsotropicDamage3D, typename LinearIsotropicDamage3D::Pointer,  ConstitutiveLaw  >
     (m,"LinearIsotropicDamage3DLaw").def( init<>())
+    ;
+	
+    
+    class_< SmallStrainIsotropicDamageFactory3D, typename SmallStrainIsotropicDamageFactory3D::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicDamageFactory3D").def( init<>())
+    ;
+
+    class_< SmallStrainIsotropicPlasticityFactory3D, typename SmallStrainIsotropicPlasticityFactory3D::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicPlasticityFactory3D").def( init<>())
+    ;
+
+    class_< ViscousGeneralizedKelvin3D, typename ViscousGeneralizedKelvin3D::Pointer,  ConstitutiveLaw  >
+    (m,"ViscousGeneralizedKelvin3D").def( init<>())
+    ;
+
+    class_< ViscousGeneralizedMaxwell3D, typename ViscousGeneralizedMaxwell3D::Pointer,  ConstitutiveLaw  >
+    (m,"ViscousGeneralizedMaxwell3D").def( init<>())
+    ;
+
+	// Custom Constitutive Laws Registration
+	// Plasticity
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DVonMisesVonMises").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DVonMisesDruckerPrager").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DVonMisesTresca").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DModifiedMohrCoulombVonMises").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DModifiedMohrCoulombDruckerPrager").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DModifiedMohrCoulombTresca").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DTrescaVonMises").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DTrescaModifiedMohrCoulomb").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DTrescaDruckerPrager").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DTrescaTresca").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DDruckerPragerVonMises").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DDruckerPragerModifiedMohrCoulomb").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DDruckerPragerDruckerPrager").def( init<>());
+
+    class_< GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticity3DDruckerPragerTresca").def( init<>());
+
+	// Damage
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DVonMisesVonMises").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DVonMisesModifiedMohrCoulomb").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DVonMisesDruckerPrager").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DVonMisesTresca").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DModifiedMohrCoulombVonMises").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DModifiedMohrCoulombModifiedMohrCoulomb").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DModifiedMohrCoulombDruckerPrager").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DModifiedMohrCoulombTresca").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DTrescaVonMises").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DTrescaModifiedMohrCoulomb").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DTrescaDruckerPrager").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DTrescaTresca").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DDruckerPragerVonMises").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DDruckerPragerModifiedMohrCoulomb").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DDruckerPragerDruckerPrager").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DDruckerPragerTresca").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DRankineVonMises").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DRankineModifiedMohrCoulomb").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DRankineDruckerPrager").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DRankineTresca").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DSimoJuVonMises").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DSimoJuModifiedMohrCoulomb").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<DruckerPragerPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<DruckerPragerPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DSimoJuDruckerPrager").def( init<>());
+
+    class_<  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<TrescaPlasticPotential>>>,
+    typename GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<TrescaPlasticPotential>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicDamage3DSimoJuTresca").def( init<>());
+
+    class_< GenericSmallStrainViscoplasticity3D, typename GenericSmallStrainViscoplasticity3D::Pointer,  ConstitutiveLaw  >
+    (m,"GenericSmallStrainViscoplasticity3D").def( init<>())
     ;
 }
 

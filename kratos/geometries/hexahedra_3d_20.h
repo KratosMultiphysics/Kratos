@@ -28,9 +28,25 @@
 namespace Kratos
 {
 /**
- * A twenty node hexahedra geometry with serendipity shape functions
+ * @class Hexahedra3D20
+ * @ingroup KratosCore
+ * @brief A twenty node hexahedra geometry with serendipity shape functions
+ * @details The node ordering corresponds with:
+ *      3----10----2     
+ *      |\         |\          
+ *      | 15       | 14         
+ *      9  \       11 \     
+ *      |   7----18+---6      
+ *      |   |      |   |      
+ *      0---+-8----1   | 
+ *       \  17      \  19   
+ *       12 |        13|  
+ *         \|         \|
+ *          4----16----5 
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Hexahedra3D20 : public Geometry<TPointType>
 {
 public:

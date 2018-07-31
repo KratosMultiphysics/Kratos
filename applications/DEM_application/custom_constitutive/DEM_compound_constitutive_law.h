@@ -36,9 +36,9 @@ public:
         return mCCL.CalculateCohesiveNormalForce(element1, element2, indentation);
 
     };
-
-    double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation) override {
-
+    
+    double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) override {
+    
         return mCCL.CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
     };
 

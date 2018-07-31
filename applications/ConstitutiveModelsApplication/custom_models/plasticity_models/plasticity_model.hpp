@@ -49,7 +49,7 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) PlasticityModel : public ConstitutiveModel
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -67,7 +67,7 @@ namespace Kratos
     typedef ConstitutiveModelData::ModelData                         ModelDataType;
     typedef typename TYieldSurface::PlasticDataType                PlasticDataType;
     typedef typename TYieldSurface::InternalVariablesType    InternalVariablesType;
-    
+
     /// Pointer definition of PlasticityModel
     KRATOS_CLASS_POINTER_DEFINITION( PlasticityModel );
 
@@ -77,10 +77,10 @@ namespace Kratos
 
     /// Default constructor.
     PlasticityModel() : ConstitutiveModel() {}
-    
+
     /// Copy constructor.
     PlasticityModel(PlasticityModel const& rOther) : ConstitutiveModel(rOther), mElasticityModel(rOther.mElasticityModel), mYieldSurface(rOther.mYieldSurface) {}
-    
+
     /// Assignment operator.
     PlasticityModel& operator=(PlasticityModel const& rOther)
     {
@@ -93,9 +93,9 @@ namespace Kratos
     /// Clone.
     ConstitutiveModel::Pointer Clone() const override
     {
-      return ( PlasticityModel::Pointer(new PlasticityModel(*this)) );
+      return Kratos::make_shared<PlasticityModel>(*this);
     }
-    
+
     /// Destructor.
     virtual ~PlasticityModel() {}
 
@@ -111,41 +111,41 @@ namespace Kratos
 
     /**
      * Initialize member data
-     */    
+     */
     void InitializeMaterial(const Properties& rMaterialProperties) override
     {
       KRATOS_TRY
 
       mElasticityModel.InitializeMaterial(rMaterialProperties);
-	
-      KRATOS_CATCH(" ")      
+
+      KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Initialize member data
-     */    
+     */
     void InitializeModel(ModelDataType& rValues) override
     {
       KRATOS_TRY
 
       mElasticityModel.InitializeModel(rValues);
-	
+
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Finalize member data
-     */      
+     */
     void FinalizeModel(ModelDataType& rValues) override
     {
       KRATOS_TRY
 
       mElasticityModel.FinalizeModel(rValues);
-      
+
       KRATOS_CATCH(" ")
     }
 
-    
+
     /**
      * Calculate Stresses
      */
@@ -153,31 +153,31 @@ namespace Kratos
     virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
-	
+
       KRATOS_ERROR << "calling the PlasticityModel base class ... illegal operation" << std::endl;
-	
+
       KRATOS_CATCH(" ")
     }
 
     virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
-	
+
       KRATOS_ERROR << "calling the PlasticityModel base class ... illegal operation" << std::endl;
-	
+
       KRATOS_CATCH(" ")
     }
 
     virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
-	
+
       mElasticityModel.CalculateVolumetricStressTensor(rValues,rStressMatrix);
-	
+
       KRATOS_CATCH(" ")
     }
 
-    
+
     /**
      * Calculate Constitutive Tensor
      */
@@ -185,22 +185,22 @@ namespace Kratos
     {
       KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
     }
-    
+
     virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
     }
-    
+
     virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
-	
+
       mElasticityModel.CalculateVolumetricConstitutiveTensor(rValues,rConstitutiveMatrix);
-	
+
       KRATOS_CATCH(" ")
     }
 
-    
+
     /**
      * Calculate Stress and Constitutive Tensor
      */
@@ -208,12 +208,12 @@ namespace Kratos
     {
       KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
     }
-    
+
     virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
     }
-    
+
     virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_ERROR << "calling PlasticityModel base class " << std::endl;
@@ -222,11 +222,11 @@ namespace Kratos
 
     /**
      * Check
-     */    
+     */
     virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
-    
+
       if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
          KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
 
@@ -241,12 +241,12 @@ namespace Kratos
          KRATOS_ERROR << "DENSITY has Key zero or invalid value" << std::endl;
 
       mElasticityModel.Check(rMaterialProperties, rCurrentProcessInfo);
-	
+
       return 0;
 
       KRATOS_CATCH(" ")
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -262,31 +262,31 @@ namespace Kratos
       KRATOS_TRY
 
       mElasticityModel.GetDomainVariablesList(rScalarVariables, rComponentVariables);
- 	
+
       KRATOS_CATCH(" ")
     }
 
-    
+
     /**
      * Has Values
-     */   
+     */
     virtual bool Has(const Variable<double>& rThisVariable) override {return false;}
-    
+
     /**
      * Set Values
      */
     virtual void SetValue(const Variable<double>& rVariable,
 			  const double& rValue,
-			  const ProcessInfo& rCurrentProcessInfo) override {}   
+			  const ProcessInfo& rCurrentProcessInfo) override {}
     /**
      * Get Values
      */
     virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override { rValue=0; return rValue;}
 
-    
-    
-    ElasticityModelType& GetElasticityModel() {return mElasticityModel;};    
-    
+
+
+    ElasticityModelType& GetElasticityModel() {return mElasticityModel;};
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -331,10 +331,10 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ElasticityModelType   mElasticityModel;
     YieldSurfaceType         mYieldSurface;
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -345,14 +345,14 @@ namespace Kratos
     ///@{
 
     //set internal variables for output print
-    
+
     virtual void SetInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables)
     {
       KRATOS_TRY
 
-      KRATOS_CATCH(" ")               
-    }  
-        
+      KRATOS_CATCH(" ")
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -378,8 +378,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -402,7 +402,7 @@ namespace Kratos
 
     ///@}
     ///@name Serialization
-    ///@{    
+    ///@{
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const override
@@ -412,15 +412,15 @@ namespace Kratos
       rSerializer.save("mElasticityModel",mElasticityModel);
       rSerializer.save("mYieldSurface",mYieldSurface);
     }
-    
+
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
 
       rSerializer.load("mElasticityModel",mElasticityModel);
-      rSerializer.load("mYieldSurface",mYieldSurface);	
+      rSerializer.load("mYieldSurface",mYieldSurface);
     }
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{
@@ -440,12 +440,12 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
-  ///@} 
-  ///@name Input and output 
+
+  ///@}
+  ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
@@ -453,6 +453,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PLASTICITY_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_PLASTICITY_MODEL_H_INCLUDED  defined
