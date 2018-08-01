@@ -239,11 +239,11 @@ public:
             GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
 
             if (mVerbosity > 0) {
-                KRATOS_WATCH(NumColors);
+                KRATOS_INFO(NumColors);
             }
 
             if (mVerbosity > 2) {
-                KRATOS_WATCH(ColoredDomainGraph);
+                KRATOS_INFO(ColoredDomainGraph);
             }
 
             // Write partition info into separate input files
