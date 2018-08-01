@@ -316,14 +316,14 @@ namespace Kratos {
         Node<3>::Pointer pnew_node;
 
         double radius = r_sub_model_part_with_parameters[RADIUS];
-        const double& max_radius = r_sub_model_part_with_parameters[MAXIMUM_RADIUS];
+        const double& max_radius = r_sub_model_part_with_parameters[MAX_RADIUS];
         const std::string& distribution_type = r_sub_model_part_with_parameters[PROBABILITY_DISTRIBUTION];
 
         if (initial) {
             radius = max_radius;
         } else {
             const double& std_deviation = r_sub_model_part_with_parameters[STANDARD_DEVIATION];
-            const double& min_radius = r_sub_model_part_with_parameters[MINIMUM_RADIUS];
+            const double& min_radius = r_sub_model_part_with_parameters[MIN_RADIUS];
 
             if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
             else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);

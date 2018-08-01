@@ -65,6 +65,13 @@ namespace Kratos
         ///@}
         ///@name Operations
         ///@{
+        /**
+        * Called to initialize the element.
+        * Must be called before any calculation is done
+        */
+        void Initialize() override;
+
+        void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
         /**
         * This functions calculates both the RHS and the LHS
@@ -106,9 +113,14 @@ namespace Kratos
     protected:
 
     private:
+
+        void get_var_of_small_rotation_wrt_disp_global(
+            Matrix& phi_r);
         ///@name Static Member Variables
         ///@{
-        
+        Vector m_g10;
+        Vector m_g20;
+        Vector m_g30;
         ///@}
         ///@name Member Variables
         ///@{

@@ -93,6 +93,11 @@ protected:
     ///@name Operations
     ///@{
 
+    void CalculateHessianSurface(
+        Matrix& Hessian, 
+        const Matrix& DDN_DDe, 
+        const int rDimension);
+
     void CalculateBaseVector(
         Vector& rBaseVector, 
         const Matrix& rDN_De);

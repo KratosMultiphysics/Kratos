@@ -338,32 +338,61 @@ namespace Kratos
 
         //Matrix T_G_E = ZeroMatrix(3, 3);
         //Transformation matrix T from contravariant to local cartesian basis
-        double eG11 = inner_prod(e1, g_con_1);
-        double eG12 = inner_prod(e1, g_con_2);
-        double eG21 = inner_prod(e2, g_con_1);
-        double eG22 = inner_prod(e2, g_con_2);
+        double eG11 = inner_prod(e1, rMetric.g1);
+        double eG12 = inner_prod(e1, rMetric.g2);
+        double eG21 = inner_prod(e2, rMetric.g1);
+        double eG22 = inner_prod(e2, rMetric.g2);
 
         rMetric.Q = ZeroMatrix(3, 3);
-        rMetric.Q(0, 0) = eG11*eG11;
-        rMetric.Q(0, 1) = eG12*eG12;
+        rMetric.Q(0, 0) = eG11 * eG11;
+        rMetric.Q(0, 1) = eG12 * eG12;
         rMetric.Q(0, 2) = 2.0*eG11*eG12;
-        rMetric.Q(1, 0) = eG21*eG21;
-        rMetric.Q(1, 1) = eG22*eG22;
+        rMetric.Q(1, 0) = eG21 * eG21;
+        rMetric.Q(1, 1) = eG22 * eG22;
         rMetric.Q(1, 2) = 2.0*eG21*eG22;
         rMetric.Q(2, 0) = 2.0*eG11*eG21;
         rMetric.Q(2, 1) = 2.0*eG12*eG22;
-        rMetric.Q(2, 2) = 2.0*(eG11*eG22 + eG12*eG21);
+        rMetric.Q(2, 2) = 2.0*eG11*eG22 + eG12 * eG21;
 
         rMetric.T = ZeroMatrix(3, 3);
-        rMetric.T(0, 0) = eG11*eG11;
-        rMetric.T(0, 1) = eG21*eG21;
+        rMetric.T(0, 0) = eG11 * eG11;
+        rMetric.T(0, 1) = eG21 * eG21;
         rMetric.T(0, 2) = 2.0*eG11*eG21;
-        rMetric.T(1, 0) = eG21*eG21;
-        rMetric.T(1, 1) = eG22*eG22;
-        rMetric.T(1, 2) = 2.0*eG21*eG22;
-        rMetric.T(2, 0) = eG11*eG21;
-        rMetric.T(2, 1) = eG21*eG22;
-        rMetric.T(2, 2) = eG11*eG22 + eG12*eG21;
+        rMetric.T(1, 0) = eG12 * eG12;
+        rMetric.T(1, 1) = eG22 * eG22;
+        rMetric.T(1, 2) = 2.0*eG12*eG22;
+        rMetric.T(2, 0) = eG11 * eG12;
+        rMetric.T(2, 1) = eG21 * eG22;
+        rMetric.T(2, 2) = eG11 * eG22 + eG12 * eG21;
+
+        ////Matrix T_G_E = ZeroMatrix(3, 3);
+        ////Transformation matrix T from contravariant to local cartesian basis
+        //double eG11 = inner_prod(e1, g_con_1);
+        //double eG12 = inner_prod(e1, g_con_2);
+        //double eG21 = inner_prod(e2, g_con_1);
+        //double eG22 = inner_prod(e2, g_con_2);
+
+        //rMetric.Q = ZeroMatrix(3, 3);
+        //rMetric.Q(0, 0) = eG11*eG11;
+        //rMetric.Q(0, 1) = eG12*eG12;
+        //rMetric.Q(0, 2) = 2.0*eG11*eG12;
+        //rMetric.Q(1, 0) = eG21*eG21;
+        //rMetric.Q(1, 1) = eG22*eG22;
+        //rMetric.Q(1, 2) = 2.0*eG21*eG22;
+        //rMetric.Q(2, 0) = 2.0*eG11*eG21;
+        //rMetric.Q(2, 1) = 2.0*eG12*eG22;
+        //rMetric.Q(2, 2) = 2.0*(eG11*eG22 + eG12*eG21);
+
+        //rMetric.T = ZeroMatrix(3, 3);
+        //rMetric.T(0, 0) = eG11*eG11;
+        //rMetric.T(0, 1) = eG21*eG21;
+        //rMetric.T(0, 2) = 2.0*eG11*eG21;
+        //rMetric.T(1, 0) = eG21*eG21;
+        //rMetric.T(1, 1) = eG22*eG22;
+        //rMetric.T(1, 2) = 2.0*eG21*eG22;
+        //rMetric.T(2, 0) = eG11*eG21;
+        //rMetric.T(2, 1) = eG21*eG22;
+        //rMetric.T(2, 2) = eG11*eG22 + eG12*eG21;
     }
     //************************************************************************************
     //************************************************************************************

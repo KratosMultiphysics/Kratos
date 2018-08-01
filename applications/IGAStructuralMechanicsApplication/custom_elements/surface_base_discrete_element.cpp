@@ -85,7 +85,6 @@ namespace Kratos
 
     {
         KRATOS_TRY
-
         const int number_of_control_points = GetGeometry().size();
         const int mat_size = number_of_control_points * 3;
 
@@ -338,159 +337,262 @@ namespace Kratos
             const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
             const Matrix& DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
-            const unsigned int number_of_nodes = GetGeometry().size();
-            Matrix dg3_n = ZeroMatrix(3, 3);
-            Matrix dg3_m = ZeroMatrix(3, 3);
+            const int number_of_control_points = GetGeometry().size();
+            const int mat_size = number_of_control_points * 3;
 
-            Vector ddStrain_curvilinear = ZeroVector(3);
-            Vector ddCurvature_curvilinear = ZeroVector(3);
+            double lg3 = norm_2(rMetric.g3);
+            double lg3_3 = pow(lg3, 3);
+            double lg3_5 = pow(lg3, 5);
+            double inv_lg3 = 1 / lg3;
+            double inv_lg3_3 = 1 / lg3_3;
+            double inv_lg3_5 = 1 / lg3_5;
 
-            Matrix dn_n = ZeroMatrix(3, 3);
-            Matrix dn_m = ZeroMatrix(3, 3);
-
-            //basis vector g3
-            //array_1d<double, 3> g3;
-            array_1d<double, 3> ddn;
-
-
-            //CrossProduct(g3, g1, g2);
-
-            //Matrix H = ZeroMatrix(3, 3);
-
-            //this->Hessian(H, DDN_DDe);
-
-            //differential area dA
-            //double dA = norm_2(g3);
-
-            //normal vector n
-            array_1d<double, 3> n = rMetric.g3 / rMetric.dA;
-
-            double invdA = 1 / rMetric.dA;
-            double invdA3 = 1 / pow(rMetric.dA, 3);
-            double invdA5 = 1 / pow(rMetric.dA, 5);
-
-            for (unsigned int n = 0; n < number_of_nodes; n++)
+            Matrix S_dg3 = ZeroMatrix(3, mat_size);
+            Vector S_g3dg3 = ZeroVector(mat_size);
+            Vector S_g3dg3lg3_3 = ZeroVector(mat_size);
+            Matrix S_dn = ZeroMatrix(3, mat_size);
+            // first variation of strain and curvature w.r.t. dof
+            for (int r = 0; r < mat_size; r++)
             {
-                //first line --- dg(1,0)*g2(2)-dg(2,0)*g2(1) + g1(1)*dg(2,1)-g1(2)*dg(1,1);
-                dg3_n(0, 0) = 0;
-                dg3_n(0, 1) = -DN_De(n, 0) * rMetric.g2[2] + DN_De(n, 1)*rMetric.g1[2];
-                dg3_n(0, 2) = DN_De(n, 0) * rMetric.g2[1] - DN_De(n, 1)*rMetric.g1[1];
+                // local node number kr and dof direction dirr
+                int kr = r / 3;
+                int dirr = r % 3;
 
-                //second line --- dg(2,0)*g2(0)-dg(0,0)*g2(2) + g1(2)*dg(0,1)-g1(0)*dg(2,1);
-                dg3_n(1, 0) = DN_De(n, 0) * rMetric.g2[2] - DN_De(n, 1)*rMetric.g1[2];
-                dg3_n(1, 1) = 0;
-                dg3_n(1, 2) = -DN_De(n, 0)*rMetric.g2[0] + DN_De(n, 1)*rMetric.g1[0];
+                array_1d<double, 3> S_dg_1 = ZeroVector(3);
+                array_1d<double, 3> S_dg_2 = ZeroVector(3);
+                S_dg_1(dirr) = DN_De(kr, 0);
+                S_dg_2(dirr) = DN_De(kr, 1);
 
-                //third line --- dg(0,0)*g2(1)-dg(1,0)*g2(0) + g1(0)*dg(1,1)-g1(1)*dg(0,1);
-                dg3_n(2, 0) = -DN_De(n, 0) * rMetric.g2[1] + DN_De(n, 1) * rMetric.g1[1];
-                dg3_n(2, 1) = DN_De(n, 0) * rMetric.g2[0] - DN_De(n, 1) * rMetric.g1[0];
-                dg3_n(2, 2) = 0;
+                // curvature
+                S_dg3(0, r) = S_dg_1(1)*rMetric.g2(2) - S_dg_1(2)*rMetric.g2(1) + rMetric.g1(1)*S_dg_2(2) - rMetric.g1(2)*S_dg_2(1);
+                S_dg3(1, r) = S_dg_1(2)*rMetric.g2(0) - S_dg_1(0)*rMetric.g2(2) + rMetric.g1(2)*S_dg_2(0) - rMetric.g1(0)*S_dg_2(2);
+                S_dg3(2, r) = S_dg_1(0)*rMetric.g2(1) - S_dg_1(1)*rMetric.g2(0) + rMetric.g1(0)*S_dg_2(1) - rMetric.g1(1)*S_dg_2(0);
 
-                //std::cout << "dg3_n: " << dg3_n << std::endl;
+                S_g3dg3[r] = rMetric.g3[0] * S_dg3(0, r) + rMetric.g3[1] * S_dg3(1, r) + rMetric.g3[2] * S_dg3(2, r);
+                S_g3dg3lg3_3[r] = S_g3dg3[r] * inv_lg3_3;
 
-                for (unsigned int i = 0; i < 3; i++)
+                S_dn(0, r) = S_dg3(0, r)*inv_lg3 - rMetric.g3[0] * S_g3dg3lg3_3[r];
+                S_dn(1, r) = S_dg3(1, r)*inv_lg3 - rMetric.g3[1] * S_g3dg3lg3_3[r];
+                S_dn(2, r) = S_dg3(2, r)*inv_lg3 - rMetric.g3[2] * S_g3dg3lg3_3[r];
+            }
+
+            // second variation of strain and curvature w.r.t. dofs
+            for (int r = 0; r < mat_size; r++)
+            {
+                // local node number kr and dof direction dirr
+                int kr = r / 3;
+                int dirr = r % 3;
+
+                for (int s = 0; s <= r; s++)
                 {
-                    double g3dg3n = (rMetric.g3[0] * dg3_n(i, 0) + rMetric.g3[1] * dg3_n(i, 1) + rMetric.g3[2] * dg3_n(i, 2));
-                    double g3dg3lg3n = g3dg3n*invdA3;
+                    // local node number ks and dof direction dirs
+                    int ks = s / 3;
+                    int dirs = s % 3;
 
-                    dn_n(i, 0) = dg3_n(i, 0)*invdA - rMetric.g3[0] * g3dg3lg3n;
-                    dn_n(i, 1) = dg3_n(i, 1)*invdA - rMetric.g3[1] * g3dg3lg3n;
-                    dn_n(i, 2) = dg3_n(i, 2)*invdA - rMetric.g3[2] * g3dg3lg3n;
-
-                    //std::cout << dn_n << std::endl;
-
-                    for (unsigned int m = 0; m <= n; m++)
+                    // strain
+                    array_1d<double, 3> ddE_cu = ZeroVector(3);
+                    if (dirr == dirs)
                     {
-                        //first line --- dg(1,0)*g2(2)-dg(2,0)*g2(1) + g1(1)*dg(2,1)-g1(2)*dg(1,1);
-                        dg3_m(0, 0) = 0;
-                        dg3_m(0, 1) = -DN_De(m, 0) * rMetric.g2[2] + DN_De(m, 1)*rMetric.g1[2];
-                        dg3_m(0, 2) = DN_De(m, 0) * rMetric.g2[1] - DN_De(m, 1)*rMetric.g1[1];
+                        ddE_cu[0] = DN_De(kr, 0)*DN_De(ks, 0);
+                        ddE_cu[1] = DN_De(kr, 1)*DN_De(ks, 1);
+                        ddE_cu[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
 
-                        //second line --- dg(2,0)*g2(0)-dg(0,0)*g2(2) + g1(2)*dg(0,1)-g1(0)*dg(2,1);
-                        dg3_m(1, 0) = DN_De(m, 0) * rMetric.g2[2] - DN_De(m, 1)*rMetric.g1[2];
-                        dg3_m(1, 1) = 0;
-                        dg3_m(1, 2) = -DN_De(m, 0)* rMetric.g2[0] + DN_De(m, 1)*rMetric.g1[0];
-
-                        //third line --- dg(0,0)*g2(1)-dg(1,0)*g2(0) + g1(0)*dg(1,1)-g1(1)*dg(0,1);
-                        dg3_m(2, 0) = -DN_De(m, 0) * rMetric.g2[1] + DN_De(m, 1) * rMetric.g1[1];
-                        dg3_m(2, 1) = DN_De(m, 0) * rMetric.g2[0] - DN_De(m, 1) * rMetric.g1[0];
-                        dg3_m(2, 2) = 0;
-
-
-                        //std::cout << "dg3_m: " << dg3_m << std::endl;
-
-                        int limit = i + 1;
-                        if (m < n)
-                            limit = 3;
-                        for (unsigned int j = 0; j < limit; j++)
-                        {
-                            ddStrain_curvilinear = ZeroVector(3);
-                            if (j == i)
-                            {
-                                ddStrain_curvilinear[0] = DN_De(n, 0)*DN_De(m, 0);
-                                ddStrain_curvilinear[1] = DN_De(n, 1)*DN_De(m, 1);
-                                ddStrain_curvilinear[2] = 0.5*(DN_De(n, 0)*DN_De(m, 1) + DN_De(n, 1)*DN_De(m, 0));
-
-                                rSecondVariationsStrain.B11(3 * n + i, 3 * m + j) = mInitialMetric.Q(0, 0)*ddStrain_curvilinear[0]
-                                    + mInitialMetric.Q(0, 1)*ddStrain_curvilinear[1] + mInitialMetric.Q(0, 2)*ddStrain_curvilinear[2];
-                                rSecondVariationsStrain.B22(3 * n + i, 3 * m + j) = mInitialMetric.Q(1, 0)*ddStrain_curvilinear[0]
-                                    + mInitialMetric.Q(1, 1)*ddStrain_curvilinear[1] + mInitialMetric.Q(1, 2)*ddStrain_curvilinear[2];
-                                rSecondVariationsStrain.B12(3 * n + i, 3 * m + j) = mInitialMetric.Q(2, 0)*ddStrain_curvilinear[0]
-                                    + mInitialMetric.Q(2, 1)*ddStrain_curvilinear[1] + mInitialMetric.Q(2, 2)*ddStrain_curvilinear[2];
-
-                            }
-                            // curvature
-                            array_1d<double, 3> ddg3;
-                            ddg3[0] = ddg3[1] = ddg3[2] = 0;
-                            double direction = 4 - i - j;
-                            double ddirection = i - j;
-                            if (ddirection == -1)  ddg3(direction - 1) = DN_De(n, 0)*DN_De(m, 1) - DN_De(n, 1)*DN_De(m, 0);
-                            else if (ddirection == 2) ddg3(direction - 1) = DN_De(n, 0)*DN_De(m, 1) - DN_De(n, 1)*DN_De(m, 0);
-                            else if (ddirection == 1) ddg3(direction - 1) = -DN_De(n, 0)*DN_De(m, 1) + DN_De(n, 1)*DN_De(m, 0);
-                            else if (ddirection == -2) ddg3(direction - 1) = -DN_De(n, 0)*DN_De(m, 1) + DN_De(n, 1)*DN_De(m, 0);
-
-                            double g3dg3m = (rMetric.g3[0] * dg3_m(j, 0) + rMetric.g3[1] * dg3_m(j, 1) + rMetric.g3[2] * dg3_m(j, 2));
-                            double g3dg3lg3m = g3dg3m*invdA3;
-
-                            dn_m(j, 0) = dg3_m(j, 0)*invdA - rMetric.g3[0] * g3dg3lg3m;
-                            dn_m(j, 1) = dg3_m(j, 1)*invdA - rMetric.g3[1] * g3dg3lg3m;
-                            dn_m(j, 2) = dg3_m(j, 2)*invdA - rMetric.g3[2] * g3dg3lg3m;
-
-
-                            double c = -(ddg3[0] * rMetric.g3[0] + ddg3[1] * rMetric.g3[1] + ddg3[2] * rMetric.g3[2]
-                                + dg3_n(i, 0)*dg3_m(j, 0) + dg3_n(i, 1)*dg3_m(j, 1) + dg3_n(i, 2)*dg3_m(j, 2)
-                                )*invdA3;
-
-
-                            double d = 3.0*g3dg3n * g3dg3m * invdA5;
-
-                            ddn[0] = ddg3[0] * invdA3 - g3dg3lg3m * dg3_n(i, 0) - g3dg3lg3n * dg3_m(j, 0) + (c + d)*rMetric.g3[0];
-                            ddn[1] = ddg3[1] * invdA3 - g3dg3lg3m * dg3_n(i, 1) - g3dg3lg3n * dg3_m(j, 1) + (c + d)*rMetric.g3[1];
-                            ddn[2] = ddg3[2] * invdA3 - g3dg3lg3m * dg3_n(i, 2) - g3dg3lg3n * dg3_m(j, 2) + (c + d)*rMetric.g3[2];
-
-                            ddCurvature_curvilinear[0] = DDN_DDe(n, 0)*dn_m(j, i) + DDN_DDe(m, 0)*dn_n(i, j)
-                                + rMetric.H(0, 0)*ddn[0] + rMetric.H(1, 0)*ddn[1] + rMetric.H(2, 0)*ddn[2];
-                            ddCurvature_curvilinear[1] = DDN_DDe(n, 1)*dn_m(j, i) + DDN_DDe(m, 1)*dn_n(i, j)
-                                + rMetric.H(0, 1)*ddn[0] + rMetric.H(1, 1)*ddn[1] + rMetric.H(2, 1)*ddn[2];
-                            ddCurvature_curvilinear[2] = DDN_DDe(n, 2)*dn_m(j, i) + DDN_DDe(m, 2)*dn_n(i, j)
-                                + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2];
-
-                            rSecondVariationsCurvature.B11(3 * n + i, 3 * m + j) =
-                                mInitialMetric.Q(0, 0)*ddCurvature_curvilinear[0]
-                                + mInitialMetric.Q(0, 1)*ddCurvature_curvilinear[1]
-                                + mInitialMetric.Q(0, 2)*ddCurvature_curvilinear[2];
-                            rSecondVariationsCurvature.B22(3 * n + i, 3 * m + j) =
-                                mInitialMetric.Q(1, 0)*ddCurvature_curvilinear[0]
-                                + mInitialMetric.Q(1, 1)*ddCurvature_curvilinear[1]
-                                + mInitialMetric.Q(1, 2)*ddCurvature_curvilinear[2];
-                            rSecondVariationsCurvature.B12(3 * n + i, 3 * m + j) =
-                                mInitialMetric.Q(2, 0)*ddCurvature_curvilinear[0]
-                                + mInitialMetric.Q(2, 1)*ddCurvature_curvilinear[1]
-                                + mInitialMetric.Q(2, 2)*ddCurvature_curvilinear[2];
-                        }
+                        rSecondVariationsStrain.B11(r, s) = mInitialMetric.Q(0, 0)*ddE_cu[0] + mInitialMetric.Q(0, 1)*ddE_cu[1] + mInitialMetric.Q(0, 2)*ddE_cu[2];
+                        rSecondVariationsStrain.B22(r, s) = mInitialMetric.Q(1, 0)*ddE_cu[0] + mInitialMetric.Q(1, 1)*ddE_cu[1] + mInitialMetric.Q(1, 2)*ddE_cu[2];
+                        rSecondVariationsStrain.B12(r, s) = mInitialMetric.Q(2, 0)*ddE_cu[0] + mInitialMetric.Q(2, 1)*ddE_cu[1] + mInitialMetric.Q(2, 2)*ddE_cu[2];
                     }
+
+                    // curvature
+                    array_1d<double, 3> ddg3 = ZeroVector(3);
+                    int dirt = 4 - dirr - dirs;
+                    int ddir = dirr - dirs;
+                    if (ddir == -1)      ddg3(dirt - 1) = DN_De(kr, 0)*DN_De(ks, 1) - DN_De(ks, 0)*DN_De(kr, 1);
+                    else if (ddir == 2) ddg3(dirt - 1) = DN_De(kr, 0)*DN_De(ks, 1) - DN_De(ks, 0)*DN_De(kr, 1);
+                    else if (ddir == 1) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
+                    else if (ddir == -2) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
+
+                    double c = -(ddg3[0] * rMetric.g3[0] + ddg3[1] * rMetric.g3[1] + ddg3[2] * rMetric.g3[2]
+                        + S_dg3(0, r)*S_dg3(0, s) + S_dg3(1, r)*S_dg3(1, s) + S_dg3(2, r)*S_dg3(2, s)
+                        )*inv_lg3_3;
+
+                    double d = 3.0*S_g3dg3[r] * S_g3dg3[s] * inv_lg3_5;
+
+                    array_1d<double, 3> ddn = ZeroVector(3);
+                    ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rMetric.g3[0];
+                    ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rMetric.g3[1];
+                    ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rMetric.g3[2];
+
+                    array_1d<double, 3> ddK_cu = ZeroVector(3);
+                    ddK_cu[0] = DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)
+                        + rMetric.H(0, 0)*ddn[0] + rMetric.H(1, 0)*ddn[1] + rMetric.H(2, 0)*ddn[2];
+                    ddK_cu[1] = DDN_DDe(kr, 1)*S_dn(dirr, s) + DDN_DDe(ks, 1)*S_dn(dirs, r)
+                        + rMetric.H(0, 1)*ddn[0] + rMetric.H(1, 1)*ddn[1] + rMetric.H(2, 1)*ddn[2];
+                    ddK_cu[2] = DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)
+                        + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2];
+
+                    rSecondVariationsCurvature.B11(r, s) = mInitialMetric.Q(0, 0)*ddK_cu[0] + mInitialMetric.Q(0, 1)*ddK_cu[1] + mInitialMetric.Q(0, 2)*ddK_cu[2];
+                    rSecondVariationsCurvature.B11(s, r) = rSecondVariationsCurvature.B11(r, s);
+                    rSecondVariationsCurvature.B22(r, s) = mInitialMetric.Q(1, 0)*ddK_cu[0] + mInitialMetric.Q(1, 1)*ddK_cu[1] + mInitialMetric.Q(1, 2)*ddK_cu[2];
+                    rSecondVariationsCurvature.B22(s, r) = rSecondVariationsCurvature.B22(r, s);
+                    rSecondVariationsCurvature.B12(r, s) = mInitialMetric.Q(2, 0)*ddK_cu[0] + mInitialMetric.Q(2, 1)*ddK_cu[1] + mInitialMetric.Q(2, 2)*ddK_cu[2];
+                    rSecondVariationsCurvature.B12(s, r) = rSecondVariationsCurvature.B12(r, s);
                 }
             }
+
+            //const unsigned int number_of_nodes = GetGeometry().size();
+            //Matrix dg3_n = ZeroMatrix(3, 3);
+            //Matrix dg3_m = ZeroMatrix(3, 3);
+
+            //Vector ddStrain_curvilinear = ZeroVector(3);
+            //Vector ddCurvature_curvilinear = ZeroVector(3);
+
+            //Matrix dn_n = ZeroMatrix(3, 3);
+            //Matrix dn_m = ZeroMatrix(3, 3);
+
+            ////basis vector g3
+            ////array_1d<double, 3> g3;
+            //array_1d<double, 3> ddn;
+
+
+            ////CrossProduct(g3, g1, g2);
+
+            ////Matrix H = ZeroMatrix(3, 3);
+
+            ////this->Hessian(H, DDN_DDe);
+
+            ////differential area dA
+            ////double dA = norm_2(g3);
+
+            ////normal vector n
+            //array_1d<double, 3> n = rMetric.g3 / rMetric.dA;
+
+            //double invdA = 1 / rMetric.dA;
+            //double invdA3 = 1 / pow(rMetric.dA, 3);
+            //double invdA5 = 1 / pow(rMetric.dA, 5);
+
+            //for (unsigned int n = 0; n < number_of_nodes; n++)
+            //{
+            //    //first line --- dg(1,0)*g2(2)-dg(2,0)*g2(1) + g1(1)*dg(2,1)-g1(2)*dg(1,1);
+            //    dg3_n(0, 0) = 0;
+            //    dg3_n(0, 1) = -DN_De(n, 0) * rMetric.g2[2] + DN_De(n, 1)*rMetric.g1[2];
+            //    dg3_n(0, 2) = DN_De(n, 0) * rMetric.g2[1] - DN_De(n, 1)*rMetric.g1[1];
+
+            //    //second line --- dg(2,0)*g2(0)-dg(0,0)*g2(2) + g1(2)*dg(0,1)-g1(0)*dg(2,1);
+            //    dg3_n(1, 0) = DN_De(n, 0) * rMetric.g2[2] - DN_De(n, 1)*rMetric.g1[2];
+            //    dg3_n(1, 1) = 0;
+            //    dg3_n(1, 2) = -DN_De(n, 0)*rMetric.g2[0] + DN_De(n, 1)*rMetric.g1[0];
+
+            //    //third line --- dg(0,0)*g2(1)-dg(1,0)*g2(0) + g1(0)*dg(1,1)-g1(1)*dg(0,1);
+            //    dg3_n(2, 0) = -DN_De(n, 0) * rMetric.g2[1] + DN_De(n, 1) * rMetric.g1[1];
+            //    dg3_n(2, 1) = DN_De(n, 0) * rMetric.g2[0] - DN_De(n, 1) * rMetric.g1[0];
+            //    dg3_n(2, 2) = 0;
+
+            //    //std::cout << "dg3_n: " << dg3_n << std::endl;
+
+            //    for (unsigned int i = 0; i < 3; i++)
+            //    {
+            //        double g3dg3n = (rMetric.g3[0] * dg3_n(i, 0) + rMetric.g3[1] * dg3_n(i, 1) + rMetric.g3[2] * dg3_n(i, 2));
+            //        double g3dg3lg3n = g3dg3n*invdA3;
+
+            //        dn_n(i, 0) = dg3_n(i, 0)*invdA - rMetric.g3[0] * g3dg3lg3n;
+            //        dn_n(i, 1) = dg3_n(i, 1)*invdA - rMetric.g3[1] * g3dg3lg3n;
+            //        dn_n(i, 2) = dg3_n(i, 2)*invdA - rMetric.g3[2] * g3dg3lg3n;
+
+            //        //std::cout << dn_n << std::endl;
+
+            //        for (unsigned int m = 0; m <= n; m++)
+            //        {
+            //            //first line --- dg(1,0)*g2(2)-dg(2,0)*g2(1) + g1(1)*dg(2,1)-g1(2)*dg(1,1);
+            //            dg3_m(0, 0) = 0;
+            //            dg3_m(0, 1) = -DN_De(m, 0) * rMetric.g2[2] + DN_De(m, 1)*rMetric.g1[2];
+            //            dg3_m(0, 2) = DN_De(m, 0) * rMetric.g2[1] - DN_De(m, 1)*rMetric.g1[1];
+
+            //            //second line --- dg(2,0)*g2(0)-dg(0,0)*g2(2) + g1(2)*dg(0,1)-g1(0)*dg(2,1);
+            //            dg3_m(1, 0) = DN_De(m, 0) * rMetric.g2[2] - DN_De(m, 1)*rMetric.g1[2];
+            //            dg3_m(1, 1) = 0;
+            //            dg3_m(1, 2) = -DN_De(m, 0)* rMetric.g2[0] + DN_De(m, 1)*rMetric.g1[0];
+
+            //            //third line --- dg(0,0)*g2(1)-dg(1,0)*g2(0) + g1(0)*dg(1,1)-g1(1)*dg(0,1);
+            //            dg3_m(2, 0) = -DN_De(m, 0) * rMetric.g2[1] + DN_De(m, 1) * rMetric.g1[1];
+            //            dg3_m(2, 1) = DN_De(m, 0) * rMetric.g2[0] - DN_De(m, 1) * rMetric.g1[0];
+            //            dg3_m(2, 2) = 0;
+
+
+            //            //std::cout << "dg3_m: " << dg3_m << std::endl;
+
+            //            int limit = i + 1;
+            //            if (m < n)
+            //                limit = 3;
+            //            for (unsigned int j = 0; j < limit; j++)
+            //            {
+            //                ddStrain_curvilinear = ZeroVector(3);
+            //                if (j == i)
+            //                {
+            //                    ddStrain_curvilinear[0] = DN_De(n, 0)*DN_De(m, 0);
+            //                    ddStrain_curvilinear[1] = DN_De(n, 1)*DN_De(m, 1);
+            //                    ddStrain_curvilinear[2] = 0.5*(DN_De(n, 0)*DN_De(m, 1) + DN_De(n, 1)*DN_De(m, 0));
+
+            //                    rSecondVariationsStrain.B11(3 * n + i, 3 * m + j) = mInitialMetric.Q(0, 0)*ddStrain_curvilinear[0]
+            //                        + mInitialMetric.Q(0, 1)*ddStrain_curvilinear[1] + mInitialMetric.Q(0, 2)*ddStrain_curvilinear[2];
+            //                    rSecondVariationsStrain.B22(3 * n + i, 3 * m + j) = mInitialMetric.Q(1, 0)*ddStrain_curvilinear[0]
+            //                        + mInitialMetric.Q(1, 1)*ddStrain_curvilinear[1] + mInitialMetric.Q(1, 2)*ddStrain_curvilinear[2];
+            //                    rSecondVariationsStrain.B12(3 * n + i, 3 * m + j) = mInitialMetric.Q(2, 0)*ddStrain_curvilinear[0]
+            //                        + mInitialMetric.Q(2, 1)*ddStrain_curvilinear[1] + mInitialMetric.Q(2, 2)*ddStrain_curvilinear[2];
+
+            //                }
+            //                // curvature
+            //                array_1d<double, 3> ddg3;
+            //                ddg3[0] = ddg3[1] = ddg3[2] = 0;
+            //                double direction = 4 - i - j;
+            //                double ddirection = i - j;
+            //                if (ddirection == -1)  ddg3(direction - 1) = DN_De(n, 0)*DN_De(m, 1) - DN_De(n, 1)*DN_De(m, 0);
+            //                else if (ddirection == 2) ddg3(direction - 1) = DN_De(n, 0)*DN_De(m, 1) - DN_De(n, 1)*DN_De(m, 0);
+            //                else if (ddirection == 1) ddg3(direction - 1) = -DN_De(n, 0)*DN_De(m, 1) + DN_De(n, 1)*DN_De(m, 0);
+            //                else if (ddirection == -2) ddg3(direction - 1) = -DN_De(n, 0)*DN_De(m, 1) + DN_De(n, 1)*DN_De(m, 0);
+
+            //                double g3dg3m = (rMetric.g3[0] * dg3_m(j, 0) + rMetric.g3[1] * dg3_m(j, 1) + rMetric.g3[2] * dg3_m(j, 2));
+            //                double g3dg3lg3m = g3dg3m*invdA3;
+
+            //                dn_m(j, 0) = dg3_m(j, 0)*invdA - rMetric.g3[0] * g3dg3lg3m;
+            //                dn_m(j, 1) = dg3_m(j, 1)*invdA - rMetric.g3[1] * g3dg3lg3m;
+            //                dn_m(j, 2) = dg3_m(j, 2)*invdA - rMetric.g3[2] * g3dg3lg3m;
+
+
+            //                double c = -(ddg3[0] * rMetric.g3[0] + ddg3[1] * rMetric.g3[1] + ddg3[2] * rMetric.g3[2]
+            //                    + dg3_n(i, 0)*dg3_m(j, 0) + dg3_n(i, 1)*dg3_m(j, 1) + dg3_n(i, 2)*dg3_m(j, 2)
+            //                    )*invdA3;
+
+
+            //                double d = 3.0*g3dg3n * g3dg3m * invdA5;
+
+            //                ddn[0] = ddg3[0] * invdA3 - g3dg3lg3m * dg3_n(i, 0) - g3dg3lg3n * dg3_m(j, 0) + (c + d)*rMetric.g3[0];
+            //                ddn[1] = ddg3[1] * invdA3 - g3dg3lg3m * dg3_n(i, 1) - g3dg3lg3n * dg3_m(j, 1) + (c + d)*rMetric.g3[1];
+            //                ddn[2] = ddg3[2] * invdA3 - g3dg3lg3m * dg3_n(i, 2) - g3dg3lg3n * dg3_m(j, 2) + (c + d)*rMetric.g3[2];
+
+            //                ddCurvature_curvilinear[0] = DDN_DDe(n, 0)*dn_m(j, i) + DDN_DDe(m, 0)*dn_n(i, j)
+            //                    + rMetric.H(0, 0)*ddn[0] + rMetric.H(1, 0)*ddn[1] + rMetric.H(2, 0)*ddn[2];
+            //                ddCurvature_curvilinear[1] = DDN_DDe(n, 1)*dn_m(j, i) + DDN_DDe(m, 1)*dn_n(i, j)
+            //                    + rMetric.H(0, 1)*ddn[0] + rMetric.H(1, 1)*ddn[1] + rMetric.H(2, 1)*ddn[2];
+            //                ddCurvature_curvilinear[2] = DDN_DDe(n, 2)*dn_m(j, i) + DDN_DDe(m, 2)*dn_n(i, j)
+            //                    + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2];
+
+            //                rSecondVariationsCurvature.B11(3 * n + i, 3 * m + j) =
+            //                    mInitialMetric.Q(0, 0)*ddCurvature_curvilinear[0]
+            //                    + mInitialMetric.Q(0, 1)*ddCurvature_curvilinear[1]
+            //                    + mInitialMetric.Q(0, 2)*ddCurvature_curvilinear[2];
+            //                rSecondVariationsCurvature.B22(3 * n + i, 3 * m + j) =
+            //                    mInitialMetric.Q(1, 0)*ddCurvature_curvilinear[0]
+            //                    + mInitialMetric.Q(1, 1)*ddCurvature_curvilinear[1]
+            //                    + mInitialMetric.Q(1, 2)*ddCurvature_curvilinear[2];
+            //                rSecondVariationsCurvature.B12(3 * n + i, 3 * m + j) =
+            //                    mInitialMetric.Q(2, 0)*ddCurvature_curvilinear[0]
+            //                    + mInitialMetric.Q(2, 1)*ddCurvature_curvilinear[1]
+            //                    + mInitialMetric.Q(2, 2)*ddCurvature_curvilinear[2];
+            //            }
+            //        }
+            //    }
+            //}
+        //}
         }
     }
 

@@ -97,6 +97,28 @@ namespace Kratos
 
         MathUtils<double>::CrossProduct(rNormalVector, g1, g2);
     }
+    //***********************************************************************************
+    //***********************************************************************************
+    void CurveBaseDiscreteCondition::CalculateHessianSurface(Matrix& Hessian, const Matrix& DDN_DDe, const int rDimension)
+    {
+        const unsigned int number_of_points = GetGeometry().size();
+
+        Hessian.resize(rDimension, rDimension);
+        Hessian = ZeroMatrix(rDimension, rDimension);
+
+        for (int k = 0; k<number_of_points; k++)
+        {
+            const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
+
+            for (int i = 0; i < rDimension; ++i)
+            {
+                for (int j = 0; j < rDimension; ++j)
+                {
+                    Hessian(i, j) += DDN_DDe(k, j)*coords[i];
+                }
+            }
+        }
+    }
     //************************************************************************************
     //************************************************************************************
     void CurveBaseDiscreteCondition::GetBaseVectorsSurface(

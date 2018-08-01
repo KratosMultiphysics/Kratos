@@ -44,7 +44,7 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
         self.aux_processes = []
 
         import assign_scalar_variable_to_conditions_process
-        print("ole ole")
+
         # component X
         if(not settings["value"][0].IsNull()):
             x_params = KratosMultiphysics.Parameters("{}")

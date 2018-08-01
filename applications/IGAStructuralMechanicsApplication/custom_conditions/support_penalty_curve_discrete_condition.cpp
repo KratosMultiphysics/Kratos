@@ -221,6 +221,7 @@ namespace Kratos
         //ROTATIONS
         if (Has(ROTATION))
         {
+            std::cout << "so so so " << std::endl;
             const array_1d<double, 3>& rotation = this->GetValue(ROTATION);
 
             Vector Phi_r = ZeroVector(mat_size);
@@ -258,7 +259,6 @@ namespace Kratos
                     Stiffness(2, 3 * i + 2) = N[i];
                 }
             }
-
             const array_1d<double, 3>& displacement = this->GetValue(DISPLACEMENT);
 
             Vector TDisplacements(mat_size);
@@ -272,7 +272,7 @@ namespace Kratos
             }
 
             noalias(rLeftHandSideMatrix) += prod(trans(Stiffness), Stiffness);
-            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, TDisplacements);
+            noalias(rRightHandSideVector) -= prod(prod(trans(Stiffness), Stiffness), TDisplacements);
         }
         //noalias(rRightHandSideVector) -= prod(prod(trans(Stiffness), Stiffness), TDisplacements);
 
@@ -285,6 +285,8 @@ namespace Kratos
         rLeftHandSideMatrix  *= weighting * Penalty;
         rRightHandSideVector *= weighting * Penalty;
 
+        //KRATOS_WATCH(rLeftHandSideMatrix)
+        //    KRATOS_WATCH(rRightHandSideVector)
 
         KRATOS_CATCH("")
     }

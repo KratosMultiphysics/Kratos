@@ -21,6 +21,7 @@
 #include "NurbsBrepModeler.h"
 #include "utilities/math_utils.h"
 #include "includes/node.h"
+//#include "includes/geometry.h"
 
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_search/bins_iga_configure.h"
@@ -480,61 +481,62 @@ namespace Kratos
         KRATOS_WATCH(N)
     }
 
+
     void NurbsBrepModeler::GetInterfaceConditionsAdvanced(ModelPart& rParticleModelPart, ModelPart& rIGAModelPart)
     {
-        //std::vector<BinsIgaConfigure> BinsIGAObjs(rIGAModelPart.NumberOfElements());
-        BinsIgaConfigure::ContainerType BinsIGAObjs;
-        for (auto iga_element_ptr = rIGAModelPart.ElementsBegin(); iga_element_ptr != rIGAModelPart.ElementsEnd(); iga_element_ptr++)
-        {
-            //BinsIGAObjs.push_back(new BinsIgaObject(iga_element_ptr));
-            BinsIGAObjs.push_back(Kratos::make_unique<BinsIgaObject>(iga_element_ptr));
-        }
+        ////std::vector<BinsIgaConfigure> BinsIGAObjs(rIGAModelPart.NumberOfElements());
+        //BinsIgaConfigure::ContainerType BinsIGAObjs;
+        //for (auto iga_element_ptr = rIGAModelPart.ElementsBegin(); iga_element_ptr != rIGAModelPart.ElementsEnd(); iga_element_ptr++)
+        //{
+        //    //BinsIGAObjs.push_back(new BinsIgaObject(iga_element_ptr));
+        //    BinsIGAObjs.push_back(Kratos::make_unique<BinsIgaObject>(iga_element_ptr));
+        //}
 
-        auto iga_bins_structure = BinsObjectDynamic<BinsIgaConfigure>(BinsIGAObjs.begin(), BinsIGAObjs.end());
+        //auto iga_bins_structure = BinsObjectDynamic<BinsIgaConfigure>(BinsIGAObjs.begin(), BinsIGAObjs.end());
 
-        int num_interface_obj_bin = BinsIGAObjs.size();
+        //int num_interface_obj_bin = BinsIGAObjs.size();
 
-        BinsIgaConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
-        std::vector<double> neighbor_distances(num_interface_obj_bin);
+        //BinsIgaConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
+        //std::vector<double> neighbor_distances(num_interface_obj_bin);
 
-        auto particle_obj = Kratos::make_shared<BinsIgaObject>(array_1d<double, 3>(0.0));
+        //auto particle_obj = Kratos::make_shared<BinsIgaObject>(array_1d<double, 3>(0.0));
 
-        for (auto particle_element_ptr = rParticleModelPart.ElementsBegin(); particle_element_ptr != rParticleModelPart.ElementsEnd(); particle_element_ptr++)
-        {
-            auto results_itr = neighbor_results.begin();
-            auto distance_itr = neighbor_distances.begin();
+        //for (auto particle_element_ptr = rParticleModelPart.ElementsBegin(); particle_element_ptr != rParticleModelPart.ElementsEnd(); particle_element_ptr++)
+        //{
+        //    auto results_itr = neighbor_results.begin();
+        //    auto distance_itr = neighbor_distances.begin();
 
-            double radius = particle_element_ptr->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-            double search_radius = radius * 4;
+        //    double radius = particle_element_ptr->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        //    double search_radius = radius * 4;
 
-            particle_obj->UpdateCoordinates(particle_element_ptr->GetGeometry()[0].Coordinates());
+        //    particle_obj->UpdateCoordinates(particle_element_ptr->GetGeometry()[0].Coordinates());
 
-            const std::size_t number_of_results = iga_bins_structure.SearchObjectsInRadius(
-                particle_obj, search_radius, results_itr,
-                distance_itr, num_interface_obj_bin);
+        //    const std::size_t number_of_results = iga_bins_structure.SearchObjectsInRadius(
+        //        particle_obj, search_radius, results_itr,
+        //        distance_itr, num_interface_obj_bin);
 
-            if (number_of_results > 0)
-            {
-                std::vector<Condition*> new_conditions;
-                std::vector<array_1d<double, 3>> new_elastic_forces;
-                std::vector<array_1d<double, 3>> new_total_forces;
+        //    if (number_of_results > 0)
+        //    {
+        //        std::vector<Condition*> new_conditions;
+        //        std::vector<array_1d<double, 3>> new_elastic_forces;
+        //        std::vector<array_1d<double, 3>> new_total_forces;
 
-                for (int i = 0; i < number_of_results; ++i)
-                {
-                    unsigned int face_id_of_nearest_point = results_itr[i]->pGetBaseElement()->GetValue(FACE_BREP_ID);
-                    Node<3>::Pointer node = Kratos::make_shared<Node<3>>(results_itr[i]->Coordinates());
-                    Node<3>::Pointer node_on_geometry = Kratos::make_shared<Node<3>>(0, 0, 0, 0);
+        //        for (int i = 0; i < number_of_results; ++i)
+        //        {
+        //            unsigned int face_id_of_nearest_point = results_itr[i]->pGetBaseElement()->GetValue(FACE_BREP_ID);
+        //            Node<3>::Pointer node = Kratos::make_shared<Node<3>>(results_itr[i]->Coordinates());
+        //            Node<3>::Pointer node_on_geometry = Kratos::make_shared<Node<3>>(0, 0, 0, 0);
 
-                    BrepFace& face = GetFace(face_id_of_nearest_point);
-                    face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
+        //            BrepFace& face = GetFace(face_id_of_nearest_point);
+        //            face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
 
-                    double distance_radius = std::sqrt(std::pow(node->X() - node_on_geometry->X(), 2) +
-                        std::pow(node->Y() - node_on_geometry->Y(), 2) +
-                        std::pow(node->Z() - node_on_geometry->Z(), 2));
+        //            double distance_radius = std::sqrt(std::pow(node->X() - node_on_geometry->X(), 2) +
+        //                std::pow(node->Y() - node_on_geometry->Y(), 2) +
+        //                std::pow(node->Z() - node_on_geometry->Z(), 2));
 
-                }
-            }
-        }
+        //        }
+        //    }
+        //}
     }
 	void NurbsBrepModeler::GetInterfaceConditions(ModelPart& rParticleModelPart, ModelPart& rConditionModelPart, ModelPart& rSearchModelPart)
 	{
@@ -699,6 +701,64 @@ namespace Kratos
 
 		}
 	}
+
+    void NurbsBrepModeler::GetUpdatedLocation(ModelPart& rIGAModelPart)
+    {
+        for (auto element = rIGAModelPart.ElementsBegin(); element != rIGAModelPart.ElementsEnd(); element++)
+        {
+            Vector coords = ZeroVector(3);
+            ProcessInfo process_info;
+            element->Calculate(COORDINATES, coords, process_info);
+
+            Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0, 0, 0, 0); // ::Pointer(new Node<3>(0));
+            Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0, coords(0), coords(1), coords(2)));
+
+            unsigned int face_id_of_nearest_point = element->GetValue(FACE_BREP_ID);
+
+            BrepFace& face = GetFace(face_id_of_nearest_point);
+
+            face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
+
+            element->SetValue(SHAPE_FUNCTION_VALUES, node->GetValue(NURBS_SHAPE_FUNCTIONS));
+            element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, node->GetValue(NURBS_SHAPE_FUNCTION_DERIVATIVES));
+            element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, node->GetValue(NURBS_SHAPE_FUNCTION_SECOND_DERIVATIVES));
+            int number_of_cps = node->GetValue(CONTROL_POINT_IDS).size();
+            Vector CPS = node->GetValue(CONTROL_POINT_IDS);
+            std::vector<Node<3>::Pointer> cps;
+            for (int i = 0; i < number_of_cps; ++i)
+            {
+                cps.push_back(rIGAModelPart.pGetNode((int)CPS[i]));
+            }
+            element->GetGeometry() = Geometry< Node<3> >(cps);
+        }
+        for (auto condition = rIGAModelPart.ConditionsBegin(); condition != rIGAModelPart.ConditionsEnd(); condition++)
+        {
+            Vector coords = ZeroVector(3);
+            ProcessInfo process_info;
+            condition->Calculate(COORDINATES, coords, process_info);
+
+            Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0, 0, 0, 0); // ::Pointer(new Node<3>(0));
+            Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0, coords(0), coords(1), coords(2)));
+
+            unsigned int face_id_of_nearest_point = condition->GetValue(FACE_BREP_ID);
+
+            BrepFace& face = GetFace(face_id_of_nearest_point);
+
+            face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
+
+            condition->SetValue(SHAPE_FUNCTION_VALUES, node->GetValue(NURBS_SHAPE_FUNCTIONS));
+            condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, node->GetValue(NURBS_SHAPE_FUNCTION_DERIVATIVES));
+            condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, node->GetValue(NURBS_SHAPE_FUNCTION_SECOND_DERIVATIVES));
+            int number_of_cps = node->GetValue(CONTROL_POINT_IDS).size();
+            Vector CPS = node->GetValue(CONTROL_POINT_IDS);
+            std::vector<Node<3>::Pointer> cps;
+            for (int i = 0; i < number_of_cps; ++i)
+            {
+                cps.push_back(rIGAModelPart.pGetNode((int)CPS[i]));
+            }
+            condition->GetGeometry() = Geometry< Node<3> >(cps);
+        }
+    }
 
 	void NurbsBrepModeler::ComputeArea(ModelPart& rModelPart)
 	{

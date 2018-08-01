@@ -71,7 +71,7 @@ public:
     using CoordinatesArrayType = typename BaseType::CoordinatesArrayType;
 
     using ElementType = Element;
-    using ElementPointerType = Kratos::shared_ptr<ElementType>;
+    using ElementPointerType = ElementType::Pointer;
 
     ///@}
     ///@name  Enum's
@@ -84,10 +84,10 @@ public:
     BinsIgaObject() : Point()
     { };
 
-    BinsIgaObject(const CoordinatesArrayType& rCoordinates, ElementPointerType& pElement) : Point(rCoordinates), mpElement(pElement)
+    BinsIgaObject(const CoordinatesArrayType& rCoordinates, ElementPointerType pElement) : Point(rCoordinates), mpElement(pElement)
     {
         Vector coords = ZeroVector(3);
-        const ProcessInfo process_info();
+        const Kratos::ProcessInfo process_info;
         pElement->Calculate(COORDINATES, coords, process_info);
         noalias(Coordinates()) = coords;
     };

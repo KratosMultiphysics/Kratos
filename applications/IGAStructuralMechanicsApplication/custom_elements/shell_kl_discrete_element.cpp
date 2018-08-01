@@ -93,6 +93,8 @@ namespace Kratos
             second_variations_curvature,
             actual_metric);
 
+
+
         integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.detJ * GetProperties()[THICKNESS];
 
         // LEFT HAND SIDE MATRIX
@@ -114,15 +116,15 @@ namespace Kratos
                 constitutive_variables_curvature.S,
                 integration_weight);
         }
-        //KRATOS_WATCH(rLeftHandSideMatrix)
 
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
             // operation performed: rRightHandSideVector -= Weight*IntForce
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
-            noalias(rRightHandSideVector) += integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
+            noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
         }
+
         KRATOS_CATCH("");
     }
 

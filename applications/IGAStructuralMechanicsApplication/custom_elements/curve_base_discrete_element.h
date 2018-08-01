@@ -109,6 +109,11 @@ protected:
         const array_1d<double, 2>& Tangents,
         Vector& rBaseVector);
 
+    void CalculateHessianSurface(
+        Matrix& Hessian, 
+        const Matrix& DDN_DDe, 
+        const int rDimension);
+
     void Get1stVariationsAxialStrain(
         Vector& rEpsilon1stVariationDoF,
         const Vector& rBaseVector,
