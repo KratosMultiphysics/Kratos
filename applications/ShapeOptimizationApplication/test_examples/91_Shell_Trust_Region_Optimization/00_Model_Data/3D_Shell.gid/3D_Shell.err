@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "MainKratos.py", line 20, in <module>
+    simulation.Run()
+  File "/home/daniel/GiDx64/13.1.11d/problemtypes/kratos.gid/exec/Kratos/kratos/python_scripts/analysis_stage.py", line 40, in Run
+    self.Initialize()
+  File "/home/daniel/GiDx64/13.1.11d/problemtypes/kratos.gid/exec/Kratos/applications/StructuralMechanicsApplication/python_scripts/structural_mechanics_analysis.py", line 53, in Initialize
+    self._SetUpListOfProcesses()
+  File "/home/daniel/GiDx64/13.1.11d/problemtypes/kratos.gid/exec/Kratos/applications/StructuralMechanicsApplication/python_scripts/structural_mechanics_analysis.py", line 152, in _SetUpListOfProcesses
+    self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
+  File "/home/daniel/GiDx64/13.1.11d/problemtypes/kratos.gid/exec/Kratos/kratos/python_scripts/process_factory.py", line 16, in ConstructListOfProcesses
+    p = python_module.Factory(item, self.Model)
+  File "/home/daniel/GiDx64/13.1.11d/problemtypes/kratos.gid/exec/Kratos/kratos/python_scripts/assign_vector_by_direction_to_condition_process.py", line 7, in Factory
+    return AssignVectorByDirectionToConditionProcess(Model, settings["Parameters"])
+  File "/home/daniel/GiDx64/13.1.11d/problemtypes/kratos.gid/exec/Kratos/kratos/python_scripts/assign_vector_by_direction_to_condition_process.py", line 99, in __init__
+    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToConditionProcess.")
+Exception: Direction norm is close to 0 in AssignVectorByDirectionToConditionProcess.

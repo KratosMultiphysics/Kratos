@@ -1,0 +1,124 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 6.0.0-d386b0f
+Importing    KratosStructuralMechanicsApplication 
+     KRATOS   ___|  |                   |                   |                     
+            \___ \  __|  __| |   |  __| __| |   |  __| _` | |                   
+                  | |   |    |   | (    |   |   | |   (   | |                     
+            _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS     
+Importing    KratosExternalSolversApplication 
+Initializing KratosExternalSolversApplication... 
+ExternalSolversApplication: succesfully imported 
+Importing    KratosEigenSolversApplication 
+Initializing KratosEigenSolversApplication... 
+EigenSolversApplication: succesfully imported 
+::[MechanicalSolver]::  Construction finished: 
+::[StaticMechanicalSolver]::  Construction finished: 
+::[MechanicalSolver]::  Variables ADDED: 
+::[MechanicalSolver]::: Reading model part. 
+::[MechanicalSolver]::: Reading model part from file: /home/daniel/software/kratos/applications/ShapeOptimizationApplication/test_examples/06_Shell_Trust_Region_Optimization/00_Model_Data/3D_Shell.gid/3D_Shell.mdpa 
+ModelPartIO:   [Reading Nodes    : 66704 nodes read]
+ModelPartIO:   [Reading Elements : 131372 elements read] [Type: ShellThinElementCorotational3D3N]
+ModelPartIO:   [Reading Conditions : 1 conditions read] [Type: PointLoadCondition3D1N]
+ModelPartIO:   [Reading Conditions : 131372 conditions read] [Type: SurfaceCondition3D3N]
+ModelPartIO:   [Total Lines Read : 728081]
+::[MechanicalSolver]::: Finished reading model part from mdpa file. 
+ModelPart: -Structure- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 7
+    Current solution step index : 0
+    DOMAIN_SIZE : 3
+    IS_RESTARTED : 0
+
+    Mesh 0 : 
+        Number of Nodes      : 66704
+        Number of Properties : 1
+        Number of Elements   : 131372
+        Number of Conditions : 131373
+
+    -GENERIC_side_edges- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 1674
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 0
+    -GENERIC_support_edges- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 364
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 0
+    -GENERIC_design_surface- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 66704
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 131372
+    -PointLoad3D_load- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 1
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 1
+    -DISPLACEMENT_disp_slide- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 182
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 0
+    -DISPLACEMENT_disp_fix- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 182
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 0
+    -Parts_solid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 66704
+            Number of Properties : 0
+            Number of Elements   : 131372
+            Number of Conditions : 0
+ 
+::[MechanicalSolver]:: : Finished reading model part. 
+Computing model part:: -computing_domain- model part
+    Number of tables : 0
+    Number of sub model parts : 0
+
+    Mesh 0 : 
+        Number of Nodes      : 66704
+        Number of Properties : 1
+        Number of Elements   : 131372
+        Number of Conditions : 1
+
+ 
+::[Reading materials process]:: : Started 
+Warning in reading materials: Ignoring "KratosMultiphysics.StructuralMechanicsApplication" for Constitutive Law "LinearElasticPlaneStress2DLaw" 
+::[Reading materials process]:: : Finished 
+::[MechanicalSolver]::  Constitutive law was successfully imported.: 
+::[MechanicalSolver]::: ModelPart prepared for Solver. 
+::[MechanicalSolver]::  DOF's ADDED: 
+KRATOS TERMINATED WITH ERROR
