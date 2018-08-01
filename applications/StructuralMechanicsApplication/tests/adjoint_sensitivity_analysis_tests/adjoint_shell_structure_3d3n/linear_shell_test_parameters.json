@@ -1,13 +1,13 @@
 {
     "problem_data"             : {
-        "problem_name"    : "rectangular_plate_structure",
-        "model_part_name" : "rectangular_plate_structure",
+        "problem_name"    : "rectangular_plate",
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 0
+        "echo_level"      : 1
     },
     "solver_settings"          : {
         "solver_type"                        : "static",
@@ -15,11 +15,10 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "rectangular_plate_structure",
-            "input_file_label" : 0
+            "input_filename"   : "./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/StructuralMaterials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -42,7 +41,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "rectangular_plate_structure.DISPLACEMENT_DIR_BC",
+            "model_part_name" : "DISPLACEMENT_DIR_BC",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -54,7 +53,7 @@
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
-            "model_part_name" : "rectangular_plate_structure",
+            "model_part_name" : "Structure",
             "file_settings" : {
                 "file_access_mode" : "truncate"
             },
@@ -62,7 +61,7 @@
                 "prefix" : "/ModelData"
             },
             "nodal_results_settings" : {
-                "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
+                "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
     }],
@@ -74,33 +73,13 @@
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "rectangular_plate_structure.PointLoad3D_NODES",
+            "model_part_name" : "PointLoad3D_NODES",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : 1.0,
+            "modulus"         : 10.0,
             "direction"       : [0.0,0.0,1],
             "interval"        : [0.0,"End"]
         }
     }],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION", "POINT_LOAD"],
-            "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
-        },
-        "point_data_configuration"  : []
-    },
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,

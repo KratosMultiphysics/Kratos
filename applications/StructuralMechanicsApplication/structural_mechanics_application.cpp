@@ -143,6 +143,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAxisymUpdatedLagrangian2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<NodeType >(Element::GeometryType::PointsArrayType(9)))),
       // Adding the spring damper element
       mSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      // Adding the adjoint elements
+      mAdjointFiniteDifferencingBaseElement(),
+      mAdjointFiniteDifferencingShellElement(),
+      mAdjointFiniteDifferenceCrBeamElement(),
       /* CONDITIONS */
       // Adding point load conditions
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
@@ -162,7 +166,11 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSurfaceLoadCondition3D8N(0, Condition::GeometryType::Pointer(new Quadrilateral3D8<NodeType >(Condition::GeometryType::PointsArrayType(8)))),
       mSurfaceLoadCondition3D9N(0, Condition::GeometryType::Pointer(new Quadrilateral3D9<NodeType >(Condition::GeometryType::PointsArrayType(9)))),
       // Adding point moment conditions
-      mPointMomentCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))) {}
+      mPointMomentCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
+
+      // Adding adjoint conditions
+      mAdjointSemiAnalyticPointLoadCondition2D1N(),
+      mAdjointSemiAnalyticPointLoadCondition3D1N() {}
 
 void KratosStructuralMechanicsApplication::Register() {
     // calling base class register to register Kratos components
@@ -342,6 +350,32 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Response function variables
     KRATOS_REGISTER_VARIABLE(RESPONSE_VALUE)
+        // Adjoint variables
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_ROTATION)
+    KRATOS_REGISTER_VARIABLE(PERTURBATION_SIZE)
+
+    // Variables for output of sensitivities
+    KRATOS_REGISTER_VARIABLE( CROSS_AREA_SENSITIVITY );
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( I22_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( I33_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( THICKNESS_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Y_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Z_SENSITIVITY );
+    KRATOS_REGISTER_VARIABLE( IS_ADJOINT );
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SHAPE );
+
+    // Variables to for computing parts of sensitivity analysis
+    KRATOS_REGISTER_VARIABLE( TRACED_STRESS_TYPE );
+    KRATOS_REGISTER_VARIABLE( STRESS_DISP_DERIV_ON_GP );
+    KRATOS_REGISTER_VARIABLE( STRESS_DISP_DERIV_ON_NODE);
+    KRATOS_REGISTER_VARIABLE( STRESS_DESIGN_DERIVATIVE_ON_GP );
+    KRATOS_REGISTER_VARIABLE( STRESS_DESIGN_DERIVATIVE_ON_NODE);
+    KRATOS_REGISTER_VARIABLE( STRESS_ON_GP  );
+    KRATOS_REGISTER_VARIABLE( STRESS_ON_NODE  );
+    KRATOS_REGISTER_VARIABLE( DESIGN_VARIABLE_NAME );
 
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
@@ -443,6 +477,11 @@ void KratosStructuralMechanicsApplication::Register() {
     // Register the spring damper element
     KRATOS_REGISTER_ELEMENT("SpringDamperElement3D2N", mSpringDamperElement3D2N);
 
+    //Register the adjoint elements
+    KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferencingBaseElement", mAdjointFiniteDifferencingBaseElement )
+    KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferencingShellElement", mAdjointFiniteDifferencingShellElement )
+    KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferenceCrBeamElement", mAdjointFiniteDifferenceCrBeamElement )
+
     // Register the conditions
     // Point loads
     KRATOS_REGISTER_CONDITION("PointLoadCondition2D1N", mPointLoadCondition2D1N)
@@ -468,6 +507,10 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Point moment
     KRATOS_REGISTER_CONDITION("PointMomentCondition3D1N", mPointMomentCondition3D1N);
+
+    // Adjoint conditions
+    KRATOS_REGISTER_CONDITION( "AdjointSemiAnalyticPointLoadCondition2D1N", mAdjointSemiAnalyticPointLoadCondition2D1N )
+    KRATOS_REGISTER_CONDITION( "AdjointSemiAnalyticPointLoadCondition3D1N", mAdjointSemiAnalyticPointLoadCondition3D1N )
 
     KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)
     KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)
