@@ -160,7 +160,9 @@ void SPRMetricProcess<TDim>::CalculateErrorEstimationAndElementSize(
     const int num_elem = static_cast<int>(elements_array.size());
 
     // Compute the error estimate per element
-    #pragma omp parallel for reduction(+:rErrorOverall, rEnergyNormOverall)
+    double error_overall= 0.0;
+    double energy_norm_overall = 0.0;
+    #pragma omp parallel for reduction(+:error_overall, energy_norm_overall)
     for(int i_elem = 0; i_elem < num_elem; ++i_elem){
         auto it_elem = elements_array.begin() + i_elem;
 
@@ -169,30 +171,31 @@ void SPRMetricProcess<TDim>::CalculateErrorEstimationAndElementSize(
         it_elem->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, process_info);
 
         KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Error GP:" << error_integration_point << std::endl;
-
+        
+        // We compute the error overall 
         double error_energy_norm = 0.0;
         for(IndexType i = 0;i < error_integration_point.size();++i)
             error_energy_norm += error_integration_point[i];
-        rErrorOverall += error_energy_norm;
+        error_overall += error_energy_norm;
         error_energy_norm = std::sqrt(error_energy_norm);
         it_elem->SetValue(ELEMENT_ERROR, error_energy_norm);
 
-        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Element error: " << error_energy_norm << std::endl;
 
+        // We compute now the energy norm
         std::vector<double> strain_energy;
         it_elem->GetValueOnIntegrationPoints(STRAIN_ENERGY, strain_energy, process_info);
 
         double energy_norm = 0.0;
         for(IndexType i = 0;i < strain_energy.size(); ++i)
             energy_norm += 2.0 * strain_energy[i];
-        rEnergyNormOverall += energy_norm;
+        energy_norm_overall += energy_norm;
         energy_norm= std::sqrt(energy_norm);
 
-        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Energy norm: " << energy_norm << std::endl;
+        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Element Id:" << it_elem->Id() << ". Element error: " << error_energy_norm << ". Energy norm: " << energy_norm << std::endl;
     }
 
-    rErrorOverall = std::sqrt(rErrorOverall);
-    rEnergyNormOverall = std::sqrt(rEnergyNormOverall);
+    rErrorOverall = std::sqrt(error_overall);
+    rEnergyNormOverall = std::sqrt(energy_norm_overall);
     double error_percentage = rErrorOverall/std::sqrt((std::pow(rErrorOverall, 2) + std::pow(rEnergyNormOverall, 2)));
 
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 1)
