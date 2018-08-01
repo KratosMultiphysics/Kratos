@@ -74,7 +74,7 @@ namespace Kratos
            KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         // Check if the pointer was .reset() or never initialized and if its a NULL pointer)
-        if (Stream == NULL || Stream == Kratos::shared_ptr<std::iostream>(NULL))
+        if (Stream == nullptr || Stream == Kratos::shared_ptr<std::iostream>(NULL))
            KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         mpStream = Stream;
