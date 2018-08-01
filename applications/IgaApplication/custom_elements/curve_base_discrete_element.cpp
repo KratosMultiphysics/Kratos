@@ -54,7 +54,7 @@ namespace Kratos
     {
         if (rBaseVector.size() != 3)
             rBaseVector.resize(3);
-        rBaseVector = ZeroVector(3);
+        noalias(rBaseVector) = ZeroVector(3);
 
         // this is valid for all parameter edges
         if (Has(TANGENTS))
@@ -112,12 +112,10 @@ namespace Kratos
             rEpsilon1stVariationDoF.resize(mat_size, false);
         rEpsilon1stVariationDoF = ZeroVector(mat_size);
 
-        int xyz_r = 0;
-        int i = 0;
-        for (int r = 0; r < mat_size; r++)
+        for (std::size_t r = 0; r < mat_size; r++)
         {
-            xyz_r = r % rNumberOfDoFs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-            i = r / rNumberOfDoFs;     // index for the shape functions
+            int xyz_r = r % rNumberOfDoFs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+            int i = r / rNumberOfDoFs;     // index for the shape functions
             if (xyz_r>2)
                 rEpsilon1stVariationDoF[r] = 0.0;
             else
@@ -134,20 +132,20 @@ namespace Kratos
     {
         int mat_size = rDN_De.size1()*rNumberOfDoFs;
 
-        if ((rEpsilon2ndVariationDoF.size1() != mat_size) && (rEpsilon2ndVariationDoF.size1() != mat_size))
+        if ((rEpsilon2ndVariationDoF.size1() != mat_size) || (rEpsilon2ndVariationDoF.size1() != mat_size))
             rEpsilon2ndVariationDoF.resize(mat_size, mat_size, false);
         rEpsilon2ndVariationDoF = ZeroMatrix(mat_size, mat_size);
 
-        for (int r = 0; r<mat_size; r++) //in the case
+        for (std::size_t r = 0; r<mat_size; r++) //in the case
         {
             int xyz_r = r % rNumberOfDoFs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
             int i = r / rNumberOfDoFs;     // index for the shape functions
             if (xyz_r>2)
-                for (int s = 0; s<mat_size; s++)
+                for (std::size_t s = 0; s<mat_size; s++)
                     rEpsilon2ndVariationDoF(r, s) = 0.0;
             else
             {
-                for (int s = 0; s<mat_size; s++)
+                for (std::size_t s = 0; s<mat_size; s++)
                 {
                     int xyz_s = s % rNumberOfDoFs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
                     int j = s / rNumberOfDoFs;     // index for the shape functions

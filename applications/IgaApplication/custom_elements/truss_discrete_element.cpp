@@ -88,7 +88,7 @@ void TrussDiscreteElement::CalculateAll(
     // get integration data
     
     const double& integration_weight = GetValue(INTEGRATION_WEIGHT);
-    Matrix& shape_derivatives = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+    Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
     // get properties
 
@@ -101,7 +101,7 @@ void TrussDiscreteElement::CalculateAll(
     // compute base vectors
 
     Vector actual_base_vector = ZeroVector(3);
-    GetBaseVector(actual_base_vector, shape_derivatives);
+    GetBaseVector(actual_base_vector, DN_De);
 
     const double reference_a = norm_2(mBaseVector0);
     const double actual_a = norm_2(actual_base_vector);
@@ -120,13 +120,13 @@ void TrussDiscreteElement::CalculateAll(
 
     Vector epsilon_var_1_dof = ZeroVector(number_of_dofs);
     Get1stVariationsAxialStrain(epsilon_var_1_dof, actual_base_vector, 3,
-        shape_derivatives);
+        DN_De);
     epsilon_var_1_dof = epsilon_var_1_dof / (reference_a * reference_a);
 
     // 2nd variation of the axial strain 
 
     Matrix epsilon_var_2 = ZeroMatrix(number_of_dofs, number_of_dofs);
-    Get2ndVariationsAxialStrain(epsilon_var_2, 3, shape_derivatives);
+    Get2ndVariationsAxialStrain(epsilon_var_2, 3, DN_De);
     epsilon_var_2 = epsilon_var_2 / (reference_a * reference_a);
 
     for (std::size_t r = 0; r < number_of_dofs; r++) {
