@@ -89,7 +89,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
 
@@ -137,14 +137,14 @@ protected:
     /**
      * Initialize System Matrices
      */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables, 
+    virtual void CalculateKinematics(ConditionVariables& rVariables,
 				     const double& rPointNumber) override;
 
     /**
@@ -220,4 +220,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SURFACE_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_SURFACE_LOAD_CONDITION_H_INCLUDED defined

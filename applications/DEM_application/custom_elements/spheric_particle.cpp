@@ -118,7 +118,6 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mSearchRadius = rOther.mSearchRadius;
     mRealMass = rOther.mRealMass;
     mClusterId = rOther.mClusterId;
-    mBoundDeltaDispSq = rOther.mBoundDeltaDispSq;
     mGlobalDamping = rOther.mGlobalDamping;
 
     if(rOther.mStressTensor != NULL) {
@@ -141,6 +140,10 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
 
     mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
+
+    SetValue(WALL_POINT_CONDITION_POINTERS, std::vector<Condition*>());
+    SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3> >());
+    SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3> >());
 
     return *this;
 }
@@ -198,13 +201,15 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     double& inelastic_viscodamping_energy = this->GetInelasticViscodampingEnergy();
     inelastic_viscodamping_energy = 0.0;
 
-    mBoundDeltaDispSq = 0.0;
-
     CreateDiscontinuumConstitutiveLaws(r_process_info);
 
     DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
     DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
     SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
+
+    SetValue(WALL_POINT_CONDITION_POINTERS, std::vector<Condition*>());
+    SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3> >());
+    SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3> >());
 
     KRATOS_CATCH( "" )
 }
@@ -466,9 +471,9 @@ void SphericParticle::EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer
     array_1d<double, 3> old_coord_target;
     noalias(old_coord_target) = this->GetGeometry()[0].Coordinates() - delta_displ;
 
-    const array_1d<double, 3>& other_delta_displ = data_buffer.mpOtherParticle->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+    const array_1d<double, 3>& other_delta_displ = data_buffer.mpOtherParticleNode->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
     array_1d<double, 3> old_coord_neigh;
-    noalias(old_coord_neigh) = data_buffer.mpOtherParticle->GetGeometry()[0].Coordinates() - other_delta_displ;
+    noalias(old_coord_neigh) = data_buffer.mpOtherParticleNode->Coordinates() - other_delta_displ;
 
     if (data_buffer.mDomainIsPeriodic){ // the domain is periodic
         TransformNeighbourCoorsToClosestInPeriodicDomain(data_buffer, old_coord_target, old_coord_neigh);
@@ -482,7 +487,7 @@ void SphericParticle::EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer
     GeometryFunctions::ComputeContactLocalCoordSystem(old_other_to_me_vect, old_distance, OldLocalCoordSystem); //Old Local Coordinate System
 
     // VELOCITIES AND DISPLACEMENTS
-    const array_1d<double, 3 >& other_vel = data_buffer.mpOtherParticle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    const array_1d<double, 3 >& other_vel = data_buffer.mpOtherParticleNode->FastGetSolutionStepValue(VELOCITY);
 
     RelVel[0] = (vel[0] - other_vel[0]);
     RelVel[1] = (vel[1] - other_vel[1]);
@@ -783,8 +788,8 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
     for (int i = 0; data_buffer.SetNextNeighbourOrExit(i); ++i){
 
         if (CalculateRelativePositionsOrSkipContact(data_buffer)) {
-            double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
-            double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
             double DeltDisp[3]                       = {0.0};
             double LocalDeltDisp[3]                  = {0.0};
             double RelVel[3]                         = {0.0};
@@ -803,13 +808,13 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
             const array_1d<double, 3>& ang_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
-            EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, velocity, delta_displ);
+            EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, velocity, delta_displ);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, LocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
+                RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOtherRadius, data_buffer.mDt, ang_velocity, data_buffer.mpOtherParticle);
             }
 
-            RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, data_buffer.mpOtherParticle);
+            RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, data_buffer.mpOtherParticle);
 
 
             EvaluateBallToBallForcesForPositiveIndentiations(data_buffer,
@@ -823,8 +828,8 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                                                              cohesive_force,
                                                              data_buffer.mpOtherParticle,
                                                              sliding,
-                                                             LocalCoordSystem,
-                                                             OldLocalCoordSystem,
+                                                             data_buffer.mLocalCoordSystem,
+                                                             data_buffer.mOldLocalCoordSystem,
                                                              mNeighbourElasticContactForces[i]);
 
 
@@ -832,24 +837,24 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
 
             // Transforming to global forces and adding up
-            AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
+            AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
                                   GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info);
             //TODO: make different AddUpForces for continuum and discontinuum (different arguments, different operations!)
 
             // ROTATION FORCES
             if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
-                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, LocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation);
+                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation);
             }
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
+                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
             }
 
             DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
             DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
             DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
-            DEM_SET_COMPONENTS_TO_ZERO_3x3(LocalCoordSystem)
-            DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
+            DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
 
             #ifdef KRATOS_DEBUG
                 DemDebugFunctions::CheckIfNan(GlobalContactForce, "NAN in Force in Ball to Ball contact");
@@ -904,9 +909,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     RenewData();
 
     std::vector<DEMWall*>& rNeighbours   = this->mNeighbourRigidFaces;
-    array_1d<double, 3> vel              = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    array_1d<double, 3> velocity         = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    array_1d<double, 3> RelVel = ZeroVector(3);
 
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
         DEMWall* wall = rNeighbours[i];
@@ -920,7 +924,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         double GlobalElasticContactForce[3]      = {0.0};
         double ViscoDampingLocalContactForce[3]  = {0.0};
         double cohesive_force                    =  0.0;
-        double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
+        DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
+        DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
         array_1d<double, 3> wall_delta_disp_at_contact_point = ZeroVector(3);
         array_1d<double, 3> wall_velocity_at_contact_point = ZeroVector(3);
         bool sliding = false;
@@ -931,7 +936,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         int ContactType = -1;
         array_1d<double, 4>& Weight = this->mContactConditionWeights[i];
 
-        rNeighbours[i]->ComputeConditionRelativeData(i, this, LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
+        rNeighbours[i]->ComputeConditionRelativeData(i, this, data_buffer.mLocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
 
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
 
@@ -939,9 +944,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             double DeltDisp[3] = {0.0};
             double DeltVel [3] = {0.0};
 
-            DeltVel[0] = vel[0] - wall_velocity_at_contact_point[0];
-            DeltVel[1] = vel[1] - wall_velocity_at_contact_point[1];
-            DeltVel[2] = vel[2] - wall_velocity_at_contact_point[2];
+            DeltVel[0] = velocity[0] - wall_velocity_at_contact_point[0];
+            DeltVel[1] = velocity[1] - wall_velocity_at_contact_point[1];
+            DeltVel[2] = velocity[2] - wall_velocity_at_contact_point[2];
 
             // For translation movement delta displacement
             const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -949,15 +954,13 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
             DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
 
-            const double actual_distance_to_contact_point = GetInteractionRadius() - indentation;
-
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 const array_1d<double,3>& delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
 
                 array_1d<double, 3> actual_arm_vector, new_arm_vector;
-                actual_arm_vector[0] = -LocalCoordSystem[2][0] * actual_distance_to_contact_point; // Here it should be OldLocalCoordSystem but it can be calculated from the available
-                actual_arm_vector[1] = -LocalCoordSystem[2][1] * actual_distance_to_contact_point; // data because the contact could have changed from plane to edge...: JIG
-                actual_arm_vector[2] = -LocalCoordSystem[2][2] * actual_distance_to_contact_point;
+                actual_arm_vector[0] = -data_buffer.mLocalCoordSystem[2][0] * DistPToB;
+                actual_arm_vector[1] = -data_buffer.mLocalCoordSystem[2][1] * DistPToB;
+                actual_arm_vector[2] = -data_buffer.mLocalCoordSystem[2][2] * DistPToB;
 
                 double tangential_vel[3]           = {0.0};
                 double tangential_displacement_due_to_rotation[3]  = {0.0};
@@ -977,16 +980,12 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
                 DEM_ADD_SECOND_TO_FIRST(DeltDisp, tangential_displacement_due_to_rotation)
             }
 
-            double Norm_SQ_Delta_Disp = DEM_INNER_PRODUCT_3(DeltDisp,DeltDisp);
-            if(Norm_SQ_Delta_Disp > mBoundDeltaDispSq)
-            {mBoundDeltaDispSq = Norm_SQ_Delta_Disp;}
-
             double LocalDeltDisp[3] = {0.0};
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+            GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltDisp, LocalDeltDisp);
 
             double OldLocalElasticContactForce[3] = {0.0};
 
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourRigidFacesElasticContactForce[i], OldLocalElasticContactForce);
+            GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, mNeighbourRigidFacesElasticContactForce[i], OldLocalElasticContactForce);
             const double previous_indentation = indentation + LocalDeltDisp[2];
             data_buffer.mLocalRelVel[0] = 0.0;
             data_buffer.mLocalRelVel[1] = 0.0;
@@ -994,7 +993,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
             if (indentation > 0.0) {
 
-                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
+                GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
                 mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,
                                                                     OldLocalElasticContactForce,
                                                                     LocalElasticContactForce,
@@ -1012,15 +1011,16 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             double LocalContactForce[3]  = {0.0};
             double GlobalContactForce[3] = {0.0};
 
-            AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
-                                     GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force, r_contact_force, i);
+            AddUpFEMForcesAndProject(data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
+                                     GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force,
+                                     r_contact_force, mNeighbourRigidFacesElasticContactForce[i], mNeighbourRigidFacesTotalContactForce[i]);
 
             rigid_element_force[0] -= GlobalContactForce[0];
             rigid_element_force[1] -= GlobalContactForce[1];
             rigid_element_force[2] -= GlobalContactForce[2];
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
+                ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
 
             //WEAR
@@ -1036,10 +1036,120 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             } //wall->GetProperties()[COMPUTE_WEAR] if
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
-                AddWallContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], actual_distance_to_contact_point, 0.0);
+                AddWallContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], DistPToB, 0.0);
             }
         } //ContactType if
     } //rNeighbours.size loop
+
+    auto& list_of_point_condition_pointers = this->GetValue(WALL_POINT_CONDITION_POINTERS);
+    auto& neighbour_point_faces_elastic_contact_force = this->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES);
+    auto& neighbour_point_faces_total_contact_force = this->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES);
+
+    for (unsigned int i=0; i<list_of_point_condition_pointers.size(); i++) {
+        Condition* wall = list_of_point_condition_pointers[i];
+        Node<3>& cond_node = wall->GetGeometry()[0];
+
+        double RelVel[3]                         = {0.0};
+        double LocalElasticContactForce[3]       = {0.0};
+        double GlobalElasticContactForce[3]      = {0.0};
+        double ViscoDampingLocalContactForce[3]  = {0.0};
+        double cohesive_force                    =  0.0;
+        DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
+        DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
+
+        array_1d<double, 3> wall_delta_disp_at_contact_point = cond_node.GetSolutionStepValue(DELTA_DISPLACEMENT);
+        array_1d<double, 3> wall_velocity_at_contact_point = cond_node.GetSolutionStepValue(VELOCITY);
+        bool sliding = false;
+        double ini_delta = 0.0;
+
+        array_1d<double, 3> cond_to_me_vect;
+        noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - cond_node.Coordinates();
+        double DistPToB = DEM_MODULUS_3(cond_to_me_vect);;
+
+        double indentation = -(DistPToB - GetInteractionRadius()) - ini_delta;
+        double DeltDisp[3] = {0.0};
+        double DeltVel [3] = {0.0};
+
+        DeltVel[0] = velocity[0] - wall_velocity_at_contact_point[0];
+        DeltVel[1] = velocity[1] - wall_velocity_at_contact_point[1];
+        DeltVel[2] = velocity[2] - wall_velocity_at_contact_point[2];
+
+        // For translation movement delta displacement
+        const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+        DeltDisp[0] = delta_displ[0] - wall_delta_disp_at_contact_point[0];
+        DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
+        DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
+
+        data_buffer.mpOtherParticleNode = &cond_node;
+        DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherToMeVector, cond_to_me_vect)
+        data_buffer.mDistance = DistPToB;
+        data_buffer.mDomainIsPeriodic = false;
+        EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, velocity, delta_displ);
+
+        if (this->Is(DEMFlags::HAS_ROTATION)) {
+            const array_1d<double,3>& delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
+
+            array_1d<double, 3> actual_arm_vector;
+            actual_arm_vector[0] = -data_buffer.mLocalCoordSystem[2][0] * DistPToB;
+            actual_arm_vector[1] = -data_buffer.mLocalCoordSystem[2][1] * DistPToB;
+            actual_arm_vector[2] = -data_buffer.mLocalCoordSystem[2][2] * DistPToB;
+
+            double tangential_vel[3]           = {0.0};
+            double tangential_displacement_due_to_rotation[3]  = {0.0};
+            GeometryFunctions::CrossProduct(AngularVel, actual_arm_vector, tangential_vel);
+            GeometryFunctions::CrossProduct(delta_rotation, actual_arm_vector, tangential_displacement_due_to_rotation);
+
+            DEM_ADD_SECOND_TO_FIRST(DeltVel, tangential_vel)
+            DEM_ADD_SECOND_TO_FIRST(DeltDisp, tangential_displacement_due_to_rotation)
+        }
+
+        double LocalDeltDisp[3] = {0.0};
+        GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltDisp, LocalDeltDisp);
+
+        double OldLocalElasticContactForce[3] = {0.0};
+
+        GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, neighbour_point_faces_elastic_contact_force[i], OldLocalElasticContactForce);
+        const double previous_indentation = indentation + LocalDeltDisp[2];
+        data_buffer.mLocalRelVel[0] = 0.0;
+        data_buffer.mLocalRelVel[1] = 0.0;
+        data_buffer.mLocalRelVel[2] = 0.0;
+
+        if (indentation > 0.0) {
+
+            GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
+            mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,
+                                                                OldLocalElasticContactForce,
+                                                                LocalElasticContactForce,
+                                                                LocalDeltDisp,
+                                                                data_buffer.mLocalRelVel,
+                                                                indentation,
+                                                                previous_indentation,
+                                                                ViscoDampingLocalContactForce,
+                                                                cohesive_force,
+                                                                this,
+                                                                wall,
+                                                                sliding);
+        }
+
+        double LocalContactForce[3]  = {0.0};
+        double GlobalContactForce[3] = {0.0};
+
+        AddUpFEMForcesAndProject(data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
+                                GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force,
+                                r_contact_force,  neighbour_point_faces_elastic_contact_force[i], neighbour_point_faces_total_contact_force[i]);
+
+        rigid_element_force[0] -= GlobalContactForce[0];
+        rigid_element_force[1] -= GlobalContactForce[1];
+        rigid_element_force[2] -= GlobalContactForce[2];
+
+        if (this->Is(DEMFlags::HAS_ROTATION)) {
+            ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
+        }
+
+        if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+            AddWallContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], DistPToB, 0.0);
+        }
+    }
 
     KRATOS_CATCH("")
 }// ComputeBallToRigidFaceContactForce
@@ -1164,7 +1274,9 @@ void SphericParticle::ComputeWear(double LocalRelVel[3],
     if (wall->GetGeometry().size()>2){
         array_1d<double, 3> normal_to_wall;
 
-        wall->CalculateNormal(normal_to_wall);
+    wall->CalculateNormal(normal_to_wall);
+
+    array_1d<double, 3> relative_vector = wall->GetGeometry()[0].Coordinates() - node_coor_array; //We could have chosen [1] or [2], also.
 
         double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, normal_to_wall);
 
@@ -1434,9 +1546,9 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
         const double vel_magnitude = DEM_MODULUS_3(vel);
         if (vel_magnitude != 0.0){
             const array_1d<double, 3> unitary_vel =  vel/vel_magnitude;
-            const double inlet_damping_coefficient = 1e4;
-            const array_1d<double, 3> damping_force = - inlet_damping_coefficient * GetMass() * vel;
-            const array_1d<double, 3> counter_force  = - 50.0 * gravity_force_magnitude * unitary_vel;
+            const double inlet_damping_coefficient = 1e3;
+            const array_1d<double, 3> damping_force = - inlet_damping_coefficient * GetMass() * vel_magnitude  * vel_magnitude * unitary_vel;
+            const array_1d<double, 3> counter_force  = -5.0 * gravity_force_magnitude * unitary_vel;
             noalias(externally_applied_force)  += damping_force;
             noalias(externally_applied_force)  += counter_force;}
     } else {
@@ -1526,8 +1638,8 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                                                const double cohesive_force,
                                                array_1d<double, 3>& r_elastic_force,
                                                array_1d<double, 3>& r_contact_force,
-                                               const unsigned int iRigidFaceNeighbour)
-{
+                                               array_1d<double, 3>& elastic_force_backup,
+                                               array_1d<double, 3>& total_force_backup) {
     for (unsigned int index = 0; index < 3; index++) {
         LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index];
     }
@@ -1536,8 +1648,8 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
     // Saving contact forces (We need to, since tangential elastic force is history-dependent)
-    DEM_COPY_SECOND_TO_FIRST_3(mNeighbourRigidFacesElasticContactForce[iRigidFaceNeighbour],GlobalElasticContactForce)
-    DEM_COPY_SECOND_TO_FIRST_3(mNeighbourRigidFacesTotalContactForce[iRigidFaceNeighbour],GlobalContactForce)
+    DEM_COPY_SECOND_TO_FIRST_3(elastic_force_backup,GlobalElasticContactForce)
+    DEM_COPY_SECOND_TO_FIRST_3(total_force_backup,GlobalContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_contact_force, GlobalContactForce)
 
@@ -1933,11 +2045,10 @@ double SphericParticle::SlowGetYoung()                                          
 double SphericParticle::SlowGetRollingFriction()                                         { return GetProperties()[ROLLING_FRICTION];                                        }
 double SphericParticle::SlowGetRollingFrictionWithWalls()                                { return GetProperties()[ROLLING_FRICTION_WITH_WALLS];                             }
 double SphericParticle::SlowGetPoisson()                                                 { return GetProperties()[POISSON_RATIO];                                           }
-double SphericParticle::SlowGetTgOfFrictionAngle()                                       { return GetProperties()[PARTICLE_FRICTION];                                       }
+double SphericParticle::SlowGetTgOfFrictionAngle()                                       { return GetProperties()[FRICTION];                                       }
 double SphericParticle::SlowGetCoefficientOfRestitution()                                { return GetProperties()[COEFFICIENT_OF_RESTITUTION];                              }
 double SphericParticle::SlowGetDensity()                                                 { return GetProperties()[PARTICLE_DENSITY];                                        }
 int    SphericParticle::SlowGetParticleMaterial()                                        { return GetProperties()[PARTICLE_MATERIAL];                                       }
 double SphericParticle::SlowGetParticleCohesion()                                        { return GetProperties()[PARTICLE_COHESION];                                       }
-double SphericParticle::GetBoundDeltaDispSq()                                            { return mBoundDeltaDispSq;   }
 
 }  // namespace Kratos.

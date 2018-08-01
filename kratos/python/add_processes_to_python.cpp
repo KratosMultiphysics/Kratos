@@ -163,6 +163,7 @@ void  AddProcessesToPython(pybind11::module& m)
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
     class_<VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess2D")
             .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
     ;
@@ -170,15 +171,17 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
     ;
 
-    class_<LevelSetConvectionProcess<2>, LevelSetConvectionProcess<2>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
-            .def(init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double >())
-    .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
-    .def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
+    class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
     ;
-    class_<LevelSetConvectionProcess<3>, LevelSetConvectionProcess<3>::Pointer, Process>(m,"LevelSetConvectionProcess3D")
-            .def(init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double>())
-            .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
-			.def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
+    class_<LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess3D")
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
     ;
 
     class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")
@@ -338,6 +341,7 @@ void  AddProcessesToPython(pybind11::module& m)
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&>());
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>());
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >());
+    FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags, const bool >());
 
     // Adding FastTransferBetweenModelPartsProcess related enums
     enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>(FastTransferBetweenModelPartsProcess_Scope, "EntityTransfered")

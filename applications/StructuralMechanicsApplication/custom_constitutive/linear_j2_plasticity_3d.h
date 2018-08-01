@@ -146,22 +146,6 @@ public:
     bool Has(const Variable<double>& rThisVariable) override;
 
     /**
-     * @brief Returns the value of a specified variable (integer)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
-
-    /**
-     * @brief Returns the value of a specified variable (double)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-
-    /**
      * @brief Sets the value of a specified variable (double)
      * @param rThisVariable The variable to be returned
      * @param rValue New value of the specified variable
@@ -251,6 +235,17 @@ public:
      * @see Parameters
      */
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    bool& CalculateValue(Parameters& rParameterValues,
+                           const Variable<bool>& rThisVariable,
+                           bool& rValue) override;
 
     /**
      * @brief calculates the value of a specified variable

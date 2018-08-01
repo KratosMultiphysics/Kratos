@@ -167,7 +167,7 @@ protected:
     void CalculateRadius(double & rCurrentRadius,
 			 double & rReferenceRadius);
 
-    
+
     ///@}
     ///@name Protected  Access
     ///@{

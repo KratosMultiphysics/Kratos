@@ -155,7 +155,7 @@ protected:
     Vector mElasticPreviousPrincipalStrain;
     Vector mPrincipalStressTrial;
     Vector mPrincipalStressUpdated;
-    int mRegion;
+    unsigned int mRegion;
     bool mLargeStrainBool;
     double mEquivalentPlasticStrain;
     ///@name Protected static Member Variables
@@ -180,20 +180,15 @@ protected:
 
     virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
 
-//    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
-
-    bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStress, Vector& rPrincipalStrain, int& region, Vector& rPrincipalStressUpdated);
-    //void UpdateConfiguration( ExponentialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );
-
-    //void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative);
-
+    bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStress, Vector& rPrincipalStrain, unsigned int& region, Vector& rPrincipalStressUpdated);
+ 
     void ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
 
     void CalculateDepSurface(Matrix& rElasticMatrix, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
 
     void CalculateDepLine(Matrix& rInvD, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
 
-    void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, int& rRegion, Vector& DiffPrincipalStress, Matrix& rDep);
+    void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, Vector& DiffPrincipalStress, Matrix& rDep);
 
     void ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix);
 
@@ -202,19 +197,14 @@ protected:
     void CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
     void CalculateModificationMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rAuxT, Matrix& rInvAuxT);
 
-    //void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, int& Region, Vector& DiffPrincipalStress, Matrix& Dep);
-
     void CalculateTransformationMatrix(const Matrix& rMainDirection, Matrix& rA);
-    //void CalculateSmoothingConstants( MCSmoothingConstants& rSmoothingConstants, const MCStressInvariants& rStressInvariants);
-
-    // void CalculateStressInvariants( const Vector& rStressVector, MCStressInvariants& rStressInvariants);
-
+    
     double GetSmoothingLodeAngle();
 
     double GetPI();
 
     double GetSmoothingHiperbolic();
-
+    
     //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     ///@}
     ///@name Protected  Access
