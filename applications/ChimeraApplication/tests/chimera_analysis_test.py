@@ -52,34 +52,37 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
 
         print("Finished!!!!!!!")
         print("started to check results")
-        with open(self.reference_file+'.csv','r') as reference_file:
-            reference_file.readline() # skip header
-            print("started to check results1")
-            line = reference_file.readline()
-            print("started to check results12")
-            for node in self.model["MainModelPart"].Nodes:
-                print("inside")
-                values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                node_id = values[0]
-                reference_vel_x = values[1]
-                reference_vel_y = values[2]
+        #with open(self.reference_file+'.csv','r') as reference_file:
+            #reference_file.readline() # skip header
+            #print("started to check results1")
+            #line = reference_file.readline()
+            #print("started to check results12")
+            #for node in self.model["MainModelPart"].Nodes:
+                #print("inside")
+                #values = [ float(i) for i in line.rstrip('\n ').split(',') ]
+                #node_id = values[0]
+                #reference_vel_x = values[1]
+                #reference_vel_y = values[2]
 
-                velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-                self.assertAlmostEqual(reference_vel_x, velocity[0], delta = self.check_tolerance)
-                self.assertAlmostEqual(reference_vel_y, velocity[1], delta = self.check_tolerance)
-                print("test")
+                #velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                #self.assertAlmostEqual(reference_vel_x, velocity[0], delta = self.check_tolerance)
+                #self.assertAlmostEqual(reference_vel_y, velocity[1], delta = self.check_tolerance)
+                #print("test")
 
-                line = reference_file.readline()
-            if line != '': # If we did not reach the end of the reference file
-                self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
+                #line = reference_file.readline()
+            #if line != '': # If we did not reach the end of the reference file
+                #self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
 
-    def _checkResults(self):
+    #def _checkResults(self):
         print("started to check results")
         if self.print_reference_values:
             with open(self.reference_file+'.csv','w') as ref_file:
+                print("started to check results  2" )
                 ref_file.write("#ID, VELOCITY_X, VELOCITY_Y\n")
+                print("started to check results  3" )
                 for node in self.model["MainModelPart"].Nodes:
+                    #print("started to check results  4" )
                     vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
                     ref_file.write("{0}, {1}, {2}\n".format(node.Id, vel[0], vel[1]))
         else:
@@ -90,7 +93,7 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
                 line = reference_file.readline()
                 print("started to check results12")
                 for node in self.model["MainModelPart"].Nodes:
-                    print("inside")
+                    #print("inside")
                     values = [ float(i) for i in line.rstrip('\n ').split(',') ]
                     node_id = values[0]
                     reference_vel_x = values[1]
@@ -99,7 +102,7 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
                     velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
                     self.assertAlmostEqual(reference_vel_x, velocity[0], delta = self.check_tolerance)
                     self.assertAlmostEqual(reference_vel_y, velocity[1], delta = self.check_tolerance)
-                    print("test")
+                    #print("test")
 
                     line = reference_file.readline()
                 if line != '': # If we did not reach the end of the reference file
