@@ -194,7 +194,7 @@ public:
                 Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
                 Msg << "Elements are most likely not correlatively numbered." << std::endl;
 
-                KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
+                KRATOS_ERROR << Msg;
             }
 
             std::vector<idxtype> ElementPartition;
@@ -215,7 +215,7 @@ public:
                 Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
                 Msg << "Conditions are most likely not correlatively numbered." << std::endl;
 
-                KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
+                KRATOS_ERROR << Msg;
             }
 
             std::vector<idxtype> ConditionPartition;
@@ -313,7 +313,7 @@ public:
 
         // Wait untill all communications finish
         if( MPI_Waitall(NumberOfCommunicationEvents, reqs, stats) != MPI_SUCCESS ) {
-            KRATOS_THROW_ERROR(std::runtime_error,"Error in metis_partition_mem","")
+            KRATOS_ERROR << "Error in metis_partition_mem" << std::endl;
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
