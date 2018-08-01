@@ -19,7 +19,7 @@
             "identifier" : "strain_energy",
             "type"       : "<",
             "reference"  : "specified_value",
-            "reference_value" : 4.0,
+            "reference_value" : 3,
             "use_kratos" : true,
             "kratos_response_settings":{
                 "response_type"          : "strain_energy",
