@@ -194,7 +194,7 @@ public:
                 Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
                 Msg << "Elements are most likely not correlatively numbered." << std::endl;
 
-                KRATOS_ERROR << Msg;
+                KRATOS_ERROR << Msg.str();
             }
 
             std::vector<idxtype> ElementPartition;
@@ -215,7 +215,7 @@ public:
                 Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
                 Msg << "Conditions are most likely not correlatively numbered." << std::endl;
 
-                KRATOS_ERROR << Msg;
+                KRATOS_ERROR << Msg.str();
             }
 
             std::vector<idxtype> ConditionPartition;
@@ -239,11 +239,11 @@ public:
             GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
 
             if (mVerbosity > 0) {
-                KRATOS_INFO(NumColors);
+                KRATOS_INFO("NumColors") << NumColors << std::endl;
             }
 
             if (mVerbosity > 2) {
-                KRATOS_INFO(ColoredDomainGraph);
+                KRATOS_INFO("ColoredDomainGraph") << ColoredDomainGraph << std::endl;
             }
 
             // Write partition info into separate input files
