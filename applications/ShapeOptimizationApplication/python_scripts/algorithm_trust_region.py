@@ -41,7 +41,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             "subopt_max_itr"                : 50,
             "subopt_tolerance"              : 1e-10,
             "bisectioning_max_itr"          : 30,
-            "bisectioning_tolerance"        : 1e-4,
+            "bisectioning_tolerance"        : 1e-2,
             "obj_share_during_correction"   : 1
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
@@ -425,7 +425,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
                 nargout = 2
                 len_obj_min = len_obj_test
-                len_obj_max = 1.1
+                len_obj_max = 1.3
                 func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold, nargout)
                 len_obj_result, bi_itrs, bi_err = PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
 
@@ -443,7 +443,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 nargout = 2
                 len_obj = self.algorithm_settings["obj_share_during_correction"].GetDouble()
                 threshold_min = 0
-                threshold_max = 1.1
+                threshold_max = 1.3
                 func = lambda threshold: projector.RunProjection(len_obj, threshold, nargout)
                 l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr) 
 
