@@ -320,6 +320,10 @@ if(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
   add_subdirectory(FluidTransportApplication)
 endif(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
 
+if(${CSHARP_WRAPPER_APPLICATION} MATCHES ON)
+  add_subdirectory(CSharpWrapperApplication)
+endif(${CSHARP_WRAPPER_APPLICATION} MATCHES ON)
+
 if(${IGA_APPLICATION} MATCHES ON)
   add_subdirectory(IgaApplication)
 endif(${IGA_APPLICATION} MATCHES ON)
