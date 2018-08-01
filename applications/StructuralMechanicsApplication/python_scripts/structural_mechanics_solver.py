@@ -69,7 +69,7 @@ class MechanicalSolver(PythonSolver):
             "block_builder": true,
             "clear_storage": false,
             "move_mesh_flag": true,
-            "multi_point_constraints_used": false,
+            "multi_point_constraints_used": true,
             "convergence_criterion": "residual_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
