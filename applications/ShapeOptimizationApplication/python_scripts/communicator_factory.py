@@ -191,7 +191,7 @@ class Communicator:
                 return value
         else:
             if response_type == ">" or response_type == ">=":
-                return -(value-response["reference_value"])
+                return (response["reference_value"]-value)
             else:
                 return (value-response["reference_value"])
 
