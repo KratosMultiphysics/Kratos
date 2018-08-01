@@ -17,8 +17,8 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 from algorithm_base import OptimizationAlgorithm
-from custom_math import NormInf3D, Dot, ScalarVectorProduct, Norm2, RowSize, HorzCat, Minus, Plus, Trans, Prod, Zeros, IsEmpty
-from custom_math import TranslateToNewBasis, TranslateToOriginalBasis, QuadProg, PerformBisectioning
+from custom_math import NormInf3D, Dot, ScalarVectorProduct, Norm2, RowSize, HorzCat, Minus, Plus, Trans, Prod, ZeroVector, ZeroMatrix, IsEmpty, SafeConvertVectorToMatrix
+from custom_math import TranslateToNewBasis, TranslateToOriginalBasis, QuadProg, PerformBisectioning, SolveLinearSystem
 from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteNodeCoordinatesToList, WriteListToNodalVariable
 from custom_timer import Timer
 import mapper_factory
@@ -42,7 +42,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             "subopt_tolerance"              : 1e-10,
             "bisectioning_max_itr"          : 30,
             "bisectioning_tolerance"        : 1e-4,
-            "obj_share_during_correction"   : 0.5
+            "obj_share_during_correction"   : 1
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -94,7 +94,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         timer = Timer()
         timer.StartTimer()
 
-        for self.opt_iteration in range(1,self.algorithm_settings["max_iterations"].GetInt()):
+        for self.opt_iteration in range(1,self.algorithm_settings["max_iterations"].GetInt()+1):
             print("\n>===================================================================")
             print("> ",timer.GetTimeStamp(),": Starting optimization iteration ",self.opt_iteration)
             print(">===================================================================\n")
@@ -115,7 +115,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             len_bar_obj, len_bar_eqs, len_bar_ineqs = self.__ExpressInStepLengthUnit(len_obj, len_eqs, len_ineqs, step_length)
 
-            dx_bar = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
+            dx_bar, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
 
             self.__ComputeShapeUpdate(dx_bar, step_length)
 
@@ -133,7 +133,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 print("J1_val = ", obj_val)
                 print("percentual_improvement = ", percentual_improvement)
             print("\nval_obj = ", val_obj)
-            print("len_obj = ", len_obj)
+            print("len_bar_obj = ", len_bar_obj)
+            print("adj_len_bar_obj = ", adj_len_bar_obj)
             print("\n--------------------------------------------")
 
             for itr in range(self.specified_constraints.size()):
@@ -141,9 +142,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 print("C"+str(itr+1)+"_val = ", self.communicator.getValue(con_id))
 
             print("\nval_ineqs = ", val_ineqs)
-            print("len_ineqs = ", len_ineqs)
+            print("len_bar_ineqs = ", len_bar_ineqs)
+            print("adj_len_bar_ineqs = ", adj_len_bar_ineqs)
             print("\nval_eqs = ", val_eqs)
-            print("len_eqs = ", len_eqs)
+            print("adj_len_bar_eqs = ", adj_len_bar_eqs)
             print("\n--------------------------------------------")
 
             print("step_length = ", step_length)
@@ -341,14 +343,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         if norm_inf < 1e-12:
             raise RuntimeError("Vanishing norm-infinity detected!")
 
-        direction = [-modified_gradient[itr]/norm_inf for itr in range(len(modified_gradient))]
+        direction = ScalarVectorProduct(-1/norm_inf,modified_gradient)
+        length = -value/Dot(gradient, direction)
 
-        if value == None:
-            return direction
-        else:
-            grad_dot_dir = Dot(gradient, direction)
-            length = -value/grad_dot_dir
-            return direction, length
+        return direction, length
 
     # --------------------------------------------------------------------------
     def __ReduceToRelevantInequalityConstraints(self, len_ineqs, dir_ineqs):
@@ -431,8 +429,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold, nargout)
                 len_obj_result, bi_itrs, bi_err = PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
 
-                nargout = 3
-                norm_inf_dX, dX, is_projection_sucessfull = projector.RunProjection(len_obj_result, inactive_threshold, nargout)
+                nargout = 6
+                norm_inf_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj_result, inactive_threshold, nargout)
 
                 print("\nlen_obj_result = ", len_obj_result)
                 print("bi_itrs = ", bi_itrs)
@@ -445,12 +443,12 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 nargout = 2
                 len_obj = self.algorithm_settings["obj_share_during_correction"].GetDouble()
                 threshold_min = 0
-                threshold_max = 1.5
+                threshold_max = 1.1
                 func = lambda threshold: projector.RunProjection(len_obj, threshold, nargout)
-                l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr)
+                l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr) 
 
-                nargout = 3
-                norm_inf_dX, dX, is_projection_sucessfull = projector.RunProjection(len_obj, l_threshold_result, nargout)
+                nargout = 6
+                norm_inf_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj, l_threshold_result, nargout)                        
 
                 print("\nl_threshold_result = ", l_threshold_result)
                 print("bi_itrs = ", bi_itrs)
@@ -461,7 +459,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         print("\n> Time needed for determining step = ", timer.GetTotalTime(), "s")
 
-        return dX
+        return dX, adj_len_obj, adj_len_eqs, adj_len_ineqs
 
     # --------------------------------------------------------------------------
     def __ComputeShapeUpdate(self, dx_bar, step_length):
@@ -475,8 +473,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.optimization_utilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
 
         dxAbsolute = ReadNodalVariableToList(self.design_surface, SHAPE_CHANGE)
-
-        print("NormInf3D of dxAbsolute = ", NormInf3D(dxAbsolute))
 
     # --------------------------------------------------------------------------
     def __LogCurrentOptimizationStep(self, val_obj, step_length):
@@ -497,6 +493,7 @@ class Projector():
         self.subopt_tolerance = settings["subopt_tolerance"].GetDouble()
         self.num_eqs = len(len_eqs)
         self.num_ineqs = len(len_ineqs)
+        self.num_unknowns = 1 + self.num_eqs + self.num_ineqs
 
         # Create orthogonal basis
         self.ortho_basis = self.__PerformGramSchmidtOrthogonalization(dir_obj, dir_eqs, dir_ineqs)
@@ -506,17 +503,40 @@ class Projector():
         self.dir_eqs_o = TranslateToNewBasis(dir_eqs, self.ortho_basis)
         self.dir_ineqs_o = TranslateToNewBasis(dir_ineqs, self.ortho_basis)
 
+        # Make sure directions of constraints are stored as matrix
+        self.dir_eqs_o = SafeConvertVectorToMatrix(self.dir_eqs_o)
+        self.dir_ineqs_o = SafeConvertVectorToMatrix(self.dir_ineqs_o)      
+
     # --------------------------------------------------------------------------
     def RunProjection(self, len_obj, threshold, nargout):
 
         # Adjust halfspaces according input
-        len_obj, len_eqs, len_ineqs = self.__AdjustHalfSpaces(len_obj, threshold)
+        len_obj, len_eqs, len_ineqs = self.__AdjustHalfSpacesAndHyperplanes(len_obj, threshold)
 
         # Determine position of border of halfspaces and hyperplanes
-        pos_obj_o, pos_eqs_o, pos_ineqs_o = self.__DetermineConstraintBorders(len_obj, len_eqs, len_ineqs)
+        pos_obj_o, pos_eqs_o, pos_ineqs_o = self.__DetermineConstraintBorders(len_obj, len_eqs, len_ineqs)    
 
-        # Project to adjusted halfspaces (suboptimization)
-        dX_o, subopt_itr, error, exit_code = self.__ProjectToHalfSpaces(HorzCat(pos_ineqs_o, pos_obj_o), HorzCat(self.dir_ineqs_o, self.dir_obj_o))
+        # # Project current position onto intersection of HPs
+        current_position = ZeroVector(self.num_unknowns)
+        dlambda_hp = self.__ProjectToHyperplanes(current_position, self.dir_eqs_o, pos_eqs_o)
+
+        # Project position and direction of halfspaces onto intersection of HPs
+        zero_position_eqs_o = ZeroMatrix(self.num_unknowns,self.num_eqs)
+
+        pos_obj_hp = self.__ProjectToHyperplanes(pos_obj_o, HorzCat(self.dir_eqs_o, self.dir_obj_o), HorzCat(pos_eqs_o, pos_obj_o))
+        dir_obj_hp = self.__ProjectToHyperplanes(self.dir_obj_o, self.dir_eqs_o, zero_position_eqs_o)
+
+        pos_ineqs_hp = []
+        dir_ineqs_hp = []
+        for itr in range(self.num_ineqs):
+            pos_ineqs_hp_i = self.__ProjectToHyperplanes(pos_ineqs_o[itr], HorzCat(self.dir_eqs_o, self.dir_ineqs_o[itr]), HorzCat(pos_eqs_o, pos_ineqs_o[itr]))
+            dir_ineqs_hp_i = self.__ProjectToHyperplanes(self.dir_ineqs_o[itr], self.dir_eqs_o, zero_position_eqs_o)
+
+            pos_ineqs_hp.append(pos_ineqs_hp_i)
+            dir_ineqs_hp.append(dir_ineqs_hp_i)
+
+        # Project onto adjusted halfspaces along the intersection of hyperplanes
+        dX_o, subopt_itr, error, exit_code = self.__ProjectToHalfSpaces(dlambda_hp, HorzCat(pos_ineqs_hp, pos_obj_hp), HorzCat(dir_ineqs_hp, dir_obj_hp))
 
         # Determine return values
         if exit_code == 0:
@@ -534,8 +554,10 @@ class Projector():
         # Allow to specify output arguments to allow a more general definition of algorithms utilizing this function
         if nargout == 2:
             return norm_dX, is_projection_sucessfull
-        else:
+        elif nargout == 3:
             return norm_dX, dX, is_projection_sucessfull
+        else:
+            return norm_dX, dX, is_projection_sucessfull, len_obj, len_eqs, len_ineqs
 
     # --------------------------------------------------------------------------
     def __PerformGramSchmidtOrthogonalization(self, dir_obj, dir_eqs, dir_ineqs):
@@ -557,7 +579,7 @@ class Projector():
                 v = Minus( v , ScalarVectorProduct( Dot(v,b)/norm2_b**2 , b ) )
 
             # Add only if vector is independent
-            norm2_v = Norm2(V[0])
+            norm2_v = Norm2(v)
             if norm2_v>1e-10:
                 B.append( ScalarVectorProduct(1/norm2_v,v) )
             else:
@@ -567,7 +589,7 @@ class Projector():
         return B
 
     # --------------------------------------------------------------------------
-    def __AdjustHalfSpaces(self, len_obj, threshold):
+    def __AdjustHalfSpacesAndHyperplanes(self, len_obj, threshold):
         if threshold<len_obj:
             len_obj = threshold
 
@@ -584,12 +606,10 @@ class Projector():
 
     # --------------------------------------------------------------------------
     def __DetermineConstraintBorders(self, len_obj, len_eqs, len_ineqs):
-        pos_obj = []
+        pos_obj = ScalarVectorProduct(-len_obj,self.dir_obj_o)
+
         pos_eqs = []
         pos_ineqs = []
-
-        pos_obj.append(ScalarVectorProduct(-len_obj,self.dir_obj_o))
-
         for i in range(self.num_eqs):
             pos_eqs.append(ScalarVectorProduct(-len_eqs[i],self.dir_eqs_o[i]))
 
@@ -599,11 +619,28 @@ class Projector():
         return pos_obj, pos_eqs, pos_ineqs
 
     # --------------------------------------------------------------------------
-    def __ProjectToHalfSpaces(self, pos_hss, dir_hss):
+    def __ProjectToHyperplanes(self, vector, dir_hps, pos_hps):
+            if IsEmpty(dir_hps):
+                return vector
+
+            num_hps = len(dir_hps)
+
+            tmp_mat = Prod(Trans(dir_hps),dir_hps)
+            tmp_vec = [ Dot(dir_hps[j],Minus(pos_hps[j],vector)) for j in range(num_hps) ]
+
+            tmp_solution = SolveLinearSystem(tmp_mat,tmp_vec)
+
+            return Plus(Prod(dir_hps,tmp_solution),vector)
+
+    # --------------------------------------------------------------------------
+    def __ProjectToHalfSpaces(self, dx0, pos_hss, dir_hss):
         A = Trans(dir_hss)
         b = [ Dot(pos_hss[i],dir_hss[i]) for i in range(RowSize(A)) ]
 
         dX_o, subopt_itr, error, exit_code = QuadProg(A, b, self.subopt_max_itr, self.subopt_tolerance)
+
+        # Consider initial delta
+        dX_o = Plus(dX_o,dx0)
 
         return dX_o, subopt_itr, error, exit_code
 
