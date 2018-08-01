@@ -1,29 +1,8 @@
 {
     "optimization_settings" : {
         "objectives" : [{
-            "identifier" : "mass",
-            "type"       : "minimization",
-            "use_kratos" : true,
-            "kratos_response_settings":{
-                "response_type"          : "mass",
-                "material_import_settings" :{
-                    "materials_filename": "materials_2D.json"
-                },
-                "gradient_mode"          : "finite_differencing",
-                "step_size"              : 1e-6,
-                "consider_discretization": false
-            },
-            "project_gradient_on_surface_normals" : false
-        }],
-        "constraints" : [{
-
-
-
-
             "identifier" : "strain_energy",
-            "type"       : "=",
-            "reference"  : "specified_value",
-            "reference_value" : 4.7,
+            "type"       : "minimization",
             "use_kratos" : true,
             "kratos_response_settings":{
                 "response_type"          : "strain_energy",
@@ -32,6 +11,14 @@
                 "step_size"              : 1e-6,
                 "consider_discretization": false
             },
+            "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [{
+            "identifier" : "point_distance_1200",
+            "type"       : "<",
+            "reference"  : "specified_value",
+            "reference_value" : 8,
+            "use_kratos" : false,
             "project_gradient_on_surface_normals" : false
         }],
         "design_variables" : {
@@ -70,7 +57,7 @@
         "optimization_algorithm" : {
             "name"                  : "trust_region",
             "max_step_length"       : 0.1,
-            "max_iterations"        : 10
+            "max_iterations"        : 5
         },
         "output" : {
             "output_directory"        : "Optimization_Results",

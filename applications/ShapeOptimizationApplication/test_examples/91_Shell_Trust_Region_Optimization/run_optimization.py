@@ -16,20 +16,35 @@ with open("optimization_parameters.json",'r') as parameter_file:
 class CustomAnalyzer(AnalyzerBaseClass):
     def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
 
+        # Constraint 1
         constraint_node_id = 893
-
-        if communicator.isRequestingValueOf("point_distance"):
+        if communicator.isRequestingValueOf("point_distance_893"):
             value = current_design.Nodes[constraint_node_id].Y
-            communicator.reportValue("point_distance", value)
+            communicator.reportValue("point_distance_893", value)
 
-        if communicator.isRequestingGradientOf("point_distance"):
+        if communicator.isRequestingGradientOf("point_distance_893"):
             gradient = {}
             for node in current_design.Nodes:
                 if node.Id == constraint_node_id:
                     gradient[node.Id] = [0.0,1.0,0.0]
                 else:
                     gradient[node.Id] = [0.0,0.0,0.0]
-            communicator.reportGradient("point_distance", gradient)
+            communicator.reportGradient("point_distance_893", gradient)
+
+        # Constraint 2
+        constraint_node_id = 1200
+        if communicator.isRequestingValueOf("point_distance_1200"):
+            value = current_design.Nodes[constraint_node_id].Y
+            communicator.reportValue("point_distance_1200", value)
+
+        if communicator.isRequestingGradientOf("point_distance_1200"):
+            gradient = {}
+            for node in current_design.Nodes:
+                if node.Id == constraint_node_id:
+                    gradient[node.Id] = [0.0,1.0,0.0]
+                else:
+                    gradient[node.Id] = [0.0,0.0,0.0]
+            communicator.reportGradient("point_distance_1200", gradient)            
 
 
 # Defining the model_part
