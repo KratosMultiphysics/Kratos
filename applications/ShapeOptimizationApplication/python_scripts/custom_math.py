@@ -37,8 +37,15 @@ def IsEmpty(_A):
     return False
 
 # ------------------------------------------------------------------------------
-def Zeros(n):
-    return [0.0 for i in range(n)]
+def ZeroVector(m):
+    return [0.0 for i in range(m)]
+
+# ------------------------------------------------------------------------------
+def ZeroMatrix(m,n):
+    A = []
+    for itr in range(n):
+        A.append([0.0 for i in range(m)])
+    return A
 
 # ------------------------------------------------------------------------------
 def Ones(n):
@@ -248,7 +255,7 @@ def QuadProg(A, b, max_itr, tolerance):
     def GradResidu(y,l,A):
         m = RowSize(A)
         n = CollSize(A)
-        grad = [Zeros(n+2*m) for i in range(n+2*m)]
+        grad = [ZeroVector(n+2*m) for i in range(n+2*m)]
         for i in range(n):
             grad[i][i] = 1
         for i in range(n):
@@ -265,7 +272,7 @@ def QuadProg(A, b, max_itr, tolerance):
         return grad
 
     #init
-    x = Zeros(n)
+    x = ZeroVector(n)
     y = Ones(m) # slack variables
     l = Ones(m) # lagrange multipliers
 
@@ -276,7 +283,7 @@ def QuadProg(A, b, max_itr, tolerance):
 
         # solve affine delta
         gradRes = GradResidu(y,l,A)
-        deltaXYLAff = Zeros(n+2*m)
+        deltaXYLAff = ZeroVector(n+2*m)
         rhs = ScalarVectorProduct(-1, VertCat(rd,VertCat(rp,ElemwiseProd(y,l))))
 
         deltaXYLAff = SolveLinearSystem(gradRes,rhs)
