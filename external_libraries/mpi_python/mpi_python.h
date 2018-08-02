@@ -202,8 +202,9 @@ public:
 	 * @return A Python list containing the local values in all processes, sorted by rank, for the Root thread, an empty Python list for other processes
 	 */
 	template<class TValueType>
-	std::vector<TValueType> gather(PythonMPIComm& rComm, TValueType LocalValue,
-	        int Root)
+	std::vector<TValueType> gather(PythonMPIComm& rComm,
+                                   const TValueType LocalValue,
+	                               const int Root)
 	{
 		// Determime data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
@@ -220,8 +221,8 @@ public:
 			global_values.resize(size);
 
 		// Communicate
-		MPI_Gather(&LocalValue, 1, DataType, global_values.data(), 1, DataType, Root,
-		        rComm.GetMPIComm());
+		MPI_Gather(&LocalValue, 1, DataType, global_values.data(),
+                   1, DataType, Root, rComm.GetMPIComm());
 
 		return global_values;
 	}
@@ -235,7 +236,7 @@ public:
 	 * @return A Python list containing the local value lists in all processes, sorted by rank, for the Root thread, an empty Python list for other processes
 	 */
 	pybind11::list gather(PythonMPIComm& rComm,
-	        pybind11::list LocalValues, int Root)
+	        pybind11::list LocalValues, const int Root)
 	{
 		int RecvBlockSize = 1;
 	        int Size, Rank, SendSize;
@@ -300,7 +301,8 @@ public:
 	 * @return A Python list containing the local values in all processes, sorted by rank.
 	 */
 	template<class TValueType>
-	std::vector<TValueType> allgather(PythonMPIComm& rComm, TValueType LocalValue)
+	std::vector<TValueType> allgather(PythonMPIComm& rComm,
+                                      const TValueType LocalValue)
 	{
 		// Determime data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
@@ -312,8 +314,8 @@ public:
         std::vector<TValueType> global_values(size);
 
 		// Communicate
-		MPI_Allgather(&LocalValue, 1, DataType, global_values.data(), 1, DataType,
-		        rComm.GetMPIComm());
+		MPI_Allgather(&LocalValue, 1, DataType, global_values.data(),
+                      1, DataType, rComm.GetMPIComm());
 
 		return global_values;
 	}
