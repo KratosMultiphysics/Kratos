@@ -552,6 +552,7 @@ void TrussElement3D2N::CreateTransformationMatrix(
                    TrussElement3D2N::msLocalSize> &rRotationMatrix) {
 
   KRATOS_TRY
+  const double numeric_limit = std::numeric_limits<double>::epsilon();
   // 1st calculate transformation matrix
   typedef BoundedVector<double, msDimension> arraydim;
   typedef BoundedVector<double, msLocalSize> arraylocal;
@@ -571,20 +572,22 @@ void TrussElement3D2N::CreateTransformationMatrix(
   // local x-axis (e1_local) is the beam axis  (in GID is e3_local)
   double VectorNorm;
   VectorNorm = MathUtils<double>::Norm(direction_vector_x);
-  if (VectorNorm != 0)
+  if (VectorNorm > numeric_limit)
     direction_vector_x /= VectorNorm;
 
-  if (direction_vector_x[2] == 1.00) {
+  else KRATOS_ERROR << "length of element" << this->Id() << "~ zero" << std::endl;
+
+  if (std::abs(direction_vector_x[2]-1.00) <= numeric_limit) {
     direction_vector_y[1] = 1.0;
     direction_vector_z[0] = -1.0;
   }
 
-  if (direction_vector_x[2] == -1.00) {
+  else if (std::abs(direction_vector_x[2]+1.00) <= numeric_limit) {
     direction_vector_y[1] = 1.0;
     direction_vector_z[0] = 1.0;
   }
 
-  if (std::abs(direction_vector_x[2]) != 1.00) {
+  else {
     MathUtils<double>::UnitCrossProduct(direction_vector_y, direction_vector_x,
                                         global_z_vector);
     MathUtils<double>::UnitCrossProduct(direction_vector_z, direction_vector_y,
