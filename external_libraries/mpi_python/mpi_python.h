@@ -1,10 +1,27 @@
-#ifndef KRATOS_MPI_PYTHON_H
-#define KRATOS_MPI_PYTHON_H
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//                   Michael Andre
+//                   Philipp Bucher
+//
 
+// System includes
 #include <vector>
-
 #include "mpi.h"
 
+// External includes
+
+// Project includes
+
+#ifndef KRATOS_MPI_PYTHON_H
+#define KRATOS_MPI_PYTHON_H
 
 namespace Kratos {
 
@@ -352,6 +369,6 @@ PythonMPI& GetMPIInterface()
 	return ThePythonMPI;
 }
 
-}
+} // Namespace Kratos
 
 #endif // KRATOS_MPI_PYTHON_H

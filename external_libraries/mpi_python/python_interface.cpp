@@ -1,7 +1,25 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//                   Michael Andre
+//                   Philipp Bucher
+//
 
-#include "mpi_python.h"
+// System includes
+
+// External includes
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+
+// Project includes
+#include "mpi_python.h"
 
 namespace Kratos {
 namespace Python {
