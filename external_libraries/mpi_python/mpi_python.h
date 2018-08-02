@@ -1,8 +1,6 @@
 #ifndef KRATOS_MPI_PYTHON_H
 #define KRATOS_MPI_PYTHON_H
 
-#include <stdio.h>
-#include <iostream>
 #include <vector>
 
 #include "mpi.h"
