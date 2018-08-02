@@ -244,13 +244,13 @@ public:
 	/**
 	 * Provide a std::vector containing all local values to the Root process.
 	 * @param rComm A communicator object.
-	 * @param LocalValues The std::vector of local values to be sent in the gather.
+	 * @param rLocalValues The std::vector of local values to be sent in the gather.
 	 * @param Root The MPI rank of the process where the values will be gathered.
 	 * @return A std::vector containing the local value lists in all processes, sorted by rank, for the Root thread, an empty std::vector for other processes
 	 */
     template<class TValueType>
 	std::vector<std::vector<TValueType>> gather(PythonMPIComm& rComm,
-	                               const std::vector<TValueType>& LocalValues,
+	                               const std::vector<TValueType>& rLocalValues,
                                    const int Root)
 	{
         // Determime data type
@@ -261,7 +261,7 @@ public:
 
 		MPI_Comm_size(rComm.GetMPIComm(), &size);
 		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-		send_size = LocalValues.size();
+		send_size = rLocalValues.size();
 
 		std::vector<int> recv_sizes(size);
 		std::vector<int> displs(size);
@@ -280,7 +280,7 @@ public:
         std::vector<TValueType> recv_buffer(recv_block_size * size);
 
 		// gather local arrays at root
-		MPI_Gatherv(LocalValues.data(), send_size, DataType, recv_buffer.data(),
+		MPI_Gatherv(rLocalValues.data(), send_size, DataType, recv_buffer.data(),
                     recv_sizes.data(), displs.data(), DataType, Root, rComm.GetMPIComm());
 
         std::vector<std::vector<TValueType>> condensed_vector;
