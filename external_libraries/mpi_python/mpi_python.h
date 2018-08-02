@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <vector>
 
 #include "mpi.h"
-#include <pybind11/pybind11.h>
 
 
 namespace Kratos {
@@ -235,62 +235,59 @@ public:
 	 * @param Root The MPI rank of the process where the valued will be gathered.
 	 * @return A Python list containing the local value lists in all processes, sorted by rank, for the Root thread, an empty Python list for other processes
 	 */
-	pybind11::list gather(PythonMPIComm& rComm,
-	        pybind11::list LocalValues, const int Root)
+    template<class TValueType>
+	std::vector<std::vector<TValueType>> gather(PythonMPIComm& rComm,
+	                               const std::vector<TValueType>& LocalValues,
+                                   const int Root)
 	{
-		int RecvBlockSize = 1;
-	        int Size, Rank, SendSize;
-		int * RecvSize, * Displs;
-		double * SendBuf, * RecvBuf;
+        // Determime data type
+		const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
 
-		MPI_Comm_size(rComm.GetMPIComm(), &Size);
-		MPI_Comm_rank(rComm.GetMPIComm(), &Rank);
-		SendSize = len(LocalValues);
+		int recv_block_size = 1;
+        int size, rank, send_size;
 
-		RecvSize = new int[Size];
-		Displs = new int[Size];
-		MPI_Gather(&SendSize, 1, MPI_INT, RecvSize, 1, MPI_INT, Root,
-		        rComm.GetMPIComm());
+		MPI_Comm_size(rComm.GetMPIComm(), &size);
+		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+		send_size = LocalValues.size();
+
+		std::vector<int> recv_sizes(size);
+		std::vector<int> offsets(size);
+		MPI_Gather(&send_size, 1, MPI_INT, recv_sizes.data(),
+                   1, MPI_INT, Root, rComm.GetMPIComm());
 
 		// calculate receive buffer block size for root
-		if (Rank == Root)
+		if (rank == Root)
 		{
-			for (int i = 0; i < Size; i++)
-				RecvBlockSize = (RecvBlockSize < RecvSize[i]) ? RecvSize[i] : RecvBlockSize;
-			for (int i = 0; i < Size; i++)
-			        Displs[i] = i * RecvBlockSize;
+			for (int i = 0; i < size; i++)
+				recv_block_size = (recv_block_size < recv_sizes[i]) ? recv_sizes[i] : recv_block_size;
+			for (int i = 0; i < size; i++)
+                offsets[i] = i * recv_block_size;
 		}
 
-		SendBuf = new double[SendSize];
-		for (int i = 0; i < SendSize; i++)
-		  SendBuf[i] = pybind11::cast<double>(LocalValues[i]);
-
-		RecvBuf = new double[RecvBlockSize * Size];
+        std::vector<TValueType> recv_buffer(recv_block_size * size);
 
 		// gather local arrays at root
-		MPI_Gatherv(SendBuf, SendSize, MPI_DOUBLE, RecvBuf, RecvSize, Displs, MPI_DOUBLE, Root, rComm.GetMPIComm());
+		MPI_Gatherv(LocalValues.data(), send_size, DataType, recv_buffer.data(),
+                    recv_sizes.data(), offsets.data(), DataType, Root, rComm.GetMPIComm());
 
-		pybind11::list Out;
+        std::vector<std::vector<TValueType>> condensed_vector;
 
-		// make python list of gathered arrays
-		if (Rank == Root)
+        // now condensing the vector such that is has only the number of actual
+        // elements that come from each rank (i.e. removing the buffering that is
+        // needed for the mpi-call)
+		if (rank == Root)
 		{
-			for (int i = 0; i < Size; i++)
+            condensed_vector.resize(size);
+            const auto buffer_begin = recv_buffer.begin();
+			for (int i = 0; i < size; ++i)
 			{
-				int iblock = i * RecvBlockSize;
-				pybind11::list Outi;
-				for (int j = 0; j < RecvSize[i]; j++)
-					Outi.append(RecvBuf[iblock + j]);
-				Out.append(Outi);
-			}
+                const auto iter_start = buffer_begin + i * recv_block_size;
+                const auto iter_end = buffer_begin + i * recv_block_size + recv_sizes[i];
+                condensed_vector[i] = std::vector<TValueType>(iter_start, iter_end);
+	    	}
 		}
 
-		delete[] RecvSize;
-		delete[] Displs;
-		delete[] SendBuf;
-		delete[] RecvBuf;
-
-		return Out;
+		return condensed_vector;
 	}
 
 	/// Perform an MPI_allgather operation.
