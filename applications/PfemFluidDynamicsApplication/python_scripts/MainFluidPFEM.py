@@ -250,9 +250,6 @@ class Solution(object):
 
         self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report);
 
-        # Calculate Nodal_Area
-        self.CalculateNodalArea()
-
     def SolveSolutionStep(self):
 
         self.clock_time = self.StartTimeMeasuring();
@@ -284,6 +281,9 @@ class Solution(object):
         # processes to be executed after witting the output
         self.model_processes.ExecuteAfterOutputStep()
 
+        # Calculate Nodal_Area
+        self.CalculateNodalArea()
+        
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
     def Finalize(self):
