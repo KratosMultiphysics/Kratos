@@ -1,5 +1,6 @@
 
 #include "mpi_python.h"
+#include <pybind11/stl.h>
 
 namespace Kratos
 {
@@ -23,7 +24,7 @@ PYBIND11_MODULE(mpipython, m)
     RankFuncType FRank = &PythonMPI::rank;
     SizeFuncType FSize = &PythonMPI::size;
 
-    class_<PythonMPI>(m,"PythonMPI") 
+    class_<PythonMPI>(m,"PythonMPI")
     .def_property_readonly("rank",FRank)
     .def_property_readonly("size",FSize)
     .def("gather",&PythonMPI::gather<double>)
