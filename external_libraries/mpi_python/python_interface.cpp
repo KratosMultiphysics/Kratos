@@ -16,7 +16,7 @@
 
 // External includes
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include <pybind11/stl.h> // required for the automatic conversion std::vector <=> python-list, see below
 
 // Project includes
 #include "mpi_python.h"
@@ -38,6 +38,8 @@ PYBIND11_MODULE(mpipython, m)
     RankFuncType FRank = &PythonMPI::rank;
     SizeFuncType FSize = &PythonMPI::size;
 
+    // note that for the functions returning a vector the conversion to a python-list is automatically
+    // done by pybind, see https://github.com/pybind/pybind11/blob/master/docs/advanced/cast/stl.rst
     std::vector<int> (PythonMPI::*gather_int)(PythonMPIComm&, const int, const int) = &PythonMPI::gather;
     std::vector<double> (PythonMPI::*gather_double)(PythonMPIComm&, const double, const int) = &PythonMPI::gather;
     std::vector<std::vector<int>> (PythonMPI::*gather_list_int)(PythonMPIComm&, const std::vector<int>&, const int) = &PythonMPI::gather;
