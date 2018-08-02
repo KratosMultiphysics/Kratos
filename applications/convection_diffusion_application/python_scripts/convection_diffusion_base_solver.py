@@ -50,7 +50,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "model_part_name" : "Thermic",
+            "model_part_name" : "ThermalModelPart",
             "domain_size" : -1,
             "echo_level": 0,
             "analysis_type": "linear",
@@ -59,7 +59,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "computing_model_part_name" : "ThermicModelPart",
+            "computing_model_part_name" : "thermal_computing_domain",
             "material_import_settings" :{
                 "materials_filename": ""
             },
