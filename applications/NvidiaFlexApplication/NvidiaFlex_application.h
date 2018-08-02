@@ -16,9 +16,9 @@
 namespace Kratos {
 
     class KRATOS_API(NVIDIAFLEX_APPLICATION) KratosNvidiaFlexApplication : public KratosApplication {
-    
+
         public:
-            
+
             ///@name Type Definitions
             ///@{
             KRATOS_CLASS_POINTER_DEFINITION(KratosNvidiaFlexApplication);
@@ -57,8 +57,6 @@ namespace Kratos {
         protected:
 
         private:
-
-            //const CylinderParticle mCylinderParticle2D;
 
             KratosNvidiaFlexApplication& operator=(KratosNvidiaFlexApplication const& rOther);
 

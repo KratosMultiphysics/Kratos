@@ -19,7 +19,7 @@ namespace Kratos {
         using namespace pybind11;
 
         PYBIND11_MODULE(KratosNvidiaFlexApplication,m) {
-            
+
             class_<KratosNvidiaFlexApplication, KratosNvidiaFlexApplication::Pointer, KratosApplication>(m, "KratosNvidiaFlexApplication")
                 .def(init<>());
                 ;
