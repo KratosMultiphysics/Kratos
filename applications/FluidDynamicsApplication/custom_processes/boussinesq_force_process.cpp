@@ -4,9 +4,9 @@ namespace Kratos
 {
     /* Public functions *******************************************************/
     BoussinesqForceProcess::BoussinesqForceProcess(
-        ModelPart::Pointer pModelPart,
+        ModelPart& rModelPart,
         Parameters& rParameters):
-    mpModelPart(pModelPart),
+    mrModelPart(rModelPart),
     mrGravity(array_1d<double,3>(3,0.0))
     {
         // Read settings from parameters
@@ -96,22 +96,20 @@ namespace Kratos
         "\'BODY_FORCE\' variable is not registered in Kratos." << std::endl;
 
         // Nodal variables
-        KRATOS_ERROR_IF_NOT( mpModelPart->GetNodalSolutionStepVariablesList().Has(TEMPERATURE) ) <<
+        KRATOS_ERROR_IF_NOT( mrModelPart.GetNodalSolutionStepVariablesList().Has(TEMPERATURE) ) <<
         "\'TEMPERATURE\' variable is not added to the ModelPart nodal data." << std::endl;
 
-        KRATOS_ERROR_IF_NOT( mpModelPart->GetNodalSolutionStepVariablesList().Has(BODY_FORCE) ) <<
+        KRATOS_ERROR_IF_NOT( mrModelPart.GetNodalSolutionStepVariablesList().Has(BODY_FORCE) ) <<
         "\'BODY_FORCE\' variable is not added to the ModelPart nodal data." << std::endl;
 
         // Variables in ProcessInfo
-        KRATOS_ERROR_IF_NOT( mpModelPart->GetProcessInfo().Has(AMBIENT_TEMPERATURE) ) <<
+        KRATOS_ERROR_IF_NOT( mrModelPart.GetProcessInfo().Has(AMBIENT_TEMPERATURE) ) <<
         "In Boussinesq Force Process: \'AMBIENT_TEMPERATURE\' not given in ProcessInfo." << std::endl;
     }
 
     void BoussinesqForceProcess::AssignBoussinesqForce()
     {
-        ModelPart &rModelPart = *mpModelPart;
-
-        const double AmbientTemperature = rModelPart.GetProcessInfo().GetValue(AMBIENT_TEMPERATURE);
+        const double AmbientTemperature = mrModelPart.GetProcessInfo().GetValue(AMBIENT_TEMPERATURE);
         KRATOS_ERROR_IF( AmbientTemperature <= 0.0 ) <<
         "In Boussinesq Force Process: \'AMBIENT_TEMPERATURE\' obtained from ProcessInfo is incorrect." << std::endl <<
         "Expected a positive double, got " << AmbientTemperature << std::endl;
@@ -119,11 +117,11 @@ namespace Kratos
         // Note: the default value of 1/AMBIENT_TEMPERATURE is the usual assumption for perfect gases.
         const double Alpha = (mUseAmbientTemperature) ? 1.0 / AmbientTemperature : mThermalExpansionCoefficient;
 
-        int NumNodes = rModelPart.NumberOfNodes();
+        int NumNodes = mrModelPart.NumberOfNodes();
         #pragma omp parallel for firstprivate(NumNodes,AmbientTemperature)
         for (int i = 0; i < NumNodes; ++i)
         {
-            ModelPart::NodeIterator iNode = rModelPart.NodesBegin() + i;
+            ModelPart::NodeIterator iNode = mrModelPart.NodesBegin() + i;
             double Temperature = iNode->FastGetSolutionStepValue(TEMPERATURE);
 
             iNode->FastGetSolutionStepValue(BODY_FORCE) = (1. - Alpha*(Temperature-AmbientTemperature))*mrGravity;
