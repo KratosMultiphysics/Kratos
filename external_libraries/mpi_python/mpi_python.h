@@ -119,14 +119,14 @@ public:
 #else
                         int provided;
                         MPI_Init_thread(&argc, &empty_argv, MPI_THREAD_MULTIPLE, &provided);
-                        
+
                         if(provided < MPI_THREAD_MULTIPLE)
                         {
                             int rank;
                             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
                             if(rank==0)
                                 std::cout<< "MPI_Init_thread returns : " << provided << std::endl;
-                            
+
                         }
 #endif
 			delete[] a;
@@ -313,33 +313,22 @@ public:
 	 * @return A Python list containing the local values in all processes, sorted by rank.
 	 */
 	template<class TValueType>
-	pybind11::list allgather(PythonMPIComm& rComm, TValueType LocalValue)
+	std::vector<TValueType> allgather(PythonMPIComm& rComm, TValueType LocalValue)
 	{
 		// Determime data type
-		MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
+		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
 		int size;
 		MPI_Comm_size(rComm.GetMPIComm(), &size);
 
 		// Create recieve buffer
-		TValueType* GlobalValues = new TValueType[size];
+        std::vector<TValueType> global_values(size);
 
 		// Communicate
-		MPI_Allgather(&LocalValue, 1, DataType, GlobalValues, 1, DataType,
+		MPI_Allgather(&LocalValue, 1, DataType, global_values.data(), 1, DataType,
 		        rComm.GetMPIComm());
 
-		// Copy output to a Python list
-		pybind11::list Out;
-
-		for (int i = 0; i < size; i++)
-		{
-			auto val(GlobalValues[i]);
-			Out.append(val);
-		}
-
-		delete[] GlobalValues;
-
-		return Out;
+		return global_values;
 	}
 
 private:
