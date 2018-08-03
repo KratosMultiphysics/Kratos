@@ -53,7 +53,7 @@ namespace Kratos
 *        it is based on displacement degrees of freedom
 * @author Tobias Teschemacher
 */
-class KRATOS_API(IGA_STRUCTURAL_MECHANICS_APPLICATION) BaseDiscreteElement
+class BaseDiscreteElement
     : public Element
 {
 public:
