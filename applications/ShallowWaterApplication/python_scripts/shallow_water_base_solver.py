@@ -89,7 +89,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self.min_buffer_size
 
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
+        return self.main_model_part
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
