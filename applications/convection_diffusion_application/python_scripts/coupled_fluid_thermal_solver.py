@@ -12,89 +12,89 @@ KratosMultiphysics.CheckRegisteredApplications("ConvectionDiffusionApplication")
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 
+# Importing the base class
+from python_solver import PythonSolver
+
 def CreateSolver(main_model_part, custom_settings):
     return CoupledFluidThermalSolver(main_model_part, custom_settings)
 
-class CoupledFluidThermalSolver(object):
+class CoupledFluidThermalSolver(PythonSolver):
 
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         
-        self.main_model_part = main_model_part
+        super(CoupledFluidThermalSolver, self).__init__(model, custom_settings)
                 
         default_settings = KratosMultiphysics.Parameters("""
-            {
-                "solver_type" : "ThermallyCoupled",
-                "fluid_solver_settings": {
-                        "solver_type": "navier_stokes_solver_vmsmonolithic",
-                        "model_import_settings": {
-                                "input_type": "mdpa",
-                                "input_filename": "unknown_name"
-                        }
-                }#,
-                "thermal_solver_settings": {
-                        "solver_type": "Transient",
-                        "analysis_type": "linear",
-                        "model_import_settings": {
-                                "input_type": "use_input_model_part",
-                                "input_filename": "unknown_name"
-                        },
-                        "computing_model_part_name": "Thermal",
-                        "material_import_settings": {
-                                "materials_filename": "ThermicMaterials.json"
-                        },
-                        "convection_diffusion_variables": {
-                                "density_variable": "DENSITY",
-                                "diffusion_variable": "CONDUCTIVITY",
-                                "unknown_variable": "TEMPERATURE",
-                                "volume_source_variable": "HEAT_FLUX",
-                                "surface_source_variable": "FACE_HEAT_FLUX",
-                                "projection_variable": "PROJECTED_SCALAR1",
-                                "convection_variable": "CONVECTION_VELOCITY",
-                                "mesh_velocity_variable": "MESH_VELOCITY",
-                                "transfer_coefficient_variable": "",
-                                "velocity_variable": "VELOCITY",
-                                "specific_heat_variable": "SPECIFIC_HEAT",
-                                "reaction_variable": "REACTION_FLUX"
-                        }
+        {
+            "solver_type" : "ThermallyCoupled",
+            "domain_size" : -1,
+            "echo_level": 0,
+            "fluid_solver_settings": {
+                "solver_type": "navier_stokes_solver_vmsmonolithic",
+                "model_import_settings": {
+                        "input_type": "mdpa",
+                        "input_filename": "unknown_name"
+                }
+            },
+            "thermal_solver_settings": {
+                "solver_type": "Transient",
+                "analysis_type": "linear",
+                "model_import_settings": {
+                        "input_type": "use_input_model_part",
+                        "input_filename": "unknown_name"
+                },
+                "computing_model_part_name": "computing_domain",
+                "material_import_settings": {
+                        "materials_filename": "ThermalMaterials.json"
                 }
             }
-            """)
+        }
+        """)
 
         ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        print("custom_settings")
-        print (custom_settings)
-        
         self.settings.ValidateAndAssignDefaults(default_settings)
-        sssssssssssssssssss
+
+        # Get domain size
+        self.domain_size = self.settings["domain_size"].GetInt()
+
         import python_solvers_wrapper_fluid
-        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.main_model_part, self.settings["fluid_solver_settings"],"OpenMP")
-        
-        
-        self.thermal_model_part =  KratosMultiphysics.ModelPart("thermal_model_part")
+        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
         
         import python_solvers_wrapper_convection_diffusion
-        self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.thermal_model_part,self.settings["thermal_solver_settings"],"OpenMP")
-        
-        err
+        self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
 
     def AddVariables(self):
+        # Import the fluid and thermal solver variables. Then merge them to have them in both fluid and thermal solvers.
         self.fluid_solver.AddVariables()
         self.thermal_solver.AddVariables()
-        KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part))
-        err        
+        KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part)
 
     def ImportModelPart(self):
+        # Call the fluid solver to import the model part from the mdpa 
         self.fluid_solver.ImportModelPart()
         
-        #here cloning the fluid modelpart to thermal_model_part so that the nodes are shared
-        #convection_diffusion_settings = self.thermal_solver.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
+        # Save the convection diffusion settings
+        convection_diffusion_settings = self.thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
+
+        # Here the fluid model part is cloned to be thermal model part so that the nodes are shared
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, "Element2D3N", "Condition2D2N")
-        #self.thermal_solver.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
+        if self.domain_size == 2:
+            modeler.GenerateModelPart(self.fluid_solver.main_model_part,
+                                      self.thermal_solver.main_model_part, 
+                                      "EulerianConvDiff2D",
+                                      "ThermalFace2D")
+        else:
+            modeler.GenerateModelPart(self.fluid_solver.main_model_part,
+                                      self.thermal_solver.main_model_part,
+                                      "EulerianConvDiff3D",
+                                      "ThermalFace3D")
 
+        # Set the saved convection diffusion settings to the new thermal model part
+        self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
-        self.thermal_solver.ImportModelPart()
+    def PrepareModelPart(self):
+        self.fluid_solver.PrepareModelPart()
+        self.thermal_solver.PrepareModelPart()
         
     def AddDofs(self):
         self.fluid_solver.AddDofs()
@@ -110,7 +110,7 @@ class CoupledFluidThermalSolver(object):
         pass
 
     def ComputeDeltaTime(self):
-        return self.fluid_solver.ComputeDeltaTime()
+        return self.fluid_solver._ComputeDeltaTime()
 
     def GetMinimumBufferSize(self):
         buffer_size_fluid = self.fluid_solver.GetMinimumBufferSize()
@@ -137,13 +137,8 @@ class CoupledFluidThermalSolver(object):
         (self.thermal_solver).SetEchoLevel(level)
 
     def AdvanceInTime(self, current_time):
-        dt = self.ComputeDeltaTime()
-        new_time = current_time + dt
-
         #NOTE: the cloning is done ONLY ONCE since the nodes are shared
-        self.main_model_part.CloneTimeStep(new_time)
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-
+        new_time  = self.fluid_solver.AdvanceInTime(current_time)
         return new_time
 
     def InitializeSolutionStep(self):
