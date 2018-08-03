@@ -146,13 +146,13 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
         node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
 
-        self.assertAlmostEqual(node_1.X, 0.0              )
-        self.assertAlmostEqual(node_1.Y, 0.0              )
-        self.assertAlmostEqual(node_1.Z, 0.0              )
+        self.assertAlmostEqual(node_1.X, 0.0               )
+        self.assertAlmostEqual(node_1.Y, 0.0               )
+        self.assertAlmostEqual(node_1.Z, 0.0               )
 
-        self.assertAlmostEqual(node_2.X, 2.626867464040338)
-        self.assertAlmostEqual(node_2.Y, 0.0              )
-        self.assertAlmostEqual(node_2.Z, 0.0              )
+        self.assertAlmostEqual(node_2.X, 2.6268671884353934)
+        self.assertAlmostEqual(node_2.Y, 0.0               )
+        self.assertAlmostEqual(node_2.Z, 0.0               )
 
     def testOneLinearSpanWithParameterDistortion(self):
         def create_geometry(model_part):
@@ -178,7 +178,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
         self.assertAlmostEqual(node_1.Y, 0.0               )
         self.assertAlmostEqual(node_1.Z, 0.0               )
 
-        self.assertAlmostEqual(node_2.X, 2.626867464040338)
+        self.assertAlmostEqual(node_2.X, 2.6268671884353934)
         self.assertAlmostEqual(node_2.Y, 0.0               )
         self.assertAlmostEqual(node_2.Z, 0.0               )
 
@@ -206,13 +206,13 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
         node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
 
-        self.assertAlmostEqual(node_1.X, 0.0              )
-        self.assertAlmostEqual(node_1.Y, 0.0              )
-        self.assertAlmostEqual(node_1.Z, 0.0              )
+        self.assertAlmostEqual(node_1.X, 0.0               )
+        self.assertAlmostEqual(node_1.Y, 0.0               )
+        self.assertAlmostEqual(node_1.Z, 0.0               )
 
-        self.assertAlmostEqual(node_2.X, 2.626867464040338)
-        self.assertAlmostEqual(node_2.Y, 0.0              )
-        self.assertAlmostEqual(node_2.Z, 0.0              )
+        self.assertAlmostEqual(node_2.X, 2.6268671884353934)
+        self.assertAlmostEqual(node_2.Y, 0.0               )
+        self.assertAlmostEqual(node_2.Z, 0.0               )
 
     def testTwoLinearSpansWithParameterDistortion(self):
         def create_geometry(model_part):
@@ -238,13 +238,13 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
         node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
 
-        self.assertAlmostEqual(node_1.X, 0.0              )
-        self.assertAlmostEqual(node_1.Y, 0.0              )
-        self.assertAlmostEqual(node_1.Z, 0.0              )
+        self.assertAlmostEqual(node_1.X, 0.0               )
+        self.assertAlmostEqual(node_1.Y, 0.0               )
+        self.assertAlmostEqual(node_1.Z, 0.0               )
 
-        self.assertAlmostEqual(node_2.X, 2.626867464040338)
-        self.assertAlmostEqual(node_2.Y, 0.0              )
-        self.assertAlmostEqual(node_2.Z, 0.0              )
+        self.assertAlmostEqual(node_2.X, 2.6268671884353934)
+        self.assertAlmostEqual(node_2.Y, 0.0               )
+        self.assertAlmostEqual(node_2.Z, 0.0               )
 
     def testOneQuadraticSpan(self):
         def create_geometry(model_part):
@@ -271,10 +271,10 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
         node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
 
-        self.assertAlmostEqual(node_1.X, 0.0              )
-        self.assertAlmostEqual(node_1.Y, 0.0              )
-        self.assertAlmostEqual(node_1.Z, 0.0              )
+        self.assertAlmostEqual(node_1.X, 0.0               )
+        self.assertAlmostEqual(node_1.Y, 0.0               )
+        self.assertAlmostEqual(node_1.Z, 0.0               )
 
-        self.assertAlmostEqual(node_2.X, 2.626867464040338)
-        self.assertAlmostEqual(node_2.Y, 0.0              )
-        self.assertAlmostEqual(node_2.Z, 0.0              )
+        self.assertAlmostEqual(node_2.X, 2.6268671884353934)
+        self.assertAlmostEqual(node_2.Y, 0.0               )
+        self.assertAlmostEqual(node_2.Z, 0.0               )
