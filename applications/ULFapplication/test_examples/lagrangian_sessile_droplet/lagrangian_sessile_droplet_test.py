@@ -75,7 +75,7 @@ SolverType = ProjectParameters.SolverType
 
 ## Choosing element type for lagrangian_model_part
 element_type = problem_settings.lagrangian_element
-import SurfaceTension_monolithic_solver as solver_lagr
+import SurfaceTension_Temp_monolithic_solver as solver_lagr
 SolverSettings = ProjectParameters.FluidSolverConfiguration
 solver_lagr = import_solver(SolverSettings)
 solver_lagr.AddVariables(lagrangian_model_part, SolverSettings)
@@ -147,7 +147,13 @@ density=problem_settings.density
 FSI=problem_settings.FSI
 
 eul_model_part = 0
-gamma = 0.072 		#surface tension coefficient [N m-1]
+#gamma = 0.072 		#surface tension coefficient [N m-1]
+surface_temp = 291.2
+
+#gamma = 0.072 		#surface tension coefficient [N m-1]
+gamma = 0.07275*(1.0-0.00212*(surface_temp-293.15))
+contact_angle = 360.0 	#contact angle [deg]
+
 contact_angle = 45.0	#contact angle [deg]
 
 zeta_dissapative_JM = 1.0
@@ -184,7 +190,11 @@ zeta_dissapative_SM = 0.0
 ################################################################
 
 
-lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
+#lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
+
+lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, surface_temp)
+
+
 
 
 

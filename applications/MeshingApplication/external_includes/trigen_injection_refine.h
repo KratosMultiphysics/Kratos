@@ -1960,7 +1960,7 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  TriGenPFEMModeler& rThis);
+                                  TriGenInjectionModeler& rThis);
 
 /// output stream function
 inline std::istream& operator >> (std::istream& rIStream,

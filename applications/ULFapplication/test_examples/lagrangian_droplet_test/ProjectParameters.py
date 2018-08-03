@@ -4,7 +4,7 @@ SolverType = "monolithic_solver_eulerian"
 #SolverType2 = "FractionalStep"
 
 class FluidSolverConfiguration:
-    solver_type =  "SurfaceTension_monolithic_solver"
+    solver_type =  "SurfaceTension_Temp_monolithic_solver"
     domain_size = 2
     TurbulenceModel = "None"
 

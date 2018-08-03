@@ -20,7 +20,8 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VISCOUS_STRESSY": VISCOUS_STRESSY,
                         "IS_WATER": IS_WATER,
                         "DENSITY": DENSITY,
-                        "VISCOSITY": VISCOSITY}
+                        "VISCOSITY": VISCOSITY,
+                        "TEMPERATURE": TEMPERATURE}
 
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -76,6 +77,9 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM)
     model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM)
     #model_part.AddNodalSolutionStepVariable(INITIAL_AVERAGE_NODAL_AREA)
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(SURFACE_TENSION_COEF)
+
 
 
 def AddDofs(model_part, config=None):
@@ -91,7 +95,7 @@ def AddDofs(model_part, config=None):
 
 
 class STMonolithicSolver:
-    def __init__(self, model_part, domain_size, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM):
+    def __init__(self, model_part, domain_size, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, surface_temp):
         self.model_part = model_part
         self.domain_size = domain_size
         # eul_model_part can be 0 (meaning that the model part is lagrangian) or 1 (eulerian)
@@ -128,6 +132,7 @@ class STMonolithicSolver:
         self.max_iter = 30
         self.contact_angle = contact_angle
         self.gamma = gamma
+        self.surface_temp = surface_temp
         self.zeta_dissapative_JM = zeta_dissapative_JM
         self.zeta_dissapative_BM = zeta_dissapative_BM
         self.zeta_dissapative_SM = zeta_dissapative_SM
@@ -239,6 +244,7 @@ class STMonolithicSolver:
         self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_JM, self.zeta_dissapative_JM)
         self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_BM, self.zeta_dissapative_BM)
         self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_SM, self.zeta_dissapative_SM)
+        self.model_part.ProcessInfo.SetValue(TEMPERATURE, self.surface_temp)
 
 
         if(self.eul_model_part == 0):
@@ -524,8 +530,8 @@ class STMonolithicSolver:
         else:
             self.injection_settings()
 
-def CreateSolver(model_part, config, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM): #FOR 3D!
-    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
+def CreateSolver(model_part, config, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, surface_temp): #FOR 3D!
+    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, surface_temp)
 
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha

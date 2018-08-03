@@ -163,11 +163,22 @@ gamma_sv = 0.0
 
 
 eul_model_part = 0
-gamma = 0.072 		#surface tension coefficient [N m-1]
+#gamma = 0.072 		#surface tension coefficient [N m-1]
+
+
+surface_temp = 291.2
+
+#gamma = 0.072 		#surface tension coefficient [N m-1]
+gamma = 0.07275*(1.0-0.00212*(surface_temp-293.15))
+contact_angle = 360.0 	#contact angle [deg]
+
+
 contact_angle = 90.0 	#contact angle [deg]
 #lag_solver = solver_lagr.CreateSolverEmbedded(lagrangian_model_part, SolverSettings, eul_model_part,box_corner1, box_corner2, add_nodes, gamma, contact_angle)
 
-lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
+#lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
+
+lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, surface_temp)
 
 #lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part)
 # Mesh solver:
@@ -386,7 +397,7 @@ while(time <= final_time):
                 gid_io.WriteNodalResults(IS_LAGRANGIAN_INLET,lagrangian_model_part.Nodes,time,0)
                 gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
                 gid_io.WriteNodalResults(NODAL_AREA,lagrangian_model_part.Nodes,time,0)
-                gid_io.WriteNodalResults(INITIAL_AVERAGE_NODAL_AREA,lagrangian_model_part.Nodes,time,0)
+                #gid_io.WriteNodalResults(INITIAL_AVERAGE_NODAL_AREA,lagrangian_model_part.Nodes,time,0)
 	 
                 
                 gid_io.Flush()
