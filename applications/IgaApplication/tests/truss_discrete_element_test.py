@@ -172,7 +172,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_2, curve
 
-        node_1, node_2, curve = TrussDiscreteElementTest.solve(create_geometry)
+        node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
