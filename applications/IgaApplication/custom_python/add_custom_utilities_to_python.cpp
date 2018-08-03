@@ -24,13 +24,17 @@
 #include "custom_utilities/node_curve_geometry_3d.h"
 #include "custom_utilities/node_surface_geometry_3d.h"
 
-namespace py = pybind11;
-
 namespace Kratos {
 namespace Python {
 
-void AddCustomUtilitiesToPython(py::module& m)
+void AddCustomUtilitiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
+    using namespace pybind11::literals;
+
+    using Array3D = Kratos::array_1d<double, 3>;
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COORDINATES)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TANGENTS)
 
@@ -42,10 +46,6 @@ void AddCustomUtilitiesToPython(py::module& m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RAYLEIGH_ALPHA)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RAYLEIGH_BETA)
-
-    using namespace pybind11::literals;
-
-    using Array3D = Kratos::array_1d<double, 3>;
 
     // register Interval
     {

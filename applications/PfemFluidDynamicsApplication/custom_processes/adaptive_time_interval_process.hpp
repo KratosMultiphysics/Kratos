@@ -21,7 +21,6 @@
 #include "spatial_containers/spatial_containers.h"
 
 #include "custom_processes/adaptive_time_interval_process.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "geometries/triangle_2d_3.h"

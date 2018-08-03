@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterial
 
 class LinearElasticLaw:
-    
+
     def __init__(self):
         #print(" python: elastic law ")
         self.constitutive_law = KratosMaterial.Linear3DLaw()
@@ -27,8 +27,8 @@ class LinearElasticLaw:
 
         LawFeatures.SetStrainSize(self.GetStrainSize())
         LawFeatures.SetSpaceDimension(self.WorkingSpaceDimension())
-                        
-    #    
+
+    #
     def WorkingSpaceDimension(self):
         return 3
     #
@@ -43,7 +43,7 @@ class LinearElasticLaw:
     #
     def CalculateMaterialResponseKirchhoff(self, LawParameters):
         #print(" python: Kirchhoff ")
-       
+
         LawOptions = LawParameters.GetOptions()
         Properties = LawParameters.GetMaterialProperties()
 
@@ -55,11 +55,11 @@ class LinearElasticLaw:
 
         young_modulus = Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS)
         poisson_coefficient = Properties.GetValue(KratosMultiphysics.POISSON_RATIO)
-        
+
         if(LawOptions.Is(KratosMultiphysics.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN) == True):
             deformation_gradient = LawParameters.GetDeformationGradientF()
-            self.CalculateStrainMatrix(deformation_gradient) 
-            
+            self.CalculateStrainMatrix(deformation_gradient)
+
         if(LawOptions.Is(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRESS) == True):
             #if(LawOptions.Is(KratosMultiphysics.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR) == True):
             self.CalculateLinearElasticMatrix(young_modulus,poisson_coefficient)
@@ -70,16 +70,16 @@ class LinearElasticLaw:
             print(" strain",self.StrainVector)
             print(" constitutive",self.ConstitutiveMatrix)
             print(" stress",self.StressVector)
-        '''          
-                
+        '''
+
         '''
         self.constitutive_law.CalculateMaterialResponseKirchhoff(LawParameters)
         StrainVector = LawParameters.GetStrainVector()
         StressVector = LawParameters.GetStressVector()
         ConstitutiveMatrix = LawParameters.GetConstitutiveMatrix()
         print(" STRAIN",StrainVector)
-        print(" CONSTITUTIVE", ConstitutiveMatrix)            
-        print(" STRESS",StressVector)        
+        print(" CONSTITUTIVE", ConstitutiveMatrix)
+        print(" STRESS",StressVector)
         '''
 
     #
@@ -101,33 +101,33 @@ class LinearElasticLaw:
         self.StrainVector[5] = RightCauchyGreen[0,2]
 
         #return self.StrainVector
- 
+
     #
     def CalculateLinearElasticMatrix(self, YoungModulus, PoissonCoefficient):
 
         for i in range(0,6):
             for j in range(0,6):
                 self.ConstitutiveMatrix[i,j] = 0
-        
+
         self.ConstitutiveMatrix[0,0] = (YoungModulus*(1.0-PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient)));
         self.ConstitutiveMatrix[1,1] = self.ConstitutiveMatrix[0,0]
         self.ConstitutiveMatrix[2,2] = self.ConstitutiveMatrix[0,0]
-        
+
         self.ConstitutiveMatrix[3,3] = self.ConstitutiveMatrix[0,0] * (1.0-2.0*PoissonCoefficient)/(2.0*(1.0-PoissonCoefficient));
         self.ConstitutiveMatrix[4,4] = self.ConstitutiveMatrix[3,3]
         self.ConstitutiveMatrix[5,5] = self.ConstitutiveMatrix[3,3]
 
         self.ConstitutiveMatrix[0,1] = self.ConstitutiveMatrix[0,0] * PoissonCoefficient/(1.0-PoissonCoefficient);
         self.ConstitutiveMatrix[1,0] = self.ConstitutiveMatrix[0,1]
-        
+
         self.ConstitutiveMatrix[0,2] = self.ConstitutiveMatrix[0,1]
         self.ConstitutiveMatrix[2,0] = self.ConstitutiveMatrix[0,1]
 
         self.ConstitutiveMatrix[1,2] = self.ConstitutiveMatrix[0,1]
         self.ConstitutiveMatrix[2,1] = self.ConstitutiveMatrix[0,1]
-      
+
         #return self.ConstitutiveMatrix
-        
+
     #
     def CalculateStress(self):
         #self.StressVector.resize(6)
@@ -139,11 +139,11 @@ class LinearElasticLaw:
         for i in range(0,6):
             self.StressVector[i] = stress_vector[i]
 
-            
+
         #for i in range(0,6):
         #    for j in range(0,6):
         #        self.StressVector[i] += self.ConstitutiveMatrix[i,j] * self.StrainVector[j]
-                
+
 
 
         #return self.StressVector
@@ -159,7 +159,7 @@ class LinearElasticLaw:
         else:
             check = 0
             print(" YOUNG_MODULUS has Key zero ")
-            
+
         if( Properties.Has(KratosMultiphysics.YOUNG_MODULUS) ):
             nu = Properties.GetValue(KratosMultiphysics.POISSON_RATIO)
             if( (nu > 0.499 and nu < 0.501) or (nu < - 0.999 and nu > -1.01) ):
@@ -177,6 +177,6 @@ class LinearElasticLaw:
         else:
             check = 0
             print(" DENSITY has Key zero ")
-            
+
         return check
 

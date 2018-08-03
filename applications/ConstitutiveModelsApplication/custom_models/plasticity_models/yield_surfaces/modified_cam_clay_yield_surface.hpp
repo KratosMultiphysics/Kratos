@@ -48,7 +48,7 @@ namespace Kratos
    */
   template<class THardeningRule>
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ModifiedCamClayYieldSurface : public YieldSurface<THardeningRule>
-  {    
+  {
   public:
 
     ///@name Type Definitions
@@ -87,7 +87,7 @@ namespace Kratos
     /// Clone.
     virtual BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new ModifiedCamClayYieldSurface(*this));
+      return Kratos::make_shared<ModifiedCamClayYieldSurface>(*this);
     }
 
     /// Destructor.
@@ -127,7 +127,7 @@ namespace Kratos
 
       double MeanStress, LodeAngle;
       double DeviatoricQ; // == sqrt(3)*J2
-      
+
       // more work is requiered
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, DeviatoricQ, LodeAngle);
       DeviatoricQ *= sqrt(3.0);
@@ -162,7 +162,7 @@ namespace Kratos
 
 
       double MeanStress, J2, LodeAngle;
-     
+
       VectorType V1, V2;
       // more work is requiered
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
@@ -327,6 +327,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODIFIED_CAM_CLAY_YIELD_SURFACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MODIFIED_CAM_CLAY_YIELD_SURFACE_H_INCLUDED  defined

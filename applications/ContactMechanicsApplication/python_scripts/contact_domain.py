@@ -1,13 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemApplication as KratosPfem
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-# Import the meshing domain (the base class for the modeler derivation)
+# Import the meshing domain (the base class for the mesher derivation)
 import meshing_domain
 
 def CreateMeshingDomain(main_model_part, custom_settings):
@@ -19,7 +19,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
     ##and the pointer to the main_model part.
     ##
     ##real construction shall be delayed to the function "Initialize" which
-    ##will be called once the modeler is already filled
+    ##will be called once the mesher is already filled
     def __init__(self, main_model_part, custom_settings):
 
         self.main_model_part = main_model_part
@@ -108,7 +108,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
     def SetRefiningParameters(self):   #no refine in the contact domain
 
         # Create RefiningParameters
-        self.RefiningParameters = KratosPfem.RefiningParameters()
+        self.RefiningParameters = KratosDelaunay.RefiningParameters()
         self.RefiningParameters.Initialize()
 
         # parameters

@@ -66,7 +66,48 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
 
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".post.bin")
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".time")
+            kratos_utils.DeleteFileIfExisting(self.problem_name + ".h5")
+            kratos_utils.DeleteFileIfExisting(self.problem_name + "-1.0000.h5")
             kratos_utils.DeleteFileIfExisting("response_function_tests.post.lst")
+
+class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
+    path = "response_function_tests"
+    file_name = "adjoint_strain_energy_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+        self.assertAlmostEqual(self.value, 8.484005297318718e-05)
+
+        nodeId = 109
+        self.assertAlmostEqual(self.gradient[nodeId][0], -1.732547909522536e-05, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][1], 3.600817901573548e-08, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -3.2834294133347997e-10, 12)
+
+class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFactory):
+    path = "response_function_tests"
+    file_name = "adjoint_displacement_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+        self.assertAlmostEqual(self.value, 0.00016968010594636793)
+
+        nodeId = 50
+        self.assertAlmostEqual(self.gradient[nodeId][0], 2046491212.095884, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][1], -2917975324.12118, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], 32.22475716410058, 12)
+
+class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
+    path = "response_function_tests"
+    file_name = "adjoint_stress_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+        self.assertAlmostEqual(self.value, 0.21798768581799344)
+
+        nodeId = 50
+        self.assertAlmostEqual(self.gradient[nodeId][0], -0.4522249114784208, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][1], -0.058397339300157336, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -3.108459599353836e-06, 12)
 
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     path = GetFilePath("response_function_tests")
@@ -90,11 +131,15 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
         nodeId = 109
         self.assertAlmostEqual(self.gradient[nodeId][0], -1.7336721959838976e-05, 12)
         self.assertAlmostEqual(self.gradient[nodeId][1], 3.6004964666202887e-08, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -2.885071090097132e-09, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -2.8850710891511207e-09, 12)
+
 
 if __name__ == "__main__":
     suites = KratosUnittest.KratosSuites
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointStrainEnergyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointDisplacementResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointStressResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStrainEnergyResponseFunction]))
     allSuite = suites['all']

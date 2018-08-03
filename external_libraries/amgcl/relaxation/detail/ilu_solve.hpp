@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,17 +59,19 @@ class ilu_solve {
 
             params() : iters(2), damping(0.72) {}
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, iters)
                 , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
             {
-                AMGCL_PARAMS_CHECK(p, (iters)(damping));
+                check_params(p, {"iters", "damping"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, iters);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
             }
+#endif
         } prm;
 
     public:
@@ -106,6 +108,15 @@ class ilu_solve {
             }
         }
 
+        size_t bytes() const {
+            return
+                backend::bytes(*L) +
+                backend::bytes(*U) +
+                backend::bytes(*D) +
+                backend::bytes(*t1) +
+                backend::bytes(*t2);
+        }
+
     private:
         std::shared_ptr<matrix> L;
         std::shared_ptr<matrix> U;
@@ -131,15 +142,17 @@ class ilu_solve< backend::builtin<value_type> > {
 
             params() : serial(num_threads() < 4) {}
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, serial)
             {
-                AMGCL_PARAMS_CHECK(p, (serial));
+                check_params(p, {"serial"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, serial);
             }
+#endif
         } prm;
 
         ilu_solve(
@@ -162,6 +175,19 @@ class ilu_solve< backend::builtin<value_type> > {
                 serial_solve(x);
             else
                 parallel_solve(x);
+        }
+
+        size_t bytes() const {
+            size_t b = 0;
+
+            if (L) b += backend::bytes(*L);
+            if (U) b += backend::bytes(*U);
+            if (D) b += backend::bytes(*D);
+
+            if (lower) b += lower->bytes();
+            if (upper) b += upper->bytes();
+
+            return b;
         }
 
     private:
@@ -333,7 +359,7 @@ class ilu_solve< backend::builtin<value_type> > {
 
                     if (!lower) D[tid].reserve(thread_rows[tid]);
 
-                    BOOST_FOREACH(task &t, tasks[tid]) {
+                    for(task &t : tasks[tid]) {
                         ptrdiff_t loc_beg = ptr[tid].size() - 1;
                         ptrdiff_t loc_end = loc_beg;
 
@@ -363,7 +389,7 @@ class ilu_solve< backend::builtin<value_type> > {
                 {
                     int tid = thread_id();
 
-                    BOOST_FOREACH(const task &t, tasks[tid]) {
+                    for(const task &t : tasks[tid]) {
                         for(ptrdiff_t r = t.beg; r < t.end; ++r) {
                             ptrdiff_t i   = ord[tid][r];
                             ptrdiff_t beg = ptr[tid][r];
@@ -385,6 +411,22 @@ class ilu_solve< backend::builtin<value_type> > {
                     }
                 }
             }
+
+            size_t bytes() const {
+                size_t b = 0;
+
+                for(int i = 0; i < nthreads; ++i) {
+                    b += sizeof(task) * tasks[i].size();
+                    b += backend::bytes(ptr[i]);
+                    b += backend::bytes(col[i]);
+                    b += backend::bytes(val[i]);
+                    b += backend::bytes(ord[i]);
+
+                    if (!lower) b += backend::bytes(D[i]);
+                }
+
+                return b;
+            }
         };
 
         std::shared_ptr< sptr_solve<true > > lower;
@@ -405,6 +447,7 @@ class ilu_solve< backend::builtin<value_type> > {
             lower->solve(x);
             upper->solve(x);
         }
+
 };
 
 } // namespace detail

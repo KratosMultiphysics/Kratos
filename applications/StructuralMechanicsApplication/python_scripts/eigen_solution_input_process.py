@@ -19,6 +19,7 @@ class EigenSolutionInputProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"            : "A process for reading eigenvalue and eigenvector results.",
                 "model_part_name" : "PLEASE_SPECIFY_MODEL_PART",
                 "file_settings" : {
                 },
