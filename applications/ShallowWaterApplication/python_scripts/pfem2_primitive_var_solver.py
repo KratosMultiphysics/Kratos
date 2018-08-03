@@ -1,42 +1,104 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as KratosShallow
+import KratosMultiphysics.ShallowWaterApplication as Shallow
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
 ## Import base class file
-import shallow_water_base_solver
-import pure_convection_solver
+from shallow_water_base_solver import ShallowWaterBaseSolver
 
 def CreateSolver(model_part, custom_settings):
     return Pfem2PrimitiveVarSolver(model_part, custom_settings)
 
-class Pfem2PrimitiveVarSolver(pure_convection_solver.PureConvectionSolver,shallow_water_base_solver.ShallowWaterBaseSolver):
+class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
     def __init__(self, model_part, custom_settings):
-        super(Pfem2PrimitiveVarSolver,self).__init__(model_part,custom_settings)
+        super(Pfem2PrimitiveVarSolver, self).__init__(model_part,custom_settings)
+
+        # Set the element and condition names for the replace settings
+        self.element_name = "ShallowElement"
+        self.condition_name = "Condition"
+        self.min_buffer_size = 2
+
+        # Pfem2 settings
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.settings.AddValue("pfem2_settings", KratosMultiphysics.Parameters("""{}"""))
+        self.settings["pfem2_settings"].AddEmptyValue("convection_scalar_variable").SetString("HEIGHT")
+        self.settings["pfem2_settings"].AddEmptyValue("convection_vector_variable").SetString("VELOCITY")
+        self.settings["pfem2_settings"].AddEmptyValue("maximum_number_of_particles").SetInt(8*domain_size)
+        # self.settings["pfem2_settings"].AddEmptyValue("minimum_pre_reseed").SetInt(1*domain_size)
+        # self.settings["pfem2_settings"].AddEmptyValue("minimum_post_reseed").SetInt(2*domain_size)
+        
+        # Initialize neighbour search
+        number_of_avg_elems = 10
+        number_of_avg_nodes = 10
+        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.main_model_part, number_of_avg_elems, number_of_avg_nodes)
+        self.neighbour_search.Execute()
+        self.neighbour_elements_search = KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, domain_size, number_of_avg_elems)
+        self.neighbour_elements_search.Execute()
 
     def AddVariables(self):
-        super(Pfem2PrimitiveVarSolver,self).AddVariables()
+        super(Pfem2PrimitiveVarSolver, self).AddVariables()
+        # Variables to project unknown and update particles
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.DELTA_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.PROJECTED_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.DELTA_VECTOR1)
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.PROJECTED_VECTOR1)
+        # Specific variables to convect particles
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YP)
+        self.main_model_part.AddNodalSolutionStepVariable(Shallow.MEAN_SIZE)
 
     def AddDofs(self):
-        super(Pfem2PrimitiveVarSolver,self)._AddPrimitiveDofs()
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
+
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("Pfem2PrimitiveVarSolver", "Shallow water solver DOFs added correctly.")
 
     def Initialize(self):
-        shallow_water_base_solver.ShallowWaterBaseSolver.Initialize(self)
-        super(Pfem2PrimitiveVarSolver,self).Initialize()
+        super(Pfem2PrimitiveVarSolver, self).Initialize()
+        # Creating the solution strategy for the particle stage
+        self.moveparticles = Shallow.MoveShallowWaterParticleUtility(self.main_model_part, self.settings["pfem2_settings"])
+        self.moveparticles.MountBin()
+        print("Pfem2 utility initialization finished")
 
-    def Solve(self):
+    def InitializeSolutionStep(self):
         # Move particles
-        super(Pfem2PrimitiveVarSolver,self)._ExecuteParticlesUtilityBeforeSolve()
+        self.moveparticles.CalculateVelOverElemSize()
+        self.moveparticles.MoveParticles()
+        # Reseed empty elements
+        pre_minimum_number_of_particles = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.moveparticles.PreReseed(pre_minimum_number_of_particles)
+        # Project info to mesh
+        self.moveparticles.TransferLagrangianToEulerian()
+        self.moveparticles.ResetBoundaryConditions()
+        # Initialize mesh solution step
+        self.solver.InitializeSolutionStep()
+    
+    def Predict(self):
+        self.solver.Predict()
+
+    def SolveSolutionStep(self):
         # If a node and it's neighbours are dry, set ACTIVE flag to false
-        (self.ShallowVariableUtils).SetDryWetState()
+        self.ShallowVariableUtils.SetDryWetState()
         # Solve equations on mesh
-        (self.solver).Solve()
+        is_converged = self.solver.SolveSolutionStep()
         # Compute free surface
-        (self.ShallowVariableUtils).ComputeFreeSurfaceElevation()
+        self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
         # If water height is negative or close to zero, reset values
-        (self.ShallowVariableUtils).CheckDryPrimitiveVariables()
+        self.ShallowVariableUtils.CheckDryPrimitiveVariables()
+
+        return is_converged
+    
+    def FinalizeSolutionStep(self):
+        # Finalize mesh solution step
+        self.solver.FinalizeSolutionStep()
         # Update particles
-        super(Pfem2PrimitiveVarSolver,self)._ExecuteParticlesUtilityAfterSolve()
+        self.moveparticles.CalculateDeltaVariables()
+        self.moveparticles.CorrectParticlesWithoutMovingUsingDeltaVariables()
+        # Reseed empty elements
+        post_minimum_number_of_particles = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]*2
+        self.moveparticles.PostReseed(post_minimum_number_of_particles)
+    
