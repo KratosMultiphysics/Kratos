@@ -29,21 +29,11 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initalizing the parameters
         solver_settings = project_parameters["solver_settings"]
-        if not solver_settings.Has("time_stepping"):
-            KratosMultiphysics.Logger.PrintInfo("ConvectionDiffusionAnalysis", "Using the old way to pass the time_step, this will be removed!")
-            time_stepping_params = KratosMultiphysics.Parameters("{}")
-            time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
-            solver_settings.AddValue("time_stepping", time_stepping_params)
 
         if not solver_settings.Has("domain_size"):
             KratosMultiphysics.Logger.PrintInfo("ConvectionDiffusionAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
-
-        if not solver_settings.Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintInfo("ConvectionDiffusionAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
-            solver_settings.AddEmptyValue("model_part_name")
-            solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
         super(ConvectionDiffusionAnalysis, self).__init__(model, project_parameters)
 
@@ -57,7 +47,7 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
         import python_solvers_wrapper_convection_diffusion as solver_wrapper
-        return solver_wrapper.CreateSolver(self.model, self.project_parameters)
+        return solver_wrapper.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
