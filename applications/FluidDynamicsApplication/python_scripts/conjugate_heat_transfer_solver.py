@@ -180,7 +180,9 @@ class ConjugateHeatTransferSolver(object):
     def AddVariables(self):
         self.fluid_solver.AddVariables()
         self.thermal_solver.AddVariables() 
-
+        
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
+        self.thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
         
         # Temporary container for un-relaxed temperature
@@ -188,7 +190,7 @@ class ConjugateHeatTransferSolver(object):
         KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part)
         
         self.solid_thermal_solver.AddVariables()
-
+        self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
 
     def ImportModelPart(self):
         
@@ -331,7 +333,7 @@ class ConjugateHeatTransferSolver(object):
  
     
     def SolveSolutionStep(self):
-        #self.fluid_solver.SolveSolutionStep()
+        self.fluid_solver.SolveSolutionStep()
         
         for node in self.solid_thermal_solver.GetComputingModelPart().Nodes:
             if(node.X<-0.249999999999):
@@ -350,8 +352,6 @@ class ConjugateHeatTransferSolver(object):
 
         self.setUpMapper()
         
-        #self.setUpDirichletCouplingBoundary(self.fluid_solver.GetComputingModelPart())
-        #self.setUpDirichletCouplingBoundary(self.fluid_solver.GetComputingModelPart())
 
         self.setUpDirichletCouplingBoundary(self.solid_thermal_solver.GetComputingModelPart())
         
@@ -364,26 +364,21 @@ class ConjugateHeatTransferSolver(object):
             self.solid_thermal_solver.Solve()
             # Map reactions
 
-            FSIApplication.VariableRedistributionUtility.DistributePointValues( self.mapper.str_interface, KratosMultiphysics.REACTION_FLUX, KratosMultiphysics.PRESSURE, 1e-5, 50)
+            FSIApplication.VariableRedistributionUtility.DistributePointValues( self.mapper.str_interface, KratosMultiphysics.REACTION_FLUX, KratosMultiphysics.NODAL_PAUX, 1e-5, 50)
                 
-            #self.mapper.StructureToFluid_ScalarMap(KratosMultiphysics.PRESSURE,KratosMultiphysics.FACE_HEAT_FLUX,False)
-            self.mapper.StructureToFluid_ScalarMap(KratosMultiphysics.PRESSURE,KratosMultiphysics.FACE_HEAT_FLUX,False)
+            self.mapper.StructureToFluid_ScalarMap(KratosMultiphysics.NODAL_PAUX,KratosMultiphysics.FACE_HEAT_FLUX,False)
             
             # Solve Neumann side
-            #self.solid_thermal_solver.Solve()
             self.thermal_solver.SolveSolutionStep()
         #   # Get updated temperature
-            #self.main_model_part.AddNodalSolutionStepVariable(PRESSURE)
-            #self.solid_thermal_solver.GetComputingModelPart().AddNodalSolutionStepVariable(NODAL_PAUX)
 
 
-            #self.mapper.FluidToStructure_ScalarMap(KratosMultiphysics.TEMPERATURE,KratosMultiphysics.PRESSURE,True)
-            self.mapper.FluidToStructure_ScalarMap(KratosMultiphysics.TEMPERATURE,KratosMultiphysics.PRESSURE,True)
+            self.mapper.FluidToStructure_ScalarMap(KratosMultiphysics.TEMPERATURE,KratosMultiphysics.NODAL_PAUX,True)
             temperature_difference = 0.0
             for node in self.mapper.str_interface.Nodes:
                 #self.fl_interface
                 old_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-                new_temperature = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
+                new_temperature = node.GetSolutionStepValue(KratosMultiphysics.NODAL_PAUX)
                 interpolated_temperature = (1.0-temperature_relaxation_factor)*old_temperature + temperature_relaxation_factor*new_temperature
                 temperature_difference += (old_temperature-new_temperature)**2
                 
@@ -426,6 +421,9 @@ class ConjugateHeatTransferSolver(object):
             for node in cond.GetNodes():
                 node.Set(KratosMultiphysics.INTERFACE,True)
 
+        #for node in self.fluid_solver.GetComputingModelPart().Nodes:
+        #    if(node.X>0.0001):
+        #        node.Set(KratosMultiphysics.INTERFACE,False)	
 
-        self.mapper = ncosm.NonConformant_OneSideMap(self.fluid_solver.GetComputingModelPart(),self.solid_thermal_solver.GetComputingModelPart(), search_radius_factor=2.0, it_max=50, tol=1e-5)
+        self.mapper = ncosm.NonConformant_OneSideMap(self.fluid_solver.GetComputingModelPart(),self.solid_thermal_solver.GetComputingModelPart(), search_radius_factor=0.0, it_max=50, tol=1e-5)
         
