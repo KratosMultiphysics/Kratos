@@ -20,7 +20,6 @@
 // External includes
 
 // Project includes
-#include "custom_elements/base_discrete_element.h"
 #include "custom_elements/truss_discrete_element.h"
 
 // Application includes

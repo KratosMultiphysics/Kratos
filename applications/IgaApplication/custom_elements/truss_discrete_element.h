@@ -20,7 +20,6 @@
 // External includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/variables.h"
 
 // Project includes
 #include "custom_elements/curve_base_discrete_element.h"
