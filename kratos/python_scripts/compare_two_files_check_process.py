@@ -27,6 +27,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "help"                  : "This process checks that two files are the same. This can be used in order to create tests, where a given solution is expected",
             "reference_file_name"   : "",
             "output_file_name"      : "",
             "remove_output_file"    : true,

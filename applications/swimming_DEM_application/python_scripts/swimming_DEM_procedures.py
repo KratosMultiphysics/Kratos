@@ -11,6 +11,10 @@ import shutil
 import os
 import weakref
 
+def Say(*args):
+    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.Flush()
+
 def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
 
     if VELOCITY_LAPLACIAN in project_parameters.fluid_vars:
@@ -32,7 +36,7 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
 
     if must_renumber:
 
-        print("WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
+        Logger.PrintWarning("DEM-FLUID","WARNING!, the DEM model part and the fluid model part have some ID values in common. Renumbering...")
 
         for node in dem_model_part.Nodes:
             node.Id += max_fluid_id
@@ -40,7 +44,7 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
         for node in rigid_faces_model_part.Nodes:
             node.Id += max_fluid_id
 
-        print("The DEM model part and the fem-DEM model parts Ids have been renumbered")
+        Logger.PrintWarning("DEM-FLUID","The DEM model part and the fem-DEM model parts Ids have been renumbered")
 
 
 def RenumberModelPartNodesFromGivenId(model_part, id):
@@ -148,22 +152,24 @@ class FluidFractionFieldUtility:
 
     def AddFluidFractionField(self):
 
-        print('******************************************************************')
-        print()
-        print('Adding Imposed Fluid Fraction Fields...')
-        print()
+        Logger.PrintInfo("DEM-FLUID",'******************************************************************')
+        Logger.PrintInfo()
+        Logger.PrintInfo("DEM-FLUID",'Adding Imposed Fluid Fraction Fields...')
+        Logger.PrintInfo()
+        Logger.Flush()
 
         count = 0
 
         for field in self.field_list:
             count += 1
 
-            print('field number', count, ':')
-            print()
-            print(vars(field))
-            print()
+            Logger.PrintInfo("DEM-FLUID",'field number', count, ':')
+            Logger.PrintInfo()
+            Logger.PrintInfo("DEM-FLUID",vars(field))
+            Logger.PrintInfo()
 
-        print('******************************************************************')
+        Logger.PrintInfo("DEM-FLUID",'******************************************************************')
+        Logger.Flush()
 
         for field in self.field_list:
 
@@ -188,14 +194,14 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
 
     elif transformation_type == 1:
 
-        print('***\n\nWARNING!, applying similarity transformations to the problem fluid variables')
-        print('The particles diameters quotient is\n')
-        print('D_model / D_real =', mod_over_real)
-        print()
+        Logger.PrintWarning("DEM-FLUID",'***\n\nWARNING!, applying similarity transformations to the problem fluid variables')
+        Logger.PrintWarning("DEM-FLUID",'The particles diameters quotient is\n')
+        Logger.PrintWarning("DEM-FLUID",'D_model / D_real =', mod_over_real)
+        Logger.PrintWarning("DEM-FLUID",)
 
         if transformation_type == 1:  # Tsuji 2013, (Preserves Archimedes and Reynolds numbers)
 
-            print ('The fluid variables to be modified are\n\nDENSITY\nVISCOSITY\n\n***')
+            Logger.PrintWarning ('The fluid variables to be modified are\n\nDENSITY\nVISCOSITY\n\n***')
 
             fluid_density_factor = mod_over_real
             fluid_viscosity_factor = mod_over_real * mod_over_real
@@ -203,7 +209,7 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
             MultiplyNodalVariableByFactor(fluid_model_part, VISCOSITY, fluid_viscosity_factor)
     else:
 
-        print(('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported'))
+        Logger.PrintWarning("DEM-FLUID",('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported'))
 
 
 def FindMaxNodeId(fluid_model_part):
@@ -262,9 +268,9 @@ class IOTools:
         if incremental_time > self.param.ControlTime:
             percentage = 100.0 * (float(step) / total_steps_expected)
 
-            print('Real time calculation: ' + str(incremental_time))
-            print('Percentage Completed: ' + str(percentage) + ' %')
-            print("TIME STEP = " + str(step) + '\n')
+            Say('Real time calculation: ' + str(incremental_time))
+            Say('Percentage Completed: ' + str(percentage) + ' %')
+            Say("TIME STEP = " + str(step) + '\n')
 
             prev_time = (incremental_time)
 
@@ -301,25 +307,26 @@ class ProjectionDebugUtils:
         # printing
 
         tot_len = 38 # total length of each line, including spaces
-        print()
-        print("Projection-related measurements")
-        print(tot_len * "**")
-        print(GetWordWithSpaces("number_of_balls", tot_len)                      + '=', self.number_of_balls)
-        print(GetWordWithSpaces("domain_volume", tot_len)                        + '=', self.domain_volume)
-        print(GetWordWithSpaces("fluid_volume", tot_len)                         + '=', self.fluid_volume)
-        print(GetWordWithSpaces("solid_volume", tot_len)                         + '=', self.solid_volume)
-        print(GetWordWithSpaces("discr_domain_volume", tot_len)                  + '=', self.discr_domain_volume)
-        print(GetWordWithSpaces("discr_fluid_volume", tot_len)                   + '=', self.discr_fluid_volume)
-        print(GetWordWithSpaces("proj_fluid_volume", tot_len)                    + '=', self.proj_fluid_volume)
-        print(GetWordWithSpaces("proj_solid_volume", tot_len)                    + '=', self.proj_solid_volume)
-        print(GetWordWithSpaces("global_fluid_fraction", tot_len)                + '=', self.global_fluid_fraction)
-        print(GetWordWithSpaces("global_solid_fraction", tot_len)                + '=', self.global_solid_fraction)
-        print(GetWordWithSpaces("balls_per_area", tot_len)                       + '=', self.balls_per_area)
-        print(GetWordWithSpaces("fluid_on_balls_total_force", tot_len)           + '=', self.fluid_on_balls_total_force)
-        print(GetWordWithSpaces("proj_balls_on_fluid_total_force", tot_len)      + '=', self.proj_balls_on_fluid_total_force)
-        print(GetWordWithSpaces("mean_proj_balls_on_fluid_total_force", tot_len) + '=', self.mean_proj_balls_on_fluid_total_force)
-        print(tot_len * "**")
-        print()
+        Logger.PrintInfo("DEM-FLUID",)
+        Logger.PrintInfo("DEM-FLUID","Projection-related measurements")
+        Logger.PrintInfo("DEM-FLUID",tot_len * "**")
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("number_of_balls", tot_len)                      + '=', self.number_of_balls)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("domain_volume", tot_len)                        + '=', self.domain_volume)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("fluid_volume", tot_len)                         + '=', self.fluid_volume)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("solid_volume", tot_len)                         + '=', self.solid_volume)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("discr_domain_volume", tot_len)                  + '=', self.discr_domain_volume)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("discr_fluid_volume", tot_len)                   + '=', self.discr_fluid_volume)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("proj_fluid_volume", tot_len)                    + '=', self.proj_fluid_volume)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("proj_solid_volume", tot_len)                    + '=', self.proj_solid_volume)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("global_fluid_fraction", tot_len)                + '=', self.global_fluid_fraction)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("global_solid_fraction", tot_len)                + '=', self.global_solid_fraction)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("balls_per_area", tot_len)                       + '=', self.balls_per_area)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("fluid_on_balls_total_force", tot_len)           + '=', self.fluid_on_balls_total_force)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("proj_balls_on_fluid_total_force", tot_len)      + '=', self.proj_balls_on_fluid_total_force)
+        Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("mean_proj_balls_on_fluid_total_force", tot_len) + '=', self.mean_proj_balls_on_fluid_total_force)
+        Logger.PrintInfo("DEM-FLUID",tot_len * "**")
+        Logger.PrintInfo("DEM-FLUID",)
+        Logger.Flush()
 
 # This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle,
 # the step at which the cycle starts and weather it is active or not (Tick() returns False in this case).
@@ -455,9 +462,9 @@ class PostUtils:
 
     def Writeresults(self, time):
 
-        print("")
-        print("*******************  PRINTING RESULTS FOR GID  ***************************")
-        sys.stdout.flush()
+        Logger.PrintInfo("DEM-FLUID","")
+        Logger.PrintInfo("DEM-FLUID","*******************  PRINTING RESULTS FOR GID  ***************************")
+        Logger.Flush()
 
         if self.pp.GiDMultiFileFlag == "Multiples":
             self.mixed_model_part.Elements.clear()
@@ -645,10 +652,11 @@ class StationarityAssessmentTool:
         stationarity = self.tool.AssessStationarity(model_part, self.tol)
 
         if stationarity:
-            print("**************************************************************************************************")
-            print()
-            print("The model has reached a stationary state. The fluid calculation is suspended.")
-            print()
-            print("**************************************************************************************************")
+            Logger.PrintInfo("DEM-FLUID","**************************************************************************************************")
+            Logger.PrintInfo()
+            Logger.PrintInfo("DEM-FLUID","The model has reached a stationary state. The fluid calculation is suspended.")
+            Logger.PrintInfo()
+            Logger.PrintInfo("DEM-FLUID","**************************************************************************************************")
+            Logger.Flush()
 
         return stationarity

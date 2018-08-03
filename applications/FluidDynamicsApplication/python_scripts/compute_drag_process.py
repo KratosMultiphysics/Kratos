@@ -32,10 +32,10 @@ class ComputeDragProcess(KratosMultiphysics.Process):
             {
                 "model_part_name"           : "",
                 "interval"                  : [0.0, 1e30],
-                "write_drag_output_file"    : true,
                 "print_drag_to_screen"      : false,
-                "write_buffer_size"         : -1,
-                "print_format"              : ""
+                "print_format"              : "",
+                "write_drag_output_file"    : true,
+                "output_file_settings": {}
             }
             """)
 
@@ -72,10 +72,16 @@ class ComputeDragProcess(KratosMultiphysics.Process):
 
                 output_file_name = self.params["model_part_name"].GetString() + "_drag.dat"
 
-                file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
+                file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
 
-                file_handler_params["output_file_name"].SetString(output_file_name)
-                file_handler_params.AddValue("write_buffer_size", self.params["write_buffer_size"])
+                if file_handler_params.Has("file_name"):
+                    warn_msg  = 'Unexpected user-specified entry found in "output_file_settings": {"file_name": '
+                    warn_msg += '"' + file_handler_params["file_name"].GetString() + '"}\n'
+                    warn_msg += 'Using this specififed file name instead of the default "' + output_file_name + '"'
+                    KratosMultiphysics.Logger.PrintWarning("ComputeDragProcess", warn_msg)
+                else:
+                    file_handler_params.AddEmptyValue("file_name")
+                    file_handler_params["file_name"].SetString(output_file_name)
 
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,

@@ -23,7 +23,8 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "two_element_test"
+                "input_filename": "two_element_test",
+                "reorder": false
             },
             "maximum_iterations": 10,
             "echo_level": 1,
@@ -53,8 +54,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
                 "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false,
-            "reorder": false
+            "move_mesh_flag": false
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)

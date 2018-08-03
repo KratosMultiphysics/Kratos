@@ -19,7 +19,6 @@ namespace Kratos {
     
     class Properties;
     class SphericParticle; // forward declaration of spheric cont particle
-    class DEMWall; //forward declaration
 
     class KRATOS_API(DEM_APPLICATION) DEMDiscontinuumConstitutiveLaw : public Flags {
     public:
@@ -77,7 +76,7 @@ namespace Kratos {
                 double kt_el);
 
         virtual void InitializeContact(SphericParticle * const element1, SphericParticle * const element2, const double ini_delta = 0.0);
-        virtual void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
+        virtual void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0);
         
         virtual void GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt);
         
@@ -104,14 +103,14 @@ namespace Kratos {
                                             double ViscoDampingLocalContactForce[3],
                                             double& cohesive_force,
                                             SphericParticle* const element,
-                                            DEMWall* const wall,
+                                            Condition* const wall,
                                             bool& sliding);
                 
         virtual double CalculateNormalForce(const double indentation);
         virtual double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]);
-        virtual double CalculateNormalForce(SphericParticle* const element, DEMWall* const wall, const double indentation); 
+        virtual double CalculateNormalForce(SphericParticle* const element, Condition* const wall, const double indentation); 
         virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
-        virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);       
+        virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation);       
         virtual double LocalPeriod(const int i, SphericParticle* element1,SphericParticle* element2);
 
 

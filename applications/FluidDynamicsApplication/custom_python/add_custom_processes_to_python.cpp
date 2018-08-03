@@ -61,7 +61,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
     (m,"StokesInitializationProcess")
-    .def(init<ModelPart::Pointer, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
+    .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
     .def("SetConditions",&StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>::SetConditions)
     ;
 

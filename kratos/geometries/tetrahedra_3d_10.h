@@ -29,9 +29,26 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Tetrahedra3D10
+ * @ingroup KratosCore
+ * @brief A ten node tetrahedra geometry with quadratic shape functions
+ * @details The node ordering corresponds with:       
+ *                     3                              
+ *                   ,/|`\                          
+ *                 ,/  |  `\       
+ *               ,7    '.   `9     
+ *             ,/       8     `\   
+ *          ,/          |       `\ 
+ *         0--------6--'.--------2
+ *          `\.         |      ,/ 
+ *             `\.      |    ,5   
+ *                `4.   '. ,/     
+ *                   `\. |/       
+ *                      `1         
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Tetrahedra3D10 : public Geometry<TPointType>
 {
 public:

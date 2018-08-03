@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,9 +33,8 @@ THE SOFTWARE.
 
 #include <limits>
 
-#include <boost/tuple/tuple.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <tuple>
+#include <memory>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/coarsening/detail/galerkin.hpp>
@@ -52,6 +51,7 @@ namespace coarsening {
  * \ingroup coarsening
  * \sa \cite Sala2008
  */
+template <class Backend>
 struct smoothed_aggr_emin {
     typedef pointwise_aggregates Aggregates;
 
@@ -65,27 +65,30 @@ struct smoothed_aggr_emin {
 
         params() {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_CHILD(p, aggr),
               AMGCL_PARAMS_IMPORT_CHILD(p, nullspace)
         {
-            AMGCL_PARAMS_CHECK(p, (aggr)(nullspace));
+            check_params(p, {"aggr", "nullspace"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_CHILD(p, path, aggr);
             AMGCL_PARAMS_EXPORT_CHILD(p, path, nullspace);
         }
-    };
+#endif
+    } prm;
+
+    smoothed_aggr_emin(const params &prm = params()) : prm(prm) {}
 
     /// \copydoc amgcl::coarsening::aggregation::transfer_operators
     template <class Matrix>
-    static boost::tuple<
+    std::tuple<
         std::shared_ptr<Matrix>,
         std::shared_ptr<Matrix>
         >
-    transfer_operators(const Matrix &A, params &prm)
-    {
+    transfer_operators(const Matrix &A) {
         typedef typename backend::value_type<Matrix>::type Val;
         typedef ptrdiff_t Idx;
 
@@ -95,7 +98,7 @@ struct smoothed_aggr_emin {
         AMGCL_TOC("aggregates");
 
         AMGCL_TIC("interpolation");
-        std::shared_ptr<Matrix> P_tent = tentative_prolongation<Matrix>(
+        auto P_tent = tentative_prolongation<Matrix>(
                 rows(A), aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
 
@@ -120,7 +123,7 @@ struct smoothed_aggr_emin {
                 if (c == i)
                     D += v;
                 else if (!aggr.strong_connection[j]) {
-                    D -= v;
+                    D += v;
                     --row_width;
                 }
             }
@@ -129,8 +132,7 @@ struct smoothed_aggr_emin {
             Af.ptr[i+1] = row_width;
         }
 
-        std::partial_sum(Af.ptr, Af.ptr + Af.nrows + 1, Af.ptr);
-        Af.set_nonzeros(Af.ptr[Af.nrows]);
+        Af.set_nonzeros(Af.scan_row_sizes());
 
 #pragma omp parallel for
         for(Idx i = 0; i < static_cast<Idx>(Af.nrows); ++i) {
@@ -155,25 +157,19 @@ struct smoothed_aggr_emin {
 
         std::vector<Val> omega;
 
-        std::shared_ptr<Matrix> P = interpolation(Af, dia, *P_tent, omega);
-        std::shared_ptr<Matrix> R = restriction  (Af, dia, *P_tent, omega);
+        auto P = interpolation(Af, dia, *P_tent, omega);
+        auto R = restriction  (Af, dia, *P_tent, omega);
         AMGCL_TOC("interpolation");
 
         if (prm.nullspace.cols > 0)
             prm.aggr.block_size = prm.nullspace.cols;
 
-        return boost::make_tuple(P, R);
+        return std::make_tuple(P, R);
     }
 
     template <class Matrix>
-    static std::shared_ptr<Matrix>
-    coarse_operator(
-            const Matrix &A,
-            const Matrix &P,
-            const Matrix &R,
-            const params&
-            )
-    {
+    std::shared_ptr<Matrix>
+    coarse_operator(const Matrix &A, const Matrix &P, const Matrix &R) const {
         return detail::galerkin(A, P, R);
     }
 
@@ -186,15 +182,10 @@ struct smoothed_aggr_emin {
                 std::vector<Val> &omega
                 )
         {
-            typedef backend::crs<Val, Col, Ptr> PMatrix;
-
-            typedef typename PMatrix::row_iterator Piterator;
-            typedef typename AMatrix::row_iterator Aiterator;
-
             const size_t n  = rows(P_tent);
             const size_t nc = cols(P_tent);
 
-            std::shared_ptr<PMatrix> AP = product(A, P_tent, /*sort rows: */true);
+            auto AP = product(A, P_tent, /*sort rows: */true);
 
             omega.resize(nc, math::zero<Val>());
             std::vector<Val> denum(nc, math::zero<Val>());
@@ -215,11 +206,11 @@ struct smoothed_aggr_emin {
                     adap_val.clear();
 
                     // Form current row of ADAP matrix.
-                    for(Aiterator a = A.row_begin(ia); a; ++a) {
+                    for(auto a = A.row_begin(ia); a; ++a) {
                         Col ca  = a.col();
                         Val va  = math::inverse(Adia[ca]) * a.value();
 
-                        for(Piterator p = AP->row_begin(ca); p; ++p) {
+                        for(auto p = AP->row_begin(ca); p; ++p) {
                             Col c = p.col();
                             Val v = va * p.value();
 
@@ -320,14 +311,12 @@ struct smoothed_aggr_emin {
                 const std::vector<Val> &omega
                 )
         {
-            typedef backend::crs<Val, Col, Ptr> PMatrix;
-
             const size_t nc = cols(P_tent);
 
-            std::shared_ptr<PMatrix> R_tent = transpose(P_tent);
+            auto R_tent = transpose(P_tent);
             sort_rows(*R_tent);
 
-            std::shared_ptr<PMatrix> RA = product(*R_tent, A, /*sort rows: */true);
+            auto RA = product(*R_tent, A, /*sort rows: */true);
 
             // Compute R = R_tent - Omega R_tent A D^-1.
             /*

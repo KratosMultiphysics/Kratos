@@ -9,6 +9,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class Dam_Break_2D_Newtonian_Test(TF.TestFactory):
      file_name = "fluid_element_tests/Dam_Break_2D/Newtonian_fluid/Dam_break_2D"
      file_parameters = "fluid_element_tests/Dam_Break_2D/Newtonian_fluid/ProjectParameters.json"
+class Water_sloshing_Box_3D_Newtonian_Test(TF.TestFactory):
+     file_name = "fluid_element_tests/Water_sloshing_Box/Newtonian_fluid/Water_sloshing_Box"
+     file_parameters = "fluid_element_tests/Water_sloshing_Box/Newtonian_fluid/ProjectParameters.json"
+class Water_sloshing_Box_3D_Non_Newtonian_Test(TF.TestFactory):
+      file_name = "fluid_element_tests/Water_sloshing_Box/Non_Newtonian_fluid/Water_sloshing_Box"
+      file_parameters = "fluid_element_tests/Water_sloshing_Box/Non_Newtonian_fluid/ProjectParameters.json"
 
 
 
@@ -18,8 +24,9 @@ def SetTestSuite(suites):
 
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            Dam_Break_2D_Newtonian_Test
-
+            Dam_Break_2D_Newtonian_Test,
+            Water_sloshing_Box_3D_Non_Newtonian_Test,
+            Water_sloshing_Box_3D_Newtonian_Test
         ])
     )
 

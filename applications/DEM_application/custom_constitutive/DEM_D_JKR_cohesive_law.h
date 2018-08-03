@@ -25,7 +25,7 @@ namespace Kratos {
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
 
         double CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;
-        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation) override;
+        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) override;
 
     private:
         
