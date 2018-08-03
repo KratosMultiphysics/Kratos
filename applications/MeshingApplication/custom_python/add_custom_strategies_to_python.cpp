@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrándiz
 //
 
 // System includes

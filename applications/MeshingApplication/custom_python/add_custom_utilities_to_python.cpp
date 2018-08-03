@@ -1,14 +1,11 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
-//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
-//        | |  | | |___ ___) |  _  || || |\  | |_| |
-//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//   Project Name:        Kratos
+//   Last modified by:    $Author: rrossi $
+//   Date:                $Date: 2009-01-15 11:11:35 $
+//   Revision:            $Revision: 1.5 $
 //
-//  Main authors:    Riccardo Rossi
 //
+
 
 // System includes
 

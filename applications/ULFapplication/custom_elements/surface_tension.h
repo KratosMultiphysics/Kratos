@@ -1349,8 +1349,49 @@ protected:
     void ApplySurfaceTensionContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector,
             const array_1d< double, 3 >& node_indx, const int& k, const ProcessInfo& rCurrentProcessInfo)
     {
-	const double gamma = rCurrentProcessInfo[SURFACE_TENSION_COEF]; //surface tension coefficient between air and water [N m-1]	
+        
+        
+        //elaf august 1st
+	double gamma = rCurrentProcessInfo[SURFACE_TENSION_COEF]; //surface tension coefficient between air and water [N m-1]	
 	
+        double surface_temp = rCurrentProcessInfo[TEMPERATURE];
+        
+//         for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
+//                 in!=ThisModelPart.NodesEnd(); in++)
+//         {
+//             if(in->FastGetSolutionStepValue(IS_BOUNDARY) == 1 &&
+//                     (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 )
+//             {
+//                 in->FastGetSolutionStepValue(TEMPERATURE) = surface_temp;
+//             }
+//         }
+        
+        
+        
+//         for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
+//         {
+
+            // Variable references
+// //             double & rsurface_temp = this->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);
+            
+// 	    this->GetGeometry()[ii].FastGetSolutionStepValue(TEMPERATURE) = surface_temp;
+            // Compute this node's contribution to the residual (evaluated at inegration point)
+//         }
+        
+        for(unsigned int i = 0; i < TNumNodes; ++i){
+	    if((this->GetGeometry()[i].FastGetSolutionStepValue(IS_BOUNDARY) == 1))
+            {
+                gamma = 0.07275*(1.0-0.00212*(surface_temp-293.15));
+                this->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = surface_temp;
+                this->GetGeometry()[i].FastGetSolutionStepValue(SURFACE_TENSION_COEF) = gamma;
+                
+            }
+            
+	}
+//         
+        
+        //elaf end august 1st
+        
 	//adding dissipative_forces varialbes
         double zeta_dissapative_JM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_JM];
         double zeta_dissapative_BM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_BM];
