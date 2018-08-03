@@ -2,80 +2,79 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-# Importing the solvers (if available)
-try:
-    import Kratos.ExternalSolversApplication
-    Kratos.Logger.PrintInfo("ExternalSolversApplication", "successfully imported")
-except ImportError:
-    Kratos.Logger.PrintInfo("ExternalSolversApplication", "not imported")
+from analysis_stage import AnalysisStage
 
-class ShallowWaterAnalysis(object): # TODO in the future this could derive from a BaseClass in the Core
-    """
-    This class is the main-script of the StructuralMechanicsApplication put in a class
+class ShallowWaterAnalysis(AnalysisStage):
+    ''' Main script for shallow water simulations '''
 
-    It can be imported and used as "black-box"
-    """
-    def __init__(self, project_parameters):
-        if (type(project_parameters) == str): # a file name is provided
-            with open(project_parameters,'r') as parameter_file:
-                self.ProjectParameters = Kratos.Parameters(parameter_file.read())
-        elif (type(project_parameters) == Kratos.Parameters): # a Parameters object is provided
-            self.ProjectParameters = project_parameters
-        else:
-            raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
-        self.is_printing_rank = True
+    def _CreateSolver(self):
+        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
+        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return solver
 
-    #### Public functions to run the Analysis ####
-    def Run(self):
-        '''Wrapper function for the solution.'''
-        self.InitializeAnalysis()
-        self.RunMainTemporalLoop()
-        self.FinalizeAnalysis()
+    def _GetOrderOfProcessesInitialization(self):
+        return ["bathymetry_process_list",
+                "initial_conditions_process_list",
+                "boundary_conditions_process_list"]
 
-    def InitializeAnalysis(self):
-        '''Wrapper function comprising the definition of the model and the initialization of the problem.'''
-        self.SetUpModel()
-        self.SetUpProcesses()
-        self.SetUpAnalysis()
+    def _GetSimulationName(self):
+        return "Shallow Water Analysis"
 
-    def RunMainTemporalLoop(self):
-        '''The main solution loop.'''
-        while self.time <= self.end_time:
-            dt = self.solver.ComputeDeltaTime()
-            self.time = self.time + dt
-            self.step = self.step + 1
+    # for debugging purpose
+    def _GetListOfProcesses(self):
+        super(ShallowWaterAnalysis, self)._GetListOfProcesses()
+        if self.echo_level > 1:
+            print('holaaaaaaaaaaaaaaaaaaaaaaa')
+            for process in self._list_of_processes:
+                print('un proceso')
+                print (process)
+        return self._list_of_processes
 
-            self.main_model_part.CloneTimeStep(self.time)
-            self.main_model_part.ProcessInfo[Kratos.STEP] = self.step
+    # #### Public functions to run the Analysis ####
+    # def Run(self):
+    #     '''Wrapper function for the solution.'''
+    #     self.InitializeAnalysis()
+    #     self.RunMainTemporalLoop()
+    #     self.FinalizeAnalysis()
 
-            if self.is_printing_rank:
-                Kratos.Logger.PrintInfo("Shallow water analysis","STEP = ", self.step)
-                Kratos.Logger.PrintInfo("Shallow water analysis","TIME = ", self.time)
+    # def InitializeAnalysis(self):
+    #     '''Wrapper function comprising the definition of the model and the initialization of the problem.'''
+    #     self.SetUpModel()
+    #     self.SetUpProcesses()
+    #     self.SetUpAnalysis()
 
-            self.InitializeSolutionStep()
-            self.SolveSingleStep()
-            self.FinalizeSolutionStep()
+    # def RunMainTemporalLoop(self):
+    #     '''The main solution loop.'''
+    #     while self.time <= self.end_time:
+    #         dt = self.solver.ComputeDeltaTime()
+    #         self.time = self.time + dt
+    #         self.step = self.step + 1
 
-    def FinalizeAnalysis(self):
-        '''Finalize the simulation and close open files.'''
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
-        if self.have_output:
-            self.output.ExecuteFinalize()
+    #         self.main_model_part.CloneTimeStep(self.time)
+    #         self.main_model_part.ProcessInfo[Kratos.STEP] = self.step
+
+    #         if self.is_printing_rank:
+    #             Kratos.Logger.PrintInfo("Shallow water analysis","STEP = ", self.step)
+    #             Kratos.Logger.PrintInfo("Shallow water analysis","TIME = ", self.time)
+
+    #         self.InitializeSolutionStep()
+    #         self.SolveSingleStep()
+    #         self.FinalizeSolutionStep()
+
+    # def FinalizeAnalysis(self):
+    #     '''Finalize the simulation and close open files.'''
+    #     for process in self.list_of_processes:
+    #         process.ExecuteFinalize()
+    #     if self.have_output:
+    #         self.output.ExecuteFinalize()
 
     def SetUpModel(self):
         '''Initialize the model part for the problem and other general model data.'''
         
         ## Defining variables ----------------------------------------------------------------------------------------
-        self.problem_name   = self.ProjectParameters["problem_data"]["problem_name"].GetString()
-        self.parallel_type  = self.ProjectParameters["problem_data"]["parallel_type"].GetString()
-        self.echo_level     = self.ProjectParameters["solver_settings"]["echo_level"].GetInt()
-        self.end_time       = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
-        self.time           = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
-        self.step           = 0
-        domain_size         = self.ProjectParameters["problem_data"]["domain_size"].GetInt()
         gravity             = self.ProjectParameters["problem_data"]["gravity"].GetDouble()
         time_scale          = self.ProjectParameters["problem_data"]["time_scale"].GetString()
         water_height_scale  = self.ProjectParameters["problem_data"]["water_height_scale"].GetString()
@@ -103,9 +102,7 @@ class ShallowWaterAnalysis(object): # TODO in the future this could derive from 
         ## Model part ------------------------------------------------------------------------------------------------
 
         # Defining the model part
-        self.main_model_part = Kratos.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
-        self.main_model_part.ProcessInfo.SetValue(Kratos.TIME, self.time)
+        # self.main_model_part = Kratos.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(Kratos.GRAVITY_Z, gravity * time_unit_converter**2)
         self.main_model_part.ProcessInfo.SetValue(Shallow.TIME_UNIT_CONVERTER, time_unit_converter)
         self.main_model_part.ProcessInfo.SetValue(Shallow.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
@@ -156,54 +153,54 @@ class ShallowWaterAnalysis(object): # TODO in the future this could derive from 
         if self.have_output:
             self.output.ExecuteBeforeSolutionLoop()
 
-    def InitializeSolutionStep(self):
+    # def InitializeSolutionStep(self):
 
-        for process in self.list_of_processes:
-            process.ExecuteInitializeSolutionStep()
+    #     for process in self.list_of_processes:
+    #         process.ExecuteInitializeSolutionStep()
 
-        if self.have_output:
-            self.output.ExecuteInitializeSolutionStep()
+    #     if self.have_output:
+    #         self.output.ExecuteInitializeSolutionStep()
 
-    def SolveSingleStep(self):
-        if self._TimeBufferIsInitialized():
-            self.solver.Solve()
+    # def SolveSingleStep(self):
+    #     if self._TimeBufferIsInitialized():
+    #         self.solver.Solve()
 
-    def FinalizeSolutionStep(self):
+    # def FinalizeSolutionStep(self):
 
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
+    #     for process in self.list_of_processes:
+    #         process.ExecuteFinalizeSolutionStep()
 
-        if self.have_output:
-            self.output.ExecuteFinalizeSolutionStep()
+    #     if self.have_output:
+    #         self.output.ExecuteFinalizeSolutionStep()
 
-        if self.have_output and self.output.IsOutputStep():
+    #     if self.have_output and self.output.IsOutputStep():
 
-            for process in self.list_of_processes:
-                process.ExecuteBeforeOutputStep()
+    #         for process in self.list_of_processes:
+    #             process.ExecuteBeforeOutputStep()
 
-            self.output.PrintOutput()
+    #         self.output.PrintOutput()
 
-            for process in self.list_of_processes:
-                process.ExecuteAfterOutputStep()
+    #         for process in self.list_of_processes:
+    #             process.ExecuteAfterOutputStep()
 
-    def _TimeBufferIsInitialized(self):
-        # We always have one extra old step (step 0, read from input)
-        return self.step + 1 >= self.solver.GetMinimumBufferSize()
+    # def _TimeBufferIsInitialized(self):
+    #     # We always have one extra old step (step 0, read from input)
+    #     return self.step + 1 >= self.solver.GetMinimumBufferSize()
 
-    def _SetUpGiDOutput(self):
-        '''Initialize self.output as a GiD output instance.'''
-        self.have_output = self.ProjectParameters.Has("output_configuration")
-        if self.have_output:
-            if self.parallel_type == "OpenMP":
-                from gid_output_process import GiDOutputProcess as OutputProcess
-            elif self.parallel_type == "MPI":
-                from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+    # def _SetUpGiDOutput(self):
+    #     '''Initialize self.output as a GiD output instance.'''
+    #     self.have_output = self.ProjectParameters.Has("output_configuration")
+    #     if self.have_output:
+    #         if self.parallel_type == "OpenMP":
+    #             from gid_output_process import GiDOutputProcess as OutputProcess
+    #         elif self.parallel_type == "MPI":
+    #             from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-            self.output = OutputProcess(self.main_model_part,
-                                        self.ProjectParameters["problem_data"]["problem_name"].GetString() ,
-                                        self.ProjectParameters["output_configuration"])
+    #         self.output = OutputProcess(self.main_model_part,
+    #                                     self.ProjectParameters["problem_data"]["problem_name"].GetString() ,
+    #                                     self.ProjectParameters["output_configuration"])
 
-            self.output.ExecuteInitialize()
+    #         self.output.ExecuteInitialize()
 
 
 
@@ -224,4 +221,5 @@ if __name__ == "__main__":
     else: # using default name
         project_parameters_file_name = "ProjectParameters.json"
 
-    ShallowWaterAnalysis(project_parameters_file_name).Run()
+    model = Kratos.Model()
+    ShallowWaterAnalysis(model, project_parameters_file_name).Run()
