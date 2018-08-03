@@ -13,6 +13,7 @@
 
 // System includes
 #include "includes/define.h"
+#include "utilities/math_utils.h"
 
 // External includes
 
@@ -22,6 +23,7 @@
 #include "iga_structural_mechanics_application.h"
 #include "iga_structural_mechanics_application_variables.h"
 
+#include "geometries/geometry.h"
 
 namespace Kratos
 {
@@ -475,15 +477,14 @@ namespace Kratos
     void BaseDiscreteElement::Jacobian(const Matrix& DN_De,
         Matrix& Jacobian,
         const int rWorkingSpaceDimension,
-        const int rLocalSpaceDimension) const
+        const int rLocalSpaceDimension)
     {
         const int number_of_control_points = GetGeometry().size();
 
-		if ((Jacobian.size1() != rWorkingSpaceDimension) || (Jacobian.size2() != rLocalSpaceDimension))
-			Jacobian.resize(rWorkingSpaceDimension, rLocalSpaceDimension);
-		noalias(Jacobian) = ZeroMatrix(rWorkingSpaceDimension, rLocalSpaceDimension);
-        
-		for (unsigned int i = 0; i < number_of_control_points; i++)
+        Jacobian.resize(rWorkingSpaceDimension, rLocalSpaceDimension);
+
+        Jacobian.clear();
+        for (unsigned int i = 0; i < number_of_control_points; i++)
         {
             for (unsigned int k = 0; k<rWorkingSpaceDimension; k++)
             {

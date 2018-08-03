@@ -381,7 +381,7 @@ protected:
     void Jacobian(const Matrix& DN_De,
         Matrix& Jacobian,
         const int rWorkingSpaceDimension = 3,
-        const int rLocalSpaceDimension = 2) const;
+        const int rLocalSpaceDimension = 2);
 
     ///@}
 private:
