@@ -74,10 +74,36 @@ class ShallowWaterBaseSolver(PythonSolver):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        # Set ProcessInfo variables
+        # Defining the variables
         gravity = self.settings["gravity"].GetDouble()
+        time_scale = self.settings["time_scale"].GetString()
+        water_height_scale = self.settings["water_height_scale"].GetString()
+
+        # Time unit converter
+        if   time_scale == "seconds":
+            time_unit_converter =     1
+        elif time_scale == "minutes":
+            time_unit_converter =    60
+        elif time_scale == "hours":
+            time_unit_converter =  3600
+        elif time_scale == "days":
+            time_unit_converter = 86400
+        else:
+            raise Exception("unknown time scale")
+
+        # Water height unit converter
+        if   water_height_scale == "meters":
+            water_height_unit_converter = 1.0
+        elif water_height_scale == "millimeters":
+            water_height_unit_converter = 0.001
+        else:
+            raise Exception("unknown water height scale")
+        
+        # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, gravity)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, gravity * time_unit_converter**2)
+        self.main_model_part.ProcessInfo.SetValue(Shallow.TIME_UNIT_CONVERTER, time_unit_converter)
+        self.main_model_part.ProcessInfo.SetValue(Shallow.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
 
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Replace default elements and conditions
@@ -198,6 +224,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             "model_part_name"          : "main_model_part",
             "domain_size"              : 2,
             "gravity"                  : 9.81,
+            "time_scale"               : "seconds",
+            "water_height_scale"       : "meters",
             "model_import_settings"    : {
                 "input_type"               : "mdpa",
                 "input_filename"           : "unknown_name"
