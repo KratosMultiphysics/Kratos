@@ -23,54 +23,7 @@ class ShallowWaterAnalysis(AnalysisStage):
     def _GetSimulationName(self):
         return "Shallow Water Analysis"
 
-    # for debugging purpose
-    def _GetListOfProcesses(self):
-        super(ShallowWaterAnalysis, self)._GetListOfProcesses()
-        if self.echo_level > 1:
-            print('holaaaaaaaaaaaaaaaaaaaaaaa')
-            for process in self._list_of_processes:
-                print('un proceso')
-                print (process)
-        return self._list_of_processes
-
-    # #### Public functions to run the Analysis ####
-    # def Run(self):
-    #     '''Wrapper function for the solution.'''
-    #     self.InitializeAnalysis()
-    #     self.RunMainTemporalLoop()
-    #     self.FinalizeAnalysis()
-
-    # def InitializeAnalysis(self):
-    #     '''Wrapper function comprising the definition of the model and the initialization of the problem.'''
-    #     self.SetUpModel()
-    #     self.SetUpProcesses()
-    #     self.SetUpAnalysis()
-
-    # def RunMainTemporalLoop(self):
-    #     '''The main solution loop.'''
-    #     while self.time <= self.end_time:
-    #         dt = self.solver.ComputeDeltaTime()
-    #         self.time = self.time + dt
-    #         self.step = self.step + 1
-
-    #         self.main_model_part.CloneTimeStep(self.time)
-    #         self.main_model_part.ProcessInfo[Kratos.STEP] = self.step
-
-    #         if self.is_printing_rank:
-    #             Kratos.Logger.PrintInfo("Shallow water analysis","STEP = ", self.step)
-    #             Kratos.Logger.PrintInfo("Shallow water analysis","TIME = ", self.time)
-
-    #         self.InitializeSolutionStep()
-    #         self.SolveSingleStep()
-    #         self.FinalizeSolutionStep()
-
-    # def FinalizeAnalysis(self):
-    #     '''Finalize the simulation and close open files.'''
-    #     for process in self.list_of_processes:
-    #         process.ExecuteFinalize()
-    #     if self.have_output:
-    #         self.output.ExecuteFinalize()
-
+    # DANGER: look this code
     def SetUpModel(self):
         '''Initialize the model part for the problem and other general model data.'''
         
@@ -119,89 +72,32 @@ class ShallowWaterAnalysis(AnalysisStage):
         self.model = Kratos.Model()
         self.model.AddModelPart(self.main_model_part)
 
-    def SetUpProcesses(self):
-        '''
-        Read the definition of initial and boundary conditions for the problem and initialize the processes that will manage them.
-        Also initialize any additional processes present in the problem (such as those used to calculate additional results).
-        '''
-        from process_factory import KratosProcessFactory
-        factory = KratosProcessFactory(self.model)
-        # "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity)
-        # Note 1: bathymetry is firstly constructed. Initial conditions might need its information.
-        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        self.list_of_processes  = factory.ConstructListOfProcesses( self.ProjectParameters["bathymetry_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.ProjectParameters["initial_conditions_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of Processes
+        This method is TEMPORARY to not break existing code
+        It will be removed in the future
+        """
+        list_of_processes = super(ShallowWaterAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
-    def SetUpAnalysis(self):
-        '''
-        Initialize the Python solver and its auxiliary tools and processes.
-        This function should prepare everything so that the simulation
-        can start immediately after exiting it.
-        '''
+        if parameter_name == "output_processes":
+            if self.project_parameters.Has("output_configuration"):
+                gid_output = self._SetUpGiDOutput()
+                list_of_processes += [gid_output,]
+        
+        return list_of_processes
 
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
+    def _SetUpGiDOutput(self):
+        '''Initialize self.output as a GiD output instance.'''
+        if self.parallel_type == "OpenMP":
+            from gid_output_process import GiDOutputProcess as OutputProcess
+        elif self.parallel_type == "MPI":
+            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-        self.solver.Initialize()
+        output = OutputProcess(self._GetSolver().GetComputingModelPart(),
+                                self.project_parameters["problem_data"]["problem_name"].GetString(),
+                                self.project_parameters["output_configuration"])
 
-        self._SetUpGiDOutput()
-
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        if self.have_output:
-            self.output.ExecuteBeforeSolutionLoop()
-
-    # def InitializeSolutionStep(self):
-
-    #     for process in self.list_of_processes:
-    #         process.ExecuteInitializeSolutionStep()
-
-    #     if self.have_output:
-    #         self.output.ExecuteInitializeSolutionStep()
-
-    # def SolveSingleStep(self):
-    #     if self._TimeBufferIsInitialized():
-    #         self.solver.Solve()
-
-    # def FinalizeSolutionStep(self):
-
-    #     for process in self.list_of_processes:
-    #         process.ExecuteFinalizeSolutionStep()
-
-    #     if self.have_output:
-    #         self.output.ExecuteFinalizeSolutionStep()
-
-    #     if self.have_output and self.output.IsOutputStep():
-
-    #         for process in self.list_of_processes:
-    #             process.ExecuteBeforeOutputStep()
-
-    #         self.output.PrintOutput()
-
-    #         for process in self.list_of_processes:
-    #             process.ExecuteAfterOutputStep()
-
-    # def _TimeBufferIsInitialized(self):
-    #     # We always have one extra old step (step 0, read from input)
-    #     return self.step + 1 >= self.solver.GetMinimumBufferSize()
-
-    # def _SetUpGiDOutput(self):
-    #     '''Initialize self.output as a GiD output instance.'''
-    #     self.have_output = self.ProjectParameters.Has("output_configuration")
-    #     if self.have_output:
-    #         if self.parallel_type == "OpenMP":
-    #             from gid_output_process import GiDOutputProcess as OutputProcess
-    #         elif self.parallel_type == "MPI":
-    #             from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
-
-    #         self.output = OutputProcess(self.main_model_part,
-    #                                     self.ProjectParameters["problem_data"]["problem_name"].GetString() ,
-    #                                     self.ProjectParameters["output_configuration"])
-
-    #         self.output.ExecuteInitialize()
-
+        return output
 
 
 if __name__ == "__main__":
