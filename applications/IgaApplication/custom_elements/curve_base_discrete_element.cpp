@@ -132,7 +132,7 @@ namespace Kratos
     {
         int mat_size = rDN_De.size1()*rNumberOfDoFs;
 
-        if ((rEpsilon2ndVariationDoF.size1() != mat_size) || (rEpsilon2ndVariationDoF.size1() != mat_size))
+        if ((rEpsilon2ndVariationDoF.size1() != mat_size) || (rEpsilon2ndVariationDoF.size2() != mat_size))
             rEpsilon2ndVariationDoF.resize(mat_size, mat_size, false);
         rEpsilon2ndVariationDoF = ZeroMatrix(mat_size, mat_size);
 
