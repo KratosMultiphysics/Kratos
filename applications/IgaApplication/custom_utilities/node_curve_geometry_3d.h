@@ -152,7 +152,7 @@ public:
     {
         auto& node = *Node(Index);
  
-        return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        return node.GetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT);
     }
 
     /** Sets the weight of the Kratos node at a given index.
@@ -167,7 +167,7 @@ public:
     {
         auto& node = *Node(Index);
 
-        node.SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
+        node.SetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT, Value);
     }
 
     /** Gets the value of a nodal Kratos variable on a point at the curve.

@@ -131,8 +131,8 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
             node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
             node_2 = model_part.CreateNewNode(2, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(1, 2)
 
@@ -159,8 +159,8 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
             node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
             node_2 = model_part.CreateNewNode(2, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(1, 2)
 
@@ -188,9 +188,9 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
             node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
             node_3 = model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_3.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_3.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(1, 3)
 
@@ -220,9 +220,9 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
             node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
             node_3 = model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_3.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_3.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(1, 3)
 
@@ -252,9 +252,9 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
             node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
             node_3 = model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_3.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_3.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(2, 3)
 
