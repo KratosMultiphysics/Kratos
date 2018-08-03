@@ -446,7 +446,7 @@ class SettleModelStructureProcess
               PointsArrayType& vertices=i_elem->GetGeometry().Points();
               for(unsigned int i=0; i<vertices.size(); ++i)
               {
-                vertices[i].Set(BLOCKED,true);
+                //vertices[i].Set(BLOCKED,true);
 
                 //set domain type to nodes
                 if(i_mp->Is(FLUID))
@@ -467,39 +467,57 @@ class SettleModelStructureProcess
 
           for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; ++i_node)
           {
-            if( i_node->Is(BLOCKED) || i_node->Is(RIGID) ){ //all nodes belonging to an element had been blocked previously
 
-              i_node->Set(ISOLATED,false);   //reset isolated
-
-              if( i_node->IsNot(TO_ERASE) ){
-
-                (i_mp->Nodes()).push_back(*(i_node.base()));
-                (rModelPart.Nodes()).push_back(*(i_node.base()));
-                rModelPart.Nodes().back().SetId(rNodeId);
-                rNodeId+=1;
-
-              }
-
-            }
-            else{
-
-              if( i_node->IsNot(SOLID) )
-                i_node->Set(ISOLATED,true);
-
-              if( mOptions.Is(MesherUtilities::KEEP_ISOLATED_NODES) && i_node->IsNot(TO_ERASE) ){
-
-                (i_mp->Nodes()).push_back(*(i_node.base()));
-                (rModelPart.Nodes()).push_back(*(i_node.base()));
-                rModelPart.Nodes().back().SetId(rNodeId);
-                rNodeId+=1;
-
-              }
-
+            if( i_node->IsNot(TO_ERASE) ){
+              (i_mp->Nodes()).push_back(*(i_node.base()));
+              (rModelPart.Nodes()).push_back(*(i_node.base()));
+              rModelPart.Nodes().back().SetId(rNodeId);
+              ++rNodeId;
             }
 
-            i_node->Set(TO_REFINE,false);  //reset if was labeled to refine (to not duplicate boundary conditions)
-            i_node->Set(BLOCKED,false);
+            i_node->Set(TO_REFINE,false);
             i_node->Set(NEW_ENTITY,false);
+
+            // if( (i_node->Is(BLOCKED) || i_node->Is(ISOLATED) ) && i_node->IsNot(TO_ERASE) ){
+            //   (i_mp->Nodes()).push_back(*(i_node.base()));
+            //   (rModelPart.Nodes()).push_back(*(i_node.base()));
+            //   rModelPart.Nodes().back().SetId(rNodeId);
+            //   ++rNodeId;
+            // }
+
+            // if( i_node->Is(BLOCKED) || i_node->Is(RIGID) ){ //all nodes belonging to an element had been blocked previously
+
+            //   i_node->Set(ISOLATED,false);   //reset isolated
+
+            //   if( i_node->IsNot(TO_ERASE) ){
+
+            //     (i_mp->Nodes()).push_back(*(i_node.base()));
+            //     (rModelPart.Nodes()).push_back(*(i_node.base()));
+            //     rModelPart.Nodes().back().SetId(rNodeId);
+            //     rNodeId+=1;
+
+            //   }
+
+            // }
+            // else{
+
+            //   if( i_node->IsNot(SOLID) )
+            //     i_node->Set(ISOLATED,true);
+
+            //   if( mOptions.Is(MesherUtilities::KEEP_ISOLATED_NODES) && i_node->IsNot(TO_ERASE) ){
+
+            //     (i_mp->Nodes()).push_back(*(i_node.base()));
+            //     (rModelPart.Nodes()).push_back(*(i_node.base()));
+            //     rModelPart.Nodes().back().SetId(rNodeId);
+            //     rNodeId+=1;
+
+            //   }
+
+            // }
+
+            // i_node->Set(TO_REFINE,false);  //reset if was labeled to refine (to not duplicate boundary conditions)
+            // i_node->Set(BLOCKED,false);
+            // i_node->Set(NEW_ENTITY,false);
 
             if(i_node->IsNot(BOUNDARY)){
 

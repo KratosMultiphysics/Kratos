@@ -28,7 +28,7 @@
 //Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
 //StepData: MEAN_ERROR, CONTACT_FORCE
 //Flags:    (checked) TO_ERASE, BOUNDARY,  CONTACT, NEW_ENTITY, BLOCKED
-//          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)(set), VISITED(nodes)(set)
+//          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)(set), INSIDE(nodes)(set)
 //          (modified)
 //          (reset)
 //(set):=(set in this process)
@@ -496,7 +496,7 @@ class RemoveNodesMesherProcess
       ++counter;
     }
 
-    if( rNeighbours[closest_node]->Is(TO_ERASE) ){
+    if( rNeighbours[closest_node]->Is(TO_ERASE) && rNeighbours[closest_node]->IsNot(BOUNDARY) ){
       engaged_node = true;
     }
     else{
@@ -504,7 +504,7 @@ class RemoveNodesMesherProcess
       unsigned int erased_node = 0;
       for(std::vector<Node<3>::Pointer>::iterator nn=rNeighbours.begin(); nn!=rNeighbours.begin()+rn_points_in_radius; ++nn)
       {
-        if( (*nn)->Is(CONTACT) || (*nn)->Is(INLET) || (*nn)->Is(TO_ERASE) )
+        if( (*nn)->IsNot(BOUNDARY) && (*nn)->Is(TO_ERASE) )
         {
           erased_node = counter;
           engaged_node = true;
@@ -1236,10 +1236,12 @@ class RemoveNodesMesherProcess
                 // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
                 // std::cout<<"     relative_angle "<<relative_angle<<std::endl;
                 // std::cout<<"     condition_angle "<<condition_angle<<" critical_angle "<<critical_angle<<std::endl;
-                in->Set(VISITED);
 
-                Node0.Set(VISITED);
-                Node2.Set(VISITED);
+                //review this flag it is reused in laplacian smoothing....
+                in->Set(INSIDE);
+
+                Node0.Set(INSIDE);
+                Node2.Set(INSIDE);
 
               }
 

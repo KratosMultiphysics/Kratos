@@ -613,26 +613,40 @@ void UpdatedLagrangianSegregatedFluidElement::SetElementData(ElementDataType& rV
                                                              ConstitutiveLaw::Parameters& rValues,
                                                              const int & rPointNumber)
 {
-
+  //to be accurate calculus must stop
   if(rVariables.detF<0){
-
-    std::cout<<" Element: "<<this->Id()<<std::endl;
-
-    SizeType number_of_nodes = GetGeometry().PointsNumber();
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-    {
-      array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-      array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-      array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-      array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-      std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<" (Cur: "<<CurrentPosition<<") "<<std::endl;
-      std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
-      std::cout<<" ---Vel: "<<GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)<<" (Pre: "<<GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1)<<")"<<std::endl;
-    }
-
-    KRATOS_ERROR << " UPDATED LAGRANGIAN SEGREGATED FLUID ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
+    KRATOS_WARNING("ELEMENT INVERTED") << " UpdatedLagrangianSegregatedFluidElement : |F| = " << rVariables.detF << std::endl;
+    rVariables.detJ = 0;
   }
+
+  //to be accurate calculus must stop
+  // if(rVariables.detF<0){
+
+  //   std::cout<<" ELEMENT ["<<this->Id()<<"]"<<std::endl;
+
+  //   const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+  //   if( dimension == 3)
+  //     std::cout<<" (Volume "<<GetGeometry().Volume()<<") "<<std::endl;
+  //   else
+  //     std::cout<<" (Area "<<GetGeometry().Area()<<") "<<std::endl;
+
+  //   SizeType number_of_nodes = GetGeometry().PointsNumber();
+
+  //   for ( SizeType i = 0; i < number_of_nodes; i++ )
+  //   {
+  //     array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
+  //     array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+  //     array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+  //     array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+  //     std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"] sliver: "<<GetGeometry()[i].Is(SELECTED)<<" rigid: "<<GetGeometry()[i].Is(RIGID)<<" freesurface: "<<GetGeometry()[i].Is(FREE_SURFACE)<<std::endl;
+  //     std::cout<<"   -POSITION-   : " <<CurrentPosition<<" (Pre: "<<PreviousPosition<<")"<<std::endl;
+  //     std::cout<<" -DISPLACEMENT- : "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
+  //     std::cout<<"   -VELOCITY-   : "<<GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)<<" (Pre: "<<GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1)<<")"<<std::endl;
+  //   }
+
+  //   KRATOS_ERROR << " UPDATED LAGRANGIAN SEGREGATED FLUID ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
+  // }
 
   Flags& ConstitutiveLawOptions = rValues.GetOptions();
   ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -891,7 +905,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvm(MatrixType& rL
 
   //b. Alternative calculation:
   this->CalculateLumpedMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
-  StiffnessFactor *= 0.75;
+  //StiffnessFactor *= 0.75;
 
   // 2.- Estimate the bulk correction coefficient and the new tangent
 
@@ -1363,6 +1377,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
       std::vector<SizeType> Nodes;
       unsigned int WallNodes  = 0;
       unsigned int InletNodes = 0;
+      unsigned int SliverNodes = 0;
       unsigned int FreeSurfaceNodes = 0;
 
       for(unsigned int i = 1; i < NodesInFaces.size1(); ++i)
@@ -1377,10 +1392,12 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
         if(rGeometry[NodesInFaces(i,face)].Is(INLET)){
           ++InletNodes;
         }
-
+        if(rGeometry[NodesInFaces(i,face)].Is(SELECTED)){
+          ++SliverNodes;
+        }
       }
-      if( WallNodes < Nodes.size() )
-        if( InletNodes < Nodes.size() )
+      if( SliverNodes != Nodes.size() )
+        if( WallNodes < Nodes.size() &&  InletNodes < Nodes.size() )
           if( FreeSurfaceNodes == Nodes.size() )
             Faces.push_back(Nodes);
     }

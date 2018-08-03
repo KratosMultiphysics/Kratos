@@ -140,6 +140,11 @@ class InsertNewNodesMesherProcess
         BiggestVolumes[nn]=-1.0;
       }
 
+      for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
+      {
+        in->Set(MODIFIED,false);
+      }
+
       ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
       // const unsigned int nds = element_begin->GetGeometry().size();
       for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ++ie)
@@ -173,12 +178,6 @@ class InsertNewNodesMesherProcess
     }//if ElementsToRefine>0
 
     mrRemesh.InputInitializedFlag=false;
-
-    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
-    {
-      if(in->Is(TO_SPLIT))
-         std::cout<<" TO SPlIT IS NOT RESET in INSERT "<<std::endl;
-    }
 
     if( mEchoLevel > 1 )
       std::cout<<"   GENERATE NEW NODES ]; "<<std::endl;
@@ -718,6 +717,10 @@ class InsertNewNodesMesherProcess
       //create a new node
       Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id,x,y,z);
 
+      //to control the inserted nodes
+      pnode->Set(MODIFIED);
+      std::cout<<" Insert new node "<<pnode->Id()<<std::endl;
+
       pnode->Set(NEW_ENTITY); //not boundary
       list_of_new_nodes.push_back( pnode );
 
@@ -756,6 +759,12 @@ class InsertNewNodesMesherProcess
 
       MeshDataTransferUtilities DataTransferUtilities;
       DataTransferUtilities.Interpolate2Nodes( LineGeometry, ShapeFunctionsN, rVariablesList, *pnode);
+
+      if( PointsArray[0].Is(FREE_SURFACE) && PointsArray[1].Is(FREE_SURFACE) )
+        pnode->Set(FREE_SURFACE);
+
+      if( PointsArray[0].Is(BOUNDARY) && PointsArray[1].Is(BOUNDARY) )
+        pnode->Set(BOUNDARY);
 
     }
 

@@ -1,7 +1,7 @@
 {
     "time_settings" : {
         "time_step"  : 0.001,
-        "end_time"   : 0.5
+        "end_time"   : 1.5
     },
     "model_settings"           : {
 	"model_name"     : "main_domain",

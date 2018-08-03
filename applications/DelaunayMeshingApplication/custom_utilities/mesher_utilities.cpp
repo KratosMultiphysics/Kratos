@@ -1040,7 +1040,7 @@ namespace Kratos
 	  }
 	else
 	  {
-	    // std::cout<<"  ERASED!"<<std::endl;
+	    //std::cout<<"  ERASED! "<<Radius<<" < "<<AlphaRadius<<" MeanMeshSize "<<MeanMeshSize<<" Alpha "<<AlphaParameter<<std::endl;
 	    return false;
 	  }
       }
@@ -1253,26 +1253,20 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool MesherUtilities::CheckVolumeDecrease(GeometryType& rVertices, const unsigned int& rDimension)
+  bool MesherUtilities::CheckVolumeDecrease(GeometryType& rVertices, const unsigned int& rDimension,const double& rTolerance, double& VolumeChange)
   {
     bool accepted = false;
     if(rDimension==2){
       Triangle2D3<Node<3> > CurrentTriangle(rVertices);
       double CurrentArea = CurrentTriangle.Area();
 
-      GeometryType MovedVertices;
-      for(unsigned int i=0; i<rVertices.size(); ++i)
-      {
-        Node<3>::Pointer pNode = rVertices[i].Clone();
-        pNode->Coordinates() += (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
-        MovedVertices.push_back(pNode);
-      }
-      Triangle2D3<Node<3> > MovedTriangle(MovedVertices);
-      double MovedArea = MovedTriangle.Area();
+      //new volume with a 1.0 * DeltaDisplacement
+      double MovedArea = GetMovedVolume(rVertices,rDimension,1.0);
 
       //std::cout<<" control fluid  "<<MovedArea<<" "<<CurrentArea<<std::endl;
-      double tolerance = 1e-8;
-      if(MovedArea+tolerance<CurrentArea){
+      VolumeChange = CurrentArea-MovedArea;
+
+      if(MovedArea+rTolerance<CurrentArea){
         accepted = true;
       }
 
@@ -1282,24 +1276,134 @@ namespace Kratos
       Tetrahedra3D4<Node<3> > CurrentTetrahedron(rVertices);
       double CurrentVolume = CurrentTetrahedron.Volume();
 
-      Geometry<Node<3> > MovedVertices;
-      for(unsigned int i=0; i<rVertices.size(); ++i)
-      {
-        Node<3>::Pointer pNode = rVertices[i].Clone();
-        pNode->Coordinates() += (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
-        MovedVertices.push_back(pNode);
-      }
-      Tetrahedra3D4<Node<3> > MovedTetrahedron(MovedVertices);
-      double MovedVolume = MovedTetrahedron.Volume();
+      //new volume with a 1.0 * DeltaDisplacement
+      double MovedVolume = GetMovedVolume(rVertices,rDimension,1.0);
 
       //std::cout<<" control fluid  "<<MovedVolume<<" "<<CurrentVolume<<std::endl;
-      double tolerance = 1e-6;
-      if(MovedVolume+tolerance<CurrentVolume){
+      VolumeChange = CurrentVolume-MovedVolume;
+
+      if(MovedVolume+rTolerance<CurrentVolume){
         accepted = true;
       }
     }
 
     return accepted;
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  double MesherUtilities::GetMovedVolume(GeometryType& rVertices, const unsigned int& rDimension, double MovementFactor)
+  {
+    double MovedVolume = 0.0;
+    if(rDimension==2){
+
+      GeometryType MovedVertices;
+      for(unsigned int i=0; i<rVertices.size(); ++i)
+      {
+        Node<3>::Pointer pNode = rVertices[i].Clone();
+        pNode->Coordinates() += MovementFactor * (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
+        MovedVertices.push_back(pNode);
+      }
+      Triangle2D3<Node<3> > MovedTriangle(MovedVertices);
+      MovedVolume = MovedTriangle.Area();
+
+    }
+    else if(rDimension==3){
+
+      Geometry<Node<3> > MovedVertices;
+      for(unsigned int i=0; i<rVertices.size(); ++i)
+      {
+        Node<3>::Pointer pNode = rVertices[i].Clone();
+        pNode->Coordinates() += MovementFactor * (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
+        MovedVertices.push_back(pNode);
+      }
+
+      Tetrahedra3D4<Node<3> > MovedTetrahedron(MovedVertices);
+      MovedVolume = MovedTetrahedron.Volume();
+
+      if(MovedVolume<0)
+        std::cout<<" VOLUME negative "<<std::endl;
+    }
+
+    return MovedVolume;
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  double MesherUtilities::GetDeformationGradientDeterminant(GeometryType& rVertices, const unsigned int& rDimension)
+  {
+    //Deformation Gradient determinant
+    unsigned int number_of_nodes = rVertices.size();
+
+    //Configuration increment
+    Matrix DeltaPosition(number_of_nodes,rDimension);
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        const array_1d<double, 3 > & CurrentDisplacement  = rVertices[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & PreviousDisplacement = rVertices[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < rDimension; j++ )
+        {
+          DeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+    }
+
+    //Compute cartesian derivatives [dN/dx_n]
+    Matrix DN_DX;
+
+    if(rDimension==2){
+      Triangle2D3<Node<3> > Triangle(rVertices);
+
+      DenseVector<Matrix> J;
+      J = Triangle.Jacobian( J, GeometryData::GI_GAUSS_1, DeltaPosition );
+
+      //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+      Matrix InvJ;
+      double detJ;
+      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+
+      const Matrix& DN_De = Triangle.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
+      DN_DX = prod( DN_De, InvJ );
+
+    }
+    else if(rDimension==3){
+
+      Tetrahedra3D4<Node<3> > Tetrahedron(rVertices);
+
+      DenseVector<Matrix> J;
+      J = Tetrahedron.Jacobian( J, GeometryData::GI_GAUSS_1, DeltaPosition );
+
+      //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+      Matrix InvJ;
+      double detJ;
+      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+
+      const Matrix& DN_De = Tetrahedron.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
+      DN_DX = prod( DN_De, InvJ );
+    }
+
+
+    Matrix F(rDimension,rDimension);
+    noalias(F) = ZeroMatrix(rDimension,rDimension);
+    for (unsigned int i = 0; i < rDimension; i++)
+    {
+      for (unsigned int j = 0; j < rDimension; j++)
+      {
+        for (unsigned int k = 0; k < number_of_nodes; k++)
+        {
+          F(i,j)+= rVertices[k].Coordinates()[i]*DN_DX(k,j);
+        }
+      }
+    }
+    double detF  = MathUtils<double>::Det(F);
+
+    if(detF<0)
+      std::cout<<" NEGATIVE ELEMENT (DET_F: "<<detF<<")"<<std::endl;
+
+    return detF;
   }
 
 

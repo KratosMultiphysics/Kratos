@@ -244,7 +244,7 @@
             "output_frequency"    : 1,
             "node_output"         : true,
             "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE","NORMAL"],
-	    "nodal_flags_results" : ["FREE_SURFACE","BOUNDARY","ISOLATED","RIGID"],
+	    "nodal_flags_results" : ["FREE_SURFACE","BOUNDARY","ISOLATED","RIGID","SELECTED","MODIFIED"],
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR"]
         }
     }

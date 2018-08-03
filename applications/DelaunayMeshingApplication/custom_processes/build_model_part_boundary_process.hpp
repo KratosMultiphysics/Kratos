@@ -200,48 +200,6 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    void SearchFreeSurfaceEdges(ModelPart& rModelPart)
-    {
-
-      KRATOS_TRY
-
-
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond != rModelPart.ConditionsEnd(); ++i_cond)
-	{
-          Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
-          unsigned int free_surface_nodes=0;
-          unsigned int edge_nodes=0;
-          for( unsigned int i=0; i<rConditionGeometry.size(); i++ )
-          {
-            if( rConditionGeometry[i].Is(SELECTED)){
-              ++edge_nodes;
-            }
-            if( rConditionGeometry[i].Is(FREE_SURFACE)){
-              ++free_surface_nodes;
-            }
-
-          }
-	  if( edge_nodes>0 && free_surface_nodes>0 ){
-            for( unsigned int i=0; i<rConditionGeometry.size(); i++ )
-            {
-              rConditionGeometry[i].Set(FREE_SURFACE,true);
-            }
-          }
-
-        }
-
-      for(ModelPart::NodesContainerType::const_iterator i_node = rModelPart.NodesBegin(); i_node!=rModelPart.NodesEnd(); ++i_node)
-	{
-          i_node->Set(SELECTED,false);
-        }
-
-      KRATOS_CATCH( "" )
-    }
-
-
-    //**************************************************************************
-    //**************************************************************************
-
     bool SearchConditionMasters()
     {
 

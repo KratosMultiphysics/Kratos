@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_REMOVE_MESH_NODES_FOR_FLUIDS_PROCESS_H_INCLUDED )
-#define  KRATOS_REMOVE_MESH_NODES_FOR_FLUIDS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_REMOVE_FLUID_NODES_MESHER_PROCESS_H_INCLUDED )
+#define  KRATOS_REMOVE_FLUID_NODES_MESHER_PROCESS_H_INCLUDED
 
 
 // External includes
@@ -226,15 +226,15 @@ class RemoveFluidNodesMesherProcess
                 if( !this->CheckEngagedNode((*in),neighbours,neighbour_distances,n_points_in_radius) ){ //we release the node if no other nodes neighbours are being erased
                   in->Set(TO_ERASE);
                   any_node_removed = true;
-                  inside_nodes_removed++;
+                  ++inside_nodes_removed;
                   //distance_remove++;
-                  //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+                  std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
                 }
               }
             }
 
           }
-          else if( dimension== 2 ){
+          else{
 
             // std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
             bool engaged_node = false;
@@ -242,10 +242,11 @@ class RemoveFluidNodesMesherProcess
             for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
             {
 
-              if ( (*nn)->Is(BOUNDARY) && neighbour_distances[counter] < 1.5 * size_for_distance_boundary && neighbour_distances[counter] > 0.0 )
+              if ( (*nn)->Is(BOUNDARY) && (neighbour_distances[counter] < 1.5 * size_for_distance_boundary) && (neighbour_distances[counter] > 0.0) )
               {
                 if((*nn)->Is(TO_ERASE)){
                   engaged_node = true;
+                  break;
                 }
               }
 
@@ -255,7 +256,7 @@ class RemoveFluidNodesMesherProcess
             if(!engaged_node){ //Can be inserted in the boundary refine
               in->Set(TO_ERASE);
               //any_node_removed = true;
-              boundary_nodes_removed++;
+              ++boundary_nodes_removed;
               //distance_remove ++;
               std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
             }
@@ -267,41 +268,22 @@ class RemoveFluidNodesMesherProcess
       }
     }
 
-    if( dimension== 2 ){
-      if( boundary_nodes_removed > 0 )
-        this->MoveBoundaryNodesToMeanPosition(rModelPart,boundary_nodes_removed);
+    if( boundary_nodes_removed > 0 )
+      this->MoveBoundaryNodesToMeanPosition(rModelPart,boundary_nodes_removed);
 
-      if( boundary_nodes_removed > 0 )
-        any_node_removed = true;
-    }
+    if( boundary_nodes_removed > 0 )
+      any_node_removed = true;
+
 
     bool critical_nodes_removed = false;
-    if( dimension== 2 )
-      critical_nodes_removed = EraseCriticalNodes2D(rModelPart,inside_nodes_removed);
+    critical_nodes_removed = EraseCriticalNodes(rModelPart,inside_nodes_removed);
 
     if( any_node_removed || critical_nodes_removed )
       any_node_removed = true;
 
-    // if( dimension ==3 ){
-    //   unsigned int erased_nodes=0;
-    //   for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ++ie)
-    //   {
-    //     unsigned int WallNodes=0;
-    //     //coordinates
-    //     for(unsigned int i=0; i<ie->GetGeometry().size(); ++i)
-    //     {
-    //       if((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID)){
-    //         WallNodes++;
-    //       }
-    //     }
 
-    //     if(WallNodes>1)
-    //       EraseCriticalNodes3D(rModelPart,ie->GetGeometry(),erased_nodes,inside_nodes_removed);
-    //   }
-    // }
-
-     //Build boundary after removing boundary nodes due distance criterion
-    if( this->mEchoLevel > 1 ){
+    //Build boundary after removing boundary nodes due distance criterion
+    if( this->mEchoLevel > -1 ){
       std::cout<<"boundary_nodes_removed "<<boundary_nodes_removed<<std::endl;
       std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
     }
@@ -367,44 +349,112 @@ class RemoveFluidNodesMesherProcess
 
       }
 
-      if(counter == 1 && id>=0){
+      if(counter==1 && id>=0){
 
-        //std::cout<<" Boundary to Move Pre ["<<rGeometry[id].Id()<<"] "<<rGeometry[id].Coordinates()<<std::endl;
+        std::cout<<" Boundary to Move Pre ["<<rGeometry[id].Id()<<"] "<<rGeometry[id].Coordinates()<<std::endl;
         unsigned int FreeSurfaceNodes = 0;
         WeakPointerVector< Node < 3 > >& NeighbourNodes = rGeometry[id].GetValue(NEIGHBOUR_NODES);
-        std::vector<array_1d<double,3> > FreeNeighbours;
+        WeakPointerVector< Node < 3 > > FreeNeighbours;
         for(WeakPointerVector< Node <3> >::iterator nn = NeighbourNodes.begin(); nn != NeighbourNodes.end(); ++nn)
         {
-          if(nn->Is(FREE_SURFACE) && nn->IsNot(TO_ERASE)){
+          if( nn->Is(FREE_SURFACE) ){
+            FreeNeighbours.push_back(*(nn.base()));
             ++FreeSurfaceNodes;
-            FreeNeighbours.push_back(nn->Coordinates());
           }
         }
 
+        std::cout<<" Erase Boundary FreeSurface ["<<rGeometry[id].Id()<<"]"<<std::endl;
         if( FreeSurfaceNodes == 2 )
         {
-          array_1d<double,3> MidPoint  = 0.5 * (FreeNeighbours.front()+FreeNeighbours.back());
-          array_1d<double,3> Direction = (FreeNeighbours.front()-FreeNeighbours.back());
+          array_1d<double,3> MidPoint  = 0.5 * (FreeNeighbours.front().Coordinates()+FreeNeighbours.back().Coordinates());
+          array_1d<double,3> Direction = (FreeNeighbours.front().Coordinates()-FreeNeighbours.back().Coordinates());
 
           if(norm_2(Direction))
             Direction/=norm_2(Direction);
 
           array_1d<double,3> Displacement = inner_prod( (MidPoint-rGeometry[id].Coordinates()), Direction ) * Direction;
           noalias(rGeometry[id].Coordinates()) += Displacement;
-          noalias(rGeometry[id].FastGetSolutionStepValue(DISPLACEMENT)) += Displacement;
+          noalias(rGeometry[id].FastGetSolutionStepValue(DISPLACEMENT))   += Displacement;
           noalias(rGeometry[id].FastGetSolutionStepValue(DISPLACEMENT,1)) += Displacement;
+
+          for(WeakPointerVector< Node < 3 > >::iterator fsn = FreeNeighbours.begin(); fsn != FreeNeighbours.end(); ++fsn)
+          {
+            noalias(rGeometry[id].FastGetSolutionStepValue(VELOCITY))       += fsn->FastGetSolutionStepValue(VELOCITY);
+            noalias(rGeometry[id].FastGetSolutionStepValue(VELOCITY,1))     += fsn->FastGetSolutionStepValue(VELOCITY,1);
+            noalias(rGeometry[id].FastGetSolutionStepValue(ACCELERATION))   += fsn->FastGetSolutionStepValue(ACCELERATION);
+            noalias(rGeometry[id].FastGetSolutionStepValue(ACCELERATION,1)) += fsn->FastGetSolutionStepValue(ACCELERATION,1);
+            rGeometry[id].FastGetSolutionStepValue(PRESSURE)                += fsn->FastGetSolutionStepValue(PRESSURE);
+            rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY)       += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY);
+            rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+          }
+
+
+          double quotient = 1.0/double(FreeSurfaceNodes+1);
+          rGeometry[id].FastGetSolutionStepValue(VELOCITY)       *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(VELOCITY,1)     *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(ACCELERATION)   *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(ACCELERATION,1) *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(PRESSURE)            *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY)   *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY,1) *= quotient;
+
 
           rGeometry[id].Set(TO_ERASE,false);
           --boundary_nodes_removed;
 
         }
-        //std::cout<<" Boundary to Move Post ["<<rGeometry[id].Id()<<"] "<<rGeometry[id].Coordinates()<<std::endl;
+        else if(FreeSurfaceNodes > 2) {
+
+          array_1d<double,3> MidPoint;
+          noalias(MidPoint) = ZeroVector(3);
+          double quotient = 1.0/double(FreeSurfaceNodes);
+          for(WeakPointerVector< Node < 3 > >::iterator fsn = FreeNeighbours.begin(); fsn != FreeNeighbours.end(); ++fsn)
+          {
+            MidPoint += fsn->Coordinates();
+
+            noalias(rGeometry[id].FastGetSolutionStepValue(VELOCITY))       += fsn->FastGetSolutionStepValue(VELOCITY);
+            noalias(rGeometry[id].FastGetSolutionStepValue(VELOCITY,1))     += fsn->FastGetSolutionStepValue(VELOCITY,1);
+            noalias(rGeometry[id].FastGetSolutionStepValue(ACCELERATION))   += fsn->FastGetSolutionStepValue(ACCELERATION);
+            noalias(rGeometry[id].FastGetSolutionStepValue(ACCELERATION,1)) += fsn->FastGetSolutionStepValue(ACCELERATION,1);
+            rGeometry[id].FastGetSolutionStepValue(PRESSURE)                += fsn->FastGetSolutionStepValue(PRESSURE);
+            rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY)       += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY);
+            rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+          }
+          MidPoint *= quotient;
+          array_1d<double,3> Normal = rGeometry[id].FastGetSolutionStepValue(NORMAL);
+
+          if(norm_2(Normal))
+            Normal/=norm_2(Normal);
+
+          array_1d<double,3> Displacement = (MidPoint-rGeometry[id].Coordinates()) - inner_prod( (MidPoint-rGeometry[id].Coordinates()), Normal ) * Normal;
+          noalias(rGeometry[id].Coordinates()) += Displacement;
+          noalias(rGeometry[id].FastGetSolutionStepValue(DISPLACEMENT)) += Displacement;
+          noalias(rGeometry[id].FastGetSolutionStepValue(DISPLACEMENT,1)) += Displacement;
+
+          quotient = 1.0/double(FreeSurfaceNodes+1);
+          rGeometry[id].FastGetSolutionStepValue(VELOCITY)       *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(VELOCITY,1)     *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(ACCELERATION)   *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(ACCELERATION,1) *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(PRESSURE)            *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY)   *= quotient;
+          rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY,1) *= quotient;
+
+          rGeometry[id].Set(TO_ERASE,false);
+          --boundary_nodes_removed;
+        }
+        else{
+          std::cout<<" Boundary node with only one FREE_SURFACE neighbour "<<std::endl;
+        }
+
+        std::cout<<" Boundary to Move Post ["<<rGeometry[id].Id()<<"] "<<rGeometry[id].Coordinates()<<std::endl;
       }
 
     }
 
     KRATOS_CATCH( "" )
   }
+
 
   //**************************************************************************
   //**************************************************************************
@@ -417,7 +467,9 @@ class RemoveFluidNodesMesherProcess
     WeakPointerVector< Node < 3 > >& NeighbourNodes = rNode.GetValue(NEIGHBOUR_NODES);
     unsigned int NumberOfNeighbourNodes = NeighbourNodes.size();
 
-    // std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
+    std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
+
+    //array_1d<double,3> CurrentPosition = rNode.Coordinates();
 
     for(WeakPointerVector< Node <3> >::iterator nn = NeighbourNodes.begin();nn != NeighbourNodes.end(); ++nn)
     {
@@ -438,6 +490,8 @@ class RemoveFluidNodesMesherProcess
     rNode.Coordinates() *= quotient;
     rNode.FastGetSolutionStepValue(DISPLACEMENT)   *= quotient;
     rNode.FastGetSolutionStepValue(DISPLACEMENT,1) *= quotient;
+    //rNode.FastGetSolutionStepValue(DISPLACEMENT)   += rNode.Coordinates()-CurrentPosition;
+    //rNode.FastGetSolutionStepValue(DISPLACEMENT,1) += rNode.Coordinates()-CurrentPosition;
     rNode.GetInitialPosition() = (rNode.Coordinates() - rNode.FastGetSolutionStepValue(DISPLACEMENT));
     rNode.FastGetSolutionStepValue(VELOCITY)       *= quotient;
     rNode.FastGetSolutionStepValue(VELOCITY,1)     *= quotient;
@@ -447,7 +501,85 @@ class RemoveFluidNodesMesherProcess
     rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)   *= quotient;
     rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1) *= quotient;
 
-    // std::cout<<" Moved Node Post ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
+    std::cout<<" Moved Node Post ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //**************************************************************************
+  //**************************************************************************
+
+  bool CheckApproachingEdge(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
+  {
+    KRATOS_TRY
+
+    bool approaching_edge = false;
+
+    array_1d<double,3> EdgeVelocity = 0.5 * (rEdgeNodeA.FastGetSolutionStepValue(VELOCITY)+rEdgeNodeB.FastGetSolutionStepValue(VELOCITY));
+    array_1d<double,3> MidPoint = 0.5 * (rEdgeNodeA.Coordinates() + rEdgeNodeB.Coordinates());
+
+    array_1d<double,3> Distance = (MidPoint-rNode.Coordinates());
+
+    array_1d<double,3> VelocityDirection = rNode.FastGetSolutionStepValue(VELOCITY);
+
+    double velocity = norm_2(VelocityDirection);
+    if(velocity!=0)
+       VelocityDirection/=velocity;
+
+    //different velocity directions
+    if( inner_prod( EdgeVelocity, VelocityDirection ) < 0 ){
+      //node velocity direction towards edge
+      if( inner_prod( Distance, VelocityDirection ) > 0 )
+        approaching_edge = true;
+      else
+        approaching_edge = false;
+    } //same velocity directions
+    else if( velocity > 0.1 * norm_2(EdgeVelocity) ){
+      //node velocity direction towards edge
+      if( inner_prod( Distance, VelocityDirection ) > 0 )
+        approaching_edge = true;
+      else
+        approaching_edge = false;
+    }
+
+    //check approach magnitude
+    if( approaching_edge == true) {
+
+      array_1d<double,3> Direction;
+      this->GetDirectionToEdge(Direction,rEdgeNodeA,rEdgeNodeB);
+
+      double distance = fabs(inner_prod((MidPoint-rNode.Coordinates()), Direction));
+
+      double advance  = fabs(inner_prod((rNode.FastGetSolutionStepValue(DISPLACEMENT)-rNode.FastGetSolutionStepValue(DISPLACEMENT,1)), Direction));
+
+      if( 3*advance < distance )
+        approaching_edge = false;
+
+      //std::cout<<" aproaching edge: "<<approaching_edge<<" (distance: "<< distance <<" advance: "<<advance<<")"<<std::endl;
+    }
+
+    return approaching_edge;
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //**************************************************************************
+  //**************************************************************************
+
+  double GetDistanceToEdge(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
+  {
+    KRATOS_TRY
+
+    array_1d<double,3> MidPoint  = 0.5 * (rEdgeNodeA.Coordinates() + rEdgeNodeB.Coordinates()) ;
+
+    //array_1d<double,3> Direction = rNode.FastGetSolutionStepValue(VELOCITY);
+
+    array_1d<double,3> Direction;
+    this->GetDirectionToEdge(Direction,rEdgeNodeA,rEdgeNodeB);
+
+    return fabs(inner_prod((MidPoint-rNode.Coordinates()), Direction));
 
     KRATOS_CATCH( "" )
   }
@@ -455,7 +587,34 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  bool EraseCriticalNodes2D(ModelPart& rModelPart, unsigned int& inside_nodes_removed)
+  void GetDirectionToEdge(array_1d<double,3>& Direction, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
+  {
+    //get wall direction from normals:
+     if( rEdgeNodeA.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 && rEdgeNodeB.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
+      Direction = 0.5 * (rEdgeNodeA.FastGetSolutionStepValue(NORMAL) + rEdgeNodeB.FastGetSolutionStepValue(NORMAL) ) ;
+    }
+    else{
+      if( rEdgeNodeA.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
+        Direction = rEdgeNodeA.FastGetSolutionStepValue(NORMAL);
+      }
+      else if( rEdgeNodeB.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
+        Direction = rEdgeNodeB.FastGetSolutionStepValue(NORMAL);
+      }
+      else{
+        Direction = 0.5 * (rEdgeNodeA.FastGetSolutionStepValue(NORMAL) + rEdgeNodeB.FastGetSolutionStepValue(NORMAL) ) ;
+      }
+    }
+
+    if( norm_2(Direction) )
+      Direction /= norm_2(Direction);
+
+  }
+
+
+  //**************************************************************************
+  //**************************************************************************
+
+  bool EraseCriticalNodes(ModelPart& rModelPart, unsigned int& inside_nodes_removed)
   {
 
     KRATOS_TRY
@@ -465,66 +624,132 @@ class RemoveFluidNodesMesherProcess
 
     for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ++ie)
     {
-      unsigned int WallNodes=0;
       std::vector<Node<3>::Pointer> EdgeNodes;
 
       Element::GeometryType& rGeometry = ie->GetGeometry();
       //coordinates
       for(unsigned int i=0; i<rGeometry.size(); ++i)
       {
-        if((rGeometry[i].Is(RIGID) && rGeometry[i].IsNot(INLET)) || rGeometry[i].Is(SOLID)){
+        if((rGeometry[i].Is(RIGID) || rGeometry[i].Is(SOLID)) && rGeometry[i].IsNot(INLET)){
           EdgeNodes.push_back(rGeometry(i));
-          ++WallNodes;
         }
       }
 
-      if( WallNodes == 2 ){
+      if( EdgeNodes.size() >= 2 ){
 
-        double RigidEdgeLength = norm_2(EdgeNodes.front()->Coordinates() - EdgeNodes.back()->Coordinates());
-        double ElementArea     = ie->GetGeometry().Area();
+        const double dimension = ie->GetGeometry().WorkingSpaceDimension();
+
+        double CriticalVolume = 0;
+        double ElementSize    = 0;
+        double ElementHeight  = 0;
+        double MeanEdgeLength = 0;
+
+        double RigidEdgeLength = std::numeric_limits<double>::min();
+        if(EdgeNodes.size() == 2){
+          RigidEdgeLength = norm_2(EdgeNodes.front()->Coordinates() - EdgeNodes.back()->Coordinates());
+        }
+
+        double VolumeTolerance = 1e-2*pow(4.0*mrRemesh.Refine->CriticalRadius,dimension);
+
+        //set distances
+        if( dimension == 2 ){
+          ElementSize    = ie->GetGeometry().Area();
+          CriticalVolume = 0.5 * mrRemesh.Refine->CriticalRadius * mrRemesh.Refine->CriticalRadius;
+          VolumeTolerance *= 1.15e-2;
+        }
+        else if( dimension == 3 ){
+          ElementSize    = ie->GetGeometry().Volume();
+          CriticalVolume = 0.5 * mrRemesh.Refine->CriticalRadius * mrRemesh.Refine->CriticalRadius * mrRemesh.Refine->CriticalRadius;
+          VolumeTolerance *= 0.25;
+        }
 
         MesherUtilities MesherUtils;
         const double MaxRelativeVelocity = 1.5; //arbitrary value, will depend on time step (AF)
+
+        double VolumeChange = 0;
+
         bool speedy_approach = MesherUtils.CheckRelativeVelocities(rGeometry, MaxRelativeVelocity);
+        bool volume_decrease = MesherUtils.CheckVolumeDecrease(rGeometry, dimension, VolumeTolerance, VolumeChange);
 
-        const double dimension = ie->GetGeometry().WorkingSpaceDimension();
-        bool volume_decrease = MesherUtils.CheckVolumeDecrease(rGeometry, dimension);
+        //compare the element height to wall edge length
+        for (unsigned int i = 0; i < rGeometry.size(); ++i)
+        {
 
+          if( rGeometry[i].IsNot(RIGID) && rGeometry[i].IsNot(SOLID) && rGeometry[i].IsNot(TO_ERASE) && rGeometry[i].IsNot(ISOLATED) && rGeometry[i].IsNot(INLET) ){
 
-        //compare the triangle height to wall edge length
-        for (unsigned int i = 0; i < rGeometry.size(); ++i){
+            //set distances
+            bool approaching_edge = false;
+            std::vector<Node<3>::Pointer> SelectedEdgeNodes(2);
 
-          if(rGeometry[i].IsNot(RIGID) && rGeometry[i].IsNot(TO_ERASE) && rGeometry[i].IsNot(SOLID) && rGeometry[i].IsNot(ISOLATED)){
+            if( EdgeNodes.size() == 2 ){
+              SelectedEdgeNodes = EdgeNodes;
+              approaching_edge = this->CheckApproachingEdge(rGeometry[i],*EdgeNodes.front(),*EdgeNodes.back());
+            }
+            else{
 
-            double ElementHeight  = 2.0 * ElementArea / RigidEdgeLength;
-            double MeanEdgeLength = 0.5 * RigidEdgeLength;
-
-            //it is evident when a freesurface particle in touch with wall is erased --> reduce the safety coeff
-            if(rGeometry[i].Is(FREE_SURFACE)){
-
-              WeakPointerVector< Node < 3 > >& NeighbourNodes = rGeometry[i].GetValue(NEIGHBOUR_NODES);
-              unsigned int NumberOfNeighbours = NeighbourNodes.size();
-              unsigned int BoundaryWallNodes=0;
-              unsigned int FreeSurfaceNodes=0;
-              for (WeakPointerVector< Node <3> >::iterator nn = NeighbourNodes.begin();nn != NeighbourNodes.end(); ++nn)
+              //select larger edge where the node is approaching
+              for(unsigned int j=0; j<EdgeNodes.size()-1; ++j)
               {
-                if(nn->Is(RIGID) || nn->Is(SOLID)){
-                  ++BoundaryWallNodes;
+                for(unsigned int k=j+1; k<EdgeNodes.size(); ++k)
+                {
+                  double Length = norm_2(EdgeNodes[k]->Coordinates() - EdgeNodes[j]->Coordinates());
+                  if( Length > RigidEdgeLength && this->CheckApproachingEdge(rGeometry[i],*EdgeNodes[k],*EdgeNodes[j]) ){
+                    RigidEdgeLength = Length;
+                    SelectedEdgeNodes[0] = EdgeNodes[k];
+                    SelectedEdgeNodes[1] = EdgeNodes[j];
+                    approaching_edge = true;
+                  }
                 }
-                else if(nn->Is(FREE_SURFACE)){
-                  ++FreeSurfaceNodes;
-                }
-              }
-              if( (BoundaryWallNodes+FreeSurfaceNodes) == NumberOfNeighbours && BoundaryWallNodes>0){
-                MeanEdgeLength*=0.5;
               }
             }
 
-            // if the node is very close to the wall and moving towards it is erased
-            if( (ElementHeight < MeanEdgeLength) && (speedy_approach && volume_decrease) ){
-              rGeometry[i].Set(TO_ERASE);
-              ++erased_nodes;
-              ++inside_nodes_removed;
+            // if the node is moving towards to the wall
+            if( approaching_edge ){
+
+              ElementHeight  = 0;
+              MeanEdgeLength = 0;
+
+              if( dimension == 2 ){
+                //ElementHeight  = 2.0 * ElementSize / RigidEdgeLength; (AF)
+                //MeanEdgeLength = 0.5 * RigidEdgeLength;
+                ElementHeight  = 2.0 * this->GetDistanceToEdge(rGeometry[i],*SelectedEdgeNodes[0],*SelectedEdgeNodes[1]);
+                MeanEdgeLength = 0.5 * RigidEdgeLength;
+              }
+              else if( dimension == 3 ){
+                ElementHeight  = 2.0 * this->GetDistanceToEdge(rGeometry[i],*SelectedEdgeNodes[0],*SelectedEdgeNodes[1]);
+                MeanEdgeLength = 0.5 * RigidEdgeLength;
+              }
+
+              //avoid erasing freesurface particle in touch with wall (penalize length)
+              if(rGeometry[i].Is(FREE_SURFACE)){
+
+                WeakPointerVector<Node<3> >& NeighbourNodes = rGeometry[i].GetValue(NEIGHBOUR_NODES);
+                unsigned int NumberOfNeighbours = NeighbourNodes.size();
+                unsigned int BoundaryWallNodes=0;
+                unsigned int FreeSurfaceNodes=0;
+                for (WeakPointerVector< Node <3> >::iterator nn = NeighbourNodes.begin();nn != NeighbourNodes.end(); ++nn)
+                {
+                  if(nn->Is(RIGID) || nn->Is(SOLID)){
+                    ++BoundaryWallNodes;
+                  }
+                  else if(nn->Is(FREE_SURFACE)){
+                    ++FreeSurfaceNodes;
+                  }
+                }
+                if( (BoundaryWallNodes+FreeSurfaceNodes) == NumberOfNeighbours && BoundaryWallNodes>0){
+                  MeanEdgeLength*=0.5;
+                }
+              }
+              // if the node is very close to the wall or the volume is critically small, it is erased
+              if( ((ElementHeight < MeanEdgeLength) && (speedy_approach && volume_decrease)) || (ElementSize<CriticalVolume) ){
+                std::cout<<" LAYER NODE ERASE ["<<rGeometry[i].Id()<<"] volumes:"<<ElementSize<<" < "<<CriticalVolume<<" heights: "<<ElementHeight<<" < "<<MeanEdgeLength<<" speedy "<<speedy_approach<<" volume_decrease "<<volume_decrease<<std::endl;
+                rGeometry[i].Set(TO_ERASE);
+                ++erased_nodes;
+                ++inside_nodes_removed;
+              }
+              // else{
+              //   std::cout<<" LAYER NODE KEPT ["<<rGeometry[i].Id()<<"] volumes:"<<ElementSize<<" < "<<CriticalVolume<<" heights: "<<ElementHeight<<" < "<<MeanEdgeLength<<" speedy "<<speedy_approach<<" volume_decrease "<<volume_decrease<<std::endl;
+              // }
             }
 
           }
@@ -535,8 +760,7 @@ class RemoveFluidNodesMesherProcess
     }
 
     if(erased_nodes>0){
-      if( this->mEchoLevel > 1 )
-	std::cout<<"layer_nodes_removed "<<erased_nodes<<std::endl;
+      std::cout<<" Layer Nodes removed "<<erased_nodes<<std::endl;
       any_node_removed = true;
     }
 
@@ -545,320 +769,6 @@ class RemoveFluidNodesMesherProcess
     KRATOS_CATCH( "" )
   }
 
-
-  //**************************************************************************
-  //**************************************************************************
-
-  void EraseCriticalNodes3D(ModelPart& rModelPart, Element::GeometryType& Element, unsigned int &erased_nodes, unsigned int& inside_nodes_removed)
-  {
-
-    KRATOS_TRY
-
-    double safetyCoefficient3D=0.6;
-    // double safetyCoefficient3D=0.7;
-
-
-    double elementVolume=Element.Volume();
-    double criticalVolume=0.1*this->mrRemesh.Refine->MeanVolume;
-    if(elementVolume<criticalVolume){
-      for(unsigned int i=0; i<Element.size(); ++i)
-      {
-        if(Element[i].IsNot(RIGID) && Element[i].IsNot(SOLID) && Element[i].IsNot(TO_ERASE)){
-          if( norm_2(Element[i].FastGetSolutionStepValue(VELOCITY)) > 1e-3)
-            Element[i].Set(TO_ERASE);
-          if( this->mEchoLevel > 1)
-            std::cout<<"erase this layer node because it may be potentially dangerous and pass through the solid contour"<<std::endl;
-          erased_nodes += 1;
-          inside_nodes_removed++;
-          break;
-        }
-      }
-
-    }
-    array_1d<double,6> Edges(6,0.0);
-    array_1d<unsigned int,6> FirstEdgeNode(6,0);
-    array_1d<unsigned int,6> SecondEdgeNode(6,0);
-    double wallLength=0;
-    double minimumLength=0;
-    // array_1d<double,3> CoorDifference(3,0.0);
-
-    // ////////  to compute the length of the wall edge /////////
-    // CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-    array_1d<double,3> CoorDifference= Element[1].Coordinates() - Element[0].Coordinates();
-
-    double SquaredLength = CoorDifference[0]*CoorDifference[0] +
-        CoorDifference[1]*CoorDifference[1] +
-        CoorDifference[2]*CoorDifference[2];
-    Edges[0]=sqrt(SquaredLength);
-    FirstEdgeNode[0]=0;
-    SecondEdgeNode[0]=1;
-    if(Element[0].Is(RIGID) && Element[1].Is(RIGID)){
-      wallLength=Edges[0];
-    }
-    if((Element[0].Is(RIGID) && Element[1].IsNot(RIGID)) ||
-       (Element[1].Is(RIGID) && Element[0].IsNot(RIGID)) ){
-      minimumLength=Edges[0];
-    }
-    unsigned int counter=0;
-    for (unsigned int i = 2; i < Element.size(); ++i){
-      for(unsigned int j = 0; j < i; ++j)
-      {
-        noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-        // CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
-        SquaredLength = CoorDifference[0]*CoorDifference[0] +
-	    CoorDifference[1]*CoorDifference[1] +
-	    CoorDifference[2]*CoorDifference[2];
-        counter+=1;
-        Edges[counter]=sqrt(SquaredLength);
-        FirstEdgeNode[counter]=j;
-        SecondEdgeNode[counter]=i;
-        if(Element[i].Is(RIGID) && Element[j].Is(RIGID) && wallLength==0 ){
-          wallLength=Edges[counter];
-        }
-        if(((Element[i].Is(RIGID) && Element[j].IsNot(RIGID)) ||
-            (Element[j].Is(RIGID) && Element[i].IsNot(RIGID)) ) &&
-           (Edges[counter]<minimumLength || minimumLength==0)){
-          minimumLength=Edges[counter];
-        }
-      }
-
-    }
-
-    ////////  to avoid the elimanation of isolated free-surface-rigid elements /////////
-    for (unsigned int i = 0; i < Element.size(); ++i){
-      if(Element[i].IsNot(RIGID) && Element[i].IsNot(TO_ERASE) && Element[i].IsNot(SOLID) && Element[i].IsNot(ISOLATED)){
-	//////it is evident when a freesurface particle in touch with wall is erased --> reduce the safety coeff
-	if(Element[i].Is(FREE_SURFACE)){
-	  WeakPointerVector< Node < 3 > >& neighb_nodes = Element[i].GetValue(NEIGHBOUR_NODES);
-	  unsigned int countRigid=0;
-	  unsigned int countFreeSurface=0;
-	  for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
-          {
-            if(nn->Is(RIGID) || nn->Is(SOLID)){
-              countRigid++;
-            }
-            if(nn->Is(FREE_SURFACE) && nn->IsNot(RIGID) && nn->IsNot(SOLID)){
-              countFreeSurface++;
-            }
-          }
-	  if((countRigid+countFreeSurface)==neighb_nodes.size() && countRigid>0){
-	    safetyCoefficient3D=0.25;
-	  }
-	}
-      }
-
-    }
-
-
-    // ////////  to compare the non-wall length to wall edge length /////////
-    for (unsigned int i = 0; i < Edges.size(); ++i){
-      if(((Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].IsNot(RIGID)) ||
-    	  (Element[SecondEdgeNode[i]].Is(RIGID) && Element[FirstEdgeNode[i]].IsNot(RIGID))) &&
-    	 Element[FirstEdgeNode[i]].IsNot(TO_ERASE) &&
-    	 Element[SecondEdgeNode[i]].IsNot(TO_ERASE)&&
-    	 Edges[i]<safetyCoefficient3D*wallLength){
-    	if(Element[FirstEdgeNode[i]].IsNot(RIGID) && Element[FirstEdgeNode[i]].IsNot(SOLID) && Element[FirstEdgeNode[i]].IsNot(TO_ERASE) && Element[FirstEdgeNode[i]].IsNot(ISOLATED)){
-          if( norm_2(Element[FirstEdgeNode[i]].FastGetSolutionStepValue(VELOCITY)) > 1e-3)
-            Element[FirstEdgeNode[i]].Set(TO_ERASE);
-    	  inside_nodes_removed++;
-    	  erased_nodes += 1;
-    	}else if(Element[SecondEdgeNode[i]].IsNot(RIGID) && Element[SecondEdgeNode[i]].IsNot(SOLID) && Element[SecondEdgeNode[i]].IsNot(TO_ERASE) && Element[SecondEdgeNode[i]].IsNot(ISOLATED)){
-          if( norm_2(Element[SecondEdgeNode[i]].FastGetSolutionStepValue(VELOCITY)) > 1e-3)
-            Element[SecondEdgeNode[i]].Set(TO_ERASE);
-    	  inside_nodes_removed++;
-    	  erased_nodes += 1;
-    	}
-
-      }
-
-    }
-
-    KRATOS_CATCH( "" )
-
-  }
-
-  //**************************************************************************
-  //**************************************************************************
-
-  bool CheckForMovingLayerNodes(ModelPart& rModelPart, Node<3>& CheckedNode, const double wallLength)
-  {
-    KRATOS_TRY
-
-    const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
-    WeakPointerVector< Node < 3 > >& neighb_nodes = CheckedNode.GetValue(NEIGHBOUR_NODES);
-    bool eraseNode=true;
-    double maxSquaredDistance=0;
-    WeakPointerVector< Node < 3 > >::iterator j = neighb_nodes.begin();
-    for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
-    {
-      if(nn->IsNot(RIGID) && nn->IsNot(SOLID)){
-        // std::cout<<"neigh coordinates: "<<nn->X()<<" "<<nn->Y()<<std::endl;
-        array_1d<double,3>  CoorNeighDifference=CheckedNode.Coordinates()-nn->Coordinates();
-        double squaredDistance=CoorNeighDifference[0]*CoorNeighDifference[0]+CoorNeighDifference[1]*CoorNeighDifference[1];
-        if(dimension==3){
-          squaredDistance+=CoorNeighDifference[2]*CoorNeighDifference[2];
-        }
-        if(squaredDistance>maxSquaredDistance){
-          // std::cout<<"(distances:  "<<squaredDistance<<" vs "<<maxSquaredDistance<<")"<<std::endl;
-          maxSquaredDistance=squaredDistance;
-          j=nn;
-        }
-      }
-    }
-    //I have looked for the biggest edge for moving there the layer node
-    double maxNeighDistance=sqrt(maxSquaredDistance);
-    if(maxNeighDistance>wallLength && wallLength>0){
-      for (WeakPointerVector< Node<3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
-      {
-        if(nn==j){
-
-          unsigned int idMaster = CheckedNode.GetId();
-          unsigned int idSlave = j->GetId();
-          InterpolateFromTwoNodes(rModelPart,idMaster,idMaster,idSlave);
-          std::vector<double> NewCoordinates(3);
-          NewCoordinates[0] = (CheckedNode.X()+j->X())*0.5;
-          NewCoordinates[1] = (CheckedNode.Y()+j->Y())*0.5;
-          CheckedNode.X() =NewCoordinates[0];
-          CheckedNode.Y() =NewCoordinates[1];
-          CheckedNode.X0() =NewCoordinates[0];
-          CheckedNode.Y0() =NewCoordinates[1];
-          CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_X,0)=0;
-          CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0;
-          CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_X,1)=0;
-          CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0;
-          if(dimension==3){
-            NewCoordinates[2] = (CheckedNode.Z()+j->Z())*0.5;
-            CheckedNode.Z() =NewCoordinates[2];
-            CheckedNode.Z0() =NewCoordinates[2];
-            CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0;
-            CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0;
-          }
-          // std::cout<<"new coordinates: "<<CheckedNode.X()<<" "<<CheckedNode.Y()<<std::endl;
-          // std::cout<<"(distances:  "<<maxNeighDistance<<" vs "<<wallLength<<")"<<std::endl;
-        }
-        eraseNode=false;
-      }
-    }
-    return eraseNode;
-
-    KRATOS_CATCH( "" )
-
-  }
-
-  //**************************************************************************
-  //**************************************************************************
-
-
-  void InterpolateFromTwoNodes(ModelPart& rModelPart, unsigned int idMaster,unsigned int idSlave1,unsigned int idSlave2)
-  {
-
-    KRATOS_TRY
-
-    Node<3>::Pointer MasterNode = rModelPart.pGetNode(idMaster);
-    Node<3>::Pointer SlaveNode1 = rModelPart.pGetNode(idSlave1);
-    Node<3>::Pointer SlaveNode2 = rModelPart.pGetNode(idSlave2);
-
-    VariablesList& rVariablesList = rModelPart.GetNodalSolutionStepVariablesList();
-
-    unsigned int buffer_size = MasterNode->GetBufferSize();
-
-    for(VariablesList::const_iterator i_variable =  rVariablesList.begin();  i_variable != rVariablesList.end() ; ++i_variable)
-    {
-      //std::cout<<" name "<<i_variable->Name()<<std::endl;
-      //std::cout<<" type "<<typeid(*i_variable).name()<<std::endl;
-      std::string variable_name = i_variable->Name();
-      if(KratosComponents<Variable<double> >::Has(variable_name))
-      {
-        //std::cout<<"double"<<std::endl;
-        Variable<double> variable = KratosComponents<Variable<double> >::Get(variable_name);
-        for(unsigned int step = 0; step<buffer_size; ++step)
-        {
-          //getting the data of the solution step
-          double& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-
-          double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-          double node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-
-          node_data = (0.5*node0_data + 0.5*node1_data);
-
-        }
-      }
-      else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
-      {
-        //std::cout<<"array1d"<<std::endl;
-        Variable<array_1d<double, 3> > variable = KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name);
-        for(unsigned int step = 0; step<buffer_size; ++step)
-        {
-          //getting the data of the solution step
-          array_1d<double, 3>& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-
-          const array_1d<double, 3>& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-          const array_1d<double, 3>& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-          noalias(node_data) = (0.5*node0_data + 0.5*node1_data);
-          // node_data = (0.5*node0_data + 0.5*node1_data);
-        }
-
-      }
-      else if(KratosComponents<Variable<int > >::Has(variable_name))
-      {
-        //std::cout<<"int"<<std::endl;
-        //NO INTERPOLATION
-      }
-      else if(KratosComponents<Variable<bool > >::Has(variable_name))
-      {
-        //std::cout<<"bool"<<std::endl;
-        //NO INTERPOLATION
-      }
-      else if(KratosComponents<Variable<Matrix > >::Has(variable_name))
-      {
-        //std::cout<<"Matrix"<<std::endl;
-        Variable<Matrix > variable = KratosComponents<Variable<Matrix > >::Get(variable_name);
-        for(unsigned int step = 0; step<buffer_size; ++step)
-        {
-          //getting the data of the solution step
-          Matrix& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-
-          Matrix& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-          Matrix& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-
-          if( node_data.size1() > 0 && node_data.size2() ){
-            if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
-                node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() ) {
-              noalias(node_data) = (0.5*node0_data + 0.5*node1_data);
-              // node_data = (0.5*node0_data + 0.5*node1_data);
-            }
-          }
-        }
-
-      }
-      else if(KratosComponents<Variable<Vector > >::Has(variable_name))
-      {
-        //std::cout<<"Vector"<<std::endl;
-        Variable<Vector >variable = KratosComponents<Variable<Vector > >::Get(variable_name);
-        for(unsigned int step = 0; step<buffer_size; ++step)
-        {
-          //getting the data of the solution step
-          Vector& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-
-          Vector& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-          Vector& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-
-          if( node_data.size() > 0 ){
-            if( node_data.size() == node0_data.size() &&
-                node_data.size() == node1_data.size()) {
-              noalias(node_data) = (0.5*node0_data + 0.5*node1_data);
-              // node_data = (0.5*node0_data + 0.5*node1_data);
-            }
-          }
-        }
-      }
-
-    }
-
-    KRATOS_CATCH( "" )
-
-  }
 
   ///@}
   ///@name Private  Access
@@ -914,4 +824,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REMOVE_MESH_NODES_FOR_FLUIDS_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_REMOVE_FLUID_NODES_MESHER_PROCESS_H_INCLUDED  defined

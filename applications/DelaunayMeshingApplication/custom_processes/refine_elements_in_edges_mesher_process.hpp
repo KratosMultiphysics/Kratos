@@ -110,12 +110,6 @@ class RefineElementsInEdgesMesherProcess
       this->SetNodesToModelPart(mrModelPart, ListOfNewNodes);
     }
 
-    for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
-    {
-      if(in->Is(TO_SPLIT))
-         std::cout<<" TO SPlIT IS NOT RESET in EDGE REMOVE "<<std::endl;
-    }
-
     KRATOS_CATCH(" ")
   }
 

@@ -949,7 +949,13 @@ public:
     bool CheckRelativeVelocities (Geometry<Node<3> >& rGeometry, const double& rRelativeFactor);
 
     //computes prediction of volume decrease of the geometry
-    bool CheckVolumeDecrease(GeometryType& rVertices, const unsigned int& rDimension);
+    bool CheckVolumeDecrease(GeometryType& rVertices, const unsigned int& rDimension,const double& rTolerance,double& VolumeChange);
+
+    //computes prediction of volume after a projection of the displacement geometry
+    double GetMovedVolume(GeometryType& rVertices, const unsigned int& rDimension, double MovementFactor);
+
+    //computes deformation gradient determinant
+    double GetDeformationGradientDeterminant(GeometryType& rVertices, const unsigned int& rDimension);
 
     //*******************************************************************************************
     //*******************************************************************************************
