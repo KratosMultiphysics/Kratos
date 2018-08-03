@@ -12,7 +12,7 @@ def GetFilePath(fileName):
 
 class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
-    def solve(self, create_geometry):
+    def solve(create_geometry):
         model_part = ModelPart('Model')
 
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
@@ -86,7 +86,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
             prop)
 
         node_2.SetSolutionStepValue(POINT_LOAD_X, 1000)
-        
+
         # setup solver
 
         model_part.SetBufferSize(1)
@@ -172,7 +172,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_2, curve
 
-        node_1, node_2, curve = self.solve(create_geometry)
+        node_1, node_2, curve = TrussDiscreteElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -204,7 +204,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, curve = self.solve(create_geometry)
+        node_1, node_2, curve = TrussDiscreteElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0              )
         self.assertAlmostEqual(node_1.Y, 0.0              )
@@ -236,7 +236,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, curve = self.solve(create_geometry)
+        node_1, node_2, curve = TrussDiscreteElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0              )
         self.assertAlmostEqual(node_1.Y, 0.0              )
@@ -269,7 +269,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, curve = self.solve(create_geometry)
+        node_1, node_2, curve = TrussDiscreteElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0              )
         self.assertAlmostEqual(node_1.Y, 0.0              )
