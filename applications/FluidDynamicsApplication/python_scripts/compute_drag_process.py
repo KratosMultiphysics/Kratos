@@ -102,7 +102,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                     self._PrintToScreen(result_msg)
 
                 if (self.write_drag_output_file):
-                    self.output_file.write(str(current_time)+" "+format(drag_force[0],self.format)+" "+format(drag_force[1],self.format)+" "+format(drag_force[2],self.format)+"\n")
+                    self.output_file.write(format(current_time, self.format)+" "+format(drag_force[0],self.format)+" "+format(drag_force[1],self.format)+" "+format(drag_force[2],self.format)+"\n")
 
     def ExecuteFinalize(self):
         if (self.model_part.GetCommunicator().MyPID() == 0):
