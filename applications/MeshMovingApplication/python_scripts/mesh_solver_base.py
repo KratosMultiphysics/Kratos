@@ -11,7 +11,6 @@ import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # Other imports
 from python_solver import PythonSolver
-import os
 
 
 def CreateSolver(mesh_model_part, custom_settings):
