@@ -12,6 +12,9 @@
 //                   Philipp Bucher
 //
 
+#ifndef KRATOS_MPI_PYTHON_H
+#define KRATOS_MPI_PYTHON_H
+
 // System includes
 #include <vector>
 #include "mpi.h"
@@ -20,8 +23,6 @@
 
 // Project includes
 
-#ifndef KRATOS_MPI_PYTHON_H
-#define KRATOS_MPI_PYTHON_H
 
 namespace Kratos {
 
