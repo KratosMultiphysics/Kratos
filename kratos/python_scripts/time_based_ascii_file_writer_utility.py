@@ -24,7 +24,7 @@ class TimeBasedAsciiFileWriterUtility(object):
         # write_buffer_size > 0 means value specified is the size of buffer
 
         self.model_part = model_part
-        self.has_initial_write_buffer_size = self.params.Has("write_buffer_size")
+        self.has_initial_write_buffer_size = params.Has("write_buffer_size")
 
         params.ValidateAndAssignDefaults(default_settings)
 
