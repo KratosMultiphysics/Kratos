@@ -62,7 +62,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
-
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
         if (project_parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
