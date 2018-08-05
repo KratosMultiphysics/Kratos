@@ -112,6 +112,12 @@ class PythonMPI
 {
 public:
 
+    enum MPI_Operation {
+        MAX,
+        MIN,
+        SUM
+    };
+
 	/// Default constructor.
 	/** Initializes MPI if required and defines a wrapper for MPI_COMM_WORLD,
 	 * which can be accessed by calling GetWorld().
@@ -220,51 +226,48 @@ public:
 		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
 		MPI_Comm_size(rComm.GetMPIComm(), &size);
 
-        MPI_Bcast(&LocalValue, size, DataType, Root, rComm.GetMPIComm());
+        MPI_Bcast(&LocalValue, 1, DataType, Root, rComm.GetMPIComm());
 
         return LocalValue;
     }
 
-    TODO pass the MPI_Op from outside? Then they would have to be exposed in the module...
 	template<class TValueType>
-	TValueType max(PythonMPIComm& rComm,
-                   const TValueType LocalValue,
-                   const int Root)
+    TValueType reduce(PythonMPIComm& rComm,
+                      const TValueType LocalValue,
+                      const int Root,
+                      const MPI_Operation MpiOp)
 	{
-        return this->MPIReduceWrapper(rComm, LocalValue, Root, MPI_MAX);
-    }
-	template<class TValueType>
-	TValueType min(PythonMPIComm& rComm,
-                   const TValueType LocalValue,
-                   const int Root)
-	{
-        return this->MPIReduceWrapper(rComm, LocalValue, Root, MPI_MIN);
-    }
-	template<class TValueType>
-	TValueType sum(PythonMPIComm& rComm,
-                   const TValueType LocalValue,
-                   const int Root)
-	{
-        return this->MPIReduceWrapper(rComm, LocalValue, Root, MPI_SUM);
+		// Determime data type
+		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
+
+		int rank, size;
+		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+		MPI_Comm_size(rComm.GetMPIComm(), &size);
+
+        TValueType result_val;
+        MPI_Reduce(&LocalValue, &result_val, 1, DataType,
+                   GetMPIOpType(MpiOp), Root, rComm.GetMPIComm());
+
+        return result_val;
     }
 
 	template<class TValueType>
-	TValueType maxall(PythonMPIComm& rComm,
-                      const TValueType LocalValue)
+    TValueType allreduce(PythonMPIComm& rComm,
+                          const TValueType LocalValue,
+                          const MPI_Operation MpiOp)
 	{
-        return this->MPIReduceAllWrapper(rComm, LocalValue, MPI_MAX);
-    }
-	template<class TValueType>
-	TValueType minall(PythonMPIComm& rComm,
-                      const TValueType LocalValue)
-	{
-        return this->MPIReduceAllWrapper(rComm, LocalValue, MPI_MIN);
-    }
-	template<class TValueType>
-	TValueType sumall(PythonMPIComm& rComm,
-                      const TValueType LocalValue)
-	{
-        return this->MPIReduceAllWrapper(rComm, LocalValue,  MPI_SUM);
+		// Determime data type
+		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
+
+		int rank, size;
+		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+		MPI_Comm_size(rComm.GetMPIComm(), &size);
+
+        TValueType result_val;
+        MPI_Allreduce(&LocalValue, &result_val, 1, DataType,
+                      GetMPIOpType(MpiOp), rComm.GetMPIComm());
+
+        return result_val;
     }
 
 	/// Perform a MPI_Gather operation.
@@ -400,43 +403,14 @@ private:
 	template<class T>
 	inline MPI_Datatype GetMPIDatatype(const T& Value);
 
-	template<class TValueType>
-    TValueType MPIReduceWrapper(PythonMPIComm& rComm,
-                          const TValueType LocalValue,
-                          const int Root,
-                          const MPI_Op ReductionOperation)
-	{
-		// Determime data type
-		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
-
-		int rank, size;
-		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-		MPI_Comm_size(rComm.GetMPIComm(), &size);
-
-        TValueType result_val;
-        MPI_Reduce(&LocalValue, &result_val, size, DataType,
-                   ReductionOperation, Root, rComm.GetMPIComm());
-
-        return result_val;
-    }
-
-	template<class TValueType>
-    TValueType MPIReduceAllWrapper(PythonMPIComm& rComm,
-                          const TValueType LocalValue,
-                          const MPI_Op ReductionOperation)
-	{
-		// Determime data type
-		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
-
-		int rank, size;
-		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-		MPI_Comm_size(rComm.GetMPIComm(), &size);
-
-        TValueType result_val;
-        MPI_Allreduce(&LocalValue, &result_val, size, DataType,
-                      ReductionOperation, rComm.GetMPIComm());
-
-        return result_val;
+    inline MPI_Op GetMPIOpType(const MPI_Operation MPIOpEnum)
+    {
+        switch(MPIOpEnum) {
+	        case MAX: return MPI_MAX;
+	        case MIN: return MPI_MIN;
+	        case SUM: return MPI_SUM;
+        	default: break;
+        }
     }
 
 	int mArgc;

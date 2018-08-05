@@ -45,23 +45,15 @@ PYBIND11_MODULE(mpipython, m)
     std::vector<std::vector<int>> (PythonMPI::*gather_list_int)(PythonMPIComm&, const std::vector<int>&, const int) = &PythonMPI::gather;
     std::vector<std::vector<double>> (PythonMPI::*gather_list_double)(PythonMPIComm&, const std::vector<double>&, const int) = &PythonMPI::gather;
 
-    py::class_<PythonMPI>(m,"PythonMPI")
+    const auto py_mpi = py::class_<PythonMPI>(m,"PythonMPI")
     .def_property_readonly("rank",FRank)
     .def_property_readonly("size",FSize)
     .def("broadcast",&PythonMPI::broadcast<double>)
     .def("broadcast",&PythonMPI::broadcast<int>)
-    .def("max",&PythonMPI::max<double>)
-    .def("max",&PythonMPI::max<int>)
-    .def("min",&PythonMPI::min<double>)
-    .def("min",&PythonMPI::min<int>)
-    .def("sum",&PythonMPI::sum<double>)
-    .def("sum",&PythonMPI::sum<int>)
-    .def("maxall",&PythonMPI::maxall<double>)
-    .def("maxall",&PythonMPI::maxall<int>)
-    .def("minall",&PythonMPI::minall<double>)
-    .def("minall",&PythonMPI::minall<int>)
-    .def("sumall",&PythonMPI::sumall<double>)
-    .def("sumall",&PythonMPI::sumall<int>)
+    .def("reduce",&PythonMPI::reduce<double>)
+    .def("reduce",&PythonMPI::reduce<int>)
+    .def("allreduce",&PythonMPI::allreduce<double>)
+    .def("allreduce",&PythonMPI::allreduce<int>)
     .def("gather", gather_int)
     .def("gather", gather_double)
     .def("gather", gather_list_int)
@@ -69,6 +61,12 @@ PYBIND11_MODULE(mpipython, m)
     .def("allgather",&PythonMPI::allgather<double>)
     .def("allgather",&PythonMPI::allgather<int>)
     .def_property_readonly("world",&PythonMPI::GetWorld,py::return_value_policy::reference_internal )
+    ;
+
+    py::enum_<PythonMPI::MPI_Operation>(py_mpi, "MPI_op")
+    .value("MAX", PythonMPI::MPI_Operation::MAX)
+    .value("MIN", PythonMPI::MPI_Operation::MIN)
+    .value("SUM", PythonMPI::MPI_Operation::SUM)
     ;
 
     m.def("GetMPIInterface",&GetMPIInterface,py::return_value_policy::reference);
