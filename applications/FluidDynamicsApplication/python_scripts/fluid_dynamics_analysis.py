@@ -15,6 +15,15 @@ class FluidDynamicsAnalysis(AnalysisStage):
     def __init__(self,model,parameters):
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
+
+        if solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
+            warn_msg = '"domain_size" defined twice, using the one in "solver_settings"'
+            Kratos.Logger.PrintWarning("FluidDynamicsAnalysis", warn_msg)
+
+        if solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
+            warn_msg = '"model_part_name" defined twice, using the one in "solver_settings"'
+            Kratos.Logger.PrintWarning("FluidDynamicsAnalysis", warn_msg)
+
         if not solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
