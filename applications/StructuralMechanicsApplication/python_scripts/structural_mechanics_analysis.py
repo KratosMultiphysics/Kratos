@@ -33,6 +33,19 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initalizing the parameters
         solver_settings = project_parameters["solver_settings"]
+
+        if solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
+            warn_msg = '"domain_size" defined twice, using the one in "solver_settings"'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
+        if solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
+            warn_msg = '"model_part_name" defined twice, using the one in "solver_settings"'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
+        if solver_settings.Has("time_stepping") and parameters["problem_data"].Has("time_Step"):
+            warn_msg = 'time_stepping defined twice, using the one in "solver_settings"'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
         if not solver_settings.Has("time_stepping"):
             KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
             time_stepping_params = KratosMultiphysics.Parameters("{}")
@@ -48,6 +61,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
+
 
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
