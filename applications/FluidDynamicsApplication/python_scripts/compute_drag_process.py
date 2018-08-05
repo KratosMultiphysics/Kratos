@@ -35,11 +35,15 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 "print_drag_to_screen"      : false,
                 "print_format"              : ".8f",
                 "write_drag_output_file"    : true,
-                "output_file_settings": {}
+                "output_file_settings": {
+                    "write_buffer_size" : -1
+                }
             }
             """)
 
         self.params = params
+        # check the set write_buffer_size
+        self.initial_write_buffer_size = self.params["output_file_settings"]["write_buffer_size"].GetInteger()
         # Detect "End" as a tag and replace it by a large number
         if(self.params.Has("interval")):
             if(self.params["interval"][1].IsString()):
@@ -82,6 +86,13 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 else:
                     file_handler_params.AddEmptyValue("file_name")
                     file_handler_params["file_name"].SetString(output_file_name)
+
+                is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
+                if not is_mpi_execution and self.initial_write_buffer_size != -1:
+                    info_msg  = "File output buffer size set to 1 \n"
+                    info_msg += "for ComputeDragProcess output file "+ self.file_name
+                    KratosMultiphysics.Logger.PrintInfo("ComputeDragProcess", info_msg)
+                    file_handler_params["write_buffer_size"].SetInteger(1)
 
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
