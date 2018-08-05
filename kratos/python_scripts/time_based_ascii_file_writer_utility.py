@@ -20,7 +20,7 @@ class TimeBasedAsciiFileWriterUtility(object):
             "write_buffer_size" : -1
         }''')
         # write_buffer_size: -1 means we use the system default
-        # write_buffer_size:  0 means no buffering is done.
+        # write_buffer_size:  0 means no buffering is done. IMPORTANT : Only for binary output.
         # write_buffer_size > 0 means value specified is the size of buffer
 
         self.model_part = model_part
@@ -42,6 +42,10 @@ class TimeBasedAsciiFileWriterUtility(object):
             self.write_buffer_size = 1
         else:
             self.write_buffer_size = params["write_buffer_size"].GetInt()
+            if (self.write_buffer_size == 0):
+                err_msg  = "Buffer size of 0 not possible for ASCII output. \n"
+                err_msg  += "\t\tPlease choose a number greater than 1 or set -1 for default size. \n"
+                raise Exception(err_msg)
 
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.file = self.__InitializeOutputFile(file_header)
