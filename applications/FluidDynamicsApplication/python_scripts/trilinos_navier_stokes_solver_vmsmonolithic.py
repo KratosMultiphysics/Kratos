@@ -32,9 +32,10 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "stabilization": {
+                "formulation": "vms"
+            },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.01,
-            "oss_switch": 0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
@@ -70,6 +71,28 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "move_mesh_flag": false,
             "turbulence_model": "None"
         }""")
+
+        ## Backwards compatibility -- deprecation warnings
+        if settings.Has("oss_switch"):
+            msg  = "Input JSON data contains deprecated setting \'oss_switch\' (int).\n"
+            msg += "Please define \'stabilization/formulation\' (set it to \'vms\')\n"
+            msg += "and set \'stabilization/use_orthogonal_subscales\' (bool) instead."
+            KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
+            if not settings.Has("stabilization"):
+                settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
+            settings["stabilization"].AddEmptyValue("use_orthogonal_subscales")
+            settings["stabilization"]["use_orthogonal_subscales"].SetBool(bool(settings["oss_switch"].GetInt()))
+            settings.RemoveValue("oss_switch")
+        if settings.Has("dynamic_tau"):
+            msg  = "Input JSON data contains deprecated setting \'dynamic_tau\' (float).\n"
+            msg += "Please define \'stabilization/formulation\' (set it to \'vms\') and \n"
+            msg += "set \'stabilization/dynamic_tau\' (float) instead."
+            KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
+            if not settings.Has("stabilization"):
+                settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
+            settings["stabilization"].AddEmptyValue("dynamic_tau")
+            settings["stabilization"]["dynamic_tau"].SetDouble(settings["dynamic_tau"].GetDouble())
+            settings.RemoveValue("dynamic_tau")
 
         settings.ValidateAndAssignDefaults(default_settings)
         return settings
