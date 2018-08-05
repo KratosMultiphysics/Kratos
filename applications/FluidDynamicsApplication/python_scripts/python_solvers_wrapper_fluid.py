@@ -5,7 +5,7 @@ import KratosMultiphysics
 def CreateSolver(model, custom_settings):
 
     if custom_settings["solver_settings"].Has("ale_settings"):
-        KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
+        from KratosMultiphysics import MeshMovingApplication
         import ale_fluid_solver
         return ale_fluid_solver.CreateSolver(model, custom_settings)
 

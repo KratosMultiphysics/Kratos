@@ -11,17 +11,23 @@ def CreateSolver(model, custom_settings):
     '''This function creates the requested solver
     If no "ale_settings" are specified a regular fluid-solver is created
     '''
-    if custom_settings.Has("ale_settings"):
-        ALEFluidSolver(model, custom_settings)
+    if custom_settings["solver_settings"].Has("ale_settings"):
+        return ALEFluidSolver(model, custom_settings)
     else:
-        KratosMultiphysics.PrintInfo("ALEFluidSolver", "No ale settings found, creating a pure fluid solver")
+        KratosMultiphysics.Logger.PrintInfo("ALEFluidSolver", "No ale settings found, creating a pure fluid solver")
         KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
+        import python_solvers_wrapper_fluid
         return python_solvers_wrapper_fluid.CreateSolver(model, custom_settings)
 
 
 class ALEFluidSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         super(ALEFluidSolver, self).__init__(model, custom_settings["solver_settings"])
+
+        fluid_model_part_name = custom_settings["solver_settings"]["model_part_name"].GetString()
+        if not self.model.HasModelPart(fluid_model_part_name):
+            fluid_mesh_model_part = KratosMultiphysics.ModelPart(fluid_model_part_name)
+            self.model.AddModelPart(fluid_mesh_model_part)
 
         ## Creating the fluid solver
         self.fluid_solver = self._CreateFluidSolver(custom_settings)
@@ -32,16 +38,35 @@ class ALEFluidSolver(PythonSolver):
         # delete the (fluid) solver settings
         mesh_motion_settings.RemoveValue("solver_settings")
         # add the ale solver settings as solver settings
-        mesh_motion_settings.AddValue("solver_settings", custom_settings["ale_settings"])
+        mesh_motion_settings.AddValue("solver_settings", custom_settings["solver_settings"]["ale_settings"])
+        mesh_motion_solver_settings = mesh_motion_settings["solver_settings"]
+
+        if not mesh_motion_solver_settings.Has("echo_level"):
+            mesh_motion_solver_settings.AddEmptyValue("echo_level")
+            fluid_echo_lvl = custom_settings["solver_settings"]["echo_level"].GetInt()
+            mesh_motion_solver_settings["echo_level"].SetInt(fluid_echo_lvl)
+
+        if mesh_motion_solver_settings.Has("model_part_name"):
+            if not fluid_model_part_name == mesh_motion_solver_settings["model_part_name"].GetString():
+                raise Exception('Fluid- and Mesh-Solver have to use the same "model_part_name"!')
+        else:
+            mesh_motion_solver_settings.AddEmptyValue("model_part_name")
+            fluid_model_part_name = custom_settings["solver_settings"]["model_part_name"].GetString()
+            mesh_motion_solver_settings["model_part_name"].SetString(fluid_model_part_name)
+
+        if not mesh_motion_solver_settings.Has("domain_size"):
+            mesh_motion_solver_settings.AddEmptyValue("domain_size")
+            fluid_domain_size = custom_settings["solver_settings"]["domain_size"].GetInt()
+            mesh_motion_solver_settings["domain_size"].SetInt(fluid_domain_size)
 
         # Get the names of the interface-parts for which the MESH_VELOCITY should be
         # applied to the Fluid-VELOCITY
         self.ale_interface_part_names = []
-        if mesh_motion_settings["solver_settings"].Has("ale_interface_parts"):
-            for i in range(mesh_motion_solver.settings["ale_interface_parts"].size()):
+        if mesh_motion_solver_settings.Has("ale_interface_parts"):
+            for i in range(mesh_motion_solver_settings["ale_interface_parts"].size()):
                 self.ale_interface_part_names.append(
-                    mesh_motion_settings["solver_settings"]["ale_interface_parts"][i].GetString())
-            mesh_motion_settings["solver_settings"].RemoveValue("ale_interface_parts")
+                    mesh_motion_solver_settings["ale_interface_parts"][i].GetString())
+            mesh_motion_solver_settings.RemoveValue("ale_interface_parts")
 
         import python_solvers_wrapper_mesh_motion
         self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolver(model, mesh_motion_settings)
@@ -117,7 +142,7 @@ class ALEFluidSolver(PythonSolver):
 
         # Copy the MESH_VELOCITY to the VELOCITY (ALE) on the interface
         for smp_name in self.ale_interface_part_names:
-            part_nodes = self.main_model_part.GetSubModelPart(smp_name).Nodes
+            part_nodes = self.GetComputingModelPart().GetSubModelPart(smp_name).Nodes
             KratosMultiphysics.VariableUtils().CopyVectorVar(KratosMultiphysics.MESH_VELOCITY,
                                                              KratosMultiphysics.VELOCITY,
                                                              part_nodes)
@@ -132,6 +157,8 @@ class ALEFluidSolver(PythonSolver):
         self.mesh_motion_solver.Clear()
         self.fluid_solver.Clear()
 
+    def GetComputingModelPart(self):
+        return self.mesh_motion_solver.GetComputingModelPart() # this is the same as the one used in Fluid
 
     def GetFluidSolver(self):
         return self.fluid_solver
@@ -148,8 +175,8 @@ class ALEFluidSolver(PythonSolver):
         It can be overridden to create different fluid solvers
         '''
         KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
+        import python_solvers_wrapper_fluid
         fluid_settings = custom_settings.Clone()
         # remove the ale_settings so we can use the fluid_solver_wrapper constructor
         fluid_settings["solver_settings"].RemoveValue("ale_settings")
-        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolver(model, fluid_settings)
+        return python_solvers_wrapper_fluid.CreateSolver(self.model, fluid_settings)
