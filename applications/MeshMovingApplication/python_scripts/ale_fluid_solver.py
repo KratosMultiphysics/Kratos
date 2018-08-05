@@ -54,7 +54,12 @@ class ALEFluidSolver(PythonSolver):
             fluid_model_part_name = custom_settings["solver_settings"]["model_part_name"].GetString()
             mesh_motion_solver_settings["model_part_name"].SetString(fluid_model_part_name)
 
-        if not mesh_motion_solver_settings.Has("domain_size"):
+        if mesh_motion_solver_settings.Has("domain_size"):
+            fluid_domain_size = custom_settings["solver_settings"]["domain_size"].GetInt()
+            mesh_motion_domain_size = mesh_motion_solver_settings["domain_size"].GetInt()
+            if not fluid_domain_size == mesh_motion_domain_size:
+                raise Exception('Fluid- and Mesh-Solver have to use the same "domain_size"!')
+        else:
             mesh_motion_solver_settings.AddEmptyValue("domain_size")
             fluid_domain_size = custom_settings["solver_settings"]["domain_size"].GetInt()
             mesh_motion_solver_settings["domain_size"].SetInt(fluid_domain_size)
