@@ -11,7 +11,6 @@ import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # Other imports
 from python_solver import PythonSolver
-import os
 
 
 def CreateSolver(mesh_model_part, custom_settings):
@@ -142,6 +141,16 @@ class MeshSolverBase(PythonSolver):
     def Check(self):
         self.get_mesh_motion_solving_strategy().Check()
 
+    def GetMinimumBufferSize(self):
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 1:
+            buffer_size = 2
+        elif time_order == 2:
+            buffer_size = 3
+        else:
+            raise Exception('"time_order" can only be 1 or 2!')
+        return max(buffer_size, self.settings["buffer_size"].GetInt())
+
     def MoveMesh(self):
         self.get_mesh_motion_solving_strategy().MoveMesh()
 
@@ -185,19 +194,11 @@ class MeshSolverBase(PythonSolver):
         """
         raise Exception("Mesh motion solving strategy must be created by the derived class.")
 
-
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.settings["buffer_size"].GetInt()
-        time_order = self.settings["time_order"].GetInt()
-        if time_order == 1:
-            buffer_size = 2
-        elif time_order == 2:
-            buffer_size = 3
-        else:
-            buffer_size = buffer_size
+        buffer_size = self.GetMinimumBufferSize()
         self.mesh_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.
