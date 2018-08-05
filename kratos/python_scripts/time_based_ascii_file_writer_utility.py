@@ -20,6 +20,8 @@ class TimeBasedAsciiFileWriterUtility(object):
             "write_buffer_size" : -1
         }''')
         # write_buffer_size: -1 means we use the system default
+        # write_buffer_size:  0 means no buffering is done.
+        # write_buffer_size > 0 means value specified is the size of buffer
 
         self.model_part = model_part
 
