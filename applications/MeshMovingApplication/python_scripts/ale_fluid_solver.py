@@ -53,6 +53,17 @@ class ALEFluidSolver(PythonSolver):
 
         self.is_printing_rank = self.fluid_solver._IsPrintingRank()
 
+        # TODO move to "Check"?
+        if (self.mesh_motion_solver.settings["calculate_mesh_velocities"].GetBool() == False
+            and self.is_printing_rank):
+            info_msg = "Mesh velocities are not being computed in the Mesh solver!"
+            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+
+        if (self.fluid_solver.settings["compute_reactions"].GetBool() == False
+            and self.is_printing_rank):
+            info_msg = "Reactions are not being computed in the Fluid solver!"
+            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Construction finished")
 
@@ -116,16 +127,6 @@ class ALEFluidSolver(PythonSolver):
     def Check(self):
         self.mesh_motion_solver.Check()
         self.fluid_solver.Check()
-
-        if (self.mesh_motion_solver.settings["calculate_mesh_velocities"].GetBool() == False
-            and self.is_printing_rank):
-            info_msg = "Mesh velocities are not being computed in the Mesh solver!"
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
-
-        if (self.fluid_solver.settings["compute_reactions"].GetBool() == False
-            and self.is_printing_rank):
-            info_msg = "Reactions are not being computed in the Fluid solver!"
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
 
     def Clear(self):
         self.mesh_motion_solver.Clear()
