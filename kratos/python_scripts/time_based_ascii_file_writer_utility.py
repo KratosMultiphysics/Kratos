@@ -24,7 +24,7 @@ class TimeBasedAsciiFileWriterUtility(object):
         # write_buffer_size > 0 means value specified is the size of buffer
 
         self.model_part = model_part
-        self.has_initial_write_buffer_size = params.Has("write_buffer_size")
+        has_initial_write_buffer_size = params.Has("write_buffer_size")
 
         params.ValidateAndAssignDefaults(default_settings)
 
@@ -35,11 +35,11 @@ class TimeBasedAsciiFileWriterUtility(object):
 
         # size of the buffer in bytes. Set to "0" for flushing always
         is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
-        if not is_mpi_execution and not self.has_initial_write_buffer_size:
+        if not is_mpi_execution and not has_initial_write_buffer_size:
             info_msg  = "File output buffer size set to 1 \n"
-            info_msg += "for ComputeDragProcess output file "+ self.file_name
-            KratosMultiphysics.Logger.PrintInfo("ComputeDragProcess", info_msg)
-            file_handler_params["write_buffer_size"].SetInteger(1)
+            info_msg += "for TimeBasedAsciiFileWriterUtility output file "+ self.file_name
+            KratosMultiphysics.Logger.PrintInfo("TimeBasedAsciiFileWriterUtility", info_msg)
+            self.write_buffer_size = 1
         else:
             self.write_buffer_size = params["write_buffer_size"].GetInt()
 
