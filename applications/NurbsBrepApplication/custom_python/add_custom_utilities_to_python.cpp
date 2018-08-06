@@ -56,12 +56,14 @@ namespace Python
             .def("ComputeArea", &NurbsBrepModeler::ComputeArea)
             .def("MapNode", &NurbsBrepModeler::MapNode)
             .def("GetInterfaceConditions", &NurbsBrepModeler::GetInterfaceConditions)
+            .def("GetUpdatedLocation", &NurbsBrepModeler::GetUpdatedLocation)
             ;
 
         class_<BrepModelGeometryReader, typename BrepModelGeometryReader::Pointer>(m, "BrepModelGeometryReader")
             .def(init<Parameters&>())
             .def("ReadGeometry", &BrepModelGeometryReader::ReadGeometry)
             .def("WriteGaussPoints", &BrepModelGeometryReader::WriteGaussPoints)
+            .def("WriteGaussPointsIteration", &BrepModelGeometryReader::WriteGaussPointsIteration)
             .def("WriteGaussPointsJson", &BrepModelGeometryReader::WriteGaussPointsJson)
             ;
 

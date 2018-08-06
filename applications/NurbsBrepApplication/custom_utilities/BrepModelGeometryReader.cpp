@@ -85,6 +85,67 @@ namespace Kratos
     file_c_edges.close();
   }
 
+  void BrepModelGeometryReader::WriteGaussPointsIteration(ModelPart& model_part, int step)
+  {
+      //ModelPart& faces = model_part.GetSubModelPart("FACES");
+      std::ofstream file;
+      file.open("faces" + std::to_string(step) + ".txt");
+      for (auto node = model_part.ElementsBegin(); node != model_part.ElementsEnd(); ++node)
+      {
+          Vector variable = ZeroVector(3);
+          node->Calculate(COORDINATES, variable, model_part.GetProcessInfo());
+          file << variable[0] << " " << variable[1] << " " << variable[2] << " " << "\n";
+      }
+      file.close();
+
+      //if (faces.HasSubModelPart("FACE_2_EMBEDDED"))
+      //{
+      //    ModelPart& faces_2_embedded = faces.GetSubModelPart("FACE_2_EMBEDDED");
+      //    std::ofstream file_embedded;
+      //    file_embedded.open("facesembedded.txt");
+      //    for (auto node = faces_2_embedded.NodesBegin(); node != faces_2_embedded.NodesEnd(); ++node)
+      //    {
+      //        file_embedded << node->X() << " " << node->Y() << " " << node->Z() << " " << "\n";
+      //    }
+      //    file_embedded.close();
+      //}
+
+      //if (faces.HasSubModelPart("FACE_2_REVERSE"))
+      //{
+      //    ModelPart& faces_2_reversed = faces.GetSubModelPart("FACE_2_REVERSE");
+      //    std::ofstream file_reversed;
+      //    file_reversed.open("facesreversed.txt");
+      //    for (auto node = faces_2_reversed.NodesBegin(); node != faces_2_reversed.NodesEnd(); ++node)
+      //    {
+      //        file_reversed << node->X() << " " << node->Y() << " " << node->Z() << " " << "\n";
+      //    }
+      //    file_reversed.close();
+      //}
+
+      //const ModelPart& edges = model_part.GetSubModelPart("EDGES");
+      std::ofstream file_edges;
+      file_edges.open("edges" + std::to_string(step) + ".txt");
+      for (auto node = model_part.ConditionsBegin(); node != model_part.ConditionsEnd(); ++node)
+      {
+          Vector variable = ZeroVector(3);
+          node->Calculate(COORDINATES, variable, model_part.GetProcessInfo());
+          file_edges << variable[0] << " " << variable[1] << " " << variable[2] << " " << "\n";
+      }
+      file_edges.close();
+
+      //const ModelPart& c_edges = model_part.GetSubModelPart("COUPLING_EDGES");
+      //std::ofstream file_c_edges;
+      //file_c_edges.open("c_edges.txt");
+      //for (auto node = c_edges.NodesBegin(); node != c_edges.NodesEnd(); ++node)
+      //{
+      //    file_c_edges << node->X() << " " << node->Y() << " " << node->Z() << " ";
+
+      //    Vector location = node->GetValue(LOCATION_SLAVE);
+      //    file_c_edges << location[0] << " " << location[1] << " " << location[2] << "\n";
+      //}
+      //file_c_edges.close();
+  }
+
   void BrepModelGeometryReader::WriteGaussPointsJson(ModelPart& rModelPart, const std::string& rOutputFileName)
   {
 	  ModelPart& faces = rModelPart.GetSubModelPart("FACES");
@@ -462,12 +523,12 @@ namespace Kratos
 
 				  unsigned int vertex_id = vertex_dict["brep_id"].GetInt();
 
-				  int cp_id = vertex_dict["coordinates"][0].GetInt();
+                  int cp_id = 0;// vertex_dict["coordinates"][0].GetInt();
 				  Vector coords = ZeroVector(4);
-				  coords(0) = vertex_dict["coordinates"][1][0].GetDouble();
-				  coords(1) = vertex_dict["coordinates"][1][1].GetDouble();
-				  coords(2) = vertex_dict["coordinates"][1][2].GetDouble();
-				  coords(3) = vertex_dict["coordinates"][1][3].GetDouble();
+				  //coords(0) = vertex_dict["coordinates"][1][0].GetDouble();
+				  //coords(1) = vertex_dict["coordinates"][1][1].GetDouble();
+				  //coords(2) = vertex_dict["coordinates"][1][2].GetDouble();
+				  //coords(3) = vertex_dict["coordinates"][1][3].GetDouble();
 
 				  std::vector<BrepVertex::Topology> brep_vertices_topology_vector;
 				  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

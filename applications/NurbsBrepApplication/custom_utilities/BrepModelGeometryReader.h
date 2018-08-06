@@ -73,6 +73,7 @@ namespace Kratos
 
     void WriteGaussPoints(ModelPart& model_part);
 	void WriteGaussPointsJson(ModelPart& rModelPart, const std::string& rOutputFileName);
+    void WriteGaussPointsIteration(ModelPart& model_part, int step);
 
     /// Constructor.
     BrepModelGeometryReader(Parameters& cad_geometry_in_json);

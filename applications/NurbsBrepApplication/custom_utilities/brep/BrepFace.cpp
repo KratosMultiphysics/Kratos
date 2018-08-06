@@ -1176,14 +1176,20 @@ namespace Kratos
 		const int& rShapefunctionOrder,
 		const double& rAccuracy, const int& rMaxIterations)
 	{
+        //std::cout << "shit debugging" << std::endl;
 		Point point(rSpaceNode->X(), rSpaceNode->Y(), rSpaceNode->Z());
+        //std::cout << rSpaceNode->X() << "  " << rSpaceNode->Y() << "  " << rSpaceNode->Z() << std::endl;
+        //std::cout << "shit debugging 1" << std::endl;
 
 		Vector local_parameter = rClosestNode->GetValue(LOCAL_PARAMETERS);
-		double u = local_parameter(0);
-		double v = local_parameter(1);
-		ProjectionNewtonRaphson(point, u, v, rAccuracy, rMaxIterations);
+        //std::cout << "shit debugging 2" << std::endl;
+		double u = local_parameter(0) / 2.5;
+		double v = local_parameter(1) / 2.5;
+		//ProjectionNewtonRaphson(point, u, v, rAccuracy, rMaxIterations);
+        //std::cout << "shit debugging 3" << std::endl;
 
 		EvaluateIntegrationNode(u, v, rShapefunctionOrder, rClosestNode);
+        //KRATOS_WATCH(rClosestNode->GetValue(CONTROL_POINT_IDS))
 	}
 
   //// --------------------------------------------------------------------------
