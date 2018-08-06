@@ -68,3 +68,5 @@ kratos/includes/kratos_version.h
 *.cpp~
 
 applications/python_scripts/beam_profiles\.csv
+
+*tmpTest
