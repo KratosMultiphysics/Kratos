@@ -129,6 +129,10 @@ class SelectElementsMesherProcess
       if( mEchoLevel > 0 )
         std::cout<<"   Start Element Selection "<<OutNumberOfElements<<std::endl;
 
+      //reassign fluid and rigid flags to eliminate full rigid elements
+      //if( !IsFirstTimeStep() )
+      this->LabelEdgeNodes(mrModelPart);
+
       unsigned int dimension = 0;
       unsigned int number_of_vertices = 0;
 
@@ -294,8 +298,10 @@ class SelectElementsMesherProcess
 
     }
 
-    std::cout<<"   [Preserved Elements "<<mrRemesh.Info->NumberOfElements<<"] :: (slivers detected: "<<number_of_slivers<<") "<<std::endl;
-    std::cout<<"   (passed_alpha_shape: "<<passed_alpha_shape<<", passed_inner_outer: "<<passed_inner_outer<<") "<<std::endl;
+    if( mEchoLevel > 0 ){
+      std::cout<<"  [Preserved Elements "<<mrRemesh.Info->NumberOfElements<<"] ("<<mrModelPart.NumberOfElements() <<") :: (slivers detected: "<<number_of_slivers<<") "<<std::endl;
+      std::cout<<"  (passed_alpha_shape: "<<passed_alpha_shape<<", passed_inner_outer: "<<passed_inner_outer<<") "<<std::endl;
+    }
 
 
     this->SelectNodesToErase();
@@ -386,6 +392,8 @@ class SelectElementsMesherProcess
     unsigned int  Inlet;
     unsigned int  Isolated;
     unsigned int  Sliver;
+    unsigned int  NewEntity;
+    unsigned int  OldEntity;
 
     double Radius;
 
@@ -401,6 +409,9 @@ class SelectElementsMesherProcess
       Contact = 0;
       Inlet = 0;
       Isolated = 0;
+      Sliver = 0;
+      NewEntity = 0;
+      OldEntity = 0;
       Radius = 0;
     }
 
@@ -428,6 +439,10 @@ class SelectElementsMesherProcess
       }
       if(rNode.Is(SELECTED))
         ++Sliver;
+      if(rNode.Is(NEW_ENTITY))
+        ++NewEntity;
+      if(rNode.Is(OLD_ENTITY))
+        ++OldEntity;
 
       Radius+=rNode.FastGetSolutionStepValue(NODAL_H);
     }
@@ -441,6 +456,82 @@ class SelectElementsMesherProcess
   ///@name Protected Operations
   ///@{
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool IsFirstTimeStep()
+  {
+    const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+    const double& CurrentTime = rCurrentProcessInfo[TIME];
+    const double& TimeStep = rCurrentProcessInfo[DELTA_TIME];
+    if(CurrentTime<=TimeStep)
+      return true;
+    else
+      return false;
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void LabelEdgeNodes(ModelPart& rModelPart)
+  {
+
+    //reset domain flags in nodes before new assignment
+    if( rModelPart.Is(FLUID) ){
+      //reset domain flags in nodes before new assignment
+      unsigned int count_rigid = 0;
+      unsigned int count_free_surface = 0;
+      unsigned int count_positive_pressure = 0;
+      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; ++i_elem)
+      {
+        PointsArrayType& vertices=i_elem->GetGeometry().Points();
+
+        count_rigid = 0;
+        count_free_surface = 0;
+        count_positive_pressure = 0;
+        for(unsigned int i=0; i<vertices.size(); ++i)
+        {
+          if( vertices[i].Is(RIGID) )
+            ++count_rigid;
+        }
+
+        //to release full rigid elements with no fluid surrounding them
+        if( count_rigid == vertices.size() ){
+
+          for(unsigned int i=0; i<vertices.size(); ++i)
+          {
+            vertices[i].Set(OLD_ENTITY,true);
+          }
+        }
+      }
+
+
+      //set new element and domain flags to nodes
+      for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; ++i_elem)
+      {
+        PointsArrayType& vertices=i_elem->GetGeometry().Points();
+        count_rigid = 0;
+        for(unsigned int i=0; i<vertices.size(); ++i)
+        {
+          if( vertices[i].Is(RIGID) )
+            ++count_rigid;
+        }
+
+        //to release full rigid elements with no fluid surrounding them
+        if( count_rigid != vertices.size() ){
+
+          for(unsigned int i=0; i<vertices.size(); ++i)
+          {
+            //set domain type to nodes
+            vertices[i].Set(OLD_ENTITY,false);
+          }
+
+        }
+      }
+    }
+
+
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -495,14 +586,14 @@ class SelectElementsMesherProcess
                 i_node->Set(ISOLATED,true);
                 ++isolated_nodes;
               }
-              else{
-                std::cout<<" ISOLATED TO ERASE "<<std::endl;
-              }
+              // else{
+              //   std::cout<<" ISOLATED TO ERASE "<<std::endl;
+              // }
 
             }
             else{
 
-              std::cout<<" ISOLATED NODES NOT KEPT "<<std::endl;
+              //std::cout<<" ISOLATED NODES NOT KEPT "<<std::endl;
               i_node->Set(TO_ERASE,true);
               if( mEchoLevel > 0 )
                 std::cout<<" NODE "<<i_node->Id()<<" IS INSIDE RELEASE "<<std::endl;
@@ -555,7 +646,8 @@ class SelectElementsMesherProcess
 
       }
 
-      i_node->Reset(BLOCKED);
+      i_node->Set(BLOCKED,false);
+      i_node->Set(OLD_ENTITY,false);
       if(i_node->Is(VISITED))
         i_node->Set(SELECTED,true);
       else
@@ -564,10 +656,10 @@ class SelectElementsMesherProcess
 
     }
 
-    if( mEchoLevel > 0 )
+    if( mEchoLevel > 0 ){
       std::cout<<"   NUMBER OF RELEASED NODES "<<count_release<<std::endl;
-
-    std::cout<<"   NUMBER OF ISOLATED NODES "<<isolated_nodes<<std::endl;
+      std::cout<<"   NUMBER OF ISOLATED NODES "<<isolated_nodes<<std::endl;
+    }
   }
 
   //*******************************************************************************************
@@ -613,6 +705,51 @@ class SelectElementsMesherProcess
 
   }
 
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  //it can set TO_ERASE to new entities inserted in full rigid elements
+  bool CheckElementBoundaries(GeometryType& rVertices,const NodalFlags& rVerticesFlags)
+  {
+    bool accepted = true;
+    unsigned int NumberOfVertices = rVertices.size();
+
+    if ( mrModelPart.Is(FLUID) ){
+
+      //do not accept full rigid elements (no fluid)
+      if( rVerticesFlags.Rigid == NumberOfVertices && rVerticesFlags.Fluid>0){
+        //accept when it has more than two fluid nodes (2D) and more than 3 fluid nodes (3D)
+        if( rVerticesFlags.Fluid < NumberOfVertices-1 ){
+          //std::cout<<" RIGID EDGE DISCARDED (free_surface: "<<rVerticesFlags.FreeSurface<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<")"<<std::endl;
+          accepted=false;
+        }
+        else if( rVerticesFlags.Fluid == NumberOfVertices && rVerticesFlags.OldEntity >= 2  ){
+          //std::cout<<" OLD RIGID EDGE DISCARDED (old_entity: "<<rVerticesFlags.OldEntity<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<")"<<std::endl;
+          accepted=false;
+        }
+      }
+
+      //do not accept full rigid elements with a new inserted node (no fluid)
+      if( (rVerticesFlags.Rigid + rVerticesFlags.NewEntity) == NumberOfVertices && rVerticesFlags.Fluid>0){
+        if( rVerticesFlags.Fluid == NumberOfVertices && rVerticesFlags.OldEntity >= NumberOfVertices-1 ){
+          std::cout<<" OLD RIGID NEW ENTITY EDGE DISCARDED (old_entity: "<<rVerticesFlags.OldEntity<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<" free_surface: "<<rVerticesFlags.FreeSurface<<")"<<std::endl;
+          accepted=false;
+        }
+      }
+
+      //do not accept full rigid-solid elements (no fluid)
+      if( (rVerticesFlags.Solid + rVerticesFlags.Rigid) >= NumberOfVertices && rVerticesFlags.Fluid == 0)
+        accepted=false;
+
+      //do not accept full solid elements
+      if( rVerticesFlags.Solid == NumberOfVertices )
+        accepted=false;
+    }
+
+    return accepted;
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -784,7 +921,7 @@ class SelectElementsMesherProcess
                 rAlpha*=0.8;
               }
               //one wall vertex
-              if( (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) ){
+              else if( (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) ){
                 //to avoid new approaching wall elements with three non-wall free-surface nodes
                 if( rVerticesFlags.NoWallFreeSurface == 3 )
                   rAlpha *= 0.60;
@@ -795,7 +932,7 @@ class SelectElementsMesherProcess
               else if( rVerticesFlags.Rigid == 2 || rVerticesFlags.Solid == 2 || (rVerticesFlags.Rigid+rVerticesFlags.Solid)==2 ){
                 //to avoid new approaching wall elements with two non-wall free-surface nodes
                 if( rVerticesFlags.NoWallFreeSurface == 2 )
-                  rAlpha *= 0.60;
+                  rAlpha *= 0.50;
                 else
                   rAlpha *= 0.80;
               }
@@ -803,23 +940,35 @@ class SelectElementsMesherProcess
               else if( rVerticesFlags.Rigid == 3 || rVerticesFlags.Solid == 3 || (rVerticesFlags.Rigid+rVerticesFlags.Solid)==3 ){
                 //to avoid new approaching wall elements with only one non-wall free-surface node
                 if( rVerticesFlags.NoWallFreeSurface == 1 )
-                  rAlpha *= 0.60;
+                  rAlpha *= 0.70;
                 else
                   rAlpha *= 0.80;
               }
               //there are no wall vertices (impossible)
               else{
                 rAlpha*=0.80;
-                std::cout<<" WARNING: new element with non-fluid particles and non wall-particles (rigid: "<<rVerticesFlags.Rigid<<" solid: "<<rVerticesFlags.Solid<<" fluid: "<<rVerticesFlags.Fluid<<" free-surface: "<<rVerticesFlags.FreeSurface<<")"<<std::endl;
+                std::cout<<" WARNING: new element with non-fluid particles and non wall-particles (rigid: "<<rVerticesFlags.Rigid<<" solid: "<<rVerticesFlags.Solid<<" fluid: "<<rVerticesFlags.Fluid<<" free-surface: "<<rVerticesFlags.FreeSurface<<" new_entity: "<<rVerticesFlags.NewEntity<<" isolated: "<<rVerticesFlags.Isolated<<" old_entity: "<<rVerticesFlags.OldEntity<<")"<<std::endl;
               }
 
             }
+            //if the element is not decreasing its volume:
             else{
 
               //if the element does not change the volume (all rigid or moving tangentially to the wall)
-              rAlpha=0;
+              if( VolumeChange > 0 && VolumeChange < VolumeTolerance && rVerticesFlags.Rigid == NumberOfVertices ){
+                rAlpha*=0.80;
+                //std::cout<<" CONSIDERING VOLUME CHANGE "<<VolumeChange<<std::endl;
+              }
+              else{
+                rAlpha=0;
+              }
+
             }
           }
+
+          //in 3D alpha must be larger
+          rAlpha*=1.10;
+
         }
         //all nodes are fluid (pre-existing elements) or new elements formed in the free-surface
         else{ //fluid element
@@ -827,71 +976,59 @@ class SelectElementsMesherProcess
           //all nodes in the free-surface
           if( rVerticesFlags.FreeSurface == 4 && rVerticesFlags.Sliver == 0 ){
 
-            //all nodes in the non-wall free-surface (sliver free surface can be artificial)
+            //all nodes in the non-wall free-surface (free surface flat element can be artificial)
             if( rVerticesFlags.NoWallFreeSurface == 4){
 
               //if the element is decreasing its volume:
               VolumeChange = 0;
               //to avoid closing fluid voids with new elements
               if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
-                rAlpha*=0.80;
+                rAlpha*=0.70;
               //to avoid increasing fluid surface with new elements
               else
-                rAlpha*=0.60;
+                rAlpha*=0.40;
 
             }
             //three nodes in non-wall free-surface
             else if( rVerticesFlags.NoWallFreeSurface == 3 ){
-              rAlpha*=0.60;
+              if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
+                rAlpha*=0.80;
+              else
+                rAlpha*=0.50;
             }
             //two nodes in non-wall free-surface
             else if( rVerticesFlags.NoWallFreeSurface == 2 ){
-              rAlpha*=0.60;
+              if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
+                rAlpha*=0.80;
+              else
+                rAlpha*=0.50;
             }
             //one node in non-wall free-surface
             else{
-              rAlpha*=1.20;
+              rAlpha*=0.80;
             }
           }
           else{
-            rAlpha*=1.20;
-          }
-        }
 
-        //in 3D alpha must be larger
-        rAlpha*=1.20;
+            if( rVerticesFlags.FreeSurface > 0 && rVerticesFlags.Rigid > 0 ){
+              if( MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange) )
+                rAlpha*=1.20;
+              else
+                rAlpha*=0.80;
+            }
+
+            rAlpha*=1.50;
+          }
+
+          //in 3D alpha must be larger
+          rAlpha*=1.20;
+
+        }
 
       }
 
     }
 
-  }
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  bool CheckElementBoundaries(const GeometryType& rVertices,const NodalFlags& rVerticesFlags)
-  {
-    bool accepted = true;
-    unsigned int NumberOfVertices = rVertices.size();
-
-    if ( mrModelPart.Is(FLUID) ){
-
-      //do not accept full rigid elements (no fluid)
-      if( rVerticesFlags.Rigid == NumberOfVertices && rVerticesFlags.Fluid < NumberOfVertices-1 )
-        accepted=false;
-
-      //do not accept full rigid-solid elements (no fluid)
-      if( (rVerticesFlags.Solid + rVerticesFlags.Rigid) >= NumberOfVertices && rVerticesFlags.Fluid == 0)
-        accepted=false;
-
-      //do not accept full solid elements
-      if( rVerticesFlags.Solid == NumberOfVertices )
-        accepted=false;
-    }
-
-    return accepted;
   }
 
   //*******************************************************************************************
@@ -960,7 +1097,11 @@ class SelectElementsMesherProcess
           if( MinEdgeLength*5 < MaxEdgeLength ){
             if( MesherUtils.CheckRelativeVelocities(rVertices, MaxRelativeVelocity) ){
               std::cout<<" WARNING 2D sliver "<<std::endl;
-              accepted = false;
+              //commented to no erase but labeled to not calculate them
+              //accepted = false;
+              //only erase full free surface sliver elements (visualization purposes)
+              if( rVerticesFlags.FreeSurface == NumberOfVertices)
+                accepted = false;
               ++number_of_slivers;
               for(unsigned int i=0; i<NumberOfVertices; ++i)
               {
@@ -982,14 +1123,20 @@ class SelectElementsMesherProcess
 
           if( Volume < 0.01*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension) ){
             //KRATOS_INFO("SLIVER")<<" Volume="<<Volume<<" VS Critical Volume="<<0.01*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension)<<std::endl;
-            std::cout<<" SLIVER Volume="<<Volume<<" VS Critical Volume="<< 0.01*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension) <<std::endl;
-            accepted = false;
+            //std::cout<<" SLIVER Volume="<<Volume<<" VS Critical Volume="<< 0.01*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension) <<std::endl;
+
+            //commented to no erase but labeled to not calculate them
+            //accepted = false;
+            //only erase full free surface sliver elements (visualization purposes)
+            if( rVerticesFlags.FreeSurface == NumberOfVertices)
+              accepted = false;
+
             ++number_of_slivers;
 
             for(unsigned int i=0; i<NumberOfVertices; ++i)
             {
-              if( rVertices[i].Is(VISITED) )
-                std::cout<<" WARNING Second sliver in the same node "<<std::endl;
+              // if( rVertices[i].Is(VISITED) )
+              //   std::cout<<" WARNING Second sliver in the same node "<<std::endl;
               rVertices[i].Set(VISITED);
             }
 
@@ -1026,15 +1173,17 @@ class SelectElementsMesherProcess
           //check if the element is going to invert
           if( VolumeIncrement < 0.0 || MovedVolume < 0.0 ){
 
-            std::cout<<" SLIVER FOR INVERSION "<<VolumeIncrement<<" VS Critical Volume="<< 0.01*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension) <<"( rigid: "<<rVerticesFlags.Rigid<<" )"<<std::endl;
+            //std::cout<<" SLIVER FOR INVERSION "<<VolumeIncrement<<" VS Critical Volume="<< 0.01*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension) <<"( rigid: "<<rVerticesFlags.Rigid<<" )"<<std::endl;
 
-            accepted = false;
+            //commented to no erase but labeled to not calculate them
+            //accepted = false;
+
             ++number_of_slivers;
 
             for(unsigned int i=0; i<NumberOfVertices; ++i)
             {
-              if( rVertices[i].Is(VISITED) )
-                std::cout<<" WARNING Second sliver in the same node bis "<<std::endl;
+              // if( rVertices[i].Is(VISITED) )
+              //   std::cout<<" WARNING Second sliver in the same node bis "<<std::endl;
               rVertices[i].Set(VISITED);
             }
           }

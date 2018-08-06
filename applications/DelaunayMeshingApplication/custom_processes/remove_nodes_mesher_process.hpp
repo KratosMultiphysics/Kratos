@@ -309,7 +309,8 @@ class RemoveNodesMesherProcess
       }
       else{
         if( i_node->Is(BOUNDARY) )
-          std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
+          if( mEchoLevel > 0 )
+            std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
       }
     }
 

@@ -541,6 +541,25 @@ unsigned int FluidElement::GetDofsSize()
 //************************************************************************************
 //************************************************************************************
 
+bool FluidElement::IsSliver()
+{
+  const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+
+  bool is_sliver = true;
+  for( SizeType i=0; i<number_of_nodes; ++i)
+  {
+    if( this->GetGeometry()[i].IsNot(SELECTED) ){
+      is_sliver = false;
+      break;
+    }
+  }
+  return is_sliver;
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
 void FluidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 					    VectorType& rRightHandSideVector,
 					    Flags& rCalculationFlags)
@@ -940,7 +959,8 @@ void FluidElement::CalculateRightHandSide( VectorType& rRightHandSideVector, Pro
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    if( !IsSliver() )
+      this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
     KRATOS_CATCH( "" )
 }
@@ -973,7 +993,8 @@ void FluidElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, Proce
     LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
     //Calculate elemental system
-    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    if( !IsSliver() )
+      this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
     KRATOS_CATCH( "" )
 }
@@ -1004,7 +1025,8 @@ void FluidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, Vector
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    if( !IsSliver() )
+      this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
     bool test_tangent = false;
     if( test_tangent ){

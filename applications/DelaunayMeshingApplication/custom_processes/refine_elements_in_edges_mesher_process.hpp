@@ -225,15 +225,17 @@ class RefineElementsInEdgesMesherProcess
     for(ModelPart::ElementsContainerType::iterator i_elem = rBoundaryEdgedElements.begin();
         i_elem != rBoundaryEdgedElements.end(); ++i_elem)
     {
-
       WeakPointerVector<Element>& neighb_elems = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
 
       unsigned int face=0;
+      bool accepted_face = false;
       for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
       {
 
         if (ne->Id() != i_elem->Id())  // If there is a shared element in face nf
         {
+          accepted_face = true;
+
           Geometry< Node<3> >& rGeometry = i_elem->GetGeometry();
 
           rGeometry.NodesInFaces(lpofa);
@@ -251,16 +253,39 @@ class RefineElementsInEdgesMesherProcess
               ++split_counter;
             FaceNodes.push_back(rGeometry(lpofa(j,face)));
 
-            //do not SPLIT small edges only big edges if not a lot of volume is added
+            //do not SPLIT small edges only big edges, else a lot of volume is added
             if(mrModelPart.Is(FLUID) && counter>0){
               if( 4.5 * this->mrRemesh.Refine->CriticalRadius > norm_2(FaceNodes[counter].Coordinates()-FaceNodes[counter-1].Coordinates()) ){
-                split_counter = NumberNodesInFace;
+                accepted_face = false;
               }
             }
             ++counter;
           }
 
-          if(split_counter<NumberNodesInFace){
+          if(split_counter==NumberNodesInFace)
+            accepted_face = false;
+
+          unsigned int free_surface = 0;
+          if(accepted_face){
+
+            if(mrModelPart.Is(FLUID) ){
+              //set FLUID flag in RIGID nodes to false
+              //and to not refine the edge in order to erase blocked edge elements
+              for(unsigned int i=0; i<FaceNodes.size(); ++i)
+              {
+                if(FaceNodes[i].Is(RIGID) && FaceNodes[i].Is(FREE_SURFACE)){
+                  ++free_surface;
+                }
+              }
+
+              if(free_surface != 0){
+                accepted_face = false;
+              }
+            }
+
+          }
+
+          if( accepted_face ){
             Geometry<Node<3> > InsideFace(FaceNodes);
             rListOfFacesToSplit.push_back(InsideFace);
 
@@ -295,8 +320,8 @@ class RefineElementsInEdgesMesherProcess
   //*******************************************************************************************
 
   void GenerateNewNodes(ModelPart& rModelPart,
-			  std::vector<Node<3>::Pointer>& rListOfNewNodes,
-			  std::vector<Geometry<Node<3> > >& rListOfFacesToSplit)
+                        std::vector<Node<3>::Pointer>& rListOfNewNodes,
+                        std::vector<Geometry<Node<3> > >& rListOfFacesToSplit)
   {
     KRATOS_TRY
 

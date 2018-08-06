@@ -444,15 +444,23 @@ class SettleModelStructureProcess
             if( i_elem->IsNot(TO_ERASE) ){ //at this point any element must be TO_ERASE
 
               PointsArrayType& vertices=i_elem->GetGeometry().Points();
-              for(unsigned int i=0; i<vertices.size(); ++i)
-              {
-                //vertices[i].Set(BLOCKED,true);
 
-                //set domain type to nodes
-                if(i_mp->Is(FLUID))
-                  vertices[i].Set(FLUID,true);
-                if(i_mp->Is(SOLID))
+              if(i_mp->Is(SOLID)){
+
+                for(unsigned int i=0; i<vertices.size(); ++i)
+                {
+                  //vertices[i].Set(BLOCKED,true);
                   vertices[i].Set(SOLID,true);
+                }
+              }
+              else if(i_mp->Is(FLUID)){
+
+                for(unsigned int i=0; i<vertices.size(); ++i)
+                {
+                  //vertices[i].Set(BLOCKED,true);
+                  vertices[i].Set(FLUID,true);
+                }
+
               }
 
               (rModelPart.Elements()).push_back(*(i_elem.base()));

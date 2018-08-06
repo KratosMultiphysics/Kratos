@@ -19,13 +19,10 @@
 
 // Processes
 //#include "custom_processes/adaptive_time_interval_process.hpp"
-#include "custom_processes/split_elements_process.hpp"
-#include "custom_processes/set_active_flag_process.hpp"
 #include "custom_processes/assign_properties_to_nodes_process.hpp"
 #include "custom_processes/manage_isolated_nodes_process.hpp"
 
 // PreMeshing processes
-#include "custom_processes/set_active_entities_mesher_process.hpp"
 #include "custom_processes/recover_volume_losses_mesher_process.hpp"
 #include "custom_processes/inlet_management_mesher_process.hpp"
 #include "custom_processes/insert_new_nodes_mesher_process.hpp"
@@ -70,10 +67,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m, "InsertNewNodes")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<SetActiveEntitiesMesherProcess, SetActiveEntitiesMesherProcess::Pointer, MesherProcess>
-      (m, "SetActiveEntities")
-      .def(init<ModelPart&, bool, bool, int>());
-
   class_<InletManagementMesherProcess, InletManagementMesherProcess::Pointer, MesherProcess>
       (m, "InletManagement")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
@@ -84,14 +77,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       ;
 
   //*********SET SOLVER PROCESSES*************//
-
-  class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>
-      (m, "SetActiveFlagProcess")
-      .def(init<ModelPart&, bool, bool, int>());
-
-  class_<SplitElementsProcess, SplitElementsProcess::Pointer, Process>
-      (m,"SplitElementsProcess")
-      .def(init<ModelPart&, int>());
 
   class_<AssignPropertiesToNodesProcess, AssignPropertiesToNodesProcess::Pointer, Process>
       (m, "AssignPropertiesToNodes")

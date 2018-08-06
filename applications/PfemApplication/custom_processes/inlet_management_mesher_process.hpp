@@ -185,8 +185,8 @@ class InletManagementMesherProcess
   {
     KRATOS_TRY
 
-        if( mEchoLevel > 1 )
-          std::cout<<" CheckAndCreateNewInletLayer "<<std::endl;
+    if( mEchoLevel > 1 )
+      std::cout<<" CheckAndCreateNewInletLayer "<<std::endl;
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     double maxSeparation=4.0*mrRemesh.Refine->CriticalRadius;
 

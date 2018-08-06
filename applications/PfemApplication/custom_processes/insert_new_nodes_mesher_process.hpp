@@ -140,10 +140,10 @@ class InsertNewNodesMesherProcess
         BiggestVolumes[nn]=-1.0;
       }
 
-      for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
-      {
-        in->Set(MODIFIED,false);
-      }
+      // for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); ++in)
+      // {
+      //   in->Set(MODIFIED,false);
+      // }
 
       ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
       // const unsigned int nds = element_begin->GetGeometry().size();
@@ -718,10 +718,10 @@ class InsertNewNodesMesherProcess
       Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id,x,y,z);
 
       //to control the inserted nodes
-      pnode->Set(MODIFIED);
-      std::cout<<" Insert new node "<<pnode->Id()<<std::endl;
+      // pnode->Set(MODIFIED);
+      //std::cout<<" Insert new node "<<pnode->Id()<<std::endl;
 
-      pnode->Set(NEW_ENTITY); //not boundary
+      pnode->Set(NEW_ENTITY,true); //not boundary
       list_of_new_nodes.push_back( pnode );
 
       if(mrRemesh.InputInitializedFlag){
@@ -746,7 +746,7 @@ class InsertNewNodesMesherProcess
         //(p_new_dof)->FreeDof();
       }
 
-      PointsArrayType  PointsArray;
+      Geometry<Node<3> >::PointsArrayType  PointsArray;
       PointsArray.push_back( mrModelPart.pGetNode(NodesIDToInterpolate[nn][0]) );
       PointsArray.push_back( mrModelPart.pGetNode(NodesIDToInterpolate[nn][1]) );
 

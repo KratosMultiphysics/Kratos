@@ -219,7 +219,7 @@ class RemoveFluidNodesMesherProcess
             if( this->mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) ){
 
               // if the node is close to the surface, do not erase it, move to a mean (laplacian) position
-              if(in->IsNot(FREE_SURFACE) && FreeSurfaceNeighbours==dimension){
+              if(in->IsNot(FREE_SURFACE) && FreeSurfaceNeighbours>=dimension){
                 this->MoveNodeToMeanPosition((*in));
               }
               else{
@@ -227,8 +227,7 @@ class RemoveFluidNodesMesherProcess
                   in->Set(TO_ERASE);
                   any_node_removed = true;
                   ++inside_nodes_removed;
-                  //distance_remove++;
-                  std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+                  //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
                 }
               }
             }
@@ -242,7 +241,7 @@ class RemoveFluidNodesMesherProcess
             for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
             {
 
-              if ( (*nn)->Is(BOUNDARY) && (neighbour_distances[counter] < 1.5 * size_for_distance_boundary) && (neighbour_distances[counter] > 0.0) )
+              if ( (*nn)->Is(BOUNDARY) && (neighbour_distances[counter] < 2.0 * size_for_distance_boundary) && (neighbour_distances[counter] > 0.0) )
               {
                 if((*nn)->Is(TO_ERASE)){
                   engaged_node = true;
@@ -255,10 +254,8 @@ class RemoveFluidNodesMesherProcess
 
             if(!engaged_node){ //Can be inserted in the boundary refine
               in->Set(TO_ERASE);
-              //any_node_removed = true;
               ++boundary_nodes_removed;
-              //distance_remove ++;
-              std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
+              //std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
             }
 
           }
@@ -269,7 +266,7 @@ class RemoveFluidNodesMesherProcess
     }
 
     if( boundary_nodes_removed > 0 )
-      this->MoveBoundaryNodesToMeanPosition(rModelPart,boundary_nodes_removed);
+      this->MoveBoundaries(rModelPart,boundary_nodes_removed);
 
     if( boundary_nodes_removed > 0 )
       any_node_removed = true;
@@ -283,22 +280,23 @@ class RemoveFluidNodesMesherProcess
 
 
     //Build boundary after removing boundary nodes due distance criterion
-    if( this->mEchoLevel > -1 ){
+    if( this->mEchoLevel > 0 ){
       std::cout<<"boundary_nodes_removed "<<boundary_nodes_removed<<std::endl;
       std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
     }
 
     //Build boundary after removing boundary nodes due distance criterion
-    if(boundary_nodes_removed){
-      std::cout<<"     Rebuild boundary needed after release on Distance "<<std::endl;
-      //any_condition_removed = this->RebuildBoundary(rModelPart);
-    }
+    // if(boundary_nodes_removed){
+    //   std::cout<<"     Rebuild boundary needed after release on Distance "<<std::endl;
+    //   //any_condition_removed = this->RebuildBoundary(rModelPart);
+    // }
 
     return any_node_removed;
 
     KRATOS_CATCH(" ")
 
   }
+
 
   ///@}
   ///@name Protected  Access
@@ -328,7 +326,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  void MoveBoundaryNodesToMeanPosition(ModelPart& rModelPart, unsigned int& boundary_nodes_removed)
+  void MoveBoundaries(ModelPart& rModelPart, unsigned int& boundary_nodes_removed)
   {
 
     KRATOS_TRY
@@ -351,110 +349,124 @@ class RemoveFluidNodesMesherProcess
 
       if(counter==1 && id>=0){
 
-        std::cout<<" Boundary to Move Pre ["<<rGeometry[id].Id()<<"] "<<rGeometry[id].Coordinates()<<std::endl;
-        unsigned int FreeSurfaceNodes = 0;
-        WeakPointerVector< Node < 3 > >& NeighbourNodes = rGeometry[id].GetValue(NEIGHBOUR_NODES);
-        WeakPointerVector< Node < 3 > > FreeNeighbours;
-        for(WeakPointerVector< Node <3> >::iterator nn = NeighbourNodes.begin(); nn != NeighbourNodes.end(); ++nn)
-        {
-          if( nn->Is(FREE_SURFACE) ){
-            FreeNeighbours.push_back(*(nn.base()));
-            ++FreeSurfaceNodes;
-          }
-        }
-
-        std::cout<<" Erase Boundary FreeSurface ["<<rGeometry[id].Id()<<"]"<<std::endl;
-        if( FreeSurfaceNodes == 2 )
-        {
-          array_1d<double,3> MidPoint  = 0.5 * (FreeNeighbours.front().Coordinates()+FreeNeighbours.back().Coordinates());
-          array_1d<double,3> Direction = (FreeNeighbours.front().Coordinates()-FreeNeighbours.back().Coordinates());
-
-          if(norm_2(Direction))
-            Direction/=norm_2(Direction);
-
-          array_1d<double,3> Displacement = inner_prod( (MidPoint-rGeometry[id].Coordinates()), Direction ) * Direction;
-          noalias(rGeometry[id].Coordinates()) += Displacement;
-          noalias(rGeometry[id].FastGetSolutionStepValue(DISPLACEMENT))   += Displacement;
-          noalias(rGeometry[id].FastGetSolutionStepValue(DISPLACEMENT,1)) += Displacement;
-
-          for(WeakPointerVector< Node < 3 > >::iterator fsn = FreeNeighbours.begin(); fsn != FreeNeighbours.end(); ++fsn)
-          {
-            noalias(rGeometry[id].FastGetSolutionStepValue(VELOCITY))       += fsn->FastGetSolutionStepValue(VELOCITY);
-            noalias(rGeometry[id].FastGetSolutionStepValue(VELOCITY,1))     += fsn->FastGetSolutionStepValue(VELOCITY,1);
-            noalias(rGeometry[id].FastGetSolutionStepValue(ACCELERATION))   += fsn->FastGetSolutionStepValue(ACCELERATION);
-            noalias(rGeometry[id].FastGetSolutionStepValue(ACCELERATION,1)) += fsn->FastGetSolutionStepValue(ACCELERATION,1);
-            rGeometry[id].FastGetSolutionStepValue(PRESSURE)                += fsn->FastGetSolutionStepValue(PRESSURE);
-            rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY)       += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY);
-            rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
-          }
-
-
-          double quotient = 1.0/double(FreeSurfaceNodes+1);
-          rGeometry[id].FastGetSolutionStepValue(VELOCITY)       *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(VELOCITY,1)     *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(ACCELERATION)   *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(ACCELERATION,1) *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(PRESSURE)            *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY)   *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY,1) *= quotient;
-
-
-          rGeometry[id].Set(TO_ERASE,false);
-          --boundary_nodes_removed;
-
-        }
-        else if(FreeSurfaceNodes > 2) {
-
-          array_1d<double,3> MidPoint;
-          noalias(MidPoint) = ZeroVector(3);
-          double quotient = 1.0/double(FreeSurfaceNodes);
-          for(WeakPointerVector< Node < 3 > >::iterator fsn = FreeNeighbours.begin(); fsn != FreeNeighbours.end(); ++fsn)
-          {
-            MidPoint += fsn->Coordinates();
-
-            noalias(rGeometry[id].FastGetSolutionStepValue(VELOCITY))       += fsn->FastGetSolutionStepValue(VELOCITY);
-            noalias(rGeometry[id].FastGetSolutionStepValue(VELOCITY,1))     += fsn->FastGetSolutionStepValue(VELOCITY,1);
-            noalias(rGeometry[id].FastGetSolutionStepValue(ACCELERATION))   += fsn->FastGetSolutionStepValue(ACCELERATION);
-            noalias(rGeometry[id].FastGetSolutionStepValue(ACCELERATION,1)) += fsn->FastGetSolutionStepValue(ACCELERATION,1);
-            rGeometry[id].FastGetSolutionStepValue(PRESSURE)                += fsn->FastGetSolutionStepValue(PRESSURE);
-            rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY)       += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY);
-            rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
-          }
-          MidPoint *= quotient;
-          array_1d<double,3> Normal = rGeometry[id].FastGetSolutionStepValue(NORMAL);
-
-          if(norm_2(Normal))
-            Normal/=norm_2(Normal);
-
-          array_1d<double,3> Displacement = (MidPoint-rGeometry[id].Coordinates()) - inner_prod( (MidPoint-rGeometry[id].Coordinates()), Normal ) * Normal;
-          noalias(rGeometry[id].Coordinates()) += Displacement;
-          noalias(rGeometry[id].FastGetSolutionStepValue(DISPLACEMENT)) += Displacement;
-          noalias(rGeometry[id].FastGetSolutionStepValue(DISPLACEMENT,1)) += Displacement;
-
-          quotient = 1.0/double(FreeSurfaceNodes+1);
-          rGeometry[id].FastGetSolutionStepValue(VELOCITY)       *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(VELOCITY,1)     *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(ACCELERATION)   *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(ACCELERATION,1) *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(PRESSURE)            *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY)   *= quotient;
-          rGeometry[id].FastGetSolutionStepValue(PRESSURE_VELOCITY,1) *= quotient;
-
+        if( this->MoveBoundaryNodeToMeanPosition(rGeometry[id]) ){
           rGeometry[id].Set(TO_ERASE,false);
           --boundary_nodes_removed;
         }
-        else{
-          std::cout<<" Boundary node with only one FREE_SURFACE neighbour "<<std::endl;
-        }
 
-        std::cout<<" Boundary to Move Post ["<<rGeometry[id].Id()<<"] "<<rGeometry[id].Coordinates()<<std::endl;
       }
-
     }
 
     KRATOS_CATCH( "" )
   }
 
+  //**************************************************************************
+  //**************************************************************************
+
+  bool MoveBoundaryNodeToMeanPosition(Node<3>& rNode)
+  {
+
+    KRATOS_TRY
+
+    bool moved_node = false;
+    //std::cout<<" Boundary to Move Pre ["<<rNode.Id()<<"] "<<rNode.Coordinates()<<std::endl;
+    unsigned int FreeSurfaceNodes = 0;
+    WeakPointerVector< Node < 3 > >& NeighbourNodes = rNode.GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector< Node < 3 > > FreeNeighbours;
+    for(WeakPointerVector< Node <3> >::iterator nn = NeighbourNodes.begin(); nn != NeighbourNodes.end(); ++nn)
+    {
+      if( nn->Is(FREE_SURFACE) ){
+        FreeNeighbours.push_back(*(nn.base()));
+            ++FreeSurfaceNodes;
+      }
+    }
+
+    if( FreeSurfaceNodes == 2 )
+    {
+      array_1d<double,3> MidPoint  = 0.5 * (FreeNeighbours.front().Coordinates()+FreeNeighbours.back().Coordinates());
+      array_1d<double,3> Direction = (FreeNeighbours.front().Coordinates()-FreeNeighbours.back().Coordinates());
+
+      if(norm_2(Direction))
+        Direction/=norm_2(Direction);
+
+      array_1d<double,3> Displacement = inner_prod( (MidPoint-rNode.Coordinates()), Direction ) * Direction;
+      noalias(rNode.Coordinates()) += Displacement;
+      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT))   += Displacement;
+      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT,1)) += Displacement;
+
+      for(WeakPointerVector< Node < 3 > >::iterator fsn = FreeNeighbours.begin(); fsn != FreeNeighbours.end(); ++fsn)
+      {
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += fsn->FastGetSolutionStepValue(VELOCITY);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += fsn->FastGetSolutionStepValue(VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += fsn->FastGetSolutionStepValue(ACCELERATION);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += fsn->FastGetSolutionStepValue(ACCELERATION,1);
+        rNode.FastGetSolutionStepValue(PRESSURE)                += fsn->FastGetSolutionStepValue(PRESSURE);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+      }
+
+
+      double quotient = 1.0/double(FreeSurfaceNodes+1);
+      rNode.FastGetSolutionStepValue(VELOCITY)       *= quotient;
+      rNode.FastGetSolutionStepValue(VELOCITY,1)     *= quotient;
+      rNode.FastGetSolutionStepValue(ACCELERATION)   *= quotient;
+      rNode.FastGetSolutionStepValue(ACCELERATION,1) *= quotient;
+      rNode.FastGetSolutionStepValue(PRESSURE)            *= quotient;
+      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)   *= quotient;
+      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1) *= quotient;
+
+      moved_node = true;
+
+    }
+    else if(FreeSurfaceNodes > 2) {
+
+      array_1d<double,3> MidPoint;
+      noalias(MidPoint) = ZeroVector(3);
+      double quotient = 1.0/double(FreeSurfaceNodes);
+      for(WeakPointerVector< Node < 3 > >::iterator fsn = FreeNeighbours.begin(); fsn != FreeNeighbours.end(); ++fsn)
+      {
+        MidPoint += fsn->Coordinates();
+
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += fsn->FastGetSolutionStepValue(VELOCITY);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += fsn->FastGetSolutionStepValue(VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += fsn->FastGetSolutionStepValue(ACCELERATION);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += fsn->FastGetSolutionStepValue(ACCELERATION,1);
+        rNode.FastGetSolutionStepValue(PRESSURE)                += fsn->FastGetSolutionStepValue(PRESSURE);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += fsn->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+      }
+      MidPoint *= quotient;
+      array_1d<double,3> Normal = rNode.FastGetSolutionStepValue(NORMAL);
+
+      if(norm_2(Normal))
+        Normal/=norm_2(Normal);
+
+      array_1d<double,3> Displacement = (MidPoint-rNode.Coordinates()) - inner_prod( (MidPoint-rNode.Coordinates()), Normal ) * Normal;
+      noalias(rNode.Coordinates()) += Displacement;
+      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT)) += Displacement;
+      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT,1)) += Displacement;
+
+      quotient = 1.0/double(FreeSurfaceNodes+1);
+      rNode.FastGetSolutionStepValue(VELOCITY)       *= quotient;
+      rNode.FastGetSolutionStepValue(VELOCITY,1)     *= quotient;
+      rNode.FastGetSolutionStepValue(ACCELERATION)   *= quotient;
+      rNode.FastGetSolutionStepValue(ACCELERATION,1) *= quotient;
+      rNode.FastGetSolutionStepValue(PRESSURE)            *= quotient;
+      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)   *= quotient;
+      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1) *= quotient;
+
+      moved_node = true;
+    }
+    else{
+      std::cout<<" Boundary node with only one FREE_SURFACE neighbour "<<std::endl;
+    }
+
+    //std::cout<<" Boundary to Move Post ["<<rNode.Id()<<"] "<<rNode.Coordinates()<<std::endl;
+
+    return moved_node;
+
+    KRATOS_CATCH( "" )
+  }
 
   //**************************************************************************
   //**************************************************************************
@@ -467,7 +479,7 @@ class RemoveFluidNodesMesherProcess
     WeakPointerVector< Node < 3 > >& NeighbourNodes = rNode.GetValue(NEIGHBOUR_NODES);
     unsigned int NumberOfNeighbourNodes = NeighbourNodes.size();
 
-    std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
+    //std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
 
     //array_1d<double,3> CurrentPosition = rNode.Coordinates();
 
@@ -501,7 +513,39 @@ class RemoveFluidNodesMesherProcess
     rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)   *= quotient;
     rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1) *= quotient;
 
-    std::cout<<" Moved Node Post ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
+    //std::cout<<" Moved Node Post ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //**************************************************************************
+  //**************************************************************************
+
+  void MoveNodeToNonRigidMeanPosition(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, const double& rMeanEdgeLength)
+  {
+
+    KRATOS_TRY
+
+    array_1d<double,3> VelocityDirection = rNode.FastGetSolutionStepValue(VELOCITY);
+
+    double velocity = norm_2(VelocityDirection);
+    if(velocity!=0)
+       VelocityDirection/=velocity;
+
+    double advance  = norm_2(rNode.FastGetSolutionStepValue(DISPLACEMENT)-rNode.FastGetSolutionStepValue(DISPLACEMENT,1));
+    double distance = this->GetDistanceToEdge(rNode,rEdgeNodeA,rEdgeNodeB);
+
+    VelocityDirection *= (-1)*((rMeanEdgeLength-distance)+advance);
+
+    //std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
+
+    noalias(rNode.Coordinates()) += VelocityDirection;
+    rNode.FastGetSolutionStepValue(DISPLACEMENT)   += VelocityDirection;
+    rNode.FastGetSolutionStepValue(DISPLACEMENT,1) += VelocityDirection;
+    //rNode.GetInitialPosition() = (rNode.Coordinates() - rNode.FastGetSolutionStepValue(DISPLACEMENT));
+
+
+    //std::cout<<" Moved Node Post ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
 
     KRATOS_CATCH( "" )
   }
@@ -547,6 +591,7 @@ class RemoveFluidNodesMesherProcess
     if( approaching_edge == true) {
 
       array_1d<double,3> Direction;
+
       this->GetDirectionToEdge(Direction,rEdgeNodeA,rEdgeNodeB);
 
       double distance = fabs(inner_prod((MidPoint-rNode.Coordinates()), Direction));
@@ -555,6 +600,15 @@ class RemoveFluidNodesMesherProcess
 
       if( 3*advance < distance )
         approaching_edge = false;
+
+      //check also velocity direction: (when normal well calculated maybe it can be deactivated)
+      distance = fabs(inner_prod((MidPoint-rNode.Coordinates()), VelocityDirection));
+
+      advance  = fabs(inner_prod((rNode.FastGetSolutionStepValue(DISPLACEMENT)-rNode.FastGetSolutionStepValue(DISPLACEMENT,1)), VelocityDirection));
+
+      if( 3*advance > distance )
+        approaching_edge = true;
+      //check also velocity direction: (optional)
 
       //std::cout<<" aproaching edge: "<<approaching_edge<<" (distance: "<< distance <<" advance: "<<advance<<")"<<std::endl;
     }
@@ -574,12 +628,25 @@ class RemoveFluidNodesMesherProcess
 
     array_1d<double,3> MidPoint  = 0.5 * (rEdgeNodeA.Coordinates() + rEdgeNodeB.Coordinates()) ;
 
-    //array_1d<double,3> Direction = rNode.FastGetSolutionStepValue(VELOCITY);
-
     array_1d<double,3> Direction;
     this->GetDirectionToEdge(Direction,rEdgeNodeA,rEdgeNodeB);
 
-    return fabs(inner_prod((MidPoint-rNode.Coordinates()), Direction));
+    double distance = fabs(inner_prod((MidPoint-rNode.Coordinates()), Direction));
+
+    //check also velocity direction: (when normal well calculated maybe it can be deactivated)
+    // Direction = rNode.FastGetSolutionStepValue(VELOCITY);
+
+    // double modulus = norm_2(Direction);
+    // if(modulus!=0)
+    //    Direction/=modulus;
+
+    // modulus = fabs(inner_prod((MidPoint-rNode.Coordinates()), Direction));
+
+    // if( modulus < distance )
+    //   distance = modulus;
+    //check also velocity direction: (optional)
+
+    return distance;
 
     KRATOS_CATCH( "" )
   }
@@ -664,7 +731,7 @@ class RemoveFluidNodesMesherProcess
         }
 
         MesherUtilities MesherUtils;
-        const double MaxRelativeVelocity = 1.5; //arbitrary value, will depend on time step (AF)
+        double MaxRelativeVelocity = 1.5; //arbitrary value, will depend on time step (AF)
 
         double VolumeChange = 0;
 
@@ -741,15 +808,37 @@ class RemoveFluidNodesMesherProcess
                 }
               }
               // if the node is very close to the wall or the volume is critically small, it is erased
-              if( ((ElementHeight < MeanEdgeLength) && (speedy_approach && volume_decrease)) || (ElementSize<CriticalVolume) ){
-                std::cout<<" LAYER NODE ERASE ["<<rGeometry[i].Id()<<"] volumes:"<<ElementSize<<" < "<<CriticalVolume<<" heights: "<<ElementHeight<<" < "<<MeanEdgeLength<<" speedy "<<speedy_approach<<" volume_decrease "<<volume_decrease<<std::endl;
+              if( ElementHeight < MeanEdgeLength && (speedy_approach && volume_decrease) ){
+
+                if( 4 * ElementHeight < MeanEdgeLength ){
+                  //std::cout<<" LAYER NODE ERASE DISTANCE ["<<rGeometry[i].Id()<<"] volumes:"<<ElementSize<<" < "<<CriticalVolume<<" heights: "<<ElementHeight<<" < "<<MeanEdgeLength<<" speedy "<<speedy_approach<<" volume_decrease "<<volume_decrease<<std::endl;
+                  rGeometry[i].Set(TO_ERASE);
+                  ++erased_nodes;
+                  ++inside_nodes_removed;
+                }
+                else{
+                  if( rGeometry[i].IsNot(FREE_SURFACE) ){
+                    this->MoveNodeToNonRigidMeanPosition(rGeometry[i],*SelectedEdgeNodes[0],*SelectedEdgeNodes[1],MeanEdgeLength);
+                  }
+                  else{
+                    if( !this->MoveBoundaryNodeToMeanPosition(rGeometry[i]) ){
+                      rGeometry[i].Set(TO_ERASE);
+                      ++erased_nodes;
+                      ++inside_nodes_removed;
+                    }
+                  }
+                }
+
+              }
+              else if( ElementSize<CriticalVolume ){
+                //std::cout<<" LAYER NODE ERASE VOLUME ["<<rGeometry[i].Id()<<"] volumes:"<<ElementSize<<" < "<<CriticalVolume<<" heights: "<<ElementHeight<<" < "<<MeanEdgeLength<<" speedy "<<speedy_approach<<" volume_decrease "<<volume_decrease<<std::endl;
+                // if( rGeometry[i].Is(FREE_SURFACE) )
+                //   std::cout<<" LAYER NODE FREE_SURFACE ERASED "<<std::endl;
                 rGeometry[i].Set(TO_ERASE);
                 ++erased_nodes;
                 ++inside_nodes_removed;
               }
-              // else{
-              //   std::cout<<" LAYER NODE KEPT ["<<rGeometry[i].Id()<<"] volumes:"<<ElementSize<<" < "<<CriticalVolume<<" heights: "<<ElementHeight<<" < "<<MeanEdgeLength<<" speedy "<<speedy_approach<<" volume_decrease "<<volume_decrease<<std::endl;
-              // }
+
             }
 
           }
