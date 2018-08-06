@@ -34,15 +34,15 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         # Making sure that older cases still work by properly initalizing the parameters
         solver_settings = project_parameters["solver_settings"]
 
-        if solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
+        if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
             warn_msg = '"domain_size" defined twice, using the one in "solver_settings"'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
 
-        if solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
+        if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
             warn_msg = '"model_part_name" defined twice, using the one in "solver_settings"'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
 
-        if solver_settings.Has("time_stepping") and parameters["problem_data"].Has("time_Step"):
+        if solver_settings.Has("time_stepping") and project_parameters["problem_data"].Has("time_Step"):
             warn_msg = 'time_stepping defined twice, using the one in "solver_settings"'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
 
