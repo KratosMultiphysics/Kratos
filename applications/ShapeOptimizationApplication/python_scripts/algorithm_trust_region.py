@@ -145,6 +145,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             print("len_bar_ineqs = ", len_bar_ineqs)
             print("adj_len_bar_ineqs = ", adj_len_bar_ineqs)
             print("\nval_eqs = ", val_eqs)
+            print("len_bar_eqs = ", len_bar_eqs)
             print("adj_len_bar_eqs = ", adj_len_bar_eqs)
             print("\n--------------------------------------------")
 
