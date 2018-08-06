@@ -17,7 +17,7 @@ class ApplyBoussinesqForceProcess(KratosMultiphysics.Process):
         {
             "model_part_name" : "CHOOSE_FLUID_MODELPART_NAME",
             "gravity" : [0.0,0.0,0.0],
-            "ambient_temperature" : 0.0
+            "ambient_temperature" : 273.0
         }  """ )
 
         # Note: if the thermal expansion coefficient is not provided, it is computed as 
