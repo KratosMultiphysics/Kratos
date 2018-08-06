@@ -23,9 +23,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "thermally_coupled" or solver_type == "ThermallyCoupled"):
             solver_module_name = "coupled_fluid_thermal_solver"
 
+        elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
+            solver_module_name = "conjugate_heat_transfer_solver"
+
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\""
+            err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"conjugate_heat_transfer\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
