@@ -16,6 +16,7 @@
 #include "../adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "../adjoint_elements/adjoint_finite_difference_shell_element.h"
 #include "../adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
+#include "../adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
 #include "../adjoint_conditions/adjoint_semi_analytic_base_condition.h"
 #include "../adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
@@ -99,6 +100,12 @@ namespace Kratos
                 else if (element_name == "AdjointFiniteDifferenceCrBeamElement")
                 {
                     Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement>(*it.base() );
+
+                    (*it.base()) = p_element;
+                }
+                else if (element_name == "AdjointFiniteDifferenceTrussElement")
+                {
+                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceTrussElement>(*it.base() );
 
                     (*it.base()) = p_element;
                 }
@@ -187,6 +194,10 @@ namespace Kratos
             rName = "AdjointFiniteDifferenceCrBeamElement";
         else if(name_current_element == "ShellThinElement3D3N")
             rName = "AdjointFiniteDifferencingShellElement";
+        else if(name_current_element == "TrussElement3D2N")
+            rName = "AdjointFiniteDifferenceTrussElement";
+        else if(name_current_element == "TrussLinearElement3D2N")
+            rName = "AdjointFiniteDifferenceTrussElement";
         else
         {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
