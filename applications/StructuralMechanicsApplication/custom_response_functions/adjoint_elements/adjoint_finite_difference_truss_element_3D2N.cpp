@@ -28,6 +28,75 @@ AdjointFiniteDifferenceTrussElement::~AdjointFiniteDifferenceTrussElement()
 {
 }
 
+void AdjointFiniteDifferenceTrussElement::EquationIdVector(EquationIdVectorType &rResult,
+                                        ProcessInfo &rCurrentProcessInfo) 
+{
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if (rResult.size() != num_dofs)
+        rResult.resize(num_dofs, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i) 
+    {
+        int index = i * 3;
+        rResult[index] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
+        rResult[index + 1] =
+            this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
+        rResult[index + 2] =
+            this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
+    }
+}
+
+void AdjointFiniteDifferenceTrussElement::GetDofList(DofsVectorType &rElementalDofList,
+                                  ProcessInfo &rCurrentProcessInfo) 
+{
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if (rElementalDofList.size() != num_dofs) 
+        rElementalDofList.resize(num_dofs, false);
+
+    for(IndexType i = 0; i < number_of_nodes; ++i) 
+    {
+        int index = i * 3;
+        rElementalDofList[index] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
+        rElementalDofList[index + 1] =
+            this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
+        rElementalDofList[index + 2] =
+            this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
+    }
+}
+
+void AdjointFiniteDifferenceTrussElement::GetValuesVector(Vector &rValues, int Step) 
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs = number_of_nodes * dimension;
+
+    if(rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        const NodeType & iNode = geom[i];
+        const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
+
+        const IndexType index = i * dimension;
+        rValues[index]     = disp[0];
+        rValues[index + 1] = disp[1];
+        rValues[index + 2] = disp[2];
+    }
+    
+    KRATOS_CATCH("")
+}
+
 void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVariable,
                         Vector& rOutput,
                         const ProcessInfo& rCurrentProcessInfo)
