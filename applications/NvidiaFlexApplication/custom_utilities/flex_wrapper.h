@@ -25,15 +25,12 @@ namespace Kratos {
 
             virtual ~FlexWrapper();
 
-            void RunSimulation();
             void TransferDataFromKratosToFlex();
             void UpdateFlex();
-            void UpdateFlexParameters();
             void SolveTimeSteps(double dt, int number_of_substeps);
-            void InitializeNvFlexSolverDescParams(NvFlexSolverDesc& g_solverDesc);
-            void InitializeNvFlexParams(NvFlexParams& g_params);
-            void InitializeNvFlexCopyDescParams(NvFlexCopyDesc& copyDesc);
-            void Solve();
+            void SetNvFlexSolverDescParams(NvFlexSolverDesc& g_solverDesc);
+            void SetNvFlexParams(NvFlexParams& g_params);
+            void SetNvFlexCopyDescParams(NvFlexCopyDesc& copyDesc);
             void TransferDataFromFlexToKratos();
             void Finalize();
 
@@ -52,6 +49,7 @@ namespace Kratos {
             NvFlexVector<Vec3>* mFlexVelocities;
             NvFlexVector<int>* mFlexPhases;
             NvFlexVector<int>* mActiveIndices;
+            NvFlexVector<Vec4>* mFlexRestPositions;
             unsigned int mNumberOfParticles = 1;
             unsigned int mPhaseType = 1;
             double mDeltaTime = 0.0001;

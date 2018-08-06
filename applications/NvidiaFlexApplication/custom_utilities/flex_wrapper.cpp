@@ -22,9 +22,16 @@ namespace Kratos {
         mFlexVelocities = new NvFlexVector<Vec3>(mFlexLibrary);
         mFlexPhases = new NvFlexVector<int>(mFlexLibrary);
         mActiveIndices = new NvFlexVector<int>(mFlexLibrary);
+        mFlexRestPositions = new NvFlexVector<Vec4>(mFlexLibrary);
 
         NvFlexSetSolverDescDefaults(&mSolverDescriptor);
-        InitializeNvFlexSolverDescParams(mSolverDescriptor);
+
+        //mSolverDescriptor.featureMode = eNvFlexFeatureModeSimpleSolids;
+        mSolverDescriptor.maxParticles = mrSpheresModelPart.NumberOfElements();
+	    mSolverDescriptor.maxDiffuseParticles = mrSpheresModelPart.NumberOfElements();;
+	    mSolverDescriptor.maxNeighborsPerParticle = 32;
+	    mSolverDescriptor.maxContactsPerParticle = 10;
+
         mFlexSolver = NvFlexCreateSolver(mFlexLibrary, &mSolverDescriptor);
     }
 
@@ -35,17 +42,24 @@ namespace Kratos {
         delete mFlexVelocities;
         delete mFlexPhases;
         delete mActiveIndices;
+        delete mFlexRestPositions;
+    }
+
+    void FlexWrapper::SetNvFlexCopyDescParams(NvFlexCopyDesc& mFlexCopyDescriptor) {
+        mFlexCopyDescriptor.dstOffset = 0;
+	    mFlexCopyDescriptor.srcOffset = 0;
+
+        const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
+	    mFlexCopyDescriptor.elementCount = number_of_nodes;
     }
 
     void FlexWrapper::UpdateFlex() {
-
+        SetNvFlexCopyDescParams(mFlexCopyDescriptor);
+        SetNvFlexParams(mFlexParameters);
         TransferDataFromKratosToFlex();
-
-        UpdateFlexParameters();
     }
 
     void FlexWrapper::TransferDataFromKratosToFlex() {
-
 
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         mSolverDescriptor.maxParticles = number_of_nodes;
@@ -53,15 +67,20 @@ namespace Kratos {
         NvFlexDestroySolver(mFlexSolver);
         mFlexSolver = NvFlexCreateSolver(mFlexLibrary, &mSolverDescriptor);
         NvFlexSetParams(mFlexSolver, &mFlexParameters);
-        mFlexPositions->resize(number_of_nodes);
-        mFlexVelocities->resize(number_of_nodes);
-        mFlexPhases->resize(number_of_nodes);
-        mActiveIndices->resize(number_of_nodes);
 
         mFlexPositions->map();
         mFlexVelocities->map();
         mFlexPhases->map();
         mActiveIndices->map();
+        mFlexRestPositions->map();
+
+        mFlexPositions->resize(number_of_nodes);
+        mFlexVelocities->resize(number_of_nodes);
+        mFlexPhases->resize(number_of_nodes);
+        mActiveIndices->resize(number_of_nodes);
+        mFlexRestPositions->resize(number_of_nodes);
+
+        KRATOS_WATCH( (*mFlexVelocities)[0][0] )
 
         Vec4 aux_vec4;
         Vec3 aux_vec3;
@@ -94,121 +113,28 @@ namespace Kratos {
             //indices
             NvFlexVector<int>& array_of_indices = *mActiveIndices;
             array_of_indices[i] = node_it->Id();
+
+            (*mFlexRestPositions)[i] = (*mFlexPositions)[i];
         }
+
+        KRATOS_WATCH( (*mFlexVelocities)[0][0] )
 
         mFlexPositions->unmap();
         mFlexVelocities->unmap();
         mFlexPhases->unmap();
         mActiveIndices->unmap();
+        mFlexRestPositions->unmap();
 
         // send any particle updates to the solver
-        NvFlexSetParticles(mFlexSolver, mFlexPositions->buffer, NULL);
-        NvFlexSetVelocities(mFlexSolver, mFlexVelocities->buffer, NULL);
-        NvFlexSetPhases(mFlexSolver, mFlexPhases->buffer, NULL);
-        NvFlexSetActive(mFlexSolver, mActiveIndices->buffer, NULL);
-        NvFlexSetActiveCount(mFlexSolver, mActiveIndices->size());
-    }
-
-    void FlexWrapper::SolveTimeSteps(double dt, int number_of_substeps) {
-        NvFlexUpdateSolver(mFlexSolver, (float)dt, number_of_substeps, false);
-    }
-
-    void FlexWrapper::UpdateFlexParameters() {
-
-        InitializeNvFlexParams(mFlexParameters);
-
-        InitializeNvFlexCopyDescParams(mFlexCopyDescriptor);
-    }
-
-    void FlexWrapper::Solve() {
-
-        // map buffers for reading / writing
-
-        // unmap buffers
-        NvFlexUnmap(mFlexPositions->buffer);
-        NvFlexUnmap(mFlexVelocities->buffer);
-        NvFlexUnmap(mFlexPhases->buffer);
-
-        // write to device (async)
-        NvFlexSetParams(mFlexSolver, &mFlexParameters);
-
         NvFlexSetParticles(mFlexSolver, mFlexPositions->buffer, &mFlexCopyDescriptor);
         NvFlexSetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
-        //NvFlexSetNormals(solver, mNormals, &copyDesc);
         NvFlexSetPhases(mFlexSolver, mFlexPhases->buffer, &mFlexCopyDescriptor);
-        //NvFlexSetRestParticles(solver, mRestPositions, &copyDesc);
-        //NvFlexSetActive(solver, mActiveIndices, &copyDesc);
-        NvFlexSetActiveCount(mFlexSolver, mNumberOfParticles);
-        //NvFlexSetRigids(g_solver, g_buffers->rigidOffsets->buffer, g_buffers->rigidIndices->buffer, g_buffers->rigidLocalPositions->buffer, g_buffers->rigidLocalNormals->buffer, g_buffers->rigidCoefficients->buffer,
-        //g_buffers->rigidPlasticThresholds->buffer, g_buffers->rigidPlasticCreeps->buffer, g_buffers->rigidRotations->buffer, g_buffers->rigidTranslations->buffer, g_buffers->rigidOffsets.size() - 1, g_buffers->rigidIndices.size());
-
-        NvFlexUpdateSolver(mFlexSolver, mDeltaTime, 1, false);
-
-        TransferDataFromFlexToKratos();
+        NvFlexSetActive(mFlexSolver, mActiveIndices->buffer, &mFlexCopyDescriptor);
+        NvFlexSetActiveCount(mFlexSolver, mActiveIndices->size());
+        NvFlexSetRestParticles(mFlexSolver, mFlexRestPositions->buffer, &mFlexCopyDescriptor);
     }
 
-    void FlexWrapper::RunSimulation() {
-
-        UpdateFlex();
-
-        Solve();
-
-        Finalize();
-    }
-
-    void FlexWrapper::Finalize() {
-
-        NvFlexFreeBuffer(mFlexPositions->buffer);
-        NvFlexFreeBuffer(mFlexVelocities->buffer);
-        NvFlexFreeBuffer(mFlexPhases->buffer);
-        NvFlexDestroySolver(mFlexSolver);
-        NvFlexShutdown(mFlexLibrary);
-    }
-
-    void FlexWrapper::TransferDataFromFlexToKratos() {
-
-        NvFlexGetParticles(mFlexSolver, mFlexPositions->buffer, &mFlexCopyDescriptor);
-        NvFlexGetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
-
-        mFlexPositions->map();
-        mFlexVelocities->map();
-        mFlexPhases->map();
-        mActiveIndices->map();
-
-        const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
-
-        for (size_t i=0; i< number_of_nodes; i++) {
-            const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
-
-            //positions
-            auto& coords = node_it->Coordinates();
-            NvFlexVector<Vec4>& array_of_positions = *mFlexPositions;
-            coords[0] = array_of_positions[i][0];
-            coords[1] = array_of_positions[i][1];
-            coords[2] = array_of_positions[i][2];
-
-            //velocities
-            auto& vel = node_it->FastGetSolutionStepValue(VELOCITY);
-            NvFlexVector<Vec3>& array_of_velocities = *mFlexVelocities;
-            vel[0] = array_of_velocities[i][0];
-            vel[1] = array_of_velocities[i][1];
-            vel[2] = array_of_velocities[i][2];
-        }
-
-
-
-    }
-
-    void FlexWrapper::InitializeNvFlexSolverDescParams(NvFlexSolverDesc& mSolverDescriptor) {
-
-        mSolverDescriptor.featureMode = eNvFlexFeatureModeSimpleSolids;
-        mSolverDescriptor.maxParticles = mrSpheresModelPart.NumberOfElements();
-	    mSolverDescriptor.maxDiffuseParticles = mrSpheresModelPart.NumberOfElements();;
-	    mSolverDescriptor.maxNeighborsPerParticle = 32;
-	    mSolverDescriptor.maxContactsPerParticle = 10;
-    }
-
-    void FlexWrapper::InitializeNvFlexParams(NvFlexParams& mFlexParameters) {
+    void FlexWrapper::SetNvFlexParams(NvFlexParams& mFlexParameters) {
 
         const array_1d<double,3>& gravity = mrSpheresModelPart.GetProcessInfo()[GRAVITY];
         mFlexParameters.gravity[0] = (float)gravity[0];
@@ -219,7 +145,7 @@ namespace Kratos {
         mFlexParameters.wind[1] = 0.0f;
         mFlexParameters.wind[2] = 0.0f;
 
-        mFlexParameters.radius = 0.15f;
+        mFlexParameters.radius = 0.00015f;
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         for (size_t i=0; i< number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
@@ -237,7 +163,8 @@ namespace Kratos {
         mFlexParameters.lift = 0.0f;
         mFlexParameters.numIterations = 3;
         mFlexParameters.fluidRestDistance = 0.0f;
-        mFlexParameters.solidRestDistance = 0.0f;
+        //mFlexParameters.solidRestDistance = 0.0f;
+        mFlexParameters.solidRestDistance = mFlexParameters.radius;
 
         mFlexParameters.anisotropyScale = 1.0f;
         mFlexParameters.anisotropyMin = 0.1f;
@@ -248,12 +175,13 @@ namespace Kratos {
         mFlexParameters.damping = 0.0f;
         mFlexParameters.particleCollisionMargin = 0.0f;
         mFlexParameters.shapeCollisionMargin = 0.0f;
-        mFlexParameters.collisionDistance = 0.0f;
+        //mFlexParameters.collisionDistance = 0.0f;
+        mFlexParameters.collisionDistance = mFlexParameters.radius;
         mFlexParameters.sleepThreshold = 0.0f;
         mFlexParameters.shockPropagation = 0.0f;
         mFlexParameters.restitution = 0.0f;
 
-        mFlexParameters.maxSpeed = 1000.0f; //FLT_MAX;
+        mFlexParameters.maxSpeed = 100.0f; //FLT_MAX;
         mFlexParameters.maxAcceleration = 100.0f;	// approximately 10x gravity
 
         mFlexParameters.relaxationMode = eNvFlexRelaxationLocal;
@@ -288,13 +216,56 @@ namespace Kratos {
         if (mFlexParameters.shapeCollisionMargin == 0.0f) mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance*0.5f;
     }
 
-    void FlexWrapper::InitializeNvFlexCopyDescParams(NvFlexCopyDesc& mFlexCopyDescriptor) {
+    void FlexWrapper::SolveTimeSteps(double dt, int number_of_substeps) {
+        NvFlexUpdateSolver(mFlexSolver, (float)dt, number_of_substeps, false);
+    }
 
-        mFlexCopyDescriptor.dstOffset = 0;
-	    mFlexCopyDescriptor.srcOffset = 0;
+    void FlexWrapper::TransferDataFromFlexToKratos() {
+
+        NvFlexGetParticles(mFlexSolver, mFlexPositions->buffer, &mFlexCopyDescriptor);
+        NvFlexGetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
+
+        mFlexPositions->map();
+        mFlexVelocities->map();
+        mFlexPhases->map();
+        mActiveIndices->map();
+        mFlexRestPositions->map();
+
+        KRATOS_WATCH("flex2kratos")
+        KRATOS_WATCH( (*mFlexVelocities)[0][0] )
 
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
-	    mFlexCopyDescriptor.elementCount = number_of_nodes;
+
+        for (size_t i=0; i< number_of_nodes; i++) {
+            const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
+
+            //positions
+            auto& coords = node_it->Coordinates();
+            NvFlexVector<Vec4>& array_of_positions = *mFlexPositions;
+            coords[0] = array_of_positions[i][0];
+            coords[1] = array_of_positions[i][1];
+            coords[2] = array_of_positions[i][2];
+
+            //velocities
+            auto& vel = node_it->FastGetSolutionStepValue(VELOCITY);
+            NvFlexVector<Vec3>& array_of_velocities = *mFlexVelocities;
+            vel[0] = array_of_velocities[i][0];
+            vel[1] = array_of_velocities[i][1];
+            vel[2] = array_of_velocities[i][2];
+        }
+
+        KRATOS_WATCH( (*mFlexVelocities)[0][0] )
+    }
+
+    void FlexWrapper::Finalize() {
+
+        NvFlexFreeBuffer(mFlexPositions->buffer);
+        NvFlexFreeBuffer(mFlexVelocities->buffer);
+        NvFlexFreeBuffer(mFlexPhases->buffer);
+        NvFlexFreeBuffer(mActiveIndices->buffer);
+        NvFlexFreeBuffer(mFlexRestPositions->buffer);
+        NvFlexDestroySolver(mFlexSolver);
+        NvFlexShutdown(mFlexLibrary);
     }
 
     std::string FlexWrapper::Info() const {
