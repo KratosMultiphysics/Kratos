@@ -373,7 +373,6 @@ private:
     const AdjointFiniteDifferencingShellElement mAdjointFiniteDifferencingShellElement;
     const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
     const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussElement;
-    const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussLinearElement;
 
     /* CONDITIONS*/
     // Point load
