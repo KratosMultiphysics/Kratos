@@ -9,6 +9,11 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 def solve_primal_problem():
     with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_parameters.json",'r') as parameter_file:
         ProjectParametersPrimal = Parameters( parameter_file.read())
+
+    # To avoid many prints
+    if (ProjectParametersPrimal["problem_data"]["echo_level"].GetInt() == 0):
+        Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
+
     model_primal = Model()
     primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
     primal_analysis.Run()
