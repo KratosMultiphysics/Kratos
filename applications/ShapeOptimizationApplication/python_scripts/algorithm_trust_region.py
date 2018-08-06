@@ -117,39 +117,18 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             self.__ComputeShapeUpdate(dx_bar, step_length)
 
-            self.__LogCurrentOptimizationStep(val_obj, step_length)
+            self.__LogCurrentOptimizationStep(val_obj, val_eqs, val_ineqs, step_length)
 
             print("\n--------------------------------------------")
-            if self.opt_iteration == 1:
-                obj_id = self.specified_objectives[0]["identifier"].GetString()
-                self.initial_obj_val = self.communicator.getValue(obj_id)
-                print("J1_val = ", self.initial_obj_val)
-            else:
-                obj_id = self.specified_objectives[0]["identifier"].GetString()
-                obj_val = self.communicator.getValue(obj_id)
-                percentual_improvement = (1-obj_val/self.initial_obj_val)*100
-                print("J1_val = ", obj_val)
-                print("percentual_improvement = ", percentual_improvement)
-            print("\nval_obj = ", val_obj)
-            print("len_bar_obj = ", len_bar_obj)
+            print("\nlen_bar_obj = ", len_bar_obj)
             print("adj_len_bar_obj = ", adj_len_bar_obj)
-            print("\n--------------------------------------------")
 
-            for itr in range(self.specified_constraints.size()):
-                con_id = self.specified_constraints[itr]["identifier"].GetString()
-                print("C"+str(itr+1)+"_val = ", self.communicator.getValue(con_id))
-
-            print("\nval_ineqs = ", val_ineqs)
-            print("len_bar_ineqs = ", len_bar_ineqs)
+            print("\nlen_bar_ineqs = ", len_bar_ineqs)
             print("adj_len_bar_ineqs = ", adj_len_bar_ineqs)
-            print("\nval_eqs = ", val_eqs)
-            print("len_bar_eqs = ", len_bar_eqs)
+
+            print("\nlen_bar_eqs = ", len_bar_eqs)
             print("adj_len_bar_eqs = ", adj_len_bar_eqs)
             print("\n--------------------------------------------")
-
-            print("step_length = ", step_length)
-            print("\n--------------------------------------------")
-
 
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
@@ -461,11 +440,15 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         dxAbsolute = ReadNodalVariableToList(self.design_surface, SHAPE_CHANGE)
 
     # --------------------------------------------------------------------------
-    def __LogCurrentOptimizationStep(self, val_obj, step_length):
+    def __LogCurrentOptimizationStep(self, val_obj, val_eqs, val_ineqs, step_length):
         self.value_history["val_obj"].append(val_obj)
         self.value_history["step_length"].append(step_length)
 
-        self.data_logger.LogCurrentData(self.opt_iteration)
+        additional_values_to_log = {}
+        additional_values_to_log["step_length"] = step_length
+
+        self.data_logger.LogCurrentDesign(self.opt_iteration)
+        self.data_logger.LogCurrentValues(self.opt_iteration, self.communicator, additional_values_to_log)
 
 # ==============================================================================
 class Projector():

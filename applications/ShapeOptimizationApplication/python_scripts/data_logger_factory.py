@@ -50,7 +50,7 @@ class DataLogger():
         elif AlgorithmName == "penalized_projection":
             return ResponseLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "trust_region":
-            return ResponseLoggerTrustRegion( self.Communicator, self.OptimizationSettings )
+            return ResponseLoggerTrustRegion( self.OptimizationSettings )
         else:
             raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + AlgorithmName)
 
@@ -95,9 +95,12 @@ class DataLogger():
         self.ResponseLogger.InitializeLogging()
 
     # --------------------------------------------------------------------------
-    def LogCurrentData( self, optimizationIteration ):
+    def LogCurrentDesign( self, optimizationIteration ):
         self.DesignLogger.LogCurrentDesign( optimizationIteration )
-        self.ResponseLogger.LogCurrentResponses( optimizationIteration )
+
+    # --------------------------------------------------------------------------
+    def LogCurrentValues( self, optimizationIteration, communicator, additional_values ):
+        self.ResponseLogger.LogCurrentValues( optimizationIteration, communicator, additional_values )
 
     # --------------------------------------------------------------------------
     def FinalizeDataLogging( self ):
