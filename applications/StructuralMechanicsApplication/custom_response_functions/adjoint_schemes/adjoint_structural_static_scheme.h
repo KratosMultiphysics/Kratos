@@ -216,8 +216,8 @@ public:
         KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_DISPLACEMENT) )
              << "Nodal solution steps data missing variable: " << ADJOINT_DISPLACEMENT << std::endl;
 
-        KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) )
-             << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
+        //KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) )
+        //     << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
            // ---> but what is e.g. for solid elements, where no rotation dofs exist???????????????
 
         return BaseType::Check(rModelPart); // check elements and conditions
