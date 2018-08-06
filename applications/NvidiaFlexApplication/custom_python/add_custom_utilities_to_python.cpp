@@ -19,7 +19,6 @@ namespace Kratos {
 
         class_<FlexWrapper, FlexWrapper::Pointer>(m, "FlexWrapper")
             .def(init<ModelPart&>())
-            .def("RunSimulation", &FlexWrapper::RunSimulation)
             .def("UpdateFlex", &FlexWrapper::UpdateFlex)
             .def("TransferDataFromFlexToKratos", &FlexWrapper::TransferDataFromFlexToKratos)
             .def("SolveTimeSteps", &FlexWrapper::SolveTimeSteps)
