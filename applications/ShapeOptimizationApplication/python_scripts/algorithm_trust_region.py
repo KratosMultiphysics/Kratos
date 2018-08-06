@@ -109,8 +109,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs =  self.__ConvertAnalysisResultsToLengthDirectionFormat()
 
-            len_ineqs, dir_ineqs =  self.__ReduceToRelevantInequalityConstraints(len_ineqs, dir_ineqs)
-
             step_length = self.__DetermineStepLength(val_obj)
 
             len_bar_obj, len_bar_eqs, len_bar_ineqs = self.__ExpressInStepLengthUnit(len_obj, len_eqs, len_ineqs, step_length)
@@ -341,28 +339,15 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __ConvertToLengthDirectionFormat(self, value, gradient, modified_gradient):
         norm_inf = NormInf3D(modified_gradient)
-        if norm_inf < 1e-12:
-            raise RuntimeError("Vanishing norm-infinity detected!")
-
-        direction = ScalarVectorProduct(-1/norm_inf,modified_gradient)
-        length = -value/Dot(gradient, direction)
+        if norm_inf > 1e-12:
+            direction = ScalarVectorProduct(-1/norm_inf,modified_gradient)
+            length = -value/Dot(gradient, direction)
+        else:
+            print("\nWarning! Vanishing norm-infinity for gradient detected!")
+            direction = modified_gradient
+            length = 0.0
 
         return direction, length
-
-    # --------------------------------------------------------------------------
-    def __ReduceToRelevantInequalityConstraints(self, len_ineqs, dir_ineqs):
-        len_ineqs_relevant = []
-        dir_ineqs_relevant = []
-
-        for itr in range(len(len_ineqs)):
-            len_i = len_ineqs[itr]
-            dir_i = dir_ineqs[itr]
-
-            if len_i > -self.algorithm_settings["far_away_length"].GetDouble():
-                len_ineqs_relevant.append(len_i)
-                dir_ineqs_relevant.append(dir_i)
-
-        return len_ineqs_relevant, dir_ineqs_relevant
 
     # --------------------------------------------------------------------------
     def __DetermineStepLength(self, val_obj):
@@ -446,10 +431,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 threshold_min = 0
                 threshold_max = 1.3
                 func = lambda threshold: projector.RunProjection(len_obj, threshold, nargout)
-                l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr) 
+                l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr)
 
                 nargout = 6
-                norm_inf_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj, l_threshold_result, nargout)                        
+                norm_inf_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj, l_threshold_result, nargout)
 
                 print("\nl_threshold_result = ", l_threshold_result)
                 print("bi_itrs = ", bi_itrs)
@@ -487,11 +472,17 @@ class Projector():
     # --------------------------------------------------------------------------
     def __init__(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, settings):
 
+        self.far_away_length = settings["far_away_length"].GetDouble()
+        self.subopt_max_itr = settings["subopt_max_itr"].GetInt()
+        self.subopt_tolerance = settings["subopt_tolerance"].GetDouble()
+
+        # Reduce input data to relevant info
+        len_ineqs, dir_ineqs =  self.__RemoveInactiveConstraintsFarAway(len_ineqs, dir_ineqs)
+        len_eqs, dir_eqs, len_ineqs, dir_ineqs = self.__RemoveConstraintsWithNoGradientInfo(len_eqs, dir_eqs, len_ineqs, dir_ineqs)
+
         # Store some working variables
         self.len_eqs = len_eqs
         self.len_ineqs = len_ineqs
-        self.subopt_max_itr = settings["subopt_max_itr"].GetInt()
-        self.subopt_tolerance = settings["subopt_tolerance"].GetDouble()
         self.num_eqs = len(len_eqs)
         self.num_ineqs = len(len_ineqs)
         self.num_unknowns = 1 + self.num_eqs + self.num_ineqs
@@ -506,7 +497,7 @@ class Projector():
 
         # Make sure directions of constraints are stored as matrix
         self.dir_eqs_o = SafeConvertVectorToMatrix(self.dir_eqs_o)
-        self.dir_ineqs_o = SafeConvertVectorToMatrix(self.dir_ineqs_o)      
+        self.dir_ineqs_o = SafeConvertVectorToMatrix(self.dir_ineqs_o)
 
     # --------------------------------------------------------------------------
     def RunProjection(self, len_obj, threshold, nargout):
@@ -515,7 +506,7 @@ class Projector():
         len_obj, len_eqs, len_ineqs = self.__AdjustHalfSpacesAndHyperplanes(len_obj, threshold)
 
         # Determine position of border of halfspaces and hyperplanes
-        pos_obj_o, pos_eqs_o, pos_ineqs_o = self.__DetermineConstraintBorders(len_obj, len_eqs, len_ineqs)    
+        pos_obj_o, pos_eqs_o, pos_ineqs_o = self.__DetermineConstraintBorders(len_obj, len_eqs, len_ineqs)
 
         # # Project current position onto intersection of HPs
         current_position = ZeroVector(self.num_unknowns)
@@ -559,6 +550,47 @@ class Projector():
             return norm_dX, dX, is_projection_sucessfull
         else:
             return norm_dX, dX, is_projection_sucessfull, len_obj, len_eqs, len_ineqs
+
+    # --------------------------------------------------------------------------
+    def __RemoveInactiveConstraintsFarAway(self, len_ineqs, dir_ineqs):
+        len_ineqs_relevant = []
+        dir_ineqs_relevant = []
+
+        for itr in range(len(len_ineqs)):
+            len_i = len_ineqs[itr]
+            dir_i = dir_ineqs[itr]
+
+            if len_i > -self.far_away_length:
+                len_ineqs_relevant.append(len_i)
+                dir_ineqs_relevant.append(dir_i)
+
+        return len_ineqs_relevant, dir_ineqs_relevant
+
+    # --------------------------------------------------------------------------
+    def __RemoveConstraintsWithNoGradientInfo(self, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
+        len_eqs_relevant = []
+        dir_eqs_relevant = []
+
+        for itr in range(len(dir_eqs)):
+            len_i = len_eqs[itr]
+            dir_i = dir_eqs[itr]
+
+            if NormInf3D(dir_i) > 1e-13:
+                len_eqs_relevant.append(len_i)
+                dir_eqs_relevant.append(dir_i)
+
+        len_ineqs_relevant = []
+        dir_ineqs_relevant = []
+
+        for itr in range(len(dir_ineqs)):
+            len_i = len_ineqs[itr]
+            dir_i = dir_ineqs[itr]
+
+            if NormInf3D(dir_i) > 1e-13:
+                len_ineqs_relevant.append(len_i)
+                dir_ineqs_relevant.append(dir_i)
+
+        return len_eqs_relevant, dir_eqs_relevant, len_ineqs_relevant, dir_ineqs_relevant
 
     # --------------------------------------------------------------------------
     def __PerformGramSchmidtOrthogonalization(self, dir_obj, dir_eqs, dir_ineqs):
