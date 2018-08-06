@@ -32,18 +32,16 @@ class CoupledFluidThermalSolver(PythonSolver):
             "fluid_solver_settings": {
                 "solver_type": "navier_stokes_solver_vmsmonolithic",
                 "model_import_settings": {
-                        "input_type": "mdpa",
-                        "input_filename": "unknown_name"
+                    "input_type": "mdpa",
+                    "input_filename": "unknown_name"
                 }
             },
             "thermal_solver_settings": {
                 "solver_type": "Transient",
                 "analysis_type": "linear",
                 "model_import_settings": {
-                        "input_type": "use_input_model_part",
-                        "input_filename": "unknown_name"
+                    "input_type": "use_input_model_part"
                 },
-                "computing_model_part_name": "computing_domain",
                 "material_import_settings": {
                         "materials_filename": "ThermalMaterials.json"
                 }
@@ -54,7 +52,7 @@ class CoupledFluidThermalSolver(PythonSolver):
         ## Overwrite the default settings with user-provided parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        # Get domain size
+        ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
 
         import python_solvers_wrapper_fluid
@@ -138,7 +136,7 @@ class CoupledFluidThermalSolver(PythonSolver):
 
     def AdvanceInTime(self, current_time):
         #NOTE: the cloning is done ONLY ONCE since the nodes are shared
-        new_time  = self.fluid_solver.AdvanceInTime(current_time)
+        new_time = self.fluid_solver.AdvanceInTime(current_time)
         return new_time
 
     def InitializeSolutionStep(self):
