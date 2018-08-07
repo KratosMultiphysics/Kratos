@@ -111,11 +111,11 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             len_bar_obj, len_bar_eqs, len_bar_ineqs = self.__ExpressInStepLengthUnit(len_obj, len_eqs, len_ineqs, step_length)
 
-            dx_bar, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
+            dx_bar, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
 
             norm_dx = self.__ComputeShapeUpdate(dx_bar, step_length)
 
-            self.__LogCurrentOptimizationStep(len_bar_obj, len_bar_eqs, len_bar_ineqs, step_length, norm_dx, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs)
+            self.__LogCurrentOptimizationStep(step_length, len_bar_obj, len_bar_eqs, len_bar_ineqs, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs, norm_dx)
 
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
@@ -363,8 +363,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         print("> Time needed for one projection step = ", timer.GetTotalTime(), "s")
 
-        print("\ntest_norm_dX = ",test_norm_dX)
-
         # 2. Determine step following two different modes depending on the previos found step length to the feasible domain
         if is_projection_sucessfull:
             if test_norm_dX < 1: # Minimizing mode
@@ -380,12 +378,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 len_obj_result, bi_itrs, bi_err = PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
 
                 nargout = 6
-                test_norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj_result, inactive_threshold, nargout)
-
-                print("\nlen_obj_result = ", len_obj_result)
-                print("bi_itrs = ", bi_itrs)
-                print("bi_err = ", bi_err)
-                print("test_norm_dX = ", test_norm_dX)
+                norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj_result, inactive_threshold, nargout)
 
             else: # Correction mode
                 print ("\n> Computing projection case 2...")
@@ -401,18 +394,13 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr)
 
                 nargout = 6
-                test_norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj, l_threshold_result, nargout)
-
-                print("\nl_threshold_result = ", l_threshold_result)
-                print("bi_itrs = ", bi_itrs)
-                print("bi_err = ", bi_err)
-                print("test_norm_dX = ", test_norm_dX)
+                norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj, l_threshold_result, nargout)
         else:
             raise RuntimeError("Case of not converged test projection not yet implemented yet!")
 
         print("\n> Time needed for determining step = ", timer.GetTotalTime(), "s")
 
-        return dX, adj_len_obj, adj_len_eqs, adj_len_ineqs
+        return dX, test_norm_dX, bi_itrs, bi_err, adj_len_obj, adj_len_eqs, adj_len_ineqs
 
     # --------------------------------------------------------------------------
     def __ComputeShapeUpdate(self, dx_bar, step_length):
@@ -425,19 +413,42 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return NormInf3D(dx)
 
     # --------------------------------------------------------------------------
-    def __LogCurrentOptimizationStep(self, len_bar_obj, len_bar_eqs, len_bar_ineqs, step_length, norm_dx, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs):
+    def __LogCurrentOptimizationStep(self, step_length, len_bar_obj, len_bar_eqs, len_bar_ineqs, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs, norm_dx):
         additional_values_to_log = {}
         additional_values_to_log["len_bar_obj"] = len_bar_obj
-        additional_values_to_log["len_bar_eqs"] = len_bar_eqs
-        additional_values_to_log["len_bar_ineqs"] = len_bar_ineqs
-        additional_values_to_log["step_length"] = step_length
-        additional_values_to_log["norm_dx"] = norm_dx
         additional_values_to_log["adj_len_bar_obj"] = adj_len_bar_obj
-        additional_values_to_log["adj_len_bar_eqs"] = adj_len_bar_eqs
-        additional_values_to_log["adj_len_bar_ineqs"] = adj_len_bar_ineqs
+
+        len_bar_cons = self.__CombineConstraintDataToOrderedList(len_bar_eqs, len_bar_ineqs)
+        adj_len_bar_cons = self.__CombineConstraintDataToOrderedList(adj_len_bar_eqs, adj_len_bar_ineqs)
+
+        additional_values_to_log["len_bar_cons"] = len_bar_cons
+        additional_values_to_log["adj_len_bar_cons"] = adj_len_bar_cons
+
+        additional_values_to_log["test_norm_dx_bar"] = test_norm_dx_bar
+        additional_values_to_log["bi_itrs"] = bi_itrs
+        additional_values_to_log["bi_err"] = bi_err
+        additional_values_to_log["norm_dx"] = norm_dx
+        additional_values_to_log["step_length"] = step_length
 
         self.data_logger.LogCurrentValues(self.opt_iteration, self.communicator, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.opt_iteration)
+
+    # --------------------------------------------------------------------------
+    def __CombineConstraintDataToOrderedList(self, eqs_data_list, ineqs_data_list):
+        num_eqs = 0
+        num_ineqs = 0
+        combined_list = []
+
+        # Order is given by appearance of constraints in optimization settings
+        for itr in range(self.specified_constraints.size()):
+            if self.specified_constraints[itr]["type"].GetString()=="=":
+                combined_list.append(eqs_data_list[num_eqs])
+                num_eqs == num_eqs+1
+            else:
+                combined_list.append(ineqs_data_list[num_ineqs])
+                num_ineqs == num_ineqs+1
+
+        return combined_list
 
 # ==============================================================================
 class Projector():
@@ -480,11 +491,11 @@ class Projector():
         # Determine position of border of halfspaces and hyperplanes
         pos_obj_o, pos_eqs_o, pos_ineqs_o = self.__DetermineConstraintBorders(len_obj, len_eqs, len_ineqs)
 
-        # # Project current position onto intersection of HPs
+        # Project current position onto intersection of
         current_position = ZeroVector(self.num_unknowns)
         dlambda_hp = self.__ProjectToHyperplanes(current_position, self.dir_eqs_o, pos_eqs_o)
 
-        # Project position and direction of halfspaces onto intersection of HPs
+        # Project position and direction of halfspaces onto intersection of hyperplanes
         zero_position_eqs_o = ZeroMatrix(self.num_unknowns,self.num_eqs)
 
         pos_obj_hp = self.__ProjectToHyperplanes(pos_obj_o, HorzCat(self.dir_eqs_o, self.dir_obj_o), HorzCat(pos_eqs_o, pos_obj_o))
@@ -588,7 +599,7 @@ class Projector():
             if norm2_v>1e-10:
                 B.append( ScalarVectorProduct(1/norm2_v,v) )
             else:
-                print("Zero basis vector after Gram-Schmidt orthogonalization --> Problem set has too many response functions or involves only parallel vectors or is at the unconstrained optimum.")
+                print("Zero basis vector after Gram-Schmidt orthogonalization!")
                 B.append(v)
 
         return B
