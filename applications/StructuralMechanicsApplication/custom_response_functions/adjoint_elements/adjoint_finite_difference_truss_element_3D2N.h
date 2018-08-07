@@ -39,15 +39,24 @@ public:
 
     void Calculate(const Variable<Vector >& rVariable,
                         Vector& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo) override;
+                        const ProcessInfo& rCurrentProcessInfo) override;                    
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+                                    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 
 
 private:
     double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
+
+    double CalculateReferenceLength();
+
+    double CalculateCurrentLength();
+
+    void CalculateCurrentLengthDisplacementDerivative(Vector& rDerivativeVector);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
