@@ -843,7 +843,7 @@ namespace Kratos
             }
             //std::cout << "Number of CPS: " << cps.size() << std::endl;
             //std::cout << "aslkjhasdflkasljkjladfs" << std::endl;
-            element->GetGeometry() = Geometry< Node<3> >(cps);
+            //element->GetGeometry() = Geometry< Node<3> >(cps);
         }
         std::cout << "update finished elements" << std::endl;
 
@@ -876,7 +876,7 @@ namespace Kratos
             {
                 cps.push_back(rIGAModelPart.pGetNode((int)CPS[i]));
             }
-            condition->GetGeometry() = Geometry< Node<3> >(cps);
+            //condition->GetGeometry() = Geometry< Node<3> >(cps);
         }
         std::cout << "update finished" << std::endl;
     }
