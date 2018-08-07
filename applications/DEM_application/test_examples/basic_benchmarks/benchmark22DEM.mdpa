@@ -6,7 +6,7 @@ Begin Properties 1
 PARTICLE_DENSITY 2500.0
 YOUNG_MODULUS 1.0e9
 POISSON_RATIO 0.20
-PARTICLE_FRICTION 5.6712818196177066
+FRICTION 5.6712818196177066
 PARTICLE_COHESION 0.0
 COEFFICIENT_OF_RESTITUTION 1
 PARTICLE_MATERIAL 1
@@ -59,11 +59,11 @@ Begin SubModelPart 1 // GUI conditionid DEM-ForceIntegrationGroup group identifi
     BOTTOM  0
   End SubModelPartData
 
- 
+
  Begin SubModelPartNodes
        140
  End SubModelPartNodes
- 
+
 End SubModelPart
 
 Begin SubModelPart 2 // GUI conditionid DEM-ForceIntegrationGroup group identifier: ball2
@@ -76,11 +76,11 @@ Begin SubModelPart 2 // GUI conditionid DEM-ForceIntegrationGroup group identifi
     BOTTOM  0
   End SubModelPartData
 
- 
+
  Begin SubModelPartNodes
        141
  End SubModelPartNodes
- 
+
 End SubModelPart
 
 Begin SubModelPart 3 // GUI conditionid DEM-VelocityBC group identifier: ball1
@@ -94,11 +94,11 @@ Begin SubModelPart 3 // GUI conditionid DEM-VelocityBC group identifier: ball1
     BOTTOM  0
   End SubModelPartData
 
- 
+
  Begin SubModelPartNodes
        140
  End SubModelPartNodes
- 
+
 End SubModelPart
 
 Begin SubModelPart 4 // GUI conditionid DEM-VelocityBC group identifier: ball2
@@ -112,10 +112,10 @@ Begin SubModelPart 4 // GUI conditionid DEM-VelocityBC group identifier: ball2
     BOTTOM  0
   End SubModelPartData
 
- 
+
  Begin SubModelPartNodes
        141
  End SubModelPartNodes
- 
+
 End SubModelPart
 

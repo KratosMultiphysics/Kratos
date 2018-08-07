@@ -2,21 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
-//                    
+//
 //
 
 #if !defined(KRATOS_KRATOS_STL_IO_H_INCLUDED )
 #define  KRATOS_KRATOS_STL_IO_H_INCLUDED
 
 // System includes
-#include <algorithm>
-#include <iterator>
 #include <iostream>
 #include <vector>
 
@@ -25,17 +23,23 @@
 
 namespace Kratos {
 
-// Std::vector << operator
 template<class T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
+std::ostream& operator<<(std::ostream& rOStream, const std::vector<T>& rVec) {
 
-    std::cout << "[";
-    std::copy(data.begin(), data.end(), std::ostream_iterator<T>(std::cout, ", "));
-    std::cout << "]";
-    
-    return os;
+    std::size_t vector_size = rVec.size();
+
+    rOStream << "[";
+    if(vector_size>0) rOStream << rVec[0];
+    if(vector_size>1) {
+        for(std::size_t i = 1; i < vector_size; i++)
+            rOStream<<", "<<rVec[i];
+    }
+    rOStream << "]";
+
+    return rOStream;
 }
 
 } //namespace Kratos
+
 
 #endif // KRATOS_KRATOS_STL_IO_H_INCLUDED  defined

@@ -44,6 +44,7 @@ class MeshTyingProcess(KM.Process):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
+            "help"                        : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",

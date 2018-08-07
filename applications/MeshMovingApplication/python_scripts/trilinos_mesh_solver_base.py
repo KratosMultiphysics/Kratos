@@ -59,5 +59,5 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
         linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
         return linear_solver
 
-    def _create_mesh_motion_solver(self):
+    def _create_mesh_motion_solving_strategy(self):
         raise Exception("Mesh motion solver must be created by the derived class.")
