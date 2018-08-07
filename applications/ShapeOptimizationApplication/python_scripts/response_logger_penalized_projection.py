@@ -55,14 +55,14 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         with open(self.completeResponseLogFileName, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("{:<4s}".format("itr"))
+            row.append("{:>4s}".format("itr"))
             row.append("{:>20s}".format("f"))
             row.append("{:>12s}".format("df_abs[%]"))
             row.append("{:>12s}".format("df_rel[%]"))
             row.append("{:>20s}".format("c["+self.only_con["identifier"].GetString()+"]: "+self.only_con["type"].GetString()))
             row.append("{:>20s}".format("c["+self.only_con["identifier"].GetString()+"]_ref"))
-            row.append("{:>13s}".format("c_scaling[-]"))
-            row.append("{:>13s}".format("step_size[-]"))
+            row.append("{:>12s}".format("c_scaling"))
+            row.append("{:>12s}".format("step_size"))
             row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
 
@@ -162,14 +162,14 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         with open(self.completeResponseLogFileName, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("{:<4s}".format(str(self.currentIteration)))
+            row.append(str("{:>4d}".format(self.currentIteration)))
             row.append(str("{:>20f}".format(objectiveValue)))
             row.append(str("{:>12f}".format(absoluteChangeOfObjectiveValue)))
             row.append(str("{:>12f}".format(relativeChangeOfObjectiveValue)))
             row.append(str("{:>20f}".format(constraintValue)))
             row.append(str("{:>20f}".format(self.constraintOutputReference)))
-            row.append(str("{:>13f}".format(self.optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble())))
-            row.append(str("{:>13f}".format(self.optimizationSettings["optimization_algorithm"]["line_search"]["step_size"].GetDouble())))
+            row.append(str("{:>12f}".format(self.optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble())))
+            row.append(str("{:>12f}".format(self.optimizationSettings["optimization_algorithm"]["line_search"]["step_size"].GetDouble())))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 
