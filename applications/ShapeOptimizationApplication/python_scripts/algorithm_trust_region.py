@@ -79,10 +79,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         self.x_init = WriteNodeCoordinatesToList(self.design_surface)
 
-        self.value_history = {}
-        self.value_history["val_obj"] = []
-        self.value_history["step_length"] = []
-
         self.model_part_controller.ImportOptimizationModelPart()
         self.model_part_controller.InitializeMeshController()
         self.mapper.InitializeMapping()
@@ -105,33 +101,21 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             self.__AnalyzeShape()
 
-            val_obj, val_eqs, val_ineqs = self.__ProcessAnalysisResults()
+            self.__ResetPossibleShapeModificationsDuringAnalysis()
+
+            self.__PostProcessGradientsObtainedFromAnalysis()
 
             len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs =  self.__ConvertAnalysisResultsToLengthDirectionFormat()
 
-            step_length = self.__DetermineStepLength(val_obj)
+            step_length = self.__DetermineMaxStepLength()
 
             len_bar_obj, len_bar_eqs, len_bar_ineqs = self.__ExpressInStepLengthUnit(len_obj, len_eqs, len_ineqs, step_length)
 
             dx_bar, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
 
-            self.__ComputeShapeUpdate(dx_bar, step_length)
+            norm_dx = self.__ComputeShapeUpdate(dx_bar, step_length)
 
-            self.__LogCurrentOptimizationStep(val_obj, val_eqs, val_ineqs, step_length)
-
-            print("\n--------------------------------------------")
-            print("\nlen_bar_obj = ", len_bar_obj)
-            print("adj_len_bar_obj = ", adj_len_bar_obj)
-
-            print("\nlen_bar_ineqs = ", len_bar_ineqs)
-            print("adj_len_bar_ineqs = ", adj_len_bar_ineqs)
-
-            print("\nlen_bar_eqs = ", len_bar_eqs)
-            print("adj_len_bar_eqs = ", adj_len_bar_eqs)
-            print("\n--------------------------------------------")
-
-            print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+            self.__LogCurrentOptimizationStep(len_bar_obj, len_bar_eqs, len_bar_ineqs, step_length, norm_dx, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs)
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
@@ -165,38 +149,42 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.opt_iteration, self.communicator)
 
-            # Reset possible shape modifications during analysis
-            self.model_part_controller.SetMeshToReferenceMesh()
-            self.model_part_controller.SetDeformationVariablesToZero()
+    # --------------------------------------------------------------------------
+    def __ResetPossibleShapeModificationsDuringAnalysis(self):
+        self.model_part_controller.SetMeshToReferenceMesh()
+        self.model_part_controller.SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
-    def __ProcessAnalysisResults(self):
-        # Process objective results
+    def __PostProcessGradientsObtainedFromAnalysis(self):
+        self.geometry_utilities.ComputeUnitSurfaceNormals()
+
+        # Process objective gradients
         obj = self.specified_objectives[0]
         obj_id = obj["identifier"].GetString()
 
-        obj_value = self.communicator.getStandardizedValue(obj_id)
         obj_gradients_dict = self.communicator.getStandardizedGradient(obj_id)
 
         nodal_variable = KratosGlobals.GetVariable("DF1DX")
         WriteDictionaryDataOnNodalVariable(obj_gradients_dict, self.optimization_model_part, nodal_variable)
 
+        # Projection on surface normals
         if obj["project_gradient_on_surface_normals"].GetBool():
-            self.__PerformProjectionOnNormals(nodal_variable)
+            self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
+        # Damping
         if self.is_damping_specified:
             self.damping_utilities.DampNodalVariable(nodal_variable)
 
+        # Mapping
         nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
-        self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+        self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
+        self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
 
+        # Damping
         if self.is_damping_specified:
             self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
 
-        # Process constraint results
-        eq_values = []
-        ineq_values = []
-
+        # Process constraint gradients
         for itr in range(self.specified_constraints.size()):
             con = self.specified_constraints[itr]
 
@@ -204,21 +192,25 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             if con["type"].GetString()=="=":
                 eq_id = con["identifier"].GetString()
 
-                eq_values.append(self.communicator.getStandardizedValue(eq_id))
                 eq_gradients_dict = self.communicator.getStandardizedGradient(eq_id)
 
                 nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
                 WriteDictionaryDataOnNodalVariable(eq_gradients_dict, self.optimization_model_part, nodal_variable)
 
+                # Projection on surface normals
                 if con["project_gradient_on_surface_normals"].GetBool():
-                    self.__PerformProjectionOnNormals(nodal_variable)
+                    self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
+                # Damping
                 if self.is_damping_specified:
                     self.damping_utilities.DampNodalVariable(nodal_variable)
 
+                # Mapping
                 nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
-                self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+                self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
+                self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
 
+                # Damping
                 if self.is_damping_specified:
                     self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
 
@@ -226,35 +218,27 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             else:
                 ineq_id = con["identifier"].GetString()
 
-                ineq_values.append(self.communicator.getStandardizedValue(ineq_id))
                 ineq_gradients_dict = self.communicator.getStandardizedGradient(ineq_id)
 
                 nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
                 WriteDictionaryDataOnNodalVariable(ineq_gradients_dict, self.optimization_model_part, nodal_variable)
 
+                # Projection on surface normals
                 if con["project_gradient_on_surface_normals"].GetBool():
-                    self.__PerformProjectionOnNormals(nodal_variable)
+                    self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
+                # Damping
                 if self.is_damping_specified:
                     self.damping_utilities.DampNodalVariable(nodal_variable)
 
+                # Mapping
                 nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
-                self.__PerformMapping(nodal_variable, nodal_variable_mapped)
+                self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
+                self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
 
+                # Damping
                 if self.is_damping_specified:
                     self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
-
-        return obj_value, eq_values, ineq_values
-
-    # --------------------------------------------------------------------------
-    def __PerformMapping(self, nodal_variable, nodal_variable_mapped):
-        self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-        self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
-
-    # --------------------------------------------------------------------------
-    def __PerformProjectionOnNormals(self, nodal_variable):
-        self.geometry_utilities.ComputeUnitSurfaceNormals()
-        self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
     # --------------------------------------------------------------------------
     def __ConvertAnalysisResultsToLengthDirectionFormat(self):
@@ -329,18 +313,19 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return direction, length
 
     # --------------------------------------------------------------------------
-    def __DetermineStepLength(self, val_obj):
+    def __DetermineMaxStepLength(self):
         if self.opt_iteration < 4:
             return self.algorithm_settings["max_step_length"].GetDouble()
         else:
+            obj_id = self.specified_objectives[0]["identifier"].GetString()
+            current_obj_val = self.communicator.getStandardizedValue(obj_id)
+            obj_history = self.data_logger.GetHistory(obj_id)
+            step_history = self.data_logger.GetHistory("step_length")
             objective_is_oscillating = False
 
-            obj_history = self.value_history["val_obj"]
-            step_history = self.value_history["step_length"]
-
-            is_decrease_1 = (val_obj-obj_history[-1])< 0
-            is_decrease_2 = (obj_history[-1]-obj_history[-2])<0
-            is_decrease_3 = (val_obj-obj_history[-3])< 0
+            is_decrease_1 = (current_obj_val - obj_history[-1])< 0
+            is_decrease_2 = (obj_history[-1] - obj_history[-2])<0
+            is_decrease_3 = (current_obj_val - obj_history[-3])< 0
             if (is_decrease_1 and is_decrease_2== False and is_decrease_3) or (is_decrease_1== False and is_decrease_2 and is_decrease_3==False):
                 objective_is_oscillating = True
 
@@ -358,16 +343,11 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __DetermineStep(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
-
         print("\n--------------------------------------------")
         print("> Starting determination of step...")
 
         timer = Timer()
         timer.StartTimer()
-
-        bi_target = 1
-        bi_tolerance = self.algorithm_settings["bisectioning_tolerance"].GetDouble()
-        bi_max_itr = self.algorithm_settings["bisectioning_max_itr"].GetInt()
 
         # Create projector object wich can do the projection in the orthogonalized subspace
         projector = Projector(len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, self.algorithm_settings)
@@ -388,10 +368,13 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             if norm_inf_dX < 1: # Minimizing mode
                 print ("\n> Computing projection case 1...")
 
-                nargout = 2
+                func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold, nargout)
+
                 len_obj_min = len_obj_test
                 len_obj_max = 1.3
-                func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold, nargout)
+                bi_target = 1
+                bi_tolerance = self.algorithm_settings["bisectioning_tolerance"].GetDouble()
+                bi_max_itr = self.algorithm_settings["bisectioning_max_itr"].GetInt()
                 len_obj_result, bi_itrs, bi_err = PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
 
                 nargout = 6
@@ -405,11 +388,14 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             else: # Correction mode
                 print ("\n> Computing projection case 2...")
 
-                nargout = 2
                 len_obj = self.algorithm_settings["obj_share_during_correction"].GetDouble()
+                func = lambda threshold: projector.RunProjection(len_obj, threshold, nargout)
+
                 threshold_min = 0
                 threshold_max = 1.3
-                func = lambda threshold: projector.RunProjection(len_obj, threshold, nargout)
+                bi_target = 1
+                bi_tolerance = self.algorithm_settings["bisectioning_tolerance"].GetDouble()
+                bi_max_itr = self.algorithm_settings["bisectioning_max_itr"].GetInt()
                 l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr)
 
                 nargout = 6
@@ -431,24 +417,25 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         # Compute update in regular units
         dx = ScalarVectorProduct(step_length,dx_bar)
 
-        print("\n--------------------------------------------")
-        print("NormInf3D of dx = ", NormInf3D(dx))
-
         WriteListToNodalVariable(dx, self.design_surface, SHAPE_UPDATE)
         self.optimization_utilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
 
-        dxAbsolute = ReadNodalVariableToList(self.design_surface, SHAPE_CHANGE)
+        return NormInf3D(dx)
 
     # --------------------------------------------------------------------------
-    def __LogCurrentOptimizationStep(self, val_obj, val_eqs, val_ineqs, step_length):
-        self.value_history["val_obj"].append(val_obj)
-        self.value_history["step_length"].append(step_length)
-
+    def __LogCurrentOptimizationStep(self, len_bar_obj, len_bar_eqs, len_bar_ineqs, step_length, norm_dx, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs):
         additional_values_to_log = {}
+        additional_values_to_log["len_bar_obj"] = len_bar_obj
+        additional_values_to_log["len_bar_eqs"] = len_bar_eqs
+        additional_values_to_log["len_bar_ineqs"] = len_bar_ineqs
         additional_values_to_log["step_length"] = step_length
+        additional_values_to_log["norm_dx"] = norm_dx
+        additional_values_to_log["adj_len_bar_obj"] = adj_len_bar_obj
+        additional_values_to_log["adj_len_bar_eqs"] = adj_len_bar_eqs
+        additional_values_to_log["adj_len_bar_ineqs"] = adj_len_bar_ineqs
 
-        self.data_logger.LogCurrentDesign(self.opt_iteration)
         self.data_logger.LogCurrentValues(self.opt_iteration, self.communicator, additional_values_to_log)
+        self.data_logger.LogCurrentDesign(self.opt_iteration)
 
 # ==============================================================================
 class Projector():
