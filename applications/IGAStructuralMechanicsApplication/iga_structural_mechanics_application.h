@@ -56,6 +56,7 @@
 #include "custom_conditions/load_curve_discrete_condition.h"
 #include "custom_conditions/load_surface_discrete_condition.h"
 #include "custom_conditions/support_penalty_curve_discrete_condition.h"
+#include "custom_conditions/support_penalty_point_discrete_condition.h"
 #include "custom_conditions/support_strong_discrete_condition.h"
 
 
@@ -80,6 +81,7 @@ namespace Kratos {
 
     //IGA-DEM
     KRATOS_DEFINE_VARIABLE(Vector, COORDINATES)
+    KRATOS_DEFINE_VARIABLE(Vector, SURFACE_NORMAL)
 
     //Variables definition
     //KRATOS_DEFINE_VARIABLE(double, INTEGRATION_WEIGHT)
@@ -284,6 +286,7 @@ private:
     const LoadCurveDiscreteCondition           mLoadCurveDiscreteCondition;
     const LoadSurfaceDiscreteCondition         mLoadSurfaceDiscreteCondition;
     const SupportPenaltyCurveDiscreteCondition mSupportPenaltyCurveDiscreteCondition;
+    const SupportPenaltyPointDiscreteCondition mSupportPenaltyPointDiscreteCondition;
     const SupportStrongDiscreteCondition       mSupportStrongDiscreteCondition;
 
     const MeshlessSupportRotationCondition         mMeshlessSupportRotationCondition;

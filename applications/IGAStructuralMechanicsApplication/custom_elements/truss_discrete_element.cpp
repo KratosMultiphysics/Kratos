@@ -1,16 +1,16 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+/*
+//  KRATOS .___  ________    _____
+//         |   |/  _____/   /  _  \
+//         |   /   \  ___  /  /_\  \
+//         |   \    \_\  \/    |    \
+//         |___|\______  /\____|__  /
+//                     \/         \/  Application
 //
-//  License:         BSD License
-//                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//  License: BSD License
+//           Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Teschemacher
-//                   Riccardo Rossi
-//
-
+//  Authors: Thomas Oberbichler
+*/
 
 // System includes
 #include "includes/define.h"
@@ -19,9 +19,8 @@
 
 // External includes
 
-
 // Project includes
-#include "custom_elements/meshless_base_element.h"
+#include "custom_elements/base_discrete_element.h"
 #include "custom_elements/truss_discrete_element.h"
 
 // Application includes
@@ -30,105 +29,119 @@
 
 namespace Kratos
 {
-    void TrussDiscreteElement::Initialize()
-    {
-        KRATOS_TRY
 
-        KRATOS_CATCH("")
+constexpr std::size_t TrussDiscreteElement::DofsPerNode()
+{
+    return 3;
+};
+
+std::size_t TrussDiscreteElement::NumberOfNodes() const
+{
+    return GetGeometry().size();
+};
+
+std::size_t TrussDiscreteElement::NumberOfDofs() const
+{
+    return NumberOfNodes() * DofsPerNode();
+};
+
+void TrussDiscreteElement::Initialize()
+{
+    KRATOS_TRY
+
+    Vector base_vector = ZeroVector(3);
+    GetBaseVector(base_vector, GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES));
+    mBaseVector0 = base_vector;
+
+    KRATOS_CATCH("")
+}
+
+void TrussDiscreteElement::CalculateAll(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
+)
+{
+    KRATOS_TRY
+
+    const std::size_t number_of_dofs = NumberOfDofs();
+
+    if (CalculateStiffnessMatrixFlag) {
+        if (rLeftHandSideMatrix.size1() != number_of_dofs) {
+            rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
+        }
+
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_dofs,
+            number_of_dofs);
     }
 
-    //************************************************************************************
-    //************************************************************************************
-    void TrussDiscreteElement::CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-    )
-    {
-        KRATOS_TRY
-        // definition of problem size
-        const unsigned int number_of_control_points = GetGeometry().size();
-        unsigned int number_of_dofs = number_of_control_points * 3;
-
-        ////set up properties for Constitutive Law
-        //ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        //Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-        //Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-        //Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-        //resizing as needed the LHS
-        if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
-        {
-            if (rLeftHandSideMatrix.size1() != number_of_dofs)
-                rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_dofs, number_of_dofs); //resetting LHS
-        }
-        //resizing as needed the RHS
-        if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
-        {
-            if (rRightHandSideVector.size() != number_of_dofs)
-                rRightHandSideVector.resize(number_of_dofs);
-            rRightHandSideVector = ZeroVector(number_of_dofs); //resetting RHS
+    if (CalculateResidualVectorFlag == true) {
+        if (rRightHandSideVector.size() != number_of_dofs) {
+            rRightHandSideVector.resize(number_of_dofs);
         }
 
-        //reading in of integration weight, shape function values and shape function derivatives
-        const double& integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-        const Vector&   N     = this->GetValue(SHAPE_FUNCTION_VALUES);
-        const Matrix&  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-
-        //Bending stabilization
-        const double E = GetProperties()[YOUNG_MODULUS];
-        const double area = GetProperties()[CROSS_AREA];
-        const double prestress = GetProperties()[PRESTRESS_CAUCHY];
-
-        Vector base_vector = ZeroVector(3);
-        GetBaseVector(base_vector, DN_De);
-
-        double A0 = norm_2(mBaseVector0);
-        double a = norm_2(base_vector);
-
-        //stresses
-        //Green Lagrange formulation (strain)
-        double E11_membrane = 0.5 * (pow(a, 2) - pow(A0,2)); 
-
-        //normal force
-        double S11_membrane = prestress * area + E11_membrane * area * E / pow(A0,2);
-
-        // 1st variation of the axial strain 
-        Vector epsilon_var_dof = ZeroVector(number_of_dofs);
-        Get1stVariationsAxialStrain(epsilon_var_dof, base_vector, 3, DN_De);
-        epsilon_var_dof = epsilon_var_dof / pow(A0, 2);
-
-        // 2nd variation of the axial strain 
-        Matrix epsilon_var_2_dof = ZeroMatrix(number_of_dofs, number_of_dofs);
-        Get2ndVariationsAxialStrain(epsilon_var_2_dof, 3, DN_De);
-        epsilon_var_2_dof = epsilon_var_2_dof / pow(A0, 2);
-
-        // LEFT HAND SIDE MATRIX
-        if (CalculateStiffnessMatrixFlag == true)
-        {
-            for (int r = 0; r < number_of_dofs; r++) {
-                for (int s = 0; s < number_of_dofs; s++) {
-                    rLeftHandSideMatrix(r, s) = E * area * epsilon_var_dof[r] * epsilon_var_dof[s] + S11_membrane * epsilon_var_2_dof(r, s);
-                }
-            }
-
-            rLeftHandSideMatrix = rLeftHandSideMatrix * integration_weight;
-        }
-
-        // RIGHT HAND SIDE VECTOR
-        if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
-        {
-            rRightHandSideVector = -S11_membrane * epsilon_var_dof;
-
-            rRightHandSideVector = rRightHandSideVector * integration_weight;
-        }
-
-        KRATOS_CATCH("");
+        noalias(rRightHandSideVector) = ZeroVector(number_of_dofs);
     }
-} // Namespace Kratos
 
+    // get integration data
+    
+    const double& integration_weight = GetValue(INTEGRATION_WEIGHT);
+    Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
+    // get properties
+
+    const auto& properties = GetProperties();
+
+    const double E = properties[YOUNG_MODULUS];
+    const double A = properties[CROSS_AREA];
+    const double prestress = properties[PRESTRESS_CAUCHY];
+
+    // compute base vectors
+
+    Vector actual_base_vector = ZeroVector(3);
+    GetBaseVector(actual_base_vector, DN_De);
+
+    const double reference_a = norm_2(mBaseVector0);
+    const double actual_a = norm_2(actual_base_vector);
+
+    // green-lagrange strain
+
+    const double e11_membrane = 0.5 * (actual_a * actual_a - reference_a *
+        reference_a);
+
+    // normal force
+
+    const double s11_membrane = prestress * A + e11_membrane * A * E /
+        (reference_a * reference_a);
+
+    // 1st variation of the axial strain
+
+    Vector epsilon_var_1_dof = ZeroVector(number_of_dofs);
+    Get1stVariationsAxialStrain(epsilon_var_1_dof, actual_base_vector, 3,
+        DN_De);
+    epsilon_var_1_dof = epsilon_var_1_dof / (reference_a * reference_a);
+
+    // 2nd variation of the axial strain 
+
+    Matrix epsilon_var_2 = ZeroMatrix(number_of_dofs, number_of_dofs);
+    Get2ndVariationsAxialStrain(epsilon_var_2, 3, DN_De);
+    epsilon_var_2 = epsilon_var_2 / (reference_a * reference_a);
+
+    for (std::size_t r = 0; r < number_of_dofs; r++) {
+        for (std::size_t s = 0; s < number_of_dofs; s++) {
+            rLeftHandSideMatrix(r, s) = E * A * epsilon_var_1_dof[r] *
+                epsilon_var_1_dof[s] + s11_membrane * epsilon_var_2(r, s);
+        }
+    }
+
+    rRightHandSideVector = -s11_membrane * epsilon_var_1_dof;
+
+    rLeftHandSideMatrix *= integration_weight * reference_a;
+    rRightHandSideVector *= integration_weight * reference_a;
+
+    KRATOS_CATCH("");
+}
+
+} // namespace Kratos

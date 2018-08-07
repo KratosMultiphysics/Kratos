@@ -54,6 +54,7 @@ KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication
     mLoadCurveDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mLoadSurfaceDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mSupportPenaltyCurveDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mSupportPenaltyPointDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mSupportStrongDiscreteCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessLagrangeCouplingCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mMeshlessLagrangeCouplingCondition2(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -80,6 +81,7 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 
 	//IGA-DEM
 KRATOS_REGISTER_VARIABLE(COORDINATES)
+KRATOS_REGISTER_VARIABLE(SURFACE_NORMAL)
 //KRATOS_REGISTER_VARIABLE( INTEGRATION_WEIGHT)
 
 KRATOS_REGISTER_VARIABLE(SHAPE_FUNCTION_VALUES)
@@ -128,6 +130,7 @@ KRATOS_REGISTER_CONDITION("LoadPointDiscreteCondition", mLoadPointDiscreteCondit
 KRATOS_REGISTER_CONDITION("LoadCurveDiscreteCondition", mLoadCurveDiscreteCondition)
 KRATOS_REGISTER_CONDITION("LoadSurfaceDiscreteCondition", mLoadSurfaceDiscreteCondition)
 KRATOS_REGISTER_CONDITION("SupportPenaltyCurveDiscreteCondition", mSupportPenaltyCurveDiscreteCondition)
+KRATOS_REGISTER_CONDITION("SupportPenaltyPointDiscreteCondition", mSupportPenaltyPointDiscreteCondition)
 KRATOS_REGISTER_CONDITION("SupportStrongDiscreteCondition", mSupportStrongDiscreteCondition)
 
 // Register meshless condition

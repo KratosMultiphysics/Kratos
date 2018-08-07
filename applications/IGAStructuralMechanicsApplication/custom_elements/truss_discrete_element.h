@@ -1,68 +1,84 @@
+/*
+//  KRATOS .___  ________    _____
+//         |   |/  _____/   /  _  \
+//         |   /   \  ___  /  /_\  \
+//         |   \    \_\  \/    |    \
+//         |___|\______  /\____|__  /
+//                     \/         \/  Application
+//
+//  License: BSD License
+//           Kratos default license: kratos/license.txt
+//
+//  Authors: Thomas Oberbichler
+*/
+
 #if !defined(KRATOS_TRUSS_DISCRETE_ELEMENT_H_INCLUDED )
 #define  KRATOS_TRUSS_DISCRETE_ELEMENT_H_INCLUDED
 
-
 // System includes
+
+// External includes
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/variables.h"
-
-// External includes
 
 // Project includes
 #include "custom_elements/curve_base_discrete_element.h"
 
 namespace Kratos
 {
-///@name Kratos Classes
-///@{
-/// Short class definition.
-/** Truss element.
-*/
+
+/**
+ * @class TrussDiscreteElement
+ *
+ * @brief This is a 3D-X-node isogeometric truss element with 3 translational
+ * dofs per node
+ */
 class TrussDiscreteElement
     : public CurveBaseDiscreteElement
 {
 public:
-    ///@name Type Definitions
-    ///@{
-    /// Counted pointer of TrussDiscreteElement
     KRATOS_CLASS_POINTER_DEFINITION(TrussDiscreteElement);
-    ///@}
-    ///@name Life Cycle
-    ///@{
-    /// Default constructor.
-    // Constructor using an array of nodes
-    TrussDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry)
+
+    TrussDiscreteElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
         : CurveBaseDiscreteElement(NewId, pGeometry)
     {};
-    // Constructor using an array of nodes with properties
-    TrussDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+
+    TrussDiscreteElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
         : CurveBaseDiscreteElement(NewId, pGeometry, pProperties)
     {};
 
-    // default constructor necessary for serialization
-    TrussDiscreteElement() : CurveBaseDiscreteElement() {};
+    TrussDiscreteElement()
+        : CurveBaseDiscreteElement()
+    {};
 
-    /// Destructor.
     virtual ~TrussDiscreteElement() override
     {};
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< TrussDiscreteElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared<TrussDiscreteElement>(NewId,
+            GetGeometry().Create(ThisNodes), pProperties);
     };
 
-    ///@}
-    ///@name Operations
-    ///@{
-    /**
-    * Called to initialize the element.
-    * Must be called before any calculation is done
-    */
+    static constexpr std::size_t DofsPerNode();
+
+    std::size_t NumberOfNodes() const;
+
+    std::size_t NumberOfDofs() const;
+
     void Initialize() override;
 
     /**
-    * This functions calculates both the RHS and the LHS
+    * @brief This functions calculates both the RHS and the LHS
     * @param rLeftHandSideMatrix: The LHS
     * @param rRightHandSideVector: The RHS
     * @param rCurrentProcessInfo: The current process info instance
@@ -74,41 +90,26 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-    ) override;
-
-    ///@}
+        const bool CalculateResidualVectorFlag) override;
 
 protected:
 
 private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(
+        Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override
+    void load(
+        Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     }
+}; // class TrussDiscreteElement
 
-    ///@}
+} // namespace Kratos
 
-};  // Class TrussDiscreteElement
-///@}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_TRUSS_DISCRETE_ELEMENT_H_INCLUDED  defined 
+#endif // !defined(KRATOS_TRUSS_DISCRETE_ELEMENT_H_INCLUDED)

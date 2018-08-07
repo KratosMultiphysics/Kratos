@@ -74,7 +74,6 @@ namespace Kratos
                             GetGeometry()[i].SetValue(DISPLACEMENT_X, displacement[0]);
                             GetGeometry()[i].Fix(DISPLACEMENT_X);
                         }
-
                         if (Is(IGAFlags::FIX_ROTATION_Y))
                         {
                             GetGeometry()[i].SetValue(DISPLACEMENT_Y, displacement[1]);

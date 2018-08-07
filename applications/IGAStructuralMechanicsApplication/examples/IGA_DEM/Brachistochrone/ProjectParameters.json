@@ -28,7 +28,7 @@
     },
     "problem_domain_sub_model_part_list": [ ],
     "processes_sub_model_part_list": [ ],
-    "rotation_dofs": "false"
+    "rotation_dofs": false
   },
   "output_configuration": {
     "nodal_results": [ "DISPLACEMENT" ],

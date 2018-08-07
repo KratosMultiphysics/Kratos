@@ -72,6 +72,31 @@ namespace Kratos
     {
         KRATOS_TRY
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(B), Matrix(prod(D, B)));
+        //const int number_of_control_points = GetGeometry().size();
+        //const int mat_size = number_of_control_points * 3;
+
+        //for (int r = 0; r < mat_size; r++)
+        //{
+        //    Vector zu = ZeroVector(3);
+
+        //        // dN_ca = Dm*S_dE_ca(:,r);
+        //    zu[0] = D(0, 0)*B(0, r) + D(0, 1)*B(1, r) + D(0, 2)*B(2, r);
+        //    zu[1] = D(1, 0)*B(0, r) + D(1, 1)*B(1, r) + D(1, 2)*B(2, r);
+        //    zu[2] = D(2, 0)*B(0, r) + D(2, 1)*B(1, r) + D(2, 2)*B(2, r);
+
+
+        //    for (int s = 0; s <= r; s++)
+        //    {
+        //        // membrane stiffness
+        //        double x = (zu[0] * B(0, s) + zu[1] * B(1, s) + zu[2] * B(2, s))*IntegrationWeight;
+        //        rLeftHandSideMatrix(r, s) += x;
+        //        rLeftHandSideMatrix(s, r) += x;
+        //        //// bending stiffness
+        //        //S_keb(r, s) = dM_ca[0] * S_dK_ca(0, s) + dM_ca[1] * S_dK_ca(1, s) + dM_ca[2] * S_dK_ca(2, s)
+        //        //    + M_ca[0] * S_ddK_ca_1(r, s) + M_ca[1] * S_ddK_ca_2(r, s) + M_ca[2] * S_ddK_ca_3(r, s);
+        //        //S_keb(s, r) = S_keb(r, s);
+        //    }
+        //}
         KRATOS_CATCH("")
     }
 
@@ -170,9 +195,9 @@ namespace Kratos
             dE_curvilinear[1] = DN_De(kr, 1)*metric.g2(dirr);
             dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*metric.g2(dirr) + metric.g1(dirr)*DN_De(kr, 1));
 
-            rB(0, r) = metric.Q(0, 0)*dE_curvilinear[0] + metric.Q(0, 1)*dE_curvilinear[1] + metric.Q(0, 2)*dE_curvilinear[2];
-            rB(1, r) = metric.Q(1, 0)*dE_curvilinear[0] + metric.Q(1, 1)*dE_curvilinear[1] + metric.Q(1, 2)*dE_curvilinear[2];
-            rB(2, r) = metric.Q(2, 0)*dE_curvilinear[0] + metric.Q(2, 1)*dE_curvilinear[1] + metric.Q(2, 2)*dE_curvilinear[2];
+            rB(0, r) = mInitialMetric.Q(0, 0)*dE_curvilinear[0] + mInitialMetric.Q(0, 1)*dE_curvilinear[1] + mInitialMetric.Q(0, 2)*dE_curvilinear[2];
+            rB(1, r) = mInitialMetric.Q(1, 0)*dE_curvilinear[0] + mInitialMetric.Q(1, 1)*dE_curvilinear[1] + mInitialMetric.Q(1, 2)*dE_curvilinear[2];
+            rB(2, r) = mInitialMetric.Q(2, 0)*dE_curvilinear[0] + mInitialMetric.Q(2, 1)*dE_curvilinear[1] + mInitialMetric.Q(2, 2)*dE_curvilinear[2];
         }
 
 
@@ -191,14 +216,31 @@ namespace Kratos
 
         //    for (unsigned int i = 0; i < number_of_control_points; i++)
         //    {
-        //        const int index = 3 * i;
+        //        unsigned int index = 3 * i;
 
-        //        for (int n = 0; n < 3; ++n)
-        //        {
-        //            b(0, index + n) = DN_De(i, 0) * metric.g1[n];
-        //            b(1, index + n) = DN_De(i, 1) * metric.g2[n];
-        //            b(2, index + n) = 0.5*(DN_De(i, 1) * metric.g1[n] + DN_De(i, 0) * metric.g2[n]);
-        //        }
+        //        //first line
+        //        b(0, index) = DN_De(i, 0) * metric.g1[0];
+        //        b(0, index + 1) = DN_De(i, 0) * metric.g1[1];
+        //        b(0, index + 2) = DN_De(i, 0) * metric.g1[2];
+
+        //        //second line
+        //        b(1, index) = DN_De(i, 1) * metric.g2[0];
+        //        b(1, index + 1) = DN_De(i, 1) * metric.g2[1];
+        //        b(1, index + 2) = DN_De(i, 1) * metric.g2[2];
+
+        //        //third line
+        //        b(2, index) = 0.5*(DN_De(i, 1) * metric.g1[0] + DN_De(i, 0) * metric.g2[0]);
+        //        b(2, index + 1) = 0.5*(DN_De(i, 1) * metric.g1[1] + DN_De(i, 0) * metric.g2[1]);
+        //        b(2, index + 2) = 0.5*(DN_De(i, 1) * metric.g1[2] + DN_De(i, 0) * metric.g2[2]);
+
+        //        //const int index = 3 * i;
+
+        //        //for (int n = 0; n < 3; ++n)
+        //        //{
+        //        //    b(0, index + n) = DN_De(i, 0) * metric.g1[n];
+        //        //    b(1, index + n) = DN_De(i, 1) * metric.g2[n];
+        //        //    b(2, index + n) = 0.5*(DN_De(i, 1) * metric.g1[n] + DN_De(i, 0) * metric.g2[n]);
+        //        //}
         //    }
         //    rB = prod(metric.Q, b);
         //}
@@ -220,11 +262,12 @@ namespace Kratos
         {
             const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
             const Matrix& DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
-            const unsigned int number_of_nodes = GetGeometry().size();
+            const int number_of_control_points = GetGeometry().size();
+            const int mat_size = number_of_control_points * 3;
 
             Matrix dg3 = ZeroMatrix(3, 3);
             Matrix dn = ZeroMatrix(3, 3);
-            Matrix b = ZeroMatrix(3, number_of_nodes * 3);
+            Matrix b = ZeroMatrix(3, mat_size);
 
             //normal vector n
             Vector n = metric.g3 / metric.dA;
@@ -232,8 +275,46 @@ namespace Kratos
             double invdA = 1 / metric.dA;
             double inddA3 = 1 / pow(metric.dA, 3);
 
+            //Matrix S_dg3 = ZeroMatrix(3, mat_size);
+            //Matrix S_dn = ZeroMatrix(3, mat_size);
+            //Matrix B = ZeroMatrix(3, mat_size);
 
-            for (unsigned int i = 0; i < number_of_nodes; i++)
+            //for (int r = 0; r<mat_size; r++)
+            //{
+            //    // local node number kr and dof direction dirr
+            //    int kr = r / 3;
+            //    int dirr = r % 3;
+
+            //    Vector S_dg_1 = ZeroVector(3);
+            //    Vector S_dg_2 = ZeroVector(3);
+
+            //    S_dg_1(dirr) = DN_De(kr, 0);
+            //    S_dg_2(dirr) = DN_De(kr, 1);
+
+            //    // curvature
+            //    S_dg3(0, r) = S_dg_1(1)*metric.g2(2) - S_dg_1(2)*metric.g2(1) + metric.g1(1)*S_dg_2(2) - metric.g1(2)*S_dg_2(1);
+            //    S_dg3(1, r) = S_dg_1(2)*metric.g2(0) - S_dg_1(0)*metric.g2(2) + metric.g1(2)*S_dg_2(0) - metric.g1(0)*S_dg_2(2);
+            //    S_dg3(2, r) = S_dg_1(0)*metric.g2(1) - S_dg_1(1)*metric.g2(0) + metric.g1(0)*S_dg_2(1) - metric.g1(1)*S_dg_2(0);
+
+            //    double S_g3dg3 = metric.g3[0] * S_dg3(0, r) + metric.g3[1] * S_dg3(1, r) + metric.g3[2] * S_dg3(2, r);
+            //    double S_g3dg3lg3_3 = S_g3dg3 * inddA3;
+
+            //    S_dn(0, r) = S_dg3(0, r)*inddA3 - metric.g3[0] * S_g3dg3lg3_3;
+            //    S_dn(1, r) = S_dg3(1, r)*inddA3 - metric.g3[1] * S_g3dg3lg3_3;
+            //    S_dn(2, r) = S_dg3(2, r)*inddA3 - metric.g3[2] * S_g3dg3lg3_3;
+
+
+            //    Vector dK_cu = ZeroVector(3);
+            //    dK_cu[0] = DDN_DDe(kr, 0)*n[dirr] + metric.H(0, 0)*S_dn(0, r) + metric.H(1, 0)*S_dn(1, r) + metric.H(2, 0)*S_dn(2, r);
+            //    dK_cu[1] = DDN_DDe(kr, 1)*n[dirr] + metric.H(0, 1)*S_dn(0, r) + metric.H(1, 1)*S_dn(1, r) + metric.H(2, 1)*S_dn(2, r);
+            //    dK_cu[2] = DDN_DDe(kr, 2)*n[dirr] + metric.H(0, 2)*S_dn(0, r) + metric.H(1, 2)*S_dn(1, r) + metric.H(2, 2)*S_dn(2, r);
+
+            //    rB(0, r) = mInitialMetric.Q(0, 0)*dK_cu[0] + mInitialMetric.Q(0, 1)*dK_cu[1] + mInitialMetric.Q(0, 2)*dK_cu[2];
+            //    rB(1, r) = mInitialMetric.Q(1, 0)*dK_cu[0] + mInitialMetric.Q(1, 1)*dK_cu[1] + mInitialMetric.Q(1, 2)*dK_cu[2];
+            //    rB(2, r) = mInitialMetric.Q(2, 0)*dK_cu[0] + mInitialMetric.Q(2, 1)*dK_cu[1] + mInitialMetric.Q(2, 2)*dK_cu[2];
+
+            //}
+            for (unsigned int i = 0; i < number_of_control_points; i++)
             {
                 unsigned int index = 3 * i;
                 //first line
@@ -278,7 +359,7 @@ namespace Kratos
                 b(2, index + 2) = 0 - (DDN_DDe(i, 2) * n[2] + metric.H(0, 2)*dn(2, 0) + metric.H(1, 2)*dn(2, 1) + metric.H(2, 2)*dn(2, 2));
             }
 
-            rB = prod(mInitialMetric.Q, b);
+            rB = - prod(mInitialMetric.Q, b);
         }
         else
         {
@@ -318,9 +399,9 @@ namespace Kratos
                     ddE_curvilinear[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
                 }
 
-                rSecondVariationsStrain.B11(r, s) = rMetric.Q(0, 0)*ddE_curvilinear[0] + rMetric.Q(0, 1)*ddE_curvilinear[1] + rMetric.Q(0, 2)*ddE_curvilinear[2];
-                rSecondVariationsStrain.B22(r, s) = rMetric.Q(1, 0)*ddE_curvilinear[0] + rMetric.Q(1, 1)*ddE_curvilinear[1] + rMetric.Q(1, 2)*ddE_curvilinear[2];
-                rSecondVariationsStrain.B12(r, s) = rMetric.Q(2, 0)*ddE_curvilinear[0] + rMetric.Q(2, 1)*ddE_curvilinear[1] + rMetric.Q(2, 2)*ddE_curvilinear[2];
+                rSecondVariationsStrain.B11(r, s) = mInitialMetric.Q(0, 0)*ddE_curvilinear[0] + mInitialMetric.Q(0, 1)*ddE_curvilinear[1] + mInitialMetric.Q(0, 2)*ddE_curvilinear[2];
+                rSecondVariationsStrain.B22(r, s) = mInitialMetric.Q(1, 0)*ddE_curvilinear[0] + mInitialMetric.Q(1, 1)*ddE_curvilinear[1] + mInitialMetric.Q(1, 2)*ddE_curvilinear[2];
+                rSecondVariationsStrain.B12(r, s) = mInitialMetric.Q(2, 0)*ddE_curvilinear[0] + mInitialMetric.Q(2, 1)*ddE_curvilinear[1] + mInitialMetric.Q(2, 2)*ddE_curvilinear[2];
             }
         }
     }
@@ -635,23 +716,46 @@ namespace Kratos
     //***********************************************************************************
     void SurfaceBaseDiscreteElement::CalculateHessian(Matrix& Hessian, const Matrix& DDN_DDe, const int rDimension)
     {
-        const unsigned int number_of_points = GetGeometry().size();
+        	const unsigned int number_of_points = GetGeometry().size();
+	const unsigned int working_space_dimension = 3;// GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES).size2();// GetGeometry().WorkingSpaceDimension();
 
-        Hessian.resize(rDimension, rDimension);
-        Hessian = ZeroMatrix(rDimension, rDimension);
+	Hessian.resize(working_space_dimension, working_space_dimension);
+	Hessian = ZeroMatrix(working_space_dimension, working_space_dimension);
 
-        for (int k = 0; k<number_of_points; k++)
-        {
-            const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
+    for (size_t k = 0; k < number_of_points; k++)
+    {
+        const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
 
-            for (int i = 0; i < rDimension; ++i)
-            {
-                for (int j = 0; j < rDimension; ++j)
-                {
-                    Hessian(i, j) += DDN_DDe(k, j)*coords[i];
-                }
-            }
-        }
+        Hessian(0, 0) += DDN_DDe(k, 0)*coords[0];
+        Hessian(0, 1) += DDN_DDe(k, 1)*coords[0];
+        Hessian(0, 2) += DDN_DDe(k, 2)*coords[0];
+
+        Hessian(1, 0) += DDN_DDe(k, 0)*coords[1];
+        Hessian(1, 1) += DDN_DDe(k, 1)*coords[1];
+        Hessian(1, 2) += DDN_DDe(k, 2)*coords[1];
+
+        Hessian(2, 0) += DDN_DDe(k, 0)*coords[2];
+        Hessian(2, 1) += DDN_DDe(k, 1)*coords[2];
+        Hessian(2, 2) += DDN_DDe(k, 2)*coords[2];
+    }
+
+        //const unsigned int number_of_points = GetGeometry().size();
+
+        //Hessian.resize(rDimension, rDimension);
+        //Hessian = ZeroMatrix(rDimension, rDimension);
+
+        //for (int k = 0; k<number_of_points; k++)
+        //{
+        //    const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
+
+        //    for (int i = 0; i < rDimension; ++i)
+        //    {
+        //        for (int j = 0; j < rDimension; ++j)
+        //        {
+        //            Hessian(i, j) += DDN_DDe(k, j)*coords[i];
+        //        }
+        //    }
+        //}
     }
 } // Namespace Kratos
 

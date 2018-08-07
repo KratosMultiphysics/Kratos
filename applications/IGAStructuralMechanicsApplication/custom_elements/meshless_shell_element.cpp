@@ -54,13 +54,7 @@ MeshlessShellElement::MeshlessShellElement(
 {
 }
 
-//Element::Pointer MeshlessShellElement::Create(
-//	IndexType NewId, 
-//	NodesArrayType const& ThisNodes,  
-//	PropertiesType::Pointer pProperties) const
-//{
-//	return boost::make_shared< MeshlessShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
-//}
+
 
 MeshlessShellElement::~MeshlessShellElement()
 {
@@ -117,8 +111,8 @@ void MeshlessShellElement::Initialize()
 
 {
 	KRATOS_TRY
-		KRATOS_WATCH("check here...")
-		KRATOS_ERROR << "ende gelande" << std::endl;
+		//KRATOS_WATCH("check here...")
+		//KRATOS_ERROR << "ende gelande" << std::endl;
 	// Get values of shape functions and derivatives. Derivatives are first and sevon column: first dreivatives. Third, fourth and fith are second derivatives
 	double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 	Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
@@ -198,6 +192,18 @@ void MeshlessShellElement::Initialize()
 
 	boost::numeric::ublas::bounded_matrix<double, 3, 3> Q = ZeroMatrix(3,3);
 	CalculateQ(Q, mG);
+
+    Q(0, 0) = pow(mG(0, 0), 2);
+    Q(0, 1) = pow(mG(0, 1), 2);
+    Q(0, 2) = 2.00*mG(0, 0)*mG(0, 1);
+
+    Q(1, 0) = pow(mG(1, 0), 2);
+    Q(1, 1) = pow(mG(1, 1), 2);
+    Q(1, 2) = 2.00*mG(1, 0) * mG(1, 1);
+
+    Q(2, 0) = 2.00 * mG(0, 0) * mG(1, 0);
+    Q(2, 1) = 2.00 * mG(0, 1)*mG(1, 1);
+    Q(2, 2) = 2.00 * (mG(0, 0) * mG(1, 1) + mG(0, 1)*mG(1, 0));
 	mQ = Q;
 
 	//Calculate the reduced mass matrix
@@ -275,7 +281,7 @@ void MeshlessShellElement::CalculateOnIntegrationPoints(
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions = Values.GetOptions();
 	///////////////////////////////////////////////////make back
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -1131,7 +1137,7 @@ void MeshlessShellElement::CalculateAll(
 	//set up Constitutive Law
 	ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-	Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+	Values.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 	Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 

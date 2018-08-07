@@ -163,7 +163,13 @@ public:
     /// Destructor.
     virtual ~MeshlessShellElement();
 
-
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const
+    {
+        return Kratos::make_shared< MeshlessShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
     ///@}
     ///@name Operators
     ///@{

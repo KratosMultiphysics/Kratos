@@ -206,6 +206,24 @@ namespace Kratos
             }
             rOutput = condition_coords;
         }
+        else if (rVariable == SURFACE_NORMAL) {
+            const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+            Matrix Jacobian(3,2);
+            CalculateJacobian(DN_De, Jacobian, 3, 2);
+
+            Vector g1, g2, g3 = ZeroVector(3);
+
+            g1[0] = Jacobian(0, 0);
+            g2[0] = Jacobian(0, 1);
+            g1[1] = Jacobian(1, 0);
+            g2[1] = Jacobian(1, 1);
+            g1[2] = Jacobian(2, 0);
+            g2[2] = Jacobian(2, 1);
+
+            MathUtils<double>::CrossProduct(g3, g1, g2);
+
+            rOutput = g3;
+        }
         else {
             Condition::Calculate(rVariable, rOutput, rCurrentProcessInfo);
         }

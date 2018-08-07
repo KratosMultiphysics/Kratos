@@ -93,9 +93,7 @@ namespace Kratos
             second_variations_curvature,
             actual_metric);
 
-
-
-        integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.detJ * GetProperties()[THICKNESS];
+        integration_weight = this->GetValue(INTEGRATION_WEIGHT) * mInitialMetric.dA * GetProperties()[THICKNESS];
 
         // LEFT HAND SIDE MATRIX
         if (CalculateStiffnessMatrixFlag == true)
@@ -116,7 +114,41 @@ namespace Kratos
                 constitutive_variables_curvature.S,
                 integration_weight);
         }
+        //KRATOS_WATCH(second_variations_strain.B11)
+        //KRATOS_WATCH(second_variations_strain.B22)
+        //KRATOS_WATCH(second_variations_strain.B12)
 
+        //KRATOS_WATCH(second_variations_curvature.B11)
+        //KRATOS_WATCH(second_variations_curvature.B22)
+        //KRATOS_WATCH(second_variations_curvature.B12)
+
+        //KRATOS_WATCH(mInitialMetric.g1)
+        //KRATOS_WATCH(mInitialMetric.g2)
+        //KRATOS_WATCH(mInitialMetric.g3)
+
+        //KRATOS_WATCH(actual_metric.g1)
+        //KRATOS_WATCH(actual_metric.g2)
+        //KRATOS_WATCH(actual_metric.g3)
+
+        //KRATOS_WATCH(mInitialMetric.dA)
+
+        //KRATOS_WATCH(constitutive_variables_membrane.S)
+        //KRATOS_WATCH(constitutive_variables_curvature.S)
+
+        //KRATOS_WATCH(constitutive_variables_membrane.D)
+        //KRATOS_WATCH(constitutive_variables_curvature.D)
+
+        //KRATOS_WATCH(BMembrane)
+        //KRATOS_WATCH(BCurvature)
+        //    KRATOS_WATCH(mInitialMetric.dA)
+        //    KRATOS_WATCH(integration_weight)
+        //    KRATOS_WATCH(actual_metric.H)
+        //KRATOS_WATCH(mInitialMetric.Q)
+
+        //    KRATOS_WATCH(DN_De)
+        //    KRATOS_WATCH(DDN_DDe)
+
+        //KRATOS_WATCH(rLeftHandSideMatrix / this->GetValue(INTEGRATION_WEIGHT))
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
@@ -124,7 +156,6 @@ namespace Kratos
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
         }
-
         KRATOS_CATCH("");
     }
 
@@ -376,6 +407,25 @@ namespace Kratos
         double lg_con2 = norm_2(g_con_2);
         array_1d<double, 3> e2 = g_con_2 / lg_con2;
 
+        Matrix mG = ZeroMatrix(2, 2);
+        mG(0, 0) = inner_prod(e1, g_con_1);
+        mG(0, 1) = inner_prod(e1, g_con_2);
+        mG(1, 0) = inner_prod(e2, g_con_1);
+        mG(1, 1) = inner_prod(e2, g_con_2);
+
+        metric.Q = ZeroMatrix(3, 3);
+        metric.Q(0, 0) = pow(mG(0, 0), 2);
+        metric.Q(0, 1) = pow(mG(0, 1), 2);
+        metric.Q(0, 2) = 2.00*mG(0, 0)*mG(0, 1);
+
+        metric.Q(1, 0) = pow(mG(1, 0), 2);
+        metric.Q(1, 1) = pow(mG(1, 1), 2);
+        metric.Q(1, 2) = 2.00*mG(1, 0) * mG(1, 1);
+
+        metric.Q(2, 0) = 2.00 * mG(0, 0) * mG(1, 0);
+        metric.Q(2, 1) = 2.00 * mG(0, 1)*mG(1, 1);
+        metric.Q(2, 2) = 2.00 * (mG(0, 0) * mG(1, 1) + mG(0, 1)*mG(1, 0));
+
         //Matrix T_G_E = ZeroMatrix(3, 3);
         //Transformation matrix T from contravariant to local cartesian basis
         double eG11 = inner_prod(e1, metric.g1);
@@ -383,16 +433,16 @@ namespace Kratos
         double eG21 = inner_prod(e2, metric.g1);
         double eG22 = inner_prod(e2, metric.g2);
 
-        metric.Q = ZeroMatrix(3, 3);
-        metric.Q(0, 0) = eG11*eG11;
-        metric.Q(0, 1) = eG12*eG12;
-        metric.Q(0, 2) = 2.0*eG11*eG12;
-        metric.Q(1, 0) = eG21*eG21;
-        metric.Q(1, 1) = eG22*eG22;
-        metric.Q(1, 2) = 2.0*eG21*eG22;
-        metric.Q(2, 0) = 2.0*eG11*eG21;
-        metric.Q(2, 1) = 2.0*eG12*eG22;
-        metric.Q(2, 2) = 2.0*eG11*eG22 + eG12*eG21;
+        //metric.Q = ZeroMatrix(3, 3);
+        //metric.Q(0, 0) = eG11*eG11;
+        //metric.Q(0, 1) = eG12*eG12;
+        //metric.Q(0, 2) = 2.0*eG11*eG12;
+        //metric.Q(1, 0) = eG21*eG21;
+        //metric.Q(1, 1) = eG22*eG22;
+        //metric.Q(1, 2) = 2.0*eG21*eG22;
+        //metric.Q(2, 0) = 2.0*eG11*eG21;
+        //metric.Q(2, 1) = 2.0*eG12*eG22;
+        //metric.Q(2, 2) = 2.0*eG11*eG22 + eG12*eG21;
 
         metric.T = ZeroMatrix(3, 3);
         metric.T(0, 0) = eG11*eG11;

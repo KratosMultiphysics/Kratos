@@ -1,15 +1,16 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+/*
+//  KRATOS .___  ________    _____
+//         |   |/  _____/   /  _  \
+//         |   /   \  ___  /  /_\  \
+//         |   \    \_\  \/    |    \
+//         |___|\______  /\____|__  /
+//                     \/         \/  Application
 //
-//  License:         BSD License
-//                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//  License: BSD License
+//           Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Tescheamacher
-//
-
+//  Authors: Tobias Teschemacher
+*/
 
 // System includes
 
@@ -53,7 +54,7 @@ namespace Kratos
     {
         if (rBaseVector.size() != 3)
             rBaseVector.resize(3);
-        rBaseVector = ZeroVector(3);
+        noalias(rBaseVector) = ZeroVector(3);
 
         // this is valid for all parameter edges
         if (Has(TANGENTS))
@@ -71,38 +72,6 @@ namespace Kratos
                 rBaseVector[2] += rDN_De(0, i) * GetGeometry()[i].Z();
             }
         }
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-    void CurveBaseDiscreteElement::GetBaseVectorsSurface(
-        const Matrix& DN_De,
-        Vector& g1,
-        Vector& g2,
-        Vector& g3)
-    {
-        Matrix J = ZeroMatrix(3,2);
-        Jacobian(DN_De, J);
-
-        //basis vectors g1 and g2
-        if (g1.size() != 3)
-            g1.resize(3, false);
-        g1 = ZeroVector(3);
-        if (g2.size() != 3)
-            g2.resize(3, false);
-        g2 = ZeroVector(3);
-        if (g3.size() != 3)
-            g3.resize(3, false);
-        g3 = ZeroVector(3);
-
-        g1[0] = J(0, 0);
-        g2[0] = J(0, 1);
-        g1[1] = J(1, 0);
-        g2[1] = J(1, 1);
-        g1[2] = J(2, 0);
-        g2[2] = J(2, 1);
-
-        MathUtils<double>::CrossProduct(g3, g1, g2);
     }
 
     //************************************************************************************
@@ -128,28 +97,7 @@ namespace Kratos
 
         rBaseVector = g1 * Tangents[0] + g2 * Tangents[1];
     }
-    //***********************************************************************************
-    //***********************************************************************************
-    void CurveBaseDiscreteElement::CalculateHessianSurface(Matrix& Hessian, const Matrix& DDN_DDe, const int rDimension)
-    {
-        const unsigned int number_of_points = GetGeometry().size();
 
-        Hessian.resize(rDimension, rDimension);
-        Hessian = ZeroMatrix(rDimension, rDimension);
-
-        for (int k = 0; k<number_of_points; k++)
-        {
-            const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
-
-            for (int i = 0; i < rDimension; ++i)
-            {
-                for (int j = 0; j < rDimension; ++j)
-                {
-                    Hessian(i, j) += DDN_DDe(k, j)*coords[i];
-                }
-            }
-        }
-    }
     //************************************************************************************
     //************************************************************************************
     void CurveBaseDiscreteElement::Get1stVariationsAxialStrain(
@@ -164,12 +112,10 @@ namespace Kratos
             rEpsilon1stVariationDoF.resize(mat_size, false);
         rEpsilon1stVariationDoF = ZeroVector(mat_size);
 
-        int xyz_r = 0;
-        int i = 0;
-        for (int r = 0; r < mat_size; r++)
+        for (std::size_t r = 0; r < mat_size; r++)
         {
-            xyz_r = r % rNumberOfDoFs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-            i = r / rNumberOfDoFs;     // index for the shape functions
+            int xyz_r = r % rNumberOfDoFs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
+            int i = r / rNumberOfDoFs;     // index for the shape functions
             if (xyz_r>2)
                 rEpsilon1stVariationDoF[r] = 0.0;
             else
@@ -186,20 +132,20 @@ namespace Kratos
     {
         int mat_size = rDN_De.size1()*rNumberOfDoFs;
 
-        if ((rEpsilon2ndVariationDoF.size1() != mat_size) && (rEpsilon2ndVariationDoF.size1() != mat_size))
+        if ((rEpsilon2ndVariationDoF.size1() != mat_size) || (rEpsilon2ndVariationDoF.size1() != mat_size))
             rEpsilon2ndVariationDoF.resize(mat_size, mat_size, false);
         rEpsilon2ndVariationDoF = ZeroMatrix(mat_size, mat_size);
 
-        for (int r = 0; r<mat_size; r++) //in the case
+        for (std::size_t r = 0; r<mat_size; r++) //in the case
         {
             int xyz_r = r % rNumberOfDoFs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
             int i = r / rNumberOfDoFs;     // index for the shape functions
             if (xyz_r>2)
-                for (int s = 0; s<mat_size; s++)
+                for (std::size_t s = 0; s<mat_size; s++)
                     rEpsilon2ndVariationDoF(r, s) = 0.0;
             else
             {
-                for (int s = 0; s<mat_size; s++)
+                for (std::size_t s = 0; s<mat_size; s++)
                 {
                     int xyz_s = s % rNumberOfDoFs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
                     int j = s / rNumberOfDoFs;     // index for the shape functions

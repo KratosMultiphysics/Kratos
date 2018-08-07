@@ -1,3 +1,17 @@
+/*
+//  KRATOS .___  ________    _____
+//         |   |/  _____/   /  _  \
+//         |   /   \  ___  /  /_\  \
+//         |   \    \_\  \/    |    \
+//         |___|\______  /\____|__  /
+//                     \/         \/  Application
+//
+//  License: BSD License
+//           Kratos default license: kratos/license.txt
+//
+//  Authors: Tobias Teschemacher
+*/
+
 #if !defined(KRATOS_CURVE_BASE_DISCRETE_ELEMENT_H_INCLUDED )
 #define  KRATOS_CURVE_BASE_DISCRETE_ELEMENT_H_INCLUDED
 
@@ -5,7 +19,6 @@
 // System includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
 // External includes
@@ -93,12 +106,6 @@ protected:
         Vector& rBaseVector, 
         const Matrix& rDN_De);
 
-    void GetBaseVectorsSurface(
-        const Matrix& DN_De,
-        Vector& g1,
-        Vector& g2,
-        Vector& g3);
-
     /**
     * GetBoundaryEdgeBaseVector computes t3 of the boundary edge
     * @param DN_De derivatives of shape functions.
@@ -108,11 +115,6 @@ protected:
     void GetBoundaryEdgeBaseVector(const Matrix& DN_De,
         const array_1d<double, 2>& Tangents,
         Vector& rBaseVector);
-
-    void CalculateHessianSurface(
-        Matrix& Hessian, 
-        const Matrix& DDN_DDe, 
-        const int rDimension);
 
     void Get1stVariationsAxialStrain(
         Vector& rEpsilon1stVariationDoF,

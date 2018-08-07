@@ -190,7 +190,7 @@ while dem_analysis.time < dem_analysis.final_time:
     iga_model_part.ProcessInfo[TIME_STEPS] = step
     iga_model_part.CloneTimeStep(time)
 
-    NurbsBrepProcess.modeler.GetInterfaceConditions(dem_analysis.spheres_model_part, condition_model_part, NurbsBrepProcess.model_part_integration_domain)
+    NurbsBrepProcess.modeler.GetInterfaceConditionsAdvanced(dem_analysis.spheres_model_part, iga_model_part, condition_model_part)
     print(condition_model_part)
     #mapper.UpdateInterface()
 

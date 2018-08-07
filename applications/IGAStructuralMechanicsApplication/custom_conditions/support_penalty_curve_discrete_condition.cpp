@@ -217,11 +217,9 @@ namespace Kratos
         double Penalty = GetProperties()[PENALTY_FACTOR];
 
 
-        //KRATOS_WATCH(displacement)
         //ROTATIONS
         if (Has(ROTATION))
         {
-            std::cout << "so so so " << std::endl;
             const array_1d<double, 3>& rotation = this->GetValue(ROTATION);
 
             Vector Phi_r = ZeroVector(mat_size);
