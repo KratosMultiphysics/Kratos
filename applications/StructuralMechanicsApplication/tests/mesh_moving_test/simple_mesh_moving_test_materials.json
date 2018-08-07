@@ -8,8 +8,8 @@
                             "name": "LinearElasticPlaneStrain2DLaw"
                     },
                     "Variables": {
-                        "DENSITY"       : 7.85000E+03,
                         "YOUNG_MODULUS" : 1.00000E+07,
+                        "DENSITY"       : 7.85000E+03,
                         "POISSON_RATIO" : 0.00000E-00
                     },
                     "Tables": {}
