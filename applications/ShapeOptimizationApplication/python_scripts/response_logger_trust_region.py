@@ -85,20 +85,25 @@ class ResponseLoggerTrustRegion( ResponseLogger ):
         with open(self.complete_response_log_filename, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("itr")
-            row.append("\tf")
-            row.append("\tdf_abs[%]")
-            row.append("\tdf_rel[%]")
+            row.append("{:>4s}".format("itr"))
+            row.append("{:>20s}".format("f"))
+            row.append("{:>12s}".format("df_abs[%]"))
+            row.append("{:>12s}".format("df_rel[%]"))
 
             for itr in range(self.specified_constraints.size()):
                 con = self.specified_constraints[itr]
                 con_type = con["type"].GetString()
-                row.append("\tc["+str(itr)+"]: "+con_type)
-                row.append("\tc["+str(itr)+"]_ref")
+                row.append("{:>20s}".format("c"+str(itr)+": "+con_type))
+                row.append("{:>20s}".format("ref_c"+str(itr)))
+                row.append("{:>12s}".format("len_c"+str(itr)))
+                row.append("{:>12s}".format("adj_len_c"+str(itr)))
 
-            row.append("\tnorm_dx[-]")
-            row.append("\tstep_length[-]")
-            row.append("\ttime_stamp")
+            row.append("{:>12s}".format("bi_itrs"))
+            row.append("{:>12s}".format("bi_err"))
+            row.append("{:>17}".format("test_norm_dx_bar"))
+            row.append("{:>12s}".format("norm_dx"))
+            row.append("{:>12s}".format("step_length"))
+            row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
 
     # -------------------------------------------------------------------------
@@ -166,11 +171,8 @@ class ResponseLoggerTrustRegion( ResponseLogger ):
         print("\nlen_bar_obj = ", self.value_history["len_bar_obj"][self.current_iteration])
         print("adj_len_bar_obj = ", self.value_history["adj_len_bar_obj"][self.current_iteration])
 
-        print("\nlen_bar_ineqs = ", self.value_history["len_bar_ineqs"][self.current_iteration])
-        print("adj_len_bar_ineqs = ", self.value_history["adj_len_bar_ineqs"][self.current_iteration])
-
-        print("\nlen_bar_eqs = ", self.value_history["len_bar_eqs"][self.current_iteration])
-        print("adj_len_bar_eqs = ", self.value_history["adj_len_bar_eqs"][self.current_iteration])
+        print("\nlen_bar_cons = ", self.value_history["len_bar_cons"][self.current_iteration])
+        print("adj_len_bar_cons = ", self.value_history["adj_len_bar_cons"][self.current_iteration])
 
         print("\n-------------------------------------------------------")
 
@@ -179,21 +181,29 @@ class ResponseLoggerTrustRegion( ResponseLogger ):
         with open(self.complete_response_log_filename, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("\t"+str(self.current_iteration))
-            row.append("\t"+str(self.value_history[self.objective_id][self.current_iteration]))
-            row.append("\t"+str(self.abs_change_of_objective))
-            row.append("\t"+str(self.rel_change_of_objective))
+            row.append(str("{:>4d}".format(self.current_iteration)))
+            row.append(str("{:>20f}".format(self.value_history[self.objective_id][self.current_iteration])))
+            row.append(str("{:>12f}".format(self.abs_change_of_objective)))
+            row.append(str("{:>12f}".format(self.rel_change_of_objective)))
 
             for itr in range(self.specified_constraints.size()):
                 Ci_id = self.specified_constraints[itr]["identifier"].GetString()
                 ci = self.value_history[Ci_id][self.current_iteration]
                 ci_ref = self.constraints_reference_values[Ci_id]
-                row.append("\t"+str(ci))
-                row.append("\t"+str(ci_ref))
+                len_i = self.value_history["len_bar_cons"][self.current_iteration][itr]
+                adj_len_i = self.value_history["adj_len_bar_cons"][self.current_iteration][itr]
 
-            row.append("\t"+str(additional_values["norm_dx"]))
-            row.append("\t"+str(additional_values["step_length"]))
-            row.append("\t"+Timer().GetTimeStamp())
+                row.append(str("{:>20f}".format(ci)))
+                row.append(str("{:>20f}".format(ci_ref)))
+                row.append(str("{:>12f}".format(len_i)))
+                row.append(str("{:>12f}".format(adj_len_i)))
+
+            row.append(str("{:>12d}".format(additional_values["bi_itrs"])))
+            row.append(str("{:>12f}".format(additional_values["bi_err"])))
+            row.append(str("{:>17f}".format(additional_values["test_norm_dx_bar"])))
+            row.append(str("{:>12f}".format(additional_values["norm_dx"])))
+            row.append(str("{:>12f}".format(additional_values["step_length"])))
+            row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 
 # ==============================================================================
