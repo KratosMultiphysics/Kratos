@@ -88,7 +88,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     class_< TransferSelfweightStressUtility >
     (m ,"TransferSelfweightStressUtility")
     .def(init<>())
-    .def("Transfer",&TransferSelfweightStressUtility::Transfer);
+    .def("Transfer",&TransferSelfweightStressUtility::Transfer)
+    .def("TransferInitialStress",&TransferSelfweightStressUtility::TransferInitialStress);
 
     class_< ConstructionUtility >
     (m, "ConstructionUtility")
