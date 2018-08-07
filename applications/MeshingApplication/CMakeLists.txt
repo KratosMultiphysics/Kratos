@@ -32,10 +32,10 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
+	 
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
@@ -51,10 +51,10 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
+
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
