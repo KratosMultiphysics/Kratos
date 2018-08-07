@@ -179,14 +179,15 @@ void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(
                 mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, GL_strain, rCurrentProcessInfo);
                 const double GL_strain_X = GL_strain[0][0]; // TODO: maybe more generic!
         
-                derivative_pre_factor = A / L0 * (E * GL_strain_X + prestress + E * l / (L0 * L0));
+                derivative_pre_factor = A / L0 * (E * GL_strain_X + prestress + E * l * l / (L0 * L0));
                 break;
             }
             case TracedStressType::PK2X:
             {
                 const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
+                const double l = CalculateCurrentLength();
                 const double L0 = CalculateReferenceLength();
-                derivative_pre_factor = E / (L0 * L0);
+                derivative_pre_factor = E * l / (L0 * L0);
                 break;
             }
             default:
