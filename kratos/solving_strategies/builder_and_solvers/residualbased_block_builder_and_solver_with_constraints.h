@@ -913,18 +913,18 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         rMatrix.resize(FinalSize, FinalSize, true); //true for Preserving the data and resizing the matrix
         rVector.resize(FinalSize, true);
         // reassigning the original part of the matrix
-        for (IndexType m = 0; m < initial_sys_size; m++)
+        for (IndexType m = 0; m < initial_sys_size; ++m)
         {
-            for (IndexType n = 0; n < initial_sys_size; n++)
+            for (IndexType n = 0; n < initial_sys_size; ++n)
             {
                 rMatrix(m,n) = matrix(m,n);
             }
             rVector(m) = vector(m);
         }
         // Making the extra part of matrix zero
-        for (IndexType m = initial_sys_size; m < FinalSize; m++)
+        for (IndexType m = initial_sys_size; m < FinalSize; ++m)
         {
-            for (IndexType n = 0; n < FinalSize; n++)
+            for (IndexType n = 0; n < FinalSize; ++n)
             {
                 rMatrix(m, n) = 0.0;
                 rMatrix(n, m) = 0.0;
@@ -960,7 +960,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids);
             global_master_slave_constraint->CalculateLocalSystem(master_weights_vector, slave_constant);
-            for (IndexType i_master = 0; i_master < master_equation_ids.size(); i_master++)
+            for (IndexType i_master = 0; i_master < master_equation_ids.size(); ++i_master)
             {
                 rTransformationMatrixLocal(slave_index, i_masters_total) += master_weights_vector(i_master);
                 i_masters_total++;
