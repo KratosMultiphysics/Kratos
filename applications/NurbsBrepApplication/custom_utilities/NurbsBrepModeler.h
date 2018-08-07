@@ -70,7 +70,7 @@ namespace Kratos
 
 	void MapNode(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry, ModelPart& rSearchModelPart);
 	void GetInterfaceConditions(ModelPart& rParticleModelPart, ModelPart& rConditionModelPart, ModelPart& rSearchModelPart);
-    void GetInterfaceConditionsAdvanced(ModelPart& rParticleModelPart, ModelPart& rIGAModelPart);
+    void GetInterfaceConditionsAdvanced(ModelPart& rParticleModelPart, ModelPart& rIGAModelPart, ModelPart& rInterfaceConditionsModelPart);
     
     void GetUpdatedLocation(ModelPart& rIGAModelPart);
     ///@} 

@@ -84,12 +84,25 @@ public:
     BinsIgaObject() : Point()
     { };
 
-    BinsIgaObject(const CoordinatesArrayType& rCoordinates, ElementPointerType pElement) : Point(rCoordinates), mpElement(pElement)
+    BinsIgaObject(ElementPointerType pElement) : mpElement(pElement)
     {
         Vector coords = ZeroVector(3);
         const Kratos::ProcessInfo process_info;
         pElement->Calculate(COORDINATES, coords, process_info);
         noalias(Coordinates()) = coords;
+        //Point(coords);
+    };
+
+    //BinsIgaObject(const CoordinatesArrayType& rCoordinates, ElementPointerType pElement) : Point(rCoordinates), mpElement(pElement)
+    //{
+    //    Vector coords = ZeroVector(3);
+    //    const Kratos::ProcessInfo process_info;
+    //    pElement->Calculate(COORDINATES, coords, process_info);
+    //    noalias(Coordinates()) = coords;
+    //};
+
+    BinsIgaObject(const CoordinatesArrayType& rCoordinates) : Point(rCoordinates)
+    {
     };
 
     /// Destructor.

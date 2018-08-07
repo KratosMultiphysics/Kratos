@@ -22,6 +22,13 @@
 #include "utilities/contact_pair.h"
 #include "custom_search/bins_iga_object.h"
 
+//#include <cmath>
+//#include <algorithm>
+//#include <vector>
+//#include <cfloat>
+#include "includes/define.h"
+#include "spatial_containers/search_structure.h"
+
 namespace Kratos
 {
 

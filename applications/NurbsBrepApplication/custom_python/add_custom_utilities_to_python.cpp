@@ -56,6 +56,7 @@ namespace Python
             .def("ComputeArea", &NurbsBrepModeler::ComputeArea)
             .def("MapNode", &NurbsBrepModeler::MapNode)
             .def("GetInterfaceConditions", &NurbsBrepModeler::GetInterfaceConditions)
+            .def("GetInterfaceConditionsAdvanced", &NurbsBrepModeler::GetInterfaceConditionsAdvanced)
             .def("GetUpdatedLocation", &NurbsBrepModeler::GetUpdatedLocation)
             ;
 

@@ -4,15 +4,15 @@
 
 namespace Kratos
 {
-	//variables for IGA - DEM coupling
-	KRATOS_CREATE_VARIABLE(std::vector<Condition*>, WALL_POINT_CONDITION_POINTERS)
-	typedef std::vector<array_1d<double, 3> > std_vector_of_arrays_3d;
-	KRATOS_CREATE_VARIABLE(std_vector_of_arrays_3d, WALL_POINT_CONDITION_ELASTIC_FORCES)
-	KRATOS_CREATE_VARIABLE(std_vector_of_arrays_3d, WALL_POINT_CONDITION_TOTAL_FORCES)
+    //variables for IGA - DEM coupling
+    KRATOS_CREATE_VARIABLE(std::vector<Condition*>, WALL_POINT_CONDITION_POINTERS)
+    typedef std::vector<array_1d<double, 3> > std_vector_of_arrays_3d;
+    KRATOS_CREATE_VARIABLE(std_vector_of_arrays_3d, WALL_POINT_CONDITION_ELASTIC_FORCES)
+    KRATOS_CREATE_VARIABLE(std_vector_of_arrays_3d, WALL_POINT_CONDITION_TOTAL_FORCES)
 
-	KRATOS_CREATE_VARIABLE(double, RADIUS)
-	KRATOS_CREATE_VARIABLE(Vector, COORDINATES)
-	//KRATOS_CREATE_VARIABLE(NurbsBrepModeler::tree::Pointer, SEARCH_TREE)
+    KRATOS_CREATE_VARIABLE(double, RADIUS)
+    KRATOS_CREATE_VARIABLE(Vector, COORDINATES)
+    KRATOS_CREATE_VARIABLE(Vector, SURFACE_NORMAL)
 
 	KRATOS_CREATE_VARIABLE(double, CONTROL_POINT_WEIGHT)
 

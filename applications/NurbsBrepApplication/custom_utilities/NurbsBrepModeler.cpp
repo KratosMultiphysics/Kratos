@@ -483,15 +483,15 @@ namespace Kratos
     }
 
 
-    void NurbsBrepModeler::GetInterfaceConditionsAdvanced(ModelPart& rParticleModelPart, ModelPart& rIGAModelPart)
+    void NurbsBrepModeler::GetInterfaceConditionsAdvanced(ModelPart& rParticleModelPart, ModelPart& rIGAModelPart, ModelPart& rInterfaceConditionsModelPart)
     {
         //std::vector<BinsIgaConfigure> BinsIGAObjs(rIGAModelPart.NumberOfElements());
         BinsIgaConfigure::ContainerType BinsIGAObjs;
         for (auto iga_element_ptr = rIGAModelPart.ElementsBegin(); iga_element_ptr != rIGAModelPart.ElementsEnd(); iga_element_ptr++)
         {
             //BinsIGAObjs.push_back(new BinsIgaObject(iga_element_ptr));
-            //const Element::Pointer ele = Kratos::make_shared<Element>(iga_element_ptr);
-            BinsIGAObjs.push_back(Kratos::make_shared<BinsIgaObject>(&*iga_element_ptr));
+            Element::Pointer ele = Kratos::make_shared<Element>(*iga_element_ptr);
+            BinsIGAObjs.push_back(Kratos::make_shared<BinsIgaObject>(ele));
         }
 
         auto iga_bins_structure = BinsObjectDynamic<BinsIgaConfigure>(BinsIGAObjs.begin(), BinsIGAObjs.end());
@@ -500,6 +500,7 @@ namespace Kratos
 
         BinsIgaConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
         std::vector<double> neighbor_distances(num_interface_obj_bin);
+
 
         auto particle_obj = Kratos::make_shared<BinsIgaObject>(array_1d<double, 3>(0.0));
 
@@ -517,6 +518,8 @@ namespace Kratos
                 particle_obj, search_radius, results_itr,
                 distance_itr, num_interface_obj_bin);
 
+
+
             if (number_of_results > 0)
             {
                 std::vector<Condition*> new_conditions;
@@ -526,7 +529,8 @@ namespace Kratos
                 for (int i = 0; i < number_of_results; ++i)
                 {
                     unsigned int face_id_of_nearest_point = results_itr[i]->pGetBaseElement()->GetValue(FACE_BREP_ID);
-                    Node<3>::Pointer node = Kratos::make_shared<Node<3>>(results_itr[i]->Coordinates());
+                    array_1d<double, 3> coords = results_itr[i]->Coordinates();
+                    Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0, coords[0], coords[1], coords[2]);
                     Node<3>::Pointer node_on_geometry = Kratos::make_shared<Node<3>>(0, 0, 0, 0);
 
                     BrepFace& face = GetFace(face_id_of_nearest_point);
@@ -536,10 +540,110 @@ namespace Kratos
                         std::pow(node->Y() - node_on_geometry->Y(), 2) +
                         std::pow(node->Z() - node_on_geometry->Z(), 2));
 
+                    if (distance_radius <= radius + 1e-7)
+                    {
+                        //std::cout << "output here!" << std::endl;
+                        Vector node_ids = node_on_geometry->GetValue(CONTROL_POINT_IDS);
+                        std::vector<std::size_t> node_ids_int(node_ids.size());
+                        for (int i = 0; i < node_ids.size(); i++)
+                        {
+                            node_ids_int[i] = static_cast<std::size_t>(node_ids[i]);
+                            ModelPart& mp = rInterfaceConditionsModelPart.GetRootModelPart();
+                            Node<3>::Pointer this_node = mp.pGetNode(node_ids_int[i]);
+                            rInterfaceConditionsModelPart.AddNode(this_node);
+                        }
+                        std::string condition_name = "MeshlessForceInterfaceCondition";
+                        int id = 1;
+                        //std::cout << "number of conditions: " << rConditionModelPart.Conditions().size() << std::endl;
+                        if (rInterfaceConditionsModelPart.Conditions().size() > 0)
+                            id = rInterfaceConditionsModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+                        rInterfaceConditionsModelPart.AddProperties(particle_element_ptr->pGetProperties());
+
+                        //std::cout << "check create new conditions" << std::endl;
+                        Condition::Pointer cond = rInterfaceConditionsModelPart.CreateNewCondition(condition_name, id, node_ids_int, particle_element_ptr->pGetProperties());
+                        Vector external_force_vector = ZeroVector(3);
+                        cond->SetValue(LOCAL_PARAMETERS, node_on_geometry->GetValue(LOCAL_PARAMETERS));
+                        cond->SetValue(FACE_BREP_ID, node_on_geometry->GetValue(FACE_BREP_ID));
+                        cond->SetValue(SHAPE_FUNCTION_VALUES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
+                        cond->SetValue(EXTERNAL_FORCES_VECTOR, external_force_vector);
+
+                        ProcessInfo emptyProcessInfo = ProcessInfo();
+
+                        bool new_condition = false;
+
+                        // Check new condition??
+                        for (auto condition_ptr = new_conditions.begin(); condition_ptr != new_conditions.end(); ++condition_ptr)
+                        {
+                            Vector coords = ZeroVector(3);
+                            (*condition_ptr)->Calculate(COORDINATES, coords, emptyProcessInfo);
+                            double distance_radius = std::sqrt(std::pow(coords[0] - node_on_geometry->X(), 2) +
+                                std::pow(coords[1] - node_on_geometry->Y(), 2) +
+                                std::pow(coords[2] - node_on_geometry->Z(), 2));
+                            if (distance_radius < radius / 3)
+                                break;
+
+                            Vector g3_new_cond = ZeroVector(3);
+                            cond->Calculate(SURFACE_NORMAL, g3_new_cond, emptyProcessInfo);
+
+                            Vector distance = ZeroVector(3);
+                            distance[0] = coords[0] - node_on_geometry->X();
+                            distance[1] = coords[1] - node_on_geometry->Y();
+                            distance[2] = coords[2] - node_on_geometry->Z();
+
+                            double scalar_product = g3_new_cond[0] * distance[0] + g3_new_cond[1] * distance[1] + g3_new_cond[2] * distance[2];
+                            if (scalar_product < 1e-4)
+                                break;
+
+                            new_condition = true;
+                            new_conditions.push_back(&*cond);
+                        }
+
+                        if (new_condition)
+                        {
+                            //Check previous condition
+                            int condition_length = particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size();
+                            std::vector<Vector> coords;
+                            bool success = false;
+                            for (int i = 0; i < condition_length; ++i)
+                            {
+                                particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS)[i]->GetValueOnIntegrationPoints(COORDINATES, coords, emptyProcessInfo);
+
+                                double distance_radius = std::sqrt(std::pow(coords[0][0] - node_on_geometry->X(), 2) +
+                                    std::pow(coords[0][1] - node_on_geometry->Y(), 2) +
+                                    std::pow(coords[0][2] - node_on_geometry->Z(), 2));
+                                if (distance_radius < radius / 3)
+                                {
+                                    new_elastic_forces.push_back(particle_element_ptr->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES)[i]);
+                                    new_total_forces.push_back(particle_element_ptr->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES)[i]);
+                                    success = true;
+                                }
+                            }
+
+                            if (!success)
+                            {
+                                new_elastic_forces.push_back(ZeroVector(3));
+                                new_total_forces.push_back(ZeroVector(3));
+                            }
+                        }
+                    }
                 }
+
+                int condition_length = particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size();
+                std::vector<Vector> coords;
+                ProcessInfo emptyProcessInfo = ProcessInfo();
+                for (int i = 0; i < condition_length; ++i)
+                {
+                    rInterfaceConditionsModelPart.RemoveConditionFromAllLevels(*(particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS)[i]));
+                }
+                //std::cout << "check 1" << std::endl;
+                particle_element_ptr->SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, new_elastic_forces);
+                particle_element_ptr->SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, new_total_forces);
+                particle_element_ptr->SetValue(WALL_POINT_CONDITION_POINTERS, new_conditions);
             }
         }
     }
+
+
 	void NurbsBrepModeler::GetInterfaceConditions(ModelPart& rParticleModelPart, ModelPart& rConditionModelPart, ModelPart& rSearchModelPart)
 	{
         ////std::cout << "Number of elements: " << rParticleModelPart.Elements().size() << std::endl;
