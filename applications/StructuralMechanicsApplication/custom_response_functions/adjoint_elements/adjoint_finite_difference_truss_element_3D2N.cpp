@@ -103,7 +103,47 @@ void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVa
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "It is not possible to deliver with local stress information!" << std::endl;
+    ProcessInfo copy_process_info = rCurrentProcessInfo;
+    Vector dummy_RHS;
+    // This call is necessary in order to ensure that constitutive law saves the primal stresses.
+    // This is possible since within the computation of RHS CalculateMaterialResponse of the CL is called.
+    mpPrimalElement->CalculateRightHandSide(dummy_RHS, copy_process_info);
+
+    if(rVariable == STRESS_ON_GP)
+    {
+        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+
+        const SizeType  GP_num = (mpPrimalElement->GetGeometry().IntegrationPoints()).size();
+        if (rOutput.size() != GP_num) 
+            rOutput.resize(GP_num, false);
+
+        switch (traced_stress_type)
+        {
+            case TracedStressType::FX:
+            {
+                std::vector< array_1d<double, 3 > > force_vector;
+                mpPrimalElement->GetValueOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
+                for(IndexType i = 0; i < GP_num ; ++i)
+                    rOutput(i) = force_vector[i][0];
+                break;
+            }
+            case TracedStressType::PK2X:
+            {
+                std::vector<Vector> stress_vector;
+                mpPrimalElement->GetValueOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
+                for(IndexType i = 0; i < GP_num ; ++i)
+                    rOutput(i) = stress_vector[i][0];
+                break;
+            }
+            default:
+                KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
+        }
+    }
+    else
+    {
+        rOutput.resize(1);
+        rOutput.clear();
+    }
 
     KRATOS_CATCH("")
 }
@@ -151,10 +191,12 @@ int AdjointFiniteDifferenceTrussElement::Check(const ProcessInfo& rCurrentProces
     KRATOS_ERROR_IF_NOT( this->GetProperties().Has(DENSITY) )
     << "DENSITY not provided for this element" << this->Id() << std::endl;
 
-    //TODO: how to check the constitutive law?
+    // TODO: how to check the constitutive law?
+    // In the case of the truss only YOUNG_MODULUS and DENSITY are checked (Key and meaningful value)
+    // Note: if constitutivelaw is a nullptr is checked in intialize of truss element.
     //if(this->mpConstitutiveLaw != nullptr) 
     //  this->mpConstitutiveLaw->Check(this->GetProperties(),this->GetGeometry(),rCurrentProcessInfo);
-
+    
     return 0;
 
     KRATOS_CATCH("")
