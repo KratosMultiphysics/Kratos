@@ -112,14 +112,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
     typedef PointerVectorSet<AuxilaryGlobalMasterSlaveRelationType, IndexedObject> GlobalMasterSlaveRelationContainerType;
 
-
-/*    typedef PointerVectorSet<
-		            AuxilaryGlobalMasterSlaveRelationType,
-		            IndexedObject,
-		            std::less<typename SetIdentityFunction<AuxilaryGlobalMasterSlaveRelationType>::result_type>,
-		            std::equal_to<typename SetIdentityFunction<AuxilaryGlobalMasterSlaveRelationType>::result_type>,
-		            Kratos::unique_ptr<AuxilaryGlobalMasterSlaveRelationType> > GlobalMasterSlaveRelationContainerType ;*/
-
     typedef std::vector<IndexType> EquationIdVectorType;
     typedef std::vector<IndexType> VectorIndexType;
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
@@ -796,7 +788,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         rCurrentContainer.GetDofList(container_dofs, rCurrentProcessInfo);
         IndexType slave_equation_id;
 
-        // For each node check if it is a slave or not If it is .. we change the Transformation matrix
+        // For each node check if it is ac slave or not If it is .. we change the Transformation matrix
         for (IndexType j = 0; j < container_dofs.size(); j++)
         {
             slave_equation_id = container_dofs[j]->EquationId(); // consider everything as a slave.
@@ -845,18 +837,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         const IndexType initial_sys_size = rLHSContribution.size1();
 
         // Formulating which are the internal, slave indices locally.
-        VectorIndexType local_index_vector;
-        VectorIndexType local_internal_index_vector;
-        VectorIndexType local_master_index_vector;
-        VectorIndexType local_slave_index_vector;
+        LocalIndices local_indices;
 
         // first fill in the rEquationIds using the above function (overloaded one)
         ApplyConstraints<TContainerType>(rModelPart, rCurrentContainer, rEquationIds, rCurrentProcessInfo); // now rEquationIds has all the slave equation ids appended to it.
         IndexType total_number_of_masters = rEquationIds.size() - initial_sys_size;
         // Calculating the local indices corresponding to internal, master, slave dofs of this container
-        CalculateLocalSlaveIndices(equation_ids, local_slave_index_vector);
-        CalculateLocalInternalIndices(equation_ids, local_slave_index_vector, local_internal_index_vector);
-        CalculateLocalMasterIndices(equation_ids, local_master_index_vector, total_number_of_masters);
+        CalculateLocalIndices(rEquationIds, local_indices, total_number_of_masters);
+
         // resizing the matrices to the new required length
         MatrixType lhs_contribution = rLHSContribution;
         VectorType rhs_contribution = rRHSContribution;
@@ -865,10 +853,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         VectorType constant_vector_local;
         ResizeAndInitializeLocalMatrices(transformation_matrix_local, constant_vector_local, rEquationIds.size());
         // Calculagint the T and C which are local to this container
-        CalculateLocalTransformationMatrix(local_internal_index_vector, local_master_index_vector,
-                                                            local_slave_index_vector, transformation_matrix_local, equation_ids);
+        CalculateLocalTransformationMatrix(local_indices, transformation_matrix_local, equation_ids);
 
-        CalculateLocalConstantVector(local_slave_index_vector, constant_vector_local, equation_ids);
+        CalculateLocalConstantVector(local_indices, constant_vector_local, equation_ids);
         // Here order is important as lhs_contribution should be unodified for usin in calculation
         // of RHS constribution. Later on lhs_contribution is modified to apply the constraint.
         // rhs_h =  T'*(rhs - K*g)
@@ -879,19 +866,19 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         noalias(lhs_contribution) = prod( trans(transformation_matrix_local),  temp_mat);
         // rhs_h(s,s) = rhs(s,s) : that is reassigning the slave part of the matrix back. We do not modify the (slave, slave) block
         // this is to facilitate the solution of the linear system of equation.
-        for (auto &slave_index : local_slave_index_vector)
-            for (auto &slave_index_other : local_slave_index_vector)
+        for (const auto &slave_index : local_indices.SlaveIndices())
+            for (const auto &slave_index_other : local_indices.SlaveIndices())
                 lhs_contribution(slave_index, slave_index_other) = rLHSContribution(slave_index, slave_index_other);
         // rhs_h(s,i) = 0 and rhs_h(i,s) = 0
         // making this blocks zero will ensure that the slaves are not connected to internal dofs
-        for (auto &slave_index : local_slave_index_vector)
-            for (auto &internal_index : local_internal_index_vector)
+        for (const auto &slave_index : local_indices.SlaveIndices())
+            for (const auto &internal_index : local_indices.InternalIndices())
             {
                 lhs_contribution(slave_index, internal_index) = 0.0;
                 lhs_contribution(internal_index, slave_index) = 0.0;
             }
 
-        for (auto &slave_index : local_slave_index_vector)
+        for (const auto &slave_index : local_indices.SlaveIndices())
             rhs_contribution(slave_index) = 0.0;
 
         rLHSContribution.resize(rEquationIds.size(), rEquationIds.size());
@@ -950,15 +937,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /**
      * @brief   This function calculates the local transformation matrix and the constant vector for each
      *          each element or condition. The T matrix and C vector for each element or condition for the slaves they contain .
-     * @param   rLocalInternalIndexVector vector of the internal indices
-     * @param   rLocalMasterIndexVector vector of master indices
-     * @param   rLocalSlaveIndexVector vectof slave indices
+     * @param   rLocalIndices object of Struct LocalIndices containing the local internal, master and slave indices
      * @param   rTransformationMatrixLocal reference to the tranformation matrix which is to be calculated.
      * @param   rEquationIds the list of equation ids.
      */
-    void CalculateLocalTransformationMatrix(VectorIndexType& rLocalInternalIndexVector,
-                                                             VectorIndexType& rLocalMasterIndexVector,
-                                                             VectorIndexType& rLocalSlaveIndexVector,
+    void CalculateLocalTransformationMatrix(LocalIndices& rLocalIndices,
                                                              MatrixType& rTransformationMatrixLocal,
                                                              EquationIdVectorType& rEquationIds)
     {
@@ -969,7 +952,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         double slave_constant;
         int i_masters_total = rEquationIds.size();
 
-        for (auto &slave_index : rLocalSlaveIndexVector)
+        for (const auto &slave_index : rLocalIndices.SlaveIndices())
         {
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
             KRATOS_DEBUG_ERROR_IF (global_master_slave_constraint == mGlobalMasterSlaveRelations.end()) <<
@@ -984,10 +967,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             }
         }
 
-        for (auto &master_index : rLocalMasterIndexVector)
+        for (const auto &master_index : rLocalIndices.MasterIndices())
             rTransformationMatrixLocal(master_index, master_index) = 1.0;
 
-        for (auto &internal_index : rLocalInternalIndexVector)
+        for (const auto &internal_index : rLocalIndices.InternalIndices())
             rTransformationMatrixLocal(internal_index, internal_index) = 1.0;
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalTransformationMatrix failed ..");
@@ -1002,7 +985,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @param   rConstantVectorLocal reference to the constant vector to be calculated
      * @param   rEquationIds the list of equation ids.
      */
-    void CalculateLocalConstantVector(VectorIndexType& rLocalSlaveIndexVector,
+    void CalculateLocalConstantVector(LocalIndices& rLocalIndexStructure,
                                       VectorType& rConstantVectorLocal,
                                       EquationIdVectorType& rEquationIds)
     {
@@ -1010,7 +993,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         VectorType master_weights_vector;
         double slave_constant;
 
-        for (auto &slave_index : rLocalSlaveIndexVector)
+        for (const auto &slave_index : rLocalIndexStructure.SlaveIndices())
         {
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
             if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
@@ -1025,13 +1008,26 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     }
 
 
+    /**
+     * @brief   This function calculates the local indices of a given element or condition
+     * @param   rEquationIds vector of the equation ids
+     * @param   rLocalIndexStructure reference to the structure of LocalIndices
+     */
+    void CalculateLocalIndices(EquationIdVectorType& rEquationIds, LocalIndices& rLocalIndexStructure, IndexType rTotalNumberOfMasters)
+    {
+        CalculateLocalSlaveIndices(rEquationIds, rLocalIndexStructure);
+        CalculateLocalInternalIndices(rEquationIds, rLocalIndexStructure);
+        CalculateLocalMasterIndices(rEquationIds, rLocalIndexStructure, rTotalNumberOfMasters);
+    }
+
+
 
     /**
      * @brief   This function calculates the local slave indices of a given element or condition
      * @param   rEquationIds vector of the equation ids
      * @param   rLocalSlaveIndexVector reference to the vector of slave indices
      */
-    void CalculateLocalSlaveIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalSlaveIndexVector)
+    void CalculateLocalSlaveIndices(EquationIdVectorType& rEquationIds, LocalIndices& rLocalIndexStructure)
     {
         KRATOS_TRY
         int index = 0;
@@ -1039,7 +1035,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(eq_id);
             if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
-                rLocalSlaveIndexVector.push_back(index);
+                rLocalIndexStructure.SlaveIndices().push_back(index);
 
             index++;
         }
@@ -1049,10 +1045,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /**
      * @brief   This function calculates the local internal indices of a given element or condition
      * @param   rEquationIds vector of the equation ids
-     * @param   rLocalSlaveIndexVector reference to the vector of slave indices
-     * @param   rLocalInternalIndexVector reference to the vector of internal indices
+     * @param   rLocalIndexStructure reference to the vector of slave indices
      */
-    void CalculateLocalInternalIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalSlaveIndexVector, VectorIndexType& rLocalInternalIndexVector)
+    void CalculateLocalInternalIndices(EquationIdVectorType& rEquationIds, LocalIndices& rLocalIndexStructure)
     {
         KRATOS_TRY
         VectorIndexType local_index_vector(rEquationIds.size());
@@ -1060,23 +1055,27 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             local_index_vector[i] = i;
 
         std::sort(local_index_vector.begin(), local_index_vector.end());
-        std::sort(rLocalSlaveIndexVector.begin(), rLocalSlaveIndexVector.end());
-        std::set_difference(local_index_vector.begin(), local_index_vector.end(), rLocalSlaveIndexVector.begin(), rLocalSlaveIndexVector.end(), std::back_inserter(rLocalInternalIndexVector));
+        std::sort(rLocalIndexStructure.SlaveIndices().begin(), rLocalIndexStructure.SlaveIndices().end());
+
+        std::set_difference(local_index_vector.begin(), local_index_vector.end(),
+                            rLocalIndexStructure.SlaveIndices().begin(), rLocalIndexStructure.SlaveIndices().end(),
+                            std::back_inserter(rLocalIndexStructure.InternalIndices()));
+
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalInternalIndices failed ..");
     }
 
     /**
      * @brief   This function calculates the local internal indices of a given element or condition
      * @param   rEquationIds vector of the equation ids
-     * @param   rLocalMasterIndexVector reference to the vector of master indices
+     * @param   rLocalIndexStructure reference to the vector of slave indices
      * @param   rTotalNumberOfMasters total number of masters for the given element or condition.
      */
-    void CalculateLocalMasterIndices(EquationIdVectorType& rEquationIds, VectorIndexType& rLocalMasterIndexVector, IndexType& rTotalNumberOfMasters)
+    void CalculateLocalMasterIndices(EquationIdVectorType& rEquationIds, LocalIndices& rLocalIndexStructure, IndexType rTotalNumberOfMasters)
     {
         // Get number of master indices for this current container
-        rLocalMasterIndexVector.reserve(rTotalNumberOfMasters + rEquationIds.size() );
+        rLocalIndexStructure.MasterIndices().reserve(rTotalNumberOfMasters + rEquationIds.size() );
         for (IndexType i = rEquationIds.size(); i < rTotalNumberOfMasters + rEquationIds.size(); i++)
-            rLocalMasterIndexVector.push_back(i);
+            rLocalIndexStructure.MasterIndices().push_back(i);
     }
 
     /**
@@ -1135,15 +1134,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         for(auto& node : rGeometry)
             if (node.IsDefined(SLAVE))
-                if ( node.Is(SLAVE) )
-                    return true;
+                return node.Is(SLAVE);
+
         return false;
     }
 
     ///@}
     ///@name Private  Access
     ///@{
-
     ///@}
     ///@name Private Inquiry
     ///@{
