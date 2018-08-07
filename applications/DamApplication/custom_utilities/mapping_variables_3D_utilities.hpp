@@ -61,12 +61,20 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void MappingModelParts (ModelPart& rModelPartOld, ModelPart& rModelPartNew)
+    void MappingThermalModelParts (ModelPart& rModelPartOld, ModelPart& rModelPartNew)
     {
         // Define necessary variables
         UtilityVariables AuxVariables;
         this->InitializeMapping(AuxVariables,rModelPartNew);
-        this->NodalVariablesMapping(AuxVariables,rModelPartOld,rModelPartNew);
+        this->NodalThermalVariablesMapping(AuxVariables,rModelPartOld,rModelPartNew);
+    }
+
+    void MappingMechanicalModelParts (ModelPart& rModelPartOld, ModelPart& rModelPartNew)
+    {
+        // Define necessary variables
+        UtilityVariables AuxVariables;
+        this->InitializeMapping(AuxVariables,rModelPartNew);
+        this->NodalMechanicalVariablesMapping(AuxVariables,rModelPartOld,rModelPartNew);
     }
 
 protected:
@@ -86,7 +94,7 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void NodalVariablesMapping(
+    void NodalThermalVariablesMapping(
         const UtilityVariables& AuxVariables,
         ModelPart& rModelPartOld,
         ModelPart& rModelPartNew)
@@ -242,62 +250,168 @@ protected:
                 NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
             }
             itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+        }
+    }
+
+    void NodalMechanicalVariablesMapping(
+        const UtilityVariables& AuxVariables,
+        ModelPart& rModelPartOld,
+        ModelPart& rModelPartNew)
+    {
+        // Define ElementOld Cell matrix
+        std::vector< std::vector< std::vector< std::vector<Element::Pointer> > > > ElementOldCellMatrix;
+        ElementOldCellMatrix.resize(AuxVariables.NRows);
+        for(int i = 0; i < AuxVariables.NRows; i++)
+            ElementOldCellMatrix[i].resize(AuxVariables.NColumns);
+        for(int i = 0; i < AuxVariables.NRows; i++)
+        {
+            for(int j = 0; j < AuxVariables.NColumns; j++)
+            {
+                ElementOldCellMatrix[i][j].resize(AuxVariables.NSections);
+            }
+        }
+
+        // Locate Old Elments in cells
+        double X_me;
+        double Y_me;
+        double Z_me;
+        int PointsNumber;
+
+        int NElems = static_cast<int>(rModelPartOld.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPartOld.ElementsBegin();
+
+        #pragma omp parallel for private(X_me,Y_me,Z_me,PointsNumber)
+        for(int i = 0; i < NElems; i++)
+        {
+            ModelPart::ElementsContainerType::iterator itElemOld = el_begin + i;
+
+            double X_left = itElemOld->GetGeometry().GetPoint(0).X0();
+            double X_right = X_left;
+            double Y_top = itElemOld->GetGeometry().GetPoint(0).Y0();
+            double Y_bot = Y_top;
+            double Z_back = itElemOld->GetGeometry().GetPoint(0).Z0();
+            double Z_front = Z_back;
+            PointsNumber = itElemOld->GetGeometry().PointsNumber();
+
+            for(int j = 1; j < PointsNumber; j++)
+            {
+                X_me = itElemOld->GetGeometry().GetPoint(j).X0();
+                Y_me = itElemOld->GetGeometry().GetPoint(j).Y0();
+                Z_me = itElemOld->GetGeometry().GetPoint(j).Z0();
+
+                if(X_me > X_right) X_right = X_me;
+                else if(X_me < X_left) X_left = X_me;
+                if(Y_me > Y_top) Y_top = Y_me;
+                else if(Y_me < Y_bot) Y_bot = Y_me;
+                if(Z_me > Z_front) Z_front = Z_me;
+                else if(Z_me < Z_back) Z_back = Z_me;
+            }
+
+            int Column_left = int((X_left-AuxVariables.X_min)/AuxVariables.ColumnSize);
+            int Column_right = int((X_right-AuxVariables.X_min)/AuxVariables.ColumnSize);
+            int Row_top = int((AuxVariables.Y_max-Y_top)/AuxVariables.RowSize);
+            int Row_bot = int((AuxVariables.Y_max-Y_bot)/AuxVariables.RowSize);
+            int Section_back = int((Z_back-AuxVariables.Z_min)/AuxVariables.SectionSize);
+            int Section_front = int((Z_front-AuxVariables.Z_min)/AuxVariables.SectionSize);
+
+            if(Column_left < 0) Column_left = 0;
+            else if(Column_left >= AuxVariables.NColumns) Column_left = AuxVariables.NColumns-1;
+            if(Column_right >= AuxVariables.NColumns) Column_right = AuxVariables.NColumns-1;
+            else if(Column_right < 0) Column_right = 0;
+            if(Row_top < 0) Row_top = 0;
+            else if(Row_top >= AuxVariables.NRows) Row_top = AuxVariables.NRows-1;
+            if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
+            else if(Row_bot < 0) Row_bot = 0;
+            if(Section_back < 0) Section_back = 0;
+            else if(Section_back >= AuxVariables.NSections) Section_back = AuxVariables.NSections-1;
+            if(Section_front >= AuxVariables.NSections) Section_front = AuxVariables.NSections-1;
+            else if(Section_front < 0) Section_front = 0;
+
+            for(int s = Section_back; s <= Section_front; s++)
+            {
+                for(int k = Row_top; k <= Row_bot; k++)
+                {
+                    for(int l = Column_left; l <= Column_right; l++)
+                    {
+                        #pragma omp critical
+                        {
+                            ElementOldCellMatrix[k][l][s].push_back((*(itElemOld.base())));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Locate new nodes inside old elements and interpolate nodal variables
+        const int NNodes = static_cast<int>(rModelPartNew.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin = rModelPartNew.NodesBegin();
+
+        array_1d<double,3> GlobalCoordinates;
+        array_1d<double,3> LocalCoordinates;
+
+        #pragma omp parallel for private(X_me,Y_me,Z_me,PointsNumber,GlobalCoordinates,LocalCoordinates)
+        for(int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNodeNew = node_begin + i;
+
+            X_me = itNodeNew->X0();
+            Y_me = itNodeNew->Y0();
+            Z_me = itNodeNew->Z0();
+
+            int Column = int((X_me-AuxVariables.X_min)/AuxVariables.ColumnSize);
+            int Row = int((AuxVariables.Y_max-Y_me)/AuxVariables.RowSize);
+            int Section = int((Z_me-AuxVariables.Z_min)/AuxVariables.SectionSize);
+
+            if(Column >= AuxVariables.NColumns) Column = AuxVariables.NColumns-1;
+            else if(Column < 0) Column = 0;
+            if(Row >= AuxVariables.NRows) Row = AuxVariables.NRows-1;
+            else if(Row < 0) Row = 0;
+            if(Section >= AuxVariables.NSections) Section = AuxVariables.NSections-1;
+            else if(Section < 0) Section = 0;
+
+            noalias(GlobalCoordinates) = itNodeNew->Coordinates(); //Coordinates of new nodes are still in the original position
+            bool IsInside = false;
+            Element::Pointer pElementOld;
+
+            for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+            {
+                pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
+                IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates); //Checks whether the global coordinates fall inside the original old element
+                if(IsInside) break;
+            }
+            if(IsInside==false)
+            {
+                for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+                {
+                    pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
+                    IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,1.0e-5);
+                    if(IsInside) break;
+                }
+            }
+            if(IsInside == false)
+                std::cout << "ERROR!!, NONE OF THE OLD ELEMENTS CONTAINS NODE: " << itNodeNew->Id() << std::endl;
+
+            PointsNumber = pElementOld->GetGeometry().PointsNumber();
+            Vector ShapeFunctionsValuesVector(PointsNumber);
+            Vector NodalVariableVector(PointsNumber);
+
+            pElementOld->GetGeometry().ShapeFunctionsValues(ShapeFunctionsValuesVector,LocalCoordinates);
+
+            // Interpolation of nodal variables
 
             Matrix NodalStress = ZeroMatrix(3,3);
 
-            for(int j = 0; j < PointsNumber; j++)
+            for(int k = 0; k < 3; k++)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(0,0);
+                for(int l = 0; l < 3; l++)
+                {
+                    for(int j = 0; j < PointsNumber; j++)
+                    {
+                        NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(k,l);
+                    }
+                    NodalStress(k,l) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                }
             }
-            NodalStress(0,0) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(0,1);
-            }
-            NodalStress(0,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(0,2);
-            }
-            NodalStress(0,2) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(1,0);
-            }
-            NodalStress(1,0) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(1,1);
-            }
-            NodalStress(1,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(1,2);
-            }
-            NodalStress(1,2) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(2,0);
-            }
-            NodalStress(2,0) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(2,1);
-            }
-            NodalStress(2,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(2,2);
-            }
-            NodalStress(2,2) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
             itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
             itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;

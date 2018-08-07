@@ -105,12 +105,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     class_< MappingVariables2DUtilities >
     (m, "MappingVariables2DUtilities")
     .def(init<>())
-    .def("MappingModelParts",&MappingVariables2DUtilities::MappingModelParts);
+    .def("MappingThermalModelParts",&MappingVariables2DUtilities::MappingThermalModelParts)
+    .def("MappingMechanicalModelParts",&MappingVariables2DUtilities::MappingMechanicalModelParts);
 
     class_< MappingVariables3DUtilities >
     (m, "MappingVariables3DUtilities")
     .def(init<>())
-    .def("MappingModelParts",&MappingVariables3DUtilities::MappingModelParts);
+    .def("MappingThermalModelParts",&MappingVariables3DUtilities::MappingThermalModelParts)
+    .def("MappingMechanicalModelParts",&MappingVariables3DUtilities::MappingMechanicalModelParts);
 }
 
 }  // namespace Python.
