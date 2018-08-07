@@ -877,7 +877,7 @@ namespace Kratos {
         void UpdateAcceleration(array_1d<double, 3 > & CurrentAcceleration,
                                 const array_1d<double, 3 > & DeltaVel,
                                 const array_1d<double, 3 > & OldAcceleration,
-                                const array_1d<double, 3 > & RelaxedAcceleration)
+                                array_1d<double, 3 > & RelaxedAcceleration)
         {
             noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2 * OldAcceleration;
             noalias(RelaxedAcceleration) = (1-mAlphaBossak) * CurrentAcceleration + mAlphaBossak * OldAcceleration;
