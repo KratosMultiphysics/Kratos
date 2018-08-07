@@ -62,17 +62,12 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void MappingModelParts (Parameters& rParameters, ModelPart& rModelPartOld, ModelPart& rModelPartNew, const bool& move_mesh_flag)
+    void MappingModelParts (ModelPart& rModelPartOld, ModelPart& rModelPartNew)
     {
         // Define necessary variables
         UtilityVariables AuxVariables;
-
-        this->InitializeMapping(AuxVariables,rModelPartNew, move_mesh_flag);
-
-        this->NodalVariablesMapping(AuxVariables,rParameters,rModelPartOld,rModelPartNew);
-
-        if(move_mesh_flag==true)
-            this->UpdateMeshPosition(rModelPartNew);
+        this->InitializeMapping(AuxVariables,rModelPartNew);
+        this->NodalVariablesMapping(AuxVariables,rModelPartOld,rModelPartNew);
     }
 
 protected:
@@ -85,13 +80,8 @@ protected:
 
     void InitializeMapping(
         UtilityVariables& rAuxVariables,
-        ModelPart& rModelPartNew,
-        const bool& move_mesh_flag)
+        ModelPart& rModelPartNew)
     {
-        // Move mesh to the original position to work in the reference state
-        if(move_mesh_flag==true)
-            this->ResetMeshPosition(rModelPartNew);
-
         this->ComputeCellMatrixDimensions(rAuxVariables,rModelPartNew);
     }
 
@@ -99,7 +89,6 @@ protected:
 
     void NodalVariablesMapping(
         const UtilityVariables& AuxVariables,
-        Parameters& rParameters,
         ModelPart& rModelPartOld,
         ModelPart& rModelPartNew)
     {
@@ -113,121 +102,65 @@ protected:
         double Y_me;
         int PointsNumber;
 
-        unsigned int NumBodySubModelParts = rParameters["fracture_data"]["body_domain_sub_model_part_list"].size();
+        int NElems = static_cast<int>(rModelPartOld.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPartOld.ElementsBegin();
 
-        // Loop through all BodySubModelParts
-        for(unsigned int m = 0; m < NumBodySubModelParts; m++)
+        #pragma omp parallel for private(X_me,Y_me,PointsNumber)
+        for(int i = 0; i < NElems; i++)
         {
-            ModelPart& SubModelPart = rModelPartOld.GetSubModelPart(rParameters["fracture_data"]["body_domain_sub_model_part_list"][m].GetString());
+            ModelPart::ElementsContainerType::iterator itElemOld = el_begin + i;
 
-            int NElems = static_cast<int>(SubModelPart.Elements().size());
-            ModelPart::ElementsContainerType::iterator el_begin = SubModelPart.ElementsBegin();
+            double X_left = itElemOld->GetGeometry().GetPoint(0).X0();
+            double X_right = X_left;
+            double Y_top = itElemOld->GetGeometry().GetPoint(0).Y0();
+            double Y_bot = Y_top;
+            PointsNumber = itElemOld->GetGeometry().PointsNumber();
 
-            #pragma omp parallel for private(X_me,Y_me,PointsNumber)
-            for(int i = 0; i < NElems; i++)
+            for(int j = 1; j < PointsNumber; j++)
             {
-                ModelPart::ElementsContainerType::iterator itElemOld = el_begin + i;
+                X_me = itElemOld->GetGeometry().GetPoint(j).X0();
+                Y_me = itElemOld->GetGeometry().GetPoint(j).Y0();
 
-                double X_left = itElemOld->GetGeometry().GetPoint(0).X0();
-                double X_right = X_left;
-                double Y_top = itElemOld->GetGeometry().GetPoint(0).Y0();
-                double Y_bot = Y_top;
-                PointsNumber = itElemOld->GetGeometry().PointsNumber();
+                if(X_me > X_right) X_right = X_me;
+                else if(X_me < X_left) X_left = X_me;
+                if(Y_me > Y_top) Y_top = Y_me;
+                else if(Y_me < Y_bot) Y_bot = Y_me;
+            }
 
-                for(int j = 1; j < PointsNumber; j++)
+            int Column_left = int((X_left-AuxVariables.X_min)/AuxVariables.ColumnSize);
+            int Column_right = int((X_right-AuxVariables.X_min)/AuxVariables.ColumnSize);
+            int Row_top = int((AuxVariables.Y_max-Y_top)/AuxVariables.RowSize);
+            int Row_bot = int((AuxVariables.Y_max-Y_bot)/AuxVariables.RowSize);
+
+            if(Column_left < 0) Column_left = 0;
+            else if(Column_left >= AuxVariables.NColumns) Column_left = AuxVariables.NColumns-1;
+            if(Column_right >= AuxVariables.NColumns) Column_right = AuxVariables.NColumns-1;
+            else if(Column_right < 0) Column_right = 0;
+
+            if(Row_top < 0) Row_top = 0;
+            else if(Row_top >= AuxVariables.NRows) Row_top = AuxVariables.NRows-1;
+            if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
+            else if(Row_bot < 0) Row_bot = 0;
+
+            for(int k = Row_top; k <= Row_bot; k++)
+            {
+                for(int l = Column_left; l <= Column_right; l++)
                 {
-                    X_me = itElemOld->GetGeometry().GetPoint(j).X0();
-                    Y_me = itElemOld->GetGeometry().GetPoint(j).Y0();
-
-                    if(X_me > X_right) X_right = X_me;
-                    else if(X_me < X_left) X_left = X_me;
-                    if(Y_me > Y_top) Y_top = Y_me;
-                    else if(Y_me < Y_bot) Y_bot = Y_me;
-                }
-
-                int Column_left = int((X_left-AuxVariables.X_min)/AuxVariables.ColumnSize);
-                int Column_right = int((X_right-AuxVariables.X_min)/AuxVariables.ColumnSize);
-                int Row_top = int((AuxVariables.Y_max-Y_top)/AuxVariables.RowSize);
-                int Row_bot = int((AuxVariables.Y_max-Y_bot)/AuxVariables.RowSize);
-
-                if(Column_left < 0) Column_left = 0;
-                else if(Column_left >= AuxVariables.NColumns) Column_left = AuxVariables.NColumns-1;
-                if(Column_right >= AuxVariables.NColumns) Column_right = AuxVariables.NColumns-1;
-                else if(Column_right < 0) Column_right = 0;
-
-                if(Row_top < 0) Row_top = 0;
-                else if(Row_top >= AuxVariables.NRows) Row_top = AuxVariables.NRows-1;
-                if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
-                else if(Row_bot < 0) Row_bot = 0;
-
-                for(int k = Row_top; k <= Row_bot; k++)
-                {
-                    for(int l = Column_left; l <= Column_right; l++)
+                    #pragma omp critical
                     {
-                        #pragma omp critical
-                        {
-                            ElementOldCellMatrix[k][l].push_back((*(itElemOld.base())));
-                        }
+                        ElementOldCellMatrix[k][l].push_back((*(itElemOld.base())));
                     }
                 }
             }
-        }
 
-        unsigned int NumInterfaceSubModelPartsOld = rParameters["fracture_data"]["interface_domain_sub_model_part_old_list"].size();
 
-        // Loop through all InterfaceSubModelParts
-        for(unsigned int m = 0; m < NumInterfaceSubModelPartsOld; m++)
-        {
-            ModelPart& SubModelPart = rModelPartOld.GetSubModelPart(rParameters["fracture_data"]["interface_domain_sub_model_part_old_list"][m].GetString());
-
-            int NElems = static_cast<int>(SubModelPart.Elements().size());
-            ModelPart::ElementsContainerType::iterator el_begin = SubModelPart.ElementsBegin();
-
-            #pragma omp parallel for private(X_me,Y_me,PointsNumber)
-            for(int i = 0; i < NElems; i++)
+            for(int k = Row_top; k <= Row_bot; k++)
             {
-                ModelPart::ElementsContainerType::iterator itElemOld = el_begin + i;
-
-                double X_left = itElemOld->GetGeometry().GetPoint(0).X0();
-                double X_right = X_left;
-                double Y_top = itElemOld->GetGeometry().GetPoint(0).Y0();
-                double Y_bot = Y_top;
-                PointsNumber = itElemOld->GetGeometry().PointsNumber();
-
-                for(int j = 1; j < PointsNumber; j++)
+                for(int l = Column_left; l <= Column_right; l++)
                 {
-                    X_me = itElemOld->GetGeometry().GetPoint(j).X0();
-                    Y_me = itElemOld->GetGeometry().GetPoint(j).Y0();
-
-                    if(X_me > X_right) X_right = X_me;
-                    else if(X_me < X_left) X_left = X_me;
-                    if(Y_me > Y_top) Y_top = Y_me;
-                    else if(Y_me < Y_bot) Y_bot = Y_me;
-                }
-
-                int Column_left = int((X_left-AuxVariables.X_min)/AuxVariables.ColumnSize);
-                int Column_right = int((X_right-AuxVariables.X_min)/AuxVariables.ColumnSize);
-                int Row_top = int((AuxVariables.Y_max-Y_top)/AuxVariables.RowSize);
-                int Row_bot = int((AuxVariables.Y_max-Y_bot)/AuxVariables.RowSize);
-
-                if(Column_left < 0) Column_left = 0;
-                else if(Column_left >= AuxVariables.NColumns) Column_left = AuxVariables.NColumns-1;
-                if(Column_right >= AuxVariables.NColumns) Column_right = AuxVariables.NColumns-1;
-                else if(Column_right < 0) Column_right = 0;
-
-                if(Row_top < 0) Row_top = 0;
-                else if(Row_top >= AuxVariables.NRows) Row_top = AuxVariables.NRows-1;
-                if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
-                else if(Row_bot < 0) Row_bot = 0;
-
-                for(int k = Row_top; k <= Row_bot; k++)
-                {
-                    for(int l = Column_left; l <= Column_right; l++)
+                    #pragma omp critical
                     {
-                        #pragma omp critical
-                        {
-                            ElementOldCellMatrix[k][l].push_back((*(itElemOld.base())));
-                        }
+                        ElementOldCellMatrix[k][l].push_back((*(itElemOld.base())));
                     }
                 }
             }
@@ -285,105 +218,46 @@ protected:
             pElementOld->GetGeometry().ShapeFunctionsValues(ShapeFunctionsValuesVector,LocalCoordinates);
 
             // Interpolation of nodal variables
-            if( itNodeNew->IsFixed(DISPLACEMENT_X)==false )
+            for(int j = 0; j < PointsNumber; j++)
             {
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_X);
-                }
-                itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_X) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(TEMPERATURE);
             }
-            if( itNodeNew->IsFixed(VELOCITY_X)==false )
+            itNodeNew->FastGetSolutionStepValue(TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+
+            for(int j = 0; j < PointsNumber; j++)
             {
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(VELOCITY_X);
-                }
-                itNodeNew->FastGetSolutionStepValue(VELOCITY_X) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
             }
-            if( itNodeNew->IsFixed(ACCELERATION_X)==false )
+            itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+
+            Matrix NodalStress = ZeroMatrix(2,2);
+
+            for(int j = 0; j < PointsNumber; j++)
             {
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(ACCELERATION_X);
-                }
-                itNodeNew->FastGetSolutionStepValue(ACCELERATION_X) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(0,0);
             }
-            if( itNodeNew->IsFixed(DISPLACEMENT_Y)==false )
+            NodalStress(0,0) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+
+            for(int j = 0; j < PointsNumber; j++)
             {
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_Y);
-                }
-                itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Y) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(0,1);
             }
-            if( itNodeNew->IsFixed(VELOCITY_Y)==false )
+            NodalStress(0,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+
+            for(int j = 0; j < PointsNumber; j++)
             {
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(VELOCITY_Y);
-                }
-                itNodeNew->FastGetSolutionStepValue(VELOCITY_Y) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(1,0);
             }
-            if( itNodeNew->IsFixed(ACCELERATION_Y)==false )
+            NodalStress(1,0) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+
+            for(int j = 0; j < PointsNumber; j++)
             {
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(ACCELERATION_Y);
-                }
-                itNodeNew->FastGetSolutionStepValue(ACCELERATION_Y) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(1,1);
             }
-            if( itNodeNew->IsFixed(WATER_PRESSURE)==false )
-            {
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(WATER_PRESSURE);
-                }
-                itNodeNew->FastGetSolutionStepValue(WATER_PRESSURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-                for(int j = 0; j < PointsNumber; j++)
-                {
-                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DT_WATER_PRESSURE);
-                }
-                itNodeNew->FastGetSolutionStepValue(DT_WATER_PRESSURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-            }
-        }
-    }
+            NodalStress(1,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
-/// Common --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void ResetMeshPosition(ModelPart& rModelPart)
-    {
-        // Move mesh to the original position
-        const int NNodes = static_cast<int>(rModelPart.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
-
-        #pragma omp parallel for
-        for(int i = 0; i < NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
-
-            itNode->X() = itNode->X0();
-            itNode->Y() = itNode->Y0();
-            itNode->Z() = itNode->Z0();
-        }
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void UpdateMeshPosition(ModelPart& rModelPart)
-    {
-        // Move mesh to the current position
-        const int NNodes = static_cast<int>(rModelPart.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
-
-        #pragma omp parallel for
-        for(int i = 0; i < NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
-
-            itNode->X() = itNode->X0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_X);
-            itNode->Y() = itNode->Y0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Y);
-            itNode->Z() = itNode->Z0() + itNode->FastGetSolutionStepValue(DISPLACEMENT_Z);
+            itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
+            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
         }
     }
 
@@ -408,7 +282,6 @@ private:
         #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
-
             X_max_partition[k] = node_begin->X();
             X_min_partition[k] = X_max_partition[k];
             Y_max_partition[k] = node_begin->Y();

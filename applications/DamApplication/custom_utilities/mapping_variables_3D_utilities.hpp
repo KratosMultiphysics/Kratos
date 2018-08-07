@@ -230,6 +230,7 @@ protected:
 
             pElementOld->GetGeometry().ShapeFunctionsValues(ShapeFunctionsValuesVector,LocalCoordinates);
 
+            // Interpolation of nodal variables
             for(int j = 0; j < PointsNumber; j++)
             {
                 NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(TEMPERATURE);
@@ -241,60 +242,65 @@ protected:
                 NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
             }
             itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
-/*
-            for(int j = 0; j < PointsNumber; j++)
-            {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-            }
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+
+            Matrix NodalStress = ZeroMatrix(3,3);
 
             for(int j = 0; j < PointsNumber; j++)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XY);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(0,0);
             }
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XX) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            NodalStress(0,0) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
             for(int j = 0; j < PointsNumber; j++)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XZ);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(0,1);
             }
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XX) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            NodalStress(0,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
             for(int j = 0; j < PointsNumber; j++)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_YX);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(0,2);
             }
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XX) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            NodalStress(0,2) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
             for(int j = 0; j < PointsNumber; j++)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_YY);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(1,0);
             }
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XX) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            NodalStress(1,0) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
             for(int j = 0; j < PointsNumber; j++)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_YZ);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(1,1);
             }
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XX) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            NodalStress(1,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
             for(int j = 0; j < PointsNumber; j++)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_ZX);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(1,2);
             }
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XX) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            NodalStress(1,2) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
             for(int j = 0; j < PointsNumber; j++)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_ZY);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(2,0);
             }
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XX) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+            NodalStress(2,0) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
             for(int j = 0; j < PointsNumber; j++)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_ZZ);
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(2,1);
             }
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR_XX) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);*/
+            NodalStress(2,1) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+
+            for(int j = 0; j < PointsNumber; j++)
+            {
+                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(2,2);
+            }
+            NodalStress(2,2) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+
+            itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
+            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
         }
     }
 
