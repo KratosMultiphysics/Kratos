@@ -117,6 +117,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             self.__LogCurrentOptimizationStep(len_bar_obj, len_bar_eqs, len_bar_ineqs, step_length, norm_dx, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs)
 
+            print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
         self.analyzer.FinalizeAfterOptimizationLoop()
@@ -343,8 +346,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __DetermineStep(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
-        print("\n--------------------------------------------")
-        print("> Starting determination of step...")
+        print("\n> Starting determination of step...")
 
         timer = Timer()
         timer.StartTimer()
@@ -357,15 +359,15 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         nargout = 2
         len_obj_test = 0.01
         inactive_threshold = 100
-        norm_inf_dX, is_projection_sucessfull = projector.RunProjection(len_obj_test, inactive_threshold, nargout)
+        test_norm_dX, is_projection_sucessfull = projector.RunProjection(len_obj_test, inactive_threshold, nargout)
 
         print("> Time needed for one projection step = ", timer.GetTotalTime(), "s")
 
-        print("\nTest norm_inf_dX = ",norm_inf_dX)
+        print("\ntest_norm_dX = ",test_norm_dX)
 
         # 2. Determine step following two different modes depending on the previos found step length to the feasible domain
         if is_projection_sucessfull:
-            if norm_inf_dX < 1: # Minimizing mode
+            if test_norm_dX < 1: # Minimizing mode
                 print ("\n> Computing projection case 1...")
 
                 func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold, nargout)
@@ -378,12 +380,12 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 len_obj_result, bi_itrs, bi_err = PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
 
                 nargout = 6
-                norm_inf_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj_result, inactive_threshold, nargout)
+                test_norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj_result, inactive_threshold, nargout)
 
                 print("\nlen_obj_result = ", len_obj_result)
                 print("bi_itrs = ", bi_itrs)
                 print("bi_err = ", bi_err)
-                print("norm_inf_dX = ", norm_inf_dX)
+                print("test_norm_dX = ", test_norm_dX)
 
             else: # Correction mode
                 print ("\n> Computing projection case 2...")
@@ -399,12 +401,12 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr)
 
                 nargout = 6
-                norm_inf_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj, l_threshold_result, nargout)
+                test_norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj, l_threshold_result, nargout)
 
                 print("\nl_threshold_result = ", l_threshold_result)
                 print("bi_itrs = ", bi_itrs)
                 print("bi_err = ", bi_err)
-                print("norm_inf_dX = ", norm_inf_dX)
+                print("test_norm_dX = ", test_norm_dX)
         else:
             raise RuntimeError("Case of not converged test projection not yet implemented yet!")
 
