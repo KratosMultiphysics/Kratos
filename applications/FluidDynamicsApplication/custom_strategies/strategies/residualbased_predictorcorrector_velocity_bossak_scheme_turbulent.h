@@ -285,8 +285,9 @@ namespace Kratos {
 
                     array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
                     array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
+                    array_1d<double, 3 > & RelaxedAcceleration = (itNode)->FastGetSolutionStepValue(RELAXED_ACCELERATION, 0);
 
-                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
+                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration, RelaxedAcceleration);
 
                     if (mMeshVelocity == 2)//Lagrangian
                     {
@@ -364,8 +365,9 @@ namespace Kratos {
                     noalias(DeltaVel) = CurrentVelocity - OldVelocity;
                     array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
                     array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION);
+                    array_1d<double, 3 > & RelaxedAcceleration = (itNode)->FastGetSolutionStepValue(RELAXED_ACCELERATION, 0);
 
-                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
+                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration, RelaxedAcceleration);
 
                     if (mMeshVelocity == 2) //Lagrangian
                     {
@@ -874,9 +876,11 @@ namespace Kratos {
 
         void UpdateAcceleration(array_1d<double, 3 > & CurrentAcceleration,
                                 const array_1d<double, 3 > & DeltaVel,
-                                const array_1d<double, 3 > & OldAcceleration)
+                                const array_1d<double, 3 > & OldAcceleration,
+                                const array_1d<double, 3 > & RelaxedAcceleration)
         {
-            noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2*OldAcceleration;
+            noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2 * OldAcceleration;
+            noalias(RelaxedAcceleration) = (1-mAlphaBossak) * CurrentAcceleration + mAlphaBossak * OldAcceleration;
         }
 
 
