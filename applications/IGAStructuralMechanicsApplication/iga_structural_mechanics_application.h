@@ -38,7 +38,7 @@
 #include "custom_elements/meshless_base_element.h"
 #include "custom_elements/meshless_base_surface_element.h"
 #include "custom_elements/meshless_membrane_element.h"
-#include "custom_elements/meshless_laplace_element.h"
+//#include "custom_elements/meshless_laplace_element.h"
 #include "custom_elements/meshless_shell_element.h"
 #include "custom_elements/meshless_shell_kl_element.h"
 #include "custom_elements/meshless_shell_kl_thick_element.h"
@@ -64,7 +64,7 @@
 #include "custom_conditions/meshless_surface_support_condition.h"
 #include "custom_conditions/meshless_lagrange_coupling_condition.h"
 #include "custom_conditions/meshless_lagrange_coupling_condition_2.h"
-#include "custom_conditions/meshless_penalty_coupling_rotation_condition.h"
+//#include "custom_conditions/meshless_penalty_coupling_rotation_condition.h"
 #include "custom_conditions/meshless_penalty_coupling_crack_condition.h"
 #include "custom_conditions/meshless_force_interface_condition.h"
 
@@ -272,7 +272,6 @@ private:
     // Meshless Elements
     const MeshlessBaseElement         mMeshlessElement;
     const MeshlessMembraneElement     mMeshlessMembraneElement;
-    const MeshlessLaplaceElement      mMeshlessLaplaceElement;
     const MeshlessShellElement        mMeshlessShellElement;
     const MeshlessShellKLElement      mMeshlessShellKLElement;
     const MeshlessShellKLThickElement mMeshlessShellKLThickElement;
@@ -293,7 +292,6 @@ private:
     const MeshlessSurfaceSupportCondition          mMeshlessSurfaceSupportCondition;
     const MeshlessLagrangeCouplingCondition        mMeshlessLagrangeCouplingCondition;
     const MeshlessLagrangeCouplingCondition2       mMeshlessLagrangeCouplingCondition2;
-    const MeshlessPenaltyCouplingRotationCondition mMeshlessPenaltyCouplingRotationCondition;
     const MeshlessPenaltyCouplingCrackCondition    mMeshlessPenaltyCouplingCrackCondition;
     const MeshlessForceInterfaceCondition          mMeshlessForceInterfaceCondition;
     ///@}
