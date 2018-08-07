@@ -910,8 +910,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         VectorType vector(initial_sys_size);
         noalias(vector) = rVector;
 
-        rMatrix.resize(FinalSize, FinalSize, true); //true for Preserving the data and resizing the matrix
-        rVector.resize(FinalSize, true);
+        rMatrix.resize(FinalSize, FinalSize, false);
+        rVector.resize(FinalSize, false);
         // reassigning the original part of the matrix
         for (IndexType m = 0; m < initial_sys_size; ++m)
         {
