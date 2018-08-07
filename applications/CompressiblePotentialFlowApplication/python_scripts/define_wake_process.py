@@ -40,6 +40,20 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         self.kutta_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
+
+
+        print('Before NormalCalculationUtils')
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        print('After NormalCalculationUtils')
+
+        print('Before FindNodalNeighboursProcess')
+        # Neigbour search tool instance
+        AvgElemNum = 10
+        AvgNodeNum = 10
+        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_model_part,AvgElemNum, AvgNodeNum)
+        # Find neighbours
+        nodal_neighbour_search.Execute()
+        print('After FindNodalNeighboursProcess')
         
         self.stl_filename = settings["stl_filename"].GetString()
         

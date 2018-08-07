@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ConvectionDiffusionApplication
+#import KratosMultiphysics.ConvectionDiffusionApplication
 KratosMultiphysics.CheckForPreviousImport()
 
 
@@ -22,7 +22,7 @@ class LaplacianSolver:
             "echo_level": 1,
             "relative_tolerance": 1e-5,
             "absolute_tolerance": 1e-9,
-            "maximum_iterations": 10,
+            "maximum_iterations": 1,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "calculate_solution_norm" : false,
@@ -61,6 +61,7 @@ class LaplacianSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         
     def AddDofs(self):
         for node in self.main_model_part.Nodes:

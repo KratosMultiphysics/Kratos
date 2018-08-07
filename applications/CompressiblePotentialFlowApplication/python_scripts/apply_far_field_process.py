@@ -30,6 +30,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.inlet_phi = settings["inlet_phi"].GetDouble()
         
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.VELOCITY,self.velocity_infinity)
+
+        
         
         
     def Execute(self):

@@ -527,11 +527,34 @@ public:
 
                 const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
 
+                p = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+            }
+            else if(active==true && this->Is(MARKER))
+            {
+                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
+
+                ElementalData<NumNodes,Dim> data;
+
+                //calculate shape functions
+                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+                array_1d<double,NumNodes> distances;
+                GetWakeDistances(distances);
+
+                //negative part - sign is opposite to the previous case
+                for (unsigned int i = 0; i < NumNodes; i++)
+                {
+                    if(distances[i] < 0)                    
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);                    
+                    else                    
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);                    
+                }
+
+                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
 
                 p = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
-
-
             rValues[0] = p;
         }
     }
@@ -548,7 +571,8 @@ public:
             if ((this)->IsDefined(ACTIVE))
                 active = (this)->Is(ACTIVE);
 
-            array_1d<double,3> v = ZeroVector();
+            array_1d<double,3> v;
+            v.clear();
             if(this->IsNot(MARKER) && active==true)
             {
                 ElementalData<NumNodes,Dim> data;
@@ -564,6 +588,47 @@ public:
 
                 array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
                 
+                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
+            }
+            else if(active==true && this->Is(MARKER))
+            {
+                ElementalData<NumNodes,Dim> data;
+
+                //calculate shape functions
+                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+                array_1d<double,NumNodes> distances;
+                GetWakeDistances(distances);
+
+                //taking only positive part
+                for (unsigned int i = 0; i < NumNodes; i++)
+                {
+                    if(distances[i] > 0)
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                    else
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                }
+
+                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
+                double vupnorm = inner_prod(vaux,vaux);
+
+                //taking only negative part
+                for (unsigned int i = 0; i < NumNodes; i++)
+                {
+                    if(distances[i] < 0)
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                    else
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                }
+
+                array_1d<double,Dim> vtest = prod(trans(data.DN_DX), data.phis);
+                double vdownnorm = inner_prod(vtest,vtest);
+
+                if( abs(vupnorm - vdownnorm) > 0.1)
+                {
+                   std::cout << "WAKE CONDITION NOT FULFILLED ELEMENT = " << this->Id()  << std::endl; 
+                }
+
                 for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             }
 
