@@ -221,6 +221,48 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 
 }; // End of ConstraintEquation class
 
+
+class LocalIndices
+{
+    public:
+    KRATOS_CLASS_POINTER_DEFINITION(LocalIndices);
+    typedef std::size_t IndexType;
+    typedef std::vector<IndexType> VectorIndexType;
+
+    /**
+     * Structure "LocalIndices" to be used as an encapsulator for set of local elemental/conditional indices
+    */
+    LocalIndices()
+    {
+        internal_index_vector.resize(0);
+        master_index_vector.resize(0);
+        slave_index_vector.resize(0);
+    }
+
+    ~LocalIndices()
+    {
+        internal_index_vector.resize(0);
+        master_index_vector.resize(0);
+        slave_index_vector.resize(0);
+
+        internal_index_vector.shrink_to_fit();
+        master_index_vector.shrink_to_fit();
+        slave_index_vector.shrink_to_fit();
+    }
+
+    /*
+    * Access functions for the index vectors
+    */
+    VectorIndexType& InternalIndices(){return internal_index_vector;}
+    VectorIndexType& MasterIndices(){return master_index_vector;}
+    VectorIndexType& SlaveIndices(){return slave_index_vector;}
+
+    private:
+    VectorIndexType internal_index_vector; // indicies correspoinding to internal DOFs
+    VectorIndexType master_index_vector; // indicies correspoinding to master DOFs
+    VectorIndexType slave_index_vector; // indicies correspoinding to slave DOFs
+};
+
 } // namespace Kratos
 
 #endif // CONSTRAINT_SLAVE_H_INCLUDED
