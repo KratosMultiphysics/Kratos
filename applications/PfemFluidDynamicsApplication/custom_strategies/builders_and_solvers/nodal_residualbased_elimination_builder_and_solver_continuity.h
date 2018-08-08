@@ -141,112 +141,6 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      /**
-       * @brief Function to perform the build of the RHS. The vector could be sized as the total number
-       * of dofs or as the number of unrestrained ones
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       * @param A The LHS matrix
-       * @param b The RHS vector
-       */
-      void Build(
-		 typename TSchemeType::Pointer pScheme,
-		 ModelPart& rModelPart,
-		 TSystemMatrixType& A,
-		 TSystemVectorType& b) override
-      {
-        KRATOS_TRY
-
-	  KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-        //getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-
-        //getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // assemble all elements
-        double start_build = OpenMPUtils::GetCurrentTime();
-
-#pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, EquationId )
-        {
-#pragma omp  for schedule(guided, 512) nowait
-	  for (int k = 0; k < nelements; k++)
-            {
-	      ModelPart::ElementsContainerType::iterator it = el_begin + k;
-
-	      //detect if the element is active or not. If the user did not make any choice the element
-	      //is active by default
-	      bool element_is_active = true;
-	      if ((it)->IsDefined(ACTIVE))
-		element_is_active = (it)->Is(ACTIVE);
-
-	      if (element_is_active)
-                {
-		  //calculate elemental contribution
-		  pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-		  //assemble the elemental contribution
-#ifdef _OPENMP
-		  Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-#else
-		  Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
-		  // clean local elemental memory
-		  pScheme->CleanMemory(*(it.base()));
-
-                }
-
-            }
-
-#pragma omp  for schedule(guided, 512)
-	  for (int k = 0; k < nconditions; k++)
-            {
-	      ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
-
-	      //detect if the element is active or not. If the user did not make any choice the element
-	      //is active by default
-	      bool condition_is_active = true;
-	      if ((it)->IsDefined(ACTIVE))
-		condition_is_active = (it)->Is(ACTIVE);
-
-	      if (condition_is_active)
-                {
-		  //calculate elemental contribution
-		  pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-#ifdef _OPENMP
-		  Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
-#else
-		  Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-#endif
-
-		  // clean local elemental memory
-		  pScheme->CleanMemory(*(it.base()));
-                }
-            }
-        }
-
-        double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverContinuity", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Build time: " << stop_build - start_build << std::endl;
-
-        KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverContinuity", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
-
-        KRATOS_CATCH("")
-
-	  }
 
 
       /**
@@ -342,10 +236,9 @@ namespace Kratos
 
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
-	     
-	      VectorType nodalSFDneighboursId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
-	      VectorType nodalSFDneighboursPressure=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_PRESSURE);
-	      const unsigned int neighSize = nodalSFDneighboursId.size();
+
+	      WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+	      const unsigned int neighSize = neighb_nodes.size() +1 ;
 
 	      if(neighSize>1){
 		
@@ -358,9 +251,7 @@ namespace Kratos
 		
 		if (EquationId.size() != neighSize)
 		  EquationId.resize(neighSize, false);
-		
-		Vector rNodeOrderedNeighboursPressureId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_PRESSURE_ID);
-		
+			
 		double deviatoricCoeff=1.0;
 		double volumetricCoeff=1.0;
 		if(itNode->Is(SOLID)){
@@ -373,31 +264,27 @@ namespace Kratos
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
 		}
 
-		/* const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X); */
-		/* const unsigned int xpos = itNode->GetDofPosition(PRESSURE); */
-
 		double deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 		double volumetricDefRate= itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE);
-		/* std::cout<<"totalVolume "<<nodalVolume<<"  VolumetricCoeff "<<volumetricCoeff<<std::endl; */
 
 		LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
 		RHS_Contribution[0]  += (-deltaPressure/volumetricCoeff +  volumetricDefRate)*nodalVolume;
 
+		const unsigned int xpos = itNode->GetDofPosition(PRESSURE);
+		EquationId[0]=itNode->GetDof(PRESSURE,xpos).EquationId();
+
 		bool stabilizationNeeded=false;
 		if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
 		  stabilizationNeeded=true;
-		}else{		  
-		  for (unsigned int i = 0; i< neighSize; i++)
-		    {
-		      /* unsigned int idNode=nodalSFDneighboursId[i]; */
-		      /* EquationId[i]=rModelPart.Nodes()[idNode].GetDof(PRESSURE,xpos).EquationId(); */
-		      EquationId[i]=rNodeOrderedNeighboursPressureId[i];
-		    }
-		}
-		
-		if(stabilizationNeeded==true){
+		}else{
 
-		  /* Vector& rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS); */
+		  for (unsigned int i = 0; i< neighb_nodes.size(); i++)
+		    {
+		      EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
+		    }
+
+		}
+		if(stabilizationNeeded==true){
 		  
 		  unsigned int firstRow=0;
 		  unsigned int firstCol=0;
@@ -480,19 +367,11 @@ namespace Kratos
 		  
 		  double Density= itNode->FastGetSolutionStepValue(DENSITY);
 		  array_1d<double, 3 >& VolumeAcceleration = itNode->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+		  double pressure=itNode->FastGetSolutionStepValue(PRESSURE,0);
 		  
 		  for (unsigned int i = 0; i< neighSize; i++)
 		    {
-		      /* unsigned int idNode=nodalSFDneighboursId[i]; */
-		      /* EquationId[i]=rModelPart.Nodes()[idNode].GetDof(PRESSURE,xpos).EquationId(); */
-		      EquationId[i]=rNodeOrderedNeighboursPressureId[i];
-		      /* std::cout<<"EquationId[i] "<<EquationId[i]<<std::endl; */
-		      /* std::cout<<"previousEquationId[i] "<<rModelPart.Nodes()[idNode].GetDof(PRESSURE,xpos).EquationId()<<std::endl; */
-		      
-		      // if density is not uniform it should used this one
-		      /* double Density= rModelPart.Nodes()[idNode].FastGetSolutionStepValue(DENSITY); */
-		      /* array_1d<double, 3 >& VolumeAcceleration = rModelPart.Nodes()[idNode].FastGetSolutionStepValue(VOLUME_ACCELERATION); */
-			
+		
 		      double dNdXi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol];
 		      double dNdYi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+1];
 		      double dNdZi=0;
@@ -506,27 +385,29 @@ namespace Kratos
 		      }
 		      
 		      firstRow=0;
-		
+
 		      for (unsigned int j = 0; j< neighSize; j++)
 		      	{
-		      	  /* unsigned int idNodeJ=nodalSFDneighboursId[j]; */
 		      	  double dNdXj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow];
 		      	  double dNdYj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow+1];
+			  if(j!=0){
+			    pressure=neighb_nodes[j-1].FastGetSolutionStepValue(PRESSURE,0);
+			  }else{
+			    pressure=itNode->FastGetSolutionStepValue(PRESSURE,0);
+			  }
 			  /* std::cout<<"pressureJ "<<pressureJ<<std::endl; */
 		      	  if(dimension==2){
 		      	    ////////////////// Laplacian term for LHS
 		      	    LHS_Contribution(i,j)+= + tauStab * (dNdXi*dNdXj + dNdYi*dNdYj) * nodalVolume;
 		      	    ////////////////// Laplacian term L_ij*P_j for RHS
-		      	    RHS_Contribution[i]  += - tauStab * (dNdXi*dNdXj + dNdYi*dNdYj)  * nodalVolume * nodalSFDneighboursPressure[j];
-		      	    /* RHS_Contribution[i]  += - tauStab * (dNdXi*dNdXj + dNdYi*dNdYj)  * nodalVolume * rModelPart.Nodes()[idNodeJ].FastGetSolutionStepValue(PRESSURE,0); */
+			    RHS_Contribution[i]  += - tauStab * (dNdXi*dNdXj + dNdYi*dNdYj)  * nodalVolume * pressure;
 		      	  }
 		      	  else if(dimension==3){
 		      	    double dNdZj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow+2];
 		      	    ////////////////// Laplacian term for LHS
 		      	    LHS_Contribution(i,j) += + tauStab * (dNdXi*dNdXj + dNdYi*dNdYj + dNdZi*dNdZj) * nodalVolume;
 		      	    ////////////////// Laplacian term L_ij*P_j for RHS
-		      	    RHS_Contribution[i]   += - tauStab * (dNdXi*dNdXj + dNdYi*dNdYj + dNdZi*dNdZj) * nodalVolume * nodalSFDneighboursPressure[j];
-		      	    /* RHS_Contribution[i]   += - tauStab * (dNdXi*dNdXj + dNdYi*dNdYj + dNdZi*dNdZj) * nodalVolume * rModelPart.Nodes()[idNodeJ].FastGetSolutionStepValue(PRESSURE,0); */
+		      	    RHS_Contribution[i]   += - tauStab * (dNdXi*dNdXj + dNdYi*dNdYj + dNdZi*dNdZj) * nodalVolume * pressure;
 		      	  }
 		      	  /* std::cout << "dNdXi= " <<dNdXi<< "dNdYi= " <<dNdYi<< "dNdYj= " <<dNdYj<< "dNdXj= " <<dNdXj<< std::endl; */
 		      	  firstRow+=dimension;
@@ -534,7 +415,12 @@ namespace Kratos
 		      
 		      firstCol+=dimension;
 			
-
+		      if(i<neighb_nodes.size()){
+		      	EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
+		      	Density= neighb_nodes[i].FastGetSolutionStepValue(DENSITY);
+		      	VolumeAcceleration = neighb_nodes[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+		      }
+		      
 		    }
 
 	
@@ -720,8 +606,6 @@ namespace Kratos
         KRATOS_TRY
 
 	  Timer::Start("Build");
-
-        /* Build(pScheme, rModelPart, A, b); */
 
 	boost::timer c_build_time;
 	BuildNodally(pScheme, rModelPart, A, b);
@@ -1319,45 +1203,24 @@ namespace Kratos
 
 	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	  {
-	    /* const unsigned int neighSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER).size(); */
-	    /* const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size(); */
-	    /* const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension(); */
-
-	    /* if (EquationId.size() != localSize) */
-	    /*   EquationId.resize(localSize, false); */
-
-	    /* unsigned int firstCol=0; */
-
-	    /* const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X); */
-
-	    /* for (unsigned int i = 0; i< neighSize; i++) */
-	    /*   { */
-	    /* 	unsigned int idNode=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)[i]; */
-	    /* 	EquationId[firstCol]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_X,xpos).EquationId(); */
-	    /* 	EquationId[firstCol+1]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_Y,xpos+1).EquationId(); */
-	    /* 	if(dimension==3){ */
-	    /* 	  EquationId[firstCol+2]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_Z,xpos+2).EquationId(); */
-	    /* 	} */
-	    /* 	firstCol+=dimension; */
-	    /*   } */
-
-
+	    WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	    const unsigned int neighSize =itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER).size();
 	    if (EquationId.size() != neighSize)
 	      EquationId.resize(neighSize, false);
 
 	    /* const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X); */
 	    const unsigned int xpos = itNode->GetDofPosition(PRESSURE);
-	    Vector& rNodeOrderedNeighboursPressureId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_PRESSURE_ID);
+	    EquationId[0]=itNode->GetDof(PRESSURE,xpos).EquationId();
+
+	    /* Vector& rNodeOrderedNeighboursPressureId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_PRESSURE_ID); */
 	  
 	    
-	    for (unsigned int i = 0; i< neighSize; i++)
+	    for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 	      {
-		/* unsigned int idNode=nodalSFDneighboursId[i]; */
-		unsigned int idNode=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)[i];
-		EquationId[i]=rModelPart.Nodes()[idNode].GetDof(PRESSURE,xpos).EquationId();
-	    /// RIEMPIRE QUI IL VETTORE DEI GDL DELLA PRESSIONE E NON NELLA STRATEGIA!!!!!!!!!!!!!!!!!!!!!
-		rNodeOrderedNeighboursPressureId[i]=EquationId[i];
+		EquationId[i+1]=neighb_nodes[i].GetDof(PRESSURE,xpos).EquationId();
+		/* unsigned int idNode=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)[i]; */
+		/* EquationId[i]=rModelPart.Nodes()[idNode].GetDof(PRESSURE,xpos).EquationId(); */
+		/* rNodeOrderedNeighboursPressureId[i]=EquationId[i]; */
 	      }
 	    
 
@@ -1457,139 +1320,6 @@ namespace Kratos
       }
 
 
-
-
-    /*   //\************************************************************************** */
-/*       virtual void ConstructMatrixStructure( */
-/* 					    typename TSchemeType::Pointer pScheme, */
-/* 					    TSystemMatrixType& A, */
-/* 					    ModelPart& rModelPart) */
-/*       { */
-/* 	//filling with zero the matrix (creating the structure) */
-/* 	Timer::Start("MatrixStructure"); */
-
-/* 	// Getting the elements from the model */
-/* 	const int nelements = static_cast<int>(rModelPart.Elements().size()); */
-
-/* 	// Getting the array of the conditions */
-/* 	const int nconditions = static_cast<int>(rModelPart.Conditions().size()); */
-
-/* 	ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo(); */
-/* 	ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin(); */
-/* 	ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin(); */
-
-/* 	const std::size_t equation_size = BaseType::mEquationSystemSize; */
-
-/* #ifdef USE_GOOGLE_HASH */
-/* 	std::vector<google::dense_hash_set<std::size_t> > indices(equation_size); */
-/* 	const std::size_t empty_key = 2 * equation_size + 10; */
-/* #else */
-/* 	std::vector<std::unordered_set<std::size_t> > indices(equation_size); */
-/* #endif */
-
-/* #pragma omp parallel for firstprivate(equation_size) */
-/* 	for (int iii = 0; iii < static_cast<int>(equation_size); iii++) */
-/* 	  { */
-/* #ifdef USE_GOOGLE_HASH */
-/* 	    indices[iii].set_empty_key(empty_key); */
-/* #else */
-/* 	    indices[iii].reserve(40); */
-/* #endif */
-/* 	  } */
-
-/* 	Element::EquationIdVectorType ids(3, 0); */
-
-/* #pragma omp parallel for firstprivate(nelements, ids) */
-/* 	for (int iii = 0; iii<nelements; iii++) */
-/* 	  { */
-/* 	    typename ElementsContainerType::iterator i_element = el_begin + iii; */
-/* 	    pScheme->EquationId( *(i_element.base()), ids, CurrentProcessInfo); */
-
-/* 	    for (std::size_t i = 0; i < ids.size(); i++) */
-/* 	      { */
-/* 		if (ids[i] < BaseType::mEquationSystemSize) */
-/* 		  { */
-/* #ifdef _OPENMP */
-/* 		    omp_set_lock(&mlock_array[ids[i]]); */
-/* #endif */
-/* 		    auto& row_indices = indices[ids[i]]; */
-/* 		    for (auto it = ids.begin(); it != ids.end(); it++) */
-/* 		      { */
-/* 			if (*it < BaseType::mEquationSystemSize) */
-/* 			  row_indices.insert(*it); */
-/* 		      } */
-/* #ifdef _OPENMP */
-/* 		    omp_unset_lock(&mlock_array[ids[i]]); */
-/* #endif */
-/* 		  } */
-/* 	      } */
-
-/* 	  } */
-
-/* #pragma omp parallel for firstprivate(nconditions, ids) */
-/* 	for (int iii = 0; iii<nconditions; iii++) */
-/* 	  { */
-/* 	    typename ConditionsArrayType::iterator i_condition = cond_begin + iii; */
-/* 	    pScheme->Condition_EquationId( *(i_condition.base()) , ids, CurrentProcessInfo); */
-/* 	    for (std::size_t i = 0; i < ids.size(); i++) */
-/* 	      { */
-/* 		if (ids[i] < BaseType::mEquationSystemSize) */
-/* 		  { */
-/* #ifdef _OPENMP */
-/* 		    omp_set_lock(&mlock_array[ids[i]]); */
-/* #endif */
-/* 		    auto& row_indices = indices[ids[i]]; */
-/* 		    for (auto it = ids.begin(); it != ids.end(); it++) */
-/* 		      { */
-/* 			if (*it < BaseType::mEquationSystemSize) */
-/* 			  row_indices.insert(*it); */
-/* 		      } */
-/* #ifdef _OPENMP */
-/* 		    omp_unset_lock(&mlock_array[ids[i]]); */
-/* #endif */
-/* 		  } */
-/* 	      } */
-/* 	  } */
-
-/* 	//count the row sizes */
-/* 	unsigned int nnz = 0; */
-/* 	for (unsigned int i = 0; i < indices.size(); i++) */
-/* 	  nnz += indices[i].size(); */
-
-/* 	A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz); */
-
-/* 	double* Avalues = A.value_data().begin(); */
-/* 	std::size_t* Arow_indices = A.index1_data().begin(); */
-/* 	std::size_t* Acol_indices = A.index2_data().begin(); */
-
-/* 	//filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP! */
-/* 	Arow_indices[0] = 0; */
-/* 	for (int i = 0; i < static_cast<int>(A.size1()); i++) */
-/* 	  Arow_indices[i + 1] = Arow_indices[i] + indices[i].size(); */
-
-
-
-/* #pragma omp parallel for */
-/* 	for (int i = 0; i < static_cast<int>(A.size1()); i++) */
-/* 	  { */
-/* 	    const unsigned int row_begin = Arow_indices[i]; */
-/* 	    const unsigned int row_end = Arow_indices[i + 1]; */
-/* 	    unsigned int k = row_begin; */
-/* 	    for (auto it = indices[i].begin(); it != indices[i].end(); it++) */
-/* 	      { */
-/* 		Acol_indices[k] = *it; */
-/* 		Avalues[k] = 0.0; */
-/* 		k++; */
-/* 	      } */
-
-/* 	    std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]); */
-
-/* 	  } */
-
-/* 	A.set_filled(indices.size() + 1, nnz); */
-
-/* 	Timer::Stop("MatrixStructure"); */
-/*       } */
 
 
       void AssembleLHS(

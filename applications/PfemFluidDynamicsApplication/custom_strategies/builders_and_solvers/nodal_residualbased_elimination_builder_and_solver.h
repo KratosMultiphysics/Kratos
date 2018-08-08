@@ -342,13 +342,9 @@ namespace Kratos
 
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
-	      
-	      Vector rNodeOrderedNeighboursVelocityXId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VELOCITY_X_ID);
-	      Vector rNodeOrderedNeighboursVelocityYId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VELOCITY_Y_ID);
-	      Vector rNodeOrderedNeighboursVelocityZId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VELOCITY_Z_ID);
 
-	      VectorType nodalSFDneighboursId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
-	      const unsigned int neighSize = nodalSFDneighboursId.size();
+	      WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+	      const unsigned int neighSize = neighb_nodes.size()+1;
 	      
 	      if(neighSize>1){
 		const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -366,7 +362,6 @@ namespace Kratos
 		double volumetricCoeff=0;
 		double density=itNode->FastGetSolutionStepValue(DENSITY);
 		double theta=0.5;
-		/* double theta=1.0;  */
 		if(itNode->Is(SOLID)){
 		  double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
 		  double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
@@ -376,7 +371,6 @@ namespace Kratos
 		else if(itNode->Is(FLUID)){		  		
 		  secondLame = itNode->FastGetSolutionStepValue(VISCOSITY);
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-		  /* theta=0.5; */
 		  /* volumetricCoeff*=0.000025;//dam break fine */
 		  /* volumetricCoeff*=0.04;//sloshing coarse */
 		  /* volumetricCoeff*=0.0055;//sloshing coarse */
@@ -422,41 +416,26 @@ namespace Kratos
 		  double sigmaXX=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[0];
 		  double sigmaYY=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[1];
 		  double sigmaXY=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)[2];
+		  
 		  if(itNode->IsNot(SOLID)){
 		    double pressure=itNode->FastGetSolutionStepValue(PRESSURE,0)*theta+itNode->FastGetSolutionStepValue(PRESSURE,1)*(1-theta);
 		    sigmaXX=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[0] + pressure;
 		    sigmaYY=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[1] + pressure;
-		    /* if(itNode->Is(FREE_SURFACE) && itNode->IsNot(RIGID) && neighSize==3){ */
-		    /*   unsigned int idNodeA=nodalSFDneighboursId[1]; */
-		    /*   unsigned int idNodeB=nodalSFDneighboursId[2]; */
-		    /*   if(rModelPart.Nodes()[idNodeA].Is(FREE_SURFACE) && rModelPart.Nodes()[idNodeB].Is(FREE_SURFACE)){ */
-		    /* 	pressure=0; */
-		    /* 	sigmaXX=0; */
-		    /* 	sigmaYY=0; */
-		    /* 	sigmaXY=0; */
-		    /* 	itNode->FastGetSolutionStepValue(PRESSURE,0)=0; */
-		    /*   } */
-		    /* } */
-		  }
-		  
+		  }		  
+
+		  const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
+		  EquationId[0]=itNode->GetDof(VELOCITY_X,xpos).EquationId();
+		  EquationId[1]=itNode->GetDof(VELOCITY_Y,xpos+1).EquationId();
 
 		    for (unsigned int i = 0; i< neighSize; i++)
-		      {
+		      {		
 
-			EquationId[firstCol]  =rNodeOrderedNeighboursVelocityXId[i];
-			EquationId[firstCol+1]=rNodeOrderedNeighboursVelocityYId[i];
-			
-			/* unsigned int idNode=nodalSFDneighboursId[i]; */
-			/* EquationId[firstCol]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_X,xpos).EquationId(); */
-			/* EquationId[firstCol+1]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_Y,xpos+1).EquationId(); */
-			
-			/* std::cout<<"EquationId[firstCol] "<<EquationId[firstCol]<<"   " << EquationId[firstCol+1] <<std::endl; */
-			/* std::cout<<"old EquationId[firstCol] "<<rModelPart.Nodes()[idNode].GetDof(VELOCITY_X,xpos).EquationId() <<"   " <<rModelPart.Nodes()[idNode].GetDof(VELOCITY_Y,xpos+1).EquationId()<<std::endl; */
 			double dNdXi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol];
 			double dNdYi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+1];
 		      
 			RHS_Contribution[firstCol]  += - nodalVolume * (dNdXi*sigmaXX + dNdYi*sigmaXY);
 			RHS_Contribution[firstCol+1]+= - nodalVolume * (dNdYi*sigmaYY + dNdXi*sigmaXY);
+			
 			for (unsigned int j = 0; j< neighSize; j++)
 			  {
 			    double dNdXj=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstRow];
@@ -472,6 +451,12 @@ namespace Kratos
 			  }
 			firstRow=0;
 			firstCol+=2;
+			
+			if(i<neighb_nodes.size()){
+			  EquationId[firstCol]=neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
+			  EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
+			}
+			
 		      }
 		  /* std::cout << "LHS_Contribution = " << LHS_Contribution << std::endl; */
 
@@ -519,19 +504,13 @@ namespace Kratos
 		    sigmaZZ=itNode->FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS)[2] + pressure;
 		  }
 
+		  const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
+		  EquationId[0]=itNode->GetDof(VELOCITY_X,xpos).EquationId();
+		  EquationId[1]=itNode->GetDof(VELOCITY_Y,xpos+1).EquationId();
+		  EquationId[2]=itNode->GetDof(VELOCITY_Z,xpos+2).EquationId();
 	
 		  for (unsigned int i = 0; i< neighSize; i++)
 		    {
-
-		      EquationId[firstCol]  =rNodeOrderedNeighboursVelocityXId[i];
-		      EquationId[firstCol+1]=rNodeOrderedNeighboursVelocityYId[i];
-		      EquationId[firstCol+2]=rNodeOrderedNeighboursVelocityZId[i];
-
-		      /* unsigned int idNode=nodalSFDneighboursId[i]; */
-		      /* EquationId[firstCol]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_X,xpos).EquationId(); */
-		      /* EquationId[firstCol+1]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_Y,xpos+1).EquationId(); */
-		      /* EquationId[firstCol+2]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_Z,xpos+2).EquationId(); */
-		    
 		      double dNdXi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol];
 		      double dNdYi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+1];
 		      double dNdZi=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[firstCol+2];
@@ -564,6 +543,13 @@ namespace Kratos
 			}
 		      firstRow=0;
 		      firstCol+=3;
+		      
+		      if(i<neighb_nodes.size()){
+			EquationId[firstCol]  =neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
+			EquationId[firstCol+1]=neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
+			EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
+		      }
+		      
 		    }
 
 
@@ -579,10 +565,6 @@ namespace Kratos
 	    }
 
 	}
-	/* std::cout<<" ... Build done"<<std::endl; */
-
-
-  
 
 	KRATOS_CATCH("")
 
@@ -1348,14 +1330,8 @@ namespace Kratos
 
 	for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	  {
-	    /* Vector& rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS); */
-	    /* VectorType nodalSFDneighboursId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER); */
-	    const unsigned int neighSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER).size();
 	    const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();
 	    const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-
-	    /* const unsigned int neighSize = nodalSFDneighboursId.size(); */
-	    /* const unsigned int localSize = rNodalSFDneigh.size();	       */
 
 	    if (EquationId.size() != localSize)
 	      EquationId.resize(localSize, false);
@@ -1363,29 +1339,21 @@ namespace Kratos
 	    unsigned int firstCol=0;
 
 	    const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
+	    EquationId[0]=itNode->GetDof(VELOCITY_X,xpos).EquationId();
+	    EquationId[1]=itNode->GetDof(VELOCITY_Y,xpos+1).EquationId();
+	    if(dimension==3)
+	      EquationId[2]=itNode->GetDof(VELOCITY_Z,xpos+2).EquationId();
 
-	    Vector& rNodeOrderedNeighboursVelocityXId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VELOCITY_X_ID);
-	    Vector& rNodeOrderedNeighboursVelocityYId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VELOCITY_Y_ID);
-	    Vector& rNodeOrderedNeighboursVelocityZId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VELOCITY_Z_ID);
-
-	    for (unsigned int i = 0; i< neighSize; i++)
+	    WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+	    for (unsigned int i = 0; i< neighb_nodes.size(); i++)
 	      {
-		unsigned int idNode=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)[i];
-		EquationId[firstCol]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_X,xpos).EquationId();
-		rNodeOrderedNeighboursVelocityXId[i]=EquationId[firstCol];
-		EquationId[firstCol+1]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_Y,xpos+1).EquationId();
-		rNodeOrderedNeighboursVelocityYId[i]=EquationId[firstCol+1];
-		if(dimension==3){
-		  EquationId[firstCol+2]=rModelPart.Nodes()[idNode].GetDof(VELOCITY_Z,xpos+2).EquationId();
-		  rNodeOrderedNeighboursVelocityZId[i]=EquationId[firstCol+2];
-		}
-		firstCol+=dimension;
+	    	firstCol+=dimension;
+	    	EquationId[firstCol]    =neighb_nodes[i].GetDof(VELOCITY_X,xpos).EquationId();
+	    	EquationId[firstCol+1]  =neighb_nodes[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
+	    	if(dimension==3){
+		  EquationId[firstCol+2]=neighb_nodes[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
+	    	}
 	      }
-	    /* std::cout << "LHS_Contribution = " << LHS_Contribution << std::endl; */
-
-
-
-
 
 	    for (std::size_t i = 0; i < EquationId.size(); i++)
 	      {
