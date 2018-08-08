@@ -31,7 +31,7 @@ MetricErrorProcess<TDim>::MetricErrorProcess(
             "set_number_of_elements"              : false,
             "number_of_elements"                  : 1000,
             "average_nodal_h"                     : false
-        }
+        },
         "echo_level"                          : 0
     })"
     );
