@@ -405,7 +405,6 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
     
     const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
     const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
-    //const SizeType num_dofs_per_node = dimension; // TODO generalize
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = num_nodes * num_dofs_per_node;
     Vector initial_state_variables;
@@ -431,10 +430,9 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
         primal_solution_variable_list.push_back(ROTATION_Z);
     }
 
-
     // TODO Find a better way of doing this check
     KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-        << "Stress displacement derivative computation is currently only available for linear cases !" << std::endl;
+        << "This stress displacement derivative computation is only usable for linear cases!" << std::endl;
 
     for (IndexType i = 0; i < num_nodes; ++i)
     {
