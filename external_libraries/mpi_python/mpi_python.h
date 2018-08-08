@@ -250,7 +250,7 @@ public:
      * @return A std::vector containing the local value lists in all processes, sorted by rank, for the Root thread, an empty std::vector for other processes
      */
     template<class TValueType>
-    std::vector<std::vector<TValueType>> gather(PythonMPIComm& rComm,
+    std::vector<std::vector<TValueType>> gatherv(PythonMPIComm& rComm,
                                    const std::vector<TValueType>& rLocalValues,
                                    const int Root)
     {

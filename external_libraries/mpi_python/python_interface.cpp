@@ -40,18 +40,14 @@ PYBIND11_MODULE(mpipython, m)
 
     // note that for the functions returning a vector the conversion to a python-list is automatically
     // done by pybind, see https://github.com/pybind/pybind11/blob/master/docs/advanced/cast/stl.rst
-    std::vector<int> (PythonMPI::*gather_int)(PythonMPIComm&, const int, const int) = &PythonMPI::gather;
-    std::vector<double> (PythonMPI::*gather_double)(PythonMPIComm&, const double, const int) = &PythonMPI::gather;
-    std::vector<std::vector<int>> (PythonMPI::*gather_list_int)(PythonMPIComm&, const std::vector<int>&, const int) = &PythonMPI::gather;
-    std::vector<std::vector<double>> (PythonMPI::*gather_list_double)(PythonMPIComm&, const std::vector<double>&, const int) = &PythonMPI::gather;
 
     py::class_<PythonMPI>(m,"PythonMPI")
     .def_property_readonly("rank",FRank)
     .def_property_readonly("size",FSize)
-    .def("gather", gather_int)
-    .def("gather", gather_double)
-    .def("gather", gather_list_int)
-    .def("gather", gather_list_double)
+    .def("gather", &PythonMPI::gather<double>)
+    .def("gather", &PythonMPI::gather<int>)
+    .def("gatherv", &PythonMPI::gatherv<double>)
+    .def("gatherv", &PythonMPI::gatherv<int>)
     .def("allgather",&PythonMPI::allgather<double>)
     .def("allgather",&PythonMPI::allgather<int>)
     .def_property_readonly("world",&PythonMPI::GetWorld,py::return_value_policy::reference_internal )
