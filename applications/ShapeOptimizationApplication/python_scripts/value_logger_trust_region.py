@@ -36,12 +36,11 @@ class ValueLoggerTrustRegion( ValueLogger ):
             row.append("{:>12s}".format("df_rel[%]"))
 
             for itr in range(self.specified_constraints.size()):
-                con = self.specified_constraints[itr]
-                con_type = con["type"].GetString()
+                con_type = self.specified_constraints[itr]["type"].GetString()
                 row.append("{:>20s}".format("c"+str(itr+1)+": "+con_type))
-                row.append("{:>20s}".format("ref_c"+str(itr+1)))
-                row.append("{:>12s}".format("len_c"+str(itr+1)))
-                row.append("{:>12s}".format("adj_len_c"+str(itr+1)))
+                row.append("{:>20s}".format("c"+str(itr+1)+"_ref"))
+                row.append("{:>12s}".format("len_C"+str(itr+1)))
+                row.append("{:>12s}".format("adj_len_C"+str(itr+1)))
 
             row.append("{:>12s}".format("bi_itrs"))
             row.append("{:>12s}".format("bi_err"))
@@ -63,7 +62,7 @@ class ValueLoggerTrustRegion( ValueLogger ):
 
         for itr in range(self.specified_constraints.size()):
             constraint_id = self.specified_constraints[itr]["identifier"].GetString()
-            print("> Value of C"+str(itr)+" = ", round(self.value_history[constraint_id][self.current_iteration],12))
+            print("> Value of C"+str(itr+1)+" = ", round(self.value_history[constraint_id][self.current_iteration],12))
 
         print("\nNormInf3D of dx = ", round(self.value_history["norm_dx"][self.current_iteration],6))
 
@@ -84,7 +83,6 @@ class ValueLoggerTrustRegion( ValueLogger ):
 
             objective_id = self.specified_objectives[0]["identifier"].GetString()
             row.append(str("{:>20f}".format(self.value_history[objective_id][self.current_iteration])))
-
             row.append(str("{:>12f}".format(self.value_history["abs_change_obj"][self.current_iteration])))
             row.append(str("{:>12f}".format(self.value_history["rel_change_obj"][self.current_iteration])))
 
