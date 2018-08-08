@@ -322,20 +322,20 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         else:
             obj_id = self.specified_objectives[0]["identifier"].GetString()
             current_obj_val = self.communicator.getStandardizedValue(obj_id)
-            obj_history = self.data_logger.GetHistory(obj_id)
-            step_history = self.data_logger.GetHistory("step_length")
-            objective_is_oscillating = False
+            obj_history = self.data_logger.GetHistoryOfLoggedValues()[obj_id]
+            step_history = self.data_logger.GetHistoryOfLoggedValues()["step_length"]
 
-            is_decrease_1 = (current_obj_val - obj_history[-1])< 0
-            is_decrease_2 = (obj_history[-1] - obj_history[-2])<0
-            is_decrease_3 = (current_obj_val - obj_history[-3])< 0
+            objective_is_oscillating = False
+            is_decrease_1 = (current_obj_val - obj_history[self.opt_iteration-1])< 0
+            is_decrease_2 = (obj_history[self.opt_iteration-1] - obj_history[self.opt_iteration-2])<0
+            is_decrease_3 = (current_obj_val - obj_history[self.opt_iteration-3])< 0
             if (is_decrease_1 and is_decrease_2== False and is_decrease_3) or (is_decrease_1== False and is_decrease_2 and is_decrease_3==False):
                 objective_is_oscillating = True
 
             if objective_is_oscillating:
-                return step_history[-1]*self.algorithm_settings["step_length_reduction_factor"].GetDouble()
+                return step_history[self.opt_iteration-1]*self.algorithm_settings["step_length_reduction_factor"].GetDouble()
             else:
-                return step_history[-1]
+                return step_history[self.opt_iteration-1]
 
     # --------------------------------------------------------------------------
     def __ExpressInStepLengthUnit(self, len_obj, len_eqs, len_ineqs, step_length):

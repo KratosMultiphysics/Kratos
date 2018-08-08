@@ -9,9 +9,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Import additional libraries
 import os
 
@@ -61,7 +58,7 @@ class ValueLogger():
         pass
 
     # --------------------------------------------------------------------------
-    def GetHistoryOfValues( self ):
+    def GetHistoryOfLoggedValues( self ):
         return self.value_history
 
     # --------------------------------------------------------------------------
