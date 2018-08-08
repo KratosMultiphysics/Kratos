@@ -321,9 +321,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         else:
             obj_id = self.specified_objectives[0]["identifier"].GetString()
             current_obj_val = self.communicator.getStandardizedValue(obj_id)
-            obj_history = self.data_logger.GetValueHistory()[obj_id]
-            step_history = self.data_logger.GetValueHistory()["step_length"]
+            obj_history = self.data_logger.GetValueHistory(obj_id)
+            step_history = self.data_logger.GetValueHistory("step_length")
 
+            # Check for osciallation
             objective_is_oscillating = False
             is_decrease_1 = (current_obj_val - obj_history[self.opt_iteration-1])< 0
             is_decrease_2 = (obj_history[self.opt_iteration-1] - obj_history[self.opt_iteration-2])<0
@@ -331,6 +332,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             if (is_decrease_1 and is_decrease_2== False and is_decrease_3) or (is_decrease_1== False and is_decrease_2 and is_decrease_3==False):
                 objective_is_oscillating = True
 
+            # Reduce step length if certain conditions are fullfilled
             if objective_is_oscillating:
                 return step_history[self.opt_iteration-1]*self.algorithm_settings["step_length_reduction_factor"].GetDouble()
             else:
