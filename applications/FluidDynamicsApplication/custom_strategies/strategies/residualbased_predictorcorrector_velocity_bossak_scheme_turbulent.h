@@ -285,7 +285,7 @@ namespace Kratos {
 
                     array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
                     array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
-                    array_1d<double, 3 > & RelaxedAcceleration = (itNode)->FastGetSolutionStepValue(RELAXED_ACCELERATION, 0);
+                    array_1d<double, 3 > & RelaxedAcceleration = (itNode)->GetValue(RELAXED_ACCELERATION);
 
                     UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration, RelaxedAcceleration);
 
@@ -365,7 +365,7 @@ namespace Kratos {
                     noalias(DeltaVel) = CurrentVelocity - OldVelocity;
                     array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
                     array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION);
-                    array_1d<double, 3 > & RelaxedAcceleration = (itNode)->FastGetSolutionStepValue(RELAXED_ACCELERATION, 0);
+                    array_1d<double, 3 > & RelaxedAcceleration = (itNode)->GetValue(RELAXED_ACCELERATION);
 
                     UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration, RelaxedAcceleration);
 
