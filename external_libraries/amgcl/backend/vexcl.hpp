@@ -70,6 +70,13 @@ struct vexcl_skyline_lu : solver::skyline_lu<value_type> {
         static_cast<const Base*>(this)->operator()(_rhs, _x);
         vex::copy(_x, x);
     }
+
+    size_t bytes() const {
+        return
+            backend::bytes(*static_cast<const Base*>(this)) +
+            backend::bytes(_rhs) +
+            backend::bytes(_x);
+    }
 };
 
 }
@@ -110,6 +117,7 @@ struct vexcl {
 
         params() : fast_matrix_setup(true) {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, fast_matrix_setup)
         {
@@ -123,6 +131,7 @@ struct vexcl {
             p.put(path + "q", &q);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, fast_matrix_setup);
         }
+#endif
 
         const std::vector<vex::backend::command_queue>& context() const {
             if (q.empty())
@@ -269,6 +278,30 @@ template < typename V, typename C, typename P >
 struct nonzeros_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P>> > {
     static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P>> &A) {
         return A.nonzeros();
+    }
+};
+
+template < typename V, typename C, typename P >
+struct bytes_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P> > > {
+    static size_t get(const vex::sparse::distributed<vex::sparse::matrix<V,C,P> > &A) {
+        return
+            sizeof(P) * (A.rows() + 1) +
+            sizeof(C) * A.nonzeros() +
+            sizeof(V) * A.nonzeros();
+    }
+};
+
+template < typename V >
+struct bytes_impl< vex::vector<V> > {
+    static size_t get(const vex::vector<V> &v) {
+        return v.size() * sizeof(V);
+    }
+};
+
+template < typename V >
+struct bytes_impl< solver::vexcl_skyline_lu<V> > {
+    static size_t get(const solver::vexcl_skyline_lu<V> &s) {
+        return s.bytes();
     }
 };
 

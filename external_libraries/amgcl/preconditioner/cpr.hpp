@@ -71,7 +71,7 @@ class cpr {
 
             params() : block_size(2), active_rows(0) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, pprecond),
                   AMGCL_PARAMS_IMPORT_CHILD(p, sprecond),

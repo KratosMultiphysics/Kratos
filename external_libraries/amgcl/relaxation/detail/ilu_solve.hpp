@@ -59,7 +59,7 @@ class ilu_solve {
 
             params() : iters(2), damping(0.72) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, iters)
                 , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
@@ -108,6 +108,15 @@ class ilu_solve {
             }
         }
 
+        size_t bytes() const {
+            return
+                backend::bytes(*L) +
+                backend::bytes(*U) +
+                backend::bytes(*D) +
+                backend::bytes(*t1) +
+                backend::bytes(*t2);
+        }
+
     private:
         std::shared_ptr<matrix> L;
         std::shared_ptr<matrix> U;
@@ -133,7 +142,7 @@ class ilu_solve< backend::builtin<value_type> > {
 
             params() : serial(num_threads() < 4) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, serial)
             {
@@ -166,6 +175,19 @@ class ilu_solve< backend::builtin<value_type> > {
                 serial_solve(x);
             else
                 parallel_solve(x);
+        }
+
+        size_t bytes() const {
+            size_t b = 0;
+
+            if (L) b += backend::bytes(*L);
+            if (U) b += backend::bytes(*U);
+            if (D) b += backend::bytes(*D);
+
+            if (lower) b += lower->bytes();
+            if (upper) b += upper->bytes();
+
+            return b;
         }
 
     private:
@@ -389,6 +411,22 @@ class ilu_solve< backend::builtin<value_type> > {
                     }
                 }
             }
+
+            size_t bytes() const {
+                size_t b = 0;
+
+                for(int i = 0; i < nthreads; ++i) {
+                    b += sizeof(task) * tasks[i].size();
+                    b += backend::bytes(ptr[i]);
+                    b += backend::bytes(col[i]);
+                    b += backend::bytes(val[i]);
+                    b += backend::bytes(ord[i]);
+
+                    if (!lower) b += backend::bytes(D[i]);
+                }
+
+                return b;
+            }
         };
 
         std::shared_ptr< sptr_solve<true > > lower;
@@ -409,6 +447,7 @@ class ilu_solve< backend::builtin<value_type> > {
             lower->solve(x);
             upper->solve(x);
         }
+
 };
 
 } // namespace detail

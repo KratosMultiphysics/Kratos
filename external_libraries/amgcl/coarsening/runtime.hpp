@@ -33,16 +33,20 @@ THE SOFTWARE.
 
 #include <iostream>
 #include <stdexcept>
-
 #include <type_traits>
+
+#ifdef AMGCL_NO_BOOST
+#  error Runtime interface relies on Boost.PropertyTree!
+#endif
+
 #include <boost/property_tree/ptree.hpp>
 
+#include <amgcl/util.hpp>
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/coarsening/ruge_stuben.hpp>
 #include <amgcl/coarsening/aggregation.hpp>
 #include <amgcl/coarsening/smoothed_aggregation.hpp>
 #include <amgcl/coarsening/smoothed_aggr_emin.hpp>
-#include <amgcl/util.hpp>
 
 namespace amgcl {
 namespace runtime {

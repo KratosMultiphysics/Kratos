@@ -32,8 +32,14 @@ THE SOFTWARE.
  */
 
 #include <type_traits>
+
+#ifdef AMGCL_NO_BOOST
+#  error Runtime interface relies on Boost.PropertyTree!
+#endif
+
 #include <boost/property_tree/ptree.hpp>
 
+#include <amgcl/util.hpp>
 #include <amgcl/relaxation/gauss_seidel.hpp>
 #include <amgcl/relaxation/ilu0.hpp>
 #include <amgcl/relaxation/iluk.hpp>
@@ -252,6 +258,29 @@ struct wrapper {
         }
     }
 
+    size_t bytes() const {
+        switch(r) {
+
+#define AMGCL_RUNTIME_RELAXATION(type) \
+            case type: \
+                return backend::bytes(*static_cast<amgcl::relaxation::type<Backend>*>(handle))
+
+            AMGCL_RUNTIME_RELAXATION(gauss_seidel);
+            AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(iluk);
+            AMGCL_RUNTIME_RELAXATION(ilut);
+            AMGCL_RUNTIME_RELAXATION(damped_jacobi);
+            AMGCL_RUNTIME_RELAXATION(spai0);
+            AMGCL_RUNTIME_RELAXATION(spai1);
+            AMGCL_RUNTIME_RELAXATION(chebyshev);
+
+#undef AMGCL_RUNTIME_RELAXATION
+
+            default:
+                throw std::invalid_argument("Unsupported relaxation type");
+        }
+    }
+
     template <template <class> class Relaxation, class Matrix>
     typename std::enable_if<
         backend::relaxation_is_supported<Backend, Relaxation>::value,
@@ -337,6 +366,17 @@ struct wrapper {
 
 } // namespace relaxation
 } // namespace runtime
+
+namespace backend {
+
+template <class Backend>
+struct bytes_impl< runtime::relaxation::wrapper<Backend> > {
+    static size_t get(const runtime::relaxation::wrapper<Backend> &R) {
+        return R.bytes();
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 #endif

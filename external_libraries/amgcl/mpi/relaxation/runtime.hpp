@@ -33,8 +33,13 @@ THE SOFTWARE.
 
 #include <memory>
 
+#ifdef AMGCL_NO_BOOST
+#  error Runtime interface relies on Boost.PropertyTree!
+#endif
+
 #include <boost/property_tree/ptree.hpp>
 
+#include <amgcl/util.hpp>
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/value_type/interface.hpp>
 #include <amgcl/relaxation/runtime.hpp>

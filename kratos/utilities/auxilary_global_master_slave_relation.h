@@ -14,11 +14,12 @@
 #define AUXILARY_GLOBAL_MASTER_SLAVE_RELATION
 // System includes
 #include <vector>
-
 // project includes
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
+#include "includes/lock_object.h"
+
 
 namespace Kratos
 {
@@ -70,19 +71,26 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief Function to set the lefthand side of the constraint (the slave dof value)
      * @param LhsValue the value of the lhs (the slave dof value)
      */
-    void SetLHSValue(double const &LhsValue)
+    void SetLHSValue(const double LhsValue)
     {
-        mLhsValue = LhsValue;
+        mLockObject.SetLock();
+            mLhsValue = LhsValue;
+        mLockObject.UnSetLock();
     }
 
     /**
      * @brief Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
      * @param RHSValue the value of the lhs (the slave dof value)
      */
-    void SetRHSValue(const double &RhsValue) { mRhsValue = RhsValue; }
-    void UpdateRHSValue(const double &RhsValueUpdate)
+    void SetRHSValue(const double RhsValue)
     {
-        mRhsValue += RhsValueUpdate;
+        mRhsValue = RhsValue;
+    }
+    void UpdateRHSValue(const double RhsValueUpdate)
+    {
+        mLockObject.SetLock();
+            mRhsValue = mRhsValue + RhsValueUpdate;
+        mLockObject.UnSetLock();
     }
 
     // Get number of masters for this slave
@@ -95,8 +103,8 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief this determines the master equation IDs connected to this constraint
      * @param rResult the elemental equation ID vector
      */
-    virtual void EquationIdVector(IndexType &rSlaveEquationId,
-                                  EquationIdVectorType &rMasterEquationIds)
+    virtual void EquationIdVector(IndexType& rSlaveEquationId,
+                                  EquationIdVectorType& rMasterEquationIds)
     {
         if (rMasterEquationIds.size() != 0 || rMasterEquationIds.size() == 0)
             rMasterEquationIds.resize(this->GetNumberOfMasters(), false);
@@ -128,7 +136,9 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
             rMasterWeightsVector(i) = mMasterWeightsVector[i];
 
 
-        mConstant = mRhsValue - mLhsValue;
+        mLockObject.SetLock();
+            mConstant = mRhsValue - mLhsValue;
+        mLockObject.UnSetLock();
         rConstant = mConstant;
     }
 
@@ -148,21 +158,29 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 
     void Clear()
     {
-        mMasterEquationIdVector.clear();
-        mMasterWeightsVector.clear();
+        mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
+            //clearing the contents
+            mMasterEquationIdVector.clear();
+            mMasterWeightsVector.clear();
+            //shrinking the memory
+            mMasterEquationIdVector.shrink_to_fit();
+            mMasterWeightsVector.shrink_to_fit();
+        mLockObject.UnSetLock(); // unlocking
     }
 
     void AddMaster(IndexType MasterEquationId, double Weight)
     {
-        int index = MasterEquationIdExists(MasterEquationId);
-        if (index > 0)
-        {
-            mMasterWeightsVector[index] += Weight;
-        } else
-        {
-            mMasterEquationIdVector.push_back(MasterEquationId);
-            mMasterWeightsVector.push_back(Weight);
-        }
+        mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
+            int index = MasterEquationIdExists(MasterEquationId);
+            if (index > 0)
+            {
+                mMasterWeightsVector[index] += Weight;
+            } else
+            {
+                mMasterEquationIdVector.push_back(MasterEquationId);
+                mMasterWeightsVector.push_back(Weight);
+            }
+        mLockObject.UnSetLock(); // unlocking
     }
 
   private:
@@ -177,7 +195,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     }
 
     void load(Serializer &rSerializer) override
-    {   
+    {
         // No need to load anything from this class as they will be reconstructed
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
     }
@@ -199,8 +217,58 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     std::vector<double> mMasterWeightsVector;
 
     double mConstant;
+    LockObject mLockObject;
 
 }; // End of ConstraintEquation class
+
+/**
+ * @class LocalIndices
+ * @ingroup KratosCore
+ * @brief This class stores the stores three different vectors of local internal, slave, master indices
+ *          which are used in constraint builder and solver.
+ *
+ * @author Aditya Ghantasala
+ */
+class LocalIndices
+{
+    public:
+    KRATOS_CLASS_POINTER_DEFINITION(LocalIndices);
+    typedef std::size_t IndexType;
+    typedef std::vector<IndexType> VectorIndexType;
+
+    /**
+     * Structure "LocalIndices" to be used as an encapsulator for set of local elemental/conditional indices
+    */
+    LocalIndices()
+    {
+        internal_index_vector.resize(0);
+        master_index_vector.resize(0);
+        slave_index_vector.resize(0);
+    }
+
+    ~LocalIndices()
+    {
+        internal_index_vector.resize(0);
+        master_index_vector.resize(0);
+        slave_index_vector.resize(0);
+
+        internal_index_vector.shrink_to_fit();
+        master_index_vector.shrink_to_fit();
+        slave_index_vector.shrink_to_fit();
+    }
+
+    /*
+    * Access functions for the index vectors
+    */
+    VectorIndexType& InternalIndices(){return internal_index_vector;}
+    VectorIndexType& MasterIndices(){return master_index_vector;}
+    VectorIndexType& SlaveIndices(){return slave_index_vector;}
+
+    private:
+    VectorIndexType internal_index_vector; // indicies correspoinding to internal DOFs
+    VectorIndexType master_index_vector; // indicies correspoinding to master DOFs
+    VectorIndexType slave_index_vector; // indicies correspoinding to slave DOFs
+};
 
 } // namespace Kratos
 
