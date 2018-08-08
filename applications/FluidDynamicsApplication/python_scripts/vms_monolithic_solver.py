@@ -9,7 +9,6 @@ CheckForPreviousImport()
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
-    model_part.AddNodalSolutionStepVariable(RELAXED_ACCELERATION)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
     model_part.AddNodalSolutionStepVariable(PRESSURE)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
