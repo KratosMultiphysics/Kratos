@@ -13,22 +13,23 @@
 from __future__ import print_function, absolute_import, division
 
 # ==============================================================================
-class ResponseLogger():
+class ValueLogger():
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> InitializeLogging << .")
+        raise RuntimeError("Value logger base class is called. Please check your implementation of the function >> InitializeLogging << .")
 
     # --------------------------------------------------------------------------
-    def LogCurrentResponses( self, optimizationIteration ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> LogCurrentResponses << .")
+    def LogCurrentValues( self, optimizationIteration ):
+        raise RuntimeError("Value logger base class is called. Please check your implementation of the function >> LogCurrentValues << .")
 
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> FinalizeLogging << .")
+        raise RuntimeError("Value logger base class is called. Please check your implementation of the function >> FinalizeLogging << .")
 
     # --------------------------------------------------------------------------
-    def GetValue( self, variableKey ):
-        raise RuntimeError("Response logger base class is called. Please check your implementation of the function >> GetValue << .")
+    def GetHistoryOfValues( self ):
+        raise RuntimeError("Value logger base class is called. Please check your implementation of the function >> GetHistoryOfValues << .")
+
 
 # ==============================================================================

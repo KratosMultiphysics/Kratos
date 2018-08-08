@@ -20,37 +20,36 @@ from design_logger_gid import DesignLoggerGID
 from design_logger_unv import DesignLoggerUNV
 from design_logger_vtk import DesignLoggerVTK
 
-from response_logger_steepest_descent import ResponseLoggerSteepestDescent
-from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
-from response_logger_trust_region import ResponseLoggerTrustRegion
+from value_logger_steepest_descent import ValueLoggerSteepestDescent
+from value_logger_penalized_projection import ValueLoggerPenalizedProjection
+from value_logger_trust_region import ValueLoggerTrustRegion
 
 # ==============================================================================
-def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
-    return DataLogger( ModelPartController, Communicator, OptimizationSettings )
+def CreateDataLogger( ModelPartController, OptimizationSettings ):
+    return DataLogger( ModelPartController, OptimizationSettings )
 
 # ==============================================================================
 class DataLogger():
     # --------------------------------------------------------------------------
-    def __init__( self, ModelPartController, Communicator, OptimizationSettings ):
+    def __init__( self, ModelPartController, OptimizationSettings ):
         self.ModelPartController = ModelPartController
-        self.Communicator = Communicator
         self.OptimizationSettings = OptimizationSettings
 
-        self.ResponseLogger = self.__CreateResponseLogger()
+        self.ValueLogger = self.__CreateValueLogger()
         self.DesignLogger = self.__CreateDesignLogger()
 
         self.__CreateFolderToStoreOptimizationResults()
         self.__OutputInformationAboutResponseFunctions()
 
     # -----------------------------------------------------------------------------
-    def __CreateResponseLogger( self ):
+    def __CreateValueLogger( self ):
         AlgorithmName = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
         if AlgorithmName == "steepest_descent":
-            return ResponseLoggerSteepestDescent( self.Communicator, self.OptimizationSettings )
+            return ValueLoggerSteepestDescent( self.OptimizationSettings )
         elif AlgorithmName == "penalized_projection":
-            return ResponseLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings )
+            return ValueLoggerPenalizedProjection( self.OptimizationSettings )
         elif AlgorithmName == "trust_region":
-            return ResponseLoggerTrustRegion( self.OptimizationSettings )
+            return ValueLoggerTrustRegion( self.OptimizationSettings )
         else:
             raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + AlgorithmName)
 
@@ -92,23 +91,23 @@ class DataLogger():
     # --------------------------------------------------------------------------
     def InitializeDataLogging( self ):
         self.DesignLogger.InitializeLogging()
-        self.ResponseLogger.InitializeLogging()
+        self.ValueLogger.InitializeLogging()
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, optimizationIteration ):
         self.DesignLogger.LogCurrentDesign( optimizationIteration )
 
     # --------------------------------------------------------------------------
-    def LogCurrentValues( self, optimizationIteration, communicator, additional_values ):
-        self.ResponseLogger.LogCurrentValues( optimizationIteration, communicator, additional_values )
+    def LogCurrentValues( self, optimizationIteration, communicator, additional_values=None ):
+        self.ValueLogger.LogCurrentValues( optimizationIteration, communicator, additional_values )
 
     # --------------------------------------------------------------------------
     def FinalizeDataLogging( self ):
         self.DesignLogger.FinalizeLogging()
-        self.ResponseLogger.FinalizeLogging()
+        self.ValueLogger.FinalizeLogging()
 
     # --------------------------------------------------------------------------
-    def GetValue( self, variableKey ):
-        return self.ResponseLogger.GetValue( variableKey )
+    def GetHistoryOfLoggedValues( self ):
+        return self.ValueLogger.GetHistoryOfLoggedValues()
 
 # ==============================================================================
