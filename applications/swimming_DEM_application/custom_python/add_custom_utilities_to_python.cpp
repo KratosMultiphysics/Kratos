@@ -403,7 +403,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<BinBasedDEMFluidCoupledMapping <2, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping2D")
-        .def(init<double, int, int, int, int>())
+        .def(init<Parameters&>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
         .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
@@ -416,7 +416,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping2D")
-        .def(init<double, int, int, int, int>())
+        .def(init<Parameters&>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ImposeFlowOnDEMFromField)
         .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
@@ -429,7 +429,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping3D")
-        .def(init<double, int, int, int>())
+        .def(init<Parameters&>())
         .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocityOnSlipVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromNewestFluidMesh)
@@ -445,7 +445,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping3D")
-        .def(init<double, int, int, int>())
+        .def(init<Parameters&>())
         .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateVelocityOnSlipVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
@@ -480,6 +480,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<SwimmingDemInPfemUtils> (m, "SwimmingDemInPfemUtils")
+        .def(init<>())
         .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 

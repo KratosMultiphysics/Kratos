@@ -13,6 +13,8 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
 
         gathered_values = mpi.gather(mpi.world, my_value, rank_to_gather_on)
 
+        self.assertEqual(type(gathered_values), list)
+
         if my_rank == rank_to_gather_on:
             comm_size = mpi.size
             self.assertEqual(len(gathered_values), comm_size)
@@ -29,6 +31,8 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
 
         gathered_values = mpi.gather(mpi.world, my_value, rank_to_gather_on)
 
+        self.assertEqual(type(gathered_values), list)
+
         if my_rank == rank_to_gather_on:
             comm_size = mpi.size
             self.assertEqual(len(gathered_values), comm_size)
@@ -37,7 +41,7 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         else:
             self.assertEqual(gathered_values, [])
 
-    def test_gather_list(self):
+    def test_gatherv(self):
         my_rank = mpi.rank
         rank_to_gather_on = 0
 
@@ -46,7 +50,11 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         for i in range(my_rank+1):
             local_list.append(i+1.3)
 
-        gathered_lists = mpi.gather(mpi.world, local_list, rank_to_gather_on) # this is a list of lists, one from each rank
+        gathered_lists = mpi.gatherv(mpi.world, local_list, rank_to_gather_on) # this is a list of lists, one from each rank
+
+        self.assertEqual(type(gathered_lists), list)
+        for sublist in gathered_lists:
+            self.assertEqual(type(sublist), list)
 
         if my_rank == rank_to_gather_on:
             comm_size = mpi.size
@@ -64,6 +72,8 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
 
         gathered_values = mpi.allgather(mpi.world, my_value)
 
+        self.assertEqual(type(gathered_values), list)
+
         comm_size = mpi.size
         self.assertEqual(len(gathered_values), comm_size)
         exp_value = (comm_size-1)*(comm_size)/2 # n(n+1)/2
@@ -73,6 +83,8 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         my_value = mpi.rank+0.5 # this is a double
 
         gathered_values = mpi.allgather(mpi.world, my_value)
+
+        self.assertEqual(type(gathered_values), list)
 
         comm_size = mpi.size
         self.assertEqual(len(gathered_values), comm_size)
