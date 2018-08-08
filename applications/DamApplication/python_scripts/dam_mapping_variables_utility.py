@@ -17,10 +17,8 @@ class MappingVariablesUtility:
         self.domain_size = domain_size
         if domain_size==2:
             self.MappingVariablesUtility = KratosDam.MappingVariables2DUtilities()
-            self.tcl_proc = "Dam_Application::PropagateFractures2D"
         else:
             self.MappingVariablesUtility = KratosDam.MappingVariables3DUtilities()
-            self.tcl_proc = "Dam_Application::PropagateFractures3D"
 
         main_model_part = self.GenereateNewModelPart(main_model_part,
                                                      post_model_part,
