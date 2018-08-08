@@ -163,7 +163,6 @@ public:
     PotentialWallCondition & operator=(PotentialWallCondition const& rOther)
     {
         Condition::operator=(rOther);
-
         return *this;
     }
 
@@ -206,125 +205,34 @@ public:
         return pNewCondition;
     }
 
-    /// Find the condition's parent element.
-	void Initialize() override
-	{
+    //Find the condition's parent element.
+    void Initialize() override
+    {
         KRATOS_TRY;
 
-        if(this->Id()==1)
-        {
-            std::cout << "Condition = " << this->Id()  << std::endl;
-            std::cout << "mInitializeWasPerformed = " << mInitializeWasPerformed  << std::endl;
-        }
-        
-        //std::cout << "Condition = " << this->Id()  << std::endl;
-
-		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
-		if (norm_2(rNormal) == 0.0)
-		  {
-		    std::cout << "error on condition -> " << this->Id() << std::endl;
-		    KRATOS_THROW_ERROR(std::logic_error, "NORMAL must be calculated before using this condition","");
-		  }
-
-		if (mInitializeWasPerformed)
-		{
-            std::cout << "Returning early"  << std::endl;
-            std::cout << "Condition = " << this->Id()  << std::endl;
-			return;
-		}
-
-		mInitializeWasPerformed = true;
-
-		double EdgeLength;
-		array_1d<double,3> Edge;
-		GeometryType& rGeom = this->GetGeometry();
-		WeakPointerVector<Element> ElementCandidates;
-		for (SizeType i = 0; i < TDim; i++)
-		{
-			WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-			for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
-			{
-				ElementCandidates.push_back(rNodeElementCandidates(j));
-			}
-		}
-
-		std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
-
-		for (SizeType i=0; i < TNumNodes; i++)
-		{
-			NodeIds[i] = rGeom[i].Id();
-		}
-
-        std::sort(NodeIds.begin(), NodeIds.end());
-        
-        if(this->Id()==1)
-        {
-            std::cout << "Condition = " << this->Id()  << std::endl;
-            std::cout << "ElementCandidates.size() = " << ElementCandidates.size()  << std::endl;
-        }
-
-		for (SizeType i=0; i < ElementCandidates.size(); i++)
-		{
-			GeometryType& rElemGeom = ElementCandidates[i].GetGeometry();
-			ElementNodeIds.resize(rElemGeom.PointsNumber());
-
-			for (SizeType j=0; j < rElemGeom.PointsNumber(); j++)
-			{
-				ElementNodeIds[j] = rElemGeom[j].Id();
-			}
-
-			std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
-
-			if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
-			{
-                mpElement = ElementCandidates(i);
-                // if(mpElement.lock() == 0)
-                // {
-                //     std::cout << "Condition = " << this->Id()  << std::endl;
-                //     std::cout << mpElement.lock() << std::endl;
-                // }
-                // std::cout << "Condition = " << this->Id()  << std::endl;
-                // std::cout << mpElement.lock() << std::endl;
-                if(this->Id()==1)
-                {
-                    std::cout << "Condition = " << this->Id()  << std::endl;
-                    std::cout << mpElement.lock() << std::endl;
-                }
+        const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
                 
+        KRATOS_ERROR_IF(norm_2(rNormal)<std::numeric_limits<double>::epsilon()) 
+            << "Error on condition -> " << this->Id() << "\n"
+            << "NORMAL must be calculated before using this condition." << std::endl;
 
-				Edge = rElemGeom[1].Coordinates() - rElemGeom[0].Coordinates();
-				mMinEdgeLength = Edge[0]*Edge[0];
-				for (SizeType d=1; d < TDim; d++)
-				{
-					mMinEdgeLength += Edge[d]*Edge[d];
-				}
+        if(mInitializeWasPerformed)
+            return;
 
-				for (SizeType j=2; j < rElemGeom.PointsNumber(); j++)
-				{
-					for (SizeType k=0; k < j; k++)
-					{
-						Edge = rElemGeom[j].Coordinates() - rElemGeom[k].Coordinates();
-						EdgeLength = Edge[0]*Edge[0];
+        mInitializeWasPerformed = true;
 
-						for (SizeType d = 1; d < TDim; d++)
-						{
-							EdgeLength += Edge[d]*Edge[d];
-						}
+        GeometryType& rGeom = this->GetGeometry();
+        WeakPointerVector<Element> ElementCandidates;
+        GetElementCandidates(ElementCandidates,rGeom);
 
-						mMinEdgeLength = (EdgeLength < mMinEdgeLength) ? EdgeLength : mMinEdgeLength;
-					}
-				}
-				mMinEdgeLength = sqrt(mMinEdgeLength);
-				return;
-			}
-		}
+        std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
+        GetNodeSortedIds(NodeIds,rGeom);
+        FindParentElement(NodeIds,ElementNodeIds,ElementCandidates);
 
-		std::cout << "error in condition -> " << this->Id() << std::endl;
-		KRATOS_THROW_ERROR(std::logic_error, "Condition cannot find parent element","");
-		KRATOS_CATCH("");
-	}
-
-
+        KRATOS_ERROR_IF(!mpElement.lock()) << "error in condition # " << this->Id() << "\n"
+            << "Condition cannot find parent element" << std::endl;
+        KRATOS_CATCH("");
+    }
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override
@@ -332,8 +240,6 @@ public:
         VectorType RHS;
         this->CalculateLocalSystem(rLeftHandSideMatrix,RHS,rCurrentProcessInfo);
     }
-
-
 
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
     /**
@@ -442,22 +348,6 @@ public:
         {
             std::vector<double> rValues;
             ElementPointerType pElem = pGetElement();
-            //std::cout << pElem->Id()  << std::endl;
-            // if(pElem == 0)
-            // {
-            //     std::cout << "Condition = " << this->Id()  << std::endl;
-            //     std::cout << pElem << std::endl;
-            // }
-            // else
-            // {
-            //     std::cout << pElem->Id() << std::endl;
-            // }
-            if(this->Id()==1)
-            {
-                std::cout << "Condition = " << this->Id()  << std::endl;
-                std::cout << mpElement.lock() << std::endl;
-            }
-            //std::cout << pElem  << "HALLO" << std::endl;
             pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
             this->SetValue(PRESSURE,rValues[0]);
         }
@@ -529,11 +419,62 @@ protected:
 
         inline ElementPointerType pGetElement()
         {         
-            // KRATOS_ERROR_IF_NOT( mpElement.lock() == 0) <<
-            // "No element found for condition #" << this->Id() << std::endl;
-
+            KRATOS_ERROR_IF_NOT( mpElement.lock() != 0) <<
+            "No element found for condition #" << this->Id() << std::endl;
             return mpElement.lock();
         }
+
+        void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates, GeometryType& rGeom)
+        {
+            for(SizeType i = 0; i < TDim; i++)
+            {
+                WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+                for(SizeType j = 0; j < rNodeElementCandidates.size(); j++)
+                    ElementCandidates.push_back(rNodeElementCandidates(j));
+            }
+        }
+
+        void GetNodeSortedIds(std::vector<IndexType>& NodeIds,
+                            GeometryType& rGeom)
+        {
+            for (SizeType i=0; i < TNumNodes; i++)
+                NodeIds[i] = rGeom[i].Id();
+            std::sort(NodeIds.begin(), NodeIds.end());
+        }
+
+        void GetElementNodeSortedIds(std::vector<IndexType>& ElementNodeIds,
+                                        WeakPointerVector<Element> ElementCandidates,
+                                        SizeType i)
+        {
+            GeometryType& rElemGeom = ElementCandidates[i].GetGeometry();
+            ElementNodeIds.resize(rElemGeom.PointsNumber());
+
+            for (SizeType j=0; j < rElemGeom.PointsNumber(); j++)
+                ElementNodeIds[j] = rElemGeom[j].Id();
+
+            std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
+        }
+
+        void FindParentElement(std::vector<IndexType>& NodeIds,
+                                std::vector<IndexType>& ElementNodeIds,
+                                WeakPointerVector<Element> ElementCandidates)
+        {
+            for (SizeType i=0; i < ElementCandidates.size(); i++)
+            {
+                GetElementNodeSortedIds(ElementNodeIds,ElementCandidates,i);
+                if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
+                {
+                    mpElement = ElementCandidates(i);
+                    return;
+                }
+            }    
+        }
+
+        
+            
+
+        
+        
 
 
 
