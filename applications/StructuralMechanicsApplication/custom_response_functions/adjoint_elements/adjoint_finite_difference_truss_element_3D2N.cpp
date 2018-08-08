@@ -85,51 +85,19 @@ void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(
 
     if(rStressVariable == STRESS_ON_GP)
     {
-        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-        const double numerical_limit = std::numeric_limits<double>::epsilon();
         const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
-        const SizeType num_dofs_per_node = dimension; 
-        const SizeType num_dofs = num_nodes * num_dofs_per_node;
+        const SizeType num_dofs = num_nodes * dimension;
         const SizeType num_GP = (mpPrimalElement->GetGeometry().IntegrationPoints()).size();
-        Vector length_derivative_vector;
-        double derivative_pre_factor = 0.0;
-   
-        switch (traced_stress_type)
-        {
-            case TracedStressType::FX:
-            {
-                const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
-                const double A = mpPrimalElement->GetProperties()[CROSS_AREA];
-                const double L0 = CalculateReferenceLength();
-                const double l = CalculateCurrentLength();
-                double prestress = 0.00;
-                if (mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2))
-                    prestress = mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
-                std::vector<Vector> GL_strain;  
-                mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, GL_strain, rCurrentProcessInfo);
-                const double GL_strain_X = GL_strain[0][0]; //one Gauss-Point result is enough due to constant strains.
-        
-                derivative_pre_factor = A / L0 * (E * GL_strain_X + prestress + E * l * l / (L0 * L0));
-                break;
-            }
-            case TracedStressType::PK2X:
-            {
-                const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
-                const double l = CalculateCurrentLength();
-                const double L0 = CalculateReferenceLength();
-                derivative_pre_factor = E * l / (L0 * L0);
-                break;
-            }
-            default:
-                KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
-        }
-        KRATOS_ERROR_IF(std::abs(derivative_pre_factor) <  numerical_limit)
-            << "pre factor of stress displacement derivative is ~0!" << std::endl;
-
         rOutput.resize(num_dofs, num_GP);
         rOutput.clear();
+
+        double derivative_pre_factor;
+        this->GetDerivativePreFactor(derivative_pre_factor, rCurrentProcessInfo);
+
+        Vector length_derivative_vector;
         this->CalculateCurrentLengthDisplacementDerivative(length_derivative_vector);
+  
         for(IndexType i = 0; i < num_dofs; ++i)
         {
              for(IndexType j = 0; j < num_GP; ++j)
@@ -226,6 +194,63 @@ void AdjointFiniteDifferenceTrussElement::CalculateCurrentLengthDisplacementDeri
     rDerivativeVector[5] = -1.0 * rDerivativeVector[2];
    
     KRATOS_CATCH("")
+}
+
+void AdjointFiniteDifferenceTrussElement::GetDerivativePreFactor(double& rDerivativePreFactor, const ProcessInfo& rCurrentProcessInfo)
+{
+    TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+
+    switch (traced_stress_type)
+    {
+        case TracedStressType::FX:
+        {
+            rDerivativePreFactor = this->CalculateDerivativePreFactorFX(rCurrentProcessInfo);
+            break;
+        }
+        case TracedStressType::PK2X:
+        {
+            rDerivativePreFactor = this->CalculateDerivativePreFactorPK2X(rCurrentProcessInfo);
+            break;
+        }
+        default:
+            KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
+    }
+}
+
+double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorFX(const ProcessInfo& rCurrentProcessInfo)
+{
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+    const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
+    const double A = mpPrimalElement->GetProperties()[CROSS_AREA];
+    const double L0 = CalculateReferenceLength();
+    const double l = CalculateCurrentLength();
+    double prestress = 0.00;
+    if (mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2))
+        prestress = mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
+    std::vector<Vector> GL_strain;  
+    mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, GL_strain, rCurrentProcessInfo);
+    const double GL_strain_X = GL_strain[0][0]; //one Gauss-Point result is enough due to constant strains.
+        
+    double derivative_pre_factor = A / L0 * (E * GL_strain_X + prestress + E * l * l / (L0 * L0));
+
+    KRATOS_ERROR_IF(derivative_pre_factor<=numerical_limit)
+        << "Derivative pre-factor of " << this->Id() << "~ 0" << std::endl;
+
+    return derivative_pre_factor;
+}
+
+double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorPK2X(const ProcessInfo& rCurrentProcessInfo)
+{
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+    const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
+    const double l = CalculateCurrentLength();
+    const double L0 = CalculateReferenceLength();
+    double derivative_pre_factor = E * l / (L0 * L0);
+
+    KRATOS_ERROR_IF(derivative_pre_factor<=numerical_limit)
+        << "Derivative pre-factor of " << this->Id() << "~ 0" << std::endl;
+
+    return derivative_pre_factor;
 }
 
 void AdjointFiniteDifferenceTrussElement::save(Serializer& rSerializer) const
