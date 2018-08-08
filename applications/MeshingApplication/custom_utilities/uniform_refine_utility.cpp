@@ -472,7 +472,7 @@ void UniformRefineUtility<TDim>::CreateElement(
     const int& rRefinementLevel
     )
 {
-    Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, rThisNodes, pOriginElement->pGetProperties());
+    Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, PointerVector<NodeType>{rThisNodes}, pOriginElement->pGetProperties());
 
     if (sub_element != nullptr)
     {
@@ -507,7 +507,7 @@ void UniformRefineUtility<TDim>::CreateCondition(
     const int& rRefinementLevel
     )
 {
-    Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, rThisNodes, pOriginCondition->pGetProperties());
+    Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, PointerVector<NodeType>{rThisNodes}, pOriginCondition->pGetProperties());
 
     if (sub_condition != nullptr)
     {
