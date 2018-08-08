@@ -17,6 +17,7 @@
 #include "../adjoint_elements/adjoint_finite_difference_shell_element.h"
 #include "../adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
 #include "../adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
+#include "../adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
 #include "../adjoint_conditions/adjoint_semi_analytic_base_condition.h"
 #include "../adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
@@ -109,6 +110,12 @@ namespace Kratos
 
                     (*it.base()) = p_element;
                 }
+                else if (element_name == "AdjointFiniteDifferenceTrussLinearElement")
+                {
+                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceTrussElementLinear>(*it.base() );
+
+                    (*it.base()) = p_element;
+                }
                 else
                     KRATOS_ERROR << "Unknown adjoint element: " << element_name << std::endl;
             }
@@ -197,7 +204,7 @@ namespace Kratos
         else if(name_current_element == "TrussElement3D2N")
             rName = "AdjointFiniteDifferenceTrussElement";
         else if(name_current_element == "TrussLinearElement3D2N")
-            rName = "AdjointFiniteDifferenceTrussElement";
+            rName = "AdjointFiniteDifferenceTrussLinearElement";
         else
         {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
