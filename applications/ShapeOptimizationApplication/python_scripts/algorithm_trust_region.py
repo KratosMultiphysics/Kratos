@@ -430,7 +430,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         additional_values_to_log["norm_dx"] = norm_dx
         additional_values_to_log["step_length"] = step_length
 
-        self.data_logger.LogCurrentValues(self.opt_iteration, self.communicator, additional_values_to_log)
+        self.data_logger.LogCurrentValues(self.opt_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.opt_iteration)
 
     # --------------------------------------------------------------------------

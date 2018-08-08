@@ -25,14 +25,15 @@ from value_logger_penalized_projection import ValueLoggerPenalizedProjection
 from value_logger_trust_region import ValueLoggerTrustRegion
 
 # ==============================================================================
-def CreateDataLogger( ModelPartController, OptimizationSettings ):
-    return DataLogger( ModelPartController, OptimizationSettings )
+def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
+    return DataLogger( ModelPartController, Communicator, OptimizationSettings )
 
 # ==============================================================================
 class DataLogger():
     # --------------------------------------------------------------------------
-    def __init__( self, ModelPartController, OptimizationSettings ):
+    def __init__( self, ModelPartController, Communicator, OptimizationSettings ):
         self.ModelPartController = ModelPartController
+        self.Communicator = Communicator
         self.OptimizationSettings = OptimizationSettings
 
         self.ValueLogger = self.__CreateValueLogger()
@@ -45,11 +46,11 @@ class DataLogger():
     def __CreateValueLogger( self ):
         AlgorithmName = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
         if AlgorithmName == "steepest_descent":
-            return ValueLoggerSteepestDescent( self.OptimizationSettings )
+            return ValueLoggerSteepestDescent( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "penalized_projection":
-            return ValueLoggerPenalizedProjection( self.OptimizationSettings )
+            return ValueLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "trust_region":
-            return ValueLoggerTrustRegion( self.OptimizationSettings )
+            return ValueLoggerTrustRegion( self.Communicator, self.OptimizationSettings )
         else:
             raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + AlgorithmName)
 
@@ -98,8 +99,10 @@ class DataLogger():
         self.DesignLogger.LogCurrentDesign( optimizationIteration )
 
     # --------------------------------------------------------------------------
-    def LogCurrentValues( self, optimizationIteration, communicator, additional_values=None ):
-        self.ValueLogger.LogCurrentValues( optimizationIteration, communicator, additional_values )
+    def LogCurrentValues( self, optimizationIteration, additional_values=None ):
+        self.ValueLogger.AddValuesToHistory( optimizationIteration, additional_values )
+        self.ValueLogger.LogCurrentValuesToConsole()
+        self.ValueLogger.LogCurrentValuesToFile()
 
     # --------------------------------------------------------------------------
     def FinalizeDataLogging( self ):

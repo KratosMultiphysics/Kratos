@@ -26,22 +26,6 @@ from custom_timer import Timer
 class ValueLoggerTrustRegion( ValueLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, optimization_settings ):
-        self.optimization_settings = optimization_settings
-
-        self.specified_objectives = optimization_settings["objectives"]
-        self.specified_constraints = optimization_settings["constraints"]
-
-        self.complete_log_file_name = self.__CreateCompleteLogFileName( optimization_settings )
-
-        self.value_history = {}
-
-        self.objective_reference_value = None
-
-        self.current_iteration = 0
-        self.previos_iteration = 0
-
-    # --------------------------------------------------------------------------
     def InitializeLogging( self ):
         with open(self.complete_log_file_name, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -68,128 +52,54 @@ class ValueLoggerTrustRegion( ValueLogger ):
             historyWriter.writerow(row)
 
     # --------------------------------------------------------------------------
-    def LogCurrentValues( self, optimization_iteration, communicator, additional_values ):
-        self.current_iteration = optimization_iteration
-
-        self.__AddValuesToHistory( communicator, additional_values )
-        self.__PrintSelectedValuesToConsole( communicator, additional_values )
-        self.__WriteDataToLogFile( communicator, additional_values )
-
-        self.previos_iteration = optimization_iteration
-
-    # --------------------------------------------------------------------------
-    def FinalizeLogging( self ):
-        pass
-
-    # --------------------------------------------------------------------------
-    def GetHistoryOfValues( self ):
-        return self.value_history
-
-    # --------------------------------------------------------------------------
-    def __CreateCompleteLogFileName( self, optimization_settings ):
-        resultsDirectory = optimization_settings["output"]["output_directory"].GetString()
-        responseLogFilename = optimization_settings["output"]["response_log_filename"].GetString() + ".csv"
-        return os.path.join( resultsDirectory, responseLogFilename )
-
-    # --------------------------------------------------------------------------
-    def __AddValuesToHistory( self, communicator, additional_values ):
-        # Add objective values and change of objective values
-        objective_id = self.specified_objectives[0]["identifier"].GetString()
-
-        if self.__IsFirstLog(objective_id):
-            self.value_history[objective_id] = {}
-            self.value_history[objective_id][self.current_iteration] = communicator.getValue( objective_id )
-
-            self.objective_reference_value = communicator.getValue( objective_id )
-            if abs(self.objective_reference_value)<1e-12:
-                print("\n> WARNING: Objective reference value < 1e-12!! Therefore, standard reference value of 1 is assumed! ")
-                self.objective_reference_value = 1.0
-
-            self.value_history["abs_change_obj"] = {self.current_iteration: 0.0}
-            self.value_history["rel_change_obj"] = {self.current_iteration: 0.0}
-        else:
-            self.value_history[objective_id][self.current_iteration] = communicator.getValue( objective_id )
-
-            current_obj_value = self.value_history[objective_id][self.current_iteration]
-            previos_obj_value = self.value_history[objective_id][self.previos_iteration]
-            abs_change = 100*(current_obj_value-self.objective_reference_value) / abs(self.objective_reference_value)
-            rel_change = 100*(current_obj_value-previos_obj_value) / abs(self.objective_reference_value)
-
-            self.value_history["abs_change_obj"][self.current_iteration] = abs_change
-            self.value_history["rel_change_obj"][self.current_iteration] = rel_change
-
-        # Add constraint values
-        for itr in range(self.specified_constraints.size()):
-            constraint_id = self.specified_constraints[itr]["identifier"].GetString()
-
-            if self.__IsFirstLog(constraint_id):
-                self.value_history[constraint_id] = {}
-
-            self.value_history[constraint_id][self.current_iteration] = communicator.getValue( constraint_id )
-
-        # Add additional values
-        for key, value in additional_values.items():
-            if self.__IsFirstLog(key):
-                self.value_history[key] = {}
-            self.value_history[key][self.current_iteration] = value
-
-    # -------------------------------------------------------------------------
-    def __IsFirstLog( self, key ):
-        if key in self.value_history.keys():
-            return False
-        else:
-            return True
-
-    # --------------------------------------------------------------------------
-    def __PrintSelectedValuesToConsole( self, communicator, additional_values ):
+    def LogCurrentValuesToConsole( self ):
         print("\n-------------------------------------------------------")
 
         objective_id = self.specified_objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ", round(communicator.getValue(objective_id),12))
+        print("\n> Current value of objective = ", round(self.value_history[objective_id][self.current_iteration],12))
 
         print("> Absolut change of objective = ",round(self.value_history["abs_change_obj"][self.current_iteration],4)," [%]")
         print("> Relative change of objective = ",round(self.value_history["rel_change_obj"][self.current_iteration],4)," [%]\n")
 
         for itr in range(self.specified_constraints.size()):
             constraint_id = self.specified_constraints[itr]["identifier"].GetString()
-            print("> Value of C"+str(itr)+" = ", round(communicator.getValue(constraint_id),12))
+            print("> Value of C"+str(itr)+" = ", round(self.value_history[constraint_id][self.current_iteration],12))
 
-        print("\nNormInf3D of dx = ", round(additional_values["norm_dx"],6))
+        print("\nNormInf3D of dx = ", round(self.value_history["norm_dx"][self.current_iteration],6))
 
-        print("\nlen_bar_obj = ", round(additional_values["len_bar_obj"],6))
-        print("adj_len_bar_obj = ", round(additional_values["adj_len_bar_obj"],6))
+        print("\nlen_bar_obj = ", round(self.value_history["len_bar_obj"][self.current_iteration],6))
+        print("adj_len_bar_obj = ", round(self.value_history["adj_len_bar_obj"][self.current_iteration],6))
 
-        print("\nlen_bar_cons = ", [round(entry, 6) for entry in additional_values["len_bar_cons"]])
-        print("adj_len_bar_cons = ", [round(entry, 6) for entry in additional_values["adj_len_bar_cons"]])
+        print("\nlen_bar_cons = ", [round(entry, 6) for entry in self.value_history["len_bar_cons"][self.current_iteration]])
+        print("adj_len_bar_cons = ", [round(entry, 6) for entry in self.value_history["adj_len_bar_cons"][self.current_iteration]])
 
         print("\n-------------------------------------------------------")
 
     # --------------------------------------------------------------------------
-    def __WriteDataToLogFile( self, communicator, additional_values ):
-
+    def LogCurrentValuesToFile( self ):
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
             row.append(str("{:>4d}".format(self.current_iteration)))
 
             objective_id = self.specified_objectives[0]["identifier"].GetString()
-            row.append(str("{:>20f}".format(communicator.getValue(objective_id))))
+            row.append(str("{:>20f}".format(self.value_history[objective_id][self.current_iteration])))
 
             row.append(str("{:>12f}".format(self.value_history["abs_change_obj"][self.current_iteration])))
             row.append(str("{:>12f}".format(self.value_history["rel_change_obj"][self.current_iteration])))
 
             for itr in range(self.specified_constraints.size()):
                 constraint_id = self.specified_constraints[itr]["identifier"].GetString()
-                row.append(str("{:>20f}".format(communicator.getValue(constraint_id))))
-                row.append(str("{:>20f}".format(communicator.getReferenceValue(constraint_id))))
-                row.append(str("{:>12f}".format(additional_values["len_bar_cons"][itr])))
-                row.append(str("{:>12f}".format(additional_values["adj_len_bar_cons"][itr])))
+                row.append(str("{:>20f}".format(self.value_history[constraint_id][self.current_iteration])))
+                row.append(str("{:>20f}".format(self.communicator.getReferenceValue(constraint_id))))
+                row.append(str("{:>12f}".format(self.value_history["len_bar_cons"][self.current_iteration][itr])))
+                row.append(str("{:>12f}".format(self.value_history["adj_len_bar_cons"][self.current_iteration][itr])))
 
-            row.append(str("{:>12d}".format(additional_values["bi_itrs"])))
-            row.append(str("{:>12f}".format(additional_values["bi_err"])))
-            row.append(str("{:>17f}".format(additional_values["test_norm_dx_bar"])))
-            row.append(str("{:>12f}".format(additional_values["norm_dx"])))
-            row.append(str("{:>12f}".format(additional_values["step_length"])))
+            row.append(str("{:>12d}".format(self.value_history["bi_itrs"][self.current_iteration])))
+            row.append(str("{:>12f}".format(self.value_history["bi_err"][self.current_iteration])))
+            row.append(str("{:>17f}".format(self.value_history["test_norm_dx_bar"][self.current_iteration])))
+            row.append(str("{:>12f}".format(self.value_history["norm_dx"][self.current_iteration])))
+            row.append(str("{:>12f}".format(self.value_history["step_length"][self.current_iteration])))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 
