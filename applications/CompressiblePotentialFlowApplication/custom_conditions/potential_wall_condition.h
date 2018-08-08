@@ -262,7 +262,7 @@ public:
         else CalculateNormal3D(An);
 
         const PotentialWallCondition& r_this = *this;
-        const array_1d<double,3>& v = r_this.GetValue(VELOCITY);
+        const array_1d<double,3>& v = r_this.GetValue(VELOCITY_INFINITY);
         const double value = -inner_prod(v, An)/static_cast<double>(TNumNodes);
 
         for(unsigned int i=0; i<TNumNodes; ++i)
