@@ -231,7 +231,7 @@ namespace Kratos
                 ielem.InitializeSolutionStep(process_info);
             }
 
-            // Compute metric
+            // Compute error
             SPRErrorProcess<2> spr_process = SPRErrorProcess<2>(this_model_part);
             spr_process.Execute();
 
@@ -279,7 +279,7 @@ namespace Kratos
                 ielem.InitializeSolutionStep(process_info);
             }
 
-            // Compute metric
+            // Compute error
             SPRErrorProcess<3> spr_process = SPRErrorProcess<3>(this_model_part);
             spr_process.Execute();
 
