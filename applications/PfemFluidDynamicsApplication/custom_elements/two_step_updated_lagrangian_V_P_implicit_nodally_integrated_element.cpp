@@ -85,39 +85,27 @@ namespace Kratos {
 	    // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)+=rElementalVariables.Fgrad*elementVolume/nodalVolume;
 	    // rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)+=rElementalVariables.FgradVel*elementVolume/nodalVolume;
 	    // rGeom[i].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)+=rElementalVariables.SpatialDefRate*elementVolume/nodalVolume;
-	   
-	    for (unsigned int j = 0; j< NumNodes; j++)
-	      {
-		unsigned int position=rGeom[j].Id();
-	      
-		double dnDX=rDN_DX(j,0)*elementVolume/nodalVolume;
-		double dnDY=rDN_DX(j,1)*elementVolume/nodalVolume;
-		double dnDZ=rDN_DX(j,2)*elementVolume/nodalVolume;	   
 
-		unsigned int SFDposition=0;
-		for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
-		  {
-		    if(position==nodalSFDneighbours[k]){
-		      if(TDim==3){
-			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]+=dnDX;
-			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1]+=dnDY;
-			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2]+=dnDZ;		      
-			break;
-		      }else if(TDim==2){
-			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]+=dnDX;
-			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1]+=dnDY;
+	      for (unsigned int j = 0; j< NumNodes; j++)
+		{
+		  unsigned int position=rGeom[j].Id();
+	     
+		  unsigned int SFDposition=0;
+		  for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
+		    {
+		      if(position==nodalSFDneighbours[k]){
+			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]   += rDN_DX(j,0)*elementVolume/nodalVolume;
+			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1] += rDN_DX(j,1)*elementVolume/nodalVolume;
+			if(TDim==3){
+			  rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2] += rDN_DX(j,2)*elementVolume/nodalVolume;
+			}
 			break;
 		      }
+		      SFDposition+=TDim;
 		    }
-		    if(TDim==3){
-		      SFDposition+=3;
-		    }else if(TDim==2){
-		      SFDposition+=2;
-		    }
-		  }
 	      
-
-	      }
+		}
+	    
 	  }
 	  else{
 	    std::cout<<rGeom[i].Id()<<"  this node is isolated!!! "<<std::endl;
@@ -144,14 +132,23 @@ namespace Kratos {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double,2> Edge(2,0.0);
-
+    // unsigned int countFreeSurface=1;
     for (SizeType i = 0; i < NumNodes; i++){
       
       if((rGeom[i].Is(FREE_SURFACE)  || (rGeom[i].Is(SOLID) && rGeom[i].Is(BOUNDARY))) && i!=nodeIndex){
 	noalias(Edge) = rGeom[nodeIndex].Coordinates() - rGeom[i].Coordinates();
 	rGeom[nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += sqrt(Edge[0]*Edge[0] + Edge[1]*Edge[1])/2.0;
+	// countFreeSurface+=1;
       }
     }
+    // if(countFreeSurface==NumNodes){
+    //   WeakPointerVector<Element >& neighb_elemsA = rGeom[0].GetValue(NEIGHBOUR_ELEMENTS);
+    //   WeakPointerVector<Element >& neighb_elemsB = rGeom[1].GetValue(NEIGHBOUR_ELEMENTS);
+    //   WeakPointerVector<Element >& neighb_elemsC = rGeom[2].GetValue(NEIGHBOUR_ELEMENTS);
+    //   if(neighb_elemsA.size()==1 && neighb_elemsB.size()==1 && neighb_elemsC.size()==1){
+    // 	rGeom[nodeIndex].Set(ISOLATED);
+    //   }
+    // }
       
   }
 
