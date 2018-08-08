@@ -40,8 +40,8 @@ class ValueLogger():
         self.current_iteration = current_iteration
 
         self.__LogValuesToHistory(additional_values)
-        self.WriteCurrentValuesToConsole()
-        self.WriteCurrentValuesToFile()
+        self._WriteCurrentValuesToConsole()
+        self._WriteCurrentValuesToFile()
 
         self.previos_iteration = current_iteration
 

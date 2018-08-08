@@ -196,7 +196,6 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         additional_values_to_log["correction_scaling"] = self.algorithm_settings["correction_scaling"].GetDouble()
-
         self.DataLogger.LogCurrentValues(self.optimizationIteration, additional_values_to_log)
 
     # --------------------------------------------------------------------------

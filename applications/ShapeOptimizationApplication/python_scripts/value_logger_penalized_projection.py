@@ -9,9 +9,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
@@ -25,7 +22,6 @@ from custom_timer import Timer
 
 # ==============================================================================
 class ValueLoggerPenalizedProjection( ValueLogger ):
-
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
         with open(self.complete_log_file_name, 'w') as csvfile:
@@ -47,7 +43,7 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
             historyWriter.writerow(row)
 
     # --------------------------------------------------------------------------
-    def WriteCurrentValuesToConsole( self ):
+    def _WriteCurrentValuesToConsole( self ):
         objective_id = self.specified_objectives[0]["identifier"].GetString()
         print("\n> Current value of objective = ", round(self.value_history[objective_id][self.current_iteration],12))
 
@@ -59,7 +55,7 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
             print("> Value of C"+str(itr+1)+" = ", round(self.value_history[constraint_id][self.current_iteration],12))
 
     # --------------------------------------------------------------------------
-    def WriteCurrentValuesToFile( self ):
+    def _WriteCurrentValuesToFile( self ):
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []

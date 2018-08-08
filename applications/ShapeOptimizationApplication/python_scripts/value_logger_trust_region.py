@@ -8,9 +8,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
@@ -24,7 +21,6 @@ from custom_timer import Timer
 
 # ==============================================================================
 class ValueLoggerTrustRegion( ValueLogger ):
-
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
         with open(self.complete_log_file_name, 'w') as csvfile:
@@ -51,7 +47,7 @@ class ValueLoggerTrustRegion( ValueLogger ):
             historyWriter.writerow(row)
 
     # --------------------------------------------------------------------------
-    def WriteCurrentValuesToConsole( self ):
+    def _WriteCurrentValuesToConsole( self ):
         print("\n-------------------------------------------------------")
 
         objective_id = self.specified_objectives[0]["identifier"].GetString()
@@ -75,7 +71,7 @@ class ValueLoggerTrustRegion( ValueLogger ):
         print("\n-------------------------------------------------------")
 
     # --------------------------------------------------------------------------
-    def WriteCurrentValuesToFile( self ):
+    def _WriteCurrentValuesToFile( self ):
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
