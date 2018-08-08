@@ -221,7 +221,14 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 
 }; // End of ConstraintEquation class
 
-
+/**
+ * @class LocalIndices
+ * @ingroup KratosCore
+ * @brief This class stores the stores three different vectors of local internal, slave, master indices
+ *          which are used in constraint builder and solver.
+ *
+ * @author Aditya Ghantasala
+ */
 class LocalIndices
 {
     public:
