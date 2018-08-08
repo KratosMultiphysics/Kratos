@@ -13,17 +13,17 @@
 #if !defined(ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_H_INCLUDED )
 #define  ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_H_INCLUDED
 
-#include "adjoint_finite_difference_base_element.h"
+#include "adjoint_finite_difference_truss_element_linear_3D2N.h"
 
 namespace Kratos
 {
 
-class AdjointFiniteDifferenceTrussElement : public AdjointFiniteDifferencingBaseElement
+class AdjointFiniteDifferenceTrussElement : public AdjointFiniteDifferenceTrussElementLinear
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferenceTrussElement);
 
-    AdjointFiniteDifferenceTrussElement(): AdjointFiniteDifferencingBaseElement()
+    AdjointFiniteDifferenceTrussElement(): AdjointFiniteDifferenceTrussElementLinear()
     {
     }
 
@@ -35,12 +35,8 @@ public:
                         Vector& rOutput,
                         const ProcessInfo& rCurrentProcessInfo) override;                    
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-protected:
 
 
 private:

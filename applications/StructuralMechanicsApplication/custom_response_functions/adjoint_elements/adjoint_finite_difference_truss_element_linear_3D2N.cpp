@@ -58,14 +58,6 @@ void AdjointFiniteDifferenceTrussElementLinear::Calculate(const Variable<Vector 
                     rOutput(i) = force_vector[i][0];
                 break;
             }
-            case TracedStressType::PK2X:
-            {
-                std::vector<Vector> stress_vector;
-                mpPrimalElement->GetValueOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
-                for(IndexType i = 0; i < GP_num ; ++i)
-                    rOutput(i) = stress_vector[i][0];
-                break;
-            }
             default:
                 KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
         }
