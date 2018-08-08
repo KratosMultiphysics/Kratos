@@ -322,8 +322,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         else:
             obj_id = self.specified_objectives[0]["identifier"].GetString()
             current_obj_val = self.communicator.getStandardizedValue(obj_id)
-            obj_history = self.data_logger.GetHistoryOfLoggedValues()[obj_id]
-            step_history = self.data_logger.GetHistoryOfLoggedValues()["step_length"]
+            obj_history = self.data_logger.GetValueHistory()[obj_id]
+            step_history = self.data_logger.GetValueHistory()["step_length"]
 
             objective_is_oscillating = False
             is_decrease_1 = (current_obj_val - obj_history[self.opt_iteration-1])< 0
@@ -420,7 +420,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         len_bar_cons = self.__CombineConstraintDataToOrderedList(len_bar_eqs, len_bar_ineqs)
         adj_len_bar_cons = self.__CombineConstraintDataToOrderedList(adj_len_bar_eqs, adj_len_bar_ineqs)
-
         additional_values_to_log["len_bar_cons"] = len_bar_cons
         additional_values_to_log["adj_len_bar_cons"] = adj_len_bar_cons
 

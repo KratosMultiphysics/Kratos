@@ -36,7 +36,7 @@ class ValueLogger():
         pass
 
     # --------------------------------------------------------------------------
-    def AddValuesToHistory( self, current_iteration, additional_values ):
+    def AddValuesToHistory( self, current_iteration, additional_values={} ):
         self.current_iteration = current_iteration
 
         self.__AddObjectiveValuesToHistory()
@@ -58,8 +58,12 @@ class ValueLogger():
         pass
 
     # --------------------------------------------------------------------------
-    def GetHistoryOfLoggedValues( self ):
-        return self.value_history
+    def GetValue( self, key, iteration ):
+        return self.value_history[key][iteration]
+
+    # --------------------------------------------------------------------------
+    def GetValueHistory( self, key ):
+        return self.value_history[key]
 
     # --------------------------------------------------------------------------
     def __CreateCompleteLogFileName( self, optimization_settings ):

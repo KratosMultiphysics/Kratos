@@ -99,7 +99,7 @@ class DataLogger():
         self.DesignLogger.LogCurrentDesign( optimizationIteration )
 
     # --------------------------------------------------------------------------
-    def LogCurrentValues( self, optimizationIteration, additional_values=None ):
+    def LogCurrentValues( self, optimizationIteration, additional_values={} ):
         self.ValueLogger.AddValuesToHistory( optimizationIteration, additional_values )
         self.ValueLogger.LogCurrentValuesToConsole()
         self.ValueLogger.LogCurrentValuesToFile()
@@ -110,7 +110,11 @@ class DataLogger():
         self.ValueLogger.FinalizeLogging()
 
     # --------------------------------------------------------------------------
-    def GetHistoryOfLoggedValues( self ):
-        return self.ValueLogger.GetHistoryOfLoggedValues()
+    def GetValue( self, key, iteration ):
+        return self.ValueLogger.GetValue(key, iteration)
+
+    # --------------------------------------------------------------------------
+    def GetValueHistory( self, key ):
+        return self.ValueLogger.GetValueHistory(key)
 
 # ==============================================================================
