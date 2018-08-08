@@ -105,7 +105,7 @@ void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVa
 
     ProcessInfo copy_process_info = rCurrentProcessInfo;
     Vector dummy_RHS;
-    // This call is necessary in order to ensure that constitutive law saves the primal stresses.
+    // This call of RHS is necessary in order to ensure that constitutive law saves the primal stresses.
     // This is possible since within the computation of RHS CalculateMaterialResponse of the CL is called.
     mpPrimalElement->CalculateRightHandSide(dummy_RHS, copy_process_info);
 
@@ -161,6 +161,7 @@ void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(
         const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs_per_node = dimension; 
         const SizeType num_dofs = num_nodes * num_dofs_per_node;
+        const SizeType num_GP = (mpPrimalElement->GetGeometry().IntegrationPoints()).size();
         Vector length_derivative_vector;
         double derivative_pre_factor = 0.0;
    
@@ -177,7 +178,7 @@ void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(
                     prestress = mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
                 std::vector<Vector> GL_strain;  
                 mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, GL_strain, rCurrentProcessInfo);
-                const double GL_strain_X = GL_strain[0][0]; // TODO: maybe more generic!
+                const double GL_strain_X = GL_strain[0][0]; //one Gauss-Point result is enough due to constant strains.
         
                 derivative_pre_factor = A / L0 * (E * GL_strain_X + prestress + E * l * l / (L0 * L0));
                 break;
@@ -196,11 +197,14 @@ void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(
         KRATOS_ERROR_IF(std::abs(derivative_pre_factor) <  numerical_limit)
             << "pre factor of stress displacement derivative is ~0!" << std::endl;
 
-        rOutput.resize(num_dofs, 1);
+        rOutput.resize(num_dofs, num_GP);
         rOutput.clear();
         this->CalculateCurrentLengthDisplacementDerivative(length_derivative_vector);
         for(IndexType i = 0; i < num_dofs; ++i)
-            rOutput(i, 0) = length_derivative_vector[i] * derivative_pre_factor; 
+        {
+             for(IndexType j = 0; j < num_GP; ++j)
+                rOutput(i, j) = length_derivative_vector[i] * derivative_pre_factor; 
+        }
     }
     else
         KRATOS_ERROR << "Stress displacement derivative only available for Gauss-points quantities!" << std::endl;
@@ -267,13 +271,7 @@ double AdjointFiniteDifferenceTrussElement::GetPerturbationSizeModificationFacto
     KRATOS_TRY;
 
     if(rDesignVariable == SHAPE)
-    {
-        double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-        double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-        double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-        double L = std::sqrt(dx*dx + dy*dy + dz*dz);
-        return L;
-    }
+        return this->CalculateReferenceLength();
     else
         return 1.0;
 
