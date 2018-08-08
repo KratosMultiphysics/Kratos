@@ -36,6 +36,10 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters( parameter_file.read())
 
+            # To avoid many prints
+            if (parameters["problem_data"]["echo_level"].GetInt() == 0):
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
             self.problem_name = parameters["problem_data"]["problem_name"].GetString()
             model_part = KratosMultiphysics.ModelPart(self.problem_name)
 
