@@ -98,13 +98,7 @@ array_1d<double, 3 > & TrussPlasticityConstitutiveLaw::GetValue(
     const Variable<array_1d<double, 3 > >& rThisVariable,
     array_1d<double, 3 > & rValue)
 {
-    if (rThisVariable == FORCE)
-    {
-        rValue[0] = this->mStressState;
-        rValue[1] = 0.0;
-        rValue[2] = 0.0;
-    }
-    else KRATOS_ERROR << "Can't get the specified value" << std::endl;
+    KRATOS_ERROR << "Can't get the specified value" << std::endl;
     return rValue;
 }
 
@@ -202,6 +196,26 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
     else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     return rValue;
 }
+
+//************************************************************************************
+//************************************************************************************
+
+array_1d<double, 3 > & TrussPlasticityConstitutiveLaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<array_1d<double, 3 > >& rVariable,
+	array_1d<double, 3 > & rValue)
+    {
+        if (rVariable == FORCE)
+        {
+            constexpr SizeType dimension = 3;
+            rValue = ZeroVector(dimension);
+            rValue[0] = this->mStressState;
+            rValue[1] = 0.0;
+            rValue[2] = 0.0;
+        }
+        else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
+        return rValue;
+    }
 
 
 //************************************************************************************
