@@ -82,11 +82,6 @@ import optimizer_factory
 optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], optimization_model_part, CustomAnalyzer())
 optimizer.Optimize()
 
-
-err
-
-
-
 # =======================================================================================================
 # Test results and clean directory
 # =======================================================================================================
@@ -100,19 +95,39 @@ os.chdir(output_directory)
 
 with open(response_log_filename, 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
+
+    all_lines = []
     last_line = None
     for line in reader:
         if not line:
             continue
         else:
+            all_lines.append(line)
             last_line = line
 
     resulting_improvement = float(last_line[2].strip())
-    resulting_constraint_value = float(last_line[4].strip())
+    resulting_c1 = float(last_line[4].strip())
+    resulting_len_C1 = float(last_line[6].strip())
+    resulting_adj_len_C1 = float(last_line[7].strip())
+    resulting_c2 = float(last_line[8].strip())
+    resulting_len_C2 = float(last_line[10].strip())
+    resulting_adj_len_C2 = float(last_line[11].strip())
 
-    # # Check against specifications
-    TestCase().assertAlmostEqual(resulting_improvement, -19.201365, 2)
-    TestCase().assertAlmostEqual(resulting_constraint_value, 0.015641, 4)
+    is_itr_1_test_norm_smaller_1 = float(all_lines[1][14].strip()) < 1
+    is_itr_2_test_norm_smaller_1 = float(all_lines[2][14].strip()) < 1
+    is_itr_3_test_norm_smaller_1 = float(all_lines[3][14].strip()) < 1
+
+    # Check against specifications
+    TestCase().assertAlmostEqual(resulting_improvement, -14.081350, 2)
+    TestCase().assertAlmostEqual(resulting_c1, 10.748288, 4)
+    TestCase().assertAlmostEqual(resulting_len_C1, 0.503423, 4)
+    TestCase().assertAlmostEqual(resulting_adj_len_C1, 0.503423, 4)
+    TestCase().assertAlmostEqual(resulting_c2, 0.130898, 4)
+    TestCase().assertAlmostEqual(resulting_len_C2, 0.361798, 4)
+    TestCase().assertAlmostEqual(resulting_adj_len_C2, 0.361798, 4)
+    TestCase().assertFalse(is_itr_1_test_norm_smaller_1)
+    TestCase().assertFalse(is_itr_2_test_norm_smaller_1)
+    TestCase().assertTrue(is_itr_3_test_norm_smaller_1)
 
 os.chdir(original_directory)
 
