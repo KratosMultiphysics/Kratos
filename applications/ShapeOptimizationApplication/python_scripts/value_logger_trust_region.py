@@ -51,7 +51,7 @@ class ValueLoggerTrustRegion( ValueLogger ):
             historyWriter.writerow(row)
 
     # --------------------------------------------------------------------------
-    def LogCurrentValuesToConsole( self ):
+    def WriteCurrentValuesToConsole( self ):
         print("\n-------------------------------------------------------")
 
         objective_id = self.specified_objectives[0]["identifier"].GetString()
@@ -75,7 +75,7 @@ class ValueLoggerTrustRegion( ValueLogger ):
         print("\n-------------------------------------------------------")
 
     # --------------------------------------------------------------------------
-    def LogCurrentValuesToFile( self ):
+    def WriteCurrentValuesToFile( self ):
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []

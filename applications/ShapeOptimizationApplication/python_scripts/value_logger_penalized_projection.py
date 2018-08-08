@@ -47,7 +47,7 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
             historyWriter.writerow(row)
 
     # --------------------------------------------------------------------------
-    def LogCurrentValuesToConsole( self ):
+    def WriteCurrentValuesToConsole( self ):
         objective_id = self.specified_objectives[0]["identifier"].GetString()
         print("\n> Current value of objective = ", round(self.value_history[objective_id][self.current_iteration],12))
 
@@ -59,7 +59,7 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
             print("> Value of C"+str(itr+1)+" = ", round(self.value_history[constraint_id][self.current_iteration],12))
 
     # --------------------------------------------------------------------------
-    def LogCurrentValuesToFile( self ):
+    def WriteCurrentValuesToFile( self ):
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []

@@ -36,22 +36,14 @@ class ValueLogger():
         pass
 
     # --------------------------------------------------------------------------
-    def AddValuesToHistory( self, current_iteration, additional_values={} ):
+    def LogCurrentValues( self, current_iteration, additional_values={} ):
         self.current_iteration = current_iteration
 
-        self.__AddObjectiveValuesToHistory()
-        self.__AddConstraintValuesToHistory()
-        self.__AddAdditionalValuesToHistory( additional_values )
+        self.__LogValuesToHistory(additional_values)
+        self.WriteCurrentValuesToConsole()
+        self.WriteCurrentValuesToFile()
 
         self.previos_iteration = current_iteration
-
-    # --------------------------------------------------------------------------
-    def LogCurrentValuesToConsole( self ):
-        pass
-
-    # --------------------------------------------------------------------------
-    def LogCurrentValuesToFile( self ):
-        pass
 
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):
@@ -72,7 +64,13 @@ class ValueLogger():
         return os.path.join( resultsDirectory, responseLogFilename )
 
     # --------------------------------------------------------------------------
-    def __AddObjectiveValuesToHistory( self ):
+    def __LogValuesToHistory( self, additional_values={} ):
+        self.__LogObjectiveValuesToHistory()
+        self.__LogConstraintValuesToHistory()
+        self.__LogAdditionalValuesToHistory( additional_values )
+
+    # --------------------------------------------------------------------------
+    def __LogObjectiveValuesToHistory( self ):
         objective_id = self.specified_objectives[0]["identifier"].GetString()
 
         if self.__IsFirstLog(objective_id):
@@ -98,7 +96,7 @@ class ValueLogger():
             self.value_history["rel_change_obj"][self.current_iteration] = rel_change
 
     # --------------------------------------------------------------------------
-    def __AddConstraintValuesToHistory( self ):
+    def __LogConstraintValuesToHistory( self ):
         for itr in range(self.specified_constraints.size()):
             constraint_id = self.specified_constraints[itr]["identifier"].GetString()
 
@@ -107,7 +105,7 @@ class ValueLogger():
             self.value_history[constraint_id][self.current_iteration] = self.communicator.getValue( constraint_id )
 
     # --------------------------------------------------------------------------
-    def __AddAdditionalValuesToHistory( self, additional_values ):
+    def __LogAdditionalValuesToHistory( self, additional_values ):
         for key, value in additional_values.items():
             if self.__IsFirstLog(key):
                 self.value_history[key] = {}

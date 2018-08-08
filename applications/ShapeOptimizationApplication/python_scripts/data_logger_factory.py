@@ -95,14 +95,12 @@ class DataLogger():
         self.ValueLogger.InitializeLogging()
 
     # --------------------------------------------------------------------------
-    def LogCurrentDesign( self, optimizationIteration ):
-        self.DesignLogger.LogCurrentDesign( optimizationIteration )
+    def LogCurrentDesign( self, current_iteration ):
+        self.DesignLogger.LogCurrentDesign( current_iteration )
 
     # --------------------------------------------------------------------------
-    def LogCurrentValues( self, optimizationIteration, additional_values={} ):
-        self.ValueLogger.AddValuesToHistory( optimizationIteration, additional_values )
-        self.ValueLogger.LogCurrentValuesToConsole()
-        self.ValueLogger.LogCurrentValuesToFile()
+    def LogCurrentValues( self, current_iteration, additional_values={} ):
+        self.ValueLogger.LogCurrentValues( current_iteration, additional_values )
 
     # --------------------------------------------------------------------------
     def FinalizeDataLogging( self ):
