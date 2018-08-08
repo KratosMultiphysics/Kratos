@@ -172,7 +172,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
-        self.DataLogger.LogCurrentData(self.optimizationIteration)
+        additional_values_to_log = {}
+        additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+        self.DataLogger.LogCurrentValues(self.optimizationIteration, additional_values_to_log)
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
@@ -184,9 +186,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 print("\n> Maximal iterations of optimization problem reached!")
                 return True
 
-            relativeChangeOfObjectiveValue = self.DataLogger.GetValue("RELATIVE_CHANGE_OF_OBJECTIVE_VALUE")
-
             # Check for relative tolerance
+            relativeChangeOfObjectiveValue = self.DataLogger.GetValue("rel_change_obj", self.optimizationIteration)
             if abs(relativeChangeOfObjectiveValue) < self.relativeTolerance:
                 print("\n> Optimization problem converged within a relative objective tolerance of ",self.relativeTolerance,"%.")
                 return True
