@@ -16,7 +16,7 @@
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
-        },        
+        },
         "material_import_settings" :{
             "materials_filename": "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test_materials.json"
         },
@@ -24,8 +24,8 @@
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 1e-9,
-        "residual_absolute_tolerance"        : 1e-9,
+        "residual_relative_tolerance"        : 1e-14,
+        "residual_absolute_tolerance"        : 1e-14,
         "max_iteration"                      : 400,
         "problem_domain_sub_model_part_list" : ["Parts_structure"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann"],
@@ -118,5 +118,5 @@
             "time_frequency"   : 0.1
         }
     }
-    ]     
+    ]
 }
