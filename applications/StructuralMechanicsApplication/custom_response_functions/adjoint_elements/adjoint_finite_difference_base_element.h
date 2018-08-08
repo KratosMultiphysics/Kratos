@@ -69,6 +69,8 @@ public:
 
     AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement);
 
+    AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement, bool HasRotationDofs);
+
     ~AdjointFiniteDifferencingBaseElement() override;
 
     ///@}
@@ -419,6 +421,7 @@ protected:
      * pointer to the primal element
      */
     Element::Pointer mpPrimalElement;
+    bool mHasRotationDofs = false;
 
     ///@}
 
