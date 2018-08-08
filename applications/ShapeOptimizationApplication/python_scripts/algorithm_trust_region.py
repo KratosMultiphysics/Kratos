@@ -111,7 +111,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             len_bar_obj, len_bar_eqs, len_bar_ineqs = self.__ExpressInStepLengthUnit(len_obj, len_eqs, len_ineqs, step_length)
 
-            dx_bar, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs = self.__DetermineStep(len_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
+            dx_bar, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs = self.__DetermineStep(len_bar_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
 
             norm_dx = self.__ComputeShapeUpdate(dx_bar, step_length)
 
