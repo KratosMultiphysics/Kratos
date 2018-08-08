@@ -35,22 +35,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// Containers definition
-    typedef ModelPart::NodesContainerType                                     NodesArrayType;
-    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
-
-    /// The definition of the node type
-    typedef Node <3>                                                                NodeType;
-
-    /// Definition of the iterators
-    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
-    typedef NodesArrayType::iterator                                              NodeItType;
-    typedef ElementsArrayType::iterator                                        ElementItType;
-
-    /// Definition of the indextype
-    typedef std::size_t                                                            IndexType;
-
     /// Definition of the size type
     typedef std::size_t                                                             SizeType;
     
@@ -87,6 +71,22 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Containers definition
+    typedef ModelPart::NodesContainerType                                     NodesArrayType;
+    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
+
+    /// The definition of the node type
+    typedef Node <3>                                                                NodeType;
+
+    /// Definition of the iterators
+    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
+    typedef NodesArrayType::iterator                                              NodeItType;
+    typedef ElementsArrayType::iterator                                        ElementItType;
+
+    /// Definition of the indextype
+    typedef std::size_t                                                            IndexType;
+
     /// Pointer definition of SPRMetricProcess
     KRATOS_CLASS_POINTER_DEFINITION(SPRMetricProcess);
     
@@ -127,9 +127,8 @@ public:
     ///@{
     
     /**
-     * We initialize the metrics of the MMG sol using the Hessian metric matrix approach
+     * @brief We initialize the metrics of the MMG sol using the Hessian metric matrix approach
      */
-    
     void Execute() override;
     
     ///@}
@@ -210,18 +209,10 @@ private:
     
     ModelPart& mThisModelPart;                /// The model part to compute
 
-    double mMinSize;                          /// The minimal size of the elements
-    double mMaxSize;                          /// The maximal size of the elements
-
     double mPenaltyNormal;                    /// The normal penalty
     double mPenaltyTangent;                   /// The tangent penalty
 
     SizeType mEchoLevel;                      /// The echo level
-
-    bool mSetElementNumber;                   /// Determines if a target number of elements for the new mesh is set
-    SizeType mElementNumber;                  /// The target number of elements for the new mesh
-    double mTargetError;                      /// The overall target error for the new mesh
-    bool mAverageNodalH;                      /// Determines if the nodal h is averaged from the surrounding elements or if the lowest value is taken
     
     ///@}
     ///@name Private Operators
@@ -237,19 +228,14 @@ private:
     void CalculateSuperconvergentStresses();
 
     /**
-     * @brief This method estimates the error and computes the new element size
+     * @brief This method estimates the error
      * @param rEnergyNormOverall The mean of the energy norm
      * @param rErrorOverall The mean of the error
      */
-    void CalculateErrorEstimationAndElementSize(
+    void CalculateErrorEstimation(
         double& rEnergyNormOverall,
         double& rErrorOverall
         );
-
-    /**
-     * @brief In this final step the metric is computed
-     */
-    void CalculateMetric();
 
     /**
      * @brief Calculates the recovered stress. Checks whatever this is a contact case or a standard one
@@ -292,12 +278,6 @@ private:
         SizeType NeighbourSize,
         Vector& rSigmaRecovered
         );
-
-    /**
-     * @brief This computes the element size depending of the geometry and it assigns to the ELEMENT_H variable
-     * @param itElement The element iterator
-     */
-    void ComputeElementSize(ElementItType itElement);
     
     ///@}
     ///@name Private  Access
