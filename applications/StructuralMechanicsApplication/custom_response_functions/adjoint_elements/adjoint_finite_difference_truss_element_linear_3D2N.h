@@ -31,12 +31,6 @@ public:
 
     ~AdjointFiniteDifferenceTrussElementLinear() override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-
-    void GetValuesVector(Vector& values, int Step = 0) override;
-
     void Calculate(const Variable<Vector >& rVariable,
                         Vector& rOutput,
                         const ProcessInfo& rCurrentProcessInfo) override;                    
