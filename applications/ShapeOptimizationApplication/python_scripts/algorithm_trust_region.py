@@ -443,10 +443,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         for itr in range(self.specified_constraints.size()):
             if self.specified_constraints[itr]["type"].GetString()=="=":
                 combined_list.append(eqs_data_list[num_eqs])
-                num_eqs == num_eqs+1
+                num_eqs = num_eqs+1
             else:
                 combined_list.append(ineqs_data_list[num_ineqs])
-                num_ineqs == num_ineqs+1
+                num_ineqs = num_ineqs+1
 
         return combined_list
 
