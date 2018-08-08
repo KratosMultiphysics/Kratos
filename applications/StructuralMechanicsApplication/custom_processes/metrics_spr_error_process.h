@@ -10,8 +10,8 @@
 //  Co-author   :    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SPR_ERROR_METRICS_PROCESS)
-#define KRATOS_SPR_ERROR_METRICS_PROCESS
+#if !defined(KRATOS_SPR_ERROR_PROCESS)
+#define KRATOS_SPR_ERROR_PROCESS
 
 // System includes
 #include <omp.h>
@@ -36,7 +36,7 @@ namespace Kratos
 ///@{
 
     /// Definition of the size type
-    typedef std::size_t                                                             SizeType;
+    typedef std::size_t SizeType;
     
 ///@}
 ///@name  Enum's
@@ -51,7 +51,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class SPRMetricProcess
+ * @class SPRErrorProcess
  * @ingroup StructuralMechanicsApplication
  * @brief This class is can be used to compute the metrics of the model part with a superconvergent patch recovery approach
  * @details The formulation employed in order to compute the super patch recovery is based on the work of O. C. Zienkiewicz
@@ -63,7 +63,7 @@ J. Z. Zhu, and extended for contact mechanics. In the papers:
  * @author Anna Rehr
  */
 template<SizeType TDim>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SPRMetricProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SPRErrorProcess
     : public Process
 {
 public:
@@ -87,8 +87,8 @@ public:
     /// Definition of the indextype
     typedef std::size_t                                                            IndexType;
 
-    /// Pointer definition of SPRMetricProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SPRMetricProcess);
+    /// Pointer definition of SPRErrorProcess
+    KRATOS_CLASS_POINTER_DEFINITION(SPRErrorProcess);
     
     /// The Voigt notation size
     static constexpr SizeType SigmaSize = (TDim == 2) ? 3 : 6;
@@ -105,13 +105,13 @@ public:
      * @param ThisParameters The input parameters
      */
     
-    SPRMetricProcess(
+    SPRErrorProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
     
     /// Destructor.
-    virtual ~SPRMetricProcess() {}
+    virtual ~SPRErrorProcess() {}
     
     ///@}
     ///@name Operators
@@ -148,13 +148,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "SPRMetricProcess";
+        return "SPRErrorProcess";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "SPRMetricProcess";
+        rOStream << "SPRErrorProcess";
     }
 
     /// Print object"s data.
@@ -296,15 +296,15 @@ private:
     ///@{
     
     /// Assignment operator.
-    SPRMetricProcess& operator=(SPRMetricProcess const& rOther)
+    SPRErrorProcess& operator=(SPRErrorProcess const& rOther)
     {
         return *this;
     };
 
     /// Copy constructor.
-    //SPRMetricProcess(SPRMetricProcess const& rOther);
+    //SPRErrorProcess(SPRErrorProcess const& rOther);
 
-};// class SPRMetricProcess
+};// class SPRErrorProcess
 
 };// namespace Kratos.
-#endif /* KRATOS_SPR_ERROR_METRICS_PROCESS defined */
+#endif /* KRATOS_SPR_ERROR_PROCESS defined */

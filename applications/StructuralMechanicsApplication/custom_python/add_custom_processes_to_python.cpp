@@ -64,12 +64,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     //SPR_ERROR
-    class_<SPRMetricProcess<2>, SPRMetricProcess<2>::Pointer, Process >(m, "SPRMetricProcess2D")
+    class_<SPRErrorProcess<2>, SPRErrorProcess<2>::Pointer, Process >(m, "SPRErrorProcess2D")
     .def(init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
     ;
 
-    class_<SPRMetricProcess<3>, SPRMetricProcess<3>::Pointer, Process >(m, "SPRMetricProcess3D")
+    class_<SPRErrorProcess<3>, SPRErrorProcess<3>::Pointer, Process >(m, "SPRErrorProcess3D")
     .def(init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
     ;
