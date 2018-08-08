@@ -25,6 +25,7 @@ algorithm_settings = Parameters("""
     "obj_share_during_correction"   : 1
 }""")
 
+# lens and dirs are obtained from the initial iteration of a constrained optimization of a shell
 len_obj = 3.1113059839426676
 len_eqs = [9.116181801652377]
 len_ineqs = [0.0, 12.354599999999998]
