@@ -15,13 +15,13 @@
 // External includes
 
 // Project includes
-#include "custom_processes/metrics_spr_error_process.h"
+#include "custom_processes/spr_error_process.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos
 {
 template<SizeType TDim>
-SPRMetricProcess<TDim>::SPRMetricProcess(
+SPRErrorProcess<TDim>::SPRErrorProcess(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
     ): mThisModelPart(rThisModelPart)
@@ -45,7 +45,7 @@ SPRMetricProcess<TDim>::SPRMetricProcess(
 /***********************************************************************************/
     
 template<SizeType TDim>
-void SPRMetricProcess<TDim>::Execute()
+void SPRErrorProcess<TDim>::Execute()
 {
     // Getting process info
     ProcessInfo::Pointer p_process_info = mThisModelPart.pGetProcessInfo();
@@ -70,7 +70,7 @@ void SPRMetricProcess<TDim>::Execute()
     const double tolerance = std::numeric_limits<double>::epsilon();
     const double denominator = std::sqrt(std::pow(error_overall, 2) + std::pow(energy_norm_overall , 2));
     const double coeff = denominator < tolerance ? 1.0 : 1.0/denominator;
-    KRATOS_WARNING_IF("SPRMetricProcess", denominator < tolerance) << "Denominator of error estimate zero or almost zero " << denominator << std::endl;
+    KRATOS_WARNING_IF("SPRErrorProcess", denominator < tolerance) << "Denominator of error estimate zero or almost zero " << denominator << std::endl;
     p_process_info->SetValue(ENERGY_NORM_OVERALL, energy_norm_overall);
     p_process_info->SetValue(ERROR_OVERALL, error_overall);
     p_process_info->SetValue(ERROR_RATIO, coeff * error_overall);
@@ -80,7 +80,7 @@ void SPRMetricProcess<TDim>::Execute()
 /***********************************************************************************/
 
 template<SizeType TDim>
-void SPRMetricProcess<TDim>::CalculateSuperconvergentStresses()
+void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
 {
     FindNodalNeighboursProcess find_neighbours(mThisModelPart);
     find_neighbours.Execute();
@@ -93,7 +93,7 @@ void SPRMetricProcess<TDim>::CalculateSuperconvergentStresses()
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
         auto it_node = nodes_array.begin() + i_node;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_ELEMENTS)) << "SPRMetricProcess:: Search didn't work with elements" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_ELEMENTS)) << "SPRErrorProcess:: Search didn't work with elements" << std::endl;
         const SizeType neighbour_size = it_node->GetValue(NEIGHBOUR_ELEMENTS).size();
 
         Vector sigma_recovered(SigmaSize, 0.0);
@@ -102,9 +102,9 @@ void SPRMetricProcess<TDim>::CalculateSuperconvergentStresses()
             CalculatePatch(it_node, it_node, neighbour_size,sigma_recovered);
             it_node->SetValue(RECOVERED_STRESS, sigma_recovered);
 
-            KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
+            KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
         } else {
-            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_NODES)) << "SPRMetricProcess:: Search didn't work with nodes" << std::endl;
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(NEIGHBOUR_NODES)) << "SPRErrorProcess:: Search didn't work with nodes" << std::endl;
             auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             for(auto it_neighbour_nodes = neigh_nodes.begin(); it_neighbour_nodes != neigh_nodes.end(); it_neighbour_nodes++) {
 
@@ -126,7 +126,7 @@ void SPRMetricProcess<TDim>::CalculateSuperconvergentStresses()
             }
 
             it_node->SetValue(RECOVERED_STRESS,sigma_recovered);
-            KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
+            KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 2) << "Recovered sigma: " << sigma_recovered << std::endl;
         }
     }
 }
@@ -135,7 +135,7 @@ void SPRMetricProcess<TDim>::CalculateSuperconvergentStresses()
 /***********************************************************************************/
 
 template<SizeType TDim>
-void SPRMetricProcess<TDim>::CalculateErrorEstimation(
+void SPRErrorProcess<TDim>::CalculateErrorEstimation(
     double& rEnergyNormOverall,
     double& rErrorOverall
     )
@@ -155,7 +155,7 @@ void SPRMetricProcess<TDim>::CalculateErrorEstimation(
         const auto& process_info = mThisModelPart.GetProcessInfo();
         it_elem->GetValueOnIntegrationPoints(ERROR_INTEGRATION_POINT, error_integration_point, process_info);
 
-        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Error GP:" << error_integration_point << std::endl;
+        KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 2) << "Error GP:" << error_integration_point << std::endl;
         
         // We compute the error overall 
         double error_energy_norm = 0.0;
@@ -176,14 +176,14 @@ void SPRMetricProcess<TDim>::CalculateErrorEstimation(
         energy_norm_overall += energy_norm;
         energy_norm= std::sqrt(energy_norm);
 
-        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 2) << "Element Id:" << it_elem->Id() << ". Element error: " << error_energy_norm << ". Energy norm: " << energy_norm << std::endl;
+        KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 2) << "Element Id:" << it_elem->Id() << ". Element error: " << error_energy_norm << ". Energy norm: " << energy_norm << std::endl;
     }
 
     rErrorOverall = std::sqrt(error_overall);
     rEnergyNormOverall = std::sqrt(energy_norm_overall);
     double error_percentage = rErrorOverall/std::sqrt((std::pow(rErrorOverall, 2) + std::pow(rEnergyNormOverall, 2)));
 
-    KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 1)
+    KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 1)
         << "Overall error norm: " << rErrorOverall << std::endl
         << "Overall energy norm: "<< rEnergyNormOverall << std::endl
         << "Error in percent: " << error_percentage << std::endl;
@@ -193,7 +193,7 @@ void SPRMetricProcess<TDim>::CalculateErrorEstimation(
 /***********************************************************************************/
 
 template<SizeType TDim>
-void SPRMetricProcess<TDim>::CalculatePatch(
+void SPRErrorProcess<TDim>::CalculatePatch(
     NodeItType itNode,
     NodeItType itPatchNode,
     SizeType NeighbourSize,
@@ -226,7 +226,7 @@ void SPRMetricProcess<TDim>::CalculatePatch(
 /***********************************************************************************/
     
 template<SizeType TDim>
-void SPRMetricProcess<TDim>::CalculatePatchStandard(
+void SPRErrorProcess<TDim>::CalculatePatchStandard(
     NodeItType itNode,
     NodeItType itPatchNode,
     SizeType NeighbourSize,
@@ -248,7 +248,7 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
         it_elem->GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,stress_vector,mThisModelPart.GetProcessInfo());
         it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,mThisModelPart.GetProcessInfo());
 
-        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3)
+        KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3)
         << "\tStress: " << stress_vector[0] << std::endl
         << "\tx: " << coordinates_vector[0][0] << "\ty: " << coordinates_vector[0][1] << "\tz_coordinate: " << coordinates_vector[0][2] << std::endl;
         
@@ -269,18 +269,18 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
     double det;
     BoundedMatrix<double, TDim + 1, TDim + 1> invA = MathUtils<double>::InvertMatrix<TDim + 1>(A, det, -1.0); // We consider a negative tolerance in order to avoid error
 
-    KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl << invA << std::endl << det<< std::endl;
+    KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3) << A << std::endl << invA << std::endl << det<< std::endl;
 
     // We do a little correction trick in case of almost zero determinant
     const double tolerance = std::numeric_limits<double>::epsilon();
     if(det < tolerance){
-        KRATOS_WARNING_IF("SPRMetricProcess", mEchoLevel == 2) << A << std::endl;
+        KRATOS_WARNING_IF("SPRErrorProcess", mEchoLevel == 2) << A << std::endl;
         for( IndexType i = 0; i < TDim + 1;i++){
             for( IndexType j = 0; j < TDim + 1; j++)
                 A(i,j) += 0.001;
         }
         invA = MathUtils<double>::InvertMatrix<TDim + 1>(A,det);
-        KRATOS_WARNING_IF("SPRMetricProcess", mEchoLevel > 0) << "det: " << det << std::endl;
+        KRATOS_WARNING_IF("SPRErrorProcess", mEchoLevel > 0) << "det: " << det << std::endl;
     }
 
     const BoundedMatrix<double, TDim + 1, SigmaSize> coeff = prod(invA, b);
@@ -301,7 +301,7 @@ void SPRMetricProcess<TDim>::CalculatePatchStandard(
 /***********************************************************************************/
 
 template<SizeType TDim>
-void SPRMetricProcess<TDim>::CalculatePatchContact(
+void SPRErrorProcess<TDim>::CalculatePatchContact(
     NodeItType itNode,
     NodeItType itPatchNode,
     SizeType NeighbourSize,
@@ -329,7 +329,7 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
         it_elem->GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,stress_vector, process_info);
         it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector, process_info);
 
-        KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3)
+        KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3)
         << "\tElement: " << it_elem->Id() << std::endl
         << "\tStress: " << stress_vector[0] << std::endl
         << "\tX: " << coordinates_vector[0][0] << "\tY: " << coordinates_vector[0][1] << "\tZ: " << coordinates_vector[0][2] << std::endl;
@@ -490,7 +490,7 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     }
 
     // Computing coefficients a: A*a=b
-    KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl;
+    KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3) << A << std::endl;
     
     Vector coeff(SigmaSize * (TDim+1));
     Vector b_vector = row(b, 0);
@@ -514,13 +514,13 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     noalias(sigma) = prod(p_k, coeff_matrix);
     noalias(rSigmaRecovered) = row(sigma,0);
     
-    KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 1) <<" Recovered pressure: "<< prod(N_k,sigma) <<", LM: "<<itNode->GetValue(CONTACT_PRESSURE)<<std::endl;
+    KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 1) <<" Recovered pressure: "<< prod(N_k,sigma) <<", LM: "<<itNode->GetValue(CONTACT_PRESSURE)<<std::endl;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SPRMetricProcess<2>;
-template class SPRMetricProcess<3>;
+template class SPRErrorProcess<2>;
+template class SPRErrorProcess<3>;
 
 };// namespace Kratos.

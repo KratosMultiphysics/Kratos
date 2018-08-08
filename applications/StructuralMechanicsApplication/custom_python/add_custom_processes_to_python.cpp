@@ -25,7 +25,7 @@
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
-#include "custom_processes/metrics_spr_error_process.h"
+#include "custom_processes/spr_error_process.h"
 
 namespace Kratos
 {
