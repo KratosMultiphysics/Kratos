@@ -15,6 +15,7 @@
 
 /* System includes */
 #include <unordered_set>
+#include <unordered_map>
 
 /* External includes */
 // #define USE_GOOGLE_HASH
@@ -110,7 +111,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
     typedef AuxilaryGlobalMasterSlaveRelation AuxilaryGlobalMasterSlaveRelationType;
 
-    typedef PointerVectorSet<AuxilaryGlobalMasterSlaveRelationType, IndexedObject> GlobalMasterSlaveRelationContainerType;
+    //typedef PointerVectorSet<AuxilaryGlobalMasterSlaveRelationType, IndexedObject> GlobalMasterSlaveRelationContainerType;
+    typedef std::unordered_map< IndexType, unique_ptr< AuxilaryGlobalMasterSlaveRelationType > > GlobalMasterSlaveRelationContainerType;
 
     typedef std::vector<IndexType> EquationIdVectorType;
     typedef std::vector<IndexType> VectorIndexType;
@@ -645,13 +647,20 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         int slave_count = 0;
         for (auto &slave_equation_id : rSlaveEquationIdVector)
         {
-            int master_count = 0;
+            /*int master_count = 0;
             auto global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
             if (global_constraint == mGlobalMasterSlaveRelations.end())
             {
                 mGlobalMasterSlaveRelations.insert(mGlobalMasterSlaveRelations.begin(), Kratos::make_shared<AuxilaryGlobalMasterSlaveRelationType>(slave_equation_id));
                 global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
+            }*/
+            int master_count = 0;
+            if (mGlobalMasterSlaveRelations.count(slave_equation_id) == 0 )
+            {
+                mGlobalMasterSlaveRelations[slave_equation_id] = Kratos::make_unique<AuxilaryGlobalMasterSlaveRelationType>(slave_equation_id);
             }
+
+            auto& global_constraint = mGlobalMasterSlaveRelations[slave_equation_id];
             for (auto &master_equation_id : rMasterEquationIdVector)
             {
                 global_constraint->AddMaster(master_equation_id, rRelationMatrix(slave_count, master_count));
@@ -674,12 +683,15 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // Getting the beginning iterator
 
         GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveRelations.begin();
-
+#pragma omp parallel for schedule(guided, 512) firstprivate(number_of_constraints, constraints_begin)
         for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
-            GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
-            it->SetLHSValue(0.0);
-            it->SetRHSValue(0.0);
+            //GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
+            GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin;
+            std::advance(it, i_constraints);
+
+            (it->second)->SetLHSValue(0.0);
+            (it->second)->SetRHSValue(0.0);
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ResetConstraintRelations failed ..");
     }
@@ -755,8 +767,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             slave_value_calc += constant_vector[slave_index];
             slave_value = slave_dof->GetSolutionStepValue();
             auto global_constraint = mGlobalMasterSlaveRelations.find(slave_dof->EquationId());
-            global_constraint->SetLHSValue(slave_value);
-            global_constraint->UpdateRHSValue(slave_value_calc);
+            global_constraint->second->SetLHSValue(slave_value);
+            global_constraint->second->UpdateRHSValue(slave_value_calc);
             slave_index++;
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::UpdateMasterSlaveConstraint failed ..");
@@ -796,7 +808,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
             if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
             { // if a equation exists for this slave
-                global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids); // get the slave and master equation ids for this slave.
+                global_master_slave_constraint->second->EquationIdVector(slave_equation_id, master_equation_ids); // get the slave and master equation ids for this slave.
                 rEquationIds.reserve(master_equation_ids.size());
                 for (auto &master_eq_id : master_equation_ids)
                 {
@@ -958,8 +970,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             KRATOS_DEBUG_ERROR_IF (global_master_slave_constraint == mGlobalMasterSlaveRelations.end()) <<
                              "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
 
-            global_master_slave_constraint->EquationIdVector(slave_equation_id, master_equation_ids);
-            global_master_slave_constraint->CalculateLocalSystem(master_weights_vector, slave_constant);
+            global_master_slave_constraint->second->EquationIdVector(slave_equation_id, master_equation_ids);
+            global_master_slave_constraint->second->CalculateLocalSystem(master_weights_vector, slave_constant);
             for (IndexType i_master = 0; i_master < master_equation_ids.size(); ++i_master)
             {
                 rTransformationMatrixLocal(slave_index, i_masters_total) += master_weights_vector(i_master);
@@ -998,7 +1010,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
             if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
             {
-                global_master_slave_constraint->CalculateLocalSystem(master_weights_vector, slave_constant);
+                global_master_slave_constraint->second->CalculateLocalSystem(master_weights_vector, slave_constant);
                 rConstantVectorLocal(slave_index) = slave_constant;
             }
             else
@@ -1106,13 +1118,15 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 #pragma omp parallel for schedule(guided, 512) firstprivate(number_of_constraints, constraints_begin, slave_equation_id, master_equation_ids, master_weights_vector, constant)
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
-            GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
+            //GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
+            GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin;
+            std::advance(it, i_constraints);
 
             slave_dx_value = 0.0;
             //get the equation Ids of the constraint
-            it->EquationIdVector(slave_equation_id, master_equation_ids);
+            (it->second)->EquationIdVector(slave_equation_id, master_equation_ids);
             //calculate constraint's T and b matrices
-            it->CalculateLocalSystem(master_weights_vector, constant);
+            (it->second)->CalculateLocalSystem(master_weights_vector, constant);
             int master_index = 0;
             for (auto &master_equation_id : master_equation_ids)
             {
