@@ -35,7 +35,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             "max_step_length"               : 1.0,
             "step_length_tolerance"         : 1e-3,
             "step_length_reduction_factor"  : 0.5,
-            "min_share_objective"           : 0.1,
             "max_iterations"                : 10,
             "far_away_length"               : 2.0,
             "subopt_max_itr"                : 50,
