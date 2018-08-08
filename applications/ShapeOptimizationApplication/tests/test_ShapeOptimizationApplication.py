@@ -35,6 +35,7 @@ from shape_optimization_test_factory import opt_process_weighted_eigenfrequency_
 from shape_optimization_test_factory import algorithm_steepest_descent_test as algorithm_steepest_descent_test
 from shape_optimization_test_factory import algorithm_penalized_projection_test as algorithm_penalized_projection_test
 from shape_optimization_test_factory import algorithm_trust_region_test as algorithm_trust_region_test
+from shape_optimization_test_factory import trust_region_projector_test as trust_region_projector_test
 
 # Niglty tests
 
@@ -68,6 +69,7 @@ def AssambleTestSuites():
     smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
     smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))
     smallSuite.addTest(algorithm_trust_region_test('test_execution'))
+    smallSuite.addTest(trust_region_projector_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
