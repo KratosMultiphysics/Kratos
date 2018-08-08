@@ -24,8 +24,25 @@
 namespace Kratos {
 	namespace Testing {
 
-		typedef ModelPart::IndexType									 IndexType;
-		typedef ModelPart::NodeIterator					          NodeIteratorType;
+		typedef ModelPart::IndexType IndexType;
+		typedef ModelPart::NodeIterator NodeIteratorType;
+
+		void GenerateElement(ModelPart& rModelPart)
+		{
+			// Variables addition
+			rModelPart.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
+			rModelPart.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);			
+
+			// Set the element properties
+			Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
+
+			// Geometry creation
+			rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+			rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+			rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
+			rModelPart.CreateNewElement("CompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
+		}
 
 	    /** Checks the CompressiblePotentialFlowElement element.
 	     * Checks the LHS and RHS computation.
@@ -34,20 +51,7 @@ namespace Kratos {
 		{
 
 			ModelPart modelPart("Main");
-
-			// Variables addition
-			modelPart.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);		
-
-			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
-
-			// Geometry creation
-			modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-			modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-			modelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
-			modelPart.CreateNewElement("CompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
-
+			GenerateElement(modelPart);
 			Element::Pointer pElement = modelPart.pGetElement(1);
 
 			// Define the nodal values
@@ -56,9 +60,8 @@ namespace Kratos {
 			potential(1) = 2.0;
 			potential(2) = 3.0;
 
-			for(unsigned int i=0; i<3; i++){
+			for(unsigned int i=0; i<3; i++)
 				pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = potential(i);
-			}
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(3);
@@ -80,44 +83,26 @@ namespace Kratos {
 		{
 
 			ModelPart modelPart("Main");
-
-			// Variables addition
-			modelPart.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);		
-
-			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
-
-			// Geometry creation
-			modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-			modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-			modelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
-			modelPart.CreateNewElement("CompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
-
+			GenerateElement(modelPart);
 			Element::Pointer pElement = modelPart.pGetElement(1);
 
-			for(unsigned int i=0; i<3; i++){
+			for(unsigned int i=0; i<3; i++)
 				pElement->GetGeometry()[i].AddDof(POSITIVE_FACE_PRESSURE);
-			}
 
 			Element::DofsVectorType ElementalDofList;
 			pElement->GetDofList(ElementalDofList,modelPart.GetProcessInfo());
 
 			for (int i = 0; i < 3; i++)
-        	{
-        	    ElementalDofList[i]->SetEquationId(i);	
-        	}
+				ElementalDofList[i]->SetEquationId(i);        	
 
 			Element::EquationIdVectorType EquationIdVector;
-
 			pElement->EquationIdVector(EquationIdVector, modelPart.GetProcessInfo());
 
 			// Check the EquationIdVector values
-			KRATOS_CHECK_NEAR(EquationIdVector[0], 0, 1e-7);
-			KRATOS_CHECK_NEAR(EquationIdVector[1], 1, 1e-7);
-			KRATOS_CHECK_NEAR(EquationIdVector[2], 2, 1e-7);
+			KRATOS_CHECK(EquationIdVector[0] == 0);
+			KRATOS_CHECK(EquationIdVector[1] == 1);
+			KRATOS_CHECK(EquationIdVector[2] == 2);
 		}
-
 
 		/** Checks the CompressiblePotentialFlowElement element.
 	     * Checks the EquationIdVector for the Wake.
@@ -126,21 +111,7 @@ namespace Kratos {
 		{
 
 			ModelPart modelPart("Main");
-
-			// Variables addition
-			modelPart.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
-			modelPart.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);			
-
-			// Set the element properties
-			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
-
-			// Geometry creation
-			modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-			modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-			modelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
-			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
-			modelPart.CreateNewElement("CompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
-
+			GenerateElement(modelPart);
 			Element::Pointer pElement = modelPart.pGetElement(1);
 			pElement->Set(MARKER,true);
 
@@ -159,21 +130,18 @@ namespace Kratos {
 			pElement->GetDofList(ElementalDofList,modelPart.GetProcessInfo());
 
 			for (int i = 0; i < 6; i++)
-        	{
-        	    ElementalDofList[i]->SetEquationId(i);	
-        	}
+				ElementalDofList[i]->SetEquationId(i);
 
 			Element::EquationIdVectorType EquationIdVector;
-
 			pElement->EquationIdVector(EquationIdVector, modelPart.GetProcessInfo());
 
-			// // Check the EquationIdVector values
-			KRATOS_CHECK_NEAR(EquationIdVector[0], 0, 1e-7);
-			KRATOS_CHECK_NEAR(EquationIdVector[1], 1, 1e-7);
-			KRATOS_CHECK_NEAR(EquationIdVector[2], 2, 1e-7);
-			KRATOS_CHECK_NEAR(EquationIdVector[3], 3, 1e-7);
-			KRATOS_CHECK_NEAR(EquationIdVector[4], 4, 1e-7);
-			KRATOS_CHECK_NEAR(EquationIdVector[5], 5, 1e-7);
+			//Check the EquationIdVector values
+			KRATOS_CHECK(EquationIdVector[0] == 0);
+			KRATOS_CHECK(EquationIdVector[1] == 1);
+			KRATOS_CHECK(EquationIdVector[2] == 2);
+			KRATOS_CHECK(EquationIdVector[3] == 3);
+			KRATOS_CHECK(EquationIdVector[4] == 4);
+			KRATOS_CHECK(EquationIdVector[5] == 5);
 		}
 	} // namespace Testing
 }  // namespace Kratos.
