@@ -24,7 +24,7 @@ namespace Kratos
 {
 
 AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(Element::Pointer pPrimalElement)
-                    : AdjointFiniteDifferencingBaseElement(pPrimalElement) {}
+                    : AdjointFiniteDifferencingBaseElement(pPrimalElement, true) {}
 
 AdjointFiniteDifferencingShellElement::~AdjointFiniteDifferencingShellElement() {}
 
