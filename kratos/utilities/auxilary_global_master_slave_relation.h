@@ -71,7 +71,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief Function to set the lefthand side of the constraint (the slave dof value)
      * @param LhsValue the value of the lhs (the slave dof value)
      */
-    void SetLHSValue(const double& LhsValue)
+    void SetLHSValue(const double LhsValue)
     {
         mLockObject.SetLock();
             mLhsValue = LhsValue;
@@ -82,7 +82,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
      * @param RHSValue the value of the lhs (the slave dof value)
      */
-    void SetRHSValue(const double& RhsValue)
+    void SetRHSValue(const double RhsValue)
     {
         mRhsValue = RhsValue;
     }
