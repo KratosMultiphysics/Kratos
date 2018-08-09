@@ -14,7 +14,7 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 
-#include "iga_structural_mechanics_application_variables.h"
+#include "iga_application_variables.h"
 #include "custom_conditions/curve_base_discrete_condition.h"
 
 
