@@ -25,6 +25,9 @@
 #include "includes/variables.h"
 
 #include "custom_elements/truss_discrete_element.h"
+#include "custom_elements/shell_kl_discrete_element.h"
+
+#include "custom_conditions/support_penalty_curve_discrete_condition.h"
 
 namespace Kratos {
 
@@ -162,7 +165,9 @@ private:
     ///@{
 
     const TrussDiscreteElement mTrussDiscreteElement;
+    const ShellKLDiscreteElement mShellKLDiscreteElement;
 
+    const SupportPenaltyCurveDiscreteCondition mSupportPenaltyCurveDiscreteCondition;
     ///@}
     ///@name Private Operators
     ///@{

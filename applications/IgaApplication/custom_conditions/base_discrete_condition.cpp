@@ -13,69 +13,23 @@
 
 // System includes
 #include "includes/define.h"
+#include "utilities/math_utils.h"
 
 // External includes
 
 // Project includes
-#include "custom_elements/base_discrete_element.h"
+#include "custom_conditions/base_discrete_condition.h"
 
 #include "iga_application.h"
 #include "iga_application_variables.h"
 
+#include "geometries/geometry.h"
 
 namespace Kratos
 {
-    void BaseDiscreteElement::Initialize()
-    {
-        KRATOS_TRY
-
-        //Constitutive Law initialisation
-        if (mConstitutiveLawVector.size() != 1)
-            mConstitutiveLawVector.resize(1);
-
-        InitializeMaterial();
-
-        KRATOS_CATCH("")
-    }
-
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::InitializeMaterial()
-    {
-        KRATOS_TRY
-
-        if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-            mConstitutiveLawVector[0] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[0]->InitializeMaterial(GetProperties(),
-                GetGeometry(),
-                GetValue(SHAPE_FUNCTION_VALUES)
-            );
-        }
-        else
-            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void BaseDiscreteElement::ResetConstitutiveLaw()
-    {
-        KRATOS_TRY
-
-        if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-            mConstitutiveLawVector[0]->ResetMaterial(GetProperties(),
-                GetGeometry(),
-                GetValue(SHAPE_FUNCTION_VALUES)
-            );
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void BaseDiscreteElement::EquationIdVector(
+    void BaseDiscreteCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
     )
@@ -101,7 +55,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::GetDofList(
+    void BaseDiscreteCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo
     )
@@ -124,7 +78,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::CalculateRightHandSide(
+    void BaseDiscreteCondition::CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
     )
@@ -139,7 +93,8 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+    void BaseDiscreteCondition::CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo)
     {
         // Calculation flags
@@ -152,7 +107,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::CalculateLocalSystem(
+    void BaseDiscreteCondition::CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
@@ -166,83 +121,9 @@ namespace Kratos
     }
 
     /***********************************************************************************/
-    /***********************************************************************************/
-    void BaseDiscreteElement::CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        KRATOS_ERROR << "You have called to the CalculateMassMatrix() from the base class BaseDiscreteElement" << std::endl;
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void BaseDiscreteElement::CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        KRATOS_TRY;
-        const int number_of_control_points = GetGeometry().size();
-
-        // Resizing as needed the LHS
-        const int mat_size = number_of_control_points * 3;
-
-        if (rDampingMatrix.size1() != mat_size)
-            rDampingMatrix.resize(mat_size, mat_size, false);
-
-        noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
-
-        // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-        double alpha = 0.0;
-        if (GetProperties().Has(RAYLEIGH_ALPHA))
-            alpha = GetProperties()[RAYLEIGH_ALPHA];
-        else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
-            alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-
-        double beta = 0.0;
-        if (GetProperties().Has(RAYLEIGH_BETA))
-            beta = GetProperties()[RAYLEIGH_BETA];
-        else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
-            beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-
-        // Rayleigh Damping Matrix: alpha*M + beta*K
-
-        // 2.-Calculate StiffnessMatrix:
-        if (beta > 0.0)
-        {
-            MatrixType StiffnessMatrix = Matrix();
-            VectorType ResidualVector = Vector();
-            this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
-            noalias(rDampingMatrix) += beta * StiffnessMatrix;
-        }
-
-        // 3.-Calculate MassMatrix:
-        if (alpha > 0.0)
-        {
-            MatrixType MassMatrix = Matrix();
-            this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
-            noalias(rDampingMatrix) += alpha * MassMatrix;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-
-    /***********************************************************************************/
     /// Calculate
     /***********************************************************************************/
-    void BaseDiscreteElement::Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        mConstitutiveLawVector[0]->GetValue(rVariable, rOutput);
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void BaseDiscreteElement::Calculate(
+    void BaseDiscreteCondition::Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
@@ -266,15 +147,31 @@ namespace Kratos
             }
             rOutput = velocity;
         }
+        else if (rVariable == DISPLACEMENT) {
+            const int& number_of_nodes = GetGeometry().size();
+            Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+
+            array_1d<double, 3> displacements = ZeroVector(3);
+            for (SizeType i = 0; i < number_of_nodes; i++)
+            {
+                const NodeType& iNode = GetGeometry()[i];
+                const array_1d<double, 3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT);
+
+                displacements[0] += N[i] * disp[0];
+                displacements[1] += N[i] * disp[1];
+                displacements[2] += N[i] * disp[2];
+            }
+            rOutput = displacements;
+        }
         else
         {
-            mConstitutiveLawVector[0]->GetValue(rVariable, rOutput);
+            Condition::Calculate(rVariable, rOutput, rCurrentProcessInfo);
         }
     }
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::Calculate(
+    void BaseDiscreteCondition::Calculate(
         const Variable<Vector>& rVariable,
         Vector& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
@@ -309,91 +206,100 @@ namespace Kratos
             }
             rOutput = condition_coords;
         }
+        //else if (rVariable == SURFACE_NORMAL) {
+        //    const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+        //    Matrix Jacobian(3,2);
+        //    CalculateJacobian(DN_De, Jacobian, 3, 2);
+
+        //    Vector g1 = ZeroVector(3);
+        //    Vector g2 = ZeroVector(3);
+        //    Vector g3 = ZeroVector(3);
+
+        //    g1[0] = Jacobian(0, 0);
+        //    g2[0] = Jacobian(0, 1);
+        //    g1[1] = Jacobian(1, 0);
+        //    g2[1] = Jacobian(1, 1);
+        //    g1[2] = Jacobian(2, 0);
+        //    g2[2] = Jacobian(2, 1);
+
+        //    MathUtils<double>::CrossProduct(g3, g1, g2);
+
+        //    rOutput = g3;
+        //}
         else {
-            mConstitutiveLawVector[0]->GetValue(rVariable, rOutput);
+            Condition::Calculate(rVariable, rOutput, rCurrentProcessInfo);
         }
     }
 
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void BaseDiscreteElement::Calculate(
-        const Variable<Matrix >& rVariable,
-        Matrix& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        mConstitutiveLawVector[0]->GetValue(rVariable, rOutput);
-    }
+    ///***********************************************************************************/
+    ///// SetValuesOnIntegrationPoints
+    ///***********************************************************************************/
+    //void BaseDiscreteCondition::SetValuesOnIntegrationPoints(
+    //    const Variable<double>& rVariable,
+    //    std::vector<double>& rValues,
+    //    const ProcessInfo& rCurrentProcessInfo)
+    //{
+    //    mConstitutiveLawVector[0]->SetValue(rVariable,
+    //        rValues[0],
+    //        rCurrentProcessInfo
+    //    );
+    //}
 
-    /***********************************************************************************/
-    /// SetValuesOnIntegrationPoints
-    /***********************************************************************************/
-    void BaseDiscreteElement::SetValuesOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        mConstitutiveLawVector[0]->SetValue(rVariable,
-            rValues[0],
-            rCurrentProcessInfo
-        );
-    }
+    ///***********************************************************************************/
+    ///***********************************************************************************/
+    //void BaseDiscreteCondition::SetValuesOnIntegrationPoints(
+    //    const Variable<Vector>& rVariable,
+    //    std::vector<Vector>& rValues,
+    //    const ProcessInfo& rCurrentProcessInfo)
+    //{
+    //    const int number_of_control_points = GetGeometry().size();
+    //    const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void BaseDiscreteElement::SetValuesOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        const int number_of_control_points = GetGeometry().size();
-        const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
+    //    if (rVariable == EXTERNAL_FORCES_VECTOR) {
+    //        for (SizeType i = 0; i < number_of_control_points; i++)
+    //        {
+    //            NodeType & iNode = GetGeometry()[i];
 
-        if (rVariable == EXTERNAL_FORCES_VECTOR) {
-            for (SizeType i = 0; i < number_of_control_points; i++)
-            {
-                NodeType & iNode = GetGeometry()[i];
+    //            Vector external_variable = N[i] * rValues[0] + iNode.GetValue(rVariable);
+    //            iNode.SetValue(rVariable, external_variable);
+    //        }
+    //    }
+    //    else
+    //    {
+    //        mConstitutiveLawVector[0]->SetValue(rVariable,
+    //            rValues[0],
+    //            rCurrentProcessInfo
+    //        );
+    //    }
+    //}
 
-                Vector external_variable = N[i] * rValues[0] + iNode.GetValue(rVariable);
-                iNode.SetValue(rVariable, external_variable);
-            }
-        }
-        else
-        {
-            mConstitutiveLawVector[0]->SetValue(rVariable,
-                rValues[0],
-                rCurrentProcessInfo
-            );
-        }
-    }
+    ///***********************************************************************************/
+    ///***********************************************************************************/
+    //void BaseDiscreteCondition::SetValuesOnIntegrationPoints(
+    //    const Variable<Matrix>& rVariable,
+    //    std::vector<Matrix>& rValues,
+    //    const ProcessInfo& rCurrentProcessInfo)
+    //{
+    //    mConstitutiveLawVector[0]->SetValue(rVariable,
+    //        rValues[0],
+    //        rCurrentProcessInfo
+    //    );
+    //}
 
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void BaseDiscreteElement::SetValuesOnIntegrationPoints(
-        const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        mConstitutiveLawVector[0]->SetValue(rVariable,
-            rValues[0],
-            rCurrentProcessInfo
-        );
-    }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void BaseDiscreteElement::SetValuesOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rVariable == CONSTITUTIVE_LAW)
-            mConstitutiveLawVector[0] = rValues[0];
-    }
+    ///***********************************************************************************/
+    ///***********************************************************************************/
+    //void BaseDiscreteCondition::SetValuesOnIntegrationPoints(
+    //    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    //    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    //    const ProcessInfo& rCurrentProcessInfo)
+    //{
+    //    if (rVariable == CONSTITUTIVE_LAW)
+    //        mConstitutiveLawVector[0] = rValues[0];
+    //}
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::GetValuesVector(
+    void BaseDiscreteCondition::GetValuesVector(
         Vector& rValues,
         int Step)
     {
@@ -416,7 +322,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::GetFirstDerivativesVector(
+    void BaseDiscreteCondition::GetFirstDerivativesVector(
         Vector& rValues,
         int Step)
     {
@@ -438,7 +344,7 @@ namespace Kratos
 
     /***********************************************************************************/
     /***********************************************************************************/
-    void BaseDiscreteElement::GetSecondDerivativesVector(
+    void BaseDiscreteCondition::GetSecondDerivativesVector(
         Vector& rValues,
         int Step)
     {
@@ -460,30 +366,29 @@ namespace Kratos
 
     //************************************************************************************/
     //************************************************************************************/
-    void BaseDiscreteElement::CalculateAll(
+    void BaseDiscreteCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag)
     {
-        KRATOS_ERROR << "You have called to the CalculateAll() from the base class BaseDiscreteElement" << std::endl;
+        KRATOS_ERROR << "You have called to the CalculateAll() from the base class BaseDiscreteCondition" << std::endl;
     }
 
     //***********************************************************************************/
     //***********************************************************************************/
-    void BaseDiscreteElement::Jacobian(const Matrix& DN_De,
+    void BaseDiscreteCondition::CalculateJacobian(const Matrix& DN_De,
         Matrix& Jacobian,
         const int rWorkingSpaceDimension,
-        const int rLocalSpaceDimension) const
+        const int rLocalSpaceDimension)
     {
         const int number_of_control_points = GetGeometry().size();
 
-		if ((Jacobian.size1() != rWorkingSpaceDimension) || (Jacobian.size2() != rLocalSpaceDimension))
-			Jacobian.resize(rWorkingSpaceDimension, rLocalSpaceDimension);
-		noalias(Jacobian) = ZeroMatrix(rWorkingSpaceDimension, rLocalSpaceDimension);
-        
-		for (unsigned int i = 0; i < number_of_control_points; i++)
+        Jacobian.resize(rWorkingSpaceDimension, rLocalSpaceDimension);
+
+        Jacobian.clear();
+        for (unsigned int i = 0; i < number_of_control_points; i++)
         {
             for (unsigned int k = 0; k<rWorkingSpaceDimension; k++)
             {
@@ -498,5 +403,3 @@ namespace Kratos
 /***********************************************************************************/
 /***********************************************************************************/
 } // Namespace Kratos
-
-

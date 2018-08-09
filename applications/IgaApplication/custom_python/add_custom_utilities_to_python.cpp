@@ -24,6 +24,8 @@
 #include "custom_utilities/node_curve_geometry_3d.h"
 #include "custom_utilities/node_surface_geometry_3d.h"
 
+#include "custom_utilities/iga_flags.h"
+
 namespace py = pybind11;
 
 namespace Kratos {
@@ -39,6 +41,7 @@ void AddCustomUtilitiesToPython(py::module& m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHAPE_FUNCTION_VALUES)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHAPE_FUNCTION_LOCAL_DERIVATIVES)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RAYLEIGH_ALPHA)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RAYLEIGH_BETA)
@@ -356,6 +359,14 @@ void AddCustomUtilitiesToPython(py::module& m)
                 "DomainV"_a)
         ;
     }
+
+    // add flags
+    iga_flags.attr("FIX_DISPLACEMENT_X") = IGAFlags::FIX_DISPLACEMENT_X;
+    iga_flags.attr("FIX_DISPLACEMENT_Y") = IGAFlags::FIX_DISPLACEMENT_Y;
+    iga_flags.attr("FIX_DISPLACEMENT_Z") = IGAFlags::FIX_DISPLACEMENT_Z;
+    iga_flags.attr("FIX_ROTATION_X") = IGAFlags::FIX_ROTATION_X;
+    iga_flags.attr("FIX_ROTATION_Y") = IGAFlags::FIX_ROTATION_Y;
+    iga_flags.attr("FIX_ROTATION_Z") = IGAFlags::FIX_ROTATION_Z;
 }
 
 } // namespace Python

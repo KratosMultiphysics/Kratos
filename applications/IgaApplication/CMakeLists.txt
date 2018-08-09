@@ -16,6 +16,13 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/curve_base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_discrete_element.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/curve_base_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/support_penalty_curve_discrete_condition.cpp
 )
 
 # define library Kratos which defines the basic python interface
