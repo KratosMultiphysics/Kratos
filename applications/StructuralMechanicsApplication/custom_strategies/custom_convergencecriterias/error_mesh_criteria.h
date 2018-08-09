@@ -24,8 +24,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 // Processes
-#include "custom_processes/metric_fast_init_process.h"
-#include "custom_processes/metrics_spr_error_process.h"
+#include "custom_processes/spr_error_process.h"
 
 namespace Kratos
 {
