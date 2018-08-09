@@ -97,7 +97,7 @@ class TimeBasedAsciiFileWriterUtility(object):
             for line in lines_existing_file:
                 new_lines+=line
                 time_in_file = float(line.split()[0])
-                if abs(time_in_file - restart_time) < 1e-20:
+                if abs(time_in_file - restart_time) < 1e-12:
                     is_found = True
                     break
 
