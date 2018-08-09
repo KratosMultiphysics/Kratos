@@ -752,8 +752,8 @@ class RemoveFluidNodesMesherProcess
           ++erased_nodes;
           ++inside_nodes_removed;
         }
-        else if( MinimumDistance < mrRemesh.Refine->CriticalRadius ){
-          distance = (mrRemesh.Refine->CriticalRadius - MinimumDistance);
+        else if( MinimumDistance < 1.5 * mrRemesh.Refine->CriticalRadius ){
+          distance = (1.5 * mrRemesh.Refine->CriticalRadius - MinimumDistance);
           this->MoveLayerNode(*it, Direction, distance);
         }
 
@@ -937,7 +937,7 @@ class RemoveFluidNodesMesherProcess
 
     KRATOS_TRY
 
-    std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<std::endl;
+    //std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<std::endl;
 
     const array_1d<double,3>& VelocityDirection = rNode.FastGetSolutionStepValue(VELOCITY);
 
@@ -949,7 +949,7 @@ class RemoveFluidNodesMesherProcess
     rNode.FastGetSolutionStepValue(DISPLACEMENT)   += sign * rDistance * rDirection;
     rNode.FastGetSolutionStepValue(DISPLACEMENT,1) += sign * rDistance * rDirection;
 
-    std::cout<<" Moved Node Post ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<std::endl;
+    //std::cout<<" Moved Node Post ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<std::endl;
 
     KRATOS_CATCH( "" )
   }

@@ -1001,7 +1001,7 @@ class SelectElementsMesherProcess
       rAlpha*=1.10;
 
     }
-    //all nodes are fluid (pre-existing elements) or new elements formed in the free-surface
+    //all nodes are fluid (pre-existing elements) or new elements formed inside of in the fulle free-surface
     else{ //fluid element
 
       //all nodes in the free-surface
@@ -1023,14 +1023,14 @@ class SelectElementsMesherProcess
         //three nodes in non-wall free-surface
         else if( rVerticesFlags.NoWallFreeSurface == 3 ){
           if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
-            rAlpha*=0.80;
+            rAlpha*=0.70;
           else
             rAlpha*=0.50;
         }
         //two nodes in non-wall free-surface
         else if( rVerticesFlags.NoWallFreeSurface == 2 ){
           if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
-            rAlpha*=0.80;
+            rAlpha*=0.70;
           else
             rAlpha*=0.50;
         }
@@ -1056,7 +1056,7 @@ class SelectElementsMesherProcess
       }
 
       //in 3D alpha must be larger
-      rAlpha*=1.20;
+      rAlpha*=1.10;
 
     }
 

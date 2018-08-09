@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosPfemFluidDynamicsApplication $
-//   Created by:          $Author:                   AFranci $
-//   Last modified by:    $Co-Author:                        $
-//   Date:                $Date:                October 2016 $
-//   Revision:            $Revision:                     0.0 $
+//   Project Name:        KratosPfemApplication     $
+//   Created by:          $Author:          AFranci $
+//   Last modified by:    $Co-Author:               $
+//   Date:                $Date:          July 2018 $
+//   Revision:            $Revision:            0.0 $
 //
 //
 
@@ -25,14 +25,6 @@
 #include "custom_utilities/mesher_utilities.hpp"
 #include "custom_processes/mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//StepData: CONTACT_FORCE, DISPLACEMENT
-//Flags:    (checked)
-//          (set)
-//          (modified)
-//          (reset)
-//(set):=(set in this process)
 
 namespace Kratos
 {
@@ -41,8 +33,8 @@ namespace Kratos
 ///@{
 
 /// Refine Mesh Elements Process 2D and 3D
-/** The process labels the nodes to be refined (TO_REFINE)
-    if the ThresholdVariable  is larger than a ReferenceThreshold
+/** Inserts as many nodes as were released in the removal process
+    the nodes are inserted in the edges of the largest elements
 */
 
 class InsertNewNodesMesherProcess
@@ -99,81 +91,59 @@ class InsertNewNodesMesherProcess
   {
     KRATOS_TRY
 
-        if( mEchoLevel > 1 )
-          std::cout<<" [ GENERATE NEW NODES for homomgeneous mesh: "<<std::endl;
+    if( mEchoLevel > 1 )
+      std::cout<<" [ INSERT NEW NODES for homomgeneous mesh: "<<std::endl;
 
     if( mrModelPart.Name() != mrRemesh.SubModelPartName )
       std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
 
-    const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-    double currentTime = rCurrentProcessInfo[TIME];
-    double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-    if(currentTime<2*timeInterval){
-      mrRemesh.Info->RemovedNodes=0;
-      if( mEchoLevel > 1 )
-	std::cout<<" First meshes: I repare the mesh without adding new nodes"<<std::endl;
-    }
+    // const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
-    unsigned int ElementsToRefine=0;
-    ElementsToRefine=mrRemesh.Info->RemovedNodes;
+    // double currentTime = rCurrentProcessInfo[TIME];
+    // double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+    // if(currentTime<2*timeInterval){
+    //   mrRemesh.Info->RemovedNodes=0;
+    //   if( mEchoLevel > 1 )
+    //     std::cout<<" First meshes: I repare the mesh without adding new nodes"<<std::endl;
+    // }
 
-    if(ElementsToRefine>0 && mEchoLevel > 1)
-      std::cout<<" I will look for "<<ElementsToRefine <<" new nodes"<<std::endl;
+    unsigned int ElementsToRefine = mrRemesh.Info->RemovedNodes;
 
-
-    if(ElementsToRefine>0 )
+    if( ElementsToRefine > 0 )
     {
-      std::vector<array_1d<double,3> > NewPositions;
-      std::vector<double > LargestVolumes;
-      std::vector<array_1d< unsigned int,4 > > NodesIDToInterpolate;
-      std::vector<Node<3>::DofsContainerType > NewDofs;
+      std::vector<array_1d<double,3> >         NewPositions(ElementsToRefine);
+      std::vector<array_1d< unsigned int,4 > > NodeIdsToInterpolate(ElementsToRefine);
+      std::vector<Node<3>::DofsContainerType > NewDofs(ElementsToRefine);
+      std::vector<double >                     LargestVolumes(ElementsToRefine);
+      std::fill(LargestVolumes.begin(), LargestVolumes.end(), -1 );
 
       unsigned int NodesToRefine=0;
 
-      NewPositions.resize(ElementsToRefine);
-      LargestVolumes.resize(ElementsToRefine);
-      NodesIDToInterpolate.resize(ElementsToRefine);
-      NewDofs.resize(ElementsToRefine);
-
-      std::fill(LargestVolumes.begin(), LargestVolumes.end(), -1 );
-
-
-      ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-
-      for(ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ++ie)
+      for(ModelPart::ElementsContainerType::const_iterator i_elem = mrModelPart.ElementsBegin(); i_elem != mrModelPart.ElementsEnd(); ++i_elem)
       {
 
-        const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
+        const unsigned int dimension = i_elem->GetGeometry().WorkingSpaceDimension();
 
-        //////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
         if(dimension==2){
-          SelectEdgeToRefine2D(ie->GetGeometry(),NewPositions,LargestVolumes,NodesIDToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
+          SelectEdgeToRefine2D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
         } else if(dimension==3){
-          SelectEdgeToRefine3D(ie->GetGeometry(),NewPositions,LargestVolumes,NodesIDToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
+          SelectEdgeToRefine3D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
         }
 
-      }// elements loop
-
-
-      // Here only splits as vertices as removed nodes !! without cheking the longest vertices
-      mrRemesh.Info->RemovedNodes -=ElementsToRefine;
-      if(NodesToRefine<ElementsToRefine){
-        mrRemesh.Info->RemovedNodes +=ElementsToRefine-NodesToRefine;
-        NewPositions.resize(NodesToRefine);
-        LargestVolumes.resize(NodesToRefine);
-        NodesIDToInterpolate.resize(NodesToRefine);
-        NewDofs.resize(NodesToRefine);
       }
 
+      mrRemesh.Info->InsertedNodes = NodesToRefine;
 
-      CreateAndAddNewNodes(NewPositions,NodesIDToInterpolate,NewDofs,ElementsToRefine);
+      // Here only splits as vertices as removed nodes ( without cheking the longest vertices )
+      this->CreateAndAddNewNodes(NewPositions,NodeIdsToInterpolate,NewDofs,ElementsToRefine);
 
-    }//if ElementsToRefine>0
+    }
 
-    mrRemesh.InputInitializedFlag=false;
+    //mrRemesh.InputInitializedFlag=false;
 
     if( mEchoLevel > 1 )
-      std::cout<<"   GENERATE NEW NODES ]; "<<std::endl;
+      std::cout<<"   INSERT NEW NODES ]; ("<<mrRemesh.Info->InsertedNodes<<")"<<std::endl;
+
 
     KRATOS_CATCH(" ")
   }
@@ -316,11 +286,11 @@ class InsertNewNodesMesherProcess
     array_1d<double,3> Edges(3,0.0);
     array_1d<unsigned int,3> FirstEdgeNode(3,0);
     array_1d<unsigned int,3> SecondEdgeNode(3,0);
+
     double WallCharacteristicDistance=0;
-    array_1d<double,3> CoorDifference = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
-    // array_1d<double,3> CoorDifference(3,0.0);
-    // noalias(CoorDifference) = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
-    // CoorDifference = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+    array_1d<double,3> CoorDifference;
+    noalias(CoorDifference) = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+
     double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
     Edges[0]=sqrt(SquaredLength);
     FirstEdgeNode[0]=0;
@@ -329,11 +299,11 @@ class InsertNewNodesMesherProcess
       WallCharacteristicDistance=Edges[0];
     }
     unsigned int Counter=0;
-    for (unsigned int i = 2; i < NumberOfNodes; ++i){
+    for (unsigned int i = 2; i < NumberOfNodes; ++i)
+    {
       for(unsigned int j = 0; j < i; ++j)
       {
         noalias(CoorDifference) = rGeometry[i].Coordinates() - rGeometry[j].Coordinates();
-        // CoorDifference = rGeometry[i].Coordinates() - rGeometry[j].Coordinates();
         SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1];
         Counter+=1;
         Edges[Counter]=sqrt(SquaredLength);
@@ -347,17 +317,16 @@ class InsertNewNodesMesherProcess
     }
 
     bool dangerousElement=false;
+
     if(rigid_nodes>1){
-      for (unsigned int i = 0; i < 3; ++i){
+
+      for (unsigned int i = 0; i < 3; ++i)
+      {
 	if((Edges[i]<WallCharacteristicDistance*length_tolerance && (rGeometry[FirstEdgeNode[i]].Is(RIGID) || rGeometry[SecondEdgeNode[i]].Is(RIGID))) ||
 	   (rGeometry[FirstEdgeNode[i]].Is(RIGID) && rGeometry[SecondEdgeNode[i]].Is(RIGID) )){
 	  Edges[i]=0;
 
 	}
-	// if(rGeometry[FirstEdgeNode[i]].Is(FREE_SURFACE) && rGeometry[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-	//   Edges[i]=0;
-	//   // Edges[i]*=penalizationFreeSurface;
-	// }
 	if((rGeometry[FirstEdgeNode[i]].Is(FREE_SURFACE) || rGeometry[FirstEdgeNode[i]].Is(RIGID))  &&
 	   (rGeometry[SecondEdgeNode[i]].Is(FREE_SURFACE)|| rGeometry[SecondEdgeNode[i]].Is(RIGID))){
 	  Edges[i]=0;
@@ -365,13 +334,13 @@ class InsertNewNodesMesherProcess
       }
 
     }
+
     if((Edges[0]==0 && Edges[1]==0 && Edges[2]==0) || rigid_nodes==3){
       dangerousElement=true;
     }
 
     if(dangerousElement==false && any_node_to_erase==false && nodes_to_split<2){
 
-      // array_1d<double,3> NewPosition(3,0.0);
       unsigned int maxCount=3;
       double LargestEdge=0;
 
@@ -384,9 +353,10 @@ class InsertNewNodesMesherProcess
       }
 
       if(rNodesToRefine<rElementsToRefine && LargestEdge>critical_edge_length){
-	array_1d<double,3> NewPosition=    (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
-	// noalias(NewPosition)=    (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
-	// NewPosition=    (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+
+	array_1d<double,3> NewPosition;
+	noalias(NewPosition)= 0.5*(rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates());
+
 	rNodeIdsToInterpolate[rNodesToRefine][0]=rGeometry[FirstEdgeNode[maxCount]].GetId();
 	rNodeIdsToInterpolate[rNodesToRefine][1]=rGeometry[SecondEdgeNode[maxCount]].GetId();
 
@@ -404,26 +374,27 @@ class InsertNewNodesMesherProcess
 	rLargestVolumes[rNodesToRefine]=ElementalVolume;
 	rNewPositions[rNodesToRefine]=NewPosition;
 	rNodesToRefine++;
-      }else  if (freesurface_nodes<3 && rigid_nodes<3 ){
 
+      }
+      else if( freesurface_nodes<3 && rigid_nodes<3 ){
 
 	ElementalVolume*=penalization;
 	for(int nn= 0; nn< rElementsToRefine; ++nn)
         {
           if(ElementalVolume>rLargestVolumes[nn]){
 
-
             bool suitableElement=true;
             if(maxCount<3 && LargestEdge>critical_edge_length){
-              array_1d<double,3> NewPosition=(rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
-              // noalias(NewPosition)=    (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
-              // NewPosition=    (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+              array_1d<double,3> NewPosition;
+              noalias(NewPosition) = 0.5*(rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates());
+
               for(int j= 0; j< rElementsToRefine; ++j)
               {
                 if(rNewPositions[j][0]==NewPosition[0] && rNewPositions[j][1]==NewPosition[1]){
                   suitableElement=false;
                 }
               }
+
               if(suitableElement==true){
                 rNodeIdsToInterpolate[nn][0]=rGeometry[FirstEdgeNode[maxCount]].GetId();
                 rNodeIdsToInterpolate[nn][1]=rGeometry[SecondEdgeNode[maxCount]].GetId();
@@ -459,7 +430,6 @@ class InsertNewNodesMesherProcess
     }
 
     KRATOS_CATCH( "" )
-
   }
 
   //**************************************************************************
@@ -475,7 +445,6 @@ class InsertNewNodesMesherProcess
 			     const unsigned int& rElementsToRefine)
   {
     KRATOS_TRY
-
 
     const unsigned int NumberOfNodes = rGeometry.size();
 
@@ -494,15 +463,14 @@ class InsertNewNodesMesherProcess
     double critical_edge_length=5.0*mrRemesh.Refine->CriticalRadius;
     double length_tolerance=1.6;
     double penalization=1.0;
+
     if(rigid_nodes>2){
       penalization=0.7;
       if(inlet_nodes>0){
 	penalization=0.9;
       }
     }
-    // if(freesurface_nodes>2){
-    //   penalization=0.6;
-    // }
+
 
     double ElementalVolume =  rGeometry.Volume();
 
@@ -510,23 +478,24 @@ class InsertNewNodesMesherProcess
     array_1d<unsigned int,6> FirstEdgeNode(6,0);
     array_1d<unsigned int,6> SecondEdgeNode(6,0);
     double WallCharacteristicDistance=0;
-    array_1d<double,3> CoorDifference  = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
-    // array_1d<double,3> CoorDifference(3,0.0);
-    // noalias(CoorDifference) = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
-    // CoorDifference = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+    array_1d<double,3> CoorDifference;
+    noalias(CoorDifference) = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+
     double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1]  + CoorDifference[2]*CoorDifference[2];
     Edges[0]=sqrt(SquaredLength);
     FirstEdgeNode[0]=0;
     SecondEdgeNode[0]=1;
+
     if(rGeometry[0].Is(RIGID) && rGeometry[1].Is(RIGID)){
       WallCharacteristicDistance=Edges[0];
     }
+
     unsigned int Counter=0;
-    for (unsigned int i = 2; i < NumberOfNodes; ++i){
+    for (unsigned int i = 2; i < NumberOfNodes; ++i)
+    {
       for(unsigned int j = 0; j < i; ++j)
       {
         noalias(CoorDifference) = rGeometry[i].Coordinates() - rGeometry[j].Coordinates();
-        // CoorDifference = rGeometry[i].Coordinates() - rGeometry[j].Coordinates();
         SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
         Counter+=1;
         Edges[Counter]=sqrt(SquaredLength);
@@ -540,22 +509,25 @@ class InsertNewNodesMesherProcess
     }
     //Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
     bool dangerousElement=false;
+
     if(rigid_nodes>1){
-      for (unsigned int i = 0; i < 6; ++i){
+
+      for (unsigned int i = 0; i < 6; ++i)
+      {
 	if((Edges[i]<WallCharacteristicDistance*length_tolerance && (rGeometry[FirstEdgeNode[i]].Is(RIGID) || rGeometry[SecondEdgeNode[i]].Is(RIGID))) ||
 	   (rGeometry[FirstEdgeNode[i]].Is(RIGID) && rGeometry[SecondEdgeNode[i]].Is(RIGID) )){
 	  Edges[i]=0;
 	}
-	// if(rGeometry[FirstEdgeNode[i]].Is(FREE_SURFACE) && rGeometry[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-	//   Edges[i]=0;
-	// }
+
 	if((rGeometry[FirstEdgeNode[i]].Is(FREE_SURFACE) || rGeometry[FirstEdgeNode[i]].Is(RIGID))  &&
 	   (rGeometry[SecondEdgeNode[i]].Is(FREE_SURFACE)|| rGeometry[SecondEdgeNode[i]].Is(RIGID))){
 	  Edges[i]=0;
 	}
       }
 
-    }else if(rigid_nodes==1){
+    }
+    else if(rigid_nodes==1){
+
       if(rGeometry[0].Is(RIGID)){
 	Edges[0]=0;
 	Edges[1]=0;
@@ -585,7 +557,6 @@ class InsertNewNodesMesherProcess
     //just to fill the vector
     if(dangerousElement==false && any_node_to_erase==false && nodes_to_split<2){
 
-      // array_1d<double,3> NewPosition(3,0.0);
       unsigned int maxCount=6;
       double LargestEdge=0;
 
@@ -598,9 +569,9 @@ class InsertNewNodesMesherProcess
       }
 
       if(rNodesToRefine<rElementsToRefine && LargestEdge>critical_edge_length){
-	array_1d<double,3> NewPosition= (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
-	// noalias(NewPosition)=    (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
-	// NewPosition=    (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+	array_1d<double,3> NewPosition;
+        noalias(NewPosition) = 0.5*(rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates());
+
 	rNodeIdsToInterpolate[rNodesToRefine][0]=rGeometry[FirstEdgeNode[maxCount]].GetId();
 	rNodeIdsToInterpolate[rNodesToRefine][1]=rGeometry[SecondEdgeNode[maxCount]].GetId();
 
@@ -617,7 +588,9 @@ class InsertNewNodesMesherProcess
 	rLargestVolumes[rNodesToRefine]=ElementalVolume;
 	rNewPositions[rNodesToRefine]=NewPosition;
 	rNodesToRefine++;
-      }else  if (freesurface_nodes<4 && rigid_nodes<4){
+
+      }
+      else if(freesurface_nodes<4 && rigid_nodes<4){
 
 	ElementalVolume*=penalization;
 	for(int nn= 0; nn< rElementsToRefine; ++nn)
@@ -628,16 +601,18 @@ class InsertNewNodesMesherProcess
             bool suitableElement=true;
 
             if(maxCount<6 && LargestEdge>critical_edge_length){
-              array_1d<double,3> NewPosition= (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
-              // noalias(NewPosition)=    (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
-              // NewPosition=    (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+              array_1d<double,3> NewPosition;
+              noalias(NewPosition) = 0.5 * (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates());
+
               for(int j= 0; j< rElementsToRefine; ++j)
               {
                 if(rNewPositions[j][0]==NewPosition[0] && rNewPositions[j][1]==NewPosition[1] && rNewPositions[j][2]==NewPosition[2]){
                   suitableElement=false; //this is a repeated node, I have already choose this from another element
                 }
               }
+
               if(suitableElement==true){
+
                 rNodeIdsToInterpolate[nn][0]=rGeometry[FirstEdgeNode[maxCount]].GetId();
                 rNodeIdsToInterpolate[nn][1]=rGeometry[SecondEdgeNode[maxCount]].GetId();
 
@@ -670,9 +645,7 @@ class InsertNewNodesMesherProcess
         in->Set(TO_SPLIT,false);
     }
 
-
     KRATOS_CATCH( "" )
-
   }
 
 
@@ -733,7 +706,7 @@ class InsertNewNodesMesherProcess
 
       Node<3>::DofsContainerType& Reference_dofs = rNewDofs[nn];
 
-       //generating the dofs
+      //generating the dofs
       for(Node<3>::DofsContainerType::iterator iii = Reference_dofs.begin(); iii != Reference_dofs.end(); ++iii)
       {
         Node<3>::DofType& rDof = *iii;
@@ -788,7 +761,7 @@ class InsertNewNodesMesherProcess
 
     KRATOS_CATCH( "" )
 
- }
+   }
 
 
   ///@}
