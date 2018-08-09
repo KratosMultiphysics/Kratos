@@ -44,13 +44,9 @@ Import_ContactStructuralMechanicsApplication = False
 Import_KratosMappingApplication = False
 Import_ConstitutiveModelsApplication = False
 Import_ShallowWaterApplication = False
-Import_DelaunayMeshingApplication = False
-Import_FluidRveLagrangeMultipliersApplication=False
-Import_PoromechanicsApplication = False
-Import_FluidTransportApplication = False
+Import_IGA_DEM_Application = False
 
 print("Applications Available:")
-print("Import_FluidRveLagrangeMultipliersApplication: False")
 print("Import_ExternalSolversApplication: False")
 print("Import_SolidMechanicsApplication: False")
 print("Import_PfemApplication: False")
@@ -92,16 +88,13 @@ print("Import_ContactStructuralMechanicsApplication: False")
 print("Import_KratosMappingApplication: False")
 print("Import_ConstitutiveModelsApplication: False")
 print("Import_ShallowWaterApplication: False")
-print("Import_DelaunayMeshingApplication: False")
-print("Import_PoromechanicsApplication: False")
-print("Import_FluidTransportApplication: False")
+print("Import_IGA_DEM_Application: False")
 
 application_directory = os.path.dirname(os.path.realpath(__file__))
 
 def ImportApplications(kernel, applications_path=application_directory):
     # importing the applications
     print("Applications Available:")
-    print("Import_FluidRveLagrangeMultipliersApplication: " + str(Import_FluidRveLagrangeMultipliersApplication))
     print("Import_ExternalSolversApplication: " + str(Import_ExternalSolversApplication))
     print("Import_SolidMechanicsApplication: " + str(Import_SolidMechanicsApplication))
     print("Import_PfemApplication: " + str(Import_PfemApplication))
@@ -143,18 +136,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_KratosMappingApplication: " + str(Import_KratosMappingApplication))
     print("Import_ConstitutiveModelsApplication: " + str(Import_ConstitutiveModelsApplication))
     print("Import_ShallowWaterApplication: " + str(Import_ShallowWaterApplication))
-    print("Import_DelaunayMeshingApplication: " + str(Import_DelaunayMeshingApplication))
-    print("Import_PoromechanicsApplication: " + str(Import_PoromechanicsApplication))
-    print("Import_FluidTransportApplication: " + str(Import_FluidTransportApplication))
-
-    if(Import_FluidRveLagrangeMultipliersApplication):
-        print("importing KratosFluidRveLagrangeMultipliersApplication ...")
-        sys.path.append(applications_path + '/fluid_rve_lagrange_multipliers_application/python_scripts')
-        sys.path.append(applications_path + '/fluid_rve_lagrange_multipliers_application/Linux')
-        from KratosFluidRveLagrangeMultipliersApplication import *
-        fluid_rve_lagrange_multipliers_application = KratosFluidRveLagrangeMultipliersApplication()
-        kernel.ImportApplication(fluid_rve_lagrange_multipliers_application)
-        print("KratosFluidRveLagrangeMultipliersApplication sucessfully imported")
+    print("Import_IGA_DEM_Application: " + str(Import_IGA_DEM_Application))
 
     if(Import_ExternalSolversApplication):
         print("importing KratosExternalSolversApplication ...")
@@ -164,7 +146,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         external_solvers_application = KratosExternalSolversApplication()
         kernel.ImportApplication(external_solvers_application)
         print("KratosExternalSolversApplication sucessfully imported")
-
 
     if(Import_SolidMechanicsApplication):
         print("importing KratosSolidMechanicsApplication ...")
@@ -510,38 +491,17 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(shallow_water_application)
         print("KratosShallowWaterApplication Succesfully imported")
 
-    if(Import_DelaunayMeshingApplication):
-        print("importing KratosDelaunayMeshingApplication ...")
-        sys.path.append(applications_path + '/DelaunayMeshing/python_scripts')
-        sys.path.append(applications_path + '/DelaunayMeshing/Linux')
-        from KratosDelaunayMeshingApplication import *
-        delaunay_meshing_application = KratosDelaunayMeshingApplication()
-        kernel.ImportApplication(delaunay_meshing_application)
-        print("KratosDelaunayMeshingApplication Succesfully imported")
-
-    if(Import_PoromechanicsApplication):
-        print("importing KratosPoromechanicsApplication ...")
-        sys.path.append(applications_path + '/Poromechanics/python_scripts')
-        sys.path.append(applications_path + '/Poromechanics/Linux')
-        from KratosPoromechanicsApplication import *
-        poromechanics_application = KratosPoromechanicsApplication()
-        kernel.AddApplication(poromechanics_application)
-        print("KratosPoromechanicsApplication Succesfully imported")
-
-    if(Import_FluidTransportApplication):
-        print("importing KratosFluidTransportApplication ...")
-        sys.path.append(applications_path + '/FluidTransport/python_scripts')
-        sys.path.append(applications_path + '/FluidTransport/Linux')
-        from KratosFluidTransportApplication import *
-        fluid_transport_application = KratosFluidTransportApplication()
-        kernel.AddApplication(fluid_transport_application)
-        print("KratosFluidTransportApplication Succesfully imported")
-
+    if(Import_IGA_DEM_Application):
+        print("importing KratosIGA_DEM_Application ...")
+        sys.path.append(applications_path + '/ConstitutiveModels/python_scripts')
+        sys.path.append(applications_path + '/ConstitutiveModels/Linux')
+        from KratosIGA_DEM_Application import *
+        iga_dem_application = KratosIGA_DEM_Application()
+        kernel.AddApplication(iga_dem_application)
+        print("KratosIGA_DEM_Application Succesfully imported")
+		
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
-
-    if(Import_FluidRveLagrangeMultipliersApplication):
-        kernel.InitializeApplication(fluid_rve_lagrange_multipliers_application)
     if(Import_SolidMechanicsApplication):
         kernel.InitializeApplication(solid_mechanics_application)
     if(Import_PfemApplication):
@@ -620,13 +580,9 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(constitutive_models_application)
     if(Import_ShallowWaterApplication):
         kernel.InitializeApplication(shallow_water_application)
-    if(Import_DelaunayMeshingApplication):
-        kernel.InitializeApplication(delaunay_meshing_application)
-    if(Import_PoromechanicsApplication):
-        kernel.InitializeApplication(poromechanics_application)
-    if(Import_FluidTransportApplication):
-        kernel.InitializeApplication(fluid_transport_application)
-
+    if(Import_IGA_DEM_Application):
+        kernel.InitializeApplication(iga_dem_application)
+		
 # def ImportApplications(kernel  ):
     # import os.path
     # application_directory = os.path.dirname( os.path.realpath(__file__)  )

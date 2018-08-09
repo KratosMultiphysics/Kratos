@@ -1043,70 +1043,86 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
     auto& list_of_point_condition_pointers = this->GetValue(WALL_POINT_CONDITION_POINTERS);
     auto& neighbour_point_faces_elastic_contact_force = this->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES);
+    //std::cout << "neighbour_point_faces_elastic_contact_force.size(): " << neighbour_point_faces_elastic_contact_force.size() << std::endl;
     auto& neighbour_point_faces_total_contact_force = this->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES);
+    //std::cout << "neighbour_point_faces_elastic_contact_force.size(): " << neighbour_point_faces_elastic_contact_force.size() << std::endl;
 
     for (unsigned int i=0; i<list_of_point_condition_pointers.size(); i++) {
         Condition* wall = list_of_point_condition_pointers[i];
-        Node<3>& cond_node = wall->GetGeometry()[0];
-
-        double RelVel[3]                         = {0.0};
-        double LocalElasticContactForce[3]       = {0.0};
-        double GlobalElasticContactForce[3]      = {0.0};
-        double ViscoDampingLocalContactForce[3]  = {0.0};
-        double cohesive_force                    =  0.0;
+        /*Node<3>& cond_node = wall->GetGeometry()[0];*/
+        //KRATOS_WATCH(wall->pGetProperties()->GetValue(FRICTION))
+        double RelVel[3] = { 0.0 };
+        double LocalElasticContactForce[3] = { 0.0 };
+        double GlobalElasticContactForce[3] = { 0.0 };
+        double ViscoDampingLocalContactForce[3] = { 0.0 };
+        double cohesive_force = 0.0;
         DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mLocalCoordSystem)
         DEM_SET_COMPONENTS_TO_ZERO_3x3(data_buffer.mOldLocalCoordSystem)
+        //here we should change delta_disp = velocity * time_step
 
-        array_1d<double, 3> wall_delta_disp_at_contact_point = cond_node.GetSolutionStepValue(DELTA_DISPLACEMENT);
-        array_1d<double, 3> wall_velocity_at_contact_point = cond_node.GetSolutionStepValue(VELOCITY);
+        Vector wall_delta_disp_at_contact_point = ZeroVector(3);
+        //wall->GetValuesVector(wall_delta_disp_at_contact_point);
+        array_1d<double, 3> wall_velocity_at_contact_point;
+        wall->Calculate(VELOCITY, wall_velocity_at_contact_point, r_process_info);
+        wall_delta_disp_at_contact_point = wall_velocity_at_contact_point * data_buffer.mDt;
+        //KRATOS_WATCH(wall_delta_disp_at_contact_point)
+        //KRATOS_WATCH(wall_velocity_at_contact_point)
         bool sliding = false;
         double ini_delta = 0.0;
 
         array_1d<double, 3> cond_to_me_vect;
-        noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - cond_node.Coordinates();
+        Vector coordinates = ZeroVector(3);
+        wall->Calculate(COORDINATES, coordinates, r_process_info);
+        noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - coordinates;
         double DistPToB = DEM_MODULUS_3(cond_to_me_vect);;
-
+        //KRATOS_WATCH(coordinates)
         double indentation = -(DistPToB - GetInteractionRadius()) - ini_delta;
-        double DeltDisp[3] = {0.0};
-        double DeltVel [3] = {0.0};
+        double DeltDisp[3] = { 0.0 };
+        double DeltVel[3] = { 0.0 };
 
         DeltVel[0] = velocity[0] - wall_velocity_at_contact_point[0];
         DeltVel[1] = velocity[1] - wall_velocity_at_contact_point[1];
         DeltVel[2] = velocity[2] - wall_velocity_at_contact_point[2];
 
         // For translation movement delta displacement
-        const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+        const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
         DeltDisp[0] = delta_displ[0] - wall_delta_disp_at_contact_point[0];
         DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
         DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
 
-        data_buffer.mpOtherParticleNode = &cond_node;
+        Node<3>::Pointer other_particle_node = this->GetGeometry()[0].Clone();
+        other_particle_node->GetSolutionStepValue(DELTA_DISPLACEMENT) = wall_delta_disp_at_contact_point;
+        //other_particle_node->GetSolutionStepValue(VELOCITY) = wall_delta_disp_at_contact_point;
+        data_buffer.mpOtherParticleNode = &*other_particle_node;
         DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherToMeVector, cond_to_me_vect)
-        data_buffer.mDistance = DistPToB;
+            data_buffer.mDistance = DistPToB;
         data_buffer.mDomainIsPeriodic = false;
         EvaluateDeltaDisplacement(data_buffer, DeltDisp, RelVel, data_buffer.mLocalCoordSystem, data_buffer.mOldLocalCoordSystem, velocity, delta_displ);
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
-            const array_1d<double,3>& delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
+            const array_1d<double, 3>& delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
 
             array_1d<double, 3> actual_arm_vector;
             actual_arm_vector[0] = -data_buffer.mLocalCoordSystem[2][0] * DistPToB;
             actual_arm_vector[1] = -data_buffer.mLocalCoordSystem[2][1] * DistPToB;
             actual_arm_vector[2] = -data_buffer.mLocalCoordSystem[2][2] * DistPToB;
 
-            double tangential_vel[3]           = {0.0};
-            double tangential_displacement_due_to_rotation[3]  = {0.0};
+            double tangential_vel[3] = { 0.0 };
+            double tangential_displacement_due_to_rotation[3] = { 0.0 };
             GeometryFunctions::CrossProduct(AngularVel, actual_arm_vector, tangential_vel);
             GeometryFunctions::CrossProduct(delta_rotation, actual_arm_vector, tangential_displacement_due_to_rotation);
 
             DEM_ADD_SECOND_TO_FIRST(DeltVel, tangential_vel)
-            DEM_ADD_SECOND_TO_FIRST(DeltDisp, tangential_displacement_due_to_rotation)
+                DEM_ADD_SECOND_TO_FIRST(DeltDisp, tangential_displacement_due_to_rotation)
         }
 
-        double LocalDeltDisp[3] = {0.0};
+        double LocalDeltDisp[3] = { 0.0 };
         GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltDisp, LocalDeltDisp);
 
-        double OldLocalElasticContactForce[3] = {0.0};
+        double OldLocalElasticContactForce[3] = { 0.0 };
+
+        //KRATOS_WATCH(data_buffer.mLocalCoordSystem)
+        //KRATOS_WATCH(OldLocalElasticContactForce)
 
         GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, neighbour_point_faces_elastic_contact_force[i], OldLocalElasticContactForce);
         const double previous_indentation = indentation + LocalDeltDisp[2];
