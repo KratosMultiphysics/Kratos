@@ -32,7 +32,7 @@ namespace Kratos {
 
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;  
 
-        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0) override;
+        void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalContactForce[3],
@@ -57,7 +57,7 @@ namespace Kratos {
                                     double ViscoDampingLocalContactForce[3],
                                     double& cohesive_force,
                                     SphericParticle* const element,
-                                    DEMWall* const wall,
+                                    Condition* const wall,
                                     bool& sliding) override;
 
 
@@ -71,7 +71,7 @@ namespace Kratos {
                                             const double indentation) override;
 
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
-                                            DEMWall* const wall,
+                                            Condition* const wall,
                                             const double indentation) override;
 
         template <class NeighbourClassType>
@@ -94,7 +94,7 @@ namespace Kratos {
         void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
                                         SphericParticle* const element,
-                                        DEMWall* const wall);
+                                        Condition* const wall);
         
         double mA_H;
         double mA_p;

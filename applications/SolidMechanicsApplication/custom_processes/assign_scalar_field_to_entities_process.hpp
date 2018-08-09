@@ -160,7 +160,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~AssignScalarFieldToEntitiesProcess() {}
+    ~AssignScalarFieldToEntitiesProcess() override {}
 
 
     ///@}

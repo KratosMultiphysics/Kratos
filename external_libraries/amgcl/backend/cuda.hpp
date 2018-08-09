@@ -72,6 +72,13 @@ struct cuda_skyline_lu : solver::skyline_lu<T> {
         static_cast<const Base*>(this)->operator()(_rhs, _x);
         thrust::copy(_x.begin(), _x.end(), x.begin());
     }
+
+    size_t bytes() const {
+        return
+            backend::bytes(*static_cast<const Base*>(this)) +
+            backend::bytes(_rhs) +
+            backend::bytes(_x);
+    }
 };
 
 }
@@ -265,7 +272,7 @@ struct cuda {
 
         params(cusparseHandle_t handle = 0) : cusparse_handle(handle) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, cusparse_handle)
         {
@@ -369,6 +376,31 @@ template < typename V >
 struct nonzeros_impl< cuda_hyb_matrix<V> > {
     static size_t get(const cuda_hyb_matrix<V> &A) {
         return A.nonzeros();
+    }
+};
+
+template < typename V >
+struct bytes_impl< cuda_hyb_matrix<V> > {
+    static size_t get(const cuda_hyb_matrix<V> &A) {
+        // the cusparse HYB format is opaque; we can only guess here:
+        return
+            sizeof(int) * (A.rows() + 1) +
+            sizeof(int) * A.nonzeros() +
+            sizeof(V)   * A.nonzeros();
+    }
+};
+
+template < typename V >
+struct bytes_impl< thrust::device_vector<V> > {
+    static size_t get(const thrust::device_vector<V> &v) {
+        return v.size() * sizeof(V);
+    }
+};
+
+template < typename V >
+struct bytes_impl< solver::cuda_skyline_lu<V> > {
+    static size_t get(const solver::cuda_skyline_lu<V> &s) {
+        return s.bytes();
     }
 };
 

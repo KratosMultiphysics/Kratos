@@ -93,6 +93,15 @@ struct cols_impl {
     typedef typename Matrix::COLS_NOT_IMPLEMENTED type;
 };
 
+/// Implementation for function returning number of bytes allocated for a matrix/vector.
+/** \note Used in bytes() */
+template <class T, class Enable = void>
+struct bytes_impl {
+    static size_t get(const T&) {
+        return 0;
+    }
+};
+
 template <class Matrix, class Enable = void>
 struct ptr_data_impl {
     typedef typename Matrix::PTR_DATA_NOT_IMPLEMENTED type;
@@ -213,6 +222,11 @@ size_t cols(const Matrix &matrix) {
     return cols_impl<Matrix>::get(matrix);
 }
 
+/// Returns number of bytes allocated for the container (matrix / vector)
+template <class T>
+size_t bytes(const T &t) {
+    return bytes_impl<T>::get(t);
+}
 template <class Matrix>
 typename ptr_data_impl<Matrix>::type
 ptr_data(const Matrix &matrix) {

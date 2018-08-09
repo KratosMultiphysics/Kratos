@@ -25,9 +25,9 @@
 #endif
 
 // External includes
-#include "boost/smart_ptr.hpp"
 #include <iostream>
 #include <fstream>
+#include <utility>
 
 #include "includes/ublas_interface.h"
 
@@ -35,9 +35,8 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
-#include<utility>
 
-#include <boost/property_tree/ptree.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
 #include <amgcl/adapter/crs_tuple.hpp>

@@ -40,7 +40,9 @@ THE SOFTWARE.
 #include <stdexcept>
 #include <cstddef>
 
-#ifdef BOOST_VERSION
+// If asked explicitly, or if boost is available, enable
+// using boost::propert_tree::ptree as amgcl parameters:
+#ifndef AMGCL_NO_BOOST
 #  include <boost/property_tree/ptree.hpp>
 #endif
 
@@ -89,7 +91,7 @@ void precondition(const Condition &condition, const Message &message) {
 #endif
 }
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
 
 #define AMGCL_PARAMS_IMPORT_VALUE(p, name)                                     \
     name( p.get(#name, params().name) )
@@ -166,7 +168,7 @@ inline void put(boost::property_tree::ptree &p, const std::string &param) {
 
 namespace detail {
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
 inline const boost::property_tree::ptree& empty_ptree() {
     static const boost::property_tree::ptree p;
     return p;
@@ -176,7 +178,7 @@ inline const boost::property_tree::ptree& empty_ptree() {
 struct empty_params {
     empty_params() {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
     empty_params(const boost::property_tree::ptree &p) {
         for(const auto &v : p) {
             AMGCL_PARAM_UNKNOWN(v.first);
@@ -304,6 +306,19 @@ T eps(size_t n) {
 
 template <class T> struct is_complex : std::false_type {};
 template <class T> struct is_complex< std::complex<T> > : std::true_type {};
+
+inline std::string human_readable_memory(size_t bytes) {
+    static const char *suffix[] = {"B", "K", "M", "G", "T"};
+
+    int i = 0;
+    double m = bytes;
+    for(; i < 4 && m >= 1024; ++i, m /= 1024);
+
+    std::ostringstream s;
+    s << std::fixed << std::setprecision(2) << m << " " << suffix[i];
+    return s.str();
+}
+
 } // namespace amgcl
 
 namespace std {

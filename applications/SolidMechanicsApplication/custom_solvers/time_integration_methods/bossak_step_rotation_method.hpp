@@ -102,7 +102,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~BossakStepRotationMethod(){}
+    ~BossakStepRotationMethod() override{}
 
     ///@}
     ///@name Operators
