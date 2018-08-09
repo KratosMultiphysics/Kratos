@@ -62,18 +62,3 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          print('Cl = ', Cl)
          print('Cd = ', Cd)
          print('Mach = ', self.velocity_infinity[0]/340)
-         
-         '''
-         open("loads.dat",'w') as loads_file
-         loads_file = open("loads.dat",'w')
-         loads_file.write("FULL POTENTIAL APPLICATION LOADS FILE\n\n")
-         loads_file.write("UInf {0:13f} \n".format(self.velocity_infinity[0]))
-         loads_file.write("Mach {0:13f} \n\n".format(self.velocity_infinity[0]/340))
-         
-         loads_file.write("Cl {0:15f} \n".format(Cl))
-         loads_file.write("Cd {0:15f} \n\n".format(Cd))
-         
-         loads_file.write("Lift {0:15f} \n".format(Lift))
-         loads_file.write("Drag {0:15f} \n".format(Drag))
-         
-         loads_file.flush()

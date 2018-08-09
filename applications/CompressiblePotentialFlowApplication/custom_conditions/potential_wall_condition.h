@@ -225,8 +225,8 @@ public:
         WeakPointerVector<Element> ElementCandidates;
         GetElementCandidates(ElementCandidates,rGeom);
 
-        std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
-        GetNodeSortedIds(NodeIds,rGeom);
+        std::vector<IndexType> NodeIds, ElementNodeIds;
+        GetSortedIds(NodeIds, rGeom);
         FindParentElement(NodeIds,ElementNodeIds,ElementCandidates);
 
         KRATOS_ERROR_IF(!mpElement.lock()) << "error in condition # " << this->Id() << "\n"
@@ -258,7 +258,7 @@ public:
         rLeftHandSideMatrix.clear();
 
         array_1d<double,3> An;
-        if(TDim == 2) CalculateNormal2D(An);
+        if (TDim == 2) CalculateNormal2D(An);
         else CalculateNormal3D(An);
 
         const PotentialWallCondition& r_this = *this;
@@ -266,12 +266,8 @@ public:
         const double value = -inner_prod(v, An)/static_cast<double>(TNumNodes);
 
         for(unsigned int i=0; i<TNumNodes; ++i)
-        {
             rRightHandSideVector[i] = value;
-        }
-
     }
-
 
     /// Check that all data required by this condition is available and reasonable
     int Check(const ProcessInfo& rCurrentProcessInfo) override
@@ -434,50 +430,31 @@ protected:
             }
         }
 
-        void GetNodeSortedIds(std::vector<IndexType>& NodeIds,
-                            GeometryType& rGeom)
+        void GetSortedIds(std::vector<IndexType> &Ids,
+                          const GeometryType &rGeom)
         {
-            for (SizeType i=0; i < TNumNodes; i++)
-                NodeIds[i] = rGeom[i].Id();
-            std::sort(NodeIds.begin(), NodeIds.end());
+            Ids.resize(rGeom.PointsNumber());
+            for (SizeType i = 0; i < Ids.size(); i++)
+                Ids[i] = rGeom[i].Id();
+            std::sort(Ids.begin(), Ids.end());
         }
 
-        void GetElementNodeSortedIds(std::vector<IndexType>& ElementNodeIds,
-                                        WeakPointerVector<Element> ElementCandidates,
-                                        SizeType i)
+        void FindParentElement(std::vector<IndexType> &NodeIds,
+                               std::vector<IndexType> &ElementNodeIds,
+                               WeakPointerVector<Element> ElementCandidates)
         {
-            GeometryType& rElemGeom = ElementCandidates[i].GetGeometry();
-            ElementNodeIds.resize(rElemGeom.PointsNumber());
-
-            for (SizeType j=0; j < rElemGeom.PointsNumber(); j++)
-                ElementNodeIds[j] = rElemGeom[j].Id();
-
-            std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
-        }
-
-        void FindParentElement(std::vector<IndexType>& NodeIds,
-                                std::vector<IndexType>& ElementNodeIds,
-                                WeakPointerVector<Element> ElementCandidates)
-        {
-            for (SizeType i=0; i < ElementCandidates.size(); i++)
+            for (SizeType i = 0; i < ElementCandidates.size(); i++)
             {
-                GetElementNodeSortedIds(ElementNodeIds,ElementCandidates,i);
-                if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
+                GeometryType &rElemGeom = ElementCandidates[i].GetGeometry();
+                GetSortedIds(ElementNodeIds, rElemGeom);
+
+                if (std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()))
                 {
                     mpElement = ElementCandidates(i);
                     return;
                 }
-            }    
+            }
         }
-
-        
-            
-
-        
-        
-
-
-
 
         ///@}
         ///@name Protected  Access

@@ -529,7 +529,7 @@ public:
 
         if (rVariable == VELOCITY)
         {
-            array_1d<double,3> v;
+            array_1d<double,3> v(3,0.0);
             array_1d<double,Dim> vaux;
             ComputeVelocity(vaux);
             for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
