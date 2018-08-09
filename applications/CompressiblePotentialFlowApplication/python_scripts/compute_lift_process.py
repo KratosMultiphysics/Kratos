@@ -2,14 +2,8 @@ from KratosMultiphysics import *
 
 import KratosMultiphysics
 
-from array import array
 from numpy import *
-from math import *
-import numpy as np
 import itertools
-#import matplotlib.pyplot as plt
-
-
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -19,9 +13,9 @@ def Factory(settings, Model):
 ##all the processes python processes should be derived from "python_process"
 class ComputeLiftProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
-        KratosMultiphysics.Process.__init__(self) 
-        
-        default_parameters = KratosMultiphysics.Parameters( """
+        KratosMultiphysics.Process.__init__(self)
+
+        default_parameters = KratosMultiphysics.Parameters("""
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "upper_surface_model_part_name" : "please specify the model part that contains the upper surface nodes",
@@ -38,7 +32,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.velocity_infinity = [0,0,0]
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
-        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()        
+        self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
   
     def ExecuteFinalize(self):
@@ -65,13 +59,13 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          
          print('RZ = ', RZ)
          
-         print('Cl = ', Cl) 
+         print('Cl = ', Cl)
          print('Cd = ', Cd)
-         print('Mach = ', self.velocity_infinity[0]/340) 
+         print('Mach = ', self.velocity_infinity[0]/340)
          
          '''
          open("loads.dat",'w') as loads_file
-         loads_file = open("loads.dat",'w') 
+         loads_file = open("loads.dat",'w')
          loads_file.write("FULL POTENTIAL APPLICATION LOADS FILE\n\n")
          loads_file.write("UInf {0:13f} \n".format(self.velocity_infinity[0]))
          loads_file.write("Mach {0:13f} \n\n".format(self.velocity_infinity[0]/340))
@@ -80,7 +74,6 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          loads_file.write("Cd {0:15f} \n\n".format(Cd))
          
          loads_file.write("Lift {0:15f} \n".format(Lift))
-         loads_file.write("Drag {0:15f} \n".format(Drag))  
+         loads_file.write("Drag {0:15f} \n".format(Drag))
          
          loads_file.flush()
-         '''
