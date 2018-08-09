@@ -77,6 +77,9 @@ class ValueLogger():
             self.value_history[objective_id] = {}
             self.value_history[objective_id][self.current_iteration] = self.communicator.getValue( objective_id )
 
+            self.value_history[objective_id+"_standardized"] = {}
+            self.value_history[objective_id+"_standardized"][self.current_iteration] = self.communicator.getStandardizedValue( objective_id )
+
             self.obj_reference_value = self.communicator.getValue( objective_id )
             if abs(self.obj_reference_value)<1e-12:
                 print("\n> WARNING: Objective reference value < 1e-12!! Therefore, standard reference value of 1 is assumed! ")
@@ -86,6 +89,7 @@ class ValueLogger():
             self.value_history["rel_change_obj"] = {self.current_iteration: 0.0}
         else:
             self.value_history[objective_id][self.current_iteration] = self.communicator.getValue( objective_id )
+            self.value_history[objective_id+"_standardized"][self.current_iteration] = self.communicator.getStandardizedValue( objective_id )
 
             current_obj_value = self.value_history[objective_id][self.current_iteration]
             previos_obj_value = self.value_history[objective_id][self.previos_iteration]
@@ -102,7 +106,10 @@ class ValueLogger():
 
             if self.__IsFirstLog(constraint_id):
                 self.value_history[constraint_id] = {}
+                self.value_history[constraint_id+"_standardized"] = {}
+
             self.value_history[constraint_id][self.current_iteration] = self.communicator.getValue( constraint_id )
+            self.value_history[constraint_id+"_standardized"][self.current_iteration] = self.communicator.getStandardizedValue( constraint_id )
 
     # --------------------------------------------------------------------------
     def __LogAdditionalValuesToHistory( self, additional_values ):

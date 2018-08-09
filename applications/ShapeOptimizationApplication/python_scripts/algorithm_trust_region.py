@@ -321,7 +321,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         else:
             obj_id = self.specified_objectives[0]["identifier"].GetString()
             current_obj_val = self.communicator.getStandardizedValue(obj_id)
-            obj_history = self.data_logger.GetValueHistory(obj_id)
+            obj_history = self.data_logger.GetValueHistory(obj_id+"_standardized")
             step_history = self.data_logger.GetValueHistory("step_length")
 
             # Check for osciallation
