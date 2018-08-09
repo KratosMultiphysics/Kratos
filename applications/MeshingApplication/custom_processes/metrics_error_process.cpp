@@ -10,7 +10,12 @@
 //  Main authors:    Vicente Mataix Ferrándiz
 //
 
+// System includes
+
+// External includes
+
 // Project includes
+#include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/metrics_error_process.h"
 
 namespace Kratos
@@ -66,12 +71,32 @@ template<SizeType TDim>
 void MetricErrorProcess<TDim>::Execute()
 {
     /******************************************************************************
-    --1-- Calculate new element size --1--
+    --1-- Initialize metric --1--
+    ******************************************************************************/
+    // Getting metric variable
+    const Variable<Vector>& metric_variable = KratosComponents<Variable<Vector>>::Get("MMG_METRIC");
+
+    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    if (nodes_array.begin()->Has(metric_variable) == false) {
+        // The process info
+        const ProcessInfo& process_info = mrThisModelPart.GetProcessInfo();
+
+        const SizeType size = process_info[DOMAIN_SIZE] == 2 ? 3: 6;
+        const Vector zero_vector = ZeroVector(size);
+
+        // We iterate over the nodes
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+            (nodes_array.begin() + i)->SetValue(metric_variable, zero_vector);
+    }
+
+    /******************************************************************************
+    --2-- Calculate new element size --2--
     ******************************************************************************/
     CalculateElementSize();
 
     /******************************************************************************
-    --2-- Calculate metric (for each node) --2--
+    --3-- Calculate metric (for each node) --3--
     ******************************************************************************/
     CalculateMetric();
 }
@@ -131,11 +156,18 @@ void MetricErrorProcess<TDim>::CalculateElementSize()
 template<SizeType TDim>
 void MetricErrorProcess<TDim>::CalculateMetric()
 {
+    // Array of nodes
+    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+
+    // We do a find of neighbours
+    FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
+    if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+    find_neighbours.Execute();
+
     // Getting metric variable
     const Variable<Vector>& metric_variable = KratosComponents<Variable<Vector>>::Get("MMG_METRIC");
 
     // Iteration over all nodes
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for

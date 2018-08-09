@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "utilities/variable_utils.h"
 
@@ -82,11 +83,15 @@ void SPRErrorProcess<TDim>::Execute()
 template<SizeType TDim>
 void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
 {
+    // Array of nodes
+    NodesArrayType& nodes_array = mThisModelPart.Nodes();
+
+    // We do a find of neighbours
     FindNodalNeighboursProcess find_neighbours(mThisModelPart);
+    if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
     find_neighbours.Execute();
 
     // Iteration over all nodes -- construction of patches
-    NodesArrayType& nodes_array = mThisModelPart.Nodes();
     const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for

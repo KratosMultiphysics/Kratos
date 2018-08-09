@@ -22,7 +22,6 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "structural_mechanics_application_variables.h"
-#include "processes/find_nodal_neighbours_process.h"
 #include "spaces/ublas_space.h"
 #include "utilities/math_utils.h"
 

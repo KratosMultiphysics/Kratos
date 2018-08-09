@@ -477,6 +477,8 @@ namespace Kratos
             // Compute error
             process_info[ERROR_OVERALL] = 0.122409;
             process_info[ENERGY_NORM_OVERALL] = 0.257196;
+            for (auto& elem : this_model_part.Elements())
+                elem.SetValue(ELEMENT_ERROR, 0.025);
 
             // Compute metric
             MetricErrorProcess<2> metric_process = MetricErrorProcess<2>(this_model_part);
@@ -487,15 +489,12 @@ namespace Kratos
             
             const double tolerance = 1.0e-4;
             Vector ref_metric(3);
-            ref_metric[0] = 331.893;
+            ref_metric[0] = 246.507;
             ref_metric[1] = 0;
-            ref_metric[2] = 331.893;
+            ref_metric[2] = 246.507;
 
-            KRATOS_WATCH(this_model_part.pGetNode(2)->GetValue(MMG_METRIC))
-            KRATOS_WATCH(this_model_part.pGetNode(3)->GetValue(MMG_METRIC))
-
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
         }
         
         /** 
@@ -543,6 +542,8 @@ namespace Kratos
             // Compute error
             process_info[ERROR_OVERALL] = 0.0223607;
             process_info[ENERGY_NORM_OVERALL] = 0.148492;
+            for (auto& elem : this_model_part.Elements())
+                elem.SetValue(ELEMENT_ERROR, 0.025);
 
             // Compute metric
             MetricErrorProcess<3> metric_process = MetricErrorProcess<3>(this_model_part);
@@ -551,21 +552,16 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugMetricSPR(this_model_part);
 
-//             const double tolerance = 1.0e-4;
-//             Vector ref_metric = ZeroVector(6);
-//             ref_metric[0] = 2740.55;
-//             ref_metric[3] = 2740.55;
-//             ref_metric[5] = 2740.55;
+            const double tolerance = 1.0e-4;
+            Vector ref_metric = ZeroVector(6);
+            ref_metric[0] = 4190.45;
+            ref_metric[3] = 4190.45;
+            ref_metric[5] = 4190.45;
 
-            KRATOS_WATCH(this_model_part.pGetNode(3)->GetValue(MMG_METRIC))
-            KRATOS_WATCH(this_model_part.pGetNode(6)->GetValue(MMG_METRIC))
-            KRATOS_WATCH(this_model_part.pGetNode(7)->GetValue(MMG_METRIC))
-            KRATOS_WATCH(this_model_part.pGetNode(8)->GetValue(MMG_METRIC))
-
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(7)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
-//             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(8)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - 0.4807502774165066 * ref_metric)/norm_2(0.4807502774165066 * ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(7)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(8)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.
