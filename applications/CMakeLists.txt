@@ -240,10 +240,6 @@ if(${ADJOINT_FLUID_APPLICATION} MATCHES ON)
   add_subdirectory(AdjointFluidApplication)
 endif(${ADJOINT_FLUID_APPLICATION} MATCHES ON)
 
-if(${NURBS_APPLICATION} MATCHES ON)
-  add_subdirectory(nurbs_application)
-endif(${NURBS_APPLICATION} MATCHES ON)
-
 if(${FREEZING_SOIL_APPLICATION} MATCHES ON)
   add_subdirectory(freezing_soil_application)
 endif(${FREEZING_SOIL_APPLICATION} MATCHES ON)
