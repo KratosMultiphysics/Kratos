@@ -22,8 +22,8 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         if not custom_settings.Has("mesh_motion_linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type" : "Klu",
-                "scaling" : false
+                "solver_type" : "AmesosSolver",
+                "amesos_solver_type" : "Amesos_Klu"
             }""")
             custom_settings.AddValue("mesh_motion_linear_solver_settings", linear_solver_settings)
         super(TrilinosMeshSolverBase, self).__init__(mesh_model_part, custom_settings)
@@ -59,5 +59,5 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
         linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["mesh_motion_linear_solver_settings"])
         return linear_solver
 
-    def _create_mesh_motion_solver(self):
+    def _create_mesh_motion_solving_strategy(self):
         raise Exception("Mesh motion solver must be created by the derived class.")

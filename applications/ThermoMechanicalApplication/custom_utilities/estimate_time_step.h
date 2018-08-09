@@ -202,7 +202,7 @@ namespace Kratos
 				  double max_presolodification_delta_tem = std::min(10.0,max_cooling_delta_temp);
 				  int node_size = ThisModelPart.Nodes().size();
 				  double max_delta_temp = 0.0;
-				  std::vector<double> mdelta(omp_get_max_threads(),0.0);
+				  std::vector<double> mdelta(OpenMPUtils::GetNumThreads(),0.0);
 #pragma omp parallel for shared(mdelta)
 				  for (int ii = 0; ii < node_size; ii++)
 				  {
@@ -212,11 +212,11 @@ namespace Kratos
 					  double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);
 					  // Get the Maximum on each thread
 					  //max_delta_temp=std::max(-current_temp + old_temp,max_delta_temp);
-					  double& md = mdelta[omp_get_thread_num()];
+					  double& md = mdelta[OpenMPUtils::ThisThread()];
 					  md= std::max(-current_temp + old_temp, md);
 				  }
 				  //workaround because VS does not support omp 4.0
-				  for (int i = 0; i < omp_get_num_threads(); i++)
+				  for (int i = 0; i < OpenMPUtils::GetNumThreads(); i++)
 				  {
 					  max_delta_temp = std::max(max_delta_temp, mdelta[i]);
 				  }
@@ -251,7 +251,7 @@ namespace Kratos
 				  double old_over_mushy_zone=0.0;
 				  double tot_vol = 0.0;
 
-				  std::vector<double> mdelta(omp_get_max_threads(),0.0);
+				  std::vector<double> mdelta(OpenMPUtils::GetNumThreads(),0.0);
 				  //double max_delta_temp=0.0;
 				  int node_size = ThisModelPart.Nodes().size();
 #pragma omp parallel for reduction(+:current_solidified_volume,old_solidified_volume, current_over_mushy_zone, old_over_mushy_zone,tot_vol)
@@ -260,7 +260,7 @@ namespace Kratos
 					  // Now we look for the Solidifcation Volume
 					  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
 					  double vol = it->GetValue(NODAL_VOLUME);
-					  double& md= mdelta[omp_get_thread_num()];
+					  double& md= mdelta[OpenMPUtils::ThisThread()];
 					  if (vol > md) { md = vol; }
 					  double current_S = it->FastGetSolutionStepValue(SOLIDFRACTION);
 					  double old_S = it->FastGetSolutionStepValue(SOLIDFRACTION,1);
@@ -290,7 +290,7 @@ namespace Kratos
 				  }
 				  //workaround because VS does not support omp 4.0
 				  double max_nodal_volume;
-				  for (int i = 0; i < omp_get_num_threads(); i++)
+				  for (int i = 0; i < OpenMPUtils::GetNumThreads(); i++)
 				  {
 					  max_nodal_volume = std::max(max_nodal_volume, mdelta[i]);
 				  }
@@ -760,7 +760,7 @@ namespace Kratos
 		 double is_hot_point = 1.0;
 		 int node_size = ThisModelPart.Nodes().size();
 		 //KRATOS_WATCH(omp_get_max_threads())
-		 std::vector<double> local_is_hot_point(omp_get_max_threads(),1.0);
+		 std::vector<double> local_is_hot_point(OpenMPUtils::GetNumThreads(),1.0);
 // #pragma omp parallel for shared(local_is_hot_point)
 		 for (int ii = 0; ii < node_size; ii++)
 		 {
@@ -770,12 +770,12 @@ namespace Kratos
 
 			 if (current_temp < last_temp) {
 				 //is_hot_point = 0.0;
-				 local_is_hot_point[omp_get_thread_num()]= 0.0;
+				 local_is_hot_point[OpenMPUtils::ThisThread()]= 0.0;
 				 break;
 			 }
 		 }
 		 //Now we finf the minimum is_hot_point among threads
-		 for (int ii = 0; ii < omp_get_num_threads(); ii++)
+		 for (int ii = 0; ii < OpenMPUtils::GetNumThreads(); ii++)
 		 {
 			 is_hot_point = std::min(is_hot_point, local_is_hot_point[ii]);
 		 }

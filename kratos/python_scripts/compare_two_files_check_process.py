@@ -27,6 +27,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "help"                  : "This process checks that two files are the same. This can be used in order to create tests, where a given solution is expected",
             "reference_file_name"   : "",
             "output_file_name"      : "",
             "remove_output_file"    : true,
@@ -39,12 +40,21 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         ## Overwrite the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_parameters)
 
-        self.reference_file_name = os.path.join(os.getcwd(), params["reference_file_name"].GetString())
-        self.output_file_name = os.path.join(os.getcwd(), params["output_file_name"].GetString())
+        # abspath to make paths os-independent
+        ref_file_name = os.path.abspath(params["reference_file_name"].GetString())
+        out_file_name = os.path.abspath(params["output_file_name"].GetString())
+
+        self.reference_file_name = os.path.join(os.getcwd(), ref_file_name)
+        self.output_file_name = os.path.join(os.getcwd(), out_file_name)
+
         self.remove_output_file = params["remove_output_file"].GetBool()
         self.comparison_type = params["comparison_type"].GetString()
         self.decimal_places = params["decimal_places"].GetInt()
         self.dimension = params["dimension"].GetInt()
+
+        self.info_msg = "".join([  "\n[%s]: Failed with following parameters:\n" % self.__class__.__name__,
+                                    params.PrettyPrintJsonString()
+                                ])
 
     def ExecuteInitialize(self):
         pass
@@ -68,29 +78,40 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         """The files are compared in this function
         Please see the respective files for details on the format of the files
         """
-        if kratos_utils.IsRankZero():
-            if (self.comparison_type == "deterministic"):
-                value = filecmp.cmp(self.reference_file_name, self.output_file_name)
-                self.assertTrue(value)
-            elif (self.comparison_type == "mesh_file"):
-                self.__CompareMeshVerticesFile()
-            elif (self.comparison_type == "sol_file"):
-                self.__CompareSolMetricFile()
-            elif (self.comparison_type == "post_res_file"):
-                self.__ComparePostResFile()
-            elif (self.comparison_type == "dat_file"):
-                self.__CompareDatFile()
-            else:
-                raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
+        if (self.comparison_type == "deterministic"):
+            value = filecmp.cmp(self.reference_file_name, self.output_file_name)
+            self.assertTrue(value, msg = self.info_msg)
+        elif (self.comparison_type == "mesh_file"):
+            self.__CompareMeshVerticesFile()
+        elif (self.comparison_type == "sol_file"):
+            self.__CompareSolMetricFile()
+        elif (self.comparison_type == "post_res_file"):
+            self.__ComparePostResFile()
+        elif (self.comparison_type == "dat_file"):
+            self.__CompareDatFile()
+        else:
+            raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
 
         if self.remove_output_file == True:
-            kratos_utils.DeleteFileIfExisting(self.output_file_name) # this checks internally if it is rank 0
+            kratos_utils.DeleteFileIfExisting(self.output_file_name)
 
     def __GetFileLines(self):
         """This function reads the reference and the output file
         It returns the lines read from both files and also compares
         if they contain the same numer of lines
         """
+        # check if files are valid
+        if not os.path.isfile(self.reference_file_name):
+            err_msg  = 'The specified reference file name "'
+            err_msg += self.reference_file_name
+            err_msg += '" is not valid!'
+            raise Exception(err_msg)
+        if not os.path.isfile(self.output_file_name):
+            err_msg  = 'The specified output file name "'
+            err_msg += self.output_file_name
+            err_msg += '" is not valid!'
+            raise Exception(err_msg)
+
         with open(self.reference_file_name,'r') as ref_file:
             lines_ref = ref_file.readlines()
         with open(self.output_file_name,'r') as out_file:
@@ -102,7 +123,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         err_msg  = "Files have different number of lines!"
         err_msg += "\nNum Lines Reference File: " + str(num_lines_ref)
         err_msg += "\nNum Lines Output File: " + str(num_lines_out)
-        self.assertTrue(num_lines_ref == num_lines_out, msg=err_msg)
+        self.assertTrue(num_lines_ref == num_lines_out, msg=err_msg + self.info_msg)
 
         return lines_ref, lines_out
 
@@ -139,11 +160,11 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             lines_out_splitted = lines_out[i].split()
 
             self.assertTrue(len(lines_ref_splitted) == len(lines_out_splitted),
-                            msg="Lines have different length!")
+                            msg="Lines have different length!" + self.info_msg)
 
             for ref_value, out_value in zip(lines_ref_splitted, lines_out_splitted):
                 self.assertTrue(ref_value == out_value,
-                                msg=ref_value + " != " + out_value)
+                                msg=ref_value + " != " + out_value + self.info_msg)
 
         return results_found, results_start_index
 
@@ -155,11 +176,11 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         lines_2_splitted = lines2[current_index].split()
 
         if len(lines_1_splitted) != len(lines_2_splitted):
-            self.assertTrue(False, msg="Result labels have different length!")
+            self.assertTrue(False, msg="Result labels have different length!" + self.info_msg)
 
         for val_1, val_2 in zip(lines_1_splitted, lines_2_splitted):
             self.assertTrue(val_1 == val_2,
-                            msg=val_1 + " != " + val_2)
+                            msg=val_1 + " != " + val_2 + self.info_msg)
 
         current_index += 1 # skipping "Values"-line
 
@@ -169,12 +190,12 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             lines_1_splitted = lines1[current_index].split()
             lines_2_splitted = lines2[current_index].split()
             if len(lines_1_splitted) != len(lines_2_splitted):
-                self.assertTrue(False, msg="Different number of results!")
+                self.assertTrue(False, msg="Different number of results!" + self.info_msg)
 
             for val_1, val_2 in zip(lines_1_splitted, lines_2_splitted):
                 self.assertAlmostEqual(float(val_1),
                                        float(val_2),
-                                       self.decimal_places)
+                                       self.decimal_places, msg = self.info_msg)
 
         return current_index+2 # directly incrementing to get the new result label
 
@@ -198,7 +219,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         These lines are removed from the list of lines
         """
         while lines_ref[0].lstrip()[0] == '#' or lines_out[0].lstrip()[0] == '#':
-            self.assertTrue(lines_ref.pop(0) == lines_out.pop(0))
+            self.assertTrue(lines_ref.pop(0) == lines_out.pop(0), msg = self.info_msg)
 
     def __CompareDatFileResults(self, lines_ref, lines_out):
         """This function compares the data of files with tabular data
@@ -208,7 +229,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             for v1, v2 in zip(line_ref.split(), line_out.split()):
                 self.assertAlmostEqual(float(v1),
                                        float(v2),
-                                       self.decimal_places)
+                                       self.decimal_places, msg = self.info_msg)
 
     def __CompareMeshVerticesFile(self):
         """This function compares the output of the MMG meshing library
@@ -237,7 +258,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
 
         error /= nvertices
-        self.assertTrue(error < GetTolerance(self.decimal_places))
+        self.assertTrue(error < GetTolerance(self.decimal_places), msg = self.info_msg)
 
     def __CompareSolMetricFile(self):
         """This function compares the output of the MMG meshing library
@@ -278,7 +299,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
 
         error /= nvertices
-        self.assertTrue(error < GetTolerance(self.decimal_places))
+        self.assertTrue(error < GetTolerance(self.decimal_places), msg = self.info_msg)
 
 
 def ConvertStringToListFloat(line, space = " ", endline = ""):

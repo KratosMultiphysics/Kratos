@@ -50,7 +50,7 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) BakerJohnsonCookJ2ThermoPlasticityModel : public NonLinearRateDependentPlasticityModel<IncompressibleNeoHookeanModel, MisesHuberThermalYieldSurface<BakerJohnsonCookThermalHardeningRule> >
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -86,7 +86,7 @@ namespace Kratos
 
     /// Default constructor.
     BakerJohnsonCookJ2ThermoPlasticityModel() : BaseType() {}
-    
+
     /// Copy constructor.
     BakerJohnsonCookJ2ThermoPlasticityModel(BakerJohnsonCookJ2ThermoPlasticityModel const& rOther) : BaseType(rOther) {}
 
@@ -100,9 +100,9 @@ namespace Kratos
     /// Clone.
     ConstitutiveModel::Pointer Clone() const override
     {
-      return ( BakerJohnsonCookJ2ThermoPlasticityModel::Pointer(new BakerJohnsonCookJ2ThermoPlasticityModel(*this)) );
+      return Kratos::make_shared<BakerJohnsonCookJ2ThermoPlasticityModel>(*this);
     }
-    
+
     /// Destructor.
     virtual ~BakerJohnsonCookJ2ThermoPlasticityModel() {}
 
@@ -134,14 +134,14 @@ namespace Kratos
       PlasticityModel::GetDomainVariablesList(rScalarVariables, rComponentVariables);
 
       rScalarVariables.push_back(TEMPERATURE);
- 	
+
       KRATOS_CATCH(" ")
     }
 
-    
+
     /**
      * Has Values
-     */   
+     */
     virtual bool Has(const Variable<double>& rThisVariable) override
     {
       if(rThisVariable == PLASTIC_STRAIN || rThisVariable == DELTA_PLASTIC_STRAIN )
@@ -152,16 +152,16 @@ namespace Kratos
 
       return false;
     }
-    
+
 
     /**
      * Get Values
      */
     virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
     {
-      
+
       rValue=0;
-      
+
       if (rThisVariable==PLASTIC_STRAIN)
 	{
 	  rValue = this->mInternal.Variables[0];
@@ -183,10 +183,10 @@ namespace Kratos
 	{
 	  rValue = this->mThermalVariables.DeltaPlasticDissipation;
 	}
-      
+
       return rValue;
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -231,8 +231,8 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -242,7 +242,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -268,8 +268,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -292,14 +292,14 @@ namespace Kratos
 
     ///@}
     ///@name Serialization
-    ///@{    
+    ///@{
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
-    
+
     virtual void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
@@ -324,12 +324,12 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
-  ///@} 
-  ///@name Input and output 
+
+  ///@}
+  ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
@@ -337,6 +337,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BAKER_JOHNSON_COOK_J2_THERMO_PLASTICITY_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_BAKER_JOHNSON_COOK_J2_THERMO_PLASTICITY_MODEL_H_INCLUDED  defined

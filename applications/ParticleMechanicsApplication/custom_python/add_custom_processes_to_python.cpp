@@ -35,7 +35,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    class_<ParticleEraseProcess, Process>(m,"ParticleEraseProcess")
+    class_<ParticleEraseProcess, ParticleEraseProcess::Pointer, Process>(m,"ParticleEraseProcess")
     .def(init<ModelPart&>());
       
 }

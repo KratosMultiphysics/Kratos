@@ -8,11 +8,8 @@
 //
 
 // System includes
-#include <iostream>
-#include <cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp"
 #include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
@@ -59,8 +56,7 @@ IsotropicDamageSimoJuPlaneStrain2DLaw::IsotropicDamageSimoJuPlaneStrain2DLaw(con
 
 ConstitutiveLaw::Pointer IsotropicDamageSimoJuPlaneStrain2DLaw::Clone() const
 {
-    IsotropicDamageSimoJuPlaneStrain2DLaw::Pointer p_clone(new IsotropicDamageSimoJuPlaneStrain2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<IsotropicDamageSimoJuPlaneStrain2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -101,7 +97,7 @@ int IsotropicDamageSimoJuPlaneStrain2DLaw::Check(const Properties& rMaterialProp
         KRATOS_THROW_ERROR( std::invalid_argument,"STRENGTH_RATIO has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
     if(FRACTURE_ENERGY.Key() == 0 || rMaterialProperties.Has( FRACTURE_ENERGY ) == false || rMaterialProperties[FRACTURE_ENERGY] <= 0.0)
         KRATOS_THROW_ERROR( std::invalid_argument,"FRACTURE_ENERGY has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-    
+
     return ierr;
 }
 

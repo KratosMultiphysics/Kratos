@@ -34,14 +34,17 @@ typedef BaseType::VectorType VectorType;
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
                             VectorType &rDetJ0, GeometryType &rGeometry);
 
-void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart,
+void CalculateMeshVelocities(ModelPart &rMeshModelPart,
+                             const int TimeOrder, const double DeltaTime);
+
+void CalculateMeshVelocities(ModelPart* pMeshModelPart,
                              const int TimeOrder, const double DeltaTime);
 
 void MoveMesh(const ModelPart::NodesContainerType &rNodes);
 
 void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType &rNodes);
 
-ModelPart::Pointer GenerateMeshPart(ModelPart &rModelPart,
+std::unique_ptr<ModelPart> GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
 void UpdateReferenceMesh(ModelPart &rModelPart);

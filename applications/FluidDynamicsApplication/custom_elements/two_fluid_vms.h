@@ -403,7 +403,7 @@ KRATOS_WATCH(Ngauss);  */
             if (ndivisions > 1)
             {
 //                 KRATOS_WATCH(Nenriched);
-
+                this->EvaluateInPoint(bf, BODY_FORCE, N);
 
                 //note that here we compute only a part of the acceleration term
                 //this is done like this since the velocity*BDFVector[0] is treated implicitly

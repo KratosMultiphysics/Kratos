@@ -32,6 +32,7 @@
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 #include "containers/periodic_variables_container.h"
+#include "utilities/table_stream_utility.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -189,6 +190,11 @@ namespace Kratos
     // For MeshingApplication
     KRATOS_DEFINE_VARIABLE( double, NODAL_ERROR )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_ERROR_COMPONENTS )
+    KRATOS_DEFINE_VARIABLE( double, ELEMENT_ERROR )
+    KRATOS_DEFINE_VARIABLE( double, ELEMENT_H )
+    KRATOS_DEFINE_VARIABLE( Vector, RECOVERED_STRESS )
+    KRATOS_DEFINE_VARIABLE( double, ERROR_INTEGRATION_POINT )
+    KRATOS_DEFINE_VARIABLE( double, CONTACT_PRESSURE )
 
     //for PFEM fluids application:
     KRATOS_DEFINE_VARIABLE( double, NODAL_AREA )
@@ -411,7 +417,7 @@ namespace Kratos
 
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
-
+    
     //for General kratos application:
 
     //for Structural application:
@@ -434,6 +440,7 @@ namespace Kratos
 
     KRATOS_DEFINE_VARIABLE(double, INTEGRATION_WEIGHT )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
+    KRATOS_DEFINE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 
 }  // namespace Kratos.
 

@@ -10,7 +10,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return JsonOutputProcess(Model, settings["Parameters"])
 
-# All the processes python processes should be derived from "python_process"
+# All the processes python processes should be derived from "Process"
 
 class JsonOutputProcess(KratosMultiphysics.Process):
     """This class is used in order to create a json file containing
@@ -35,6 +35,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "help"                          : "This process generates a json file containing the solution of a list of variables from a given submodelpart",
             "output_variables"              : [],
             "gauss_points_output_variables" : [],
             "output_file_name"              : "",
@@ -191,7 +192,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             if (self.resultant_solution == False):
                                 data["ELEMENT_" + str(elem.Id)][variable_name + "_X"] = {}
                                 data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"] = {}
-                                data["ELEMENT_" + str(node.Id)][variable_name + "_Z"] = {}
+                                data["ELEMENT_" + str(elem.Id)][variable_name + "_Z"] = {}
                                 for gp in range(gauss_point_number):
                                     data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)] = []
                                     data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"][str(gp)] = []

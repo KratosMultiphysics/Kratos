@@ -42,16 +42,16 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class EPPointRigidContactPenalty3DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) EPPointRigidContactPenalty3DCondition
     : public PointRigidContactPenalty3DCondition
 {
 
    protected:
       typedef struct
       {
-         Vector PreviousStepForceVector; 
-         Vector t1; 
-         Vector t2; 
+         Vector PreviousStepForceVector;
+         Vector t1;
+         Vector t2;
          Vector n;
       } GeometricalInformation;
 
@@ -59,23 +59,23 @@ class EPPointRigidContactPenalty3DCondition
       {
          // ConstitutiveInformation
          double TangentForceRatio;
-         double  NormalTangentMatrix; 
-         double TangentTangentMatrix; 
+         double  NormalTangentMatrix;
+         double TangentTangentMatrix;
          Vector ForceDirection;
       }  ConstitutiveVariables;
-   
+
    public:
 
    ///@name Type Definitions
 
     ///Tensor order 1 definition
-    typedef bounded_vector<double, 3>     PointType;
+    typedef BoundedVector<double, 3>     PointType;
 
     ///@{
     // Counted pointer of PointRigidContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( EPPointRigidContactPenalty3DCondition );
     ///@}
- 
+
     ///@name Life Cycle
     ///@{
 
@@ -88,7 +88,7 @@ class EPPointRigidContactPenalty3DCondition
     EPPointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     EPPointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
-  
+
 
     /// Copy constructor
     EPPointRigidContactPenalty3DCondition( EPPointRigidContactPenalty3DCondition const& rOther);
@@ -124,7 +124,7 @@ class EPPointRigidContactPenalty3DCondition
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
     /**
@@ -137,7 +137,7 @@ class EPPointRigidContactPenalty3DCondition
      */
     virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     /**
      * Called at the beginning of each iteration
      */
@@ -287,7 +287,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_RIGID_CONTACT_PENALTY_3D_CONDITION_H_INCLUDED  defined 
-
-
-
+#endif // KRATOS_POINT_RIGID_CONTACT_PENALTY_3D_CONDITION_H_INCLUDED  defined

@@ -11,6 +11,8 @@ Begin Table 1 TEMPERATURE VISCOSITY
 End Table
 
 Begin Properties 1
+IS_RESTARTED 1
+COMPUTE_DYNAMIC_TANGENT 0
 DENSITY 3.4E-5  //scalar
 THICKNESS 19.5
 VOLUME_ACCELERATION [3] (0.00,0.00,9.8) //vector
@@ -81,6 +83,10 @@ End NodalData
 
 
 Begin SubModelPart Inlets
+	Begin SubModelPartData
+	IS_RESTARTED 1
+	COMPUTE_DYNAMIC_TANGENT 0
+	End SubModelPartData
 
 	Begin SubModelPartTables
 	1
@@ -129,11 +135,11 @@ Begin SubModelPart Outlet
 	Begin SubModelPartProperties
 	1
 	End SubModelPartProperties
-	
+
 	Begin SubModelPartConditions
 	1948
 	End SubModelPartConditions
-	
+
 
 End SubModelPart
 

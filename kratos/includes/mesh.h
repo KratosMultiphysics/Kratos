@@ -35,6 +35,7 @@
 #include "geometries/geometry.h"
 #include "containers/flags.h"
 #include "containers/data_value_container.h"
+#include "includes/master_slave_constraint.h"
 
 
 namespace Kratos
@@ -92,6 +93,8 @@ public:
     typedef TElementType ElementType;
 
     typedef TConditionType ConditionType;
+
+    typedef MasterSlaveConstraint MasterSlaveConstraintType;
 
     typedef Mesh<TNodeType, TPropertiesType, TElementType, TConditionType> MeshType;
 
@@ -158,6 +161,25 @@ public:
     usage. */
     typedef typename ConditionsContainerType::const_iterator ConditionConstantIterator;
 
+    // Defining the constraint base type
+
+    /// The container of the constraints
+    typedef PointerVectorSet<MasterSlaveConstraintType, IndexedObject> MasterSlaveConstraintContainerType;
+
+    /** Iterator over the constraints. This iterator is an indirect
+    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
+    MasterSlaveConstraint by * operator and not a pointer for more convenient
+    usage. */
+    typedef typename MasterSlaveConstraintContainerType::iterator MasterSlaveConstraintIteratorType;
+
+    /** Const iterator over the constraints. This iterator is an indirect
+    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
+    Table by * operator and not a pointer for more convenient
+    usage. */
+    typedef typename MasterSlaveConstraintContainerType::const_iterator MasterSlaveConstraintConstantIteratorType;
+
+
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -167,21 +189,24 @@ public:
         , mpNodes(new NodesContainerType())
         , mpProperties(new PropertiesContainerType())
         , mpElements(new ElementsContainerType())
-        , mpConditions(new ConditionsContainerType()) {}
+        , mpConditions(new ConditionsContainerType())
+        , mpMasterSlaveConstraints(new MasterSlaveConstraintContainerType()) {}
 
     /// Copy constructor.
     Mesh(Mesh const& rOther) : Flags(rOther)
         , mpNodes(rOther.mpNodes)
         , mpProperties(rOther.mpProperties)
         , mpElements(rOther.mpElements)
-        , mpConditions(rOther.mpConditions) {}
+        , mpConditions(rOther.mpConditions)
+        , mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
 
     /// Components constructor.
     Mesh(typename NodesContainerType::Pointer NewNodes,
          typename PropertiesContainerType::Pointer NewProperties,
          typename ElementsContainerType::Pointer NewElements,
-         typename ConditionsContainerType::Pointer NewConditions)
-        : Flags(), mpNodes(NewNodes), mpProperties(NewProperties) , mpElements(NewElements), mpConditions(NewConditions) {}
+         typename ConditionsContainerType::Pointer NewConditions,
+         typename MasterSlaveConstraintContainerType::Pointer NewMasterSlaveConditions)
+        : Flags(), mpNodes(NewNodes), mpProperties(NewProperties) , mpElements(NewElements), mpConditions(NewConditions), mpMasterSlaveConstraints(NewMasterSlaveConditions) {}
 
 
     /// Destructor.
@@ -203,8 +228,9 @@ public:
         typename PropertiesContainerType::Pointer p_properties(new PropertiesContainerType(*mpProperties));
         typename ElementsContainerType::Pointer p_elements(new ElementsContainerType(*mpElements));
         typename ConditionsContainerType::Pointer p_conditions(new ConditionsContainerType(*mpConditions));
+        typename MasterSlaveConstraintContainerType::Pointer p_master_slave_constraints(new MasterSlaveConstraintContainerType(*mpMasterSlaveConstraints));
 	
-        return Mesh(p_nodes, p_properties, p_elements, p_conditions);
+        return Mesh(p_nodes, p_properties, p_elements, p_conditions, p_master_slave_constraints);
     }
     
     void Clear()
@@ -275,6 +301,13 @@ public:
         return *i;
     }
 
+    const NodeType& GetNode(IndexType NodeId) const
+    {
+        auto i = mpNodes->find(NodeId);
+        KRATOS_ERROR_IF(i == mpNodes->end()) << " node index not found: " << NodeId << ".";
+        return *i;
+    }
+
     /** Remove the node with given Id from mesh.
     */
     void RemoveNode(IndexType NodeId)
@@ -317,6 +350,11 @@ public:
     }
 
     NodesContainerType& Nodes()
+    {
+        return *mpNodes;
+    }
+
+    const NodesContainerType& Nodes() const
     {
         return *mpNodes;
     }
@@ -468,6 +506,13 @@ public:
         return *i;
     }
 
+    const ElementType& GetElement(IndexType ElementId) const
+    {
+        auto i = mpElements->find(ElementId);
+        KRATOS_ERROR_IF(i == mpElements->end()) << " element index not found: " << ElementId << ".";
+        return *i;
+    }
+
     /** Remove the element with given Id from mesh.
     */
     void RemoveElement(IndexType ElementId)
@@ -514,6 +559,11 @@ public:
         return *mpElements;
     }
 
+    const ElementsContainerType& Elements() const
+    {
+        return *mpElements;
+    }
+
     typename ElementsContainerType::Pointer pElements()
     {
         return mpElements;
@@ -530,9 +580,9 @@ public:
     }
 
 
-	bool HasElement(IndexType NodeId) const
+	bool HasElement(IndexType ElementId) const
 	{
-		return (mpElements->find(NodeId) != mpElements->end());
+		return (mpElements->find(ElementId) != mpElements->end());
 	}
 
     ///@}
@@ -561,6 +611,13 @@ public:
 
     /** Returns a reference condition corresponding to it's identifier */
     ConditionType& GetCondition(IndexType ConditionId)
+    {
+        auto i = mpConditions->find(ConditionId);
+        KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
+        return *i;
+    }
+
+    const ConditionType& GetCondition(IndexType ConditionId) const
     {
         auto i = mpConditions->find(ConditionId);
         KRATOS_ERROR_IF(i == mpConditions->end()) << " condition index not found: " << ConditionId << ".";
@@ -613,6 +670,11 @@ public:
         return *mpConditions;
     }
 
+    const ConditionsContainerType& Conditions() const
+    {
+        return *mpConditions;
+    }
+
     typename ConditionsContainerType::Pointer pConditions()
     {
         return mpConditions;
@@ -628,10 +690,120 @@ public:
         return mpConditions->GetContainer();
     }
 
-	bool HasCondition(IndexType NodeId) const
+	bool HasCondition(IndexType ConditionId) const
 	{
-		return (mpConditions->find(NodeId) != mpConditions->end());
+		return (mpConditions->find(ConditionId) != mpConditions->end());
 	}
+
+
+    ///@}
+    ///@name MasterSlaveConstraints
+    ///@{
+
+
+
+    SizeType NumberOfMasterSlaveConstraints() const
+    {
+        return mpMasterSlaveConstraints->size();
+    }
+
+    /** Inserts a master-slave constraint  in the mesh.
+    */
+    void AddMasterSlaveConstraint(typename MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint)
+    {
+        mpMasterSlaveConstraints->insert(mpMasterSlaveConstraints->begin(), pNewMasterSlaveConstraint);
+    }
+
+    /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
+    typename MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType MasterSlaveConstraintId)
+    {
+        auto i = mpMasterSlaveConstraints->find(MasterSlaveConstraintId);
+        KRATOS_ERROR_IF(i == mpMasterSlaveConstraints->end()) << " master-slave constraint index not found: " << MasterSlaveConstraintId << ".";
+        return *i.base();
+    }
+
+    /** Returns a reference master-slave constraint corresponding to it's identifier */
+    MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId)
+    {
+        auto i = mpMasterSlaveConstraints->find(MasterSlaveConstraintId);
+        KRATOS_ERROR_IF(i == mpMasterSlaveConstraints->end()) << " master-slave constraint index not found: " << MasterSlaveConstraintId << ".";
+        return *i;
+    }
+
+    const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId) const
+    {
+        auto i = mpMasterSlaveConstraints->find(MasterSlaveConstraintId);
+        KRATOS_ERROR_IF(i == mpMasterSlaveConstraints->end()) << " master-slave constraint index not found: " << MasterSlaveConstraintId << ".";
+        return *i;
+    }
+
+    /** Remove the master-slave constraint with given Id from mesh.
+    */
+    void RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId)
+    {
+        mpMasterSlaveConstraints->erase(MasterSlaveConstraintId);
+    }
+
+    /** Remove given master-slave constraint from mesh.
+    */
+    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint)
+    {
+        mpMasterSlaveConstraints->erase(ThisMasterSlaveConstraint.Id());
+    }
+
+    /** Remove given master-slave constraint from mesh.
+    */
+    void RemoveMasterSlaveConstraint(typename MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint)
+    {
+        mpMasterSlaveConstraints->erase(pThisMasterSlaveConstraint->Id());
+    }
+
+    MasterSlaveConstraintIteratorType MasterSlaveConstraintsBegin()
+    {
+        return mpMasterSlaveConstraints->begin();
+    }
+
+    MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintsBegin() const
+    {
+        return mpMasterSlaveConstraints->begin();
+    }
+
+    MasterSlaveConstraintIteratorType MasterSlaveConstraintsEnd()
+    {
+        return mpMasterSlaveConstraints->end();
+    }
+
+    MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintsEnd() const
+    {
+        return mpMasterSlaveConstraints->end();
+    }
+
+    MasterSlaveConstraintContainerType& MasterSlaveConstraints()
+    {
+        return *mpMasterSlaveConstraints;
+    }
+
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints() const
+    {
+        return *mpMasterSlaveConstraints;
+    }
+
+    typename MasterSlaveConstraintContainerType::Pointer pMasterSlaveConstraints()
+    {
+        return mpMasterSlaveConstraints;
+    }
+
+    typename MasterSlaveConstraintContainerType::ContainerType& MasterSlaveConstraintsArray()
+    {
+        return mpMasterSlaveConstraints->GetContainer();
+    }
+
+
+    bool HasMasterSlaveConstraint(IndexType MasterSlaveConstraintId) const
+    {
+            return (mpMasterSlaveConstraints->find(MasterSlaveConstraintId) != mpMasterSlaveConstraints->end());
+    }
+
 
     ///@}
     ///@name Access
@@ -662,10 +834,11 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << "    Number of Nodes      : " << mpNodes->size() << std::endl;
-        rOStream << "    Number of Properties : " << mpProperties->size() << std::endl;
-        rOStream << "    Number of Elements   : " << mpElements->size() << std::endl;
-        rOStream << "    Number of Conditions : " << mpConditions->size() << std::endl;
+        rOStream << "    Number of Nodes       : " << mpNodes->size() << std::endl;
+        rOStream << "    Number of Properties  : " << mpProperties->size() << std::endl;
+        rOStream << "    Number of Elements    : " << mpElements->size() << std::endl;
+        rOStream << "    Number of Conditions  : " << mpConditions->size() << std::endl;
+        rOStream << "    Number of Constraints : " << mpMasterSlaveConstraints->size() << std::endl;
     }
 
     /// Print information about this object.
@@ -677,10 +850,11 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString ) const
     {
-        rOStream << PrefixString << "    Number of Nodes      : " << mpNodes->size() << std::endl;
-        rOStream << PrefixString << "    Number of Properties : " << mpProperties->size() << std::endl;
-        rOStream << PrefixString << "    Number of Elements   : " << mpElements->size() << std::endl;
-        rOStream << PrefixString << "    Number of Conditions : " << mpConditions->size() << std::endl;
+        rOStream << PrefixString << "    Number of Nodes       : " << mpNodes->size() << std::endl;
+        rOStream << PrefixString << "    Number of Properties  : " << mpProperties->size() << std::endl;
+        rOStream << PrefixString << "    Number of Elements    : " << mpElements->size() << std::endl;
+        rOStream << PrefixString << "    Number of Conditions  : " << mpConditions->size() << std::endl;
+        rOStream << PrefixString << "    Number of Constraints : " << mpMasterSlaveConstraints->size() << std::endl;
     }
 
 
@@ -745,6 +919,9 @@ private:
 
     typename ConditionsContainerType::Pointer mpConditions;
 
+    typename MasterSlaveConstraintContainerType::Pointer mpMasterSlaveConstraints;
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -770,6 +947,7 @@ private:
         rSerializer.save("Properties",mpProperties);
         rSerializer.save("Elements",mpElements);
         rSerializer.save("Conditions",mpConditions);
+        rSerializer.save("Conditions",mpMasterSlaveConstraints);
     }
 
     void load(Serializer& rSerializer) override
@@ -780,6 +958,7 @@ private:
         rSerializer.load("Properties",mpProperties);
         rSerializer.load("Elements",mpElements);
         rSerializer.load("Conditions",mpConditions);
+        rSerializer.load("Conditions",mpMasterSlaveConstraints);
     }
 
 

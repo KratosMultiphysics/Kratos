@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-class ThermalLinearElastic3DLawNodal : public LinearElastic3DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalLinearElastic3DLawNodal : public LinearElastic3DLaw
 {
 
 public:
@@ -58,10 +58,12 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double& CalculateNodalYoungModulus ( const MaterialResponseVariables & rElasticVariables, double & rYoungModulus);
-
+    
     double& CalculateDomainTemperature ( const MaterialResponseVariables & rElasticVariables, double & rTemperature) override;
 
-    virtual void CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables & rElasticVariables, double & rTemperature);
+    double& CalculateNodalReferenceTemperature ( const MaterialResponseVariables & rElasticVariables, double & rNodalReferenceTemperature);
+
+    virtual void CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables & rElasticVariables, double & rTemperature, double & rNodalReferenceTemperature);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

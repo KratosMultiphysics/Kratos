@@ -38,6 +38,13 @@ CrBeamElement2D2N::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                                                 pProperties);
 }
 
+Element::Pointer
+CrBeamElement2D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
+                          PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<CrBeamElement2D2N>(NewId, pGeom,
+                                                pProperties);
+}
+
 CrBeamElement2D2N::~CrBeamElement2D2N() {}
 
 void CrBeamElement2D2N::EquationIdVector(EquationIdVectorType &rResult,
@@ -871,28 +878,28 @@ void CrBeamElement2D2N::AddExplicitContribution(
   }
 
   if (rDestinationVariable == NODAL_INERTIA) {
+        Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
+        ProcessInfo temp_info; // Dummy
+        this->CalculateMassMatrix(element_mass_matrix, temp_info);
 
-    Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
-    ProcessInfo temp_info; // Dummy
-    this->CalculateMassMatrix(element_mass_matrix, temp_info);
+        for (IndexType i = 0; i < msNumberOfNodes; ++i) {
+            double aux_nodal_mass = 0.0;
+            double aux_nodal_inertia = 0.0;
 
-    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
-      GetGeometry()[i].SetLock();
-      double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-      array_1d<double, msLocalSize> &r_nodal_inertia =
-          GetGeometry()[i].GetValue(NODAL_INERTIA);
-      SizeType index = i * msLocalSize;
+            const SizeType index = i * msLocalSize;
 
-      for (SizeType j = 0; j < msElementSize; ++j) {
-        r_nodal_mass += element_mass_matrix(index, j);
-        r_nodal_inertia[msDimension] +=
-            element_mass_matrix(index + msDimension, j);
-      }
-      for (SizeType k = 0; k < msLocalSize; ++k)
-        r_nodal_inertia[k] = std::abs(r_nodal_inertia[k]);
+            for (IndexType j = 0; j < msElementSize; ++j) {
+                aux_nodal_mass += element_mass_matrix(index, j);
+                aux_nodal_inertia += element_mass_matrix(index + msDimension, j);
+            }
 
-      GetGeometry()[i].UnSetLock();
-    }
+            #pragma omp atomic
+            GetGeometry()[i].GetValue(NODAL_MASS) += aux_nodal_mass;
+
+            array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
+            #pragma omp atomic
+            r_nodal_inertia[msDimension] += std::abs(aux_nodal_inertia);
+        }
   }
 
   KRATOS_CATCH("")

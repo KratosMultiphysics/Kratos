@@ -15,6 +15,7 @@
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
+#include "includes/checks.h"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -57,11 +58,11 @@ ElasticIsotropic3D::~ElasticIsotropic3D()
 
 void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    //b.- Get Values to compute the constitutive law:
+    KRATOS_TRY;
+    // b.- Get Values to compute the constitutive law:
     Flags & r_options=rValues.GetOptions();
 
     Vector& r_strain_vector                  = rValues.GetStrainVector();
-    Vector& r_stress_vector                  = rValues.GetStressVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if( r_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
@@ -75,6 +76,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
 
     if( r_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
+        Vector& r_stress_vector = rValues.GetStressVector();
         if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
             noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
@@ -82,6 +84,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
             CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
         }
     }
+    KRATOS_CATCH("");
 }
 
 //************************************************************************************
@@ -191,23 +194,16 @@ int ElasticIsotropic3D::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.0)
-    {
-        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
 
+    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
     const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
+    const bool check = static_cast<bool>((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
+    KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;
 
-    if(POISSON_RATIO.Key() == 0 || check==true)
-    {
-        KRATOS_ERROR << "POISSON_RATIO has Key zero or invalid value " << std::endl;
-    }
-
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.0)
-    {
-        KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is invalid value " << std::endl;
 
     return 0;
 }

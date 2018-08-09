@@ -1,22 +1,24 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+
+# Check that applications were imported in the main script
+KM.CheckRegisteredApplications("StructuralMechanicsApplication")
+KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
+
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
-
-KM.CheckForPreviousImport()
-
 
 def Factory(settings, Model):
     if(type(settings) != KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return MeshTyingProcess(Model, settings["Parameters"])
 
-import python_process
-# All the processes python processes should be derived from "python_process"
+
+# All the processes python should be derived from "Process"
 
 
-class MeshTyingProcess(python_process.PythonProcess):
+class MeshTyingProcess(KM.Process):
     """This class is used in order to compute the a mortar mesh tying formulation
 
     This class constructs the model parts containing the mesh tying conditions and
@@ -42,6 +44,7 @@ class MeshTyingProcess(python_process.PythonProcess):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
+            "help"                        : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",

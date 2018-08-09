@@ -75,16 +75,12 @@ namespace Kratos {
         //InitializeContact(element1, element2, indentation);
 //G
         //LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
-//        KRATOS_WATCH(element1->Is(ACTIVE))
-//        KRATOS_WATCH(element2->Is(ACTIVE))
-//        KRATOS_WATCH(element1->Is(NEW_ENTITY))
-//        KRATOS_WATCH(element2->Is(NEW_ENTITY))
         if ((element2->Is(BLOCKED) && element1->Is(NEW_ENTITY)) || (element2->Is(NEW_ENTITY) && element1->Is(BLOCKED))){ // you are contacting an injector
 //            const array_1d<double, 3>& global_force = element2->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
 //            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, global_force, LocalElasticContactForce);
 //            if (element2->Is(ACTIVE) && element1->IsNot(NEW_ENTITY)){ // it has a particle inside, which should already be doing the pushing, or else it is an injected particle, which already has had its force imposed
 //                LocalElasticContactForce[2] = 0.0;
-//                KRATOS_WATCH(element1->Id())
+//
 //            }
 
 //            else if (element2->Is(ACTIVE) && element1->Is(NEW_ENTITY)){
@@ -151,7 +147,7 @@ namespace Kratos {
     // DEM-FEM INTERACTION //
     /////////////////////////
 
-    void DEM_D_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta)
+    void DEM_D_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta)
     {}
 
     void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& r_process_info,
@@ -164,7 +160,7 @@ namespace Kratos {
                                                          double ViscoDampingLocalContactForce[3],
                                                          double& cohesive_force,
                                                          SphericParticle* const element,
-                                                         DEMWall* const wall,
+                                                         Condition* const wall,
                                                          bool& sliding) {
 
         //InitializeContactWithFEM(element, wall, indentation);
@@ -199,7 +195,7 @@ namespace Kratos {
     void DEM_D_Bentonite_Colloid::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                                     double ViscoDampingLocalContactForce[3],
                                                                     SphericParticle* const element,
-                                                                    DEMWall* const wall) {
+                                                                    Condition* const wall) {
 
         const double my_mass    = element->GetMass();
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
@@ -223,7 +219,7 @@ namespace Kratos {
         return 0.0;
     }
 
-    double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
+    double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation){
         return 0.0;
     }
 

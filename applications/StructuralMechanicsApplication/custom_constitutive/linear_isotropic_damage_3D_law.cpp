@@ -67,22 +67,10 @@ bool LinearIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
     if(rThisVariable == STRAIN_ENERGY){
         return true;
     }
-    return false;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-bool& LinearIsotropicDamage3D::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mInelasticFlag;
+    if(rThisVariable == DAMAGE_VARIABLE){
+        return true;
     }
-
-    return rValue;
+    return false;
 }
 
 //************************************************************************************
@@ -192,6 +180,21 @@ void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValue
 //************************************************************************************
 //************************************************************************************
 
+bool& LinearIsotropicDamage3D::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
+{
+    if(rThisVariable == INELASTIC_FLAG){
+        rValue = mInelasticFlag;
+    }
+    return(rValue);
+}
+
+//************************************************************************************
+//************************************************************************************
+
 double& LinearIsotropicDamage3D::CalculateValue(
     Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
@@ -212,6 +215,14 @@ double& LinearIsotropicDamage3D::CalculateValue(
         rValue = 0.5 * ((1. - damage_variable) * inner_prod(strain_vector,
                                               prod(constitutive_matrix, strain_vector)));
     }
+
+    if (rThisVariable == DAMAGE_VARIABLE){
+        const Properties& rMaterialProperties = rParameterValues.GetMaterialProperties();
+        const double stress_like_variable = EvaluateHardeningLaw(mStrainVariableOld, rMaterialProperties);
+
+        rValue = 1. - stress_like_variable / mStrainVariableOld;
+    }
+
     return(rValue);
 }
 

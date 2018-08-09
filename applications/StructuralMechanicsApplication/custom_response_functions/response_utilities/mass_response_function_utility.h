@@ -156,7 +156,7 @@ public:
 
 			// Compute total mass of all neighbor elements before finite differencing
 			double mass_before_fd = 0.0;
-			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
 				double elem_density = ng_elem_i.GetProperties()[DENSITY];
@@ -172,7 +172,7 @@ public:
 			// Apply pertubation in X-direction and recompute total mass of all neighbor elements
 			double mass_after_fd = 0.0;
 			node_i.X() += mDelta;
-			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
 				double elem_density = ng_elem_i.GetProperties()[DENSITY];
@@ -187,7 +187,7 @@ public:
 			// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
 			mass_after_fd = 0.0;
 			node_i.Y() += mDelta;
-			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
 				double elem_density = ng_elem_i.GetProperties()[DENSITY];
@@ -202,7 +202,7 @@ public:
 			// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
 			mass_after_fd = 0.0;
 			node_i.Z() += mDelta;
-			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
 				double elem_density = ng_elem_i.GetProperties()[DENSITY];
@@ -237,7 +237,7 @@ public:
 
 			// Compute total mass of all neighbor elements before finite differencing
 			double scaling_factor = 0.0;
-			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
 				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();

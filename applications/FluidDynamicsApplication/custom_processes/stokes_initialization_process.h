@@ -66,24 +66,25 @@ public:
     ///@name Life Cycle
     ///@{
 
-    StokesInitializationProcess(const ModelPart::Pointer pModelPart,
+    StokesInitializationProcess(ModelPart& rModelPart,
                                 typename TLinearSolver::Pointer pLinearSolver,
                                 unsigned int DomainSize,
                                 const Variable<int>& PeriodicPairIndicesVar):
         Process(),
-        mpReferenceModelPart(pModelPart),
+        mrReferenceModelPart(rModelPart),
         mpLinearSolver(pLinearSolver),
         mDomainSize(DomainSize)
     {
         KRATOS_TRY;
 
         // Initialize new model part (same nodes, new elements, no conditions)
-        mpStokesModelPart = ModelPart::Pointer(new ModelPart("StokesModelPart"));
-        mpStokesModelPart->GetNodalSolutionStepVariablesList() = mpReferenceModelPart->GetNodalSolutionStepVariablesList();
+        auto tmp = Kratos::make_unique<ModelPart>("StokesModelPart");
+        mpStokesModelPart.swap(tmp); 
+        mpStokesModelPart->GetNodalSolutionStepVariablesList() = mrReferenceModelPart.GetNodalSolutionStepVariablesList();
         mpStokesModelPart->SetBufferSize(1);
-        mpStokesModelPart->SetNodes( mpReferenceModelPart->pNodes() );
-        mpStokesModelPart->SetProcessInfo(mpReferenceModelPart->pGetProcessInfo());
-        mpStokesModelPart->SetProperties(mpReferenceModelPart->pProperties());
+        mpStokesModelPart->SetNodes( mrReferenceModelPart.pNodes() );
+        mpStokesModelPart->SetProcessInfo(mrReferenceModelPart.pGetProcessInfo());
+        mpStokesModelPart->SetProperties(mrReferenceModelPart.pProperties());
 
         // Retrieve Stokes element model
         std::string ElementName;
@@ -95,7 +96,7 @@ public:
         const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
 
         // Generate Stokes elements
-        for (ModelPart::ElementsContainerType::iterator itElem = mpReferenceModelPart->ElementsBegin(); itElem != mpReferenceModelPart->ElementsEnd(); itElem++)
+        for (ModelPart::ElementsContainerType::iterator itElem = mrReferenceModelPart.ElementsBegin(); itElem != mrReferenceModelPart.ElementsEnd(); itElem++)
         {
             Element::Pointer pElem = rReferenceElement.Create(itElem->Id(), itElem->GetGeometry(), itElem->pGetProperties() );
             mpStokesModelPart->Elements().push_back(pElem);
@@ -232,13 +233,13 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    const ModelPart::Pointer mpReferenceModelPart;
+    ModelPart& mrReferenceModelPart;
 
     typename TLinearSolver::Pointer mpLinearSolver;
 
     unsigned int mDomainSize;
 
-    ModelPart::Pointer mpStokesModelPart;
+    Kratos::unique_ptr<ModelPart> mpStokesModelPart;
 
     typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
 
@@ -249,12 +250,12 @@ protected:
     ///@{
 
     /// Protected constructor to be used by derived classes
-    StokesInitializationProcess(const ModelPart::Pointer pModelPart,
+    StokesInitializationProcess(ModelPart& rModelPart,
                                 typename TLinearSolver::Pointer pLinearSolver,
                                 unsigned int DomainSize,
                                 const StokesInitializationProcess* pThis):
         Process(),
-        mpReferenceModelPart(pModelPart),
+        mrReferenceModelPart(rModelPart),
         mpLinearSolver(pLinearSolver),
         mDomainSize(DomainSize)
     {}

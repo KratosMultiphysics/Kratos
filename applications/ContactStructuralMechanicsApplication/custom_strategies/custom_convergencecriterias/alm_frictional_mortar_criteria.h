@@ -88,12 +88,10 @@ public:
     ///@{
     
     /// Default constructors
-    ALMFrictionalMortarConvergenceCriteria(        
-        TablePrinterPointerType pTable = nullptr,
+    ALMFrictionalMortarConvergenceCriteria(
         const bool PrintingOutput = false,
         const bool GiDIODebug = false
         ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(GiDIODebug),
-        mpTable(pTable),
         mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
@@ -102,7 +100,6 @@ public:
     ///Copy constructor 
     ALMFrictionalMortarConvergenceCriteria( ALMFrictionalMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
-      ,mpTable(rOther.mpTable)
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
@@ -166,9 +163,10 @@ public:
         IndexType is_converged_active = 0;
         IndexType is_converged_slip = 0;
         
-//         const double epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
-        const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
-        const double tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        const double common_epsilon = r_process_info[INITIAL_PENALTY];
+        const double scale_factor = r_process_info[SCALE_FACTOR];
+        const double tangent_factor = r_process_info[TANGENT_FACTOR];
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
@@ -176,7 +174,7 @@ public:
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             
-            const double epsilon = it_node->GetValue(INITIAL_PENALTY); 
+            const double epsilon = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : common_epsilon;
             
             const array_1d<double,3>& lagrange_multiplier = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
             const array_1d<double,3>& nodal_normal = it_node->FastGetSolutionStepValue(NORMAL);
@@ -221,6 +219,7 @@ public:
                 it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array;
                 if (it_node->Is(ACTIVE)) {
                     it_node->Set(ACTIVE, false);
+                    it_node->Set(SLIP, false);
                     is_converged_active += 1;
                 }
             }
@@ -228,11 +227,12 @@ public:
         
         // We save to the process info if the active set has converged
         const bool active_set_converged = (is_converged_active + is_converged_slip) == 0 ? true : false;
-        rModelPart.GetProcessInfo()[ACTIVE_SET_CONVERGED] = active_set_converged;
+        r_process_info[ACTIVE_SET_CONVERGED] = active_set_converged;
         
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-            if (mpTable != nullptr) {
-                auto& table = mpTable->GetTable();
+            if (r_process_info.Has(TABLE_UTILITY)) {
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                auto& table = p_table->GetTable();
                 if (is_converged_active == 0) {
                     if (mPrintingOutput == false)
                         table << BOLDFONT(FGRN("       Achieved"));
@@ -258,26 +258,26 @@ public:
             } else {
                 if (is_converged_active == 0) {
                     if (mPrintingOutput == false)
-                        std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                     else
-                        std::cout << "\tActive set convergence is achieved" << std::endl;
+                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tActive set convergence is achieved" << std::endl;
                 } else {
                     if (mPrintingOutput == false)
-                        std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     else
-                        std::cout << "\tActive set convergence is not achieved" << std::endl;
+                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tActive set convergence is not achieved" << std::endl;
                 }
                 
                 if (is_converged_slip == 0) {
                     if (mPrintingOutput == false)
-                        std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                     else
-                        std::cout << "\tSlip/stick set convergence is achieved" << std::endl;
+                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set convergence is achieved" << std::endl;
                 } else {
                     if (mPrintingOutput == false)
-                        std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     else
-                        std::cout << "\tSlip/stick set  convergence is not achieved" << std::endl;
+                        KRATOS_INFO("ALMFrictionalMortarConvergenceCriteria") << "\tSlip/stick set  convergence is not achieved" << std::endl;
                 }
             }
         }
@@ -294,8 +294,10 @@ public:
     {
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
         
-        if (mpTable != nullptr && mTableIsInitialized == false) {
-            auto& table = mpTable->GetTable();
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+            auto& table = p_table->GetTable();
             table.AddColumn("ACTIVE SET CONV", 15);
             table.AddColumn("SLIP/STICK CONV", 15);
             mTableIsInitialized = true;
@@ -372,7 +374,6 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable; /// Pointer to the fancy table 
     bool mPrintingOutput;            /// If the colors and bold are printed
     bool mTableIsInitialized;        /// If the table is already initialized
     

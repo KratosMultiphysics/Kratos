@@ -17,6 +17,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "truss_test/nonlinear_3D2NTruss_test"
         },
+        "material_import_settings" :{
+            "materials_filename": "truss_test/nonlinear_3D2NTruss_test_materials.json"
+        },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 1e-9,
@@ -94,7 +97,7 @@
         }
     }
     ],
-    "print_output_process" : [
+    "_print_output_process" : [
     {
         "python_module"   : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
@@ -107,5 +110,5 @@
             "time_frequency"   : 0.005
         }
     }
-    ]     
+    ]
 }

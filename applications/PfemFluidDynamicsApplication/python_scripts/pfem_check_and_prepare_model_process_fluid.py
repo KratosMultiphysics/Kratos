@@ -23,7 +23,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareModelProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     def __init__(self, main_model_part, Parameters ):
         self.main_model_part = main_model_part
@@ -50,7 +50,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         solid_body_model_parts = []
         rigid_body_model_parts = []
 
-        void_flags = KratosSolid.FlagsContainer()
+        void_flags  = []
         
         if( self.bodies_list == True ):
             for i in range(self.bodies_parts_list.size()):
@@ -79,19 +79,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                     clock_time = StartTimeMeasuring()
                     
                     if (body_model_part_type=="Fluid"):
-                        assign_flags = KratosSolid.FlagsContainer()
-                        assign_flags.PushBack(KratosMultiphysics.FLUID)
+                        assign_flags = [KratosMultiphysics.FLUID]
                         transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
                     elif (body_model_part_type=="Solid"):
-                        assign_flags = KratosSolid.FlagsContainer()
-                        assign_flags.PushBack(KratosMultiphysics.SOLID)
+                        assign_flags  = [KratosMultiphysics.SOLID]
                         transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
                     elif (body_model_part_type=="Rigid"):
-                        assign_flags = KratosSolid.FlagsContainer()
-                        assign_flags.PushBack(KratosMultiphysics.RIGID)
-                        assign_flags.PushBack(KratosMultiphysics.BOUNDARY)
+                        assign_flags  = [KratosMultiphysics.RIGID,KratosMultiphysics.BOUNDARY]
                         transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
                                                     
@@ -137,9 +133,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             #                print("Node Inserted Py",node.Id)
 
             #add walls in fluid domains:
-            transfer_flags = KratosSolid.FlagsContainer()
-            transfer_flags.PushBack(KratosMultiphysics.RIGID)
-            transfer_flags.PushBack(KratosMultiphysics.NOT_FLUID)
+            transfer_flags = [KratosMultiphysics.RIGID,KratosMultiphysics.NOT_FLUID]
             
             for solid_part in solid_body_model_parts:
 
@@ -197,7 +191,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         '''    
         for part in processes_parts:
             entity_type = "Conditions"
-            assign_flags = KratosSolid.FlagsContainer()
+            assign_flags  = []
             assign_flags.PushBack(KratosMultiphysics.BOUNDARY)
             transfer_process = KratosSolid.TransferEntitiesProcess(fluid_computing_model_part,part,entity_type,void_flags,assign_flags)
             transfer_process.Execute()

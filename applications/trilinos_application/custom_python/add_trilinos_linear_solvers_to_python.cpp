@@ -100,6 +100,7 @@ void  AddLinearSolvers(pybind11::module& m)
     (m,"AmesosSolver").def( init<const std::string&, Teuchos::ParameterList& >())
     .def(init<Parameters>())
     .def(init<Parameters>())
+    .def_static("HasSolver", &AmesosSolverType::HasSolver)
     ;
 
     typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;

@@ -74,19 +74,20 @@ bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
     return false;
 }
 
+
+
 //************************************************************************************
 //************************************************************************************
 
-bool& LinearJ2Plasticity3D::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
+void LinearJ2Plasticity3D::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mInelasticFlag;
+    if(rThisVariable == PLASTIC_STRAIN){
+        mAccumulatedPlasticStrain = rValue;
     }
-
-    return rValue;
 }
 
 //************************************************************************************
@@ -102,20 +103,6 @@ double& LinearJ2Plasticity3D::GetValue(
     }
 
     return rValue;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2Plasticity3D::SetValue(
-    const Variable<double>& rThisVariable,
-    const double& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    if(rThisVariable == PLASTIC_STRAIN){
-        mAccumulatedPlasticStrain = rValue;
-    }
 }
 
 //************************************************************************************
@@ -279,6 +266,21 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
 //************************************************************************************
 //************************************************************************************
 
+bool& LinearJ2Plasticity3D::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
+{
+    if(rThisVariable == INELASTIC_FLAG){
+        rValue = mInelasticFlag;
+    }
+    return(rValue);
+}
+
+//************************************************************************************
+//************************************************************************************
+
 double& LinearJ2Plasticity3D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
@@ -297,9 +299,11 @@ double& LinearJ2Plasticity3D::CalculateValue(
         rValue = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain))
                  + GetPlasticPotential(r_material_properties);
     }
+
     if(rThisVariable == PLASTIC_STRAIN){
         rValue = mAccumulatedPlasticStrain;
     }
+
     return(rValue);
 }
 

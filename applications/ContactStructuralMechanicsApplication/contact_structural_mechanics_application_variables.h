@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
@@ -40,7 +39,7 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    enum NormalDerivativesComputation {NO_DERIVATIVES_COMPUTATION = 0, ELEMENTAL_DERIVATIVES = 1, NODAL_ELEMENTAL_DERIVATIVES = 2};
+    enum NormalDerivativesComputation {NO_DERIVATIVES_COMPUTATION = 0, ELEMENTAL_DERIVATIVES = 1, NODAL_ELEMENTAL_DERIVATIVES = 2, NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE = 3};
 
 ///@}
 ///@name  Functions

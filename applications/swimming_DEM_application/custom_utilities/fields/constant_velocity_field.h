@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-class ConstantVelocityField : public VelocityField
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ConstantVelocityField : public VelocityField
 {
 public:
 

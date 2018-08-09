@@ -36,11 +36,13 @@ class LaplacianSolver:
             "linear_solver_settings": {
                     "solver_type": "AMGCL",
                     "max_iteration": 400,
+                    "gmres_krylov_space_dimension": 100,
                     "smoother_type":"ilu0",
-                    "coarsening_type":"aggregation",
+                    "coarsening_type":"ruge_stuben",
+                    "coarse_enough" : 5000,
                     "krylov_type": "lgmres",
                     "tolerance": 1e-9,
-                    "verbosity": 2,
+                    "verbosity": 3,
                     "scaling": false
             }
         }""")
