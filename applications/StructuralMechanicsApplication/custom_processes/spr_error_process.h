@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "structural_mechanics_application_variables.h"
