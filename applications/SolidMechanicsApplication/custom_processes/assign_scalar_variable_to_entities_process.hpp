@@ -145,7 +145,7 @@ public:
 
 
     /// Destructor.
-    virtual ~AssignScalarVariableToEntitiesProcess() {}
+    ~AssignScalarVariableToEntitiesProcess() override {}
 
 
     ///@}

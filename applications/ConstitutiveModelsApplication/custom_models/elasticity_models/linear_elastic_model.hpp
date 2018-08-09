@@ -99,13 +99,13 @@ namespace Kratos
     LinearElasticModel(LinearElasticModel const& rOther);
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override;
+    ConstitutiveModel::Pointer Clone() const override;
 
     /// Assignment operator.
     LinearElasticModel& operator=(LinearElasticModel const& rOther);
 
     /// Destructor.
-    virtual ~LinearElasticModel();
+    ~LinearElasticModel() override;
 
 
     ///@}
@@ -121,61 +121,61 @@ namespace Kratos
     /**
      * Initialize member data
      */
-    virtual void InitializeModel(ModelDataType& rValues) override;
+    void InitializeModel(ModelDataType& rValues) override;
 
 
     /**
      * Finalize member data
      */
-    virtual void FinalizeModel(ModelDataType& rValues) override;
+    void FinalizeModel(ModelDataType& rValues) override;
 
 
     /**
      * Calculate Strain Energy Density Functions
      */
-    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override;
+    void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override;
 
 
     /**
      * Calculate Stresses
      */
-    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
+    void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
 
-    virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
+    void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
 
-    virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
+    void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
 
 
 
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
+    void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
 
-    virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
+    void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
 
-    virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
+    void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
 
     /**
      * Calculate Stress and Constitutive Tensor
      */
-    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
+    void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
 
-    virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
+    void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
 
-    virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
+    void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
 
 
     /**
      * Check
      */
-    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
     ///@{
 
-    virtual void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
+    void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
 			  const ProcessInfo& rCurrentProcessInfo ) override
     {
       KRATOS_TRY
@@ -192,7 +192,7 @@ namespace Kratos
     }
 
 
-    virtual void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+    void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
 			  const ProcessInfo& rCurrentProcessInfo ) override
     {
       KRATOS_TRY
@@ -213,7 +213,7 @@ namespace Kratos
      * @param rScalarVariables : list of scalar dofs
      * @param rComponentVariables :  list of vector dofs
      */
-    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
+    void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
 					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
     {
       KRATOS_TRY
@@ -233,7 +233,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "LinearElasticModel";
@@ -241,13 +241,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "LinearElasticModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "LinearElasticModel Data";
     }
@@ -357,12 +357,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
     }
