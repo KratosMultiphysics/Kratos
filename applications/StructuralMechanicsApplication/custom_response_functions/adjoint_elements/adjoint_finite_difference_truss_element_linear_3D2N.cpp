@@ -34,12 +34,6 @@ void AdjointFiniteDifferenceTrussElementLinear::Calculate(const Variable<Vector 
 {
     KRATOS_TRY;
 
-    ProcessInfo copy_process_info = rCurrentProcessInfo;
-    Vector dummy_RHS;
-    // This call of RHS is necessary in order to ensure that constitutive law saves the primal stresses.
-    // This is possible since within the computation of RHS CalculateMaterialResponse of the CL is called.
-    mpPrimalElement->CalculateRightHandSide(dummy_RHS, copy_process_info);
-
     if(rVariable == STRESS_ON_GP)
     {
         TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
