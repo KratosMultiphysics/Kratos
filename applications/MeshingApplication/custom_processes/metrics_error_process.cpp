@@ -21,6 +21,16 @@ MetricErrorProcess<TDim>::MetricErrorProcess(
         Parameters ThisParameters
         ):mrThisModelPart(rThisModelPart)
 {               
+    /**
+     * We configure using the following parameters:
+     * minimal_size: The minimal size to consider on the remeshing
+     * maximal_size: The maximal size to consider on the remeshing
+     * target_error: The target error
+     * set_number_of_elements: If the number of elements will be forced or not
+     * number_of_elements: The estimated/desired number of elements
+     * average_nodal_h: If the nodal size to consider will be averaged over the mesh
+     * echo_level: The verbosity
+     */
     Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                        : 0.01,
