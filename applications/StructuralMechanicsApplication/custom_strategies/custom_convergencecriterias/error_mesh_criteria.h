@@ -19,7 +19,6 @@
 
 /* Project includes */
 #include "includes/model_part.h"
-#include "structural_mechanics_application.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/color_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -107,15 +106,9 @@ public:
         /**
          * error_mesh_tolerance: The tolerance in the convergence criteria of the error
          * error_mesh_constant: The constant considered in the remeshing process
-         * minimal_size: The minimal size of element for the mesh
-         * maximal_size: The maximum size of element for the mesh
-         * error: The target error
          * penalty_normal: The penalty used in the normal direction (for the contact patch)
          * penalty_tangential: The penalty used in the tangent direction (for the contact patch)
          * echo_level: The verbosity
-         * set_number_of_elements: If the number of elements will be forced or not
-         * number_of_elements: The estimated/desired number of elements
-         * average_nodal_h: If the nodal size to consider will be averaged over the mesh
          */
         Parameters default_parameters = Parameters(R"(
         {
@@ -123,15 +116,9 @@ public:
             "error_mesh_constant"  : 5.0e-3,
             "error_strategy_parameters":
             {
-                "minimal_size"                        : 0.01,
-                "maximal_size"                        : 1.0,
-                "error"                               : 0.01,
                 "penalty_normal"                      : 1.0e4,
                 "penalty_tangential"                  : 1.0e4,
-                "echo_level"                          : 0,
-                "set_number_of_elements"              : false,
-                "number_of_elements"                  : 1000,
-                "average_nodal_h"                     : false
+                "echo_level"                          : 0
             }
         })" );
         
@@ -164,26 +151,6 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::Initialize(rModelPart);
-
-        const bool meshing_application_compiled = KratosComponents<Variable<Vector>>::Has("MMG_METRIC");
-        KRATOS_WARNING_IF("CalculateMetric", !meshing_application_compiled) << "Please compile the MeshingApplication in order to compute the metric" << std::endl;
-
-        // Initializing metric (if possible)
-        if (meshing_application_compiled) {
-            const Variable<Vector>& metric_variable = KratosComponents<Variable<Vector>>::Get("MMG_METRIC");
-
-            // The process info
-            ProcessInfo& process_info = rModelPart.GetProcessInfo();
-
-            const SizeType size = process_info[DOMAIN_SIZE] == 2  ? 3: 6;
-
-            // We iterate over the nodes
-            NodesArrayType& nodes_array = rModelPart.Nodes();
-
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-                (nodes_array.begin() + i)->SetValue(metric_variable, ZeroVector(size));
-        }
     }
 
     /**
@@ -204,20 +171,19 @@ public:
         ) override
     {
         // The process info
-        ProcessInfo& process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& process_info = rModelPart.GetProcessInfo();
 
-        // Computing metric
-        double estimated_error = 0;
+        // Computing error
         if (process_info[DOMAIN_SIZE] == 2) {
-            SPRMetricProcess<2> ComputeMetric = SPRMetricProcess<2>(rModelPart, mThisParameters["error_strategy_parameters"]);
-            ComputeMetric.Execute();
+            SPRErrorProcess<2> compute_error_process = SPRErrorProcess<2>(rModelPart, mThisParameters["error_strategy_parameters"]);
+            compute_error_process.Execute();
         } else {
-            SPRMetricProcess<3> ComputeMetric = SPRMetricProcess<3>(rModelPart, mThisParameters["error_strategy_parameters"]);
-            ComputeMetric.Execute();
+            SPRErrorProcess<3> compute_error_process = SPRErrorProcess<3>(rModelPart, mThisParameters["error_strategy_parameters"]);
+            compute_error_process.Execute();
         }
 
         // We get the estimated error
-        estimated_error = process_info[ERROR_ESTIMATE];
+        cons double estimated_error = process_info[ERROR_RATIO];
 
         // We check if converged
         const bool converged_error = (estimated_error > mErrorTolerance) ? false : true;
