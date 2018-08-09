@@ -98,7 +98,7 @@ public:
     ///@{
     
     /// Default constructors
-    ErrorMeshCriteria(Parameters ThisParameters = Parameters(R"({})"))
+    explicit ErrorMeshCriteria(Parameters ThisParameters = Parameters(R"({})"))
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mThisParameters(ThisParameters)
     {
@@ -182,7 +182,7 @@ public:
         }
 
         // We get the estimated error
-        cons double estimated_error = process_info[ERROR_RATIO];
+        const double estimated_error = process_info[ERROR_RATIO];
 
         // We check if converged
         const bool converged_error = (estimated_error > mErrorTolerance) ? false : true;
