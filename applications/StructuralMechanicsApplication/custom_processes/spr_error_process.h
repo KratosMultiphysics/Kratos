@@ -95,8 +95,6 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-     
-    // Constructor
     
     /**
      * This is the default constructor
