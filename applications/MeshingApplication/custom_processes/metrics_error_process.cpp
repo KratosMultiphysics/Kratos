@@ -53,7 +53,7 @@ MetricErrorProcess<TDim>::MetricErrorProcess(
 
     mSetElementNumber = ThisParameters["error_strategy_parameters"]["set_number_of_elements"].GetBool();
     mElementNumber = ThisParameters["error_strategy_parameters"]["number_of_elements"].GetInt();
-    mTargetError = ThisParameters["error_strategy_parameters"]["error"].GetDouble();
+    mTargetError = ThisParameters["error_strategy_parameters"]["target_error"].GetDouble();
     mAverageNodalH = ThisParameters["error_strategy_parameters"]["average_nodal_h"].GetBool();
 
     mEchoLevel = ThisParameters["echo_level"].GetInt();
