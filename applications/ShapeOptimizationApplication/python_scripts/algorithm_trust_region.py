@@ -100,8 +100,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             self.__AnalyzeShape()
 
-            self.__ResetPossibleShapeModificationsDuringAnalysis()
-
             self.__PostProcessGradientsObtainedFromAnalysis()
 
             len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs =  self.__ConvertAnalysisResultsToLengthDirectionFormat()
@@ -150,11 +148,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                     self.communicator.requestGradientOf(ineq_id)
 
             self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.opt_iteration, self.communicator)
-
-    # --------------------------------------------------------------------------
-    def __ResetPossibleShapeModificationsDuringAnalysis(self):
-        self.model_part_controller.SetMeshToReferenceMesh()
-        self.model_part_controller.SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def __PostProcessGradientsObtainedFromAnalysis(self):

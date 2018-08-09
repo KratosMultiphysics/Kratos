@@ -140,13 +140,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             self.GeometryUtilities.ComputeUnitSurfaceNormals()
             self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
-        self.__ResetPossibleShapeModificationsDuringAnalysis()
-
-    # --------------------------------------------------------------------------
-    def __ResetPossibleShapeModificationsDuringAnalysis(self):
-        self.ModelPartController.SetMeshToReferenceMesh()
-        self.ModelPartController.SetDeformationVariablesToZero()
-
     # --------------------------------------------------------------------------
     def __dampSensitivities(self):
         self.DampingUtilities.DampNodalVariable(DF1DX)

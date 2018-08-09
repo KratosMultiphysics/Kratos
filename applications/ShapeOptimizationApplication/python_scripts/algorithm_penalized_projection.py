@@ -151,13 +151,6 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm) :
             self.DampingUtilities.DampNodalVariable(DF1DX)
             self.DampingUtilities.DampNodalVariable(DC1DX)
 
-        self.__ResetPossibleShapeModificationsDuringAnalysis()
-
-    # --------------------------------------------------------------------------
-    def __ResetPossibleShapeModificationsDuringAnalysis(self):
-        self.ModelPartController.SetMeshToReferenceMesh()
-        self.ModelPartController.SetDeformationVariablesToZero()
-
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.__mapSensitivitiesToDesignSpace()

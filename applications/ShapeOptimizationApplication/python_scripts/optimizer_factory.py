@@ -26,25 +26,27 @@ import algorithm_factory
 # ==============================================================================
 def CreateOptimizer(optimization_settings, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
 
-    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, optimization_mdpa, external_analyzer)
+    model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
+
+    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
+
     communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
     if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
-        return VertexMorphingMethod(optimization_settings, optimization_mdpa, analyzer, communicator)
+        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
     else:
         raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
 
 # ==============================================================================
 class VertexMorphingMethod:
     # --------------------------------------------------------------------------
-    def __init__(self, optimization_settings, optimization_mdpa, analyzer, communicator):
+    def __init__(self, optimization_settings, model_part_controller, analyzer, communicator):
         self.optimization_settings = optimization_settings
+        self.model_part_controller = model_part_controller
         self.analyzer = analyzer
         self.communicator = communicator
 
-        self.__AddNodalVariablesNeededForOptimization(optimization_mdpa)
-
-        self.model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
+        self.__AddNodalVariablesNeededForOptimization( model_part_controller.GetOptimizationModelPart() )
 
     # --------------------------------------------------------------------------
     def __AddNodalVariablesNeededForOptimization(self, optimization_mdpa):
