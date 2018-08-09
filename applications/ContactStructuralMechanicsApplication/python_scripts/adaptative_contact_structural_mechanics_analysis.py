@@ -136,6 +136,7 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
                 non_linear_iteration = 1
                 while non_linear_iteration <= self.non_linear_iterations:
                     if (computing_model_part.Is(KM.MODIFIED) is True):
+                        self._GetSolver().Clear()
                         # WE RECOMPUTE THE PROCESSES AGAIN
                         # Processes initialization
                         for process in self._list_of_processes:

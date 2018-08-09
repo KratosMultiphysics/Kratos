@@ -41,7 +41,7 @@ class AdaptativeContactStaticMechanicalSolver(contact_structural_mechanics_stati
 
     See structural_mechanics_solver.py for more information.
     """
-        def __init__(self, model, custom_settings):
+    def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
         adaptative_remesh_parameters = KM.Parameters("""
         {
