@@ -5,6 +5,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
+#include "../../DEM_application/custom_utilities/create_and_destroy.h"
 
 #include "custom_external_libraries/NvFlex.h"
 #include "custom_external_libraries/NvFlexExt.h"
@@ -21,7 +22,7 @@ namespace Kratos {
 
             KRATOS_CLASS_POINTER_DEFINITION(FlexWrapper);
 
-            FlexWrapper(ModelPart& rSpheresModelPart);
+            FlexWrapper(ModelPart& rSpheresModelPart, ParticleCreatorDestructor& rParticleCreatorDestructor);
 
             virtual ~FlexWrapper();
 
@@ -54,6 +55,9 @@ namespace Kratos {
             unsigned int mPhaseType = 1;
             double mDeltaTime = 0.0001;
             ModelPart& mrSpheresModelPart;
+            ParticleCreatorDestructor& mrParticleCreatorDestructor;
+            NvFlexInitDesc mInitDesc;
+            int mMaxparticles;
 
         private:
 

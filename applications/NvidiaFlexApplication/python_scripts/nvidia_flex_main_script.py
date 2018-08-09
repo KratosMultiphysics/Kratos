@@ -15,18 +15,18 @@ class Solution(main_script.Solution):
 
     def Run(self):
 
-        self.nvidia_flex_wrapper = FlexWrapper(self.spheres_model_part)
-        #self.nvidia_wrapper.RunSimulation()
+        self.nvidia_flex_wrapper = FlexWrapper(self.spheres_model_part, self.creator_destructor)
         super(Solution, self).Run()
 
     def SolverSolve(self):
         if self.step < 2:
-            for node in self.spheres_model_part.Nodes:
-                node.SetSolutionStepValue(VELOCITY_X, 2.0)
-                node.SetSolutionStepValue(VELOCITY_Y, 0.0)
-                node.SetSolutionStepValue(VELOCITY_Z, 0.0)
-        self.nvidia_flex_wrapper.UpdateFlex()
-        self.nvidia_flex_wrapper.SolveTimeSteps(self.dt, 1)
+        #    for node in self.spheres_model_part.Nodes:
+        #        node.SetSolutionStepValue(VELOCITY_X, 0.0)
+        #        node.SetSolutionStepValue(VELOCITY_Y, 0.0)
+        #        node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+            self.nvidia_flex_wrapper.UpdateFlex()
+
+        self.nvidia_flex_wrapper.SolveTimeSteps(100*self.dt, 100)
         self.nvidia_flex_wrapper.TransferDataFromFlexToKratos()
 
 

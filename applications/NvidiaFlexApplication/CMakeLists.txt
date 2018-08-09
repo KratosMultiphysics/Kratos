@@ -6,10 +6,11 @@ message("**** configuring KratosNvidiaFlexApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
 
 ## generate variables with the sources
 set(KRATOS_NVIDIAFLEX_APPLICATION_CORE
-    ${CMAKE_CURRENT_SOURCE_DIR}/NvidiaFlex_application.cpp    
+    ${CMAKE_CURRENT_SOURCE_DIR}/NvidiaFlex_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/flex_wrapper.cpp
 )
 
@@ -19,13 +20,13 @@ set(KRATOS_NVIDIAFLEX_APPLICATION_PYTHON_INTERFACE
 )
 
 set(NVIDIA_FLEX_LIBRARY
-    ${NVIDIA_FLEX_DIR}/NvFlexReleaseCUDA_x64.a 
+    ${NVIDIA_FLEX_DIR}/NvFlexReleaseCUDA_x64.a
     ${NVIDIA_FLEX_DIR}/NvFlexExtReleaseCUDA_x64.a
     ${NVIDIA_FLEX_DIR}/NvFlexDeviceRelease_x64.a
 )
 
 add_library(KratosNvidiaFlexCore SHARED ${KRATOS_NVIDIAFLEX_APPLICATION_CORE})
-target_link_libraries(KratosNvidiaFlexCore PUBLIC KratosCore ${NVIDIA_FLEX_LIBRARY} ${CUDA_LIBRARIES})
+target_link_libraries(KratosNvidiaFlexCore PUBLIC KratosCore KratosDEMCore ${NVIDIA_FLEX_LIBRARY} ${CUDA_LIBRARIES})
 set_target_properties(KratosNvidiaFlexCore PROPERTIES COMPILE_DEFINITIONS "NVIDIAFLEX_APPLICATION=EXPORT,API")
 
 ###############################################################
