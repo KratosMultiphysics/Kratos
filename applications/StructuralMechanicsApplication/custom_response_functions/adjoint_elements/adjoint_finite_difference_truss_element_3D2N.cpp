@@ -32,7 +32,7 @@ void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVa
                         const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    
+
     if(rVariable == STRESS_ON_GP)
     {
         TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
@@ -83,8 +83,8 @@ void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(
         const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = num_nodes * dimension;
         const SizeType num_GP = (mpPrimalElement->GetGeometry().IntegrationPoints()).size();
-        rOutput.resize(num_dofs, num_GP);
-        rOutput.clear();
+        if ( (rOutput.size1() != num_dofs) || (rOutput.size2() != num_GP ) )
+            rOutput.resize(num_dofs, num_GP);
 
         double derivative_pre_factor;
         this->GetDerivativePreFactor(derivative_pre_factor, rCurrentProcessInfo);
