@@ -81,16 +81,17 @@ class FluidRefiningMesher(mesher.Mesher):
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
 
-        #inlet_management = KratosPfem.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
-        #self.mesher.SetPreMeshingProcess(inlet_management)
+        #insert inlet layer (to be tested)
+        #insert_inlet = KratosPfem.InsertInlet(self.model_part, self.MeshingParameters, self.echo_level)
+        #self.mesher.SetPreMeshingProcess(insert_inlet)
 
         #move and remove
         remove_mesh_nodes = KratosPfem.RemoveFluidNodes(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(remove_mesh_nodes)
 
         if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_INSERT_NODES) ):
-            generate_new_nodes  = KratosPfem.InsertNewNodes(self.model_part, self.MeshingParameters, self.echo_level)
-            self.mesher.SetPreMeshingProcess(generate_new_nodes)
+            insert_fluid_nodes  = KratosPfem.InsertFluidNodes(self.model_part, self.MeshingParameters, self.echo_level)
+            self.mesher.SetPreMeshingProcess(insert_fluid_nodes)
 
         #refine elements that have all nodes in rigid boundary
         refine_edge_elements = KratosPfem.RefineFluidElementsInEdges(self.model_part,self.MeshingParameters,self.echo_level)

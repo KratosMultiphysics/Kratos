@@ -8,8 +8,8 @@
 //
 
 
-#if !defined(KRATOS_INSERT_NEW_NODES_MESHER_PROCESS_H_INCLUDED )
-#define  KRATOS_INSERT_NEW_NODES_MESHER_PROCESS_H_INCLUDED
+#if !defined(KRATOS_INSERT_FLUID_NODES_MESHER_PROCESS_H_INCLUDED )
+#define  KRATOS_INSERT_FLUID_NODES_MESHER_PROCESS_H_INCLUDED
 
 
 // External includes
@@ -37,7 +37,7 @@ namespace Kratos
     the nodes are inserted in the edges of the largest elements
 */
 
-class InsertNewNodesMesherProcess
+class InsertFluidNodesMesherProcess
     : public MesherProcess
 {
  public:
@@ -45,7 +45,7 @@ class InsertNewNodesMesherProcess
   ///@{
 
   /// Pointer definition of Process
-  KRATOS_CLASS_POINTER_DEFINITION( InsertNewNodesMesherProcess );
+  KRATOS_CLASS_POINTER_DEFINITION( InsertFluidNodesMesherProcess );
 
   typedef ModelPart::NodeType                   NodeType;
   typedef ModelPart::ConditionType         ConditionType;
@@ -57,7 +57,7 @@ class InsertNewNodesMesherProcess
   ///@{
 
   /// Default constructor.
-  InsertNewNodesMesherProcess(ModelPart& rModelPart,
+  InsertFluidNodesMesherProcess(ModelPart& rModelPart,
                               MesherUtilities::MeshingParameters& rRemeshingParameters,
                               int EchoLevel)
       : mrModelPart(rModelPart),
@@ -68,7 +68,7 @@ class InsertNewNodesMesherProcess
 
 
   /// Destructor.
-  virtual ~InsertNewNodesMesherProcess() {}
+  virtual ~InsertFluidNodesMesherProcess() {}
 
 
   ///@}
@@ -96,16 +96,6 @@ class InsertNewNodesMesherProcess
 
     if( mrModelPart.Name() != mrRemesh.SubModelPartName )
       std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
-
-    // const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-
-    // double currentTime = rCurrentProcessInfo[TIME];
-    // double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-    // if(currentTime<2*timeInterval){
-    //   mrRemesh.Info->RemovedNodes=0;
-    //   if( mEchoLevel > 1 )
-    //     std::cout<<" First meshes: I repare the mesh without adding new nodes"<<std::endl;
-    // }
 
     unsigned int ElementsToRefine = mrRemesh.Info->RemovedNodes;
 
@@ -139,8 +129,6 @@ class InsertNewNodesMesherProcess
 
     }
 
-    //mrRemesh.InputInitializedFlag=false;
-
     if( mEchoLevel > 1 )
       std::cout<<"   INSERT NEW NODES ]; ("<<mrRemesh.Info->InsertedNodes<<")"<<std::endl;
 
@@ -166,13 +154,13 @@ class InsertNewNodesMesherProcess
   /// Turn back information as a string.
   std::string Info() const override
   {
-    return "InsertNewNodesMesherProcess";
+    return "InsertFluidNodesMesherProcess";
   }
 
   /// Print information about this object.
   void PrintInfo(std::ostream& rOStream) const override
   {
-    rOStream << "InsertNewNodesMesherProcess";
+    rOStream << "InsertFluidNodesMesherProcess";
   }
 
   /// Print object's data.s
@@ -780,7 +768,7 @@ class InsertNewNodesMesherProcess
 
 
   /// Assignment operator.
-  InsertNewNodesMesherProcess& operator=(InsertNewNodesMesherProcess const& rOther);
+  InsertFluidNodesMesherProcess& operator=(InsertFluidNodesMesherProcess const& rOther);
 
 
   /// this function is a private function
@@ -807,11 +795,11 @@ class InsertNewNodesMesherProcess
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  InsertNewNodesMesherProcess& rThis);
+                                  InsertFluidNodesMesherProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const InsertNewNodesMesherProcess& rThis)
+                                  const InsertFluidNodesMesherProcess& rThis)
 {
   rThis.PrintInfo(rOStream);
   rOStream << std::endl;
@@ -824,4 +812,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INSERT_NEW_NODES_MESHER_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_INSERT_FLUID_NODES_MESHER_PROCESS_H_INCLUDED  defined

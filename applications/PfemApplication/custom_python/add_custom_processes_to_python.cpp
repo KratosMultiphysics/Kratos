@@ -25,8 +25,8 @@
 #include "custom_processes/recover_volume_losses_process.hpp"
 
 // PreMeshing processes
-#include "custom_processes/inlet_management_mesher_process.hpp"
-#include "custom_processes/insert_new_nodes_mesher_process.hpp"
+#include "custom_processes/inlet_mesher_process.hpp"
+#include "custom_processes/insert_fluid_nodes_mesher_process.hpp"
 #include "custom_processes/remove_fluid_nodes_mesher_process.hpp"
 #include "custom_processes/refine_fluid_elements_in_edges_mesher_process.hpp"
 
@@ -64,12 +64,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m, "RemoveFluidNodes")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<InsertNewNodesMesherProcess, InsertNewNodesMesherProcess::Pointer, MesherProcess>
-      (m, "InsertNewNodes")
+  class_<InsertFluidNodesMesherProcess, InsertFluidNodesMesherProcess::Pointer, MesherProcess>
+      (m, "InsertFluidNodes")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<InletManagementMesherProcess, InletManagementMesherProcess::Pointer, MesherProcess>
-      (m, "InletManagement")
+  class_<InletMesherProcess, InletMesherProcess::Pointer, MesherProcess>
+      (m, "InsertInlet")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
   class_<RefineFluidElementsInEdgesMesherProcess, RefineFluidElementsInEdgesMesherProcess::Pointer, RefineElementsInEdgesMesherProcess>
