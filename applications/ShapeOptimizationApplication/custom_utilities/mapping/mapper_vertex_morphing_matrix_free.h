@@ -318,15 +318,6 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void CreateSearchTreeWithAllNodesOnDesignSurface()
-    {
-        boost::timer timer;
-        std::cout << "> Creating search tree to perform mapping..." << std::endl;
-        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
-        std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
     void ClearVectorsForMappingToDesignSpace()
     {
         x_variables_in_design_space.clear();
