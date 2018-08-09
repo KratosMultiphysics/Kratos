@@ -21,10 +21,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 "mesh_id": 0,
                 "velocity_infinity": [1.0,0.0,0],
                 "reference_area": 1
-            }  """ );
-        
-        settings.ValidateAndAssignDefaults(default_parameters);
-        
+            }  """)
+
+        settings.ValidateAndAssignDefaults(default_parameters)
+
         self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
         self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
         self.velocity_infinity = [0,0,0]
@@ -32,7 +32,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
-  
+
     def ExecuteFinalize(self):
          print('COMPUTE LIFT')
 
@@ -40,7 +40,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          ry = 0.0
          rz = 0.0
 
-         for cond in itertools.chain(self.upper_surface_model_part.Conditions,self.lower_surface_model_part.Conditions):
+         for cond in itertools.chain(self.upper_surface_model_part.Conditions, self.lower_surface_model_part.Conditions):
            n = cond.GetValue(NORMAL)
            cp = cond.GetValue(PRESSURE)
 
@@ -51,12 +51,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          RZ = rz/self.reference_area
          RX = rx/self.reference_area
          RY = ry/self.reference_area
-         
+
          Cl = RY
          Cd = RX
-         
+
          print('RZ = ', RZ)
-         
+
          print('Cl = ', Cl)
          print('Cd = ', Cd)
          print('Mach = ', self.velocity_infinity[0]/340)
