@@ -348,7 +348,8 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
         const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-        const SizeType local_size = number_of_nodes * dimension * 2;
+        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+        const SizeType local_size = number_of_nodes * num_dofs_per_node;
 
         if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
             rOutput.resize(dimension * number_of_nodes, local_size);
