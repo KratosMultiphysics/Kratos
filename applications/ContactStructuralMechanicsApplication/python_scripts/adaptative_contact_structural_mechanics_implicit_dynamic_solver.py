@@ -44,21 +44,28 @@ class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_imp
         # Set defaults and validate custom settings.
         adaptative_remesh_parameters = KM.Parameters("""
         {
-            "adaptative_remesh_settings" : {
+            "compute_error_settings" : {
                 "error_mesh_tolerance" : 5.0e-3,
                 "error_mesh_constant"  : 5.0e-3,
-                "error_strategy_parameters":
+                "compute_error_extra_parameters":
                 {
-                    "minimal_size"                        : 0.01,
-                    "maximal_size"                        : 1.0,
-                    "error"                               : 0.01,
                     "penalty_normal"                      : 1.0e4,
                     "penalty_tangential"                  : 1.0e4,
-                    "echo_level"                          : 0,
+                    "echo_level"                          : 0
+                }
+            },
+            "metric_error_parameters" :
+            {
+                "minimal_size"                        : 0.01,
+                "maximal_size"                        : 1.0,
+                "error_strategy_parameters":
+                {
+                    "target_error"                        : 0.01,
                     "set_number_of_elements"              : false,
                     "number_of_elements"                  : 1000,
                     "average_nodal_h"                     : false
-                }
+                },
+                "echo_level"                          : 0
             },
             "remeshing_parameters":
             {
@@ -108,6 +115,19 @@ class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_imp
 
         return remeshing_process
 
+    def get_metric_process(self):
+        if not hasattr(self, '_metric_process'):
+            self._metric_process = self._create_metric_process()
+        return self._metric_process
+
+    def _create_metric_process(self):
+        if (self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2):
+            metric_process = MA.MetricErrorProcess2D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
+        else:
+            metric_process = MA.MetricErrorProcess3D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
+
+        return metric_process
+
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
@@ -122,10 +142,10 @@ class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_imp
                 raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
         else:
             if (error_criteria == "adaptative_remesh_criteria"):
-                adaptative_error_criteria = SMA.ErrorMeshCriteria(self.adaptative_remesh_parameters["adaptative_remesh_settings"])
+                adaptative_error_criteria = SMA.ErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
                 convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.GetMortarCriteria(False), adaptative_error_criteria)
             elif ("with_adaptative_remesh" in error_criteria): # If we combine the regular convergence criteria with adaptative
-                adaptative_error_criteria = SMA.ErrorMeshCriteria(self.adaptative_remesh_parameters["adaptative_remesh_settings"])
+                adaptative_error_criteria = SMA.ErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
                 convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
 
         return convergence_criterion.mechanical_convergence_criterion
@@ -133,7 +153,7 @@ class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_imp
         # If we combine the regular convergence criteria with adaptative
         if (missing_meshing_dependencies is False):
             if ("with_adaptative_remesh" in error_criteria):
-                adaptative_error_criteria = SMA.ErrorMeshCriteria(self.adaptative_remesh_parameters["adaptative_remesh_settings"])
+                adaptative_error_criteria = SMA.ErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
                 convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
         return convergence_criterion.mechanical_convergence_criterion
 

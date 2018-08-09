@@ -125,6 +125,7 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
                 self.OutputSolutionStep()
         else: # Remeshing adaptively
             computing_model_part = self._GetSolver().GetComputingModelPart()
+            metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
             convergence_criteria = self._GetSolver().get_convergence_criterion()
             builder_and_solver = self._GetSolver().get_builder_and_solver()
@@ -173,6 +174,7 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
                             contact_model_part.RemoveSubModelPart(model_part.Name)
                         computing_model_part.RemoveSubModelPart("ComputingContact")
                         # Now we can remesh
+                        metric_process.Execute()
                         remeshing_process.Execute()
                         # We remove the contact model part to avoid problems (it will  be recomputed later)
                         computing_model_part.RemoveSubModelPart("Contact")

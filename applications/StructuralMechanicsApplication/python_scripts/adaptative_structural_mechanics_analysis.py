@@ -112,6 +112,7 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
                 self.OutputSolutionStep()
         else: # Remeshing adaptively
             computing_model_part = self._GetSolver().GetComputingModelPart()
+            metric_process = self._GetSolver().get_metric_process()
             remeshing_process = self._GetSolver().get_remeshing_process()
             convergence_criteria = self._GetSolver().get_convergence_criterion()
             builder_and_solver = self._GetSolver().get_builder_and_solver()
@@ -151,6 +152,7 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
                         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                         break
                     else:
+                        metric_process.Execute()
                         remeshing_process.Execute()
                         computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
                         non_linear_iteration += 1

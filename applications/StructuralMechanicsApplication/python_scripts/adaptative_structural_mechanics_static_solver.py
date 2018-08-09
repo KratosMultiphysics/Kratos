@@ -43,21 +43,28 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
         # Set defaults and validate custom settings.
         adaptative_remesh_parameters = KratosMultiphysics.Parameters("""
         {
-            "adaptative_remesh_settings" : {
+            "compute_error_settings" : {
                 "error_mesh_tolerance" : 5.0e-3,
                 "error_mesh_constant"  : 5.0e-3,
-                "error_strategy_parameters":
+                "compute_error_extra_parameters":
                 {
-                    "minimal_size"                        : 0.01,
-                    "maximal_size"                        : 1.0,
-                    "error"                               : 0.01,
                     "penalty_normal"                      : 1.0e4,
                     "penalty_tangential"                  : 1.0e4,
-                    "echo_level"                          : 0,
+                    "echo_level"                          : 0
+                }
+            },
+            "metric_error_parameters" :
+            {
+                "minimal_size"                        : 0.01,
+                "maximal_size"                        : 1.0,
+                "error_strategy_parameters":
+                {
+                    "target_error"                        : 0.01,
                     "set_number_of_elements"              : false,
                     "number_of_elements"                  : 1000,
                     "average_nodal_h"                     : false
-                }
+                },
+                "echo_level"                          : 0
             },
             "remeshing_parameters":
             {
@@ -84,11 +91,6 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
 
         # Construct the base solver.
         super(AdaptativeStaticMechanicalSolver, self).__init__(model, custom_settings)
-
-        if (self.settings["reform_dofs_at_each_step"].GetBool() is False):
-            self.print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
-            self.settings["reform_dofs_at_each_step"].SetBool(True)
-
         self.print_on_rank_zero("::[AdaptativeStaticMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
@@ -112,6 +114,19 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
 
         return remeshing_process
 
+    def get_metric_process(self):
+        if not hasattr(self, '_metric_process'):
+            self._metric_process = self._create_metric_process()
+        return self._metric_process
+
+    def _create_metric_process(self):
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            metric_process = MeshingApplication.MetricErrorProcess2D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
+        else:
+            metric_process = MeshingApplication.MetricErrorProcess3D(self.main_model_part, self.adaptative_remesh_parameters["metric_error_parameters"])
+
+        return metric_process
+
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
@@ -123,7 +138,7 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
                 raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
         else:
             if (error_criteria == "adaptative_remesh_criteria"):
-                adaptative_error_criteria = StructuralMechanicsApplication.ErrorMeshCriteria(self.adaptative_remesh_parameters["adaptative_remesh_settings"])
+                adaptative_error_criteria = StructuralMechanicsApplication.ErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
                 adaptative_error_criteria.SetEchoLevel(conv_settings["echo_level"].GetInt())
                 return adaptative_error_criteria
 
@@ -134,7 +149,7 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
         # If we combine the regular convergence criteria with adaptative
         if (missing_meshing_dependencies is False):
             if ("_with_adaptative_remesh" in error_criteria):
-                adaptative_error_criteria = StructuralMechanicsApplication.ErrorMeshCriteria(self.adaptative_remesh_parameters["adaptative_remesh_settings"])
+                adaptative_error_criteria = StructuralMechanicsApplication.ErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
                 adaptative_error_criteria.SetEchoLevel(conv_settings["echo_level"].GetInt())
                 convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
         return convergence_criterion.mechanical_convergence_criterion
