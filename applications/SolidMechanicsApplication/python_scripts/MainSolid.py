@@ -64,15 +64,11 @@ class Solution(object):
         # Start solver
         self.solver = self._get_solver()
 
-        self.solver.SetEchoLevel(self.echo_level)
-        solver_variables = self.solver.GetVariables()
-        self.model.SetVariables(solver_variables)
-
         # Start processes
         self.processes = self._get_processes()
 
-        processes_variables = self.processes.GetVariables()
-        self.model.SetVariables(processes_variables)
+        # Get Solution Step Variables
+        self._set_solution_step_variables()
 
         # Read model
         self.model.ImportModel()
@@ -86,6 +82,7 @@ class Solution(object):
 
         # Initialize Solver
         computing_model_part = self.model.GetComputingModelPart()
+        self.solver.SetEchoLevel(self.echo_level)
         self.solver.SetComputingModelPart(computing_model_part)
         self.solver.ExecuteInitialize()
 
@@ -273,6 +270,13 @@ class Solution(object):
                 return False
         else:
             return True
+
+    def _set_solution_step_variables(self):
+        solver_variables = self.solver.GetVariables()
+        self.model.SetVariables(solver_variables)
+
+        processes_variables = self.processes.GetVariables()
+        self.model.SetVariables(processes_variables)
 
     def _get_model(self):
         import model_manager
