@@ -109,7 +109,7 @@ public:
   }
 
   /// Destructor.
-  virtual ~SolutionBuilderAndSolver() {}
+  ~SolutionBuilderAndSolver() override {}
 
   ///@}
   ///@name Operators

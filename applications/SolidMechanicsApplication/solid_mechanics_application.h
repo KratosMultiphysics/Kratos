@@ -202,7 +202,7 @@ typedef array_1d<double,6> Vector6;
    KratosSolidMechanicsApplication();
 
    /// Destructor.
-   virtual ~KratosSolidMechanicsApplication() {}
+   ~KratosSolidMechanicsApplication() override {}
 
 
    ///@}
