@@ -543,17 +543,19 @@ unsigned int FluidElement::GetDofsSize()
 
 bool FluidElement::IsSliver()
 {
-  const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+  //const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+  //bool is_sliver = true;
+  // for( SizeType i=0; i<number_of_nodes; ++i)
+  // {
+  //   if( this->GetGeometry()[i].IsNot(SELECTED) ){
+  //     is_sliver = false;
+  //     break;
+  //   }
+  // }
+  //return is_sliver;
 
-  bool is_sliver = true;
-  for( SizeType i=0; i<number_of_nodes; ++i)
-  {
-    if( this->GetGeometry()[i].IsNot(SELECTED) ){
-      is_sliver = false;
-      break;
-    }
-  }
-  return is_sliver;
+  return this->Is(SELECTED);
+
 }
 
 

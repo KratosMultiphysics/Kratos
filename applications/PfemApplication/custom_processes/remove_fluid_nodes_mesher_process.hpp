@@ -220,7 +220,7 @@ class RemoveFluidNodesMesherProcess
 
               // if the node is close to the surface, do not erase it, move to a mean (laplacian) position
               if(in->IsNot(FREE_SURFACE) && FreeSurfaceNeighbours>=dimension){
-                this->MoveNodeToMeanPosition((*in));
+                this->MoveInsideNode((*in));
               }
               else{
                 if( !this->CheckEngagedNode((*in),neighbours,neighbour_distances,n_points_in_radius) ){ //we release the node if no other nodes neighbours are being erased
@@ -273,7 +273,7 @@ class RemoveFluidNodesMesherProcess
 
 
     bool critical_nodes_removed = false;
-    critical_nodes_removed = EraseCriticalNodes(rModelPart,inside_nodes_removed);
+    critical_nodes_removed = this->EraseCriticalNodes(rModelPart,inside_nodes_removed);
 
     if( any_node_removed || critical_nodes_removed )
       any_node_removed = true;
@@ -349,7 +349,7 @@ class RemoveFluidNodesMesherProcess
 
       if(counter==1 && id>=0){
 
-        if( this->MoveBoundaryNodeToMeanPosition(rGeometry[id]) ){
+        if( this->MoveBoundaryNode(rGeometry[id]) ){
           rGeometry[id].Set(TO_ERASE,false);
           --boundary_nodes_removed;
         }
@@ -363,7 +363,418 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  bool MoveBoundaryNodeToMeanPosition(Node<3>& rNode)
+  bool CheckApproachingPoint(Node<3>& rNode, Node<3>& rEdgeNode)
+  {
+    KRATOS_TRY
+
+    bool approaching_point = false;
+
+    array_1d<double,3> EdgeVelocity = rEdgeNode.FastGetSolutionStepValue(VELOCITY);
+
+    array_1d<double,3> Direction = rEdgeNode.FastGetSolutionStepValue(NORMAL);
+    if( norm_2(Direction) )
+      Direction /= norm_2(Direction);
+
+    array_1d<double,3> Distance = (rEdgeNode.Coordinates()-rNode.Coordinates());
+    double distance = inner_prod(Distance, Direction);
+    Distance = distance * Direction;
+
+    array_1d<double,3> VelocityDirection = rNode.FastGetSolutionStepValue(VELOCITY);
+
+    double velocity = norm_2(VelocityDirection);
+    if(velocity!=0)
+       VelocityDirection/=velocity;
+
+    //different velocity directions
+    if( inner_prod( EdgeVelocity, VelocityDirection ) < 0 ){
+      //node velocity direction towards edge
+      if( inner_prod( Distance, VelocityDirection ) > 0 )
+        approaching_point = true;
+      else
+        approaching_point = false;
+    } //same velocity directions
+    else if( velocity > 0.1 * norm_2(EdgeVelocity) ){
+      //node velocity direction towards edge
+      if( inner_prod( Distance, VelocityDirection ) > 0 )
+        approaching_point = true;
+      else
+        approaching_point = false;
+    }
+
+    return approaching_point;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //**************************************************************************
+  //**************************************************************************
+
+  bool CheckApproachingEdge(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
+  {
+    KRATOS_TRY
+
+    bool approaching_edge = false;
+
+    array_1d<double,3> EdgeVelocity = 0.5 * (rEdgeNodeA.FastGetSolutionStepValue(VELOCITY)+rEdgeNodeB.FastGetSolutionStepValue(VELOCITY));
+    array_1d<double,3> MidPoint = 0.5 * (rEdgeNodeA.Coordinates() + rEdgeNodeB.Coordinates());
+
+    array_1d<double,3> Direction;
+    this->GetDirectionToEdge(Direction,rEdgeNodeA,rEdgeNodeB);
+
+    array_1d<double,3> Distance = (MidPoint-rNode.Coordinates());
+    double distance = inner_prod(Distance, Direction);
+    Distance = distance * Direction;
+
+    array_1d<double,3> VelocityDirection = rNode.FastGetSolutionStepValue(VELOCITY);
+
+    double velocity = norm_2(VelocityDirection);
+    if(velocity!=0)
+       VelocityDirection/=velocity;
+
+    //different velocity directions
+    if( inner_prod( EdgeVelocity, VelocityDirection ) < 0 ){
+      //node velocity direction towards edge
+      if( inner_prod( Distance, VelocityDirection ) > 0 )
+        approaching_edge = true;
+      else
+        approaching_edge = false;
+    } //same velocity directions
+    else if( velocity > 0.1 * norm_2(EdgeVelocity) ){
+      //node velocity direction towards edge
+      if( inner_prod( Distance, VelocityDirection ) > 0 )
+        approaching_edge = true;
+      else
+        approaching_edge = false;
+    }
+
+    return approaching_edge;
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //**************************************************************************
+  //**************************************************************************
+
+  bool CheckApproachingFace(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, Node<3>& rEdgeNodeC)
+  {
+    KRATOS_TRY
+
+    bool approaching_face = false;
+
+    array_1d<double,3> EdgeVelocity = (1.0/3.0) * (rEdgeNodeA.FastGetSolutionStepValue(VELOCITY)+rEdgeNodeB.FastGetSolutionStepValue(VELOCITY)+rEdgeNodeC.FastGetSolutionStepValue(VELOCITY));
+    array_1d<double,3> MidPoint = (1.0/3.0) * (rEdgeNodeA.Coordinates() + rEdgeNodeB.Coordinates() + rEdgeNodeC.Coordinates());
+
+    array_1d<double,3> Direction;
+    this->GetDirectionToFace(Direction,rEdgeNodeA,rEdgeNodeB,rEdgeNodeC);
+
+    array_1d<double,3> Distance = (MidPoint-rNode.Coordinates());
+    double distance = inner_prod(Distance, Direction);
+    Distance = distance * Direction;
+
+    array_1d<double,3> VelocityDirection = rNode.FastGetSolutionStepValue(VELOCITY);
+
+    double velocity = norm_2(VelocityDirection);
+    if(velocity!=0)
+       VelocityDirection/=velocity;
+
+    //different velocity directions
+    if( inner_prod( EdgeVelocity, VelocityDirection ) < 0 ){
+      //node velocity direction towards edge
+      if( inner_prod( Distance, VelocityDirection ) > 0 )
+        approaching_face = true;
+      else
+        approaching_face = false;
+    } //same velocity directions
+    else if( velocity > 0.1 * norm_2(EdgeVelocity) ){
+      //node velocity direction towards edge
+      if( inner_prod( Distance, VelocityDirection ) > 0 )
+        approaching_face = true;
+      else
+        approaching_face = false;
+    }
+
+    return approaching_face;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //**************************************************************************
+  //**************************************************************************
+
+  double GetDistanceToNode(Node<3>& rNode, Node<3>& rEdgeNode, array_1d<double,3>& rDirection)
+  {
+    KRATOS_TRY
+
+    array_1d<double,3> Direction = rEdgeNode.FastGetSolutionStepValue(NORMAL);
+    if( norm_2(Direction) )
+      Direction /= norm_2(Direction);
+
+    array_1d<double,3> Distance = (rEdgeNode.Coordinates()-rNode.Coordinates());
+    double distance = fabs(inner_prod(Distance, Direction));
+
+    return distance;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //**************************************************************************
+  //**************************************************************************
+
+  double GetDistanceToEdge(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, array_1d<double,3>& rDirection)
+  {
+    KRATOS_TRY
+
+    array_1d<double,3> MidPoint  = 0.5 * (rEdgeNodeA.Coordinates() + rEdgeNodeB.Coordinates()) ;
+
+    this->GetDirectionToEdge(rDirection,rEdgeNodeA,rEdgeNodeB);
+
+    double distance = fabs(inner_prod((MidPoint-rNode.Coordinates()), rDirection));
+
+    return distance;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //**************************************************************************
+  //**************************************************************************
+
+  double GetDistanceToFace(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, Node<3>& rEdgeNodeC, array_1d<double,3>& rDirection)
+  {
+    KRATOS_TRY
+
+    array_1d<double,3> MidPoint  = (1.0/3.0) * (rEdgeNodeA.Coordinates() + rEdgeNodeB.Coordinates() + rEdgeNodeC.Coordinates() ) ;
+
+    this->GetDirectionToFace(rDirection,rEdgeNodeA,rEdgeNodeB,rEdgeNodeC);
+
+    double distance = fabs(inner_prod((MidPoint-rNode.Coordinates()), rDirection));
+
+    return distance;
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //**************************************************************************
+  //**************************************************************************
+
+  void GetDirectionToEdge(array_1d<double,3>& rDirection, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
+  {
+    //get wall direction from normals:
+    if( rEdgeNodeA.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 && rEdgeNodeB.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
+      rDirection = 0.5 * (rEdgeNodeA.FastGetSolutionStepValue(NORMAL) + rEdgeNodeB.FastGetSolutionStepValue(NORMAL) ) ;
+    }
+    else{
+      if( rEdgeNodeA.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
+        rDirection = rEdgeNodeA.FastGetSolutionStepValue(NORMAL);
+      }
+      else if( rEdgeNodeB.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
+        rDirection = rEdgeNodeB.FastGetSolutionStepValue(NORMAL);
+      }
+      else{
+        rDirection = 0.5 * (rEdgeNodeA.FastGetSolutionStepValue(NORMAL) + rEdgeNodeB.FastGetSolutionStepValue(NORMAL) ) ;
+      }
+    }
+
+    if( norm_2(rDirection) )
+      rDirection /= norm_2(rDirection);
+
+  }
+
+  //**************************************************************************
+  //**************************************************************************
+
+  void GetDirectionToFace(array_1d<double,3>& rDirection, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, Node<3>& rEdgeNodeC)
+  {
+
+    array_1d<double,3> VectorB = rEdgeNodeB.Coordinates() - rEdgeNodeA.Coordinates();
+    array_1d<double,3> VectorC = rEdgeNodeC.Coordinates() - rEdgeNodeA.Coordinates();
+
+    MathUtils<double>::CrossProduct(rDirection,VectorB,VectorC);
+
+    if( norm_2(rDirection) )
+      rDirection /= norm_2(rDirection);
+
+  }
+
+  //**************************************************************************
+  //**************************************************************************
+
+  bool EraseCriticalNodes(ModelPart& rModelPart, unsigned int& inside_nodes_removed)
+  {
+
+    KRATOS_TRY
+
+    bool any_node_removed = false;
+    unsigned int erased_nodes=0;
+
+    ModelPart::NodesContainerType LayerNodes;
+
+    MesherUtilities MesherUtils;
+    double MaxRelativeVelocity = 1.5; //arbitrary value, will depend on time step (AF)
+
+    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ++ie)
+    {
+      Element::GeometryType& rGeometry = ie->GetGeometry();
+      const unsigned int NumberOfNodes = rGeometry.size();
+
+      bool wall_boundary = false;
+      for(unsigned int i=0; i<NumberOfNodes; ++i)
+      {
+        if(rGeometry[i].Is(RIGID) || rGeometry[i].Is(SOLID)){
+          wall_boundary = true;
+          break;
+        }
+      }
+
+      if( wall_boundary ){
+
+        bool speedy_approach = MesherUtils.CheckRelativeVelocities(rGeometry, MaxRelativeVelocity);
+
+        if( speedy_approach ){
+
+          for(unsigned int i=0; i<NumberOfNodes; ++i)
+          {
+            if((rGeometry[i].IsNot(RIGID) && rGeometry[i].IsNot(SOLID))){
+              LayerNodes.push_back(rGeometry(i));
+            }
+          }
+
+        }
+      }
+    }
+
+    const int nnodes = LayerNodes.size();
+    // const unsigned int& dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
+
+    if (nnodes != 0)
+    {
+      ModelPart::NodesContainerType::iterator it_begin = LayerNodes.begin();
+
+      #pragma omp parallel for reduction(+:inside_nodes_removed,erased_nodes)
+      for (int i = 0; i < nnodes; ++i)
+      {
+        ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+        double MinimumDistance = std::numeric_limits<double>::max();
+        array_1d<double,3> Direction;
+        // PointsArrayType Vertices(dimension);
+        double distance = 0;
+        unsigned int face = 0;
+
+        WeakPointerVector<Element>& rNE = it->GetValue(NEIGHBOUR_ELEMENTS);
+
+ 	for(WeakPointerVector<Element>::iterator ie = rNE.begin(); ie!=rNE.end(); ++ie)
+        {
+          WeakPointerVector<Element>& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
+
+          DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
+
+          distance = 0;
+          face = 0;
+          for(WeakPointerVector<Element>::iterator je = rE.begin(); je!=rE.end(); ++je)
+          {
+            if (ie->Id() == je->Id()){
+
+              GeometryType& rGeometry = ie->GetGeometry();
+
+              rGeometry.NodesInFaces(lpofa);
+
+              const unsigned int NumberOfNodes = rGeometry.size();
+
+              unsigned int wall_boundary = 0;
+              std::vector<unsigned int> wall_nodes;
+              for(unsigned int j=1; j<NumberOfNodes; ++j)
+              {
+                if(rGeometry[lpofa(j,face)].Is(RIGID) || rGeometry[lpofa(j,face)].Is(SOLID)){
+                  ++wall_boundary;
+                  wall_nodes.push_back(j);
+                }
+              }
+
+              if( wall_boundary == NumberOfNodes-1 ){ //node to face criterion
+
+                if( NumberOfNodes == 3 ){
+
+                  if( this->CheckApproachingEdge(*it,rGeometry[lpofa(1,face)], rGeometry[lpofa(2,face)]) ){
+                    distance = this->GetDistanceToEdge(*it, rGeometry[lpofa(1,face)], rGeometry[lpofa(2,face)], Direction);
+                    if( distance < MinimumDistance ){
+                      MinimumDistance = distance;
+                      // Vertices[0] = rGeometry[lpofa(1,face)];
+                      // Vertices[1] = rGeometry[lpofa(2,face)];
+                    }
+                  }
+
+                }
+                else if( NumberOfNodes == 4 ){
+
+                  if( this->CheckApproachingFace(*it,rGeometry[lpofa(1,face)], rGeometry[lpofa(2,face)], rGeometry[lpofa(3,face)]) ){
+                    distance = this->GetDistanceToFace(*it, rGeometry[lpofa(1,face)], rGeometry[lpofa(2,face)], rGeometry[lpofa(3,face)], Direction);
+                    if( distance < MinimumDistance ){
+                      MinimumDistance = distance;
+                      // Vertices[0] = rGeometry[lpofa(1,face)];
+                      // Vertices[1] = rGeometry[lpofa(2,face)];
+                      // Vertices[2] = rGeometry[lpofa(3,face)];
+                    }
+                  }
+                }
+              }
+              else if( wall_boundary == NumberOfNodes-2 ){ //node to edge criterion
+
+                if( NumberOfNodes == 3 ){
+
+                  if( this->CheckApproachingPoint(*it,rGeometry[lpofa(wall_nodes.front(),face)]) ){
+                    distance = this->GetDistanceToNode(*it, rGeometry[lpofa(wall_nodes.front(),face)], Direction);
+                    if( distance < MinimumDistance ){
+                      MinimumDistance = distance;
+                    }
+                  }
+
+                }
+                else if( NumberOfNodes == 4 ){
+
+                  if( this->CheckApproachingEdge(*it,rGeometry[lpofa(wall_nodes.front(),face)],rGeometry[lpofa(wall_nodes.back(),face)]) ){
+                    distance = this->GetDistanceToEdge(*it, rGeometry[lpofa(wall_nodes.front(),face)], rGeometry[lpofa(wall_nodes.back(),face)], Direction);
+                    if( distance < MinimumDistance ){
+                      MinimumDistance = distance;
+                    }
+                  }
+                }
+
+              }
+            }
+            ++face;
+          }
+        }
+
+        if( MinimumDistance < 0.25 * mrRemesh.Refine->CriticalRadius ){
+          it->Set(TO_ERASE);
+          ++erased_nodes;
+          ++inside_nodes_removed;
+        }
+        else if( MinimumDistance < mrRemesh.Refine->CriticalRadius ){
+          distance = (mrRemesh.Refine->CriticalRadius - MinimumDistance);
+          this->MoveLayerNode(*it, Direction, distance);
+        }
+
+      }
+
+    }
+    if(erased_nodes>0){
+      //std::cout<<" Layer Nodes removed "<<erased_nodes<<std::endl;
+      any_node_removed = true;
+    }
+
+    return any_node_removed;
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //**************************************************************************
+  //**************************************************************************
+
+  bool MoveBoundaryNode(Node<3>& rNode)
   {
 
     KRATOS_TRY
@@ -471,7 +882,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  void MoveNodeToMeanPosition(Node<3>& rNode)
+  void MoveInsideNode(Node<3>& rNode)
   {
 
     KRATOS_TRY
@@ -521,339 +932,24 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  void MoveNodeToNonRigidMeanPosition(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, const double& rMeanEdgeLength)
+  void MoveLayerNode(Node<3>& rNode, const array_1d<double,3>& rDirection, const double& rDistance)
   {
 
     KRATOS_TRY
 
-    array_1d<double,3> VelocityDirection = rNode.FastGetSolutionStepValue(VELOCITY);
+    std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<std::endl;
 
-    double velocity = norm_2(VelocityDirection);
-    if(velocity!=0)
-       VelocityDirection/=velocity;
+    const array_1d<double,3>& VelocityDirection = rNode.FastGetSolutionStepValue(VELOCITY);
 
-    double advance  = norm_2(rNode.FastGetSolutionStepValue(DISPLACEMENT)-rNode.FastGetSolutionStepValue(DISPLACEMENT,1));
-    double distance = this->GetDistanceToEdge(rNode,rEdgeNodeA,rEdgeNodeB);
+    double sign = 1;
+    if( inner_prod(VelocityDirection,rDirection) > 0 )
+      sign*=(-1);
 
-    VelocityDirection *= (-1)*((rMeanEdgeLength-distance)+advance);
+    noalias(rNode.Coordinates()) += sign * rDistance * rDirection;
+    rNode.FastGetSolutionStepValue(DISPLACEMENT)   += sign * rDistance * rDirection;
+    rNode.FastGetSolutionStepValue(DISPLACEMENT,1) += sign * rDistance * rDirection;
 
-    //std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
-
-    noalias(rNode.Coordinates()) += VelocityDirection;
-    rNode.FastGetSolutionStepValue(DISPLACEMENT)   += VelocityDirection;
-    rNode.FastGetSolutionStepValue(DISPLACEMENT,1) += VelocityDirection;
-    //rNode.GetInitialPosition() = (rNode.Coordinates() - rNode.FastGetSolutionStepValue(DISPLACEMENT));
-
-
-    //std::cout<<" Moved Node Post ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //**************************************************************************
-  //**************************************************************************
-
-  bool CheckApproachingEdge(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
-  {
-    KRATOS_TRY
-
-    bool approaching_edge = false;
-
-    array_1d<double,3> EdgeVelocity = 0.5 * (rEdgeNodeA.FastGetSolutionStepValue(VELOCITY)+rEdgeNodeB.FastGetSolutionStepValue(VELOCITY));
-    array_1d<double,3> MidPoint = 0.5 * (rEdgeNodeA.Coordinates() + rEdgeNodeB.Coordinates());
-
-    array_1d<double,3> Distance = (MidPoint-rNode.Coordinates());
-
-    array_1d<double,3> VelocityDirection = rNode.FastGetSolutionStepValue(VELOCITY);
-
-    double velocity = norm_2(VelocityDirection);
-    if(velocity!=0)
-       VelocityDirection/=velocity;
-
-    //different velocity directions
-    if( inner_prod( EdgeVelocity, VelocityDirection ) < 0 ){
-      //node velocity direction towards edge
-      if( inner_prod( Distance, VelocityDirection ) > 0 )
-        approaching_edge = true;
-      else
-        approaching_edge = false;
-    } //same velocity directions
-    else if( velocity > 0.1 * norm_2(EdgeVelocity) ){
-      //node velocity direction towards edge
-      if( inner_prod( Distance, VelocityDirection ) > 0 )
-        approaching_edge = true;
-      else
-        approaching_edge = false;
-    }
-
-    //check approach magnitude
-    if( approaching_edge == true) {
-
-      array_1d<double,3> Direction;
-
-      this->GetDirectionToEdge(Direction,rEdgeNodeA,rEdgeNodeB);
-
-      double distance = fabs(inner_prod((MidPoint-rNode.Coordinates()), Direction));
-
-      double advance  = fabs(inner_prod((rNode.FastGetSolutionStepValue(DISPLACEMENT)-rNode.FastGetSolutionStepValue(DISPLACEMENT,1)), Direction));
-
-      if( 3*advance < distance )
-        approaching_edge = false;
-
-      //check also velocity direction: (when normal well calculated maybe it can be deactivated)
-      distance = fabs(inner_prod((MidPoint-rNode.Coordinates()), VelocityDirection));
-
-      advance  = fabs(inner_prod((rNode.FastGetSolutionStepValue(DISPLACEMENT)-rNode.FastGetSolutionStepValue(DISPLACEMENT,1)), VelocityDirection));
-
-      if( 3*advance > distance )
-        approaching_edge = true;
-      //check also velocity direction: (optional)
-
-      //std::cout<<" aproaching edge: "<<approaching_edge<<" (distance: "<< distance <<" advance: "<<advance<<")"<<std::endl;
-    }
-
-    return approaching_edge;
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //**************************************************************************
-  //**************************************************************************
-
-  double GetDistanceToEdge(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
-  {
-    KRATOS_TRY
-
-    array_1d<double,3> MidPoint  = 0.5 * (rEdgeNodeA.Coordinates() + rEdgeNodeB.Coordinates()) ;
-
-    array_1d<double,3> Direction;
-    this->GetDirectionToEdge(Direction,rEdgeNodeA,rEdgeNodeB);
-
-    double distance = fabs(inner_prod((MidPoint-rNode.Coordinates()), Direction));
-
-    //check also velocity direction: (when normal well calculated maybe it can be deactivated)
-    // Direction = rNode.FastGetSolutionStepValue(VELOCITY);
-
-    // double modulus = norm_2(Direction);
-    // if(modulus!=0)
-    //    Direction/=modulus;
-
-    // modulus = fabs(inner_prod((MidPoint-rNode.Coordinates()), Direction));
-
-    // if( modulus < distance )
-    //   distance = modulus;
-    //check also velocity direction: (optional)
-
-    return distance;
-
-    KRATOS_CATCH( "" )
-  }
-
-  //**************************************************************************
-  //**************************************************************************
-
-  void GetDirectionToEdge(array_1d<double,3>& Direction, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
-  {
-    //get wall direction from normals:
-     if( rEdgeNodeA.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 && rEdgeNodeB.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
-      Direction = 0.5 * (rEdgeNodeA.FastGetSolutionStepValue(NORMAL) + rEdgeNodeB.FastGetSolutionStepValue(NORMAL) ) ;
-    }
-    else{
-      if( rEdgeNodeA.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
-        Direction = rEdgeNodeA.FastGetSolutionStepValue(NORMAL);
-      }
-      else if( rEdgeNodeB.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
-        Direction = rEdgeNodeB.FastGetSolutionStepValue(NORMAL);
-      }
-      else{
-        Direction = 0.5 * (rEdgeNodeA.FastGetSolutionStepValue(NORMAL) + rEdgeNodeB.FastGetSolutionStepValue(NORMAL) ) ;
-      }
-    }
-
-    if( norm_2(Direction) )
-      Direction /= norm_2(Direction);
-
-  }
-
-
-  //**************************************************************************
-  //**************************************************************************
-
-  bool EraseCriticalNodes(ModelPart& rModelPart, unsigned int& inside_nodes_removed)
-  {
-
-    KRATOS_TRY
-
-    bool any_node_removed = false;
-    unsigned int erased_nodes=0;
-
-    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ++ie)
-    {
-      std::vector<Node<3>::Pointer> EdgeNodes;
-
-      Element::GeometryType& rGeometry = ie->GetGeometry();
-      //coordinates
-      for(unsigned int i=0; i<rGeometry.size(); ++i)
-      {
-        if((rGeometry[i].Is(RIGID) || rGeometry[i].Is(SOLID)) && rGeometry[i].IsNot(INLET)){
-          EdgeNodes.push_back(rGeometry(i));
-        }
-      }
-
-      if( EdgeNodes.size() >= 2 ){
-
-        const double dimension = ie->GetGeometry().WorkingSpaceDimension();
-
-        double CriticalVolume = 0;
-        double ElementSize    = 0;
-        double ElementHeight  = 0;
-        double MeanEdgeLength = 0;
-
-        double RigidEdgeLength = std::numeric_limits<double>::min();
-        if(EdgeNodes.size() == 2){
-          RigidEdgeLength = norm_2(EdgeNodes.front()->Coordinates() - EdgeNodes.back()->Coordinates());
-        }
-
-        double VolumeTolerance = 1e-2*pow(4.0*mrRemesh.Refine->CriticalRadius,dimension);
-
-        //set distances
-        if( dimension == 2 ){
-          ElementSize    = ie->GetGeometry().Area();
-          CriticalVolume = 0.5 * mrRemesh.Refine->CriticalRadius * mrRemesh.Refine->CriticalRadius;
-          VolumeTolerance *= 1.15e-2;
-        }
-        else if( dimension == 3 ){
-          ElementSize    = ie->GetGeometry().Volume();
-          CriticalVolume = 0.5 * mrRemesh.Refine->CriticalRadius * mrRemesh.Refine->CriticalRadius * mrRemesh.Refine->CriticalRadius;
-          VolumeTolerance *= 0.25;
-        }
-
-        MesherUtilities MesherUtils;
-        double MaxRelativeVelocity = 1.5; //arbitrary value, will depend on time step (AF)
-
-        double VolumeChange = 0;
-
-        bool speedy_approach = MesherUtils.CheckRelativeVelocities(rGeometry, MaxRelativeVelocity);
-        bool volume_decrease = MesherUtils.CheckVolumeDecrease(rGeometry, dimension, VolumeTolerance, VolumeChange);
-
-        //compare the element height to wall edge length
-        for (unsigned int i = 0; i < rGeometry.size(); ++i)
-        {
-
-          if( rGeometry[i].IsNot(RIGID) && rGeometry[i].IsNot(SOLID) && rGeometry[i].IsNot(TO_ERASE) && rGeometry[i].IsNot(ISOLATED) && rGeometry[i].IsNot(INLET) ){
-
-            //set distances
-            bool approaching_edge = false;
-            std::vector<Node<3>::Pointer> SelectedEdgeNodes(2);
-
-            if( EdgeNodes.size() == 2 ){
-              SelectedEdgeNodes = EdgeNodes;
-              approaching_edge = this->CheckApproachingEdge(rGeometry[i],*EdgeNodes.front(),*EdgeNodes.back());
-            }
-            else{
-
-              //select larger edge where the node is approaching
-              for(unsigned int j=0; j<EdgeNodes.size()-1; ++j)
-              {
-                for(unsigned int k=j+1; k<EdgeNodes.size(); ++k)
-                {
-                  double Length = norm_2(EdgeNodes[k]->Coordinates() - EdgeNodes[j]->Coordinates());
-                  if( Length > RigidEdgeLength && this->CheckApproachingEdge(rGeometry[i],*EdgeNodes[k],*EdgeNodes[j]) ){
-                    RigidEdgeLength = Length;
-                    SelectedEdgeNodes[0] = EdgeNodes[k];
-                    SelectedEdgeNodes[1] = EdgeNodes[j];
-                    approaching_edge = true;
-                  }
-                }
-              }
-            }
-
-            // if the node is moving towards to the wall
-            if( approaching_edge ){
-
-              ElementHeight  = 0;
-              MeanEdgeLength = 0;
-
-              if( dimension == 2 ){
-                //ElementHeight  = 2.0 * ElementSize / RigidEdgeLength; (AF)
-                //MeanEdgeLength = 0.5 * RigidEdgeLength;
-                ElementHeight  = 2.0 * this->GetDistanceToEdge(rGeometry[i],*SelectedEdgeNodes[0],*SelectedEdgeNodes[1]);
-                MeanEdgeLength = 0.5 * RigidEdgeLength;
-              }
-              else if( dimension == 3 ){
-                ElementHeight  = 2.0 * this->GetDistanceToEdge(rGeometry[i],*SelectedEdgeNodes[0],*SelectedEdgeNodes[1]);
-                MeanEdgeLength = 0.5 * RigidEdgeLength;
-              }
-
-              //avoid erasing freesurface particle in touch with wall (penalize length)
-              if(rGeometry[i].Is(FREE_SURFACE)){
-
-                WeakPointerVector<Node<3> >& NeighbourNodes = rGeometry[i].GetValue(NEIGHBOUR_NODES);
-                unsigned int NumberOfNeighbours = NeighbourNodes.size();
-                unsigned int BoundaryWallNodes=0;
-                unsigned int FreeSurfaceNodes=0;
-                for (WeakPointerVector< Node <3> >::iterator nn = NeighbourNodes.begin();nn != NeighbourNodes.end(); ++nn)
-                {
-                  if(nn->Is(RIGID) || nn->Is(SOLID)){
-                    ++BoundaryWallNodes;
-                  }
-                  else if(nn->Is(FREE_SURFACE)){
-                    ++FreeSurfaceNodes;
-                  }
-                }
-                if( (BoundaryWallNodes+FreeSurfaceNodes) == NumberOfNeighbours && BoundaryWallNodes>0){
-                  MeanEdgeLength*=0.5;
-                }
-              }
-              // if the node is very close to the wall or the volume is critically small, it is erased
-              if( ElementHeight < MeanEdgeLength && (speedy_approach && volume_decrease) ){
-
-                if( 4 * ElementHeight < MeanEdgeLength ){
-                  //std::cout<<" LAYER NODE ERASE DISTANCE ["<<rGeometry[i].Id()<<"] volumes:"<<ElementSize<<" < "<<CriticalVolume<<" heights: "<<ElementHeight<<" < "<<MeanEdgeLength<<" speedy "<<speedy_approach<<" volume_decrease "<<volume_decrease<<std::endl;
-                  rGeometry[i].Set(TO_ERASE);
-                  ++erased_nodes;
-                  ++inside_nodes_removed;
-                }
-                else{
-                  if( rGeometry[i].IsNot(FREE_SURFACE) ){
-                    this->MoveNodeToNonRigidMeanPosition(rGeometry[i],*SelectedEdgeNodes[0],*SelectedEdgeNodes[1],MeanEdgeLength);
-                  }
-                  else{
-                    if( !this->MoveBoundaryNodeToMeanPosition(rGeometry[i]) ){
-                      rGeometry[i].Set(TO_ERASE);
-                      ++erased_nodes;
-                      ++inside_nodes_removed;
-                    }
-                  }
-                }
-
-              }
-              else if( ElementSize<CriticalVolume ){
-                //std::cout<<" LAYER NODE ERASE VOLUME ["<<rGeometry[i].Id()<<"] volumes:"<<ElementSize<<" < "<<CriticalVolume<<" heights: "<<ElementHeight<<" < "<<MeanEdgeLength<<" speedy "<<speedy_approach<<" volume_decrease "<<volume_decrease<<std::endl;
-                // if( rGeometry[i].Is(FREE_SURFACE) )
-                //   std::cout<<" LAYER NODE FREE_SURFACE ERASED "<<std::endl;
-                rGeometry[i].Set(TO_ERASE);
-                ++erased_nodes;
-                ++inside_nodes_removed;
-              }
-
-            }
-
-          }
-
-        }
-
-      }
-    }
-
-    if(erased_nodes>0){
-      std::cout<<" Layer Nodes removed "<<erased_nodes<<std::endl;
-      any_node_removed = true;
-    }
-
-    return any_node_removed;
+    std::cout<<" Moved Node Post ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<std::endl;
 
     KRATOS_CATCH( "" )
   }

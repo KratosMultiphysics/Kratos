@@ -110,7 +110,7 @@ namespace Kratos
       if( mEchoLevel > 0 )
 	std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
 
-      this->ResetNodesFreeSurfaceFlag(mrModelPart);
+      this->ResetFreeSurfaceFlag(mrModelPart);
 
       success=this->UniqueSkinSearch(mrModelPart);
 

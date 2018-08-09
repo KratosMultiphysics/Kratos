@@ -1322,8 +1322,8 @@ namespace Kratos
       Tetrahedra3D4<Node<3> > MovedTetrahedron(MovedVertices);
       MovedVolume = MovedTetrahedron.Volume();
 
-      if(MovedVolume<0)
-        std::cout<<" VOLUME negative "<<std::endl;
+      // if(MovedVolume<0)
+      //   std::cout<<" VOLUME negative "<<std::endl;
     }
 
     return MovedVolume;

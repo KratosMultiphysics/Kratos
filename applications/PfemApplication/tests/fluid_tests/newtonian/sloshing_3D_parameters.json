@@ -1,7 +1,7 @@
 {
     "time_settings" : {
-        "time_step"  : 0.0025,
-        "end_time"   : 1.0
+        "time_step"  : 0.005,
+        "end_time"   : 2.0
     },
     "model_settings"           : {
 	"model_name"     : "main_domain",
@@ -20,7 +20,7 @@
     },
     "problem_data" : {
         "echo_level"      : 0,
-        "threads"         : 2,
+        "threads"         : 4,
         "gravity_vector"  : [0.0,0.0,-9.81]
     },
     "solver_settings" : {
@@ -243,7 +243,7 @@
             "output_control_type" : "step",
             "output_frequency"    : 1,
             "node_output"         : true,
-            "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE","NORMAL"],
+            "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE","NORMAL","SHRINK_FACTOR"],
 	    "nodal_flags_results" : ["FREE_SURFACE","BOUNDARY","ISOLATED","RIGID","SELECTED","NEW_ENTITY","FLUID"],
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR"]
         }

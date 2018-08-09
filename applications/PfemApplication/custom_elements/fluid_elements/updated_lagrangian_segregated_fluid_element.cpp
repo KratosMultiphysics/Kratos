@@ -615,8 +615,18 @@ void UpdatedLagrangianSegregatedFluidElement::SetElementData(ElementDataType& rV
 {
   //to be accurate calculus must stop
   if(rVariables.detF<0){
-    KRATOS_WARNING("ELEMENT INVERTED") << " UpdatedLagrangianSegregatedFluidElement : |F| = " << rVariables.detF << std::endl;
+
+    KRATOS_WARNING(" [Element Ignored]") << "ULSFluidElement["<<this->Id()<<"] (|F|=" << rVariables.detF <<")  (Iter:"<<rVariables.GetProcessInfo()[NL_ITERATION_NUMBER]<<")"<<std::endl;
     rVariables.detJ = 0;
+
+    this->Set(SELECTED,true);
+  }
+  else{
+
+    if(this->Is(SELECTED) && this->Is(ACTIVE)){
+      this->Set(SELECTED,false);
+      std::cout<<" Undo SELECTED "<<this->Id()<<std::endl;
+    }
   }
 
   //to be accurate calculus must stop

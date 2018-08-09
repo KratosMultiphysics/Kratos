@@ -78,6 +78,9 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
+    typedef ModelPart::ConditionType         ConditionType;
+    typedef ConditionType::GeometryType       GeometryType;
+
     /// Pointer definition of BuildModelPartBoundaryProcess
     KRATOS_CLASS_POINTER_DEFINITION( BuildModelPartBoundaryProcess );
 
@@ -126,7 +129,7 @@ namespace Kratos
 
       unsigned int NumberOfSubModelParts=mrModelPart.NumberOfSubModelParts();
 
-      this->ResetNodesFreeSurfaceFlag(mrModelPart);
+      this->ResetFreeSurfaceFlag(mrModelPart);
 
       if( mModelPartName == mrModelPart.Name() ){
 
@@ -136,7 +139,7 @@ namespace Kratos
 	    if( mEchoLevel >= 1 )
 	      std::cout<<" [ Construct Boundary on ModelPart ["<<i_mp->Name()<<"] ]"<<std::endl;
 
-	    success=UniqueSkinSearch(*i_mp);
+            success=UniqueSkinSearch(*i_mp);
 
 	    if(!success)
 	      {
@@ -958,15 +961,17 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    void ResetNodesFreeSurfaceFlag(ModelPart& rModelPart)
+    void ResetFreeSurfaceFlag(ModelPart& rModelPart)
     {
-      //reset the boundary flag in all nodes
-      for(ModelPart::NodesContainerType::const_iterator i_node = rModelPart.NodesBegin(); i_node!=rModelPart.NodesEnd(); ++i_node)
+      //reset the boundary flag in all nodes (set old_entity in edge nodes to be recognized)
+      if(rModelPart.Is(FLUID)){
+
+        for(ModelPart::NodesContainerType::const_iterator i_node = rModelPart.NodesBegin(); i_node!=rModelPart.NodesEnd(); ++i_node)
 	{
-          //reset free surface flag
-          if(rModelPart.Is(FLUID))
-            i_node->Set(FREE_SURFACE,false);
+          i_node->Set(FREE_SURFACE,false);
 	}
+
+      }
     }
 
     ///@}

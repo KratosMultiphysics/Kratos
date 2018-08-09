@@ -297,7 +297,6 @@ class SettleModelStructureProcess
 
   virtual void PerformModelSearches()
   {
-
     KRATOS_TRY
 
     //NODAL NEIGHBOURS SEARCH
@@ -316,9 +315,7 @@ class SettleModelStructureProcess
     BoundaryNormalsCalculationUtilities BoundaryComputation;
     BoundaryComputation.CalculateWeightedBoundaryNormals(mrMainModelPart, mEchoLevel);
 
-
     KRATOS_CATCH(" ")
-
   }
 
 

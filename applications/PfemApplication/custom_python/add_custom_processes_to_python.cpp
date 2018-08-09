@@ -21,9 +21,10 @@
 //#include "custom_processes/adaptive_time_interval_process.hpp"
 #include "custom_processes/assign_properties_to_nodes_process.hpp"
 #include "custom_processes/manage_isolated_nodes_process.hpp"
+#include "custom_processes/manage_selected_elements_process.hpp"
+#include "custom_processes/recover_volume_losses_process.hpp"
 
 // PreMeshing processes
-#include "custom_processes/recover_volume_losses_mesher_process.hpp"
 #include "custom_processes/inlet_management_mesher_process.hpp"
 #include "custom_processes/insert_new_nodes_mesher_process.hpp"
 #include "custom_processes/remove_fluid_nodes_mesher_process.hpp"
@@ -77,29 +78,28 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       ;
 
   //*********SET SOLVER PROCESSES*************//
-
   class_<AssignPropertiesToNodesProcess, AssignPropertiesToNodesProcess::Pointer, Process>
       (m, "AssignPropertiesToNodes")
       .def(init<ModelPart&, Parameters>())
       .def(init<ModelPart&, Parameters&>());
 
   //*********ADAPTIVE TIME STEP*************//
-
   // class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, Process>
   //     (m, "AdaptiveTimeIntervalProcess")
   //     .def(init<ModelPart&, int>());
 
-
-  //*********VOLUME RECOVETY PROCESS********//
-
-  class_<RecoverVolumeLossesMesherProcess, RecoverVolumeLossesMesherProcess::Pointer, MesherProcess>
+  //*********VOLUME RECOVERY PROCESS********//
+  class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, Process>
       (m, "RecoverVolumeLosses")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+      .def(init<ModelPart&, int>());
 
-
-  //*********VOLUME RECOVETY PROCESS********//
+  //*********MANAGE PARTICULAR ENTITIES PROCESS********//
   class_<ManageIsolatedNodesProcess, ManageIsolatedNodesProcess::Pointer, Process>
       (m, "ManageIsolatedNodesProcess")
+      .def(init<ModelPart&>());
+
+  class_<ManageSelectedElementsProcess, ManageSelectedElementsProcess::Pointer, Process>
+      (m, "ManageSelectedElementsProcess")
       .def(init<ModelPart&>());
 
 }

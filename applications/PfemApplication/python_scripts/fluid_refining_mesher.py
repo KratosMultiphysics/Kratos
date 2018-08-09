@@ -81,9 +81,6 @@ class FluidRefiningMesher(mesher.Mesher):
         refining_parameters = self.MeshingParameters.GetRefiningParameters()
         refining_options = refining_parameters.GetRefiningOptions()
 
-        #recover_volume_losses  = KratosPfem.RecoverVolumeLosses(self.model_part, self.MeshingParameters, self.echo_level)
-        #self.mesher.SetPreMeshingProcess(recover_volume_losses)
-
         #inlet_management = KratosPfem.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPreMeshingProcess(inlet_management)
 

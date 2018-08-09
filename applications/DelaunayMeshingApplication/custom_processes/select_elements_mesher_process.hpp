@@ -784,248 +784,279 @@ class SelectElementsMesherProcess
         }
       }
 
-      double VolumeChange = 0;
-      double VolumeTolerance = 1e-2*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension);
-
       if(rDimension==2){
-
-        VolumeTolerance *= 1.15e-2;
-        //criterion for elements formed with new wall nodes
-        if( rVerticesFlags.Fluid != NumberOfVertices ){
-
-          //there are not fluid nodes
-          if( rVerticesFlags.Fluid == 0 ){
-            rAlpha = 0;
-          }
-          else{
-
-            //if the element is decreasing its volume:
-            VolumeChange = 0;
-            if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange)){
-
-              //accept new elements formed with isolated nodes (here speedy test passed)
-              if( rVerticesFlags.Isolated > 0 ){
-                rAlpha*=0.80;
-              }
-              //one wall vertex
-              else if( rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1 ){
-                //to avoid new approaching wall elements with two non-wall free-surface nodes
-                if( rVerticesFlags.NoWallFreeSurface == 2 )
-                  rAlpha*=0.60;
-                else
-                  rAlpha*=0.80;
-              }
-              //two wall vertices
-              else if( rVerticesFlags.Rigid == 2 || rVerticesFlags.Solid == 2 || (rVerticesFlags.Rigid+rVerticesFlags.Solid)==2 ){
-                //to avoid new approaching wall elements with only one non-wall free-surface node
-                if( rVerticesFlags.NoWallFreeSurface == 1 ){
-                  rAlpha*=0.60;
-                }
-                else{
-                  rAlpha*=0.80;
-                }
-              }
-              //there are no wall vertices (impossible)
-              else{
-                rAlpha*=0.80;
-                //std::cout<<" WARNING: new element with non-fluid particles and non wall-particles (rigid: "<<rVerticesFlags.Rigid<<" solid: "<<rVerticesFlags.Solid<<" fluid: "<<rVerticesFlags.Fluid<<" free-surface: "<<rVerticesFlags.FreeSurface<<")"<<std::endl;
-              }
-
-            }
-            //if the element is not decreasing its volume:
-            else{
-
-              //if the element does not change the volume (all rigid or moving tangentially to the wall)
-              if( VolumeChange > 0 && VolumeChange < VolumeTolerance ){
-                rAlpha*=0.95;
-                //std::cout<<" CONSIDERING VOLUME CHANGE "<<VolumeChange<<std::endl;
-              }
-              else{
-                rAlpha=0;
-              }
-            }
-          }
-        }
-        //all nodes are fluid (pre-existing elements) or new elements formed in the free-surface
-        else{ //fluid element
-
-          //all nodes in the free-surface
-          if( rVerticesFlags.FreeSurface == 3 ){
-
-            //all nodes in the non-wall free-surface
-            if( rVerticesFlags.NoWallFreeSurface == 3 ){
-
-              //if the element is decreasing its volume:
-              VolumeChange = 0;
-              //to avoid closing fluid voids with new elements
-              if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange)){
-                //to avoid too avoid approaching free surfaces at very high speeds
-                const double MaxRelativeVelocity = 1.5;
-                if(MesherUtils.CheckRelativeVelocities(rVertices, MaxRelativeVelocity))
-                  rAlpha=0;
-                else
-                  rAlpha*=0.80;
-              }
-              //to avoid increasing fluid surface with new elements
-              else{
-                rAlpha*=0.60;
-              }
-            }
-            //two nodes in non-wall free-surface
-            else if( rVerticesFlags.NoWallFreeSurface == 2 ){
-              rAlpha*=0.80;
-            }
-            //one node in non-wall free-surface
-            else if( rVerticesFlags.NoWallFreeSurface == 1 ){
-              rAlpha*=0.80;
-            }
-            //one node in non-wall free-surface
-            else{
-              rAlpha*=1.20;
-            }
-          }
-          //two nodes in the free-surface
-          else if( rVerticesFlags.FreeSurface == 2 ){
-
-            //to avoid closing fluid voids with new elements with a wall fluid node
-            if( rVerticesFlags.NoWallFreeSurface == 2 && (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) )
-              rAlpha*=0.80;
-            else
-              rAlpha*=1.20;
-
-          }
-          else{
-            rAlpha*=1.20;
-          }
-        }
-
+        this->GetTriangleFluidElementAlpha(rAlpha,rVertices,rVerticesFlags,rDimension);
       }
       else if(rDimension==3){
+        this->GetTetrahedronFluidElementAlpha(rAlpha,rVertices,rVerticesFlags,rDimension);
+      }
+    }
 
-        VolumeTolerance*=0.25;
-        //criterion for elements formed with new wall nodes
-        if( rVerticesFlags.Fluid != NumberOfVertices ){ //element formed with a wall
+  }
 
-          //there are not fluid nodes
-          if( rVerticesFlags.Fluid == 0 ){
-            rAlpha = 0;
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void GetTriangleFluidElementAlpha(double &rAlpha,GeometryType& rVertices,const NodalFlags& rVerticesFlags,const unsigned int& rDimension)
+  {
+
+    MesherUtilities MesherUtils;
+
+    double VolumeChange = 0;
+    double VolumeTolerance = 1.15e-4*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension);
+    unsigned int NumberOfVertices = rVertices.size();
+
+    //criterion for elements formed with new wall nodes
+    if( rVerticesFlags.Fluid != NumberOfVertices ){
+
+      //there are not fluid nodes
+      if( rVerticesFlags.Fluid == 0 ){
+        rAlpha = 0;
+      }
+      else{
+
+        //if the element is decreasing its volume:
+        VolumeChange = 0;
+        if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange)){
+
+          //accept new elements formed with isolated nodes (here speedy test passed)
+          if( rVerticesFlags.Isolated > 0 ){
+            rAlpha*=0.80;
           }
-          else{
-
-            //if the element is decreasing its volume:
-            VolumeChange = 0;
-            if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange)){
-
-              //accept new elements formed with isolated nodes (here speedy test passed)
-              if( rVerticesFlags.Isolated > 0 ){
-                rAlpha*=0.8;
-              }
-              //one wall vertex
-              else if( (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) ){
-                //to avoid new approaching wall elements with three non-wall free-surface nodes
-                if( rVerticesFlags.NoWallFreeSurface == 3 )
-                  rAlpha *= 0.60;
-                else
-                  rAlpha *= 0.80;
-              }
-              //two wall vertices
-              else if( rVerticesFlags.Rigid == 2 || rVerticesFlags.Solid == 2 || (rVerticesFlags.Rigid+rVerticesFlags.Solid)==2 ){
-                //to avoid new approaching wall elements with two non-wall free-surface nodes
-                if( rVerticesFlags.NoWallFreeSurface == 2 )
-                  rAlpha *= 0.50;
-                else
-                  rAlpha *= 0.80;
-              }
-              //three wall vertices
-              else if( rVerticesFlags.Rigid == 3 || rVerticesFlags.Solid == 3 || (rVerticesFlags.Rigid+rVerticesFlags.Solid)==3 ){
-                //to avoid new approaching wall elements with only one non-wall free-surface node
-                if( rVerticesFlags.NoWallFreeSurface == 1 )
-                  rAlpha *= 0.70;
-                else
-                  rAlpha *= 0.80;
-              }
-              //there are no wall vertices (impossible)
-              else{
-                rAlpha*=0.80;
-                std::cout<<" WARNING: new element with non-fluid particles and non wall-particles (rigid: "<<rVerticesFlags.Rigid<<" solid: "<<rVerticesFlags.Solid<<" fluid: "<<rVerticesFlags.Fluid<<" free-surface: "<<rVerticesFlags.FreeSurface<<" new_entity: "<<rVerticesFlags.NewEntity<<" isolated: "<<rVerticesFlags.Isolated<<" old_entity: "<<rVerticesFlags.OldEntity<<")"<<std::endl;
-              }
-
-            }
-            //if the element is not decreasing its volume:
-            else{
-
-              //if the element does not change the volume (all rigid or moving tangentially to the wall)
-              if( VolumeChange > 0 && VolumeChange < VolumeTolerance && rVerticesFlags.Rigid == NumberOfVertices ){
-                rAlpha*=0.80;
-                //std::cout<<" CONSIDERING VOLUME CHANGE "<<VolumeChange<<std::endl;
-              }
-              else{
-                rAlpha=0;
-              }
-
-            }
+          //one wall vertex
+          else if( rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1 ){
+            //to avoid new approaching wall elements with two non-wall free-surface nodes
+            if( rVerticesFlags.NoWallFreeSurface == 2 )
+              rAlpha*=0.60;
+            else
+              rAlpha*=0.80;
           }
-
-          //in 3D alpha must be larger
-          rAlpha*=1.10;
-
-        }
-        //all nodes are fluid (pre-existing elements) or new elements formed in the free-surface
-        else{ //fluid element
-
-          //all nodes in the free-surface
-          if( rVerticesFlags.FreeSurface == 4 && rVerticesFlags.Sliver == 0 ){
-
-            //all nodes in the non-wall free-surface (free surface flat element can be artificial)
-            if( rVerticesFlags.NoWallFreeSurface == 4){
-
-              //if the element is decreasing its volume:
-              VolumeChange = 0;
-              //to avoid closing fluid voids with new elements
-              if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
-                rAlpha*=0.70;
-              //to avoid increasing fluid surface with new elements
-              else
-                rAlpha*=0.40;
-
+          //two wall vertices
+          else if( rVerticesFlags.Rigid == 2 || rVerticesFlags.Solid == 2 || (rVerticesFlags.Rigid+rVerticesFlags.Solid)==2 ){
+            //to avoid new approaching wall elements with only one non-wall free-surface node
+            if( rVerticesFlags.NoWallFreeSurface == 1 ){
+              rAlpha*=0.60;
             }
-            //three nodes in non-wall free-surface
-            else if( rVerticesFlags.NoWallFreeSurface == 3 ){
-              if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
-                rAlpha*=0.80;
-              else
-                rAlpha*=0.50;
-            }
-            //two nodes in non-wall free-surface
-            else if( rVerticesFlags.NoWallFreeSurface == 2 ){
-              if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
-                rAlpha*=0.80;
-              else
-                rAlpha*=0.50;
-            }
-            //one node in non-wall free-surface
             else{
               rAlpha*=0.80;
             }
           }
+          //there are no wall vertices (impossible)
           else{
-
-            if( rVerticesFlags.FreeSurface > 0 && rVerticesFlags.Rigid > 0 ){
-              if( MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange) )
-                rAlpha*=1.20;
-              else
-                rAlpha*=0.80;
-            }
-
-            rAlpha*=1.50;
+            rAlpha*=0.80;
+            //std::cout<<" WARNING: new element with non-fluid particles and non wall-particles (rigid: "<<rVerticesFlags.Rigid<<" solid: "<<rVerticesFlags.Solid<<" fluid: "<<rVerticesFlags.Fluid<<" free-surface: "<<rVerticesFlags.FreeSurface<<")"<<std::endl;
           }
 
-          //in 3D alpha must be larger
+        }
+        //if the element is not decreasing its volume:
+        else{
+
+          //if the element does not change the volume (all rigid or moving tangentially to the wall)
+          if( VolumeChange > 0 && VolumeChange < VolumeTolerance ){
+            rAlpha*=0.95;
+            //std::cout<<" CONSIDERING VOLUME CHANGE "<<VolumeChange<<std::endl;
+          }
+          else{
+            rAlpha=0;
+          }
+        }
+      }
+    }
+    //all nodes are fluid (pre-existing elements) or new elements formed in the free-surface
+    else{ //fluid element
+
+      //all nodes in the free-surface
+      if( rVerticesFlags.FreeSurface == 3 ){
+
+        //all nodes in the non-wall free-surface
+        if( rVerticesFlags.NoWallFreeSurface == 3 ){
+
+          //if the element is decreasing its volume:
+          VolumeChange = 0;
+          //to avoid closing fluid voids with new elements
+          if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange)){
+            //to avoid too avoid approaching free surfaces at very high speeds
+            const double MaxRelativeVelocity = 1.5;
+            if(MesherUtils.CheckRelativeVelocities(rVertices, MaxRelativeVelocity))
+              rAlpha=0;
+            else
+              rAlpha*=0.80;
+          }
+          //to avoid increasing fluid surface with new elements
+          else{
+            rAlpha*=0.60;
+          }
+        }
+        //two nodes in non-wall free-surface
+        else if( rVerticesFlags.NoWallFreeSurface == 2 ){
+          rAlpha*=0.80;
+        }
+        //one node in non-wall free-surface
+        else if( rVerticesFlags.NoWallFreeSurface == 1 ){
+          rAlpha*=0.80;
+        }
+        //one node in non-wall free-surface
+        else{
+          rAlpha*=1.20;
+        }
+      }
+      //two nodes in the free-surface
+      else if( rVerticesFlags.FreeSurface == 2 ){
+
+        //to avoid closing fluid voids with new elements with a wall fluid node
+        if( rVerticesFlags.NoWallFreeSurface == 2 && (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) )
+          rAlpha*=0.80;
+        else
           rAlpha*=1.20;
 
-        }
-
       }
+      else{
+        rAlpha*=1.20;
+      }
+    }
+
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void GetTetrahedronFluidElementAlpha(double &rAlpha,GeometryType& rVertices,const NodalFlags& rVerticesFlags,const unsigned int& rDimension)
+  {
+    MesherUtilities MesherUtils;
+
+    double VolumeChange = 0;
+    double VolumeTolerance = 2.5e-3*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension);
+    unsigned int NumberOfVertices = rVertices.size();
+
+    //criterion for elements formed with new wall nodes
+    if( rVerticesFlags.Fluid != NumberOfVertices ){ //element formed with a wall
+
+      //there are not fluid nodes
+      if( rVerticesFlags.Fluid == 0 ){
+        rAlpha = 0;
+      }
+      else{
+
+        //if the element is decreasing its volume:
+        VolumeChange = 0;
+        if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange)){
+
+          //accept new elements formed with isolated nodes (here speedy test passed)
+          if( rVerticesFlags.Isolated > 0 ){
+            rAlpha*=0.8;
+          }
+          //one wall vertex
+          else if( (rVerticesFlags.Rigid == 1 || rVerticesFlags.Solid == 1) ){
+            //to avoid new approaching wall elements with three non-wall free-surface nodes
+            if( rVerticesFlags.NoWallFreeSurface == 3 )
+              rAlpha *= 0.60;
+            else
+              rAlpha *= 0.70;
+          }
+          //two wall vertices
+          else if( rVerticesFlags.Rigid == 2 || rVerticesFlags.Solid == 2 || (rVerticesFlags.Rigid+rVerticesFlags.Solid)==2 ){
+            //to avoid new approaching wall elements with two non-wall free-surface nodes
+            if( rVerticesFlags.NoWallFreeSurface == 2 )
+              rAlpha *= 0.50;
+            else
+              rAlpha *= 0.80;
+          }
+          //three wall vertices
+          else if( rVerticesFlags.Rigid == 3 || rVerticesFlags.Solid == 3 || (rVerticesFlags.Rigid+rVerticesFlags.Solid)==3 ){
+            //to avoid new approaching wall elements with only one non-wall free-surface node
+            if( rVerticesFlags.NoWallFreeSurface == 1 ){
+              if( rVerticesFlags.Fluid == 1 )
+                rAlpha *= 0.40;
+              else
+                rAlpha *= 0.60;
+            }
+            else{
+              rAlpha *= 0.80;
+            }
+          }
+          //there are no wall vertices (impossible)
+          else{
+            rAlpha*=0.80;
+            std::cout<<" WARNING: new element with non-fluid particles and non wall-particles (rigid: "<<rVerticesFlags.Rigid<<" solid: "<<rVerticesFlags.Solid<<" fluid: "<<rVerticesFlags.Fluid<<" free-surface: "<<rVerticesFlags.FreeSurface<<" new_entity: "<<rVerticesFlags.NewEntity<<" isolated: "<<rVerticesFlags.Isolated<<" old_entity: "<<rVerticesFlags.OldEntity<<")"<<std::endl;
+          }
+
+        }
+        //if the element is not decreasing its volume:
+        else{
+
+          //if the element does not change the volume (all rigid or moving tangentially to the wall)
+          if( VolumeChange > 0 && VolumeChange < VolumeTolerance && rVerticesFlags.Rigid == NumberOfVertices ){
+            rAlpha*=0.80;
+            //std::cout<<" CONSIDERING VOLUME CHANGE "<<VolumeChange<<std::endl;
+          }
+          else{
+            rAlpha=0;
+          }
+
+        }
+      }
+
+      //in 3D alpha must be larger
+      rAlpha*=1.10;
+
+    }
+    //all nodes are fluid (pre-existing elements) or new elements formed in the free-surface
+    else{ //fluid element
+
+      //all nodes in the free-surface
+      if( rVerticesFlags.FreeSurface == 4 && rVerticesFlags.Sliver == 0 ){
+
+        //all nodes in the non-wall free-surface (free surface flat element can be artificial)
+        if( rVerticesFlags.NoWallFreeSurface == 4){
+
+          //if the element is decreasing its volume:
+          VolumeChange = 0;
+          //to avoid closing fluid voids with new elements
+          if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
+            rAlpha*=0.70;
+          //to avoid increasing fluid surface with new elements
+          else
+            rAlpha*=0.40;
+
+        }
+        //three nodes in non-wall free-surface
+        else if( rVerticesFlags.NoWallFreeSurface == 3 ){
+          if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
+            rAlpha*=0.80;
+          else
+            rAlpha*=0.50;
+        }
+        //two nodes in non-wall free-surface
+        else if( rVerticesFlags.NoWallFreeSurface == 2 ){
+          if(MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange))
+            rAlpha*=0.80;
+          else
+            rAlpha*=0.50;
+        }
+        //one node in non-wall free-surface
+        else{
+          rAlpha*=0.80;
+        }
+      }
+      else{
+
+        if( rVerticesFlags.FreeSurface > 0 && rVerticesFlags.Rigid > 0 ){
+          if( MesherUtils.CheckVolumeDecrease(rVertices,rDimension,VolumeTolerance,VolumeChange) )
+            rAlpha*=1.50;
+          else
+            rAlpha*=1.10;
+        }
+        else if(rVerticesFlags.FreeSurface == 0 &&  rVerticesFlags.Rigid == 3 ){
+          rAlpha*=2.0; //accept large elements
+        }
+        else{
+          rAlpha*=1.70;
+        }
+      }
+
+      //in 3D alpha must be larger
+      rAlpha*=1.20;
 
     }
 
