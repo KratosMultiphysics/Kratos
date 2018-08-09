@@ -17,34 +17,34 @@ class CustomAnalyzer(AnalyzerBaseClass):
     def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
 
         # Constraint 1
-        constraint_node_id = 893
-        if communicator.isRequestingValueOf("point_distance_893"):
+        constraint_node_id = 733
+        if communicator.isRequestingValueOf("y_position_733"):
             value = current_design.Nodes[constraint_node_id].Y
-            communicator.reportValue("point_distance_893", value)
+            communicator.reportValue("y_position_733", value)
 
-        if communicator.isRequestingGradientOf("point_distance_893"):
+        if communicator.isRequestingGradientOf("y_position_733"):
             gradient = {}
             for node in current_design.Nodes:
                 if node.Id == constraint_node_id:
                     gradient[node.Id] = [0.0,1.0,0.0]
                 else:
                     gradient[node.Id] = [0.0,0.0,0.0]
-            communicator.reportGradient("point_distance_893", gradient)
+            communicator.reportGradient("y_position_733", gradient)
 
         # Constraint 2
-        constraint_node_id = 1200
-        if communicator.isRequestingValueOf("point_distance_1200"):
+        constraint_node_id = 1048
+        if communicator.isRequestingValueOf("y_position_1048"):
             value = current_design.Nodes[constraint_node_id].Y
-            communicator.reportValue("point_distance_1200", value)
+            communicator.reportValue("y_position_1048", value)
 
-        if communicator.isRequestingGradientOf("point_distance_1200"):
+        if communicator.isRequestingGradientOf("y_position_1048"):
             gradient = {}
             for node in current_design.Nodes:
                 if node.Id == constraint_node_id:
                     gradient[node.Id] = [0.0,1.0,0.0]
                 else:
                     gradient[node.Id] = [0.0,0.0,0.0]
-            communicator.reportGradient("point_distance_1200", gradient)            
+            communicator.reportGradient("y_position_1048", gradient)
 
 
 # Defining the model_part
