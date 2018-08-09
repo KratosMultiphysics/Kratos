@@ -131,7 +131,6 @@ public:
         // We iterate over the nodes
         NodesArrayType& nodes_array = rThisModelPart.Nodes();
 
-        double nodal_h;
         double sum_nodal_h = 0.0;
 
         #pragma omp parallel for reduction(+:sum_nodal_h)

@@ -62,6 +62,7 @@
 #include "add_logger_to_python.h"
 #include "add_response_functions_to_python.h"
 #include "add_memory_info_to_python.h"
+#include "add_constraint_to_python.h"
 #include "add_response_functions_to_python.h"
 
 namespace Kratos
@@ -77,10 +78,10 @@ char const* greet()
     return header.str().c_str();
 }
 
-using namespace pybind11;
-
 PYBIND11_MODULE(Kratos, m)
 {
+    namespace py = pybind11;
+
     AddVectorToPython(m);
     AddMatrixToPython(m);
     AddPointsToPython(m);
@@ -128,6 +129,7 @@ PYBIND11_MODULE(Kratos, m)
     AddSearchStrategiesToPython(m);
      AddTestingToPython(m);
      AddLoggerToPython(m); //TO BE SPOKEN WITH POOYAN
+     AddConstraintToPython(m);
      AddResponseFunctionsToPython(m);
 
      //     AddBandedMatrixToPython();

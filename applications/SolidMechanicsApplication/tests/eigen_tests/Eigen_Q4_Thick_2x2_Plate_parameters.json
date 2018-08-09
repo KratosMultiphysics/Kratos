@@ -40,7 +40,7 @@
         "process_name"  : "CheckEigenvaluesProcess",
         "Parameters"    : {
             "model_part_name" : "solid_domain",
-	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
+	    "variable_name"   : "EIGENVALUE_VECTOR",
             "reference_values": "[138.05922354056685, 3955.0855388258715, 7796.83946434412]"
         }
     }]

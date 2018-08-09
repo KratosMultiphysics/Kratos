@@ -89,7 +89,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
 
@@ -137,13 +137,13 @@ protected:
     /**
      * Initialize System Matrices
      */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables, 
+    virtual void CalculateKinematics(ConditionVariables& rVariables,
 				     const double& rPointNumber) override;
 
     /**
@@ -157,7 +157,7 @@ protected:
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight) override;
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -218,4 +218,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LINE_ELASTIC_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_LINE_ELASTIC_CONDITION_H_INCLUDED defined

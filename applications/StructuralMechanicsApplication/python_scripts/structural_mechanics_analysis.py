@@ -33,6 +33,22 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initalizing the parameters
         solver_settings = project_parameters["solver_settings"]
+
+        if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
+            warn_msg  = '"domain_size" defined both in "problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_settings" will be employed'
+            Kratos.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
+        if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
+            warn_msg  = '"model_part_name" defined both in problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_sett"ings" will be employed'
+            Kratos.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
+        if solver_settings.Has("time_stepping") and project_parameters["problem_data"].Has("time_Step"):
+            warn_msg  = '"time_stepping" defined both in "problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_settings" will be employed'
+            Kratos.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
         if not solver_settings.Has("time_stepping"):
             KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
             time_stepping_params = KratosMultiphysics.Parameters("{}")

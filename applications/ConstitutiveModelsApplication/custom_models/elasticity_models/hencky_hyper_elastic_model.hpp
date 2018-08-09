@@ -58,8 +58,8 @@ namespace Kratos
          ///@name Life Cycle
          ///@{
 
-         /// Default constructor.    
-         HenckyHyperElasticModel(): HyperElasticModel() {}; 
+         /// Default constructor.
+         HenckyHyperElasticModel(): HyperElasticModel() {};
 
          /// Copy constructor.
          HenckyHyperElasticModel(HenckyHyperElasticModel const& rOther) : HyperElasticModel( rOther) {};
@@ -93,7 +93,7 @@ namespace Kratos
 
          /**
           * Initialize member data
-          */    
+          */
          virtual void InitializeModel(ModelDataType& rValues) override
          {
             KRATOS_TRY
@@ -217,7 +217,7 @@ namespace Kratos
 
 
             KRATOS_CATCH("")
-         };    
+         };
 
          ///@}
          ///@name Protected  Access
@@ -275,7 +275,7 @@ namespace Kratos
 
          virtual void load(Serializer& rSerializer) override
          {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )      
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )
          }
 
          ///@}
@@ -308,6 +308,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HENCKY_HYPER_ELASTIC_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_HENCKY_HYPER_ELASTIC_MODEL_H_INCLUDED  defined
 
 

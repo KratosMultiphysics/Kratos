@@ -52,9 +52,10 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 "use_mixed_ulm_solver"                   : true,
                 "mixed_ulm_solver_parameters" :
                 {
-                    "solver_type": "mixed_ulm_linear_solver",
-                    "tolerance" : 1.0e-6,
-                    "max_iteration_number" : 200
+                    "solver_type"          : "mixed_ulm_linear_solver",
+                    "tolerance"            : 1.0e-6,
+                    "max_iteration_number" : 200,
+                    "echo_level"           : 0
                 }
             }
         }

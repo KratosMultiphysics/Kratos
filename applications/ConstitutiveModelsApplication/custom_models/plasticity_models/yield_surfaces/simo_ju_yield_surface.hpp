@@ -51,7 +51,7 @@ namespace Kratos
   public:
     ///@name Type Definitions
     ///@{
-    
+
     typedef ConstitutiveModelData::MatrixType                          MatrixType;
     typedef ConstitutiveModelData::VectorType                          VectorType;
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
@@ -60,7 +60,7 @@ namespace Kratos
     typedef YieldSurface<THardeningRule>                                 BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
-    
+
     /// Pointer definition of SimoJuYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( SimoJuYieldSurface );
 
@@ -80,13 +80,13 @@ namespace Kratos
       BaseType::operator=(rOther);
       return *this;
     }
-    
+
     /// Clone.
     virtual BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new SimoJuYieldSurface(*this));
+      return Kratos::make_shared<SimoJuYieldSurface>(*this);
     }
-    
+
     /// Destructor.
     virtual ~SimoJuYieldSurface() {}
 
@@ -107,20 +107,20 @@ namespace Kratos
     double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
     {
       KRATOS_TRY
-	
+
       const ModelDataType& rModelData = rVariables.GetModelData();
       const double& StrengthRatio = rModelData.GetMaterialProperties()[STRENGTH_RATIO];
 
       const double& rStressNorm = rVariables.GetStressNorm();
       const double& rTheta      = rVariables.GetRateFactor();
-      
+
       rYieldCondition = (rTheta+(1.0-rTheta)/StrengthRatio)*sqrt(rStressNorm);
-    
+
       return rYieldCondition;
 
-      KRATOS_CATCH(" ")    
+      KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate State Function
      */
@@ -128,15 +128,15 @@ namespace Kratos
     double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
     {
       KRATOS_TRY
-        
+
       rStateFunction = this->mHardeningRule.CalculateHardening(rVariables,rStateFunction);
-    
+
       return rStateFunction;
-    
-      KRATOS_CATCH(" ")    
+
+      KRATOS_CATCH(" ")
     }
 
-    
+
     /**
      * Calculate State Function derivative
      */
@@ -144,19 +144,19 @@ namespace Kratos
     double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
     {
       KRATOS_TRY
-    
+
       rDeltaStateFunction = this->mHardeningRule.CalculateDeltaHardening(rVariables,rDeltaStateFunction);
-    
+
       return rDeltaStateFunction;
 
-      KRATOS_CATCH(" ")        
+      KRATOS_CATCH(" ")
     }
-    
+
 
     ///@}
     ///@name Access
     ///@{
-        
+
 
     ///@}
     ///@name Inquiry
@@ -166,7 +166,7 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -186,7 +186,7 @@ namespace Kratos
     {
       rOStream << "SimoJuYieldSurface Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
@@ -202,8 +202,8 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -212,7 +212,7 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-        
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -254,7 +254,7 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
@@ -296,7 +296,7 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED  defined
