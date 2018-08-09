@@ -460,10 +460,16 @@ class Projector():
         self.subopt_tolerance = settings["subopt_tolerance"].GetDouble()
 
         # Reduce input data to relevant info
-        len_ineqs, dir_ineqs =  self.__RemoveInactiveConstraintsFarAway(len_ineqs, dir_ineqs)
-        len_eqs, dir_eqs, len_ineqs, dir_ineqs = self.__RemoveConstraintsWithNoGradientInfo(len_eqs, dir_eqs, len_ineqs, dir_ineqs)
+        self.input_len_obj = len_obj
+        self.input_len_eqs = len_eqs
+        self.input_len_ineqs = len_ineqs
+
+        len_eqs, dir_eqs, remaining_eqs_entries = self.__ReduceToRelevantEqualityConstraints(len_eqs, dir_eqs)
+        len_ineqs, dir_ineqs, remaining_ineqs_entries = self.__ReduceToRelevantInequalityConstraints(len_ineqs, dir_ineqs)
 
         # Store some working variables
+        self.remaining_eqs_entries = remaining_eqs_entries
+        self.remaining_ineqs_entries = remaining_ineqs_entries
         self.len_eqs = len_eqs
         self.len_ineqs = len_ineqs
         self.num_eqs = len(len_eqs)
@@ -486,10 +492,10 @@ class Projector():
     def RunProjection(self, len_obj, threshold, nargout):
 
         # Adjust halfspaces according input
-        len_obj, len_eqs, len_ineqs = self.__AdjustHalfSpacesAndHyperplanes(len_obj, threshold)
+        adj_len_obj, adj_len_eqs, adj_len_ineqs = self.__AdjustHalfSpacesAndHyperplanes(len_obj, threshold)
 
         # Determine position of border of halfspaces and hyperplanes
-        pos_obj_o, pos_eqs_o, pos_ineqs_o = self.__DetermineConstraintBorders(len_obj, len_eqs, len_ineqs)
+        pos_obj_o, pos_eqs_o, pos_ineqs_o = self.__DetermineConstraintBorders(adj_len_obj, adj_len_eqs, adj_len_ineqs)
 
         # Project current position onto intersection of
         current_position = ZeroVector(self.num_unknowns)
@@ -532,48 +538,52 @@ class Projector():
         elif nargout == 3:
             return norm_dX, dX, is_projection_sucessfull
         else:
-            return norm_dX, dX, is_projection_sucessfull, len_obj, len_eqs, len_ineqs
+            adj_len_eqs, adj_len_ineqs = self.__CompleteConstraintLengthsWithRemovedEntries(adj_len_eqs, adj_len_ineqs)
+
+            return norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs
 
     # --------------------------------------------------------------------------
-    def __RemoveInactiveConstraintsFarAway(self, len_ineqs, dir_ineqs):
-        len_ineqs_relevant = []
-        dir_ineqs_relevant = []
-
-        for itr in range(len(len_ineqs)):
-            len_i = len_ineqs[itr]
-            dir_i = dir_ineqs[itr]
-
-            if len_i > -self.far_away_length:
-                len_ineqs_relevant.append(len_i)
-                dir_ineqs_relevant.append(dir_i)
-
-        return len_ineqs_relevant, dir_ineqs_relevant
-
-    # --------------------------------------------------------------------------
-    def __RemoveConstraintsWithNoGradientInfo(self, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
+    def __ReduceToRelevantEqualityConstraints(self, len_eqs, dir_eqs):
         len_eqs_relevant = []
         dir_eqs_relevant = []
+        remaining_entries = []
 
         for itr in range(len(dir_eqs)):
             len_i = len_eqs[itr]
             dir_i = dir_eqs[itr]
 
-            if NormInf3D(dir_i) > 1e-13:
+            is_no_gradient_info_available = NormInf3D(dir_i) < 1e-13
+
+            if is_no_gradient_info_available:
+                pass
+            else:
+                remaining_entries.append(itr)
                 len_eqs_relevant.append(len_i)
                 dir_eqs_relevant.append(dir_i)
 
+        return len_eqs_relevant, dir_eqs_relevant, remaining_entries
+
+    # --------------------------------------------------------------------------
+    def __ReduceToRelevantInequalityConstraints(self, len_ineqs, dir_ineqs):
         len_ineqs_relevant = []
         dir_ineqs_relevant = []
+        remaining_entries = []
 
         for itr in range(len(dir_ineqs)):
             len_i = len_ineqs[itr]
             dir_i = dir_ineqs[itr]
 
-            if NormInf3D(dir_i) > 1e-13:
+            is_no_gradient_info_available = NormInf3D(dir_i) < 1e-13
+            is_constraint_inactive_and_far_away = len_i < -self.far_away_length
+
+            if is_no_gradient_info_available or is_constraint_inactive_and_far_away:
+                pass
+            else:
+                remaining_entries.append(itr)
                 len_ineqs_relevant.append(len_i)
                 dir_ineqs_relevant.append(dir_i)
 
-        return len_eqs_relevant, dir_eqs_relevant, len_ineqs_relevant, dir_ineqs_relevant
+        return len_ineqs_relevant, dir_ineqs_relevant, remaining_entries
 
     # --------------------------------------------------------------------------
     def __PerformGramSchmidtOrthogonalization(self, dir_obj, dir_eqs, dir_ineqs):
@@ -659,5 +669,21 @@ class Projector():
         dX_o = Plus(dX_o,dx0)
 
         return dX_o, subopt_itr, error, exit_code
+
+    # --------------------------------------------------------------------------
+    def __CompleteConstraintLengthsWithRemovedEntries(self, len_eqs, len_ineqs):
+        # Complete list of eqs
+        complete_list_eqs = copy.deepcopy(self.input_len_eqs)
+        for itr in range(len(len_eqs)):
+            original_eq_number = self.remaining_eqs_entries[itr]
+            complete_list_eqs[original_eq_number] = len_eqs[itr]
+
+        # Complete list of ineqs
+        complete_list_ineqs = copy.deepcopy(self.input_len_ineqs)
+        for itr in range(len(len_ineqs)):
+            original_eq_number = self.remaining_ineqs_entries[itr]
+            complete_list_ineqs[original_eq_number] = len_ineqs[itr]
+
+        return complete_list_eqs, complete_list_ineqs
 
 # ==============================================================================
