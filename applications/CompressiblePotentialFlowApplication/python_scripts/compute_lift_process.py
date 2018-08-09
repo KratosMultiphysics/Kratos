@@ -1,7 +1,5 @@
 from KratosMultiphysics import *
-
 import KratosMultiphysics
-
 from numpy import *
 import itertools
 

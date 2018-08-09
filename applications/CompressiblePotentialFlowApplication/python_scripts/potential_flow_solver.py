@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-#import KratosMultiphysics.ConvectionDiffusionApplication
 KratosMultiphysics.CheckForPreviousImport()
 
 
@@ -65,37 +64,20 @@ class LaplacianSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
         
     def AddDofs(self):
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            node.AddDof(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-            node.AddDof(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.POSITIVE_FACE_PRESSURE, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.NEGATIVE_FACE_PRESSURE, self.main_model_part)
         
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
         
-        #self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-            #self.main_model_part, 
-            #time_scheme, 
-            #self.linear_solver,
-            #self.settings["compute_reactions"].GetBool(), 
-            #self.settings["reform_dofs_at_each_step"].GetBool(), 
-            #self.settings["calculate_solution_norm"].GetBool(), 
-            #move_mesh_flag)
-            
-        conv_criteria = KratosMultiphysics.ResidualCriteria(
-            self.settings["relative_tolerance"].GetDouble(), 
-            self.settings["absolute_tolerance"].GetDouble())
-        max_iterations = self.settings["maximum_iterations"].GetInt()
-                
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+        self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
             self.main_model_part, 
             time_scheme, 
             self.linear_solver,
-            conv_criteria,
-            max_iterations,
             self.settings["compute_reactions"].GetBool(), 
             self.settings["reform_dofs_at_each_step"].GetBool(), 
+            self.settings["calculate_solution_norm"].GetBool(), 
             move_mesh_flag)
         
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())

@@ -210,35 +210,35 @@ public:
     {
         KRATOS_TRY;
 
-        const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
-                
-        KRATOS_ERROR_IF(norm_2(rNormal)<std::numeric_limits<double>::epsilon()) 
+        const array_1d<double, 3> &rNormal = this->GetValue(NORMAL);
+
+        KRATOS_ERROR_IF(norm_2(rNormal) < std::numeric_limits<double>::epsilon())
             << "Error on condition -> " << this->Id() << "\n"
             << "NORMAL must be calculated before using this condition." << std::endl;
 
-        if(mInitializeWasPerformed)
+        if (mInitializeWasPerformed)
             return;
 
         mInitializeWasPerformed = true;
 
-        GeometryType& rGeom = this->GetGeometry();
+        GeometryType &rGeom = this->GetGeometry();
         WeakPointerVector<Element> ElementCandidates;
-        GetElementCandidates(ElementCandidates,rGeom);
+        GetElementCandidates(ElementCandidates, rGeom);
 
         std::vector<IndexType> NodeIds, ElementNodeIds;
         GetSortedIds(NodeIds, rGeom);
-        FindParentElement(NodeIds,ElementNodeIds,ElementCandidates);
+        FindParentElement(NodeIds, ElementNodeIds, ElementCandidates);
 
         KRATOS_ERROR_IF(!mpElement.lock()) << "error in condition # " << this->Id() << "\n"
-            << "Condition cannot find parent element" << std::endl;
+                                           << "Condition cannot find parent element" << std::endl;
         KRATOS_CATCH("");
     }
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
+                               ProcessInfo &rCurrentProcessInfo) override
     {
         VectorType RHS;
-        this->CalculateLocalSystem(rLeftHandSideMatrix,RHS,rCurrentProcessInfo);
+        this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
     }
 
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
@@ -247,25 +247,27 @@ public:
       @param rRightHandSideVector Right-hand side vector
       @param rCurrentProcessInfo ProcessInfo instance (unused)
       */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+                              VectorType &rRightHandSideVector,
+                              ProcessInfo &rCurrentProcessInfo) override
     {
         if (rLeftHandSideMatrix.size1() != TNumNodes)
-            rLeftHandSideMatrix.resize(TNumNodes,TNumNodes,false);
+            rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
         if (rRightHandSideVector.size() != TNumNodes)
-            rRightHandSideVector.resize(TNumNodes,false);
+            rRightHandSideVector.resize(TNumNodes, false);
         rLeftHandSideMatrix.clear();
 
-        array_1d<double,3> An;
-        if (TDim == 2) CalculateNormal2D(An);
-        else CalculateNormal3D(An);
+        array_1d<double, 3> An;
+        if (TDim == 2)
+            CalculateNormal2D(An);
+        else
+            CalculateNormal3D(An);
 
-        const PotentialWallCondition& r_this = *this;
-        const array_1d<double,3>& v = r_this.GetValue(VELOCITY_INFINITY);
-        const double value = -inner_prod(v, An)/static_cast<double>(TNumNodes);
+        const PotentialWallCondition &r_this = *this;
+        const array_1d<double, 3> &v = r_this.GetValue(VELOCITY_INFINITY);
+        const double value = -inner_prod(v, An) / static_cast<double>(TNumNodes);
 
-        for(unsigned int i=0; i<TNumNodes; ++i)
+        for (unsigned int i = 0; i < TNumNodes; ++i)
             rRightHandSideVector[i] = value;
     }
 
@@ -414,18 +416,18 @@ protected:
         ///@{
 
         inline ElementPointerType pGetElement()
-        {         
-            KRATOS_ERROR_IF_NOT( mpElement.lock() != 0) <<
-            "No element found for condition #" << this->Id() << std::endl;
+        {
+            KRATOS_ERROR_IF_NOT(mpElement.lock() != 0)
+                << "No element found for condition #" << this->Id() << std::endl;
             return mpElement.lock();
         }
 
-        void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates, GeometryType& rGeom)
+        void GetElementCandidates(WeakPointerVector<Element> &ElementCandidates, GeometryType &rGeom)
         {
-            for(SizeType i = 0; i < TDim; i++)
+            for (SizeType i = 0; i < TDim; i++)
             {
-                WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-                for(SizeType j = 0; j < rNodeElementCandidates.size(); j++)
+                WeakPointerVector<Element> &rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+                for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
                     ElementCandidates.push_back(rNodeElementCandidates(j));
             }
         }
@@ -486,22 +488,20 @@ private:
         double mMinEdgeLength;
         ElementWeakPointerType mpElement;
 
-        void CalculateNormal2D(array_1d<double,3>& An)
+        void CalculateNormal2D(array_1d<double, 3> &An)
         {
-            Geometry<Node<3> >& pGeometry = this->GetGeometry();
+            Geometry<Node<3>> &pGeometry = this->GetGeometry();
 
-            An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
-            An[1] = - (pGeometry[1].X() - pGeometry[0].X());
-            An[2] =    0.00;
-
+            An[0] = pGeometry[1].Y() - pGeometry[0].Y();
+            An[1] = -(pGeometry[1].X() - pGeometry[0].X());
+            An[2] = 0.00;
         }
 
-
-        void CalculateNormal3D(array_1d<double,3>& An )
+        void CalculateNormal3D(array_1d<double, 3> &An)
         {
-            Geometry<Node<3> >& pGeometry = this->GetGeometry();
+            Geometry<Node<3>> &pGeometry = this->GetGeometry();
 
-            array_1d<double,3> v1,v2;
+            array_1d<double, 3> v1, v2;
             v1[0] = pGeometry[1].X() - pGeometry[0].X();
             v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
             v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
@@ -510,10 +510,9 @@ private:
             v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
             v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
 
-            MathUtils<double>::CrossProduct(An,v1,v2);
+            MathUtils<double>::CrossProduct(An, v1, v2);
             An *= 0.5;
         }
-
 
         ///@}
         ///@name Serialization
