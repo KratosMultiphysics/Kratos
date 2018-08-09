@@ -113,7 +113,7 @@ public:
         {
             "error_mesh_tolerance" : 5.0e-3,
             "error_mesh_constant"  : 5.0e-3,
-            "error_strategy_parameters":
+            "compute_error_extra_parameters":
             {
                 "penalty_normal"                      : 1.0e4,
                 "penalty_tangential"                  : 1.0e4,
@@ -174,10 +174,10 @@ public:
 
         // Computing error
         if (process_info[DOMAIN_SIZE] == 2) {
-            SPRErrorProcess<2> compute_error_process = SPRErrorProcess<2>(rModelPart, mThisParameters["error_strategy_parameters"]);
+            SPRErrorProcess<2> compute_error_process = SPRErrorProcess<2>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
             compute_error_process.Execute();
         } else {
-            SPRErrorProcess<3> compute_error_process = SPRErrorProcess<3>(rModelPart, mThisParameters["error_strategy_parameters"]);
+            SPRErrorProcess<3> compute_error_process = SPRErrorProcess<3>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
             compute_error_process.Execute();
         }
 
