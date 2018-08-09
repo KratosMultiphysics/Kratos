@@ -71,9 +71,10 @@
     },
     "su2_interface_settings" : {
         "su2_related": {
-            "config_file"        : "inv_NACA0012.cfg",
-            "number_of_cores"    : 12,
-            "gradient_method"    : "DISCRETE_ADJOINT",
+            "config_file"                : "inv_NACA0012.cfg",
+            "number_of_cores"            : 14,
+            "gradient_method"            : "DISCRETE_ADJOINT",
+            "use_restart_in_adjoint_run" : "YES",
             "mesh_file"          : "mesh_NACA0012_inv.su2",
             "mesh_motion_file"   : "mesh_motion.dat",
             "design_surface_tag" : "airfoil"
@@ -82,6 +83,6 @@
             "mdpa_file"      : "mesh_NACA0012_inv.mdpa",
             "write_elements" : false
         },
-        "echo_level" : 1
+        "echo_level" : 2
     }
 }

@@ -47,14 +47,13 @@ class CustomSU2Analyzer(AnalyzerBaseClass):
 
         if communicator.isRequestingGradientOf("drag"):
             update_mesh = False
-            drag_gradient = interface_su2.ComputeGradient(["DRAG"], update_mesh, optimization_iteration)
+            [drag_gradient] = interface_su2.ComputeGradient(["DRAG"], update_mesh, optimization_iteration)
             communicator.reportGradient("drag", drag_gradient)
 
         if communicator.isRequestingGradientOf("lift"):
             update_mesh = False
-            lift_gradient = interface_su2.ComputeGradient(["LIFT"], update_mesh, optimization_iteration)
+            [lift_gradient] = interface_su2.ComputeGradient(["LIFT"], update_mesh, optimization_iteration)
             communicator.reportGradient("lift", lift_gradient)
-
 
 # =======================================================================================================
 # Perform optimization
