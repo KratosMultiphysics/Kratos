@@ -42,9 +42,7 @@ def ZeroVector(m):
 
 # ------------------------------------------------------------------------------
 def ZeroMatrix(m,n):
-    A = []
-    for itr in range(n):
-        A.append([0.0 for i in range(m)])
+    A = [[0.0 for i in range(m)] for j in range(n)]
     return A
 
 # ------------------------------------------------------------------------------
