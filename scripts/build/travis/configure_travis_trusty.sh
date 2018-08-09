@@ -73,7 +73,9 @@ CXX_PERF_FLAGS="-O0 -fopenmp"
 #        CXX_WARN_FLAGS="-Wall"
 # --------------------------------------------------------------------------------------------------------------
 C_WARN_FLAGS="-Wall"
-CXX_WARN_FLAGS="-Wall"
+CXX_WARN_FLAGS="-Wall -Werror=suggest-override -Werror=unused-variable
+                -Werror=misleading-indentation -Werror=return-type
+                -Werror=sign-compare"
 
 # Other flags
 #    Indicate any other flag you want to add here
