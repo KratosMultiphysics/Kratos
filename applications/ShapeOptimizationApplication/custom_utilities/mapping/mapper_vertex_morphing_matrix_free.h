@@ -250,7 +250,7 @@ private:
     Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;
     Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
     double mControlSum = 0.0;
-
+    bool is_initial_creation_of_tree = true;
 
     ///@}
     ///@name Private Operators
@@ -310,8 +310,10 @@ private:
     // --------------------------------------------------------------------------
     void CreateSearchTreeIfNecessary()
     {
-        if(IsFirstMappingOperation() || HasGeometryChanged())
+        if(is_initial_creation_of_tree || HasGeometryChanged())
         {
+            is_initial_creation_of_tree = false;
+
             mpSearchTree.reset();
             CreateSearchTreeWithAllNodesOnDesignSurface();
         }
@@ -492,23 +494,6 @@ private:
             mControlSum = sumOfAllCoordinates;
             return true;
         }
-    }
-
-    // --------------------------------------------------------------------------
-    bool IsFirstMappingOperation()
-    {
-        if(mControlSum == -1.0)
-        {
-            mControlSum = 0.0;
-            for(auto& node_i : mrDesignSurface.Nodes())
-            {
-                array_3d& coord = node_i.Coordinates();
-                mControlSum += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
-            }
-            return true;
-        }
-        else
-             return false;
     }
 
     // --------------------------------------------------------------------------
