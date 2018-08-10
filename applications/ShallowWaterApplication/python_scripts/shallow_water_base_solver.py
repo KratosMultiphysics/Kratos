@@ -165,17 +165,21 @@ class ShallowWaterBaseSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
+        if self._TimeBufferIsInitialized():
+            self.solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.solver.Predict()
+        if self._TimeBufferIsInitialized():
+            self.solver.Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.solver.SolveSolutionStep()
-        return is_converged
+        if self._TimeBufferIsInitialized():
+            is_converged = self.solver.SolveSolutionStep()
+            return is_converged
 
     def FinalizeSolutionStep(self):
-        self.solver.FinalizeSolutionStep()
+        if self._TimeBufferIsInitialized():
+            self.solver.FinalizeSolutionStep()
 
     def Check(self):
         self.solver.Check()
@@ -202,6 +206,10 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _IsPrintingRank(self):
         return self._is_printing_rank
+
+    def _TimeBufferIsInitialized(self):
+        # We always have one extra old step (step 0, read from input)
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
 
     def _ComputeDeltaTime(self):
         # Automatic time step computation according to user defined CFL number
