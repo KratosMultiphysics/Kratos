@@ -65,7 +65,7 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
             solver.SetComputingModelPart(self.model_part.GetSubModelPart(create_part["Parameters"]["model_part_name"].GetString()))
 
     def ExecuteInitialize(self):
-        self._create_computing_sub_parts()
+        self._create_computing_parts_process()
         super(CompositeSolver, self).ExecuteInitialize()
 
     #### Solve loop methods ####
