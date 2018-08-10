@@ -1,6 +1,4 @@
 from __future__ import print_function, absolute_import, division
-import os
-os.environ['OMP_NUM_THREADS'] = "1"
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -35,6 +33,14 @@ def apply_material_properties(mp,dim):
     cl = StructuralMechanicsApplication.TrussConstitutiveLaw()
     mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
+def copy_solution_step_data_of_node(node, mp_old, node_id, step=0):
+    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,
+    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0))
+    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,
+    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0))
+    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,
+    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0))
+  
 def zero_vector(size):
     v = KratosMultiphysics.Vector(size)
     for i in range(size):
@@ -97,6 +103,12 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         self.model_part_1.CreateNewElement("TrussLinearElement3D2N", 5, [1, 7], prop)
         self.model_part_1.CreateNewElement("TrussLinearElement3D2N", 6, [1, 8], prop)
 
+        index = 1
+        for i in range(2):
+            for _ in range(4):
+                copy_solution_step_data_of_node(self.model_part_1.Nodes[index], self.model_part, i + 1, 0)
+                index += 1
+
         for element in self.model_part_1.Elements:
             element.Initialize()
 
@@ -115,6 +127,10 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
 
         self.model_part_2.CreateNewElement("TrussLinearElement3D2N", 1, [1, 2], prop)
         self.property_perturbed_truss_element = self.model_part_2.GetElement(1)
+
+        for i in range(2):
+            copy_solution_step_data_of_node(self.model_part_2.Nodes[i+1], self.model_part, i+1, 0)
+
         self.property_perturbed_truss_element.Initialize()
 
     def _assign_solution_step_data(self, step=0):
@@ -142,14 +158,10 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
 
     def test_CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
-        LHSUnperturbed = KratosMultiphysics.Matrix(6,6)
-        RHSUnperturbed = KratosMultiphysics.Matrix(6,6)
-        dummy_RHS = zero_vector(6)
-        PrimalDisplacement = zero_vector(6)
-        get_displacement_vector(self.model_part,PrimalDisplacement)
+        LHS_dummy = KratosMultiphysics.Matrix(6,6)
+        RHSUnperturbed = zero_vector(6)
 
-        self.truss_element.CalculateLocalSystem(LHSUnperturbed,dummy_RHS,self.model_part.ProcessInfo)
-        RHSUnperturbed = LHSUnperturbed * PrimalDisplacement
+        self.truss_element.CalculateLocalSystem(LHS_dummy, RHSUnperturbed,self.model_part.ProcessInfo)
 
         # pseudo-load by finite difference approximation
         h = 0.00001
@@ -157,17 +169,15 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         alpha = corr_factor * h
 
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(6,6)
-        LHSPerturbed = KratosMultiphysics.Matrix(6,6)
-        RHSPerturbed = KratosMultiphysics.Matrix(6,6)
+        RHSPerturbed = zero_vector(6)
 
         self._create_shape_perturbed_elements(self.model_part,alpha)
 
         row_index = 0
         for element in self.model_part_1.Elements:
-            element.CalculateLocalSystem(LHSPerturbed,dummy_RHS,self.model_part_1.ProcessInfo)
-            RHSPerturbed = LHSPerturbed * PrimalDisplacement
+            element.CalculateLocalSystem(LHS_dummy, RHSPerturbed, self.model_part_1.ProcessInfo)
             for j in range(6):
-                FDPseudoLoadMatrix[row_index,j] = -(RHSPerturbed[j] - RHSUnperturbed[j]) / alpha
+                FDPseudoLoadMatrix[row_index,j] = (RHSPerturbed[j] - RHSUnperturbed[j]) / alpha
             row_index = row_index + 1
 
         # pseudo-load computation by adjoint element
@@ -178,32 +188,24 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
 
     def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
-        LHSUnperturbed = KratosMultiphysics.Matrix(6,6)
+        LHS_dummy = KratosMultiphysics.Matrix(6,6)
         RHSUnperturbed = zero_vector(6)
-        dummy_RHS = zero_vector(6)
-        PrimalDisplacement = zero_vector(6)
-        get_displacement_vector(self.model_part,PrimalDisplacement)
    
-        self.truss_element.CalculateLocalSystem(LHSUnperturbed, dummy_RHS, self.model_part.ProcessInfo)
-     
-        RHSUnperturbed = LHSUnperturbed * PrimalDisplacement
+        self.truss_element.CalculateLocalSystem(LHS_dummy, RHSUnperturbed, self.model_part.ProcessInfo)
 
         # pseudo-load by finite difference approximation
         h = 0.00001
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(1,6)
-        LHSPerturbed = KratosMultiphysics.Matrix(6,6)
         RHSPerturbed = zero_vector(6)
 
         inital_property_value = self.model_part.GetProperties()[1][StructuralMechanicsApplication.CROSS_AREA]
         delta = h * inital_property_value
         self._create_property_perturbed_elements(self.model_part,delta)
         
-        self.property_perturbed_truss_element.CalculateLocalSystem(LHSPerturbed, dummy_RHS, self.model_part_2.ProcessInfo)
-
-        RHSPerturbed = LHSPerturbed * PrimalDisplacement
+        self.property_perturbed_truss_element.CalculateLocalSystem(LHS_dummy, RHSPerturbed, self.model_part_2.ProcessInfo)
 
         for j in range(6):
-            FDPseudoLoadMatrix[0,j] = -(RHSPerturbed[j] - RHSUnperturbed[j]) / delta
+            FDPseudoLoadMatrix[0,j] = (RHSPerturbed[j] - RHSUnperturbed[j]) / delta
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,6)
