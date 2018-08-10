@@ -85,6 +85,25 @@ public:
         KRATOS_CATCH("");
     }
 
+    AdjointStructuralStaticScheme(Parameters rParameters, AdjointStructuralResponseFunction::Pointer pResponseFunction, bool HasRotationDofs)
+        : Scheme<TSparseSpace, TDenseSpace>()
+    {
+        KRATOS_TRY;
+
+        Parameters default_params(R"(
+        {
+            "scheme_type": "adjoint_structural"
+        })");
+
+        rParameters.ValidateAndAssignDefaults(default_params);
+
+        mpResponseFunction = pResponseFunction;
+
+        mHasRotationDofs = HasRotationDofs;
+
+        KRATOS_CATCH("");
+    }
+
     /// Destructor.
     ~AdjointStructuralStaticScheme() override
     {
@@ -133,7 +152,16 @@ public:
         {
             auto it_node = rModelPart.NodesBegin() + k;
             noalias(it_node->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT)) = ADJOINT_DISPLACEMENT.Zero();
-            noalias(it_node->FastGetSolutionStepValue(ADJOINT_ROTATION)) = ADJOINT_ROTATION.Zero();
+        }
+
+        if(mHasRotationDofs)
+        {
+            #pragma omp parallel for
+            for (int k = 0; k< static_cast<int> (rModelPart.Nodes().size()); ++k)
+            {
+                auto it_node = rModelPart.NodesBegin() + k;
+                noalias(it_node->FastGetSolutionStepValue(ADJOINT_ROTATION)) = ADJOINT_ROTATION.Zero();
+            }
         }
 
         mpResponseFunction->InitializeSolutionStep();
@@ -216,9 +244,11 @@ public:
         KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_DISPLACEMENT) )
              << "Nodal solution steps data missing variable: " << ADJOINT_DISPLACEMENT << std::endl;
 
-        KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) )
-             << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
-           // ---> but what is e.g. for solid elements, where no rotation dofs exist???????????????
+        if(mHasRotationDofs)
+        {
+            KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) )
+                << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
+        }
 
         return BaseType::Check(rModelPart); // check elements and conditions
         KRATOS_CATCH("");
@@ -248,7 +278,7 @@ public:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]); //-----------------> rework member function in SA-element
+        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]); 
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
@@ -374,6 +404,7 @@ private:
 
     AdjointStructuralResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
+    bool mHasRotationDofs = false;
 
     ///@}
     ///@name Private Operators
