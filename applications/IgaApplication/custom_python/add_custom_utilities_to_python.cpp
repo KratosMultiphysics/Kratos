@@ -282,6 +282,41 @@ void RegisterSurface(
     ;
 }
 
+template <int TDimension>
+void RegisterCurveOnSurface(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using Vector2Type = ANurbs::Point<double, 2>;
+    using VectorType = ANurbs::Point<double, TDimension>;
+
+    using CurveGeometryBaseType = ANurbs::CurveGeometryBase<double, Vector2Type>;
+    using SurfaceGeometryBaseType = ANurbs::SurfaceGeometryBase<double, VectorType>;
+
+    using Type = ANurbs::CurveOnSurface<CurveGeometryBaseType, SurfaceGeometryBaseType>;
+    using Pointer = ANurbs::Pointer<Type>;
+    using Base = ANurbs::CurveBase<double, VectorType>;
+
+    pybind11::class_<Type, Base, Pointer>(m, name.c_str())
+        .def(pybind11::init<ANurbs::Pointer<CurveGeometryBaseType>,
+            ANurbs::Pointer<SurfaceGeometryBaseType>,
+            ANurbs::Interval<double>>(),
+            "CurveGeometry"_a,
+            "SurfaceGeometry"_a,
+            "Domain"_a)
+        .def_property_readonly("Domain", &Type::Domain)
+        .def("PointAt", &Type::PointAt,
+            "T"_a)
+        .def("DerivativesAt", &Type::DerivativesAt,
+            "T"_a,
+            "Order"_a)
+        .def("Spans", &Type::Spans)
+    ;
+}
+
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -506,6 +541,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     RegisterSurface<1>(m, "Surface1D");
     RegisterSurface<2>(m, "Surface2D");
     RegisterSurface<3>(m, "Surface3D");
+
+    RegisterCurveOnSurface<1>(m, "CurveOnSurface1D");
+    RegisterCurveOnSurface<2>(m, "CurveOnSurface2D");
+    RegisterCurveOnSurface<3>(m, "CurveOnSurface3D");
 
 }
 
