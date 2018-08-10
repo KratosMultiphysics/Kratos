@@ -433,6 +433,56 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         ;
     }
 
+    // register SurfaceShapeEvaluator
+    {
+        using Type = ANurbs::SurfaceShapeEvaluator<double>;
+
+        pybind11::class_<Type>(m, "SurfaceShapeEvaluator")
+            .def(pybind11::init<int, int, int>(),
+                "DegreeU"_a,
+                "DegreeV"_a,
+                "Order"_a)
+            .def("Resize", &Type::Resize,
+                "DegreeU"_a,
+                "DegreeV"_a,
+                "Order"_a)
+            .def_property_readonly("DegreeU", &Type::DegreeU)
+            .def_property_readonly("DegreeV", &Type::DegreeV)
+            .def_property_readonly("Order", &Type::Order)
+            .def_property_readonly("NumberOfShapes", (int (Type::*)(void) const)
+                &Type::NbShapes)
+            .def_property_readonly("NumberOfNonzeroPolesU",
+                &Type::NbNonzeroPolesU)
+            .def_property_readonly("NumberOfNonzeroPolesV",
+                &Type::NbNonzeroPolesV)
+            .def_property_readonly("FirstNonzeroPoleU",
+                &Type::FirstNonzeroPoleU)
+            .def_property_readonly("FirstNonzeroPoleV",
+                &Type::FirstNonzeroPoleV)
+            .def_property_readonly("LastNonzeroPoleU",
+                &Type::LastNonzeroPoleU)
+            .def_property_readonly("LastNonzeroPoleV",
+                &Type::LastNonzeroPoleV)
+            .def("__call__", (double (Type::*)(const int, const int, const int)
+                const) &Type::operator(),
+                "Derivative"_a,
+                "PoleU"_a,
+                "PoleV"_a)
+            .def("Compute", &Type::Compute<std::vector<double>>,
+                "KnotsU"_a,
+                "KnotsV"_a,
+                "U"_a,
+                "V"_a)
+            .def("Compute", &Type::Compute<std::vector<double>,
+                ANurbs::Grid<double>>,
+                "KnotsU"_a,
+                "KnotsV"_a,
+                "Weights"_a,
+                "U"_a,
+                "V"_a)
+        ;
+    }
+
     // register NodeCurveGeometry
     {
         using Type = NodeCurveGeometry3D;
