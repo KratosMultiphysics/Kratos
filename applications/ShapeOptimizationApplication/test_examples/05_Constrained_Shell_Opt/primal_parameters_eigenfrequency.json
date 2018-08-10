@@ -23,7 +23,7 @@
         "line_search"                        : false,
         "eigensolver_settings":{
             "solver_type": "eigen_eigensystem",
-            "number_of_eigenvalues": 2,
+            "number_of_eigenvalues": 1,
             "max_iteration": 1000,
             "tolerance": 1e-6,
             "echo_level": 1

@@ -21,7 +21,7 @@ import mapper_factory
 import data_logger_factory
 from custom_math import *
 from custom_timer import Timer
-from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteNodeCoordinatesToList, WriteListToNodalVariable
+from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteListToNodalVariable
 import copy
 
 # ==============================================================================
@@ -79,9 +79,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.analyzer.InitializeBeforeOptimizationLoop()
         self.data_logger.InitializeDataLogging()
 
-        self.number_of_design_variables = 3*self.design_surface.NumberOfNodes()
-        self.x_init = WriteNodeCoordinatesToList(self.design_surface)
-
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
         timer = Timer()
@@ -106,11 +103,22 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             len_bar_obj, len_bar_eqs, len_bar_ineqs = self.__ExpressInStepLengthUnit(len_obj, len_eqs, len_ineqs, step_length)
 
-            dx_bar, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs = self.__DetermineStep(len_bar_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
+            dX_bar, process_details = self.__DetermineStep(len_bar_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
 
-            dx = self.__ComputeShapeUpdate(dx_bar, step_length)
+            dX = self.__ComputeShapeUpdate(dX_bar, step_length)
 
-            self.__LogCurrentOptimizationStep(step_length, len_bar_obj, len_bar_eqs, len_bar_ineqs, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs, dx)
+            values_to_be_logged = {}
+            values_to_be_logged["len_bar_obj"] = len_bar_obj
+            values_to_be_logged["len_bar_cons"] = self.__CombineConstraintDataToOrderedList(len_bar_eqs, len_bar_ineqs)
+            values_to_be_logged["step_length"] = step_length
+            values_to_be_logged["test_norm_dX_bar"] = process_details["test_norm_dX"]
+            values_to_be_logged["bi_itrs"] = process_details["bi_itrs"]
+            values_to_be_logged["bi_err"] = process_details["bi_err"]
+            values_to_be_logged["adj_len_bar_obj"] = process_details["adj_len_obj"]
+            values_to_be_logged["adj_len_bar_cons"] = self.__CombineConstraintDataToOrderedList(process_details["adj_len_eqs"], process_details["adj_len_ineqs"])
+            values_to_be_logged["norm_dX"] = NormInf3D(dX)
+
+            self.__LogCurrentOptimizationStep(values_to_be_logged)
 
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
@@ -347,35 +355,27 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         print("\n> Time needed for determining step = ", timer.GetTotalTime(), "s")
 
-        return dX, test_norm_dX, bi_itrs, bi_err, adj_len_obj, adj_len_eqs, adj_len_ineqs
+        process_details = { "test_norm_dX": test_norm_dX,
+                            "bi_itrs":bi_itrs,
+                            "bi_err":bi_err,
+                            "adj_len_obj": adj_len_obj,
+                            "adj_len_eqs": adj_len_eqs,
+                            "adj_len_ineqs": adj_len_ineqs }
+
+        return dX, process_details
 
     # --------------------------------------------------------------------------
-    def __ComputeShapeUpdate(self, dx_bar, step_length):
+    def __ComputeShapeUpdate(self, dX_bar, step_length):
         # Compute update in regular units
-        dx = ScalarVectorProduct(step_length,dx_bar)
+        dX = ScalarVectorProduct(step_length,dX_bar)
 
-        WriteListToNodalVariable(dx, self.design_surface, SHAPE_UPDATE)
+        WriteListToNodalVariable(dX, self.design_surface, SHAPE_UPDATE)
         self.optimization_utilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
 
-        return dx
+        return dX
 
     # --------------------------------------------------------------------------
-    def __LogCurrentOptimizationStep(self, step_length, len_bar_obj, len_bar_eqs, len_bar_ineqs, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs, dx):
-        additional_values_to_log = {}
-        additional_values_to_log["len_bar_obj"] = len_bar_obj
-        additional_values_to_log["adj_len_bar_obj"] = adj_len_bar_obj
-
-        len_bar_cons = self.__CombineConstraintDataToOrderedList(len_bar_eqs, len_bar_ineqs)
-        adj_len_bar_cons = self.__CombineConstraintDataToOrderedList(adj_len_bar_eqs, adj_len_bar_ineqs)
-        additional_values_to_log["len_bar_cons"] = len_bar_cons
-        additional_values_to_log["adj_len_bar_cons"] = adj_len_bar_cons
-
-        additional_values_to_log["test_norm_dx_bar"] = test_norm_dx_bar
-        additional_values_to_log["bi_itrs"] = bi_itrs
-        additional_values_to_log["bi_err"] = bi_err
-        additional_values_to_log["norm_dx"] = NormInf3D(dx)
-        additional_values_to_log["step_length"] = step_length
-
+    def __LogCurrentOptimizationStep(self, additional_values_to_log):
         self.data_logger.LogCurrentValues(self.opt_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.opt_iteration)
 
@@ -583,14 +583,14 @@ class Projector():
             return Plus(Prod(dir_hps,tmp_solution),vector)
 
     # --------------------------------------------------------------------------
-    def __ProjectToHalfSpaces(self, dx0, pos_hss, dir_hss):
+    def __ProjectToHalfSpaces(self, dX0, pos_hss, dir_hss):
         A = Trans(dir_hss)
         b = [ Dot(pos_hss[i],dir_hss[i]) for i in range(RowSize(A)) ]
 
         dX_o, subopt_itr, error, exit_code = QuadProg(A, b, self.subopt_max_itr, self.subopt_tolerance)
 
         # Consider initial delta
-        dX_o = Plus(dX_o,dx0)
+        dX_o = Plus(dX_o,dX0)
 
         return dX_o, subopt_itr, error, exit_code
 

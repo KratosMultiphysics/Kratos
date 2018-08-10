@@ -40,8 +40,8 @@ class ValueLoggerTrustRegion( ValueLogger ):
 
             row.append("{:>12s}".format("bi_itrs"))
             row.append("{:>12s}".format("bi_err"))
-            row.append("{:>17}".format("test_norm_dx_bar"))
-            row.append("{:>12s}".format("norm_dx"))
+            row.append("{:>17}".format("test_norm_dX_bar"))
+            row.append("{:>12s}".format("norm_dX"))
             row.append("{:>12s}".format("step_length"))
             row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
@@ -60,7 +60,7 @@ class ValueLoggerTrustRegion( ValueLogger ):
             constraint_id = self.specified_constraints[itr]["identifier"].GetString()
             print("> Value of C"+str(itr+1)+" = ", round(self.value_history[constraint_id][self.current_iteration],12))
 
-        print("\nNormInf3D of dx = ", round(self.value_history["norm_dx"][self.current_iteration],6))
+        print("\nNormInf3D of dX = ", round(self.value_history["norm_dX"][self.current_iteration],6))
 
         print("\nlen_bar_obj = ", round(self.value_history["len_bar_obj"][self.current_iteration],6))
         print("adj_len_bar_obj = ", round(self.value_history["adj_len_bar_obj"][self.current_iteration],6))
@@ -91,8 +91,8 @@ class ValueLoggerTrustRegion( ValueLogger ):
 
             row.append(str("{:>12d}".format(self.value_history["bi_itrs"][self.current_iteration])))
             row.append(str("{:>12f}".format(self.value_history["bi_err"][self.current_iteration])))
-            row.append(str("{:>17f}".format(self.value_history["test_norm_dx_bar"][self.current_iteration])))
-            row.append(str("{:>12f}".format(self.value_history["norm_dx"][self.current_iteration])))
+            row.append(str("{:>17f}".format(self.value_history["test_norm_dX_bar"][self.current_iteration])))
+            row.append(str("{:>12f}".format(self.value_history["norm_dX"][self.current_iteration])))
             row.append(str("{:>12f}".format(self.value_history["step_length"][self.current_iteration])))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)

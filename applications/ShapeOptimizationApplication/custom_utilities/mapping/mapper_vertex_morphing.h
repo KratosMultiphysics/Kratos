@@ -114,7 +114,7 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
-    void InitializeMapping()
+    void InitializeMapping() override
     {
         CreateListOfNodesOfDesignSurface();
         CreateFilterFunction();
@@ -123,7 +123,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace ) override
     {
         BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
@@ -140,7 +140,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace ) override
     {
         BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
