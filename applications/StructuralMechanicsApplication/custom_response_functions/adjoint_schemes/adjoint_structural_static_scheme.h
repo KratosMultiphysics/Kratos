@@ -225,9 +225,6 @@ public:
         KRATOS_ERROR_IF(domain_size != 2 && domain_size != 3) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
         KRATOS_ERROR_IF(domain_size != working_space_dimension) << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
-        KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_DISPLACEMENT) )
-             << "Nodal solution steps data missing variable: " << ADJOINT_DISPLACEMENT << std::endl;
-
         for(auto& rnode : rModelPart.Nodes()) 
            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, rnode) 
         if(mHasRotationDofs)
