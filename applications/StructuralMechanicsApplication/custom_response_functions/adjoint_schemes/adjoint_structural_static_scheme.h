@@ -75,32 +75,16 @@ public:
 
         Parameters default_params(R"(
         {
-            "scheme_type": "adjoint_structural"
+            "scheme_type": "adjoint_structural",
+            "rotation_dofs": false
         })");
 
         rParameters.ValidateAndAssignDefaults(default_params);
 
         mpResponseFunction = pResponseFunction;
 
-        KRATOS_CATCH("");
-    }
-
-    AdjointStructuralStaticScheme(Parameters rParameters, AdjointStructuralResponseFunction::Pointer pResponseFunction, bool HasRotationDofs)
-        : Scheme<TSparseSpace, TDenseSpace>()
-    {
-        KRATOS_TRY;
-
-        Parameters default_params(R"(
-        {
-            "scheme_type": "adjoint_structural"
-        })");
-
-        rParameters.ValidateAndAssignDefaults(default_params);
-
-        mpResponseFunction = pResponseFunction;
-
-        mHasRotationDofs = HasRotationDofs;
-
+        mHasRotationDofs = rParameters["rotation_dofs"].GetBool();
+        
         KRATOS_CATCH("");
     }
 
@@ -244,10 +228,12 @@ public:
         KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_DISPLACEMENT) )
              << "Nodal solution steps data missing variable: " << ADJOINT_DISPLACEMENT << std::endl;
 
+        for(auto& rnode : rModelPart.Nodes()) 
+           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, rnode) 
         if(mHasRotationDofs)
         {
-            KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) )
-                << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
+            for(auto& rnode : rModelPart.Nodes()) 
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, rnode) 
         }
 
         return BaseType::Check(rModelPart); // check elements and conditions
@@ -404,7 +390,7 @@ private:
 
     AdjointStructuralResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
-    bool mHasRotationDofs = false;
+    bool mHasRotationDofs;
 
     ///@}
     ///@name Private Operators
