@@ -15,7 +15,8 @@
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
         "scheme_settings" : {
-            "scheme_type"              : "adjoint_structural"
+            "scheme_type"              : "adjoint_structural",
+            "rotation_dofs"            : true
         },
         "response_function_settings" : {
             "response_type"     : "adjoint_local_stress",

@@ -21,7 +21,8 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         adjoint_settings = KratosMultiphysics.Parameters("""
         {
             "scheme_settings" : {
-                "scheme_type": "adjoint_structural"
+                "scheme_type": "adjoint_structural",
+                "rotation_dofs": false
             }
         }
         """)
@@ -124,6 +125,8 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         return mechanical_solution_strategy
 
     def _create_solution_scheme(self):
-        if not self.scheme_settings.Has("rotation_dofs"):
-            self.scheme_settings.AddEmptyValue("rotation_dofs").SetBool(self.settings["rotation_dofs"].GetBool())
+        rot_dofs_solver = self.settings["rotation_dofs"].GetBool()
+        rot_dofs_scheme = self.scheme_settings["rotation_dofs"].GetBool()
+        if not rot_dofs_solver == rot_dofs_scheme:
+            raise Exception("The treatment of rotational dofs is different defined in solver and scheme settings!")
         return StructuralMechanicsApplication.AdjointStructuralStaticScheme(self.scheme_settings, self.response_function)
