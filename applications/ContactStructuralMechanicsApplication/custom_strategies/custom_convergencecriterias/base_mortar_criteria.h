@@ -20,7 +20,6 @@
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/process_info.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
@@ -68,23 +67,21 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Creating the corresponding pointer
+    /// Pointer definition of BaseMortarConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION( BaseMortarConvergenceCriteria );
 
+    /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
-
-    typedef TSparseSpace                              SparseSpaceType;
-
     typedef typename BaseType::TDataType                    TDataType;
-
     typedef typename BaseType::DofsArrayType            DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType    TSystemVectorType;
     
+    /// The sparse space used
+    typedef TSparseSpace                              SparseSpaceType;
+
+    /// The components containers
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    
     typedef ModelPart::NodesContainerType              NodesArrayType;
     
     typedef GidIO<> GidIOBaseType;

@@ -62,35 +62,34 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /** Counted pointer of MortarAndConvergenceCriteria */
+    /// Pointer definition of MortarAndConvergenceCriteria
+    KRATOS_CLASS_POINTER_DEFINITION( MortarAndConvergenceCriteria );
 
-    KRATOS_CLASS_POINTER_DEFINITION(MortarAndConvergenceCriteria );
+    /// The base convergence criteria class definition
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
 
-    typedef And_Criteria< TSparseSpace, TDenseSpace >                BaseType;
-
-    typedef TSparseSpace                                      SparseSpaceType;
-
-    typedef typename TSparseSpace::MatrixType                SparseMatrixType;
-
-    typedef typename TSparseSpace::VectorType                SparseVectorType;
-
-    typedef typename TDenseSpace::MatrixType                  DenseMatrixType;
-
-    typedef typename TDenseSpace::VectorType                  DenseVectorType;
+    /// The base class definition (and it subclasses)
+    typedef And_Criteria< TSparseSpace, TDenseSpace >                           BaseType;
+    typedef typename BaseType::TDataType                                       TDataType;
+    typedef typename BaseType::DofsArrayType                               DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
     
-    typedef typename BaseType::TDataType                            TDataType;
+    /// The sparse space used (and it subclasses)
+    typedef TSparseSpace                                                 SparseSpaceType;
+    typedef typename TSparseSpace::MatrixType                           SparseMatrixType;
+    typedef typename TSparseSpace::VectorType                           SparseVectorType;
+    typedef typename TDenseSpace::MatrixType                             DenseMatrixType;
+    typedef typename TDenseSpace::VectorType                             DenseVectorType;
 
-    typedef typename BaseType::DofsArrayType                    DofsArrayType;
+    /// The table stream definition TODO: Replace by logger
+    typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    
+    /// The index type definition
+    typedef std::size_t                                                        IndexType;
 
-    typedef typename BaseType::TSystemMatrixType            TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType            TSystemVectorType;
-    
-    typedef TableStreamUtility::Pointer               TablePrinterPointerType;
-    
-    typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
-    
-    typedef std::size_t                                             IndexType;
+    /// The condition number utility pointer definition
+    typedef ConditionNumberUtility::Pointer            ConditionNumberUtilityPointerType;
 
     ///@}
     ///@name Life Cycle

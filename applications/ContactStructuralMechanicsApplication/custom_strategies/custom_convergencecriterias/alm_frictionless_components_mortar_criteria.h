@@ -59,28 +59,30 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of ALMFrictionlessComponentsMortarConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION( ALMFrictionlessComponentsMortarConvergenceCriteria );
 
+    /// The base convergence criteria class definition
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
-    
-    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
 
+    /// The base class definition (and it subclasses)
+    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
+    typedef typename BaseType::TDataType                                       TDataType;
+    typedef typename BaseType::DofsArrayType                               DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
+
+    /// The sparse space used
     typedef TSparseSpace                                                 SparseSpaceType;
 
-    typedef typename BaseType::TDataType                                       TDataType;
-
-    typedef typename BaseType::DofsArrayType                               DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
-    
-    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
-    
+    /// The components containers
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
-    
+    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
+
+    /// The table stream definition TODO: Replace by logger
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
-    
+
+    /// The index type definition
     typedef std::size_t                                                        IndexType;
 
     ///@}
@@ -301,8 +303,8 @@ private:
     ///@name Member Variables
     ///@{
     
-    bool mPrintingOutput;            //// If the colors and bold are printed
-    bool mTableIsInitialized;        /// If the table is already initialized
+    bool mPrintingOutput;     /// If the colors and bold are printed
+    bool mTableIsInitialized; /// If the table is already initialized
     
     ///@}
     ///@name Private Operators

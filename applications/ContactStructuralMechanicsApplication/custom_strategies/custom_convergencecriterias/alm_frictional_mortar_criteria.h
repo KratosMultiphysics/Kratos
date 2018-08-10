@@ -59,29 +59,34 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of ALMFrictionalMortarConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION( ALMFrictionalMortarConvergenceCriteria );
 
+    /// The base convergence criteria class definition
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
     
+    /// The base class definition (and it subclasses)
     typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
-
-    typedef TSparseSpace                                                 SparseSpaceType;
-
     typedef typename BaseType::TDataType                                       TDataType;
-
     typedef typename BaseType::DofsArrayType                               DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
+
+    /// The sparse space used
+    typedef TSparseSpace                                                 SparseSpaceType;
     
+    /// The components containers
+    typedef ModelPart::NodesContainerType                                 NodesArrayType;
     typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
     
-    typedef ModelPart::NodesContainerType                                 NodesArrayType;
-    
+    /// The table stream definition TODO: Replace by logger
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
     
+    /// The index type definition
     typedef std::size_t                                                        IndexType;
+
+    /// The epsilon tolerance definition
+    static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -205,6 +210,8 @@ public:
                 const double augmented_tangent_pressure = norm_2(augmented_tangent_pressure_components);
                 
                 if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE
+//                     KRATOS_WARNING_IF("ALMFrictionalMortarConvergenceCriteria", norm_2(gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
+//                     it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
                     if (it_node->Is(SLIP)) {
                         it_node->Set(SLIP, false);
                         is_converged_slip += 1;
@@ -374,8 +381,8 @@ private:
     ///@name Member Variables
     ///@{
     
-    bool mPrintingOutput;            /// If the colors and bold are printed
-    bool mTableIsInitialized;        /// If the table is already initialized
+    bool mPrintingOutput;     /// If the colors and bold are printed
+    bool mTableIsInitialized; /// If the table is already initialized
     
     ///@}
     ///@name Private Operators

@@ -55,26 +55,27 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of MeshTyingMortarConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION( MeshTyingMortarConvergenceCriteria );
 
+    /// The bae convergence criteria class definition
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
-    
-    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
 
+    /// The base class definition (and it subclasses)
+    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >          BaseType;
+    typedef typename BaseType::TDataType                                       TDataType;
+    typedef typename BaseType::DofsArrayType                               DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
+
+    /// The sparse space used
     typedef TSparseSpace                                                 SparseSpaceType;
 
-    typedef typename BaseType::TDataType                                       TDataType;
-
-    typedef typename BaseType::DofsArrayType                               DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
-    
-    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
-    
+    /// The components containers
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
-    
+    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
+
+    /// The table stream definition TODO: Replace by logger
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
 
     ///@}
