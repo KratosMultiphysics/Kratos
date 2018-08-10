@@ -43,6 +43,51 @@ void RegisterCurveGeometryBase(
     pybind11::class_<Type, Holder>(m, name.c_str());
 }
 
+template <int TDimension>
+void RegisterCurveGeometry(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = ANurbs::Point<double, TDimension>;
+
+    using Type = ANurbs::CurveGeometry<double, TDimension>;
+    using Holder = ANurbs::Pointer<Type>;
+    using Base = ANurbs::CurveGeometryBase<double, VectorType>;
+
+    pybind11::class_<Type, Base, Holder>(m, name.c_str())
+        .def(pybind11::init<int, int, bool>(),
+            "Degree"_a,
+            "NumberOfPoles"_a,
+            "IsRational"_a)
+        .def_property_readonly("Degree", &Type::Degree)
+        .def_property_readonly("Domain", &Type::Domain)
+        .def("Knot", &Type::Knot,
+            "Index"_a)
+        .def("SetKnot", &Type::SetKnot,
+            "Index"_a,
+            "Value"_a)
+        .def("Pole", &Type::Pole,
+            "Index"_a)
+        .def("SetPole", &Type::SetPole,
+            "Index"_a,
+            "Value"_a)
+        .def("Weight", &Type::Weight,
+            "Index"_a)
+        .def("SetWeight", &Type::SetWeight,
+            "Index"_a,
+            "Value"_a)
+        .def("Spans", &Type::Spans)
+        .def("PointAt", &Type::PointAt,
+            "T"_a)
+        .def("DerivativesAt", &Type::DerivativesAt,
+            "T"_a,
+            "Order"_a)
+    ;
+}
+
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -240,6 +285,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     RegisterCurveGeometryBase<2>(m, "CurveGeometryBase2D");
     RegisterCurveGeometryBase<3>(m, "CurveGeometryBase3D");
 
+    RegisterCurveGeometry<1>(m, "CurveGeometry1D");
+    RegisterCurveGeometry<2>(m, "CurveGeometry2D");
+    RegisterCurveGeometry<3>(m, "CurveGeometry3D");
+    
 }
 
 } // namespace Python
