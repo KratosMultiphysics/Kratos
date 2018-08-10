@@ -40,28 +40,7 @@ void RegisterCurveGeometryBase(
     using Type = ANurbs::CurveGeometryBase<double, VectorType>;
     using Holder = ANurbs::Pointer<Type>;
 
-    pybind11::class_<Type, Holder>(m, name.c_str());
-}
-
-template <int TDimension>
-void RegisterCurveGeometry(
-    pybind11::module& m,
-    const std::string& name)
-{
-    namespace py = pybind11;
-    using namespace pybind11::literals;
-
-    using VectorType = ANurbs::Point<double, TDimension>;
-
-    using Type = ANurbs::CurveGeometry<double, TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
-    using Base = ANurbs::CurveGeometryBase<double, VectorType>;
-
-    pybind11::class_<Type, Base, Holder>(m, name.c_str())
-        .def(pybind11::init<int, int, bool>(),
-            "Degree"_a,
-            "NumberOfPoles"_a,
-            "IsRational"_a)
+    pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("Degree", &Type::Degree)
         .def_property_readonly("Domain", &Type::Domain)
         .def("Knot", &Type::Knot,
@@ -89,6 +68,28 @@ void RegisterCurveGeometry(
 }
 
 template <int TDimension>
+void RegisterCurveGeometry(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = ANurbs::Point<double, TDimension>;
+
+    using Type = ANurbs::CurveGeometry<double, TDimension>;
+    using Holder = ANurbs::Pointer<Type>;
+    using Base = ANurbs::CurveGeometryBase<double, VectorType>;
+
+    pybind11::class_<Type, Base, Holder>(m, name.c_str())
+        .def(pybind11::init<int, int, bool>(),
+            "Degree"_a,
+            "NumberOfPoles"_a,
+            "IsRational"_a)
+    ;
+}
+
+template <int TDimension>
 void RegisterSurfaceGeometryBase(
     pybind11::module& m,
     const std::string& name)
@@ -101,30 +102,7 @@ void RegisterSurfaceGeometryBase(
     using Type = ANurbs::SurfaceGeometryBase<double, VectorType>;
     using Holder = ANurbs::Pointer<Type>;
 
-    pybind11::class_<Type, Holder>(m, name.c_str());
-}
-
-template <int TDimension>
-void RegisterSurfaceGeometry(
-    pybind11::module& m,
-    const std::string& name)
-{
-    namespace py = pybind11;
-    using namespace pybind11::literals;
-
-    using VectorType = ANurbs::Point<double, TDimension>;
-
-    using Type = ANurbs::SurfaceGeometry<double, TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
-    using Base = ANurbs::SurfaceGeometryBase<double, VectorType>;
-
-    pybind11::class_<Type, Base, Holder>(m, name.c_str())
-        .def(pybind11::init<int, int, int, int, bool>(),
-            "DegreeU"_a,
-            "DegreeV"_a,
-            "NumberOfPolesU"_a,
-            "NumberOfPolesV"_a,
-            "IsRational"_a)
+    pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("DegreeU", &Type::DegreeU)
         .def_property_readonly("DegreeV", &Type::DegreeV)
         .def_property_readonly("DomainU", &Type::DomainU)
@@ -162,6 +140,30 @@ void RegisterSurfaceGeometry(
             "U"_a,
             "V"_a,
             "Order"_a)
+    ;
+}
+
+template <int TDimension>
+void RegisterSurfaceGeometry(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = ANurbs::Point<double, TDimension>;
+
+    using Type = ANurbs::SurfaceGeometry<double, TDimension>;
+    using Holder = ANurbs::Pointer<Type>;
+    using Base = ANurbs::SurfaceGeometryBase<double, VectorType>;
+
+    pybind11::class_<Type, Base, Holder>(m, name.c_str())
+        .def(pybind11::init<int, int, int, int, bool>(),
+            "DegreeU"_a,
+            "DegreeV"_a,
+            "NumberOfPolesU"_a,
+            "NumberOfPolesV"_a,
+            "IsRational"_a);
     ;
 }
 
@@ -209,13 +211,6 @@ void RegisterCurve(
             ANurbs::Interval<double>>(),
             "CurveGeometry"_a,
             "Domain"_a)
-        .def_property_readonly("Domain", &Type::Domain)
-        .def("PointAt", &Type::PointAt,
-            "T"_a)
-        .def("DerivativesAt", &Type::DerivativesAt,
-            "T"_a,
-            "Order"_a)
-        .def("Spans", &Type::Spans)
     ;
 }
 
@@ -268,17 +263,6 @@ void RegisterSurface(
             "SurfaceGeometry"_a,
             "DomainU"_a,
             "DomainV"_a)
-        .def_property_readonly("DomainU", &Type::DomainU)
-        .def_property_readonly("DomainV", &Type::DomainV)
-        .def("PointAt", &Type::PointAt,
-            "U"_a,
-            "V"_a)
-        .def("DerivativesAt", &Type::DerivativesAt,
-            "U"_a,
-            "V"_a,
-            "Order"_a)
-        .def("SpansU", &Type::SpansU)
-        .def("SpansV", &Type::SpansV)
     ;
 }
 
@@ -307,13 +291,6 @@ void RegisterCurveOnSurface(
             "CurveGeometry"_a,
             "SurfaceGeometry"_a,
             "Domain"_a)
-        .def_property_readonly("Domain", &Type::Domain)
-        .def("PointAt", &Type::PointAt,
-            "T"_a)
-        .def("DerivativesAt", &Type::DerivativesAt,
-            "T"_a,
-            "Order"_a)
-        .def("Spans", &Type::Spans)
     ;
 }
 
