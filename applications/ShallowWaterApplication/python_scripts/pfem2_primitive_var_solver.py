@@ -67,40 +67,44 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         print("Pfem2 stage initialization finished")
 
     def InitializeSolutionStep(self):
-        # Move particles
-        self.moveparticles.CalculateVelOverElemSize()
-        self.moveparticles.MoveParticles()
-        # Reseed empty elements
-        pre_minimum_number_of_particles = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.moveparticles.PreReseed(pre_minimum_number_of_particles)
-        # Project info to mesh
-        self.moveparticles.TransferLagrangianToEulerian()
-        self.moveparticles.ResetBoundaryConditions()
-        # Initialize mesh solution step
-        self.solver.InitializeSolutionStep()
+        if self._TimeBufferIsInitialized():
+            # Move particles
+            self.moveparticles.CalculateVelOverElemSize()
+            self.moveparticles.MoveParticles()
+            # Reseed empty elements
+            pre_minimum_number_of_particles = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            self.moveparticles.PreReseed(pre_minimum_number_of_particles)
+            # Project info to mesh
+            self.moveparticles.TransferLagrangianToEulerian()
+            self.moveparticles.ResetBoundaryConditions()
+            # Initialize mesh solution step
+            self.solver.InitializeSolutionStep()
     
     def Predict(self):
-        self.solver.Predict()
+        if self._TimeBufferIsInitialized():
+            self.solver.Predict()
 
     def SolveSolutionStep(self):
-        # If a node and it's neighbours are dry, set ACTIVE flag to false
-        self.ShallowVariableUtils.SetDryWetState()
-        # Solve equations on mesh
-        is_converged = self.solver.SolveSolutionStep()
-        # Compute free surface
-        self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
-        # If water height is negative or close to zero, reset values
-        self.ShallowVariableUtils.CheckDryPrimitiveVariables()
+        if self._TimeBufferIsInitialized():
+            # If a node and it's neighbours are dry, set ACTIVE flag to false
+            self.ShallowVariableUtils.SetDryWetState()
+            # Solve equations on mesh
+            is_converged = self.solver.SolveSolutionStep()
+            # Compute free surface
+            self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
+            # If water height is negative or close to zero, reset values
+            self.ShallowVariableUtils.CheckDryPrimitiveVariables()
 
-        return is_converged
+            return is_converged
     
     def FinalizeSolutionStep(self):
-        # Finalize mesh solution step
-        self.solver.FinalizeSolutionStep()
-        # Update particles
-        self.moveparticles.CalculateDeltaVariables()
-        self.moveparticles.CorrectParticlesWithoutMovingUsingDeltaVariables()
-        # Reseed empty elements
-        post_minimum_number_of_particles = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]*2
-        self.moveparticles.PostReseed(post_minimum_number_of_particles)
+        if self._TimeBufferIsInitialized():
+            # Finalize mesh solution step
+            self.solver.FinalizeSolutionStep()
+            # Update particles
+            self.moveparticles.CalculateDeltaVariables()
+            self.moveparticles.CorrectParticlesWithoutMovingUsingDeltaVariables()
+            # Reseed empty elements
+            post_minimum_number_of_particles = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]*2
+            self.moveparticles.PostReseed(post_minimum_number_of_particles)
     
