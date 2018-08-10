@@ -8,6 +8,8 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  ")
+
 ## generate variables with the sources
 set(KRATOS_NVIDIAFLEX_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/NvidiaFlex_application.cpp
