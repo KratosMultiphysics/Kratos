@@ -48,7 +48,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             .def_property_readonly("Length", &Type::Length)
             .def("NormalizedAt", &Type::NormalizedAt,
                 "T"_a)
-            .def("ParameterAtNormalized", &Type::ParameterAtNormalized,
+            .def("ParameterAtNormalized", (double (Type::*)(const double) const)
+                &Type::ParameterAtNormalized,
+                "T"_a)
                 "T"_a)
             .def("Clamp", (double (Type::*)(const double) const)  &Type::Clamp,
                 "T"_a)
