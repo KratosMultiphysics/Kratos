@@ -37,13 +37,14 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
             KratosMultiphysics.Logger.PrintInfo("Pfem2ConservedVarSolver", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
-        # If a node and it's neighbours are dry, set ACTIVE flag to false
-        self.ShallowVariableUtils.SetDryWetState()
-        # Solve equations on mesh
-        is_converged = self.solver.SolveSolutionStep()
-        # Compute free surface
-        self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
-        # If water height is negative or close to zero, reset values
-        self.ShallowVariableUtils.CheckDryConservedVariables()
+        if self._TimeBufferIsInitialized():
+            # If a node and it's neighbours are dry, set ACTIVE flag to false
+            self.ShallowVariableUtils.SetDryWetState()
+            # Solve equations on mesh
+            is_converged = self.solver.SolveSolutionStep()
+            # Compute free surface
+            self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
+            # If water height is negative or close to zero, reset values
+            self.ShallowVariableUtils.CheckDryConservedVariables()
 
-        return is_converged
+            return is_converged
