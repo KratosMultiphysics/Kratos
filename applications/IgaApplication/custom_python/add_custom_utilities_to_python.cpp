@@ -403,7 +403,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     // register NodeCurveGeometry
     {
         using Type = NodeCurveGeometry3D;
-        using Pointer = std::shared_ptr<Type>;
+        using Pointer = ANurbs::Pointer<Type>;
 
         using VariableComponent = Kratos::VariableComponent<
             Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
@@ -476,7 +476,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     // register NodeSurfaceGeometry
     {
         using Type = NodeSurfaceGeometry3D;
-        using Pointer = std::shared_ptr<Type>;
+        using Pointer = ANurbs::Pointer<Type>;
 
         using VariableComponent = Kratos::VariableComponent<
             Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
