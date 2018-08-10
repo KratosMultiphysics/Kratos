@@ -39,9 +39,9 @@ public:
     /// Pointer definition of AssignScalarVariableToEntitiesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarVariableToEntitiesProcess);
 
-    enum EntityType { NODES, CONDITIONS, ELEMENTS };
+    enum class EntityType { NODES, CONDITIONS, ELEMENTS };
 
-    enum AssignmentType { DIRECT, ADDITION, SUBTRACTION, MULTIPLICATION, DIVISION };
+    enum class AssignmentType { DIRECT, ADDITION, SUBTRACTION, MULTIPLICATION, DIVISION };
 
 
     ///@}
@@ -70,19 +70,19 @@ public:
         mvariable_name = rParameters["variable_name"].GetString();
 
         if( rParameters["entity_type"].GetString() == "NODES" ){
-          mEntity = NODES;
+          mEntity = EntityType::NODES;
         }
         else if(  rParameters["entity_type"].GetString() == "CONDITIONS" ){
-          mEntity = CONDITIONS;
+          mEntity = EntityType::CONDITIONS;
         }
         else if(  rParameters["entity_type"].GetString() == "ELEMENTS" ){
-          mEntity = ELEMENTS;
+          mEntity = EntityType::ELEMENTS;
         }
         else{
           KRATOS_ERROR <<" Entity type "<< rParameters["entity_type"].GetString() << " is not supported " << std::endl;
         }
 
-        if( mEntity == NODES ){
+        if( mEntity == EntityType::NODES ){
 
           if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
           {
@@ -126,7 +126,7 @@ public:
           }
 
         }
-        else if( mEntity == CONDITIONS || mEntity == ELEMENTS ){
+        else if( mEntity == EntityType::CONDITIONS || mEntity == EntityType::ELEMENTS ){
 
           if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
           {
@@ -178,7 +178,7 @@ public:
 
         KRATOS_TRY
 
-        if( mEntity == NODES ){
+        if( mEntity == EntityType::NODES ){
 
           if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
           {
@@ -204,7 +204,7 @@ public:
           }
 
         }
-        else if( mEntity == CONDITIONS ) {
+        else if( mEntity == EntityType::CONDITIONS ) {
 
           if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
           {
@@ -224,7 +224,7 @@ public:
           }
 
         }
-        else if( mEntity == ELEMENTS ) {
+        else if( mEntity == EntityType::ELEMENTS ) {
 
           if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
           {
@@ -292,7 +292,7 @@ public:
 
         KRATOS_TRY
 
-        if( mEntity == CONDITIONS ){
+        if( mEntity == EntityType::CONDITIONS ){
 
           if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
           {
@@ -396,19 +396,19 @@ protected:
         // /= division
 
         if( method == "direct" ){
-          rAssignment = DIRECT;
+          rAssignment = AssignmentType::DIRECT;
         }
         else if(  method == "addition" ){
-          rAssignment = ADDITION;
+          rAssignment = AssignmentType::ADDITION;
         }
         else if(  method == "subtraction" ){
-          rAssignment = SUBTRACTION;
+          rAssignment = AssignmentType::SUBTRACTION;
         }
         else if(  method == "multiplication" ){
-          rAssignment = MULTIPLICATION;
+          rAssignment = AssignmentType::MULTIPLICATION;
         }
         else if(  method == "division" ){
-          rAssignment = DIVISION;
+          rAssignment = AssignmentType::DIVISION;
         }
         else{
           KRATOS_ERROR <<" Assignment type "<< method << " is not supported " << std::endl;
@@ -542,23 +542,23 @@ protected:
         TMethodPointerType AssignmentMethod = nullptr;
         switch( mAssignment )
         {
-          case DIRECT:
+          case AssignmentType::DIRECT:
             AssignmentMethod = &AssignScalarVariableToEntitiesProcess::DirectAssignValue;
             break;
-          case ADDITION:
+          case AssignmentType::ADDITION:
             AssignmentMethod = &AssignScalarVariableToEntitiesProcess::AddAssignValue;
             break;
-          case SUBTRACTION:
+          case AssignmentType::SUBTRACTION:
             AssignmentMethod = &AssignScalarVariableToEntitiesProcess::SubtractAssignValue;
             break;
-          case MULTIPLICATION:
+          case AssignmentType::MULTIPLICATION:
             AssignmentMethod = &AssignScalarVariableToEntitiesProcess::MultiplyAssignValue;
             break;
-          case DIVISION:
+          case AssignmentType::DIVISION:
             AssignmentMethod = &AssignScalarVariableToEntitiesProcess::DivideAssignValue;
             break;
           default:
-            KRATOS_ERROR << "Unexpected value for Assignment method: " << mAssignment << std::endl;
+            KRATOS_ERROR << "Unexpected value for Assignment method " << std::endl;
         }
         return AssignmentMethod;
     }

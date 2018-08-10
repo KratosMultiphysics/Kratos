@@ -165,7 +165,7 @@ public:
     {
         KRATOS_TRY
 
-        mAssignment = DIRECT;
+        mAssignment = AssignmentType::DIRECT;
 	array_1d<double,3> vector_value;
 	vector_value.clear();
 	InternalAssignValue(KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name), vector_value);

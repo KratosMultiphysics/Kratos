@@ -91,16 +91,16 @@ public:
 	}
 
         if( rParameters["entity_type"].GetString() == "NODES" ){
-          this->mEntity = NODES;
+          this->mEntity = EntityType::NODES;
         }
         else if(  rParameters["entity_type"].GetString() == "CONDITIONS" ){
-          this->mEntity = CONDITIONS;
+          this->mEntity = EntityType::CONDITIONS;
         }
         else{
           KRATOS_ERROR <<" Entity type "<< rParameters["entity_type"].GetString() <<" is not supported "<<std::endl;
         }
 
-        if( this->mEntity == CONDITIONS ){
+        if( this->mEntity == EntityType::CONDITIONS ){
 
           if(KratosComponents< Variable<Vector> >::Has(this->mvariable_name) == false) //case of vector variable
           {
@@ -113,7 +113,7 @@ public:
 
         }
         else{
-          KRATOS_ERROR << " Assignment to " << mEntity << " not implemented "<< std::endl;
+          KRATOS_ERROR << " Assignment to " << rParameters["entity_type"].GetString() << " not implemented "<< std::endl;
         }
 
         mvector_value[0] = rParameters["value"][0].GetDouble();
@@ -225,9 +225,9 @@ public:
 
         KRATOS_TRY
 
-        if( this->mEntity == CONDITIONS ){
+        if( this->mEntity == EntityType::CONDITIONS ){
 
-          mAssignment = BaseType::DIRECT;
+          mAssignment = AssignmentType::DIRECT;
           if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
           {
 

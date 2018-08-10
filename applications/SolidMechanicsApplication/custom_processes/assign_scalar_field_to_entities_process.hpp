@@ -92,20 +92,20 @@ public:
 	}
 
         if( rParameters["entity_type"].GetString() == "NODES" ){
-          this->mEntity = NODES;
+          this->mEntity = EntityType::NODES;
         }
         else if(  rParameters["entity_type"].GetString() == "CONDITIONS" ){
-          this->mEntity = CONDITIONS;
+          this->mEntity = EntityType::CONDITIONS;
         }
         else if(  rParameters["entity_type"].GetString() == "ELEMENTS" ){
-          this->mEntity = ELEMENTS;
+          this->mEntity = EntityType::ELEMENTS;
         }
         else{
           KRATOS_ERROR <<" Entity type "<< rParameters["entity_type"].GetString() <<" is not supported "<<std::endl;
         }
 
 
-        if( this->mEntity == NODES ){
+        if( this->mEntity == EntityType::NODES ){
 
           if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(this->mvariable_name) ) //case of component variable
           {
@@ -131,7 +131,7 @@ public:
             KRATOS_ERROR << "Not able to set the variable type/name. Attempting to set variable:" << this->mvariable_name << std::endl;
           }
         }
-        else if( this->mEntity == CONDITIONS || this->mEntity == ELEMENTS ){
+        else if( this->mEntity == EntityType::CONDITIONS || this->mEntity == EntityType::ELEMENTS ){
 
           if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) == false ) //case of double variable
           {
@@ -140,7 +140,7 @@ public:
 
         }
         else{
-          KRATOS_ERROR << " Assignment to " << this->mEntity << " not implemented "<< std::endl;
+          KRATOS_ERROR << " Assignment to " << rParameters["entity_type"].GetString() << " not implemented "<< std::endl;
         }
 
         this->SetAssignmentType(rParameters["compound_assignment"].GetString(), mAssignment);
@@ -189,7 +189,7 @@ public:
 
 	const double& rCurrentTime = rCurrentProcessInfo[TIME];
 
-        if( this->mEntity == NODES || this->mEntity == CONDITIONS ){
+        if( this->mEntity == EntityType::NODES || this->mEntity == EntityType::CONDITIONS ){
 
           if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(this->mvariable_name) ) //case of component variable
           {
@@ -211,7 +211,7 @@ public:
           }
 
         }
-        else if( this->mEntity == ELEMENTS ){
+        else if( this->mEntity == EntityType::ELEMENTS ){
 
           if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
           {
@@ -271,11 +271,11 @@ public:
 
       KRATOS_TRY
 
-      if( this->mEntity == CONDITIONS ){
+      if( this->mEntity == EntityType::CONDITIONS ){
 
       	if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
         {
-          mAssignment = BaseType::DIRECT;
+          mAssignment = AssignmentType::DIRECT;
 	  Vector Value(3);
 	  noalias(Value) = ZeroVector(3);
 	  AssignValueToConditions<>(KratosComponents< Variable<Vector> >::Get(this->mvariable_name), Value);
@@ -474,7 +474,7 @@ protected:
     template< class TVarType >
     void AssignValueToNodes(TVarType& rVariable, const double& rTime)
     {
-      if( this->mEntity == NODES ){
+      if( this->mEntity == EntityType::NODES ){
 
         typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::NodeType&, const TVarType&, const double&);
 
@@ -505,7 +505,7 @@ protected:
     template< class TVarType >
     void AssignValueToConditions(TVarType& rVariable, const double& rTime)
     {
-      if( this->mEntity == CONDITIONS ){
+      if( this->mEntity == EntityType::CONDITIONS ){
 
         typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ConditionType&, const Variable<Vector>&, const Vector&);
 
@@ -537,7 +537,7 @@ protected:
     void AssignValueToConditions(TVarType& rVariable, const TDataType Value)
     {
 
-      if( this->mEntity == CONDITIONS ){
+      if( this->mEntity == EntityType::CONDITIONS ){
 
         typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ConditionType&, const TVarType&, const TDataType&);
         AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
@@ -565,7 +565,7 @@ protected:
     template< class TVarType >
     void AssignValueToElements(TVarType& rVariable, const double& rTime)
     {
-      if( this->mEntity == ELEMENTS ){
+      if( this->mEntity == EntityType::ELEMENTS ){
 
         typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ElementType&, const Variable<Vector>&, const Vector&);
 
