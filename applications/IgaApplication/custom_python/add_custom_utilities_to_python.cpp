@@ -27,6 +27,22 @@
 namespace Kratos {
 namespace Python {
 
+template <int TDimension>
+void RegisterCurveGeometryBase(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = ANurbs::Point<double, TDimension>;
+
+    using Type = ANurbs::CurveGeometryBase<double, VectorType>;
+    using Holder = ANurbs::Pointer<Type>;
+
+    pybind11::class_<Type, Holder>(m, name.c_str());
+}
+
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -220,6 +236,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
                 "Order"_a)
         ;
     }
+    RegisterCurveGeometryBase<1>(m, "CurveGeometryBase1D");
+    RegisterCurveGeometryBase<2>(m, "CurveGeometryBase2D");
+    RegisterCurveGeometryBase<3>(m, "CurveGeometryBase3D");
+
 }
 
 } // namespace Python
