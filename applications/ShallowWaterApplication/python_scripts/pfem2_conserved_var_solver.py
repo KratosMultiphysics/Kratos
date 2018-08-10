@@ -9,12 +9,12 @@ KratosMultiphysics.CheckForPreviousImport()
 ## Import base class file
 from pfem2_primitive_var_solver import Pfem2PrimitiveVarSolver
 
-def CreateSolver(model_part, custom_settings):
-    return Pfem2ConservedVarSolver(model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return Pfem2ConservedVarSolver(model, custom_settings)
 
 class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
-    def __init__(self, model_part, custom_settings):
-        super(Pfem2ConservedVarSolver,self).__init__(model_part,custom_settings)
+    def __init__(self, model, custom_settings):
+        super(Pfem2ConservedVarSolver,self).__init__(model, custom_settings)
 
         # Set the element and condition names for the replace settings
         self.element_name = "ConservedVarElement"

@@ -9,12 +9,12 @@ KratosMultiphysics.CheckForPreviousImport()
 ## Import base class file
 from shallow_water_base_solver import ShallowWaterBaseSolver
 
-def CreateSolver(model_part, custom_settings):
-    return Pfem2PrimitiveVarSolver(model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return Pfem2PrimitiveVarSolver(model, custom_settings)
 
 class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
-    def __init__(self, model_part, custom_settings):
-        super(Pfem2PrimitiveVarSolver, self).__init__(model_part,custom_settings)
+    def __init__(self, model, custom_settings):
+        super(Pfem2PrimitiveVarSolver, self).__init__(model, custom_settings)
 
         # Set the element and condition names for the replace settings
         self.element_name = "ShallowElement"
@@ -29,14 +29,6 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         self.settings["pfem2_settings"].AddEmptyValue("maximum_number_of_particles").SetInt(8*domain_size)
         # self.settings["pfem2_settings"].AddEmptyValue("minimum_pre_reseed").SetInt(1*domain_size)
         # self.settings["pfem2_settings"].AddEmptyValue("minimum_post_reseed").SetInt(2*domain_size)
-        
-        # Initialize neighbour search
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.main_model_part, number_of_avg_elems, number_of_avg_nodes)
-        self.neighbour_search.Execute()
-        self.neighbour_elements_search = KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, domain_size, number_of_avg_elems)
-        self.neighbour_elements_search.Execute()
 
     def AddVariables(self):
         super(Pfem2PrimitiveVarSolver, self).AddVariables()
@@ -59,10 +51,20 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
 
     def Initialize(self):
         super(Pfem2PrimitiveVarSolver, self).Initialize()
+        
+        # Initializing the neighbour search
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        number_of_avg_elems = 10
+        number_of_avg_nodes = 10
+        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.main_model_part, number_of_avg_elems, number_of_avg_nodes)
+        self.neighbour_search.Execute()
+        self.neighbour_elements_search = KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, domain_size, number_of_avg_elems)
+        self.neighbour_elements_search.Execute()
+
         # Creating the solution strategy for the particle stage
         self.moveparticles = Shallow.MoveShallowWaterParticleUtility(self.main_model_part, self.settings["pfem2_settings"])
         self.moveparticles.MountBin()
-        print("Pfem2 utility initialization finished")
+        print("Pfem2 stage initialization finished")
 
     def InitializeSolutionStep(self):
         # Move particles
