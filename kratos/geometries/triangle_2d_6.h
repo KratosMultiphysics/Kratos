@@ -48,11 +48,22 @@ namespace Kratos
 ///@{
 
 /**
- * A six node triangular geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Triangle2D6
+ * @ingroup KratosCore
+ * @brief A six node 2D triangular geometry with quadratic shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with:       
+ *          2                    
+ *          |`\              
+ *          |  `\           
+ *          5    `4           
+ *          |      `\          
+ *          |        `\          
+ *          0-----3----1           
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Triangle2D6
     : public Geometry<TPointType>
 {
@@ -660,21 +671,22 @@ public:
         // faces in columns
         if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(4,3,false);
-        //face 1
-        NodesInFaces(0,0)=0;//contrary node to the face
+
+	//compatible to Edges() function. Triangle library considers a different order
+        NodesInFaces(0,0)=0;//face or master node
         NodesInFaces(1,0)=1;
-        NodesInFaces(2,0)=2;
-        NodesInFaces(3,0)=4;//quadratic nodes after edge nodes
-        //face 2
-        NodesInFaces(0,1)=1;//contrary node to the face
+        NodesInFaces(2,0)=4;
+        NodesInFaces(3,0)=2;
+
+        NodesInFaces(0,1)=1;//face or master node
         NodesInFaces(1,1)=2;
-        NodesInFaces(2,1)=0;
-        NodesInFaces(3,1)=5;//quadratic nodes after edge nodes
-        //face 3
-        NodesInFaces(0,2)=2;//contrary node to the face
+        NodesInFaces(2,1)=5;
+        NodesInFaces(3,1)=0;
+
+        NodesInFaces(0,2)=2;//face or master node
         NodesInFaces(1,2)=0;
-        NodesInFaces(2,2)=1;
-        NodesInFaces(3,2)=3;//quadratic nodes after edge nodes
+        NodesInFaces(2,2)=3;
+        NodesInFaces(3,2)=1;
 
     }
 
