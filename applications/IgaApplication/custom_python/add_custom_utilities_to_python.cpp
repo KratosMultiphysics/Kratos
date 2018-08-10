@@ -317,6 +317,33 @@ void RegisterCurveOnSurface(
     ;
 }
 
+template <int TDimension>
+void RegisterPointOnCurveProjection(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = ANurbs::Point<double, TDimension>;
+    using CurveBaseType = ANurbs::CurveBase<double, VectorType>;
+
+    using Type = ANurbs::PointOnCurveProjection<double, VectorType>;
+    using Pointer = ANurbs::Pointer<Type>;
+
+    py::class_<Type, Pointer>(m, name.c_str())
+        .def(py::init<ANurbs::Pointer<CurveBaseType>, double>(),
+            "Curve"_a,
+            "Tolerance"_a)
+        .def("Compute",
+            &Type::Compute)
+        .def_property_readonly("Parameter",
+            &Type::Parameter)
+        .def_property_readonly("Point",
+            &Type::Point)
+    ;
+}
+
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -545,6 +572,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     RegisterCurveOnSurface<1>(m, "CurveOnSurface1D");
     RegisterCurveOnSurface<2>(m, "CurveOnSurface2D");
     RegisterCurveOnSurface<3>(m, "CurveOnSurface3D");
+
+    RegisterPointOnCurveProjection<2>(m, "PointOnCurveProjection2D");
+    RegisterPointOnCurveProjection<3>(m, "PointOnCurveProjection3D");
 
 }
 
