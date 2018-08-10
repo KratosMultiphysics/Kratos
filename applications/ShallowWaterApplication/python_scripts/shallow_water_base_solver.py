@@ -10,8 +10,8 @@ KratosMultiphysics.CheckRegisteredApplications("ShallowWaterApplication")
 # Import applications
 import KratosMultiphysics.ShallowWaterApplication as Shallow
 
-def CreateSolver(model_part, custom_settings):
-    return ShallowWaterBaseSolver(model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return ShallowWaterBaseSolver(model, custom_settings)
 
 class ShallowWaterBaseSolver(PythonSolver):
     def __init__(self, model, custom_settings):  # Constructor of the class 
