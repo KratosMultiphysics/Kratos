@@ -36,10 +36,10 @@ class ValueLogger():
         pass
 
     # --------------------------------------------------------------------------
-    def LogCurrentValues( self, current_iteration, additional_values={} ):
+    def LogCurrentValues( self, current_iteration, additional_values_dictionary ):
         self.current_iteration = current_iteration
 
-        self.__LogValuesToHistory(additional_values)
+        self.__LogValuesToHistory(additional_values_dictionary)
         self._WriteCurrentValuesToConsole()
         self._WriteCurrentValuesToFile()
 
@@ -58,16 +58,17 @@ class ValueLogger():
         return self.value_history[key]
 
     # --------------------------------------------------------------------------
-    def __CreateCompleteLogFileName( self, optimization_settings ):
+    @staticmethod
+    def __CreateCompleteLogFileName( optimization_settings ):
         resultsDirectory = optimization_settings["output"]["output_directory"].GetString()
         responseLogFilename = optimization_settings["output"]["response_log_filename"].GetString() + ".csv"
         return os.path.join( resultsDirectory, responseLogFilename )
 
     # --------------------------------------------------------------------------
-    def __LogValuesToHistory( self, additional_values={} ):
+    def __LogValuesToHistory( self, additional_values_dictionary ):
         self.__LogObjectiveValuesToHistory()
         self.__LogConstraintValuesToHistory()
-        self.__LogAdditionalValuesToHistory( additional_values )
+        self.__LogAdditionalValuesToHistory( additional_values_dictionary )
 
     # --------------------------------------------------------------------------
     def __LogObjectiveValuesToHistory( self ):
@@ -112,8 +113,8 @@ class ValueLogger():
             self.value_history[constraint_id+"_standardized"][self.current_iteration] = self.communicator.getStandardizedValue( constraint_id )
 
     # --------------------------------------------------------------------------
-    def __LogAdditionalValuesToHistory( self, additional_values ):
-        for key, value in additional_values.items():
+    def __LogAdditionalValuesToHistory( self, additional_values_dictionary ):
+        for key, value in additional_values_dictionary.items():
             if self.__IsFirstLog(key):
                 self.value_history[key] = {}
             self.value_history[key][self.current_iteration] = value

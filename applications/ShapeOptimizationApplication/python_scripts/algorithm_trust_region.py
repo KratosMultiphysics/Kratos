@@ -494,7 +494,8 @@ class Projector():
             return norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs
 
     # --------------------------------------------------------------------------
-    def __ReduceToRelevantEqualityConstraints(self, len_eqs, dir_eqs):
+    @staticmethod
+    def __ReduceToRelevantEqualityConstraints(len_eqs, dir_eqs):
         len_eqs_relevant = []
         dir_eqs_relevant = []
         remaining_entries = []
@@ -567,7 +568,8 @@ class Projector():
         return pos_obj, pos_eqs, pos_ineqs
 
     # --------------------------------------------------------------------------
-    def __ProjectToHyperplanes(self, vector, dir_hps, pos_hps):
+    @staticmethod
+    def __ProjectToHyperplanes(vector, dir_hps, pos_hps):
             if IsEmpty(dir_hps):
                 return vector
 

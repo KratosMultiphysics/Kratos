@@ -6,7 +6,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 from KratosMultiphysics.KratosUnittest import TestCase
 from algorithm_trust_region import Projector
 from custom_math import PerformBisectioning
-import csv, os
+import csv
 
 # =======================================================================================================
 # Set and read input data
