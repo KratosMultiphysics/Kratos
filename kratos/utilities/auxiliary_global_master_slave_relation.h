@@ -10,8 +10,8 @@
 //
 //
 
-#if !defined(AUXILARY_GLOBAL_MASTER_SLAVE_RELATION)
-#define AUXILARY_GLOBAL_MASTER_SLAVE_RELATION
+#if !defined(AUXILIARY_GLOBAL_MASTER_SLAVE_RELATION)
+#define AUXILIARY_GLOBAL_MASTER_SLAVE_RELATION
 // System includes
 #include <vector>
 // project includes
@@ -25,15 +25,15 @@ namespace Kratos
 {
 
 /**
- * @class AuxilaryGlobalMasterSlaveRelation
+ * @class AuxiliaryGlobalMasterSlaveRelation
  * @ingroup KratosCore
- * @brief This class stores the information regarding the AuxilaryGlobalMasterSlaveRelation equation.
- *         Naming convenction is defined like this. (each object of this class will store one equation in the given form
+ * @brief This class stores the information regarding the AuxiliaryGlobalMasterSlaveRelation equation.
+ *         Naming convention is defined like this. (each object of this class will store one equation in the given form
  *
  *   SlaveEquationId = w_1*MasterEquationId_1 + w_2*MasterEquationId_2 + ..... + w_n*MasterEquationId_n
  *
  *   This stores the condensed form of the MasterSlaveConstraint objects into one object. if only one relation for a slave is added as
- *   MasterSlaveConstraint then there will only be one entry for master for its corresponding AuxilaryGlobalMasterSlaveRelation.
+ *   MasterSlaveConstraint then there will only be one entry for master for its corresponding AuxiliaryGlobalMasterSlaveRelation.
  *   Currently this class is designed to hold only one equation. There is only one unique object of this class for each slave. 
  *
  *   Future plan is to also make it possible to work with matrices (T) and vectors (for slave and master equation ids and constants)
@@ -43,7 +43,7 @@ namespace Kratos
  *
  * @author Aditya Ghantasala
  */
-class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
+class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
 {
   public:
     typedef IndexedObject BaseType;
@@ -51,14 +51,17 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     typedef Matrix MatrixType;
     typedef Vector VectorType;
     typedef std::vector<IndexType> EquationIdVectorType;
-    KRATOS_CLASS_POINTER_DEFINITION(AuxilaryGlobalMasterSlaveRelation);
+    KRATOS_CLASS_POINTER_DEFINITION(AuxiliaryGlobalMasterSlaveRelation);
 
     /**
      * @brief Constructor of the class
      * @param SlaveEquationId the slave equation id for which this class is being constructed.
      */
-    AuxilaryGlobalMasterSlaveRelation(IndexType SlaveEquationId = 0) : IndexedObject(SlaveEquationId), mConstant(0.0)
+    explicit AuxiliaryGlobalMasterSlaveRelation(IndexType SlaveEquationId = 0) : IndexedObject(SlaveEquationId), mConstant(0.0)
     {
+        mLhsValue = 0.;
+        mRhsValue = 0.;
+        mConstant = 0.;
     }
 
     /**
@@ -106,15 +109,11 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     virtual void EquationIdVector(IndexType& rSlaveEquationId,
                                   EquationIdVectorType& rMasterEquationIds)
     {
-        if (rMasterEquationIds.size() != 0 || rMasterEquationIds.size() == 0)
+        if (rMasterEquationIds.size() != 0)
             rMasterEquationIds.resize(this->GetNumberOfMasters(), false);
 
         rSlaveEquationId = this->SlaveEquationId();
-
-        for (IndexType i = 0; i < this->GetNumberOfMasters(); ++i)
-        {
-            rMasterEquationIds[i] = mMasterEquationIdVector[i];
-        }
+        rMasterEquationIds = mMasterEquationIdVector;
     }
 
     /**
@@ -127,10 +126,8 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     virtual void CalculateLocalSystem(VectorType &rMasterWeightsVector,
                                       double &rConstant)
     {
-        if (rMasterWeightsVector.size() != 0 || rMasterWeightsVector.size() == 0)
-        {
+        if (rMasterWeightsVector.size() != 0)
             rMasterWeightsVector.resize(this->GetNumberOfMasters(), false);
-        }
 
         for (IndexType i = 0; i < this->GetNumberOfMasters(); ++i)
             rMasterWeightsVector(i) = mMasterWeightsVector[i];
@@ -213,7 +210,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     double mLhsValue;
     double mRhsValue;
 
-    std::vector<IndexType> mMasterEquationIdVector;
+    EquationIdVectorType mMasterEquationIdVector;
     std::vector<double> mMasterWeightsVector;
 
     double mConstant;
@@ -237,7 +234,7 @@ class LocalIndices
     typedef std::vector<IndexType> VectorIndexType;
 
     /**
-     * Structure "LocalIndices" to be used as an encapsulator for set of local elemental/conditional indices
+     * Structure "LocalIndices" to be used as an encapsulation for set of local elemental/conditional indices
     */
     LocalIndices()
     {
@@ -265,9 +262,9 @@ class LocalIndices
     VectorIndexType& SlaveIndices(){return slave_index_vector;}
 
     private:
-    VectorIndexType internal_index_vector; // indicies correspoinding to internal DOFs
-    VectorIndexType master_index_vector; // indicies correspoinding to master DOFs
-    VectorIndexType slave_index_vector; // indicies correspoinding to slave DOFs
+    VectorIndexType internal_index_vector; // indicies corresponding to internal DOFs
+    VectorIndexType master_index_vector; // indicies corresponding to master DOFs
+    VectorIndexType slave_index_vector; // indicies corresponding to slave DOFs
 };
 
 } // namespace Kratos
