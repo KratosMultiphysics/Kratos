@@ -88,6 +88,22 @@ void RegisterCurveGeometry(
     ;
 }
 
+template <int TDimension>
+void RegisterSurfaceGeometryBase(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = ANurbs::Point<double, TDimension>;
+
+    using Type = ANurbs::SurfaceGeometryBase<double, VectorType>;
+    using Holder = ANurbs::Pointer<Type>;
+
+    pybind11::class_<Type, Holder>(m, name.c_str());
+}
+
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -289,6 +305,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     RegisterCurveGeometry<2>(m, "CurveGeometry2D");
     RegisterCurveGeometry<3>(m, "CurveGeometry3D");
     
+    RegisterSurfaceGeometryBase<1>(m, "SurfaceGeometryBase1D");
+    RegisterSurfaceGeometryBase<2>(m, "SurfaceGeometryBase2D");
+    RegisterSurfaceGeometryBase<3>(m, "SurfaceGeometryBase3D");
+
 }
 
 } // namespace Python
