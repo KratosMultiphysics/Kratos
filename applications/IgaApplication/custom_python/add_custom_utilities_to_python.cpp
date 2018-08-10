@@ -104,6 +104,66 @@ void RegisterSurfaceGeometryBase(
     pybind11::class_<Type, Holder>(m, name.c_str());
 }
 
+template <int TDimension>
+void RegisterSurfaceGeometry(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = ANurbs::Point<double, TDimension>;
+
+    using Type = ANurbs::SurfaceGeometry<double, TDimension>;
+    using Holder = ANurbs::Pointer<Type>;
+    using Base = ANurbs::SurfaceGeometryBase<double, VectorType>;
+
+    pybind11::class_<Type, Base, Holder>(m, name.c_str())
+        .def(pybind11::init<int, int, int, int, bool>(),
+            "DegreeU"_a,
+            "DegreeV"_a,
+            "NumberOfPolesU"_a,
+            "NumberOfPolesV"_a,
+            "IsRational"_a)
+        .def_property_readonly("DegreeU", &Type::DegreeU)
+        .def_property_readonly("DegreeV", &Type::DegreeV)
+        .def_property_readonly("DomainU", &Type::DomainU)
+        .def_property_readonly("DomainV", &Type::DomainV)
+        .def_property_readonly("NbKnotsU", &Type::NbKnotsU)
+        .def_property_readonly("NbKnotsV", &Type::NbKnotsV)
+        .def("KnotU", &Type::KnotU,
+            "Index"_a)
+        .def("KnotV", &Type::KnotV,
+            "Index"_a)
+        .def("SetKnotU", &Type::SetKnotU,
+            "Index"_a,
+            "Value"_a)
+        .def("SetKnotV", &Type::SetKnotV,
+            "Index"_a,
+            "Value"_a)
+        .def("Pole", &Type::Pole,
+            "IndexU"_a,
+            "IndexV"_a)
+        .def("SetPole", &Type::SetPole,
+            "IndexU"_a,
+            "IndexV"_a,
+            "Value"_a)
+        .def("Weight", &Type::Weight,
+            "IndexU"_a,
+            "IndexV"_a)
+        .def("SetWeight", &Type::SetWeight,
+            "IndexU"_a,
+            "IndexV"_a,
+            "Value"_a)
+        .def("PointAt", &Type::PointAt,
+            "U"_a,
+            "V"_a)
+        .def("DerivativesAt", &Type::DerivativesAt,
+            "U"_a,
+            "V"_a,
+            "Order"_a)
+    ;
+}
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -308,6 +368,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     RegisterSurfaceGeometryBase<1>(m, "SurfaceGeometryBase1D");
     RegisterSurfaceGeometryBase<2>(m, "SurfaceGeometryBase2D");
     RegisterSurfaceGeometryBase<3>(m, "SurfaceGeometryBase3D");
+
+    RegisterSurfaceGeometry<1>(m, "SurfaceGeometry1D");
+    RegisterSurfaceGeometry<2>(m, "SurfaceGeometry2D");
+    RegisterSurfaceGeometry<3>(m, "SurfaceGeometry3D");
 
 }
 
