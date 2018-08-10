@@ -15,7 +15,7 @@ class Solution(main_script.Solution):
 
     def Run(self):
 
-        self.nvidia_flex_wrapper = FlexWrapper(self.spheres_model_part, self.creator_destructor)
+        self.nvidia_flex_wrapper = FlexWrapper(self.spheres_model_part, self.rigid_face_model_part, self.creator_destructor)
         super(Solution, self).Run()
 
     def SolverSolve(self):
@@ -24,11 +24,17 @@ class Solution(main_script.Solution):
         #        node.SetSolutionStepValue(VELOCITY_X, 0.0)
         #        node.SetSolutionStepValue(VELOCITY_Y, 0.0)
         #        node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+            self._CheckNvidiaParameters()
             self.nvidia_flex_wrapper.UpdateFlex()
 
-        self.nvidia_flex_wrapper.SolveTimeSteps(100*self.dt, 100)
+        self.nvidia_flex_wrapper.SolveTimeSteps(self.dt, 1) #DO NOT CHANGE THIS 1, OR INSTABILITIES MAY APPEAR
         self.nvidia_flex_wrapper.TransferDataFromFlexToKratos()
 
+    def _CheckNvidiaParameters(self):
+        min_time_step = 1e-3
+        if self.DEM_parameters["MaxTimeStep"].GetDouble()< min_time_step:
+            Logger.PrintWarning("NVIDIA APP", "Too small time step. Please use values over", str(min_time_step), ". Exiting.")
+            sys.exit()
 
 if __name__=="__main__":
     Solution().Run()

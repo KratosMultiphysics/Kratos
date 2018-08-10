@@ -16,7 +16,7 @@ namespace Kratos {
         NvidiaFlexError = (severity == eNvFlexLogError); //eNvFlexLogWarning eNvFlexLogInfo eNvFlexLogDebug eNvFlexLogAll
     }
 
-    FlexWrapper::FlexWrapper(ModelPart& rSpheresModelPart, ParticleCreatorDestructor& rParticleCreatorDestructor):mFlexSolver(NULL), mrSpheresModelPart(rSpheresModelPart), mrParticleCreatorDestructor(rParticleCreatorDestructor) {
+    FlexWrapper::FlexWrapper(ModelPart& rSpheresModelPart, ModelPart& rFemModelPart, ParticleCreatorDestructor& rParticleCreatorDestructor):mFlexSolver(NULL), mrSpheresModelPart(rSpheresModelPart), mrFemModelPart(rFemModelPart), mrParticleCreatorDestructor(rParticleCreatorDestructor) {
 
         mMaxparticles = 10000;
         // a setting of -1 means Flex will use the device specified in the NVIDIA control panel
@@ -43,7 +43,16 @@ namespace Kratos {
         mFlexVelocities = new NvFlexVector<Vec3>(mFlexLibrary);
         mFlexPhases = new NvFlexVector<int>(mFlexLibrary);
         mActiveIndices = new NvFlexVector<int>(mFlexLibrary);
-        //mFlexRestPositions = new NvFlexVector<Vec4>(mFlexLibrary);
+
+        mFlexFemPositions = new NvFlexVector<Vec4>(mFlexLibrary);
+        mFlexFemConnectivities = new NvFlexVector<int>(mFlexLibrary);
+
+        mShapeGeometry = new NvFlexVector<NvFlexCollisionGeometry>(mFlexLibrary);
+        mShapePositions = new NvFlexVector<Vec4>(mFlexLibrary);
+        mShapeRotations = new NvFlexVector<Quat>(mFlexLibrary);
+        mShapePrevPositions = new NvFlexVector<Vec4>(mFlexLibrary);
+        mShapePrevRotations = new NvFlexVector<Quat>(mFlexLibrary);
+        mShapeFlags = new NvFlexVector<int>(mFlexLibrary);
 
         NvFlexSetSolverDescDefaults(&mSolverDescriptor);
 
@@ -62,7 +71,16 @@ namespace Kratos {
         delete mFlexVelocities;
         delete mFlexPhases;
         delete mActiveIndices;
-        //delete mFlexRestPositions;
+
+        NvFlexDestroyTriangleMesh(mFlexLibrary, mFlexTriangleMesh);
+        delete mFlexFemPositions;
+        delete mFlexFemConnectivities;
+        delete mShapeGeometry;
+        delete mShapePositions;
+        delete mShapeRotations;
+        delete mShapePrevPositions;
+        delete mShapePrevRotations;
+        delete mShapeFlags;
     }
 
     void FlexWrapper::SetNvFlexCopyDescParams(NvFlexCopyDesc& mFlexCopyDescriptor) {
@@ -88,37 +106,55 @@ namespace Kratos {
         mFlexVelocities->resize(number_of_nodes);
         mFlexPhases->resize(number_of_nodes);
         mActiveIndices->resize(number_of_nodes);
-        //mFlexRestPositions->resize(0);
 
-        //Vec4 aux_vec4;
-        // Vec3 aux_vec3;
         int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide);
 
         for (size_t i=0; i< number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
-
-            //positions
             const auto& coords = node_it->Coordinates();
             (*mFlexPositions)[i] = Vec4((float)coords[0], (float)coords[1], (float)coords[2], (float)(1.0 / node_it->FastGetSolutionStepValue(NODAL_MASS)));
-
-            //velocities
             const auto& vel = node_it->FastGetSolutionStepValue(VELOCITY);
             (*mFlexVelocities)[i] = Vec3((float)vel[0], (float)vel[1], (float)vel[2]);
-
-            //phases
             (*mFlexPhases)[i] = phase;
-
-            //indices
             (*mActiveIndices)[i] = i; //node_it->Id();
+        }
 
-            //(*mFlexRestPositions)[i] = (*mFlexPositions)[i];
+        const size_t number_of_fem_nodes = mrFemModelPart.Nodes().size();
+        mFlexFemPositions->resize(number_of_fem_nodes);
+        const size_t number_of_fem_conditions = mrFemModelPart.Conditions().size();
+        mFlexFemConnectivities->resize(3*number_of_fem_conditions);
+        std::map<int,int> id2index;
+        array_1d<double, 3> min, max;
+        max[0] = max[1] = max[2] = -std::numeric_limits<double>::max();
+        min[0] = min[1] = min[2] =  std::numeric_limits<double>::max();
+
+        for (size_t i=0; i< number_of_fem_nodes; i++) {
+            const auto node_it = mrFemModelPart.Nodes().begin() + i;
+            const auto& coords = node_it->Coordinates();
+            (*mFlexFemPositions)[i] = Vec4( (float)coords[0], (float)coords[1], (float)coords[2], 0.0f );
+            id2index[node_it->Id()] = i;
+            if(coords[0]>max[0]) max[0] = coords[0];
+            if(coords[1]>max[1]) max[1] = coords[1];
+            if(coords[2]>max[2]) max[2] = coords[2];
+            if(coords[0]<min[0]) min[0] = coords[0];
+            if(coords[1]<min[1]) min[1] = coords[1];
+            if(coords[2]<min[2]) min[2] = coords[2];
+        }
+        for (size_t i=0; i< number_of_fem_conditions; i++) {
+            const auto cond_it = mrFemModelPart.Conditions().begin() + i;
+            const auto& nodes = cond_it->GetGeometry();
+            (*mFlexFemConnectivities)[i*3    ] = id2index[nodes[0].Id()];
+            (*mFlexFemConnectivities)[i*3 + 1] = id2index[nodes[1].Id()];
+            (*mFlexFemConnectivities)[i*3 + 2] = id2index[nodes[2].Id()];
         }
 
         mFlexPositions->unmap();
         mFlexVelocities->unmap();
         mFlexPhases->unmap();
         mActiveIndices->unmap();
-        //mFlexRestPositions->unmap();
+
+        mFlexFemPositions->unmap();
+        mFlexFemConnectivities->unmap();
 
         // send any particle updates to the solver
         NvFlexSetParticles(mFlexSolver, mFlexPositions->buffer, &mFlexCopyDescriptor);
@@ -126,7 +162,56 @@ namespace Kratos {
         NvFlexSetPhases(mFlexSolver, mFlexPhases->buffer, &mFlexCopyDescriptor);
         NvFlexSetActive(mFlexSolver, mActiveIndices->buffer, &mFlexCopyDescriptor);
         NvFlexSetActiveCount(mFlexSolver, mActiveIndices->size());
-        //NvFlexSetRestParticles(mFlexSolver, mFlexRestPositions->buffer, &mFlexCopyDescriptor);
+
+        if(number_of_fem_nodes) {
+            mFlexTriangleMesh = NvFlexCreateTriangleMesh(mFlexLibrary);
+            Vec3 lower, upper;
+            lower[0] = (float)min[0];
+            lower[1] = (float)min[1];
+            lower[2] = (float)min[2];
+            upper[0] = (float)max[0];
+            upper[1] = (float)max[1];
+            upper[2] = (float)max[2];
+
+            NvFlexUpdateTriangleMesh(mFlexLibrary, mFlexTriangleMesh, mFlexFemPositions->buffer, mFlexFemConnectivities->buffer, number_of_fem_nodes, number_of_fem_conditions, (float*)&lower, (float*)&upper);
+
+            NvFlexCollisionGeometry geo;
+            geo.triMesh.mesh = mFlexTriangleMesh;
+            geo.triMesh.scale[0] = 1.0;
+            geo.triMesh.scale[1] = 1.0;
+            geo.triMesh.scale[2] = 1.0;
+
+            mShapeGeometry->resize(0);
+            mShapePositions->resize(0);
+            mShapeRotations->resize(0);
+            mShapePrevPositions->resize(0);
+            mShapePrevRotations->resize(0);
+            mShapeFlags->resize(0);
+
+            mShapeGeometry->push_back((NvFlexCollisionGeometry&)geo);
+            mShapePositions->push_back(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            mShapeRotations->push_back(Quat());
+            mShapePrevPositions->push_back(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            mShapePrevRotations->push_back(Quat());
+            mShapeFlags->push_back(NvFlexMakeShapeFlags(eNvFlexShapeTriangleMesh, false));
+
+            mShapeGeometry->unmap();
+            mShapePositions->unmap();
+            mShapeRotations->unmap();
+            mShapePrevPositions->unmap();
+            mShapePrevRotations->unmap();
+            mShapeFlags->unmap();
+
+            NvFlexSetShapes(
+                mFlexSolver,
+                mShapeGeometry->buffer,
+                mShapePositions->buffer,
+                mShapeRotations->buffer,
+                mShapePrevPositions->buffer,
+                mShapePrevRotations->buffer,
+                mShapeFlags->buffer,
+                int(mShapeFlags->size()));
+        }
     }
 
     void FlexWrapper::SetNvFlexParams(NvFlexParams& mFlexParameters) {
@@ -140,7 +225,7 @@ namespace Kratos {
         mFlexParameters.wind[1] = 0.0f;
         mFlexParameters.wind[2] = 0.0f;
 
-        mFlexParameters.radius = 0.00015f;
+        mFlexParameters.radius = 0.15f;
         /*const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         for (size_t i=0; i< number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
@@ -150,9 +235,9 @@ namespace Kratos {
         //TODO: MA: check that all radii are the same!!
 
         mFlexParameters.viscosity = 0.0f;
-        mFlexParameters.dynamicFriction = 0.0f;
-        mFlexParameters.staticFriction = 0.0f;
-        mFlexParameters.particleFriction = 0.0f;
+        mFlexParameters.dynamicFriction = 0.25f;
+        mFlexParameters.staticFriction = 0.25f;
+        mFlexParameters.particleFriction = 0.25f;
         mFlexParameters.freeSurfaceDrag = 0.0f;
         mFlexParameters.drag = 0.0f;
         mFlexParameters.lift = 0.0f;
@@ -164,14 +249,13 @@ namespace Kratos {
         mFlexParameters.anisotropyScale = 1.0f;
         mFlexParameters.anisotropyMin = 0.1f;
         mFlexParameters.anisotropyMax = 2.0f;
-        mFlexParameters.smoothing = 1.0f;
+        mFlexParameters.smoothing = 0.0f;
 
         mFlexParameters.dissipation = 0.0f;
         mFlexParameters.damping = 0.0f;
-        mFlexParameters.particleCollisionMargin = 0.0f;
-        mFlexParameters.shapeCollisionMargin = 0.0f;
-        //mFlexParameters.collisionDistance = 0.0f;
-        mFlexParameters.collisionDistance = mFlexParameters.radius;
+        mFlexParameters.particleCollisionMargin = mFlexParameters.radius*0.05f;
+        mFlexParameters.collisionDistance = mFlexParameters.radius*0.5f;
+        mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance*0.05f;
         mFlexParameters.sleepThreshold = 0.0f;
         mFlexParameters.shockPropagation = 0.0f;
         mFlexParameters.restitution = 0.5f;
@@ -234,9 +318,6 @@ namespace Kratos {
 
         mFlexPositions->map();
         mFlexVelocities->map();
-        //mFlexPhases->map();
-        //mActiveIndices->map();
-        //mFlexRestPositions->map();
 
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         for (size_t i=0; i< number_of_nodes; i++) {
@@ -261,8 +342,7 @@ namespace Kratos {
 
         mFlexPositions->unmap();
         mFlexVelocities->unmap();
-        //mFlexPhases->unmap();
-        //mActiveIndices->unmap();
+
     }
 
     void FlexWrapper::Finalize() {
@@ -273,7 +353,15 @@ namespace Kratos {
         NvFlexFreeBuffer(mActiveIndices->buffer);
         NvFlexDestroySolver(mFlexSolver);
         NvFlexShutdown(mFlexLibrary);
-        //NvFlexFreeBuffer(mFlexRestPositions->buffer);
+
+        NvFlexFreeBuffer(mFlexFemPositions->buffer);
+        NvFlexFreeBuffer(mFlexFemConnectivities->buffer);
+        NvFlexFreeBuffer(mShapeGeometry->buffer);
+        NvFlexFreeBuffer(mShapePositions->buffer);
+        NvFlexFreeBuffer(mShapeRotations->buffer);
+        NvFlexFreeBuffer(mShapePrevPositions->buffer);
+        NvFlexFreeBuffer(mShapePrevRotations->buffer);
+        NvFlexFreeBuffer(mShapeFlags->buffer);
     }
 
     std::string FlexWrapper::Info() const {

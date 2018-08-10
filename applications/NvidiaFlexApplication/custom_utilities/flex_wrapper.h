@@ -13,6 +13,7 @@
 #define CUDA_CALLABLE
 #include "custom_external_libraries/vec3.h"
 #include "custom_external_libraries/vec4.h"
+#include "custom_external_libraries/quat.h"
 
 namespace Kratos {
 
@@ -22,7 +23,7 @@ namespace Kratos {
 
             KRATOS_CLASS_POINTER_DEFINITION(FlexWrapper);
 
-            FlexWrapper(ModelPart& rSpheresModelPart, ParticleCreatorDestructor& rParticleCreatorDestructor);
+            FlexWrapper(ModelPart& rSpheresModelPart, ModelPart& rFemModelPart, ParticleCreatorDestructor& rParticleCreatorDestructor);
 
             virtual ~FlexWrapper();
 
@@ -50,14 +51,24 @@ namespace Kratos {
             NvFlexVector<Vec3>* mFlexVelocities;
             NvFlexVector<int>* mFlexPhases;
             NvFlexVector<int>* mActiveIndices;
-            NvFlexVector<Vec4>* mFlexRestPositions;
+            NvFlexTriangleMeshId mFlexTriangleMesh;
+            NvFlexVector<Vec4>* mFlexFemPositions;
+            NvFlexVector<int>* mFlexFemConnectivities;
             unsigned int mNumberOfParticles = 1;
             unsigned int mPhaseType = 1;
             double mDeltaTime = 0.0001;
             ModelPart& mrSpheresModelPart;
+            ModelPart& mrFemModelPart;
             ParticleCreatorDestructor& mrParticleCreatorDestructor;
             NvFlexInitDesc mInitDesc;
             int mMaxparticles;
+
+            NvFlexVector<NvFlexCollisionGeometry>* mShapeGeometry;
+            NvFlexVector<Vec4>* mShapePositions;
+            NvFlexVector<Quat>* mShapeRotations;
+            NvFlexVector<Vec4>* mShapePrevPositions;
+            NvFlexVector<Quat>* mShapePrevRotations;
+            NvFlexVector<int>* mShapeFlags;
 
         private:
 
