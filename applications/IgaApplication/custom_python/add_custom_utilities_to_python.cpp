@@ -394,8 +394,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             .def("ParameterAtNormalized", (double (Type::*)(const double) const)
                 &Type::ParameterAtNormalized,
                 "T"_a)
-                "T"_a)
-            .def("Clamp", (double (Type::*)(const double) const)  &Type::Clamp,
+            .def("Clamp", (double (Type::*)(const double) const) &Type::Clamp,
                 "T"_a)
         ;
     }
