@@ -124,5 +124,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         return mechanical_solution_strategy
 
     def _create_solution_scheme(self):
-        has_rotation_dofs = self.settings["rotation_dofs"].GetBool()
-        return StructuralMechanicsApplication.AdjointStructuralStaticScheme(self.scheme_settings, self.response_function, has_rotation_dofs)
+        if not self.scheme_settings.Has("rotation_dofs"):
+            self.scheme_settings.AddEmptyValue("rotation_dofs").SetBool(self.settings["rotation_dofs"].GetBool())
+        return StructuralMechanicsApplication.AdjointStructuralStaticScheme(self.scheme_settings, self.response_function)
