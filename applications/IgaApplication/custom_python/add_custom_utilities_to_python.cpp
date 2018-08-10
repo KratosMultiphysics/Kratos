@@ -563,6 +563,46 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
                 "Order"_a)
         ;
     }
+
+    // register Point1D
+    {
+        using Type = ANurbs::Point1D;
+
+        pybind11::class_<Type>(m, "Point1D")
+            .def(pybind11::init<double>(),
+                "X"_a)
+            .def_property_readonly("X", &Type::X)
+        ;
+    }
+
+    // register Point2D
+    {
+        using Type = ANurbs::Point2D;
+
+        pybind11::class_<Type>(m, "Point2D")
+            .def(pybind11::init<double, double>(),
+                "X"_a,
+                "Y"_a)
+            .def_property_readonly("X", &Type::X)
+            .def_property_readonly("Y", &Type::Y)
+        ;
+    }
+
+    // register Point3D
+    {
+        using Type = ANurbs::Point3D;
+
+        pybind11::class_<Type>(m, "Point3D")
+            .def(pybind11::init<double, double, double>(),
+                "X"_a,
+                "Y"_a,
+                "Z"_a)
+            .def_property_readonly("X", &Type::X)
+            .def_property_readonly("Y", &Type::Y)
+            .def_property_readonly("Z", &Type::Z)
+        ;
+    }
+
     RegisterCurveGeometryBase<1>(m, "CurveGeometryBase1D");
     RegisterCurveGeometryBase<2>(m, "CurveGeometryBase2D");
     RegisterCurveGeometryBase<3>(m, "CurveGeometryBase3D");
