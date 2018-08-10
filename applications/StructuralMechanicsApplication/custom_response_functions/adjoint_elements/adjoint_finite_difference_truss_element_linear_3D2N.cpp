@@ -103,22 +103,36 @@ int AdjointFiniteDifferenceTrussElementLinear::Check(const ProcessInfo& rCurrent
 
     //TODO: Check() of primal element should be called, but is not possible because of DOF check!
 
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    KRATOS_ERROR_IF(this->GetGeometry().WorkingSpaceDimension() != 3 || this->GetGeometry().size() != 2)
+        << "The truss element works only in 3D and with 2 noded elements" << "" << std::endl;
 
-    KRATOS_ERROR_IF(dimension != 3 || number_of_nodes != 2)
-        << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
+    CheckVariables();
+    CheckDofs();
+    CheckProperties(rCurrentProcessInfo);
 
-    // verify that the variables are correctly initialized
+    KRATOS_ERROR_IF(this->GetGeometry().Length() < std::numeric_limits<double>::epsilon()*1000)
+        << "Element #" << this->Id() << " has an length of zero!" << std::endl;
+   
+    return 0;
+
+    KRATOS_CATCH("")
+}
+
+
+void AdjointFiniteDifferenceTrussElementLinear::CheckVariables()
+{
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
     KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
+}
 
-    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+void AdjointFiniteDifferenceTrussElementLinear::CheckDofs()
+{
+    const SizeType number_of_nodes = this->GetGeometry().size();
+
     for (IndexType i = 0; i < number_of_nodes; ++i) 
     {
         NodeType &r_node = this->GetGeometry()[i];
@@ -130,23 +144,26 @@ int AdjointFiniteDifferenceTrussElementLinear::Check(const ProcessInfo& rCurrent
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
     }
+}
 
-    KRATOS_ERROR_IF(this->GetProperties().Has(CROSS_AREA) == false || this->GetProperties()[CROSS_AREA] <= numerical_limit)
+void AdjointFiniteDifferenceTrussElementLinear::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
+{
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+    const PropertiesType & r_properties = GetProperties();
+
+    KRATOS_ERROR_IF(r_properties.Has(CROSS_AREA) == false || r_properties[CROSS_AREA] <= numerical_limit)
     << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
-    KRATOS_ERROR_IF(this->GetProperties().Has(YOUNG_MODULUS) == false || this->GetProperties()[YOUNG_MODULUS] <= numerical_limit)
+    KRATOS_ERROR_IF(r_properties.Has(YOUNG_MODULUS) == false || r_properties[YOUNG_MODULUS] <= numerical_limit)
     << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
-    KRATOS_ERROR_IF_NOT( this->GetProperties().Has(DENSITY) )
+    KRATOS_ERROR_IF_NOT( r_properties.Has(DENSITY) )
     << "DENSITY not provided for this element" << this->Id() << std::endl;
 
-    // TODO: how to check the constitutive law?
-    // In the case of the truss only YOUNG_MODULUS and DENSITY are checked (Key and meaningful value)
-    // Note: if constitutivelaw is a nullptr is checked in intialize of truss element.
-    //if(this->mpConstitutiveLaw != nullptr) 
-    //  this->mpConstitutiveLaw->Check(this->GetProperties(),this->GetGeometry(),rCurrentProcessInfo);
-    
-    return 0;
-
-    KRATOS_CATCH("")
+    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+    << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
+    const ConstitutiveLaw::Pointer& cl = r_properties[CONSTITUTIVE_LAW];
+    KRATOS_ERROR_IF(cl == nullptr) 
+    << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
+    cl->Check(r_properties ,this->GetGeometry(),rCurrentProcessInfo);
 }
 
 double AdjointFiniteDifferenceTrussElementLinear::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
