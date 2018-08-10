@@ -33,6 +33,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
              "variable_name": "VARIABLE_NAME",
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0],
+             "compound_assignment": "direct",
              "constrained": false,
              "interval": [0.0, "End"],
              "local_axes" : {}
