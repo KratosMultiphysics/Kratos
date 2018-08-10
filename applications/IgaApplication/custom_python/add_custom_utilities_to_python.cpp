@@ -399,6 +399,40 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         ;
     }
 
+    // register CurveShapeEvaluator
+    {
+        using Type = ANurbs::CurveShapeEvaluator<double>;
+
+        pybind11::class_<Type>(m, "CurveShapeEvaluator")
+            .def(pybind11::init<int, int>(),
+                "Degree"_a,
+                "Order"_a)
+            .def("Resize", &Type::Resize,
+                "Degree"_a,
+                "Order"_a)
+            .def_property_readonly("Degree", &Type::Degree)
+            .def_property_readonly("Order", &Type::Order)
+            .def_property_readonly("NumberOfNonzeroPoles",
+                &Type::NbNonzeroPoles)
+            .def_property_readonly("FirstNonzeroPole",
+                &Type::FirstNonzeroPole)
+            .def_property_readonly("LastNonzeroPole",
+                &Type::LastNonzeroPole)
+            .def_property_readonly("NumberOfShapes", &Type::NbShapes)
+            .def("__call__", &Type::Value,
+                "Order"_a,
+                "Pole"_a)
+            .def("Compute", &Type::Compute<std::vector<double>>,
+                "Knots"_a,
+                "T"_a)
+            .def("Compute", &Type::Compute<std::vector<double>,
+                std::vector<double>>,
+                "Knots"_a,
+                "Weights"_a,
+                "T"_a)
+        ;
+    }
+
     // register NodeCurveGeometry
     {
         using Type = NodeCurveGeometry3D;
