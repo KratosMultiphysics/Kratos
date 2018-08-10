@@ -164,6 +164,31 @@ void RegisterSurfaceGeometry(
             "Order"_a)
     ;
 }
+
+template <int TDimension>
+void RegisterCurveBase(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = ANurbs::Point<double, TDimension>;
+
+    using Type = ANurbs::CurveBase<double, VectorType>;
+    using Holder = ANurbs::Pointer<Type>;
+
+    py::class_<Type, Holder>(m, name.c_str())
+        .def_property_readonly("Domain", &Type::Domain)
+        .def("PointAt", &Type::PointAt,
+            "T"_a)
+        .def("DerivativesAt", &Type::DerivativesAt,
+            "T"_a,
+            "Order"_a)
+        .def("Spans", &Type::Spans)
+    ;
+}
+
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -372,6 +397,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     RegisterSurfaceGeometry<1>(m, "SurfaceGeometry1D");
     RegisterSurfaceGeometry<2>(m, "SurfaceGeometry2D");
     RegisterSurfaceGeometry<3>(m, "SurfaceGeometry3D");
+
+    RegisterCurveBase<1>(m, "CurveBase1D");
+    RegisterCurveBase<2>(m, "CurveBase2D");
+    RegisterCurveBase<3>(m, "CurveBase3D");
 
 }
 
