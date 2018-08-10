@@ -20,7 +20,7 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings):
-        self.opt_settings = optimization_settings
+        self.optimization_settings = optimization_settings
         self.supported_objective_types = ["minimization", "maximization"]
         self.supported_constraint_types = ["=", "<", ">", "<=", ">="]
         self.supported_constraint_references = ["initial_value", "specified_value"]
@@ -66,7 +66,7 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def reportGradient(self, response_id, gradient):
-        dimension = len(list(gradient.values())[0])
+        dimension = len(next(iter(gradient.values())))
         if dimension == 1:
             gradient = {key: [value[0], 0.0, 0.0] for key, value in gradient.items()}
         elif dimension == 2:
@@ -103,12 +103,12 @@ class Communicator:
     def __initializeListOfRequests(self):
         self.list_of_requests = {}
 
-        for objective_number in range(self.opt_settings["objectives"].size()):
-            objective_id = self.opt_settings["objectives"][objective_number]["identifier"].GetString()
+        for objective_number in range(self.optimization_settings["objectives"].size()):
+            objective_id = self.optimization_settings["objectives"][objective_number]["identifier"].GetString()
             self.list_of_requests[objective_id] = {"calculateValue": False, "calculateGradient": False}
 
-        for constraint_number in range(self.opt_settings["constraints"].size()):
-            constraint_id = self.opt_settings["constraints"][constraint_number]["identifier"].GetString()
+        for constraint_number in range(self.optimization_settings["constraints"].size()):
+            constraint_id = self.optimization_settings["constraints"][constraint_number]["identifier"].GetString()
             self.list_of_requests[constraint_id] = {"calculateValue": False, "calculateGradient": False}
 
     # --------------------------------------------------------------------------
@@ -119,8 +119,8 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def __addObjectivesToListOfResponses(self):
-        for objective_number in range(self.opt_settings["objectives"].size()):
-            objective = self.opt_settings["objectives"][objective_number]
+        for objective_number in range(self.optimization_settings["objectives"].size()):
+            objective = self.optimization_settings["objectives"][objective_number]
             objective_id =  objective["identifier"].GetString()
 
             if objective["type"].GetString() not in self.supported_objective_types:
@@ -133,9 +133,9 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def __addConstraintsToListOfResponses(self):
-        for constraint_number in range(self.opt_settings["constraints"].size()):
-            constraint = self.opt_settings["constraints"][constraint_number]
-            constraint_id = self.opt_settings["constraints"][constraint_number]["identifier"].GetString()
+        for constraint_number in range(self.optimization_settings["constraints"].size()):
+            constraint = self.optimization_settings["constraints"][constraint_number]
+            constraint_id = self.optimization_settings["constraints"][constraint_number]["identifier"].GetString()
 
             if constraint["type"].GetString() not in self.supported_constraint_types:
                 raise RuntimeError("Unsupported type defined for the following constraint: " + constraint_id)

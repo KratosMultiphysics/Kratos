@@ -416,7 +416,27 @@ def PerformBisectioning(func, a, b, target, tolerance, max_itr):
 
     return res_function_argument, itr, error
 
+# --------------------------------------------------------------------------
+def PerformGramSchmidtOrthogonalization(vector_space):
+    V = vector_space
+    B = []
 
+    # Orthogonalization
+    norm2_V0 = Norm2(V[0])
+    B.append( ScalarVectorProduct(1/norm2_V0,V[0]) )
+    for v in V[1:]:
+        for b in B:
+            norm2_b = Norm2(b)
+            v = Minus( v , ScalarVectorProduct( Dot(v,b)/norm2_b**2 , b ) )
 
+        # Add only if vector is independent
+        norm2_v = Norm2(v)
+        if norm2_v>1e-10:
+            B.append( ScalarVectorProduct(1/norm2_v,v) )
+        else:
+            print("Zero basis vector after Gram-Schmidt orthogonalization!")
+            B.append(v)
+
+    return B
 
 # ==============================================================================

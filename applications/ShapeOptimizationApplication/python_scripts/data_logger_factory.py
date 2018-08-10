@@ -52,7 +52,7 @@ class DataLogger():
         elif AlgorithmName == "trust_region":
             return ValueLoggerTrustRegion( self.Communicator, self.OptimizationSettings )
         else:
-            raise NameError("The following optimization algorithm not supported by the response logger (name may be a misspelling): " + AlgorithmName)
+            raise NameError("The following optimization algorithm not supported by the response logger (name may be misspelled): " + AlgorithmName)
 
     # -----------------------------------------------------------------------------
     def __CreateDesignLogger( self ):

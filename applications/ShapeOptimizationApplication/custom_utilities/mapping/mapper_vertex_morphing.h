@@ -27,6 +27,7 @@
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
+#include "mapper_base.h"
 #include "filter_function.h"
 
 // ==============================================================================
@@ -57,14 +58,13 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MapperVertexMorphing
+class MapperVertexMorphing : public Mapper
 {
 public:
     ///@name Type Definitions
     ///@{
 
     // Type definitions for better reading later
-    typedef array_1d<double,3> array_3d;
     typedef Node < 3 > NodeType;
     typedef Node < 3 > ::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;

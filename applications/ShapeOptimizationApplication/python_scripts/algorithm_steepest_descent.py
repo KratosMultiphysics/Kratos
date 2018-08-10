@@ -45,8 +45,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.Communicator = Communicator
         self.ModelPartController = ModelPartController
 
-        self.SpecifiedObjectives = OptimizationSettings["objectives"]
-        self.SpecifiedConstraints = OptimizationSettings["constraints"]
+        self.objectives = OptimizationSettings["objectives"]
+        self.constraints = OptimizationSettings["constraints"]
 
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
@@ -64,14 +64,14 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
-        if self.SpecifiedObjectives.size() > 1:
+        if self.objectives.size() > 1:
             raise RuntimeError("Steepest descent algorithm only supports one objective function!")
-        if self.SpecifiedConstraints.size() > 0:
+        if self.constraints.size() > 0:
             raise RuntimeError("Steepest descent algorithm does not allow for any constraints!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        self.only_obj = self.SpecifiedObjectives[0]
+        self.only_obj = self.objectives[0]
 
         self.maxIterations = self.algorithm_settings["max_iterations"].GetInt() + 1
         self.relativeTolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
@@ -97,13 +97,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.__analyzeShape()
 
-            if self.isDampingSpecified:
-                self.__dampSensitivities()
-
             self.__computeShapeUpdate()
-
-            if self.isDampingSpecified:
-                self.__dampShapeUpdate()
 
             self.__logCurrentOptimizationStep()
 
@@ -140,9 +134,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             self.GeometryUtilities.ComputeUnitSurfaceNormals()
             self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
-    # --------------------------------------------------------------------------
-    def __dampSensitivities(self):
-        self.DampingUtilities.DampNodalVariable(DF1DX)
+        if self.isDampingSpecified:
+            self.DampingUtilities.DampNodalVariable(DF1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -150,6 +143,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
+
+        if self.isDampingSpecified:
+            self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):

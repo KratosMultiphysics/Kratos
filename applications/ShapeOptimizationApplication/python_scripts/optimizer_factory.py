@@ -46,33 +46,34 @@ class VertexMorphingMethod:
         self.analyzer = analyzer
         self.communicator = communicator
 
-        self.__AddNodalVariablesNeededForOptimization( model_part_controller.GetOptimizationModelPart() )
+        self.__AddNodalVariablesNeededForOptimization()
 
     # --------------------------------------------------------------------------
-    def __AddNodalVariablesNeededForOptimization(self, optimization_mdpa):
+    def __AddNodalVariablesNeededForOptimization(self):
+        model_part = self.model_part_controller.GetOptimizationModelPart()
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
 
         for itr in range(1,number_of_objectives+1):
             nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX")
-            optimization_mdpa.AddNodalSolutionStepVariable(nodal_variable)
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
             nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX_MAPPED")
-            optimization_mdpa.AddNodalSolutionStepVariable(nodal_variable)
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         for itr in range(1,number_of_constraints+1):
             nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX")
-            optimization_mdpa.AddNodalSolutionStepVariable(nodal_variable)
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
             nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX_MAPPED")
-            optimization_mdpa.AddNodalSolutionStepVariable(nodal_variable)
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
 
-        optimization_mdpa.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
-        optimization_mdpa.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
-        optimization_mdpa.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
-        optimization_mdpa.AddNodalSolutionStepVariable(SHAPE_UPDATE)
-        optimization_mdpa.AddNodalSolutionStepVariable(SHAPE_CHANGE)
-        optimization_mdpa.AddNodalSolutionStepVariable(MESH_CHANGE)
-        optimization_mdpa.AddNodalSolutionStepVariable(NORMAL)
-        optimization_mdpa.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
+        model_part.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
+        model_part.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
+        model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
+        model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE)
+        model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE)
+        model_part.AddNodalSolutionStepVariable(MESH_CHANGE)
+        model_part.AddNodalSolutionStepVariable(NORMAL)
+        model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
 
     # --------------------------------------------------------------------------
     def Optimize(self):

@@ -15,7 +15,7 @@ from __future__ import print_function, absolute_import, division
 # ==============================================================================
 class OptimizationAlgorithm:
     # --------------------------------------------------------------------------
-    def CheckApplicability(self):
+    def CheckApplicability( self ):
         raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> CheckApplicability << .")
 
     # --------------------------------------------------------------------------

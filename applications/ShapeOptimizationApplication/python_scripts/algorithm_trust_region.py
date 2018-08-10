@@ -17,12 +17,11 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 from algorithm_base import OptimizationAlgorithm
-from custom_math import NormInf3D, Dot, ScalarVectorProduct, Norm2, RowSize, HorzCat, Minus, Plus, Trans, Prod, ZeroVector, ZeroMatrix, IsEmpty, SafeConvertVectorToMatrix
-from custom_math import TranslateToNewBasis, TranslateToOriginalBasis, QuadProg, PerformBisectioning, SolveLinearSystem
-from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteNodeCoordinatesToList, WriteListToNodalVariable
-from custom_timer import Timer
 import mapper_factory
 import data_logger_factory
+from custom_math import *
+from custom_timer import Timer
+from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteNodeCoordinatesToList, WriteListToNodalVariable
 import copy
 
 # ==============================================================================
@@ -46,8 +45,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
-        self.specified_objectives = optimization_settings["objectives"]
-        self.specified_constraints = optimization_settings["constraints"]
+        self.objectives = optimization_settings["objectives"]
+        self.constraints = optimization_settings["constraints"]
 
         self.analyzer = analyzer
         self.communicator = communicator
@@ -69,20 +68,19 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
-        if self.specified_objectives.size() > 1:
+        if self.objectives.size() > 1:
             raise RuntimeError("Trust-region algorithm only supports one objective function!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        self.number_of_design_variables = 3*self.design_surface.NumberOfNodes()
-
-        self.x_init = WriteNodeCoordinatesToList(self.design_surface)
-
         self.model_part_controller.ImportOptimizationModelPart()
         self.model_part_controller.InitializeMeshController()
         self.mapper.InitializeMapping()
         self.analyzer.InitializeBeforeOptimizationLoop()
         self.data_logger.InitializeDataLogging()
+
+        self.number_of_design_variables = 3*self.design_surface.NumberOfNodes()
+        self.x_init = WriteNodeCoordinatesToList(self.design_surface)
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -110,9 +108,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             dx_bar, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs = self.__DetermineStep(len_bar_obj, dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
 
-            norm_dx = self.__ComputeShapeUpdate(dx_bar, step_length)
+            dx = self.__ComputeShapeUpdate(dx_bar, step_length)
 
-            self.__LogCurrentOptimizationStep(step_length, len_bar_obj, len_bar_eqs, len_bar_ineqs, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs, norm_dx)
+            self.__LogCurrentOptimizationStep(step_length, len_bar_obj, len_bar_eqs, len_bar_ineqs, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs, dx)
 
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
@@ -131,30 +129,29 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     def __AnalyzeShape(self):
             self.communicator.initializeCommunication()
 
-            obj_id = self.specified_objectives[0]["identifier"].GetString()
+            obj_id = self.objectives[0]["identifier"].GetString()
             self.communicator.requestValueOf(obj_id)
             self.communicator.requestGradientOf(obj_id)
 
-            for itr in range(self.specified_constraints.size()):
-                con = self.specified_constraints[itr]
-
-                if con["type"].GetString()=="=":
-                    eq_id = con["identifier"].GetString()
-                    self.communicator.requestValueOf(eq_id)
-                    self.communicator.requestGradientOf(eq_id)
-                else:
-                    ineq_id = con["identifier"].GetString()
-                    self.communicator.requestValueOf(ineq_id)
-                    self.communicator.requestGradientOf(ineq_id)
+            for itr in range(self.constraints.size()):
+                con_id =  self.constraints[itr]["identifier"].GetString()
+                self.communicator.requestValueOf(con_id)
+                self.communicator.requestGradientOf(con_id)
 
             self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.opt_iteration, self.communicator)
 
     # --------------------------------------------------------------------------
     def __PostProcessGradientsObtainedFromAnalysis(self):
-        self.geometry_utilities.ComputeUnitSurfaceNormals()
+        # Compute surface normals if required
+        if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
+            self.geometry_utilities.ComputeUnitSurfaceNormals()
+        else:
+            for itr in range(self.constraints.size()):
+                if self.constraints[itr]["project_gradient_on_surface_normals"]:
+                    self.geometry_utilities.ComputeUnitSurfaceNormals()
 
         # Process objective gradients
-        obj = self.specified_objectives[0]
+        obj = self.objectives[0]
         obj_id = obj["identifier"].GetString()
 
         obj_gradients_dict = self.communicator.getStandardizedGradient(obj_id)
@@ -180,65 +177,36 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
 
         # Process constraint gradients
-        for itr in range(self.specified_constraints.size()):
-            con = self.specified_constraints[itr]
+        for itr in range(self.constraints.size()):
+            con = self.constraints[itr]
+            con_id = con["identifier"].GetString()
 
-            # Process equality constraints
-            if con["type"].GetString()=="=":
-                eq_id = con["identifier"].GetString()
+            eq_gradients_dict = self.communicator.getStandardizedGradient(con_id)
 
-                eq_gradients_dict = self.communicator.getStandardizedGradient(eq_id)
+            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
+            WriteDictionaryDataOnNodalVariable(eq_gradients_dict, self.optimization_model_part, nodal_variable)
 
-                nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
-                WriteDictionaryDataOnNodalVariable(eq_gradients_dict, self.optimization_model_part, nodal_variable)
+            # Projection on surface normals
+            if con["project_gradient_on_surface_normals"].GetBool():
+                self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
-                # Projection on surface normals
-                if con["project_gradient_on_surface_normals"].GetBool():
-                    self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
+            # Damping
+            if self.is_damping_specified:
+                self.damping_utilities.DampNodalVariable(nodal_variable)
 
-                # Damping
-                if self.is_damping_specified:
-                    self.damping_utilities.DampNodalVariable(nodal_variable)
+            # Mapping
+            nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+            self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
+            self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
 
-                # Mapping
-                nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
-                self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-                self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
-
-                # Damping
-                if self.is_damping_specified:
-                    self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
-
-            # Process inequality constraints
-            else:
-                ineq_id = con["identifier"].GetString()
-
-                ineq_gradients_dict = self.communicator.getStandardizedGradient(ineq_id)
-
-                nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
-                WriteDictionaryDataOnNodalVariable(ineq_gradients_dict, self.optimization_model_part, nodal_variable)
-
-                # Projection on surface normals
-                if con["project_gradient_on_surface_normals"].GetBool():
-                    self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
-
-                # Damping
-                if self.is_damping_specified:
-                    self.damping_utilities.DampNodalVariable(nodal_variable)
-
-                # Mapping
-                nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
-                self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-                self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
-
-                # Damping
-                if self.is_damping_specified:
-                    self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
+            # Damping
+            if self.is_damping_specified:
+                self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
 
     # --------------------------------------------------------------------------
     def __ConvertAnalysisResultsToLengthDirectionFormat(self):
         # Convert objective results
-        obj = self.specified_objectives[0]
+        obj = self.objectives[0]
         obj_id = obj["identifier"].GetString()
 
         nodal_variable = KratosGlobals.GetVariable("DF1DX")
@@ -257,40 +225,25 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         len_ineqs = []
         dir_ineqs = []
 
-        for itr in range(self.specified_constraints.size()):
-            con = self.specified_constraints[itr]
+        for itr in range(self.constraints.size()):
+            con = self.constraints[itr]
+            con_id = con["identifier"].GetString()
 
-            # Convert equality constraints
+            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
+            nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+
+            value = self.communicator.getStandardizedValue(con_id)
+            gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
+            gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
+
+            direction, length = self.__ConvertToLengthDirectionFormat(value, gradient, gradient_mapped)
+
             if con["type"].GetString()=="=":
-                eq_id = con["identifier"].GetString()
-
-                nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
-                nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
-
-                eq_value = self.communicator.getStandardizedValue(eq_id)
-                eq_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
-                eq_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
-
-                dir_eq, len_eq = self.__ConvertToLengthDirectionFormat(eq_value, eq_gradient, eq_gradient_mapped)
-
-                dir_eqs.append(dir_eq)
-                len_eqs.append(len_eq)
-
-            # Convert inequality constraints
+                dir_eqs.append(direction)
+                len_eqs.append(length)
             else:
-                ineq_id = con["identifier"].GetString()
-
-                nodal_variable = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX")
-                nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
-
-                ineq_value = self.communicator.getStandardizedValue(ineq_id)
-                ineq_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
-                ineq_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
-
-                dir_ineq, len_ineq = self.__ConvertToLengthDirectionFormat(ineq_value, ineq_gradient, ineq_gradient_mapped)
-
-                dir_ineqs.append(dir_ineq)
-                len_ineqs.append(len_ineq)
+                dir_ineqs.append(direction)
+                len_ineqs.append(length)
 
         return len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs
 
@@ -312,7 +265,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         if self.opt_iteration < 4:
             return self.algorithm_settings["max_step_length"].GetDouble()
         else:
-            obj_id = self.specified_objectives[0]["identifier"].GetString()
+            obj_id = self.objectives[0]["identifier"].GetString()
             current_obj_val = self.communicator.getStandardizedValue(obj_id)
             obj_history = self.data_logger.GetValueHistory(obj_id+"_standardized")
             step_history = self.data_logger.GetValueHistory("step_length")
@@ -404,10 +357,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         WriteListToNodalVariable(dx, self.design_surface, SHAPE_UPDATE)
         self.optimization_utilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
 
-        return NormInf3D(dx)
+        return dx
 
     # --------------------------------------------------------------------------
-    def __LogCurrentOptimizationStep(self, step_length, len_bar_obj, len_bar_eqs, len_bar_ineqs, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs, norm_dx):
+    def __LogCurrentOptimizationStep(self, step_length, len_bar_obj, len_bar_eqs, len_bar_ineqs, test_norm_dx_bar, bi_itrs, bi_err, adj_len_bar_obj, adj_len_bar_eqs, adj_len_bar_ineqs, dx):
         additional_values_to_log = {}
         additional_values_to_log["len_bar_obj"] = len_bar_obj
         additional_values_to_log["adj_len_bar_obj"] = adj_len_bar_obj
@@ -420,7 +373,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         additional_values_to_log["test_norm_dx_bar"] = test_norm_dx_bar
         additional_values_to_log["bi_itrs"] = bi_itrs
         additional_values_to_log["bi_err"] = bi_err
-        additional_values_to_log["norm_dx"] = norm_dx
+        additional_values_to_log["norm_dx"] = NormInf3D(dx)
         additional_values_to_log["step_length"] = step_length
 
         self.data_logger.LogCurrentValues(self.opt_iteration, additional_values_to_log)
@@ -433,8 +386,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         combined_list = []
 
         # Order is given by appearance of constraints in optimization settings
-        for itr in range(self.specified_constraints.size()):
-            if self.specified_constraints[itr]["type"].GetString()=="=":
+        for itr in range(self.constraints.size()):
+            if self.constraints[itr]["type"].GetString()=="=":
                 combined_list.append(eqs_data_list[num_eqs])
                 num_eqs = num_eqs+1
             else:
@@ -470,7 +423,12 @@ class Projector():
         self.num_unknowns = 1 + self.num_eqs + self.num_ineqs
 
         # Create orthogonal basis
-        self.ortho_basis = self.__PerformGramSchmidtOrthogonalization(dir_obj, dir_eqs, dir_ineqs)
+        vector_space = [dir_obj]
+        for itr in range(len(dir_eqs)):
+            vector_space = HorzCat(vector_space, dir_eqs[itr])
+        for itr in range(len(dir_ineqs)):
+            vector_space = HorzCat(vector_space, dir_ineqs[itr])
+        self.ortho_basis = PerformGramSchmidtOrthogonalization(vector_space)
 
         # Transform directions to orthogonal space since they don't change with different projections
         self.dir_obj_o = TranslateToNewBasis(dir_obj, self.ortho_basis)
@@ -577,35 +535,6 @@ class Projector():
                 dir_ineqs_relevant.append(dir_i)
 
         return len_ineqs_relevant, dir_ineqs_relevant, remaining_entries
-
-    # --------------------------------------------------------------------------
-    def __PerformGramSchmidtOrthogonalization(self, dir_obj, dir_eqs, dir_ineqs):
-        # Determine vector space
-        V = [dir_obj]
-        for itr in range(len(dir_eqs)):
-            V = HorzCat(V, dir_eqs[itr])
-        for itr in range(len(dir_ineqs)):
-            V = HorzCat(V, dir_ineqs[itr])
-
-        B = []
-
-        # Orthogonalization
-        norm2_V0 = Norm2(V[0])
-        B.append( ScalarVectorProduct(1/norm2_V0,V[0]) )
-        for v in V[1:]:
-            for b in B:
-                norm2_b = Norm2(b)
-                v = Minus( v , ScalarVectorProduct( Dot(v,b)/norm2_b**2 , b ) )
-
-            # Add only if vector is independent
-            norm2_v = Norm2(v)
-            if norm2_v>1e-10:
-                B.append( ScalarVectorProduct(1/norm2_v,v) )
-            else:
-                print("Zero basis vector after Gram-Schmidt orthogonalization!")
-                B.append(v)
-
-        return B
 
     # --------------------------------------------------------------------------
     def __AdjustHalfSpacesAndHyperplanes(self, len_obj, threshold):

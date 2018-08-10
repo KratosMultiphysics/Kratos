@@ -41,7 +41,7 @@ class Analyzer:
         self.internal_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
         self.external_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
 
-        self.__ResetPossibleShapeModificationsDuringAnalysis()
+        self.__ResetPossibleShapeModificationsFromAnalysis()
 
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop(self):
@@ -60,7 +60,7 @@ class Analyzer:
         return False
 
     # --------------------------------------------------------------------------
-    def __ResetPossibleShapeModificationsDuringAnalysis( self ):
+    def __ResetPossibleShapeModificationsFromAnalysis( self ):
         self.model_part_controller.SetMeshToReferenceMesh()
         self.model_part_controller.SetDeformationVariablesToZero()
 
