@@ -344,6 +344,32 @@ void RegisterPointOnCurveProjection(
     ;
 }
 
+template <int TDimension>
+void RegisterCurveTessellation(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = ANurbs::Point<double, TDimension>;
+
+    using Type = ANurbs::CurveTessellation<double, VectorType>;
+    using Pointer = ANurbs::Pointer<Type>;
+
+    py::class_<Type, Pointer>(m, name.c_str())
+        .def(py::init<>())
+        .def("Compute", &Type::Compute,
+            "Curve"_a,
+            "Tolerance"_a)
+        .def_property_readonly("NbPoints", &Type::NbPoints)
+        .def("Parameter", &Type::Parameter,
+            "index"_a)
+        .def("Point", &Type::Point,
+            "index"_a)
+    ;
+}
+
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -576,6 +602,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     RegisterPointOnCurveProjection<2>(m, "PointOnCurveProjection2D");
     RegisterPointOnCurveProjection<3>(m, "PointOnCurveProjection3D");
 
+    RegisterCurveTessellation<2>(m, "CurveTessellation2D");
+    RegisterCurveTessellation<3>(m, "CurveTessellation3D");
 }
 
 } // namespace Python
