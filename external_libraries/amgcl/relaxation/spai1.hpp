@@ -148,11 +148,21 @@ struct spai1 {
         backend::spmv(math::identity<scalar_type>(), *M, rhs, math::zero<scalar_type>(), x);
     }
 
-    private:
-        std::shared_ptr<typename Backend::matrix> M;
+    std::shared_ptr<typename Backend::matrix> M;
 };
 
 } // namespace relaxation
+
+namespace backend {
+
+template <class Backend>
+struct bytes_impl< relaxation::spai1<Backend> > {
+    static size_t get(const relaxation::spai1<Backend> &R) {
+        return backend::bytes(*R.M);
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 

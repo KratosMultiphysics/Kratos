@@ -92,7 +92,7 @@ public:
 
 
     /// Destructor.
-    virtual ~AssignVectorVariableToConditionsProcess() {}
+    ~AssignVectorVariableToConditionsProcess() override {}
 
 
     ///@}

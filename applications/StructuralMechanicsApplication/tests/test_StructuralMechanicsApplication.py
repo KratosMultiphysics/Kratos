@@ -53,6 +53,10 @@ from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 # Eigenvalues Postprocessing Process test
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Test adjoint elements
+from test_cr_beam_adjoint_element_3d2n import TestCrBeamAdjointElement as TTestCrBeamAdjointElement
+from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
+from test_adjoint_sensitity_analysis_beam_3d2n_structure import TestAdjointSensitivityAnalysisBeamStructure as TTestAdjointSensitivityAnalysisBeamStructure
+from test_adjoint_sensitity_analysis_shell_3d3n_structure import TestAdjointSensitivityAnalysisShell3D3NStructure as TTestAdjointSensitivityAnalysisShell3D3NStructure
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -170,6 +174,9 @@ from restart_tests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
 from restart_tests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
 
 ##### RESPONSE_FUNCTION #####
+from structural_response_function_test_factory import TestAdjointStrainEnergyResponseFunction as TTestAdjointStrainEnergyResponseFunction
+from structural_response_function_test_factory import TestAdjointDisplacementResponseFunction as TTestAdjointDisplacementResponseFunction
+from structural_response_function_test_factory import TestAdjointStressResponseFunction as TTestAdjointStressResponseFunction
 from structural_response_function_test_factory import TestMassResponseFunction as TTestMassResponseFunction
 from structural_response_function_test_factory import TestStrainEnergyResponseFunction as TTestStrainEnergyResponseFunction
 
@@ -224,6 +231,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
+    # Adjoint Elements
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -306,8 +316,22 @@ def AssembleTestSuites():
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
 
+    try:
+        import KratosMultiphysics.HDF5Application as tmp
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisBeamStructure]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
+    except ImportError:
+        print("HDF5Application is not compiled, some adjoint tests are skipped!")
+
     nightSuite.addTest(TTestMassResponseFunction('test_execution'))
     nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
+    try:
+        import KratosMultiphysics.HDF5Application as tmp
+        nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
+        nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+    except ImportError:
+        print("HDF5Application is not compiled, some adjoint response tests are skipped!")
 
     nightSuite.addTests(smallSuite)
 

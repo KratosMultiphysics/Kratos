@@ -12,7 +12,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VELOCITY" : VELOCITY,
                         "REACTION" : REACTION,
                         "DISTANCE" : DISTANCE,
-			 "AUX_VEL" : AUX_VEL,                        
+			 "AUX_VEL" : AUX_VEL,
                         "DISPLACEMENT" : DISPLACEMENT,
                         "IS_INTERFACE" : IS_INTERFACE,
                         "IS_STRUCTURE" : IS_STRUCTURE,
@@ -128,7 +128,7 @@ class STMonolithicSolver:
         self.zeta_dissapative_SM = zeta_dissapative_SM
         #self.gamma_sl = gamma_sl
         #self.gamma_sv = gamma_sv
-        
+
 
         # default settings
         self.echo_level = 0

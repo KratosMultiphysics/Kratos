@@ -81,7 +81,7 @@ struct ruge_stuben {
 
         params() : eps_strong(0.25f), do_trunc(true), eps_trunc(0.2f) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, eps_strong),
               AMGCL_PARAMS_IMPORT_VALUE(p, do_trunc),

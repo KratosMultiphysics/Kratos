@@ -49,11 +49,25 @@ namespace Kratos
 ///@{
 
 /**
- * A four node quadrilateral geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Triangle3D3
+ * @ingroup KratosCore
+ * @brief A three node 3D triangle geometry with linear shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *      v                                                              
+ *      ^                                                               
+ *      |                                                              
+ *      2                                   
+ *      |`\                   
+ *      |  `\                   
+ *      |    `\                 
+ *      |      `\                
+ *      |        `\                 
+ *      0----------1 --> u  
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Triangle3D3
     : public Geometry<TPointType>
 {

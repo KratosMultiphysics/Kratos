@@ -17,7 +17,7 @@ Begin Properties 3 // GUI property identifier: InletForward
  POISSON_RATIO 0.20
  PARTICLE_SPHERICITY 1.0
  PARTICLE_COHESION 0.0
- PARTICLE_FRICTION 0.9999999999999999
+ FRICTION 0.9999999999999999
  COEFFICIENT_OF_RESTITUTION 0.1
  ROLLING_FRICTION 0.01
  ROLLING_FRICTION_WITH_WALLS 0.01
@@ -46,7 +46,7 @@ Begin Properties 4 // GUI property identifier: Inlet1
  POISSON_RATIO 0.20
  PARTICLE_SPHERICITY 1.0
  PARTICLE_COHESION 0.0
- PARTICLE_FRICTION 0.9999999999999999
+ FRICTION 0.9999999999999999
  COEFFICIENT_OF_RESTITUTION 0.1
  ROLLING_FRICTION 0.01
  ROLLING_FRICTION_WITH_WALLS 0.01
@@ -332,7 +332,7 @@ Begin Nodes // GUI Inlet group identifier: Inlet1
 End Nodes
 
 Begin Mesh 3 // GUI group identifier: InletForward
- 
+
  Begin MeshNodes
        304
        305
@@ -362,11 +362,11 @@ Begin Mesh 3 // GUI group identifier: InletForward
        355
        356
  End MeshNodes
- 
+
 End Mesh
 
 Begin Mesh 4 // GUI group identifier: Inlet1
- 
+
  Begin MeshNodes
         18
         19
@@ -607,6 +607,6 @@ Begin Mesh 4 // GUI group identifier: Inlet1
        297
        298
  End MeshNodes
- 
+
 End Mesh
 

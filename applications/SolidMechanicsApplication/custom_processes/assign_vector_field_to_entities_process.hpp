@@ -127,7 +127,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~AssignVectorFieldToEntitiesProcess() {}
+    ~AssignVectorFieldToEntitiesProcess() override {}
 
 
     ///@}

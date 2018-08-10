@@ -25,19 +25,16 @@
 #endif
 
 // External includes
-#include "boost/smart_ptr.hpp"
 #include <iostream>
+#include <utility>
 
 #include "includes/ublas_interface.h"
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-#include <utility>
 
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_arithmetic.hpp>
-#include <boost/property_tree/ptree.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
 #include <amgcl/adapter/crs_tuple.hpp>
