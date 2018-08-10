@@ -33,7 +33,6 @@
 #include "custom_processes/inlet_management_mesher_process.hpp"
 #include "custom_processes/insert_new_nodes_mesher_process.hpp"
 #include "custom_processes/remove_fluid_nodes_mesher_process.hpp"
-#include "custom_processes/refine_fluid_elements_in_edges_mesher_process.hpp"
 
 // MiddleMeshing processes
 
@@ -91,10 +90,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m, "InletManagement")
       .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<RefineFluidElementsInEdgesMesherProcess, RefineFluidElementsInEdgesMesherProcess::Pointer, RefineElementsInEdgesMesherProcess>
-      (m,"RefineFluidElementsInEdges")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
-      ;
 
   //*********SET SOLVER PROCESSES*************//
 
@@ -135,3 +130,4 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
+

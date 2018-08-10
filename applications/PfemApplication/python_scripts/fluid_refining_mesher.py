@@ -84,10 +84,10 @@ class FluidRefiningMesher(mesher.Mesher):
         #recover_volume_losses  = KratosPfem.RecoverVolumeLosses(self.model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPreMeshingProcess(recover_volume_losses)
 
-        #unactive_peak_elements = False
-        #unactive_sliver_elements = False
-        #set_active_flag = KratosPfem.SetActiveEntities(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
-        #self.mesher.SetPreMeshingProcess(set_active_flag)
+        unactive_peak_elements = False
+        unactive_sliver_elements = False
+        set_active_flag = KratosPfem.SetActiveEntities(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
+        self.mesher.SetPreMeshingProcess(set_active_flag)
 
         inlet_management = KratosPfem.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(inlet_management)
@@ -99,9 +99,6 @@ class FluidRefiningMesher(mesher.Mesher):
             generate_new_nodes  = KratosPfem.InsertNewNodes(self.model_part, self.MeshingParameters, self.echo_level)
             self.mesher.SetPreMeshingProcess(generate_new_nodes)
 
-        #refine elements that have all nodes in rigid boundary
-        refine_edge_elements = KratosPfem.RefineFluidElementsInEdges(self.model_part,self.MeshingParameters,self.echo_level)
-        self.mesher.SetPreMeshingProcess(refine_edge_elements)
 
     #
     def SetPostMeshingProcesses(self):

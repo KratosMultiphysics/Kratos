@@ -204,8 +204,7 @@ bool mUnactiveSliverElements;
 void SetPressureToIsolatedWallNodes(Geometry<Node<3> > & wallElementNodes)
 {
   KRATOS_TRY
-
-  unsigned int numNodes=wallElementNodes.size();
+      unsigned int numNodes=wallElementNodes.size();
   double currentPressureForIsolatedWall=0;
   double previousPressureForIsolatedWall=0;
   unsigned int isolatedWallID=0;
@@ -335,3 +334,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_SET_ACTIVE_FLAG_PROCESS_H_INCLUDED  defined
+

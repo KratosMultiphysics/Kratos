@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosPfemFluidApplication $
-//   Created by:          $Author:       JMCarbonell $
-//   Last modified by:    $Co-Author:                $
-//   Date:                $Date:           July 2018 $
-//   Revision:            $Revision:             0.0 $
+//   Project Name:        KratosPfemFluidDynamicsApplication $
+//   Created by:          $Author:                   AFranci $
+//   Last modified by:    $Co-Author:                        $
+//   Date:                $Date:                October 2016 $
+//   Revision:            $Revision:                     0.0 $
 //
 //
 
@@ -65,8 +65,8 @@ class SelectFluidElementsMesherProcess
 
   /// Default constructor.
   SelectFluidElementsMesherProcess(ModelPart& rModelPart,
-                                   MesherUtilities::MeshingParameters& rRemeshingParameters,
-                                   int EchoLevel)
+                                     MesherUtilities::MeshingParameters& rRemeshingParameters,
+                                     int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
   {
@@ -171,7 +171,6 @@ class SelectFluidElementsMesherProcess
         unsigned int  numfluid =0;
         unsigned int  numinlet =0;
         unsigned int  numisolated =0;
-        unsigned int  numnewentities =0;
         // unsigned int  numinsertednodes =0;
         std::vector<double > normVelocityP;
         normVelocityP.resize(nds);
@@ -217,10 +216,6 @@ class SelectFluidElementsMesherProcess
 
           if(vertices.back().Is(SOLID)){
             numsolid++;
-          }
-
-          if(vertices.back().Is(NEW_ENTITY)){
-            numnewentities++;
           }
 
           if( vertices.back().Is(FREE_SURFACE) ){
@@ -316,9 +311,8 @@ class SelectFluidElementsMesherProcess
           }
 
         }
-
         if(firstMesh==true){
-          Alpha*=1.25;
+          Alpha*=1.15;
         }
 
         // Alpha*=1.175;
@@ -351,17 +345,12 @@ class SelectFluidElementsMesherProcess
           }
         }
 
-        //do not accept full rigid elements (no fluid)
-        if(numrigid==nds && numfluid==0)
+        if(numrigid==nds || (numrigid+numsolid)>=nds){
           accepted=false;
-
-        //do not accept full rigid-solid elements (no fluid)
-        if((numsolid+numrigid)>=nds && numfluid==0)
-          accepted=false;
-
-        //do not accept full solid elements
-        if(numsolid==nds)
-          accepted=false;
+          //   if(isolatedWallElement==true || (dimension==2 && countIsolatedWallNodes==0)){
+          //   accepted=false;
+          // }
+        }
 
         //5.- to control that the element has a good shape
         if(accepted && (numfreesurf>0 || numboundary == nds || numboundary-(numrigid+numsolid) > 0))
@@ -384,6 +373,7 @@ class SelectFluidElementsMesherProcess
 
         if(accepted)
         {
+          //std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
           number+=1;
           mrRemesh.PreservedElements[el] = number;
         }
@@ -472,7 +462,7 @@ class SelectFluidElementsMesherProcess
 
     KRATOS_CATCH( "" )
 
-  }
+        }
 
   ///@}
   ///@name Access
