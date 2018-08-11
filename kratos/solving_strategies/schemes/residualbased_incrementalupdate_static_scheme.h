@@ -188,7 +188,6 @@ public:
      * @param rCurrentConditiont The condition to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& rCurrentProcessInfo
