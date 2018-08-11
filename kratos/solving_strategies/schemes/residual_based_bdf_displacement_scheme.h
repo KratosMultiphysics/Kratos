@@ -56,35 +56,37 @@ class ResidualBasedBDFDisplacementScheme
 public:
     ///@name Type Definitions
     ///@{
+    
+    /// Pointer definition of ResidualBasedBDFDisplacementScheme
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBDFDisplacementScheme );
 
+    /// Base class definition
     typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
-    
     typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
-    
     typedef ResidualBasedBDFScheme<TSparseSpace,TDenseSpace>               BDFBaseType;
 
+    /// Data type definition
     typedef typename BDFBaseType::TDataType                                  TDataType;
-
-    typedef typename BDFBaseType::DofsArrayType                          DofsArrayType;
-
-    typedef typename Element::DofsVectorType                            DofsVectorType;
-
+    /// Matrix type definition
     typedef typename BDFBaseType::TSystemMatrixType                  TSystemMatrixType;
-
+    /// Vector type definition
     typedef typename BDFBaseType::TSystemVectorType                  TSystemVectorType;
-
+    /// Local system matrix type definition
     typedef typename BDFBaseType::LocalSystemVectorType          LocalSystemVectorType;
-
+    /// Local system vector type definition
     typedef typename BDFBaseType::LocalSystemMatrixType          LocalSystemMatrixType;
-
+    
+    /// DoF array type definition
+    typedef typename BDFBaseType::DofsArrayType                          DofsArrayType;
+    /// DoF vector type definition
+    typedef typename Element::DofsVectorType                            DofsVectorType;
+    
+    /// Nodes containers definition
     typedef ModelPart::NodesContainerType                               NodesArrayType;
-
+    /// Elements containers definition
     typedef ModelPart::ElementsContainerType                         ElementsArrayType;
-
+    /// Conditions containers definition
     typedef ModelPart::ConditionsContainerType                     ConditionsArrayType;
-
-    typedef typename BaseType::Pointer                                 BaseTypePointer;
 
     ///@}
     ///@name Life Cycle
@@ -111,9 +113,9 @@ public:
     /**
      * Clone
      */
-    BaseTypePointer Clone() override
+    typename BaseType::Pointer Clone() override
     {
-        return BaseTypePointer( new ResidualBasedBDFDisplacementScheme(*this) );
+        return Kratos::make_shared<ResidualBasedBDFDisplacementScheme>(*this);
     }
 
     /** Destructor.
@@ -133,12 +135,11 @@ public:
      * @brief Performing the prediction of the solution
      * @details It predicts the solution for the current step x = xold + vold * Dt
      * @param rModelPart The model of the problem to solve
-     * @param rDofSet set of all primary variables
+     * @param rDofSet Set of all primary variables
      * @param A LHS matrix
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -255,7 +256,6 @@ public:
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-
     int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
@@ -322,7 +322,6 @@ protected:
      * @brief Updating first time derivative (velocity)
      * @param itNode the node interator
      */
-    
     inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
         array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(VELOCITY);
@@ -335,7 +334,6 @@ protected:
      * @brief Updating second time derivative (acceleration)
      * @param itNode the node interator
      */
-    
     inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {
         array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(ACCELERATION);

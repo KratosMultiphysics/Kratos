@@ -60,8 +60,6 @@ public:
 
     /// Base class definition
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
-    /// Base class pointer type definition
-    typedef typename BaseType::Pointer                     BaseTypePointer;
 
     /// DoF array type definition
     typedef typename BaseType::DofsArrayType                 DofsArrayType;
@@ -115,9 +113,9 @@ public:
     /**
      * Clone
      */
-    BaseTypePointer Clone() override
+    typename BaseType::Pointer Clone() override
     {
-        return BaseTypePointer( new ResidualBasedImplicitTimeScheme(*this) );
+        return Kratos::make_shared<ResidualBasedImplicitTimeScheme>(*this);
     }
 
     /** Destructor.
