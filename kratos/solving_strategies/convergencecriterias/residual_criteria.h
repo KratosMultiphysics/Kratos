@@ -122,11 +122,11 @@ public:
 
     ///@} 
     ///@name Operators
-    
     ///@{
 
     /**
-     * Compute relative and absolute error.
+     * @brief Criterias that need to be called after getting the solution
+     * @details Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -180,18 +180,16 @@ public:
     }
 
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the problem. (unused)
      */
-    void Initialize(
-        ModelPart& rModelPart
-        ) override
+    void Initialize(ModelPart& rModelPart) override
     {
-        BaseType::mConvergenceCriteriaIsInitialized = true;
+        BaseType::Initialize(rModelPart);
     }
 
     /**
-     * This function initializes the solution step
+     * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -210,7 +208,7 @@ public:
     }
 
     /**
-     * This function finalizes the solution step
+     * @brief This function finalizes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
