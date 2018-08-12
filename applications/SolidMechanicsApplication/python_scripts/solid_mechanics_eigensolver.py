@@ -8,8 +8,8 @@ KratosMultiphysics.CheckForPreviousImport()
 
 import solid_mechanics_monolithic_solver as BaseSolver
 
-def CreateSolver(custom_settings):
-    return EigenSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return EigenSolver(Model, custom_settings)
 
 
 class EigenSolver(BaseSolver.MonolithicSolver):
@@ -23,7 +23,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
 
     See solid_mechanics_solver.py for more information.
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
         # Set defaults and validate custom settings.
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
@@ -53,7 +53,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         self.eigensolver_settings.RemoveValue("compute_modal_contribution")
 
         # Construct the base solver.
-        super(EigenSolver, self).__init__(custom_settings)
+        super(EigenSolver, self).__init__(Model, custom_settings)
 
         print("::[----Eigen_Scheme---]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 

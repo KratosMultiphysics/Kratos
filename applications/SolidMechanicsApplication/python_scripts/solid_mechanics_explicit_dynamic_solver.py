@@ -9,8 +9,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_monolithic_solver as BaseSolver
 
-def CreateSolver(custom_settings):
-    return ExplicitMonolithicSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return ExplicitMonolithicSolver(Model, custom_settings)
 
 class ExplicitMonolithicSolver(BaseSolver.MonolithicSolver):
     """The solid mechanics explicit dynamic solver.
@@ -22,7 +22,7 @@ class ExplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
     See solid_mechanics_monolithic_solver.py for more information.
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         # Set defaults and validate custom settings.
         ##TODO : solving_strategy_settings must be time_integration_settings (GiD interface changes needed)
@@ -52,7 +52,7 @@ class ExplicitMonolithicSolver(BaseSolver.MonolithicSolver):
             custom_settings["solving_strategy_settings"]["integration_method"].SetString("CentralDifferences")
 
         # Construct the base solver.
-        super(ExplicitMonolithicSolver, self).__init__(custom_settings)
+        super(ExplicitMonolithicSolver, self).__init__(Model, custom_settings)
 
         print("::[--Explicit_Solver--]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 

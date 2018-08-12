@@ -522,7 +522,6 @@ class LineSearchSolutionStrategy
     double parabola_b = 4*rh - rf - 3*ro;
     double xmin = 1e-3;
     double xmax = 1.0;
-    double alpha = mAlpha;
     if( parabola_a > 0) //if parabola has a local minima
     {
       xmax = -0.5 * parabola_b/parabola_a; // -b / 2a
@@ -539,11 +538,10 @@ class LineSearchSolutionStrategy
         xmax = xmin; //should be zero, but otherwise it will stagnate
     }
 
-    alpha  = -(1.0-xmax);
-    mAlpha = alpha;
+    mAlpha = xmax;
 
     //perform final update
-    TSparseSpace::Assign((*this->mpDx),alpha,Dx0);
+    TSparseSpace::Assign((*this->mpDx),mAlpha,Dx0);
     BaseType::Update();
 
     //restore

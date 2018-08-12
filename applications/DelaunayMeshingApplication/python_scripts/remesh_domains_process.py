@@ -91,6 +91,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, False);
 
+
         # initialize all meshing domains
         if( self.remesh_domains_active ):
 
@@ -123,7 +124,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
-                self.main_model_part.ProcessInfo[KratosDelaunay.MESHING_STEP_PERFORMED] = False
                 if(self.IsMeshingStep()):
                     self.RemeshDomains()
 
@@ -132,7 +132,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         if(self.remesh_domains_active):
             if( not self.meshing_before_output ):
-                self.main_model_part.ProcessInfo[KratosDelaunay.MESHING_STEP_PERFORMED] = False
                 if(self.IsMeshingStep()):
                     self.RemeshDomains()
 
@@ -172,17 +171,22 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         self.counter += 1
 
-        self.main_model_part.ProcessInfo[KratosDelaunay.MESHING_STEP_PERFORMED] = True
-
         # schedule next meshing
         if(self.meshing_frequency > 0.0): # note: if == 0 always active
             if(self.meshing_control_is_time):
                 time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
                 while(self.next_meshing <= time):
                     self.next_meshing += self.meshing_frequency
+
+                    self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.MESHING_STEP_TIME,self.next_meshing)
             else:
                 while(self.next_meshing <= self.step_count):
                     self.next_meshing += self.meshing_frequency
+
+                    delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                    time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+                    next_meshing_time = time + self.meshing_frequency * delta_time;
+                    self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.MESHING_STEP_TIME, next_meshing_time)
 
 
     #

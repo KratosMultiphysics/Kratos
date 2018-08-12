@@ -265,7 +265,8 @@ namespace Kratos
       if( count_nodes != rModelPart.Nodes().size() || count_conditions != rModelPart.Conditions().size() )
 	build_is_needed = true;
 
-      if( rModelPart.GetProcessInfo()[MESHING_STEP_PERFORMED] )
+      const ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+      if( rProcessInfo[MESHING_STEP_TIME] == (rProcessInfo[TIME]-rProcessInfo[DELTA_TIME]) )
 	build_is_needed = true;
 
       if( build_is_needed ){

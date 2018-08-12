@@ -98,10 +98,9 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
     #
     def ExecuteInitializeSolutionStep(self):
         self.step_count += 1
-        meshing_step_performed = self.main_model_part.ProcessInfo[KratosDelaunay.MESHING_STEP_PERFORMED]
-        restart_performed = self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
+
         #if( not restart_performed ):
-        if(self.IsMeshingStep() or meshing_step_performed):
+        if(self.IsMeshingStep() or self._meshing_step_perfomed()):
             self.RemeshDomains()
 
     #
@@ -157,3 +156,12 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         nodal_variables = nodal_variables + ['CONTACT_NORMAL', 'CONTACT_FORCE']
         nodal_variables = nodal_variables + ['CONTACT_STRESS', 'EFFECTIVE_CONTACT_STRESS', 'EFFECTIVE_CONTACT_FORCE']
         return nodal_variables
+
+    #
+    def _meshing_step_performed(self):
+
+        process_info= self.main_model_part.ProcessInfo
+        if( process_info[KratosDelaunay.MESHING_STEP_TIME] == (process_info[KratosMultiphysics.TIME]-rProcessInfo[KratosMultiphysics.DELTA_TIME]) ):
+            return True
+        else:
+            return False

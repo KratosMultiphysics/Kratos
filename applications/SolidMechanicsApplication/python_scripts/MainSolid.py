@@ -70,10 +70,8 @@ class Solution(object):
         # Get Solution Step Variables
         self._set_solution_step_variables()
 
-        # Read model
-        self.model.ImportModel()
-
-        self.process_info = self.model.GetProcessInfo()
+        # Initialize model (read and import)
+        self.model.ExecuteInitialize()
 
         sys.stdout.flush()
 
@@ -81,9 +79,7 @@ class Solution(object):
         self._get_time_settings()
 
         # Initialize Solver
-        computing_model_part = self.model.GetComputingModelPart()
         self.solver.SetEchoLevel(self.echo_level)
-        self.solver.SetComputingModelPart(computing_model_part)
         self.solver.ExecuteInitialize()
 
         # Import materials
@@ -94,18 +90,41 @@ class Solution(object):
         # Initiliaze processes
         self.processes.ExecuteInitialize()
 
-        # Start graphical output (GiD)
+        # Initialize graphical output (GiD)
         output_model_part = self.model.GetOutputModelPart()
         self.output = self._get_graphical_output(output_model_part)
         self.output.ExecuteInitialize()
 
-        # First execution before solution loop
+
+    def Solve(self):
+
+        # Initialize solution Loop
+        self.InitializeSolutionLoop()
+
+        # Solving the problem (time integration)
+        while(self.time < self.end_time):
+
+            self.InitializeSolutionStep()
+            self.SolveSolutionStep()
+            self.FinalizeSolutionStep()
+
+            if(self.echo_level>=0):
+                sys.stdout.flush()
+
+
+    def InitializeSolutionLoop(self):
+
+        # Processes to be executed before solution loop
         self.processes.ExecuteBeforeSolutionLoop()
+
+        # First execution before solution loop
+        self.model.ExecuteBeforeSolutionLoop()
 
         # Writing a initial state results file or single file (if no restart)
         if( self._is_not_restarted() ):
             self.output.ExecuteBeforeSolutionLoop()
 
+        # First execution before solution loop
         self.solver.ExecuteBeforeSolutionLoop()
 
         # Print model_part and properties
@@ -120,18 +139,6 @@ class Solution(object):
 
         sys.stdout.flush()
 
-
-    def Solve(self):
-
-        # Solving the problem (time integration)
-        while(self.time < self.end_time):
-
-            self.InitializeSolutionStep()
-            self.SolveSolutionStep()
-            self.FinalizeSolutionStep()
-
-            if(self.echo_level>=0):
-                sys.stdout.flush()
 
     def InitializeSolutionStep(self):
 
@@ -150,9 +157,14 @@ class Solution(object):
         if(self.echo_level >= 0):
             print("  [STEP:"+str(self.step)+" TIME:"+"{0:1.{1}f}".format(self.time,5)+"]")
 
+
         # Processes to be executed at the begining of the solution step
         self.processes.ExecuteInitializeSolutionStep()
 
+        # Execution at the begining of the solution step
+        self.model.ExecuteInitializeSolutionStep()
+
+        # Execution at the begining of the solution step
         self.output.ExecuteInitializeSolutionStep()
 
         self._stop_time_measuring(self.clock_time,"Initialize Step", self.report);
@@ -184,10 +196,14 @@ class Solution(object):
 
         self.clock_time = self._start_time_measuring();
 
+        # Execution at the end of the solution step
         self.output.ExecuteFinalizeSolutionStep()
 
         # Processes to be executed at the end of the solution step
         self.processes.ExecuteFinalizeSolutionStep()
+
+        # Execution at the end of the solution step
+        self.model.ExecuteFinalizeSolutionStep()
 
         # Processes to be executed before witting the output
         self.processes.ExecuteBeforeOutputStep()
@@ -284,9 +300,11 @@ class Solution(object):
 
     def _get_solver(self):
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-        return (solver_module.CreateSolver(self.ProjectParameters["solver_settings"]["Parameters"]))
+        return (solver_module.CreateSolver(self.ProjectParameters["solver_settings"]["Parameters"], self.model.GetModel()))
 
     def _get_time_settings(self):
+
+        self.process_info = self.model.GetProcessInfo()
 
         # Get time parameters
         if( self._is_not_restarted() ):

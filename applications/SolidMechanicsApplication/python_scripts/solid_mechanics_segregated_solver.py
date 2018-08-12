@@ -11,8 +11,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_monolithic_solver as BaseSolver
 
-def CreateSolver(custom_settings):
-    return SegregatedSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return SegregatedSolver(Model, custom_settings)
 
 #Base class to develop other solvers
 class SegregatedSolver(BaseSolver.MonolithicSolver):
@@ -22,10 +22,11 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
 
     See solid_mechanics_monolithic_solver.py for more information.
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "solving_model_part": "computing_domain",
             "solvers":[],
             "processes":[]
         }
@@ -40,10 +41,16 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
         solvers_list = self.settings["solvers"]
         for i in range(solvers_list.size()):
             solver_module = __import__(solvers_list[i]["solver_type"].GetString())
-            self.solvers.append(solver_module.CreateSolver(solvers_list[i]["Parameters"]))
+            self.solvers.append(solver_module.CreateSolver(solvers_list[i]["Parameters"], Model))
+
+        # Model
+        self.model = Model
 
         # Echo level
         self.echo_level = 0
+
+        # Solver processes
+        self.processes = []
 
 
     def ExecuteInitialize(self):
@@ -66,11 +73,6 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
                 buffer_size = size
         return buffer_size;
 
-    def SetComputingModelPart(self, computing_model_part):
-        self.model_part = computing_model_part
-        for solver in self.solvers:
-            solver.SetComputingModelPart(computing_model_part)
-
     def GetVariables(self):
         nodal_variables = []
         for solver in self.solvers:
@@ -81,10 +83,6 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
         for solver in self.solvers:
             solver.SetEchoLevel(level)
         self.echo_level = level
-
-    def Clear(self):
-        for solver in self.solvers:
-            solver.Clear()
 
     #### Solver internal methods ####
 
