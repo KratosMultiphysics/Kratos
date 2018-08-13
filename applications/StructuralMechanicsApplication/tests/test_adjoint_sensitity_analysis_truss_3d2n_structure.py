@@ -74,7 +74,7 @@ class TestAdjointSensitivityAnalysisTrussStructure(KratosUnittest.TestCase):
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
         adjoint_analysis.Run()
 
-        # Check sensitivities for the parameter I22
+        # Check sensitivities for the parameter cross area
         reference_values = [2.018619553, -1.78560606]
         sensitivities_to_check = []
         element_list = [1,2]
