@@ -407,8 +407,12 @@ Matrix& ThermalElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
 
 void ThermalElement::CalculateThermalProperties(GeneralVariables& rVariables)
 {
-  bool TemperatureDependentLaw = GetProperties()[TEMPERATURE_DEPENDENT];
-  if ( TemperatureDependentLaw ){
+  bool TemperatureDependentLaw = false;
+  if( GetProperties().Has(TEMPERATURE_DEPENDENT) ){
+    TemperatureDependentLaw = GetProperties()[TEMPERATURE_DEPENDENT];
+  }
+
+  if( TemperatureDependentLaw ){
     const unsigned int number_of_nodes = GetGeometry().size();
 
     //double ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
