@@ -31,14 +31,14 @@ namespace Kratos {
  *  changes whenever the Nodes are moving.
  */
 class NodeCurveGeometry3D
-    : public ANurbs::CurveGeometryBase<double, Kratos::array_1d<double, 3>>
+    : public ANurbs::CurveGeometryBase<Kratos::array_1d<double, 3>>
 {
 protected:
     using NodePointer = typename Node<3>::Pointer;
 
 public:
     using NodeType = Node<3>;
-    using CurveGeometryBaseType = ANurbs::CurveGeometryBase<double,
+    using CurveGeometryBaseType = ANurbs::CurveGeometryBase<
         Kratos::array_1d<double, 3>>;
     using typename CurveGeometryBaseType::KnotsType;
     using typename CurveGeometryBaseType::ScalarType;

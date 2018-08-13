@@ -31,14 +31,14 @@ namespace Kratos {
  *  changes whenever the Nodes are moving.
  */
 class NodeSurfaceGeometry3D
-    : public ANurbs::SurfaceGeometryBase<double, Kratos::array_1d<double, 3>>
+    : public ANurbs::SurfaceGeometryBase<Kratos::array_1d<double, 3>>
 {
 protected:
     using NodePointer = typename Node<3>::Pointer;
 
 public:
     using NodeType = Node<3>;
-    using SurfaceGeometryBaseType = SurfaceGeometryBase<double,
+    using SurfaceGeometryBaseType = SurfaceGeometryBase<
         Kratos::array_1d<double, 3>>;
     using typename SurfaceGeometryBaseType::KnotsType;
     using typename SurfaceGeometryBaseType::ScalarType;
