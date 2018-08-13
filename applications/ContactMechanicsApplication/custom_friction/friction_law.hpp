@@ -50,7 +50,10 @@ namespace Kratos
 
 class KRATOS_API(CONTACT_MECHANICS_APPLICATION) FrictionLaw
 {
-protected:
+public:
+
+  ///@name Type Definitions
+  ///@{
 
   struct FrictionLawVariables {
 
@@ -78,12 +81,6 @@ protected:
     };
 
   };
-
-
-public:
-
-  ///@name Type Definitions
-  ///@{
 
   /// Pointer definition of FrictionLaw
   KRATOS_CLASS_POINTER_DEFINITION(FrictionLaw);
