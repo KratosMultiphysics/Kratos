@@ -96,7 +96,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
         linear_solver = new_linear_solver_factory.ConstructSolver(Parameters(
             r"""{"solver_type": "eigen_sparse_lu"}"""))
 
-        relative_tolerance = 1e-5
+        relative_tolerance = 1e-7
         absolute_tolerance = 1e-7
 
         conv_criteria = ResidualCriteria(relative_tolerance, absolute_tolerance)
