@@ -51,7 +51,7 @@ void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVa
                     rOutput(i) = force_vector[i][0];
                 break;
             }
-            case TracedStressType::PK2X:
+            case TracedStressType::PK2_TRUSS:
             {
                 std::vector<Vector> stress_vector;
                 mpPrimalElement->GetValueOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
@@ -201,9 +201,9 @@ void AdjointFiniteDifferenceTrussElement::GetDerivativePreFactor(double& rDeriva
             rDerivativePreFactor = this->CalculateDerivativePreFactorFX(rCurrentProcessInfo);
             break;
         }
-        case TracedStressType::PK2X:
+        case TracedStressType::PK2_TRUSS:
         {
-            rDerivativePreFactor = this->CalculateDerivativePreFactorPK2X(rCurrentProcessInfo);
+            rDerivativePreFactor = this->CalculateDerivativePreFactorPK2(rCurrentProcessInfo);
             break;
         }
         default:
@@ -227,13 +227,13 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorFX(const
         
     double derivative_pre_factor = A / L0 * (E * GL_strain_X + prestress + E * l * l / (L0 * L0));
 
-    KRATOS_ERROR_IF(derivative_pre_factor<=numerical_limit)
+    KRATOS_ERROR_IF(std::abs(derivative_pre_factor) <= numerical_limit)
         << "Derivative pre-factor of " << this->Id() << "~ 0" << std::endl;
 
     return derivative_pre_factor;
 }
 
-double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorPK2X(const ProcessInfo& rCurrentProcessInfo)
+double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorPK2(const ProcessInfo& rCurrentProcessInfo)
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];

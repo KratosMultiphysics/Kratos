@@ -72,8 +72,8 @@ namespace Kratos
                 return TracedStressType::MZY;
             else if(Str == "MZZ")
                 return TracedStressType::MZZ;
-            else if(Str == "PK2X")
-                return TracedStressType::PK2X;
+            else if(Str == "PK2_TRUSS")
+                return TracedStressType::PK2_TRUSS;
             else
                 KRATOS_ERROR << "Chosen stress type \n" <<Str<<"\" is not available!" << std::endl;
         }

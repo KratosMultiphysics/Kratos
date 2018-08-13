@@ -51,7 +51,7 @@ private:
 
     double CalculateDerivativePreFactorFX(const ProcessInfo& rCurrentProcessInfo);
 
-    double CalculateDerivativePreFactorPK2X(const ProcessInfo& rCurrentProcessInfo);
+    double CalculateDerivativePreFactorPK2(const ProcessInfo& rCurrentProcessInfo);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
