@@ -28,37 +28,105 @@ The application includes tests to check the proper functioning of the applicatio
         * Nodal concentrated element (both 2D/3D). Includes nodal damping, nodal mass and nodal stiffness
     * Uni-dimensional elements :
         * Truss element (3D)
-       	* Corrotational beam element (both 2D/3D)
+           * Corrotational beam element (both 2D/3D)
     * Two-dimensional elements :
         * Membrane (regular and pre-stress)
         * Isotropic shell element
         * Thin shell (Quadrilateral and triangular)
-       	* Thick shell (Quadrilateral and triangular)
-       	
+           * Thick shell (Quadrilateral and triangular)
+
 - Constitutive laws: 
-	* Isotropic laws (Plane strain, plane stress and 3D)
-	* Orthotropic law (Plane stress)
-	* Hyperelastic laws:
-		* Neo-Hookean
-		* Kirchhoff
-		
+    * Isotropic laws (Plane strain, plane stress and 3D)
+    * Orthotropic law (Plane stress)
+    * Hyperelastic laws:
+        * Neo-Hookean
+        * Kirchhoff
+    * Small displacement isotropic plasticity laws (just 3D):
+        * Combining:
+            * Yield surfaces:
+                * VonMises
+                * ModifiedMohrCoulomb
+                * Tresca 
+                * DruckerPrager 
+            * Plastic potential:
+                * VonMises
+                * ModifiedMohrCoulomb
+                * Tresca
+                * DruckerPrager
+        * Complete list:
+            * SmallStrainIsotropicPlasticity3DVonMisesVonMises
+            * SmallStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb
+            * SmallStrainIsotropicPlasticity3DVonMisesDruckerPrager
+            * SmallStrainIsotropicPlasticity3DVonMisesTresca
+            * SmallStrainIsotropicPlasticity3DModifiedMohrCoulombVonMises
+            * SmallStrainIsotropicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb
+            * SmallStrainIsotropicPlasticity3DModifiedMohrCoulombDruckerPrager
+            * SmallStrainIsotropicPlasticity3DModifiedMohrCoulombTresca
+            * SmallStrainIsotropicPlasticity3DTrescaVonMises
+            * SmallStrainIsotropicPlasticity3DTrescaModifiedMohrCoulomb
+            * SmallStrainIsotropicPlasticity3DTrescaDruckerPrager
+            * SmallStrainIsotropicPlasticity3DTrescaTresca
+            * SmallStrainIsotropicPlasticity3DDruckerPragerVonMises
+            * SmallStrainIsotropicPlasticity3DDruckerPragerModifiedMohrCoulomb
+            * SmallStrainIsotropicPlasticity3DDruckerPragerDruckerPrager
+            * SmallStrainIsotropicPlasticity3DDruckerPragerTresca
+    * Small displacement isotropic damage laws (just 3D):
+        * Combining:
+            * Yield surfaces:
+                * VonMises
+                * ModifiedMohrCoulomb
+                * Tresca 
+                * DruckerPrager 
+                * Rankine 
+                * SimoJu 
+            * Damage potential:
+                * VonMises
+                * ModifiedMohrCoulomb
+                * Tresca
+                * DruckerPrager
+        * Complete list:
+            * SmallStrainIsotropicDamage3DVonMisesVonMises
+            * SmallStrainIsotropicDamage3DVonMisesModifiedMohrCoulomb
+            * SmallStrainIsotropicDamage3DVonMisesDruckerPrager
+            * SmallStrainIsotropicDamage3DVonMisesTresca
+            * SmallStrainIsotropicDamage3DModifiedMohrCoulombVonMises
+            * SmallStrainIsotropicDamage3DModifiedMohrCoulombModifiedMohrCoulomb
+            * SmallStrainIsotropicDamage3DModifiedMohrCoulombDruckerPrager
+            * SmallStrainIsotropicDamage3DModifiedMohrCoulombTresca
+            * SmallStrainIsotropicDamage3DTrescaVonMises
+            * SmallStrainIsotropicDamage3DTrescaModifiedMohrCoulomb
+            * SmallStrainIsotropicDamage3DTrescaDruckerPrager
+            * SmallStrainIsotropicDamage3DTrescaTresca
+            * SmallStrainIsotropicDamage3DDruckerPragerVonMises
+            * SmallStrainIsotropicDamage3DDruckerPragerModifiedMohrCoulomb
+            * SmallStrainIsotropicDamage3DDruckerPragerDruckerPrager
+            * SmallStrainIsotropicDamage3DDruckerPragerTresca
+            * SmallStrainIsotropicDamage3DRankineVonMises
+            * SmallStrainIsotropicDamage3DRankineModifiedMohrCoulomb
+            * SmallStrainIsotropicDamage3DRankineDruckerPrager
+            * SmallStrainIsotropicDamage3DRankineTresca
+            * SmallStrainIsotropicDamage3DSimoJuVonMises
+            * SmallStrainIsotropicDamage3DSimoJuModifiedMohrCoulomb
+            * SmallStrainIsotropicDamage3DSimoJuDruckerPrager
+            * SmallStrainIsotropicDamage3DSimoJuTresca
+
 - Strategies:
-	* Formfinding strategies
-	* Eigensolver strategy
-	* Harmonic analysis strategies
-	* Arc-length strategy
-	
+    * Formfinding strategies
+    * Eigensolver strategy
+    * Harmonic analysis strategies
+    * Arc-length strategy
+
 - Schemes:
-	* Relaxation scheme
-	* Eigen solver scheme
-	
+    * Relaxation scheme
+    * Eigen solver scheme
+
 - Convergence criteria:
-	* For displacement and other DoF
-	* For displacement and rotation
-	
+    * For displacement and other DoF
+    * For displacement and rotation
+
 - Builder and solver:    
-	* Multi-point Constraint builder and solver
-	
+    * Multi-point Constraint builder and solver
+
 - Utilities and others:
-	* A process to post-process eigenvalues
-	* A GiDIO utility for eigen values
+    * A process to post-process eigenvalues
+    * A GiDIO utility for eigen values
