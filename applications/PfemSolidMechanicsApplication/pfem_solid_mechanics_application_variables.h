@@ -26,11 +26,14 @@
 
 // External includes
 
-// Project includes
-#include "includes/kratos_application.h"
 
-#include "solid_mechanics_application_variables.h"
+// Project includes
+#include "includes/define.h"
+#include "includes/kratos_application.h"
+#include "includes/variables.h"
+
 #include "contact_mechanics_application_variables.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

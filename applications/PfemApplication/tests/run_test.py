@@ -16,8 +16,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import SmallTests
 # NIGTHLY TESTS
 import NightTests
-# VALIDATION TESTS
-import ValidationTests
 
 if __name__ == '__main__':
     case = eval(sys.argv[1])

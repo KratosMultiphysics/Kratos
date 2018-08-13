@@ -156,7 +156,6 @@ class MonolithicSolver(object):
     def Clear(self):
         if self.settings["solving_strategy_settings"]["clear_storage"].GetBool():
             self._get_mechanical_solver().Clear()
-        self._check_reform_dofs()
 
     def Check(self):
         self._get_mechanical_solver().Check()
@@ -183,32 +182,6 @@ class MonolithicSolver(object):
 
 
     #### Solver internal methods ####
-
-    def _check_reform_dofs(self):
-        if( self._domain_parts_updated() ):
-            if( not self._get_mechanical_solver().GetOptions().Is(KratosSolid.SolverLocalFlags.REFORM_DOFS) ):
-                self._get_mechanical_solver().GetOptions().Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, True)
-                KratosMultiphysics.Logger.PrintInfo(self._class_prefix(), "Set REFORM DOFS: True")
-        else:
-            if( self._get_mechanical_solver().GetOptions().Is(KratosSolid.SolverLocalFlags.REFORM_DOFS) ):
-                self._get_mechanical_solver().GetOptions().Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, False)
-                KratosMultiphysics.Logger.PrintInfo(self._class_prefix(), "Set REFORM DOFS: False")
-
-    def _domain_parts_updated(self):
-        if( self.process_info.Has(KratosSolid.MESHING_STEP_TIME) ):
-            current_time  = self.process_info[KratosMultiphysics.TIME]
-            delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
-            previous_time = current_time - delta_time
-
-            #arithmetic floating point tolerance
-            tolerance = delta_time * 0.001
-
-            meshing_step_time = self.process_info[KratosSolid.MESHING_STEP_TIME]
-
-            if( meshing_step_time > previous_time-tolerance and meshing_step_time < previous_time+tolerance ):
-                return True
-
-        return False
 
     def _check_initialized(self):
         if( not self._is_not_restarted() ):

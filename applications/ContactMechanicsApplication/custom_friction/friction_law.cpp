@@ -12,12 +12,28 @@
 namespace Kratos
 {
 
-   void FrictionLaw::InitializeSolutionStep()
+   /**
+    * Constructor.
+    */
+   FrictionLaw::FrictionLaw()
    {
+      mPlasticSlip = 0.0;
+      mPlasticSlipNew = 0.0;
+      mDeltaPlasticSlip = 0.0;
+   }
+
+   /**
+    * Clone function (has to be implemented by any derived class)
+    * @return a pointer to a new instance of this friction law
+    */
+   FrictionLaw::Pointer FrictionLaw::Clone() const
+   {
+      return Kratos::make_shared<FrictionLaw>(*this);
    }
 
    void FrictionLaw::FinalizeSolutionStep()
    {
+
       mDeltaPlasticSlip = mPlasticSlipNew - mPlasticSlip;
       mPlasticSlip = mPlasticSlipNew;
    }
@@ -181,5 +197,4 @@ namespace Kratos
    }
 
 
-}
-// namespace Kratos
+} // namespace Kratos

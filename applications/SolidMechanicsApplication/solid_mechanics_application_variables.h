@@ -26,8 +26,8 @@
 
 
 // Project includes
+#include "includes/define.h"
 #include "includes/kratos_application.h"
-
 #include "includes/variables.h"
 #include "includes/mat_variables.h"
 #include "includes/kratos_flags.h"
@@ -202,4 +202,4 @@ namespace Kratos
 
 }
 
-#endif	// KRATOS_SOLID_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED
+#endif	/* KRATOS_SOLID_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

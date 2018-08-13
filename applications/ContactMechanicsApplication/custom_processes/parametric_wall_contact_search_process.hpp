@@ -25,19 +25,19 @@
 #include "geometries/point_3d.h"
 
 // Contact Point Conditions
-#include "custom_conditions/rigid_contact/point_rigid_contact_penalty_2D_condition.hpp"
-#include "custom_conditions/rigid_contact/axisym_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
-#include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_3D_condition.hpp"
-#include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_2D_condition.hpp"
-#include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_wP_3D_condition.hpp"
-#include "custom_conditions/rigid_contact/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/EP_point_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/EP_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/EP_point_rigid_contact_penalty_wP_3D_condition.hpp"
+#include "custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
 
-// #include "custom_conditions/rigid_contact/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
-// #include "custom_conditions/beam_contact/beam_point_rigid_contact_penalty_3D_condition.hpp"
-// #include "custom_conditions/beam_contact/beam_point_rigid_contact_LM_3D_condition.hpp"
-// #include "custom_conditions/rigid_contact/rigid_body_point_rigid_contact_condition.hpp"
+// #include "custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
+// #include "custom_conditions/beam_point_rigid_contact_penalty_3D_condition.hpp"
+// #include "custom_conditions/beam_point_rigid_contact_LM_3D_condition.hpp"
+// #include "custom_conditions/rigid_body_point_rigid_contact_condition.hpp"
 
 //#include "custom_friction/friction_law.hpp"
 

@@ -447,16 +447,7 @@ class ModelManager(object):
     #
     def _domain_parts_updated(self):
         if( self.process_info.Has(KratosSolid.MESHING_STEP_TIME) ):
-            current_time  = self.process_info[KratosMultiphysics.TIME]
-            delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
-            previous_time = current_time - delta_time
-
-            #arithmetic floating point tolerance
-            tolerance = delta_time * 0.001
-
-            meshing_step_time = self.process_info[KratosSolid.MESHING_STEP_TIME]
-
-            if( meshing_step_time > previous_time-tolerance and meshing_step_time < previous_time+tolerance ):
+            if( self.process_info[KratosSolid.MESHING_STEP_TIME] == (self.process_info[KratosMultiphysics.TIME]-self.process_info[KratosMultiphysics.DELTA_TIME]) ):
                 return True
 
         return False

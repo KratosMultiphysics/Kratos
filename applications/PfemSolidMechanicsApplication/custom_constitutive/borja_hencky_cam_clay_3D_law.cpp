@@ -8,15 +8,16 @@
 //
 
 // System includes
+#include <iostream>
 
 // External includes
+#include<cmath>
 
 // Project includes
-//#include "utilities/math_utils.h"
+#include "includes/properties.h"
+#include "utilities/math_utils.h"
 #include "custom_constitutive/borja_hencky_cam_clay_3D_law.hpp"
-
 #include "pfem_solid_mechanics_application_variables.h"
-
 namespace Kratos
 {
 
@@ -70,7 +71,10 @@ namespace Kratos
 
    double& BorjaHenckyCamClayPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue)
    {
-     if ( rThisVariable == M_MODULUS ) {
+      if ( rThisVariable == PENALTY_PARAMETER)
+      {
+      }
+      else if ( rThisVariable == M_MODULUS ) {
          double Swelling = mpYieldCriterion->GetHardeningLaw().GetProperties()[ SWELLING_SLOPE ];
          double MeanStress ;
          MeanStress = this->GetValue( STRESS_INV_P, MeanStress);
@@ -88,7 +92,7 @@ namespace Kratos
          double MeanStress ;
          MeanStress = this->GetValue( STRESS_INV_P, MeanStress);
          double K = MeanStress/Swelling;
-         if ( rThisVariable == BULK_MODULUS)
+         if ( rThisVariable == BULK_MODULUS) 
          {
             rValue = K;
             return rValue;
@@ -137,8 +141,13 @@ namespace Kratos
               ReturnMappingVariables.DeltaGamma = rValue;
               mpFlowRule->UpdateInternalVariables( ReturnMappingVariables );
               }*/
-
-     NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
+      if ( rThisVariable == PENALTY_PARAMETER)
+      {
+      }
+      else 
+      {
+         NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo );
+      }
    }
 
    void BorjaHenckyCamClayPlastic3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
@@ -155,7 +164,7 @@ namespace Kratos
          double ReferencePressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
          double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
          double ConstantShearModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[INITIAL_SHEAR_MODULUS];
-         ReferencePressure /= OCR;
+         ReferencePressure /= OCR;    
 
          Vector Objective(3);
          Objective(0) = rStressVector(0) + rStressVector(1) + rStressVector(2);
@@ -174,7 +183,7 @@ namespace Kratos
          Matrix InverseTangent = ZeroMatrix(3,3);
          Vector Residual = ZeroVector(3);
          Vector dGuess = Residual;
-         double error, detI;
+         double error, detI; 
          unsigned nIter = 0;
 
          while (NotConverged) {
@@ -231,10 +240,10 @@ namespace Kratos
 
          // 2. Set the ElasticLeftCauchy
          double Hencky1 = 0.0;
-         double Hencky2 = 0.0;
+         double Hencky2 = 0.0; 
 
          Hencky1 = Guess(1) + Guess(0)/3.0;
-         Hencky2 = Guess(2) + Guess(0)/3.0; // small strain
+         Hencky2 = Guess(2) + Guess(0)/3.0; // small strain 
 
          mElasticLeftCauchyGreen(0,0) = std::exp( 2.0*Hencky2);
          mElasticLeftCauchyGreen(1,1) = std::exp( 2.0*Hencky1);
@@ -250,7 +259,7 @@ namespace Kratos
          StressQ = pow( Objective(1), 2) + 2.0*pow( Objective(2), 2);
          StressQ = sqrt(3.0/2.0) * sqrt(StressQ);
 
-         PreconsolidationStress = Objective(0) + pow ( StressQ / ShearM, 2) / Objective(0);
+         PreconsolidationStress = Objective(0) + pow ( StressQ / ShearM, 2) / Objective(0); 
          ReferencePressure *= OCR;
 
          PreconsolidationStress *= OCR;

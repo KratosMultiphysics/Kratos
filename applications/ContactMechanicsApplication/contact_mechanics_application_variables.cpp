@@ -7,22 +7,14 @@
 //
 //
 
+#include "custom_friction/friction_law.hpp"
 #include "contact_mechanics_application_variables.h"
 
 namespace Kratos
 {
-  ///@name Type Definitions
-  ///@{
-  typedef FrictionLaw::Pointer  FrictionLawPointerType;
-  ///@}
-
-  ///@name Kratos Globals
-  ///@{
-
-  //Create Variables
 
   KRATOS_CREATE_VARIABLE( std::string, FRICTION_LAW_NAME )
-  KRATOS_CREATE_VARIABLE( FrictionLawPointerType, FRICTION_LAW )
+  KRATOS_CREATE_VARIABLE( FrictionLaw::Pointer, FRICTION_LAW )
 
   KRATOS_CREATE_VARIABLE( bool, FRICTION_ACTIVE )
   KRATOS_CREATE_VARIABLE( bool, HYDRAULIC )
@@ -50,5 +42,4 @@ namespace Kratos
   //thermal properties
   KRATOS_CREATE_VARIABLE( double, HEAT_CONDUCTIVITY )
 
-  ///@}
 }
