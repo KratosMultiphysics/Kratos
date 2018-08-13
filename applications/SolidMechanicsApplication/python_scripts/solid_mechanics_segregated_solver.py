@@ -84,6 +84,10 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
             solver.SetEchoLevel(level)
         self.echo_level = level
 
+    def Clear(self):
+        for solver in self.solvers:
+            solver.Clear()
+
     #### Solver internal methods ####
 
     def _check_initialized(self):
