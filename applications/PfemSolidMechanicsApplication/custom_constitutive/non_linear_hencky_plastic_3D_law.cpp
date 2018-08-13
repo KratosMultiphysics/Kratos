@@ -8,16 +8,13 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
+
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
-#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -65,7 +62,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void NonLinearHenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps, 
+   void NonLinearHenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
          const GeometryType& rGeom,
          const Vector& rShapeFunctionsValues)
    {
@@ -151,8 +148,8 @@ namespace Kratos
       ElasticVariables.CauchyGreenMatrix = mElasticLeftCauchyGreen;
 
       //5.-Calculate Total Kirchhoff stress
-      Matrix StressMatrix = ZeroMatrix(3,3);    
-      Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen; 
+      Matrix StressMatrix = ZeroMatrix(3,3);
+      Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen;
 
       if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       {
@@ -181,7 +178,7 @@ namespace Kratos
          }
 
          ElasticVariables.DeformationGradientF = identity_matrix<double>(3);  // this is the incremental def gradient
-         NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen; 
+         NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen;
          this->CalculateOnlyDeviatoricPart( ElasticVariables.DeformationGradientF ); // in UP this is FBar
          mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, StressMatrix, NewElasticLeftCauchyGreen);
          this->CorrectDomainPressure( StressMatrix, ElasticVariables); // adds Pressure in UP
@@ -207,7 +204,7 @@ namespace Kratos
          this->CalculateElastoPlasticTangentMatrix( ReturnMappingVariables, NewElasticLeftCauchyGreen, rAlpha, ElastoPlasticTangentMatrix, ElasticVariables);
          // IN U formulation calls a function that calls mpFlowRule->ComputeElastoPlasticTangentMatrix(,....)
          // IN U-P formulation calls the function that calls mpFlowRule->ComputeElastoPlasticTangentMatrix and also performs some operations (adds the pIC... terms)
-         
+
 
          if (  ( ConstitutiveMatrix.size1() == ConstitutiveMatrix.size2() ) & ( ConstitutiveMatrix.size1() == 6) )
          {
@@ -227,7 +224,7 @@ namespace Kratos
          mElasticLeftCauchyGreen = NewElasticLeftCauchyGreen;
 
          // moved to HyperElastic3DLaw::UpdateInvernalVariables that is called at FinalizeMaterialResponse just after it arribes here.
-         /*ElasticVariables.DeformationGradientF = DeformationGradientF; 
+         /*ElasticVariables.DeformationGradientF = DeformationGradientF;
            ElasticVariables.DeformationGradientF = Transform2DTo3D(ElasticVariables.DeformationGradientF);
            MathUtils<double>::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
            mDeterminantF0 = DeterminantF; //special treatment of the determinant     */
@@ -294,7 +291,7 @@ namespace Kratos
       {
          rValue = mElasticLeftCauchyGreen;
       }
-      else if ( rThisVariable == INVERSE_DEFORMATION_GRADIENT ) 
+      else if ( rThisVariable == INVERSE_DEFORMATION_GRADIENT )
       {
          rValue = mInverseDeformationGradientF0;
       }
@@ -314,7 +311,7 @@ namespace Kratos
 
          const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
          if ( rThisVariable==VOLUMETRIC_PLASTIC) {
-            rValue = InternalVariables.EquivalentPlasticStrain; 
+            rValue = InternalVariables.EquivalentPlasticStrain;
          }
          else if (rThisVariable==PLASTIC_STRAIN) {
             rValue = InternalVariables.DeltaPlasticStrain;
@@ -325,7 +322,7 @@ namespace Kratos
 
          return rValue;
       }
-      else if ( (rThisVariable==STRESS_INV_P) || (rThisVariable==STRESS_INV_J2) || (rThisVariable==STRESS_INV_THETA)  ) 
+      else if ( (rThisVariable==STRESS_INV_P) || (rThisVariable==STRESS_INV_J2) || (rThisVariable==STRESS_INV_THETA)  )
       {
          Matrix StressMatrix;
          StressMatrix = mpFlowRule->ComputeKirchhoffStressMatrix( mElasticLeftCauchyGreen);
@@ -340,7 +337,7 @@ namespace Kratos
          }
 
          double StressQ = 0.0;
-         for (unsigned int i = 0; i <3; ++i) 
+         for (unsigned int i = 0; i <3; ++i)
               StressQ += pow( StressMatrix(i,i) - MeanStress, 2);
 
           StressQ += 2.0*pow( StressMatrix(0,1) , 2);
@@ -350,16 +347,16 @@ namespace Kratos
          if (rThisVariable== STRESS_INV_J2)  {
 
               rValue = pow( 3.0/2.0*StressQ, 0.5);
-            return rValue; 
+            return rValue;
          }
 
          StressQ /= 2.0;
 
          if (StressQ < 1e-5)
             rValue = 0.0;
-         else { 
+         else {
 
-            for (unsigned int i = 0; i < 3 ; ++i ) 
+            for (unsigned int i = 0; i < 3 ; ++i )
                StressMatrix(i,i) -= MeanStress;
 
             double ThirdInvariant = 0.0;
@@ -377,12 +374,12 @@ namespace Kratos
             }
             else {
                ThirdInvariant = std::asin( ThirdInvariant);
-               rValue = ThirdInvariant / 3.0 * 180.0 / 3.14159265359; 
+               rValue = ThirdInvariant / 3.0 * 180.0 / 3.14159265359;
             }
          }
       }
 
-      else if (rThisVariable==PRECONSOLIDATION) 
+      else if (rThisVariable==PRECONSOLIDATION)
       {
          rValue = 0.0;
          const FlowRule::InternalVariables& InternalVariables=mpFlowRule->GetInternalVariables();
@@ -482,7 +479,7 @@ namespace Kratos
 
       }
       else {
-         HyperElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo);   
+         HyperElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo);
       }
    }
 
@@ -502,7 +499,7 @@ namespace Kratos
    {
 
       mpFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
-      Matrix StressMatrix = mpFlowRule->ComputeKirchhoffStressMatrix( rNewElasticLeftCauchyGreen); 
+      Matrix StressMatrix = mpFlowRule->ComputeKirchhoffStressMatrix( rNewElasticLeftCauchyGreen);
       Matrix ExtraMatrix = this->CalculateExtraMatrix( StressMatrix);
       rElastoPlasticTangentMatrix += ExtraMatrix;  // the terms that I missed.
 
@@ -551,7 +548,7 @@ namespace Kratos
                      auxi = i;
                      auxj = j;
                   } else {
-                     auxi = j; 
+                     auxi = j;
                      auxj = i;
                   }
                   unsigned int auxk, auxl;

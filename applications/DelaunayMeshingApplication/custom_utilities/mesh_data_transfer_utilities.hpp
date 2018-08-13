@@ -11,7 +11,6 @@
 #define KRATOS_MESH_DATA_TRANSFER_UTILITIES_H_INCLUDED
 
 // System includes
-#include <stdlib.h>
 
 // Project includes
 #include "includes/variables.h"
