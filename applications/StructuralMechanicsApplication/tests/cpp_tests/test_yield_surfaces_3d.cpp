@@ -71,7 +71,7 @@ void GenerateTestVariables(
     rMaterialProperties.SetValue(FRACTURE_ENERGY, 1.0e3);
 }
 
-/** 
+/**
     * Check the correct calculation of the uniaxial stress of the yield surfaces
     */
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanicsFastSuite)
@@ -107,7 +107,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanics
     KRATOS_CHECK_NEAR(SJres, TestSJ, 0.01);
 }
 
-/** 
+/**
     * Check the correct calculation of the derivatives of the yield surfaces
     */
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFastSuite)
@@ -145,7 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFas
     }
 }
 
-/** 
+/**
     * Check the correct calculation of the initial threshold of the yield surfaces
     */
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructuralMechanicsFastSuite)
@@ -180,7 +180,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructura
     KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0e-3);
 }
 
-/** 
+/**
     * Check the correct calculation of the Damage Parameter of the yield surfaces
     */
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosStructuralMechanicsFastSuite)

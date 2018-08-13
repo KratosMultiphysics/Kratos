@@ -106,25 +106,25 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief Called to initialize the element.
      * Must be called before any calculation is done
      */
     void Initialize() override;
-    
+
     /**
      * @brief Called at the beginning of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-    
+
     /**
      * @brief Called at the end of eahc solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-    
+
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
@@ -158,8 +158,8 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable, 
-        std::vector<double>& rOutput, 
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -170,11 +170,11 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<Matrix >& rVariable, 
-        std::vector< Matrix >& rOutput, 
+        const Variable<Matrix >& rVariable,
+        std::vector< Matrix >& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
      /**
       * @brief Set a double Value on the Element Constitutive Law
       * @param rVariable The variable we want to set
@@ -182,8 +182,8 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
     void SetValueOnIntegrationPoints(
-        const Variable<double>& rVariable, 
-        std::vector<double>& rValues, 
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -194,8 +194,8 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
     void SetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable, 
-        std::vector<Matrix>& rValues, 
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -206,8 +206,8 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetValueOnIntegrationPoints(
-        const Variable<double>& rVariable, 
-        std::vector<double>& rValues, 
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -218,11 +218,11 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetValueOnIntegrationPoints(
-        const Variable<Matrix>& rVariable, 
-        std::vector<Matrix>& rValues, 
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -261,20 +261,20 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
 
     /* Historical total elastic deformation measure */
-    bool mF0Computed;           // To avoid computing more than once the historical total elastic deformation measure 
+    bool mF0Computed;           // To avoid computing more than once the historical total elastic deformation measure
     std::vector<double> mDetF0; // The historical total elastic deformation measure determinant
     std::vector<Matrix> mF0;    // The historical total elastic deformation measure
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     UpdatedLagrangian() : BaseSolidElement()
     {
     }
@@ -283,17 +283,17 @@ protected:
      * Gives the StressMeasure used
      */
     ConstitutiveLaw::StressMeasure GetStressMeasure() const override;
-    
+
     /**
      * @brief It updates the historical database
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
-     */ 
+     */
     void UpdateHistoricalDatabase(
         KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber
         );
-        
+
     /**
      * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix The LHS
@@ -303,24 +303,24 @@ protected:
      * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
     void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-        
+
     /**
      * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
-     */ 
+     */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
-    
+
     /**
      * @brief This functions calculate the derivatives in the reference frame
      * @param J0 The jacobian in the reference configuration
@@ -329,15 +329,15 @@ protected:
      * @param PointNumber The id of the integration point considered
      * @param ThisIntegrationMethod The integration method considered
      * @return The determinant of the jacobian in the reference configuration
-     */ 
+     */
     double CalculateDerivativesOnReferenceConfiguration(
-        Matrix& J0, 
-        Matrix& InvJ0, 
-        Matrix& DN_DX, 
+        Matrix& J0,
+        Matrix& InvJ0,
+        Matrix& DN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
         ) override;
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -363,7 +363,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     /**
      * @brief This method computes the deformation matrix B
      * @param rB The deformation matrix
@@ -378,21 +378,21 @@ private:
         const SizeType StrainSize,
         const IndexType PointNumber
         );
-    
+
     /**
      * It returns the reference configuration deformation gradient determinant
      * @param PointNumber The integration point considered
      * @return The reference configuration deformation gradient determinant
      */
     double ReferenceConfigurationDeformationGradientDeterminant(const IndexType PointNumber) const;
-    
+
     /**
      * It returns the reference configuration deformation gradient
      * @param PointNumber The integration point considered
      * @return The reference configuration deformation gradient
      */
     Matrix ReferenceConfigurationDeformationGradient(const IndexType PointNumber) const;
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -436,4 +436,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined
