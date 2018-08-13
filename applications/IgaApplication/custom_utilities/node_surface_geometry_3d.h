@@ -16,12 +16,12 @@
 // System includes
 
 // External includes
-#include <ANurbs/Core>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/variables.h"
+#include "anurbs.h"
 
 namespace Kratos {
 
