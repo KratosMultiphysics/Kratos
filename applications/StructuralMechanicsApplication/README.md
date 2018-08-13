@@ -28,12 +28,12 @@ The application includes tests to check the proper functioning of the applicatio
         * Nodal concentrated element (both 2D/3D). Includes nodal damping, nodal mass and nodal stiffness
     * Uni-dimensional elements :
         * Truss element (3D)
-           * Corrotational beam element (both 2D/3D)
+        * Corrotational beam element (both 2D/3D)
     * Two-dimensional elements :
         * Membrane (regular and pre-stress)
         * Isotropic shell element
         * Thin shell (Quadrilateral and triangular)
-           * Thick shell (Quadrilateral and triangular)
+        * Thick shell (Quadrilateral and triangular)
 
 - Constitutive laws: 
     * Isotropic laws (Plane strain, plane stress and 3D)
