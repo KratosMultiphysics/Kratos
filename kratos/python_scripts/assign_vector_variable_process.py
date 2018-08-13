@@ -62,7 +62,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, i_params) )
 
     def ExecuteBeforeSolutionLoop(self):
-        self.ExecuteInitializeSolutionStep()
+        pass
 
     def ExecuteInitializeSolutionStep(self):
         for process in self.aux_processes:
