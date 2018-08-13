@@ -311,10 +311,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         # 1. Test projection if there is room for objective improvement
         # I.e., the actual step length to become feasible for an inactive threshold is smaller than 1 and hence a part of the step can be dedicated to objective improvement
-        nargout = 2
         len_obj_test = 0.01
         inactive_threshold = 100
-        test_norm_dX, is_projection_sucessfull = projector.RunProjection(len_obj_test, inactive_threshold, nargout)
+        test_norm_dX, is_projection_sucessfull = projector.RunProjection(len_obj_test, inactive_threshold)
 
         print("> Time needed for one projection step = ", timer.GetTotalTime(), "s")
 
@@ -323,7 +322,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             if test_norm_dX < 1: # Minimizing mode
                 print ("\n> Computing projection case 1...")
 
-                func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold, nargout)
+                func = lambda len_obj: projector.RunProjection(len_obj, inactive_threshold)
 
                 len_obj_min = len_obj_test
                 len_obj_max = 1.3
@@ -332,14 +331,13 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 bi_max_itr = self.algorithm_settings["bisectioning_max_itr"].GetInt()
                 len_obj_result, bi_itrs, bi_err = PerformBisectioning(func, len_obj_min, len_obj_max, bi_target, bi_tolerance, bi_max_itr)
 
-                nargout = 6
-                norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj_result, inactive_threshold, nargout)
+                projection_results = projector.GetDetailedResultsOfLatestProjection()
 
             else: # Correction mode
                 print ("\n> Computing projection case 2...")
 
                 len_obj = self.algorithm_settings["obj_share_during_correction"].GetDouble()
-                func = lambda threshold: projector.RunProjection(len_obj, threshold, nargout)
+                func = lambda threshold: projector.RunProjection(len_obj, threshold)
 
                 threshold_min = 0
                 threshold_max = 1.3
@@ -348,8 +346,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 bi_max_itr = self.algorithm_settings["bisectioning_max_itr"].GetInt()
                 l_threshold_result, bi_itrs, bi_err = PerformBisectioning(func, threshold_min, threshold_max, bi_target, bi_tolerance, bi_max_itr)
 
-                nargout = 6
-                norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs = projector.RunProjection(len_obj, l_threshold_result, nargout)
+                projection_results = projector.GetDetailedResultsOfLatestProjection()
         else:
             raise RuntimeError("Case of not converged test projection not yet implemented yet!")
 
@@ -358,11 +355,11 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         process_details = { "test_norm_dX": test_norm_dX,
                             "bi_itrs":bi_itrs,
                             "bi_err":bi_err,
-                            "adj_len_obj": adj_len_obj,
-                            "adj_len_eqs": adj_len_eqs,
-                            "adj_len_ineqs": adj_len_ineqs }
+                            "adj_len_obj": projection_results["adj_len_obj"],
+                            "adj_len_eqs": projection_results["adj_len_eqs"],
+                            "adj_len_ineqs": projection_results["adj_len_ineqs"] }
 
-        return dX, process_details
+        return projection_results["dX"], process_details
 
     # --------------------------------------------------------------------------
     def __ComputeShapeUpdate(self, dX_bar, step_length):
@@ -401,9 +398,14 @@ class Projector():
     # --------------------------------------------------------------------------
     def __init__(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, settings):
 
+        # Store settings
         self.far_away_length = settings["far_away_length"].GetDouble()
         self.subopt_max_itr = settings["subopt_max_itr"].GetInt()
         self.subopt_tolerance = settings["subopt_tolerance"].GetDouble()
+
+        # Initialize projection results
+        self.are_projection_restuls_stored = False
+        self.projection_results = {}
 
         # Reduce input data to relevant info
         self.input_len_obj = len_obj
@@ -413,7 +415,7 @@ class Projector():
         len_eqs, dir_eqs, remaining_eqs_entries = self.__ReduceToRelevantEqualityConstraints(len_eqs, dir_eqs)
         len_ineqs, dir_ineqs, remaining_ineqs_entries = self.__ReduceToRelevantInequalityConstraints(len_ineqs, dir_ineqs)
 
-        # Store some working variables
+        # Store some working variables depening on data reduction
         self.remaining_eqs_entries = remaining_eqs_entries
         self.remaining_ineqs_entries = remaining_ineqs_entries
         self.len_eqs = len_eqs
@@ -440,7 +442,7 @@ class Projector():
         self.dir_ineqs_o = SafeConvertVectorToMatrix(self.dir_ineqs_o)
 
     # --------------------------------------------------------------------------
-    def RunProjection(self, len_obj, threshold, nargout):
+    def RunProjection(self, len_obj, threshold):
 
         # Adjust halfspaces according input
         adj_len_obj, adj_len_eqs, adj_len_ineqs = self.__AdjustHalfSpacesAndHyperplanes(len_obj, threshold)
@@ -483,15 +485,17 @@ class Projector():
             dX = []
             norm_dX = 1e10
 
-        # Allow to specify output arguments to allow a more general definition of algorithms utilizing this function
-        if nargout == 2:
-            return norm_dX, is_projection_sucessfull
-        elif nargout == 3:
-            return norm_dX, dX, is_projection_sucessfull
-        else:
-            adj_len_eqs, adj_len_ineqs = self.__CompleteConstraintLengthsWithRemovedEntries(adj_len_eqs, adj_len_ineqs)
+        self.__StoreProjectionResults(norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs)
 
-            return norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs
+        return norm_dX, is_projection_sucessfull
+
+
+    # --------------------------------------------------------------------------
+    def GetDetailedResultsOfLatestProjection(self):
+        if self.are_projection_restuls_stored == False:
+            raise RuntimeError("Projector::__StoreProjectionResults: No projection results stored yet!")
+
+        return self.projection_results
 
     # --------------------------------------------------------------------------
     @staticmethod
@@ -570,17 +574,17 @@ class Projector():
     # --------------------------------------------------------------------------
     @staticmethod
     def __ProjectToHyperplanes(vector, dir_hps, pos_hps):
-            if IsEmpty(dir_hps):
-                return vector
+        if IsEmpty(dir_hps):
+            return vector
 
-            num_hps = len(dir_hps)
+        num_hps = len(dir_hps)
 
-            tmp_mat = Prod(Trans(dir_hps),dir_hps)
-            tmp_vec = [ Dot(dir_hps[j],Minus(pos_hps[j],vector)) for j in range(num_hps) ]
+        tmp_mat = Prod(Trans(dir_hps),dir_hps)
+        tmp_vec = [ Dot(dir_hps[j],Minus(pos_hps[j],vector)) for j in range(num_hps) ]
 
-            tmp_solution = SolveLinearSystem(tmp_mat,tmp_vec)
+        tmp_solution = SolveLinearSystem(tmp_mat,tmp_vec)
 
-            return Plus(Prod(dir_hps,tmp_solution),vector)
+        return Plus(Prod(dir_hps,tmp_solution),vector)
 
     # --------------------------------------------------------------------------
     def __ProjectToHalfSpaces(self, dX0, pos_hss, dir_hss):
@@ -593,6 +597,15 @@ class Projector():
         dX_o = Plus(dX_o,dX0)
 
         return dX_o, subopt_itr, error, exit_code
+
+    # --------------------------------------------------------------------------
+    def __StoreProjectionResults(self, norm_dX, dX, is_projection_sucessfull, adj_len_obj, adj_len_eqs, adj_len_ineqs):
+        self.are_projection_restuls_stored = True
+        self.projection_results["norm_dX"] = norm_dX
+        self.projection_results["dX"] = dX
+        self.projection_results["is_projection_sucessfull"] = is_projection_sucessfull
+        self.projection_results["adj_len_obj"] = adj_len_obj
+        self.projection_results["adj_len_eqs"], self.projection_results["adj_len_ineqs"] = self.__CompleteConstraintLengthsWithRemovedEntries(adj_len_eqs, adj_len_ineqs)
 
     # --------------------------------------------------------------------------
     def __CompleteConstraintLengthsWithRemovedEntries(self, len_eqs, len_ineqs):
