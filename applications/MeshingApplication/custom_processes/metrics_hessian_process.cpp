@@ -103,8 +103,10 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
         KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
         const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);            
         
-        const double element_min_size = ((element_min_size > nodal_h) && mEnforceCurrent) ? nodal_h : mMinSize;
-        const double element_max_size = ((element_max_size > nodal_h) && mEnforceCurrent) ? nodal_h : mMaxSize;
+        double element_min_size = mMinSize;
+        if ((element_min_size > nodal_h) && mEnforceCurrent) element_min_size = nodal_h;
+        double element_max_size = mMaxSize;
+        if ((element_max_size > nodal_h) && mEnforceCurrent) element_max_size = nodal_h;
 
         // Isotropic by default
         double ratio = 1.0;

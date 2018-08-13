@@ -15,6 +15,7 @@
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
+#include "includes/checks.h"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -193,23 +194,16 @@ int ElasticIsotropic3D::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.0)
-    {
-        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
 
+    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
     const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
+    const bool check = static_cast<bool>((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
+    KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;
 
-    if(POISSON_RATIO.Key() == 0 || check==true)
-    {
-        KRATOS_ERROR << "POISSON_RATIO has Key zero or invalid value " << std::endl;
-    }
-
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.0)
-    {
-        KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is invalid value " << std::endl;
 
     return 0;
 }

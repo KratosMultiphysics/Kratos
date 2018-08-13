@@ -1,13 +1,11 @@
 /*
-//  KRATOS .___  ________    _____
-//         |   |/  _____/   /  _  \
-//         |   /   \  ___  /  /_\  \
-//         |   \    \_\  \/    |    \
-//         |___|\______  /\____|__  /
-//                     \/         \/  Application
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
-//  License: BSD License
-//           Kratos default license: kratos/license.txt
+//  Main authors:   Thomas Oberbichler
 */
 
 #if defined(KRATOS_PYTHON)
@@ -23,13 +21,13 @@
 #include "iga_application_variables.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-namespace py = pybind11;
-
 namespace Kratos {
 namespace Python {
 
-PYBIND11_MODULE(KratosIgaApplication,m)
+PYBIND11_MODULE(KratosIgaApplication, m)
 {
+    namespace py = pybind11;
+
     py::class_<KratosIgaApplication, KratosIgaApplication::Pointer, 
         KratosApplication>(m, "KratosIgaApplication")
         .def(py::init<>())

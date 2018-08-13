@@ -29,9 +29,32 @@
 namespace Kratos
 {
 /**
- * An six node prism geometry with linear shape functions
+ * @class Prism3D6
+ * @ingroup KratosCore
+ * @brief A six node prism geometry with linear shape functions
+ * @details The node ordering corresponds with: 
+ *                 w
+ *                 ^
+ *                 |
+ *                 3                                      
+ *               ,/|`\                              
+ *             ,/  |  `\                          
+ *           ,/    |    `\                   
+ *          4------+------5             
+ *          |      |      |            
+ *          |    ,/|`\    |           
+ *          |  ,/  |  `\  |       
+ *          |,/    |    `\|           
+ *         ,|      |      |\           
+ *       ,/ |      0      | `\         
+ *      u   |    ,/ `\    |    v          
+ *          |  ,/     `\  |               
+ *          |,/         `\|                
+ *          1-------------2         
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Prism3D6 : public Geometry<TPointType>
 {
 public:

@@ -522,6 +522,21 @@ class ExplicitStrategy(object):
         else:
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
+        if properties.Has(PARTICLE_FRICTION):
+            self.Procedures.KRATOSprint("---------------------------------------------------")
+            self.Procedures.KRATOSprint("  WARNING: Property PARTICLE_FRICTION is deprecated ")
+            self.Procedures.KRATOSprint("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KRATOSprint("  Automatic replacement is done now.")
+            self.Procedures.KRATOSprint("---------------------------------------------------")
+            properties[FRICTION] = properties[PARTICLE_FRICTION]
+        if properties.Has(WALL_FRICTION):
+            self.Procedures.KRATOSprint("-------------------------------------------------")
+            self.Procedures.KRATOSprint("  WARNING: Property WALL_FRICTION is deprecated")
+            self.Procedures.KRATOSprint("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KRATOSprint("  Automatic replacement is done now.")
+            self.Procedures.KRATOSprint("-------------------------------------------------")
+            properties[FRICTION] = properties[WALL_FRICTION]
+
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
 
         translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)

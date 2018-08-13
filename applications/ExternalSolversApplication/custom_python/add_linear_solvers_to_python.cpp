@@ -111,6 +111,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     class_<GMRESSolverType,typename GMRESSolverType::Pointer, IterativeSolverType>
     (m, "GMRESSolver")
     .def(init<Parameters >())
+    .def(init<Parameters,  PreconditionerType::Pointer >())
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())

@@ -68,7 +68,7 @@
         }
     },{
         "python_module"   : "impose_scalar_value_over_time_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "process_name"          : "ImposeScalarValueOverTimeProcess",
         "Parameters"            : {
             "mesh_id"         : 0,
@@ -82,7 +82,7 @@
     "loads_process_list"       : [
     {
         "python_module"   : "apply_vector_on_conditions_over_time_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "help"                  : "This process sets a vector variable value over a condition",
         "check"                 : "DirectorVectorNonZero direction",
         "process_name"          : "ApplyVectorOnConditionsProcess",
@@ -100,7 +100,7 @@
     "contact_process_list" :[
     {
         "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module"   : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {

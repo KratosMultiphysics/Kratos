@@ -225,4 +225,4 @@ private:
 
 }; // Class HyperElasticUPPlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_U_P_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPERELASTIC_U_P_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined

@@ -66,9 +66,16 @@ AxisymContactDomainPenalty2DCondition&  AxisymContactDomainPenalty2DCondition::o
 
 Condition::Pointer AxisymContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Condition::Pointer(new AxisymContactDomainPenalty2DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+  return Kratos::make_shared<AxisymContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
 }
 
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Condition::Pointer AxisymContactDomainPenalty2DCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
+{
+  return this->Create(NewId, ThisNodes, pGetProperties());
+}
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
@@ -131,7 +138,7 @@ void AxisymContactDomainPenalty2DCondition::InitializeConditionVariables (Condit
 void AxisymContactDomainPenalty2DCondition::CalculateRadius(double & rCurrentRadius,
 						       double & rReferenceRadius,
 						       const Vector& rN)
-							  
+
 
 {
 
@@ -140,21 +147,21 @@ void AxisymContactDomainPenalty2DCondition::CalculateRadius(double & rCurrentRad
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
+
     rCurrentRadius=0;
     rReferenceRadius=0;
 
     if ( dimension == 2 )
-    {	
+    {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             //Displacement from the reference to the current configuration
             array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;  
+            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
 	    array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
 	    array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
-	    
+
 	    rCurrentRadius   += CurrentPosition[0]*rN[i];
 	    rReferenceRadius += ReferencePosition[0]*rN[i];
             //std::cout<<" node "<<i<<" -> DeltaDisplacement : "<<DeltaDisplacement<<std::endl;
@@ -182,7 +189,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
 
     ElementType&  MasterElement  = mContactVariables.GetMasterElement();
     GeometryType& MasterGeometry = mContactVariables.GetMasterGeometry();
-      
+
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = MasterGeometry.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
@@ -233,17 +240,17 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     StressVector[rPointNumber]=ZeroVector(voigtsize);
     //MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
     MasterElement.GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
-    
+
     // for( unsigned int i=0; i<StressVector.size(); i++)
     //   {
-    // 	StressVector[i] = mConstitutiveLawVector[rPointNumber]->TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2); 
+    // 	StressVector[i] = mConstitutiveLawVector[rPointNumber]->TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2);
     //   }
-    
+
     SetContactIntegrationVariable( rVariables.StressVector, StressVector, rPointNumber );
 
 
     //std::cout<<" StressVector "<<rVariables.StressVector<<std::endl;
-    
+
     //Get Current Strain
     std::vector<Matrix> StrainTensor ( integration_points_number );
     StrainTensor[rPointNumber]=ZeroMatrix(dimension,dimension);
@@ -258,7 +265,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
 
 
     //Get Current Constitutive Matrix
-    std::vector<Matrix> ConstitutiveMatrix(mConstitutiveLawVector.size());   
+    std::vector<Matrix> ConstitutiveMatrix(mConstitutiveLawVector.size());
     MasterElement.CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX,ConstitutiveMatrix,rCurrentProcessInfo);
 
     rVariables.ConstitutiveMatrix = ConstitutiveMatrix[rPointNumber];
@@ -331,5 +338,3 @@ void AxisymContactDomainPenalty2DCondition::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

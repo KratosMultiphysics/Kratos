@@ -356,7 +356,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInFace(
     NodeType::Pointer middle_node;
 
     // Get the middle node key
-    std::array<IndexType, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
+    std::array<IndexType, 4> node_key = {{rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()}};
     std::sort(node_key.begin(), node_key.end());
 
     // Check if the node is not yet created
@@ -399,7 +399,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInFace(const FaceT
     NodeType::Pointer middle_node;
 
     // Get the middle node key
-    std::array<IndexType, 4> node_key = {rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()};
+    std::array<IndexType, 4> node_key = {{rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()}};
     std::sort(node_key.begin(), node_key.end());
 
     // Check if the node exist
@@ -472,7 +472,7 @@ void UniformRefineUtility<TDim>::CreateElement(
     const int& rRefinementLevel
     )
 {
-    Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, rThisNodes, pOriginElement->pGetProperties());
+    Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, PointerVector<NodeType>{rThisNodes}, pOriginElement->pGetProperties());
 
     if (sub_element != nullptr)
     {
@@ -507,7 +507,7 @@ void UniformRefineUtility<TDim>::CreateCondition(
     const int& rRefinementLevel
     )
 {
-    Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, rThisNodes, pOriginCondition->pGetProperties());
+    Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, PointerVector<NodeType>{rThisNodes}, pOriginCondition->pGetProperties());
 
     if (sub_condition != nullptr)
     {
