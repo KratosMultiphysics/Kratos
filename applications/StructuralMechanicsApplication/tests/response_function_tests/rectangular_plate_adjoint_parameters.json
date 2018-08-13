@@ -16,8 +16,7 @@
         "move_mesh_flag"                     : false,
 
         "scheme_settings" : {
-            "scheme_type"              : "adjoint_structural",
-            "rotation_dofs"            : true
+            "scheme_type"              : "adjoint_structural"
         },
         "echo_level"                         : 0,
         "model_import_settings"              : {

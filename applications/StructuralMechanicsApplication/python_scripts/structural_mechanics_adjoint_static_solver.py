@@ -21,8 +21,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         adjoint_settings = KratosMultiphysics.Parameters("""
         {
             "scheme_settings" : {
-                "scheme_type": "adjoint_structural",
-                "rotation_dofs": false
+                "scheme_type": "adjoint_structural"
             }
         }
         """)
