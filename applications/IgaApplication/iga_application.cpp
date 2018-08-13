@@ -20,6 +20,8 @@ namespace Kratos {
 
 KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
+    , mBeamDiscreteElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mTrussDiscreteElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
 {
@@ -29,6 +31,7 @@ void KratosIgaApplication::Register() {
     KratosApplication::Register();
     std::cout << "Initializing KratosIgaApplication... " << std::endl;
 
+    KRATOS_REGISTER_ELEMENT("BeamDiscreteElement", mBeamDiscreteElement)
     KRATOS_REGISTER_ELEMENT("TrussDiscreteElement", mTrussDiscreteElement)
 }
 
