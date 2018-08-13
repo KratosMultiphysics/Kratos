@@ -220,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.GetMesh().GetCondition(1).SetValue(TEMPERATURE, temperature);
     main_model_part.GetMesh().GetCondition(1).SetValue(DISPLACEMENT_X, displacement_x);
 
-    ModelPart::Pointer p_sub_model_part = main_model_part.CreateSubModelPart("SubModelPart");
+    ModelPart* p_sub_model_part = &main_model_part.CreateSubModelPart("SubModelPart");
     std::vector<ModelPart::IndexType> sub_model_part_nodes = {1,2,4};
     std::vector<ModelPart::IndexType> sub_model_part_elems = {1};
     std::vector<ModelPart::IndexType> sub_model_part_conds = {1,3};

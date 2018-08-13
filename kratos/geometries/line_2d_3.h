@@ -49,7 +49,15 @@ namespace Kratos
 ///@{
 
 /**
-*/
+ * @class Line2D3
+ * @ingroup KratosCore
+ * @brief An three node 2D line geometry with quadratic shape functions
+ * @details The node ordering corresponds with: 
+ *      0-----2----1 
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
+ */
 template<class TPointType>
 
 class Line2D3 : public Geometry<TPointType>

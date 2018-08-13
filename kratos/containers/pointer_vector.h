@@ -117,7 +117,7 @@ public:
     {
     }
 
-    PointerVector(std::size_t NewSize) :  mData(NewSize)
+    explicit PointerVector(std::size_t NewSize) :  mData(NewSize)
     {
     }
 /*

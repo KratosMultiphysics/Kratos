@@ -44,13 +44,13 @@ class MeshSolverBallvertex(mesh_solver_base.MeshSolverBase):
                                                       number_of_avg_elems,
                                                       number_of_avg_nodes)
         neighbour_search.Execute()
-        solver = self.get_mesh_motion_solver()
+        solver = self.get_mesh_motion_solving_strategy()
         if self.settings["reform_dofs_each_step"].GetBool() == False:
             solver.ConstructSystem(self.model_part)
         print("::[MeshSolverBallvertex]:: Finished initialization.")
 
     def Solve(self):
-        solver = self.get_mesh_motion_solver()
+        solver = self.get_mesh_motion_solving_strategy()
         linear_solver = self.get_linear_solver()
         if self.settings["reform_dofs_each_step"].GetBool() == True:
             (self.neighbour_search).Execute()
@@ -73,7 +73,7 @@ class MeshSolverBallvertex(mesh_solver_base.MeshSolverBase):
         linear_solver = ScalingSolver(DeflatedCGSolver(1e-6, 3000, True, 1000), True)
         return linear_solver
 
-    def _create_mesh_motion_solver(self):
+    def _create_mesh_motion_solving_strategy(self):
         domain_size = self.model_part.ProcessInfo[DOMAIN_SIZE]
         if(domain_size == 2):
             solver = BallVertexMeshMoving2D()

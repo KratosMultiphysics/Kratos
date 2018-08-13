@@ -81,7 +81,7 @@ namespace Kratos
 
     /// Constructor.
     BackwardEulerMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
-    
+
     /// Constructor.
     BackwardEulerMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
 
@@ -99,7 +99,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~BackwardEulerMethod(){}
+    ~BackwardEulerMethod() override{}
 
     ///@}
     ///@name Operators
@@ -147,7 +147,7 @@ namespace Kratos
       int ErrorCode = 0;
       ErrorCode = BaseType::Check(rCurrentProcessInfo);
 
-      // Check that all required variables have been registered               
+      // Check that all required variables have been registered
       if( this->mpFirstDerivative == nullptr ){
         KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
       }
@@ -161,30 +161,15 @@ namespace Kratos
       else{
         KRATOS_CHECK_VARIABLE_KEY((*this->mpSecondDerivative));
       }
-      
+
       return ErrorCode;
-      
+
       KRATOS_CATCH("")
     }
-    
+
     ///@}
     ///@name Access
     ///@{
-
-    // get parameters
-    double& GetFirstDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = 3.0 / (2.0 * mDeltaTime);
-      return rParameter;
-    }
-
-    double& GetSecondDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = 2.0 / (mDeltaTime*mDeltaTime);
-      return rParameter;
-    }
-
-
 
     ///@}
     ///@name Inquiry
@@ -261,15 +246,15 @@ namespace Kratos
       TValueType& CurrentVariable                = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
       const TValueType& OldPreviousVariable      = rNode.FastGetSolutionStepValue(*this->mpVariable,         2);
-      
+
       TValueType& CurrentFirstDerivative         = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
-    
+
       // backward euler consistent
       CurrentVariable = (1.0/3.0) * ( 4.0 * PreviousVariable - OldPreviousVariable + 2.0 * mDeltaTime * CurrentFirstDerivative);
 
       TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
-      
+
       CurrentFirstDerivative   = PreviousFirstDerivative;
       CurrentSecondDerivative -= CurrentSecondDerivative;
 
@@ -289,7 +274,7 @@ namespace Kratos
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
 
       // backward euler consistent
-      CurrentVariable = PreviousVariable + mDeltaTime * ( PreviousFirstDerivative + 0.5 * mDeltaTime * CurrentSecondDerivative );      
+      CurrentVariable = PreviousVariable + mDeltaTime * ( PreviousFirstDerivative + 0.5 * mDeltaTime * CurrentSecondDerivative );
 
       KRATOS_CATCH( "" )
     }
@@ -308,14 +293,14 @@ namespace Kratos
     void PredictFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
-          
+
       this->PredictVariable(rNode);
       this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
 
       KRATOS_CATCH( "" )
     }
-    
+
     void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
@@ -478,6 +463,19 @@ namespace Kratos
     ///@}
     ///@name Protected  Access
     ///@{
+
+    // get parameters
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = 3.0 / (2.0 * mDeltaTime);
+      return rParameter;
+    }
+
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = 2.0 / (mDeltaTime*mDeltaTime);
+      return rParameter;
+    }
 
     ///@}
     ///@name Protected Inquiry

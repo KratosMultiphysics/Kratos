@@ -5,7 +5,7 @@
 //   Date:                $Date:                  July 2016 $
 //   Revision:            $Revision:                    0.0 $
 //
-// 
+//
 
 // System includes
 
@@ -26,7 +26,7 @@ namespace Kratos
 TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(IndexType NewId,GeometryType::Pointer pGeometry)
     : RigidBodyElement(NewId, pGeometry)
 {
-    //DO NOT ADD DOFS HERE!!!    
+    //DO NOT ADD DOFS HERE!!!
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -70,7 +70,7 @@ TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(TranslatoryRigidBodyEle
 
 Element::Pointer TranslatoryRigidBodyElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new TranslatoryRigidBodyElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+  return Kratos::make_shared<TranslatoryRigidBodyElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -81,14 +81,13 @@ Element::Pointer TranslatoryRigidBodyElement::Clone(IndexType NewId, NodesArrayT
 {
 
   TranslatoryRigidBodyElement NewElement( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes );
-  
-  //-----------//
-  NewElement.mInitialLocalQuaternion = this->mInitialLocalQuaternion;     
+
+  NewElement.mInitialLocalQuaternion = this->mInitialLocalQuaternion;
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Element::Pointer( new TranslatoryRigidBodyElement(NewElement) );
-  
+  return Kratos::make_shared<TranslatoryRigidBodyElement>(NewElement);
+
 }
 
 
@@ -109,7 +108,7 @@ void TranslatoryRigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,Pr
 {
 
     ElementalDofList.resize(0);
-    
+
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
@@ -144,7 +143,7 @@ void TranslatoryRigidBodyElement::EquationIdVector(EquationIdVectorType& rResult
       if( dimension ==3 )
 	rResult[index+2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
     }
- 
+
 }
 
 
@@ -239,7 +238,7 @@ void TranslatoryRigidBodyElement::GetSecondDerivativesVector(Vector& rValues, in
 void TranslatoryRigidBodyElement::Initialize()
 {
     KRATOS_TRY
-      
+
     Matrix InitialLocalMatrix = IdentityMatrix(3);
 
     mInitialLocalQuaternion  = QuaternionType::FromRotationMatrix( InitialLocalMatrix );
@@ -276,9 +275,9 @@ void TranslatoryRigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHand
     {
         if ( rRightHandSideVector.size() != MatSize )
 	    rRightHandSideVector.resize( MatSize, false );
-      
+
 	rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
-	  
+
     }
 }
 
@@ -291,7 +290,7 @@ void TranslatoryRigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHand
 //************************************************************************************
 //************************************************************************************
 
-//Inertia in the SPATIAL configuration 
+//Inertia in the SPATIAL configuration
 void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
 
@@ -319,11 +318,11 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
 
     double TotalMass = 0;
     TotalMass = rVariables.RigidBody.Mass;
-    
+
     unsigned int RowIndex = 0;
     unsigned int ColIndex = 0;
 
-    Matrix DiagonalMatrix = IdentityMatrix(3);        
+    Matrix DiagonalMatrix = IdentityMatrix(3);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -340,11 +339,11 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
 
     	    //Building the Local Tangent Inertia Matrix
     	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-	    
+
     	  }
       }
-    
-  
+
+
     //std::cout<<" rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
 
 
@@ -355,7 +354,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
 //************************************************************************************
 //************************************************************************************
 
-//Inertia in the SPATIAL configuration 
+//Inertia in the SPATIAL configuration
 void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -389,7 +388,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
 	PreviousLinearAccelerationVector = CurrentValueVector;
 
       }
-     
+
     //Set step variables to local frame (current Frame is the local frame)
     CurrentLinearAccelerationVector     = MapToInitialLocalFrame( CurrentLinearAccelerationVector );
     PreviousLinearAccelerationVector    = MapToInitialLocalFrame( PreviousLinearAccelerationVector );
@@ -420,7 +419,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
     	RowIndex = i * (dimension);
 
     	Fi = ZeroVector(6);
-	
+
     	//nodal force vector
     	Fi  = LinearInertialForceVector;
 
@@ -478,12 +477,12 @@ void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
     	    m11(k,k) = temp;
     	  }
 
-	
+
     	//Building the Local Tangent Inertia Matrix
     	BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
-	
+
       }
- 
+
 
     KRATOS_CATCH( "" )
 
@@ -499,7 +498,7 @@ void TranslatoryRigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProc
      KRATOS_TRY
 
      Node<3>& rCenterOfGravity = this->GetGeometry()[0];
-     
+
      array_1d<double, 3 >&  Displacement = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);
      array_1d<double, 3 >&  Velocity     = rCenterOfGravity.FastGetSolutionStepValue(VELOCITY);
      array_1d<double, 3 >&  Acceleration = rCenterOfGravity.FastGetSolutionStepValue(ACCELERATION);
@@ -530,5 +529,3 @@ void TranslatoryRigidBodyElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

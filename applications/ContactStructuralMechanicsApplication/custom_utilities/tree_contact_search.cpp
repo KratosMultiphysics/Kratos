@@ -62,7 +62,7 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
     // Check if the computing contact submodelpart
     const std::string sub_computing_model_part_name = "ComputingContactSub" + id_name;
     if (!(mrMainModelPart.HasSubModelPart("ComputingContact"))) {// We check if the submodelpart where the actual conditions used to compute contact are going to be computed
-        ModelPart::Pointer p_computing_model_part = mrMainModelPart.CreateSubModelPart("ComputingContact");
+        ModelPart* p_computing_model_part = &mrMainModelPart.CreateSubModelPart("ComputingContact");
         p_computing_model_part->CreateSubModelPart(sub_computing_model_part_name);
     } else {
         ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");

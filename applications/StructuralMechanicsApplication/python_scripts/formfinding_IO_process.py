@@ -24,6 +24,7 @@ class FormfindingIO(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(
             """
             {
+                "help"              : "This class is responsible for the input and output of prestress and modelpart data for formfinding/ membrane analysis.",
                 "model_part_name"   : "Structure",
                 "print_mdpa"        : false,
                 "print_prestress"   : false,
@@ -44,7 +45,7 @@ class FormfindingIO(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         if (self.read_prestress):
             self.formfinding_io.ReadPrestressData()
-            print (" read prestress")
+            KratosMultiphysics.Logger.PrintInfo("FormfindingIO", "Read prestress")
     
     def ExecuteBeforeSolutionLoop(self):
         pass
@@ -65,7 +66,7 @@ class FormfindingIO(KratosMultiphysics.Process):
     def ExecuteFinalize(self):
         if (self.print_mdpa):
             self.formfinding_io.PrintModelPart()
-            print (" print mdpa")
+            KratosMultiphysics.Logger.PrintInfo("FormfindingIO", "Print mdpa")
         if (self.print_prestress):
             self.formfinding_io.PrintPrestressData()
-            print ("print prestress")
+            KratosMultiphysics.Logger.PrintInfo("FormfindingIO", "Print prestress")

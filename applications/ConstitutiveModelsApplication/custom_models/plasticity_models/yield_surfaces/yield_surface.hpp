@@ -47,9 +47,9 @@ namespace Kratos
    */
   template<class THardeningRule>
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) YieldSurface
-  {    
+  {
   public:
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -57,11 +57,11 @@ namespace Kratos
     typedef ConstitutiveModelData::VectorType                          VectorType;
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
     typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
-    
+
     typedef THardeningRule                                       HardeningRuleType;
-    typedef typename THardeningRule::PlasticDataType               PlasticDataType;   
+    typedef typename THardeningRule::PlasticDataType               PlasticDataType;
     typedef typename THardeningRule::InternalVariablesType   InternalVariablesType;
-	
+
     /// Pointer definition of YieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( YieldSurface );
 
@@ -81,11 +81,11 @@ namespace Kratos
       mHardeningRule = rOther.mHardeningRule;
       return *this;
     }
-    
+
     /// Clone.
     virtual typename YieldSurface::Pointer Clone() const
     {
-      return YieldSurface::Pointer(new YieldSurface(*this));
+      return Kratos::make_shared<YieldSurface>(*this);
     }
 
     /// Destructor.
@@ -108,58 +108,58 @@ namespace Kratos
     virtual double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
 
       return rYieldCondition;
-	
+
       KRATOS_CATCH(" ")
     }
 
     /**
      * Calculate Yield Condition derivative
      */
-      
+
     virtual double& CalculateDeltaYieldCondition(const PlasticDataType& rVariables, double & rDeltaYieldCondition)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
 
       return rDeltaYieldCondition;
-	
+
       KRATOS_CATCH(" ")
     }
 
 
-    /** 
-     * Calculate Yield Condition Stresses derivative 
-     */ 
-       
-    virtual VectorType& CalculateDeltaStressYieldCondition(const PlasticDataType& rVariables, VectorType& rDeltaStressYieldCondition) 
-    { 
-      KRATOS_TRY 
-   
-      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;   
- 
-      return rDeltaStressYieldCondition; 
-   
-      KRATOS_CATCH(" ") 
+    /**
+     * Calculate Yield Condition Stresses derivative
+     */
+
+    virtual VectorType& CalculateDeltaStressYieldCondition(const PlasticDataType& rVariables, VectorType& rDeltaStressYieldCondition)
+    {
+      KRATOS_TRY
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
+
+      return rDeltaStressYieldCondition;
+
+      KRATOS_CATCH(" ")
     }
 
-    
+
     /**
      * Calculate State Function
      */
-    
+
     virtual double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
 
       return rStateFunction;
-	
+
       KRATOS_CATCH(" ")
     }
 
@@ -170,41 +170,41 @@ namespace Kratos
     virtual double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
 
       return rDeltaStateFunction;
-	
+
       KRATOS_CATCH(" ")
     }
 
     /**
      * Calculate Plastic Dissipation
      */
-      
+
     virtual double& CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
 
       return rPlasticDissipation;
-	
+
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate Plastic Dissipation derivative
      */
- 
+
     virtual double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
 
       return rDeltaPlasticDissipation;
-	
+
       KRATOS_CATCH(" ")
     }
 
@@ -215,26 +215,26 @@ namespace Kratos
     virtual double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
 
       return rPlasticDissipation;
-	
+
       KRATOS_CATCH(" ")
     }
 
     /**
      * Calculate Implex Plastic Dissipation derivative
      */
-    
+
     virtual double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the YieldSurface base class ... illegal operation" << std::endl;
 
       return rDeltaPlasticDissipation;
-	
+
       KRATOS_CATCH(" ")
     }
 
@@ -244,7 +244,7 @@ namespace Kratos
     ///@{
 
     HardeningRuleType& GetHardeningRule() { return mHardeningRule; };
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -254,7 +254,7 @@ namespace Kratos
     ///@name Input and output
     ///@{
 
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const
     {
@@ -291,9 +291,9 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     HardeningRuleType mHardeningRule;
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -329,7 +329,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -345,7 +345,7 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
@@ -392,6 +392,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_YIELD_SURFACE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_YIELD_SURFACE_H_INCLUDED  defined

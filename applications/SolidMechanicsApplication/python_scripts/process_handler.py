@@ -82,7 +82,7 @@ class ProcessHandler(KratosMultiphysics.Process):
 
     def Sort(self):
 
-        #print("::[Process_Handler]:: Create Process List -START-")
+        #print("::[--Process_Handler--]:: Create Process List -START-")
         #build sorted list of processes
 
         # Assumptions: (a) each supplied list is separated and has no intersections
@@ -92,7 +92,7 @@ class ProcessHandler(KratosMultiphysics.Process):
         #sort processes using groups category and order:
         if( self.settings["processes_sub_model_part_tree_list"].size() > 0 ):
 
-            print("::[Process_Handler]:: Sorting Loads and Constraints")
+            print("::[--Process_Handler--]:: Sorting Loads and Constraints")
 
             #set group category
             self.Categorize()
@@ -119,8 +119,8 @@ class ProcessHandler(KratosMultiphysics.Process):
         # sorted check list
         self.list_of_processes += self.ConstructList( self.ProcessList(self.settings["check_process_list"]) )
 
-        #print("::[Process_Handler]:: Create Process List -END-")
-        print("::[Process_Handler]:: Process List Ready")
+        #print("::[--Process_Handler--]:: Create Process List -END-")
+        print("::[--Process_Handler--]:: Process List Ready")
 
 
     #
@@ -249,14 +249,14 @@ class ProcessHandler(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-           "model_part_name" : "MODEL_PART",
-           "variable_name"   : "DISPLACEMENT",
-           "value"           : [0.0,0.0,0.0],
-           "constrained"     : true,
-           "interval"        : [0.0,"End"]
+           "model_part_name"     : "MODEL_PART",
+           "variable_name"       : "DISPLACEMENT",
+           "value"               : [0.0,0.0,0.0],
+           "compound_assignment" : "direct",
+           "constrained"         : true,
+           "interval"            : [0.0,"End"]
         }
         """)
-
 
         ##overwrite the default settings with user-provided parameters
         settings = custom_settings
@@ -288,12 +288,13 @@ class ProcessHandler(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-           "python_module"   : "assign_modulus_and_direction_to_conditions_process",
-           "model_part_name" : "MODEL_PART",
-           "variable_name"   : "DISPLACEMENT",
-           "modulus"         : 0.0,
-           "direction"       : [0.0,0.0,0.0],
-           "interval"        : [0.0,"End"]
+           "python_module"       : "assign_modulus_and_direction_to_conditions_process",
+           "model_part_name"     : "MODEL_PART",
+           "variable_name"       : "DISPLACEMENT",
+           "modulus"             : 0.0,
+           "direction"           : [0.0,0.0,0.0],
+           "compound_assignment" : "direct",
+           "interval"            : [0.0,"End"]
         }
         """)
 

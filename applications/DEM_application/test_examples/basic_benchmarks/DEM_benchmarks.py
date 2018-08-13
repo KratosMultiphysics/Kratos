@@ -47,7 +47,7 @@ class Solution(main_script.Solution):
         elif benchmark_number in listDISclRK:
             file_name = "ProjectParametersDISclRK.json"
         else:
-            print('Benchmark number does not exist')
+            Logger.PrintInfo("DEM",'Benchmark number does not exist')
             sys.exit()
 
         with open(file_name, 'r') as parameters_file:
@@ -105,7 +105,7 @@ class Solution(main_script.Solution):
         #self.graph_print_interval = slt.graph_print_interval
         super(Solution, self).Initialize()
 
-        print("Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
+        Logger.PrintInfo("DEM","Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
         list_of_nodes_ids = [1]
         if self.nodeplotter:
             os.chdir(self.main_path)
@@ -159,7 +159,7 @@ class Solution(main_script.Solution):
             self.tang_plotter.plot_tangential_force(time)
 
     def CleanUpOperations(self):
-        print("running CleanUpOperations")
+        Logger.PrintInfo("DEM","running CleanUpOperations")
         #DBC.delete_archives() #.......Removing some unuseful files
         super(Solution, self).CleanUpOperations()
 
@@ -175,6 +175,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution
         slt.Run()
+        del slt
     end = timer.time()
     benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
 #DBC.delete_archives() #.......Removing some unuseful files

@@ -69,7 +69,7 @@ RigidEdge3D::~RigidEdge3D()
 
 void RigidEdge3D::Initialize() {
 
-//  mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
+//  mTgOfFrictionAngle = GetProperties()[FRICTION];
 
   this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
   this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;

@@ -27,12 +27,13 @@ class SimplifiedNodalContactProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(
             """
             {
-                "background_domain"   : "name_of_background_model_part",
-                "background_contact_surface"    : "name_of_surface_of_contact",
-                "background_contact_volume"     : "inside_of_the_contact_volume",
-                "active_contact_surface"    : "active_contact_surface",
-                "active_contact_body"    : "active_contact_body",
-                "contact_property_id"    : 1
+                "help"                       :"This process computes a simplified contact problem nodally using the distance to define the penalty value",
+                "background_domain"          : "name_of_background_model_part",
+                "background_contact_surface" : "name_of_surface_of_contact",
+                "background_contact_volume"  : "inside_of_the_contact_volume",
+                "active_contact_surface"     : "active_contact_surface",
+                "active_contact_body"        : "active_contact_body",
+                "contact_property_id"        : 1
             }
             """
         );
