@@ -171,22 +171,18 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         self.counter += 1
 
+        # set meshing step time
+        self.SetMeshingStepTime()
+
         # schedule next meshing
         if(self.meshing_frequency > 0.0): # note: if == 0 always active
             if(self.meshing_control_is_time):
                 time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
                 while(self.next_meshing <= time):
                     self.next_meshing += self.meshing_frequency
-
-                    self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.MESHING_STEP_TIME,self.next_meshing)
             else:
                 while(self.next_meshing <= self.step_count):
                     self.next_meshing += self.meshing_frequency
-
-                    delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-                    time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-                    next_meshing_time = time + self.meshing_frequency * delta_time;
-                    self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.MESHING_STEP_TIME, next_meshing_time)
 
 
     #
@@ -197,6 +193,11 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     #
     def GetMeshingStep(self):
         return self.counter
+
+    #
+    def SetMeshingStepTime(self):
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.MESHING_STEP_TIME, current_time)
 
     #
     def IsMeshingStep(self):
