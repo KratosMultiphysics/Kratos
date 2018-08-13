@@ -5,7 +5,7 @@
         "help"          : "This process creates a material and assigns its properties",
         "process_name"  : "AssignMaterialsProcess",
         "Parameters"    : {
-            "model_part_name"  : "Domain",
+            "model_part_name"  : "Solid_Piece",
             "properties_id"    : 1,
             "constitutive_law" : {
                 "name" : "LargeStrainPlaneStrain2DLaw.SimoJ2ThermoPlasticityModel"
