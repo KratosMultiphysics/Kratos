@@ -197,184 +197,6 @@ void RegisterSurfaceShapeEvaluator(
     ;
 }
 
-void RegisterNodeCurveGeometry(
-    pybind11::module& m,
-    const std::string& name)
-{
-    namespace py = pybind11;
-    using namespace pybind11::literals;
-
-    using VectorType = Kratos::array_1d<double, 3>;
-
-    using Type = NodeCurveGeometry3D;
-    using Pointer = ANurbs::Pointer<Type>;
-
-    using VariableComponent = Kratos::VariableComponent<
-        Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
-
-    pybind11::class_<Type, Pointer>(m, name.c_str())
-        .def(pybind11::init<int, int>(),
-            "Degree"_a,
-            "NumberOfNodes"_a)
-        .def_property_readonly("Degree", &Type::Degree)
-        .def("Knot", &Type::Knot,
-            "Index"_a)
-        .def("SetKnot", &Type::SetKnot,
-            "Index"_a,
-            "Value"_a)
-        .def("Knots", &Type::Knots)
-        .def("Node", &Type::Node,
-            "Index"_a)
-        .def("SetNode", &Type::SetNode,
-            "Index"_a,
-            "Value"_a)
-        .def("Pole", &Type::Pole,
-            "Index"_a)
-        .def("SetPole", &Type::SetPole,
-            "Index"_a,
-            "Value"_a)
-        .def("Weight", &Type::Weight,
-            "Index"_a)
-        .def("SetWeight", &Type::SetWeight,
-            "Index"_a,
-            "Value"_a)
-        .def("Spans", &Type::Spans)
-        .def("PointAt", &Type::PointAt,
-            "T"_a)
-        .def("DerivativesAt", &Type::DerivativesAt,
-            "T"_a,
-            "Order"_a)
-        .def("ValueAt", (double (Type::*)(const Variable<double>&,
-            const double) const) &Type::ValueAt<double>,
-            "Variable"_a,
-            "T"_a)
-        .def("ValueAt", (std::vector<double> (Type::*)(
-            const Variable<double>&, const double, const int) const)
-            &Type::ValueAt<double>,
-            "Variable"_a,
-            "T"_a,
-            "Order"_a)
-        .def("ValueAt", (VectorType (Type::*)(const Variable<VectorType>&,
-            const double) const) &Type::ValueAt<VectorType>,
-            "Variable"_a,
-            "T"_a)
-        .def("ValueAt", (std::vector<VectorType> (Type::*)(
-            const Variable<VectorType>&, const double, const int) const)
-            &Type::ValueAt<VectorType>,
-            "Variable"_a,
-            "T"_a,
-            "Order"_a)
-        .def("ValueAt", (double (Type::*)(const VariableComponent&,
-            const double) const) &Type::ValueAt<double, VariableComponent>,
-            "Variable"_a,
-            "T"_a)
-        .def("ValueAt", (std::vector<double> (Type::*)(
-            const VariableComponent&, const double,
-            const int) const) &Type::ValueAt<double, VariableComponent>,
-            "Variable"_a,
-            "T"_a,
-            "Order"_a)
-    ;
-}
-
-void RegisterNodeSurfaceGeometry(
-    pybind11::module& m,
-    const std::string& name)
-{
-    namespace py = pybind11;
-    using namespace pybind11::literals;
-
-    using VectorType = Kratos::array_1d<double, 3>;
-
-    using Type = NodeSurfaceGeometry3D;
-    using Pointer = ANurbs::Pointer<Type>;
-
-    using VariableComponent = Kratos::VariableComponent<
-        Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
-
-    pybind11::class_<Type, Pointer>(m, name.c_str())
-        .def(pybind11::init<int, int, int, int>(),
-            "DegreeU"_a,
-            "DegreeV"_a,
-            "NumberOfNodesU"_a,
-            "NumberOfNodesV"_a)
-        .def_property_readonly("DegreeU", &Type::DegreeU)
-        .def_property_readonly("DegreeV", &Type::DegreeV)
-        .def("SetKnotU", &Type::SetKnotU,
-            "Index"_a,
-            "Value"_a)
-        .def("SetKnotV", &Type::SetKnotV,
-            "Index"_a,
-            "Value"_a)
-        .def("Node", &Type::Node,
-            "IndexU"_a,
-            "IndexV"_a)
-        .def("SetNode", &Type::SetNode,
-            "IndexU"_a,
-            "IndexV"_a,
-            "Value"_a)
-        .def("Pole", &Type::Pole,
-            "IndexU"_a,
-            "IndexV"_a)
-        .def("SetPole", &Type::SetPole,
-            "IndexU"_a,
-            "IndexV"_a,
-            "Value"_a)
-        .def("Weight", &Type::Weight,
-            "IndexU"_a,
-            "IndexV"_a)
-        .def("SetWeight", &Type::SetWeight,
-            "IndexU"_a,
-            "IndexV"_a,
-            "Value"_a)
-        .def("PointAt", &Type::PointAt,
-            "U"_a,
-            "V"_a)
-        .def("DerivativesAt", &Type::DerivativesAt,
-            "U"_a,
-            "V"_a,
-            "Order"_a)
-        .def("ValueAt", (double (Type::*)(const Variable<double>&,
-            const double, const double) const) &Type::ValueAt<double>,
-            "Variable"_a,
-            "U"_a,
-            "V"_a)
-        .def("ValueAt", (std::vector<double> (Type::*)(
-            const Variable<double>&, const double, const double, const int)
-            const)
-            &Type::ValueAt<double>,
-            "Variable"_a,
-            "U"_a,
-            "V"_a,
-            "Order"_a)
-        .def("ValueAt", (VectorType (Type::*)(const Variable<VectorType>&,
-            const double, const double) const) &Type::ValueAt<VectorType>,
-            "Variable"_a,
-            "U"_a,
-            "V"_a)
-        .def("ValueAt", (std::vector<VectorType> (Type::*)(
-            const Variable<VectorType>&, const double, const double,
-            const int) const) &Type::ValueAt<VectorType>,
-            "Variable"_a,
-            "U"_a,
-            "V"_a,
-            "Order"_a)
-        .def("ValueAt", (double (Type::*)(const VariableComponent&,
-            const double, const double) const) &Type::ValueAt<double,
-            VariableComponent>,
-            "Variable"_a,
-            "U"_a,
-            "V"_a)
-        .def("ValueAt", (std::vector<double> (Type::*)(
-            const VariableComponent&, const double, const double, const int)
-            const) &Type::ValueAt<double, VariableComponent>,
-            "Variable"_a,
-            "U"_a,
-            "V"_a,
-            "Order"_a)
-    ;
-}
-
 template <int TDimension>
 void RegisterCurveGeometryBase(
     pybind11::module& m,
@@ -512,6 +334,186 @@ void RegisterSurfaceGeometry(
             "NumberOfPolesU"_a,
             "NumberOfPolesV"_a,
             "IsRational"_a);
+    ;
+}
+
+void RegisterNodeCurveGeometry(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = Kratos::array_1d<double, 3>;
+
+    using Type = NodeCurveGeometry3D;
+    using Pointer = ANurbs::Pointer<Type>;
+    using Base = ANurbs::CurveGeometryBase<VectorType>;
+
+    using VariableComponent = Kratos::VariableComponent<
+        Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
+
+    pybind11::class_<Type, Base, Pointer>(m, name.c_str())
+        .def(pybind11::init<int, int>(),
+            "Degree"_a,
+            "NumberOfNodes"_a)
+        .def_property_readonly("Degree", &Type::Degree)
+        .def("Knot", &Type::Knot,
+            "Index"_a)
+        .def("SetKnot", &Type::SetKnot,
+            "Index"_a,
+            "Value"_a)
+        .def("Knots", &Type::Knots)
+        .def("Node", &Type::Node,
+            "Index"_a)
+        .def("SetNode", &Type::SetNode,
+            "Index"_a,
+            "Value"_a)
+        .def("Pole", &Type::Pole,
+            "Index"_a)
+        .def("SetPole", &Type::SetPole,
+            "Index"_a,
+            "Value"_a)
+        .def("Weight", &Type::Weight,
+            "Index"_a)
+        .def("SetWeight", &Type::SetWeight,
+            "Index"_a,
+            "Value"_a)
+        .def("Spans", &Type::Spans)
+        .def("PointAt", &Type::PointAt,
+            "T"_a)
+        .def("DerivativesAt", &Type::DerivativesAt,
+            "T"_a,
+            "Order"_a)
+        .def("ValueAt", (double (Type::*)(const Variable<double>&,
+            const double) const) &Type::ValueAt<double>,
+            "Variable"_a,
+            "T"_a)
+        .def("ValueAt", (std::vector<double> (Type::*)(
+            const Variable<double>&, const double, const int) const)
+            &Type::ValueAt<double>,
+            "Variable"_a,
+            "T"_a,
+            "Order"_a)
+        .def("ValueAt", (VectorType (Type::*)(const Variable<VectorType>&,
+            const double) const) &Type::ValueAt<VectorType>,
+            "Variable"_a,
+            "T"_a)
+        .def("ValueAt", (std::vector<VectorType> (Type::*)(
+            const Variable<VectorType>&, const double, const int) const)
+            &Type::ValueAt<VectorType>,
+            "Variable"_a,
+            "T"_a,
+            "Order"_a)
+        .def("ValueAt", (double (Type::*)(const VariableComponent&,
+            const double) const) &Type::ValueAt<double, VariableComponent>,
+            "Variable"_a,
+            "T"_a)
+        .def("ValueAt", (std::vector<double> (Type::*)(
+            const VariableComponent&, const double,
+            const int) const) &Type::ValueAt<double, VariableComponent>,
+            "Variable"_a,
+            "T"_a,
+            "Order"_a)
+    ;
+}
+
+void RegisterNodeSurfaceGeometry(
+    pybind11::module& m,
+    const std::string& name)
+{
+    namespace py = pybind11;
+    using namespace pybind11::literals;
+
+    using VectorType = Kratos::array_1d<double, 3>;
+
+    using Type = NodeSurfaceGeometry3D;
+    using Pointer = ANurbs::Pointer<Type>;
+    using Base = ANurbs::SurfaceGeometryBase<VectorType>;
+
+    using VariableComponent = Kratos::VariableComponent<
+        Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
+
+    pybind11::class_<Type, Base, Pointer>(m, name.c_str())
+        .def(pybind11::init<int, int, int, int>(),
+            "DegreeU"_a,
+            "DegreeV"_a,
+            "NumberOfNodesU"_a,
+            "NumberOfNodesV"_a)
+        .def_property_readonly("DegreeU", &Type::DegreeU)
+        .def_property_readonly("DegreeV", &Type::DegreeV)
+        .def("SetKnotU", &Type::SetKnotU,
+            "Index"_a,
+            "Value"_a)
+        .def("SetKnotV", &Type::SetKnotV,
+            "Index"_a,
+            "Value"_a)
+        .def("Node", &Type::Node,
+            "IndexU"_a,
+            "IndexV"_a)
+        .def("SetNode", &Type::SetNode,
+            "IndexU"_a,
+            "IndexV"_a,
+            "Value"_a)
+        .def("Pole", &Type::Pole,
+            "IndexU"_a,
+            "IndexV"_a)
+        .def("SetPole", &Type::SetPole,
+            "IndexU"_a,
+            "IndexV"_a,
+            "Value"_a)
+        .def("Weight", &Type::Weight,
+            "IndexU"_a,
+            "IndexV"_a)
+        .def("SetWeight", &Type::SetWeight,
+            "IndexU"_a,
+            "IndexV"_a,
+            "Value"_a)
+        .def("PointAt", &Type::PointAt,
+            "U"_a,
+            "V"_a)
+        .def("DerivativesAt", &Type::DerivativesAt,
+            "U"_a,
+            "V"_a,
+            "Order"_a)
+        .def("ValueAt", (double (Type::*)(const Variable<double>&,
+            const double, const double) const) &Type::ValueAt<double>,
+            "Variable"_a,
+            "U"_a,
+            "V"_a)
+        .def("ValueAt", (std::vector<double> (Type::*)(
+            const Variable<double>&, const double, const double, const int)
+            const)
+            &Type::ValueAt<double>,
+            "Variable"_a,
+            "U"_a,
+            "V"_a,
+            "Order"_a)
+        .def("ValueAt", (VectorType (Type::*)(const Variable<VectorType>&,
+            const double, const double) const) &Type::ValueAt<VectorType>,
+            "Variable"_a,
+            "U"_a,
+            "V"_a)
+        .def("ValueAt", (std::vector<VectorType> (Type::*)(
+            const Variable<VectorType>&, const double, const double,
+            const int) const) &Type::ValueAt<VectorType>,
+            "Variable"_a,
+            "U"_a,
+            "V"_a,
+            "Order"_a)
+        .def("ValueAt", (double (Type::*)(const VariableComponent&,
+            const double, const double) const) &Type::ValueAt<double,
+            VariableComponent>,
+            "Variable"_a,
+            "U"_a,
+            "V"_a)
+        .def("ValueAt", (std::vector<double> (Type::*)(
+            const VariableComponent&, const double, const double, const int)
+            const) &Type::ValueAt<double, VariableComponent>,
+            "Variable"_a,
+            "U"_a,
+            "V"_a,
+            "Order"_a)
     ;
 }
 
@@ -762,9 +764,6 @@ void AddCustomUtilitiesToPython(
     RegisterCurveShapeEvaluator(m, "CurveShapeEvaluator");
     RegisterSurfaceShapeEvaluator(m, "SurfaceShapeEvaluator");
 
-    RegisterNodeCurveGeometry(m, "NodeCurveGeometry3D");
-    RegisterNodeSurfaceGeometry(m, "NodeSurfaceGeometry3D");
-
     RegisterPoint1D(m, "Point1D");
     RegisterPoint2D(m, "Point2D");
 
@@ -783,6 +782,9 @@ void AddCustomUtilitiesToPython(
     RegisterSurfaceGeometry<1>(m, "SurfaceGeometry1D");
     RegisterSurfaceGeometry<2>(m, "SurfaceGeometry2D");
     RegisterSurfaceGeometry<3>(m, "SurfaceGeometry3D");
+
+    RegisterNodeCurveGeometry(m, "NodeCurveGeometry3D");
+    RegisterNodeSurfaceGeometry(m, "NodeSurfaceGeometry3D");
 
     RegisterCurveBase<1>(m, "CurveBase1D");
     RegisterCurveBase<2>(m, "CurveBase2D");
