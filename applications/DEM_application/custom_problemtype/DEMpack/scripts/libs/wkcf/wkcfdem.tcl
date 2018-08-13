@@ -3629,6 +3629,70 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
     GiD_File fprintf $demfemchannel ""
 }
 
+
+proc ::wkcf::WriteCustomSubModelParts {AppId} {
+    variable deminletchannel
+	variable filechannel
+	variable demfemchannel
+    global KPriv
+
+    # Set the rootid
+    set rootid "$AppId"
+	set basexpath "$rootid//c.DEM-CustomSubModelParts"
+
+    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+
+    foreach cgroupid $gproplist {
+
+		set properties_path "${basexpath}//c.[list ${cgroupid}]//c.MainProperties"
+		set cproperty "dv"
+		set destination_mdpa [::xmlutils::setXml "${properties_path}//i.WhatMdpa" $cproperty]
+
+		if { $destination_mdpa=="DEM" } {
+			set output_channel $filechannel
+		} elseif { $destination_mdpa == "FEM" } {
+			set output_channel $demfemchannel
+		} elseif { $destination_mdpa == "DEM-Inlet" } {
+			set output_channel $deminletchannel
+		}
+
+		GiD_File fprintf $output_channel "%s" "Begin SubModelPart $cgroupid \/\/ Custom SubModelPart. Group name: $cgroupid"
+		GiD_File fprintf $output_channel "  Begin SubModelPartData // DEM-FEM-Wall. Group name: $cgroupid"
+		GiD_File fprintf $output_channel "  End SubModelPartData"
+		GiD_File fprintf $output_channel "  Begin SubModelPartNodes"
+
+		set nlist [GiD_EntitiesGroups get $cgroupid nodes]
+		foreach nodeid $nlist {
+			GiD_File fprintf $output_channel "  $nodeid"
+		}
+		GiD_File fprintf $output_channel "  End SubModelPartNodes"
+
+		if { $destination_mdpa != "DEM-Inlet" } {
+			set nlist [GiD_EntitiesGroups get $cgroupid elements]
+			if {[llength $nlist]} {
+				if { $destination_mdpa == "FEM" } {
+					GiD_File fprintf $output_channel "  Begin SubModelPartConditions"
+				} else {
+					GiD_File fprintf $output_channel "  Begin SubModelPartElements"
+				}
+				foreach elemid $nlist {
+					GiD_File fprintf $output_channel "  $elemid"
+				}
+				if { $destination_mdpa == "FEM" } {
+					GiD_File fprintf $output_channel "  End SubModelPartConditions"
+				} else {
+					GiD_File fprintf $output_channel "  End SubModelPartElements"
+				}
+			}
+		}
+
+		GiD_File fprintf $output_channel "End SubModelPart"
+		GiD_File fprintf $output_channel ""
+	}
+
+}
+
+
 proc ::wkcf::WriteInletGroupMeshProperties {AppId} {
     # ABSTRACT: Write inlet condition group properties mdpa file (only the nodes)
     variable dprops

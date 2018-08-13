@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,16 @@ THE SOFTWARE.
  * \brief  Gauss-Seidel relaxation scheme.
  */
 
+#include <numeric>
+
+#include <memory>
+
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/util.hpp>
+
+#ifdef _OPENMP
+#  include <omp.h>
+#endif
 
 namespace amgcl {
 namespace relaxation {
@@ -55,15 +63,17 @@ struct gauss_seidel {
 
         params() : serial(false) {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, serial)
         {
-            AMGCL_PARAMS_CHECK(p, (serial));
+            check_params(p, {"serial"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, serial);
         }
+#endif
     };
 
     bool is_serial;
@@ -82,7 +92,7 @@ struct gauss_seidel {
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_pre(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP&, const params&
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP&
             ) const
     {
         if (is_serial)
@@ -94,7 +104,7 @@ struct gauss_seidel {
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_post(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP&, const params&
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP&
             ) const
     {
         if (is_serial)
@@ -104,7 +114,7 @@ struct gauss_seidel {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params&) const
+    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x) const
     {
         backend::clear(x);
         if (is_serial) {
@@ -114,6 +124,13 @@ struct gauss_seidel {
             forward->sweep(rhs, x);
             backward->sweep(rhs, x);
         }
+    }
+
+    size_t bytes() const {
+        size_t b = 0;
+        if (forward)  b += forward->bytes();
+        if (backward) b += backward->bytes();
+        return b;
     }
 
     private:
@@ -137,7 +154,6 @@ struct gauss_seidel {
         static void serial_sweep(
                 const Matrix &A, const VectorRHS &rhs, VectorX &x, bool forward)
         {
-            typedef typename backend::row_iterator<Matrix>::type row_iterator;
             typedef typename backend::value_type<Matrix>::type val_type;
             typedef typename math::rhs_of<val_type>::type rhs_type;
 
@@ -151,7 +167,7 @@ struct gauss_seidel {
                 rhs_type X = rhs[i];
                 val_type D = math::identity<val_type>();
 
-                for (row_iterator a = backend::row_begin(A, i); a; ++a) {
+                for (auto a = backend::row_begin(A, i); a; ++a) {
                     ptrdiff_t c = a.col();
                     val_type  v = a.value();
 
@@ -189,8 +205,6 @@ struct gauss_seidel {
                 : nthreads(num_threads()), tasks(nthreads),
                   ptr(nthreads), col(nthreads), val(nthreads), ord(nthreads)
             {
-                typedef typename backend::row_iterator<Matrix>::type row_iterator;
-
                 ptrdiff_t n    = backend::rows(A);
                 ptrdiff_t nlev = 0;
 
@@ -205,7 +219,7 @@ struct gauss_seidel {
                 for(ptrdiff_t i = beg; i != end; i += inc) {
                     ptrdiff_t l = level[i];
 
-                    for(row_iterator a = row_begin(A, i); a; ++a) {
+                    for(auto a = row_begin(A, i); a; ++a) {
                         ptrdiff_t c = a.col();
 
                         if (forward) {
@@ -280,7 +294,7 @@ struct gauss_seidel {
                     ptr[tid].reserve(thread_rows[tid] + 1);
                     ptr[tid].push_back(0);
 
-                    BOOST_FOREACH(task &t, tasks[tid]) {
+                    for(task &t : tasks[tid]) {
                         ptrdiff_t loc_beg = ptr[tid].size() - 1;
                         ptrdiff_t loc_end = loc_beg;
 
@@ -289,7 +303,7 @@ struct gauss_seidel {
 
                             ord[tid].push_back(i);
 
-                            for(row_iterator a = row_begin(A, i); a; ++a) {
+                            for(auto a = row_begin(A, i); a; ++a) {
                                 col[tid].push_back(a.col());
                                 val[tid].push_back(a.value());
                             }
@@ -309,7 +323,7 @@ struct gauss_seidel {
                 {
                     int tid = thread_id();
 
-                    BOOST_FOREACH(const task &t, tasks[tid]) {
+                    for(const task &t : tasks[tid]) {
                         for(ptrdiff_t r = t.beg; r < t.end; ++r) {
                             ptrdiff_t i   = ord[tid][r];
                             ptrdiff_t beg = ptr[tid][r];
@@ -337,6 +351,20 @@ struct gauss_seidel {
                     }
                 }
             }
+
+            size_t bytes() const {
+                size_t b = 0;
+
+                for(int i = 0; i < nthreads; ++i) {
+                    b += sizeof(task) * tasks[i].size();
+                    b += backend::bytes(ptr[i]);
+                    b += backend::bytes(col[i]);
+                    b += backend::bytes(val[i]);
+                    b += backend::bytes(ord[i]);
+                }
+
+                return b;
+            }
         };
 
         std::shared_ptr< parallel_sweep<true>  > forward;
@@ -351,11 +379,18 @@ template <class Backend>
 struct relaxation_is_supported<
     Backend,
     relaxation::gauss_seidel,
-    typename boost::disable_if<
-            typename Backend::provides_row_iterator
+    typename std::enable_if<
+        !Backend::provides_row_iterator::value
         >::type
-    > : boost::false_type
+    > : std::false_type
 {};
+
+template <class Backend>
+struct bytes_impl< relaxation::gauss_seidel<Backend> > {
+    static size_t get(const relaxation::gauss_seidel<Backend> &r) {
+        return r.bytes();
+    }
+};
 
 } // namespace backend
 } // namespace amgcl

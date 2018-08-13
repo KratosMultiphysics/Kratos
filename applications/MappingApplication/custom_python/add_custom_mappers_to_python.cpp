@@ -25,16 +25,13 @@
 #include "custom_utilities/mapper_typedefs.h"
 
 
-namespace Kratos
-{
+// Matrix-free Mappers
+#include "custom_mappers/nearest_neighbor_mapper.h"
+#include "custom_mappers/nearest_element_mapper.h"
 
-namespace Python
-{
 
-namespace MapperToPython
-{
-
-using namespace pybind11;
+namespace Kratos {
+namespace Python {
 
 // Wrapper functions for taking a default argument for the flags // TODO inline? Jordi
 template<class TSparseSpace, class TDenseSpace>
@@ -97,6 +94,11 @@ inline void InverseMapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& du
 
 template<class TSparseSpace, class TDenseSpace>
     void (Mapper<TSparseSpace, TDenseSpace>::*pMapScalarOptions)(const Variable<double> &,
+void  AddCustomMappersToPython(pybind11::module& m)
+{
+    namespace py = pybind11;
+
+    void (Mapper::*pMapScalarOptions)(const Variable<double> &,
             const Variable<double> &,
             Kratos::Flags)
         = &Mapper<TSparseSpace, TDenseSpace>::Map;
@@ -164,8 +166,8 @@ void  AddCustomMappersToPython(pybind11::module& m)
 #endif
 
     // Exposing the MapperFactory
-    class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
-        .def_static("CreateMapper", &MapperFactory::CreateMapper<SparseSpaceType, DenseSpaceType>)
+    py::class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
+        .def_static("CreateMapper", &MapperFactory::CreateMapper);
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<MPISparseSpaceType, DenseSpaceType>)
 #endif
@@ -173,5 +175,4 @@ void  AddCustomMappersToPython(pybind11::module& m)
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos

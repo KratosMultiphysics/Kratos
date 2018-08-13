@@ -26,6 +26,7 @@
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
+#include "includes/master_slave_constraint.h"
 
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -166,6 +167,8 @@ KRATOS_CREATE_VARIABLE(double, PARTITION_INDEX)
 KRATOS_CREATE_VARIABLE(double, TEMPERATURE_OLD_IT)
 KRATOS_CREATE_VARIABLE(double, VISCOSITY)
 KRATOS_CREATE_VARIABLE(double, ERROR_RATIO)
+KRATOS_CREATE_VARIABLE(double, ENERGY_NORM_OVERALL )
+KRATOS_CREATE_VARIABLE(double, ERROR_OVERALL )
 KRATOS_CREATE_VARIABLE(double, RHS_WATER)
 KRATOS_CREATE_VARIABLE(double, RHS_AIR)
 KRATOS_CREATE_VARIABLE(double, WEIGHT_FATHER_NODES)
@@ -495,6 +498,10 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mSurfaceCondition3D8N( 0, Element::GeometryType::Pointer(new Quadrilateral3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mSurfaceCondition3D9N( 0, Element::GeometryType::Pointer(new Quadrilateral3D9<NodeType >(Element::GeometryType::PointsArrayType(9)))),
 
+      // Master-Slave Constraint 
+      mMasterSlaveConstraint(),
+      mLinearMasterSlaveConstraint(),
+
       // Deprecated conditions start
       mCondition2D( 0, Element::GeometryType::Pointer(new Geometry<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mCondition2D2N( 0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -742,6 +749,8 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(TEMPERATURE_OLD_IT)
     KRATOS_REGISTER_VARIABLE(VISCOSITY)
     KRATOS_REGISTER_VARIABLE(ERROR_RATIO)
+    KRATOS_REGISTER_VARIABLE(ENERGY_NORM_OVERALL)
+    KRATOS_REGISTER_VARIABLE(ERROR_OVERALL)
     KRATOS_REGISTER_VARIABLE(RHS_WATER)
     KRATOS_REGISTER_VARIABLE(RHS_AIR)
     KRATOS_REGISTER_VARIABLE(WEIGHT_FATHER_NODES)
@@ -985,6 +994,8 @@ void KratosApplication::RegisterVariables() {
     Serializer::Register("Node3D", NodeType());
     Serializer::Register("DofDouble", Dof<double>());
 
+    Serializer::Register("MasterSlaveConstraint", MasterSlaveConstraint());
+
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
 
     //point conditions
@@ -1001,6 +1012,10 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D4N", mSurfaceCondition3D4N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D8N", mSurfaceCondition3D8N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D9N", mSurfaceCondition3D9N);
+
+    //master-slave constraints
+    KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
+    KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
 
     //deprecated conditions start
     KRATOS_REGISTER_CONDITION("Condition2D", mCondition2D);

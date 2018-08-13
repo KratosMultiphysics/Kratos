@@ -63,7 +63,8 @@ void  AddKratosParametersToPython(pybind11::module& m)
 
 
     class_<Parameters, Parameters::Pointer >(m,"Parameters")
-    .def(init<const std::string>()) //init<rapidjson::Value& >())
+    .def(init<>())
+    .def(init<const std::string&>())
     .def(init<Parameters const&>())
     .def("WriteJsonString", &Parameters::WriteJsonString)
     .def("PrettyPrintJsonString", &Parameters::PrettyPrintJsonString)

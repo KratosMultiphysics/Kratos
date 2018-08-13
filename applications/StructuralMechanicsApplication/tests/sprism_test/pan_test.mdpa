@@ -9,13 +9,6 @@ Begin Properties  1
 End Properties
 
 Begin Properties  2
-CONSTITUTIVE_LAW_NAME  Elastic3DLaw
-YOUNG_MODULUS                3102750000.0
-POISSON_RATIO                0.3
-DENSITY                      1000.0
-NINT_TRANS                   3
-EAS_IMP                      1
-QUAD_ON                      1
 End Properties
 
 Begin Nodes

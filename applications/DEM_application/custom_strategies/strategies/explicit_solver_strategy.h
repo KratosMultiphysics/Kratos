@@ -150,8 +150,8 @@ namespace Kratos {
 
         /// Destructor.
         virtual ~ExplicitSolverStrategy() {
-            Timer::SetOuputFile("TimesPartialRelease");
-            Timer::PrintTimingInformation();
+            //Timer::SetOuputFile("TimesPartialRelease");
+            //Timer::PrintTimingInformation();
         }
 
         struct LessX {

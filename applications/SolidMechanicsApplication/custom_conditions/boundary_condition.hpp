@@ -233,7 +233,7 @@ public:
     BoundaryCondition( BoundaryCondition const& rOther);
 
     /// Destructor
-    virtual ~BoundaryCondition();
+    ~BoundaryCondition() override;
 
     ///@}
     ///@name Operators
@@ -379,7 +379,7 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void AddExplicitContribution(const VectorType& rRHS,
+    void AddExplicitContribution(const VectorType& rRHS,
 					 const Variable<VectorType>& rRHSVariable,
 					 Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
@@ -410,7 +410,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -609,9 +609,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class BoundaryCondition.
