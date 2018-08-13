@@ -49,14 +49,13 @@ with open('dirs.csv', 'r') as input_file:
 projector = Projector(len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, algorithm_settings)
 
 # Test projection
-nargout = 2
 len_obj_test = 0.01
 inactive_threshold = 100
-test_norm_dX, is_projection_sucessfull = projector.RunProjection(len_obj_test, inactive_threshold, nargout)
+test_norm_dX, is_projection_sucessfull = projector.RunProjection(len_obj_test, inactive_threshold)
 
 # Test bisectioning
 len_obj = algorithm_settings["obj_share_during_correction"].GetDouble()
-func = lambda threshold: projector.RunProjection(len_obj, threshold, nargout)
+func = lambda threshold: projector.RunProjection(len_obj, threshold)
 
 threshold_min = 0
 threshold_max = 1.3
