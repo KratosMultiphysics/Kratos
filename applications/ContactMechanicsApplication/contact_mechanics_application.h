@@ -38,34 +38,34 @@
 #include "custom_elements/translatory_rigid_body_element.hpp"
 
 // conditions
-#include "custom_conditions/contact_domain_condition.hpp"
-#include "custom_conditions/contact_domain_LM_3D_condition.hpp"
-#include "custom_conditions/contact_domain_LM_2D_condition.hpp"
-#include "custom_conditions/contact_domain_penalty_2D_condition.hpp"
-#include "custom_conditions/axisym_contact_domain_LM_2D_condition.hpp"
-#include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
+#include "custom_conditions/deformable_contact/contact_domain_condition.hpp"
+#include "custom_conditions/deformable_contact/contact_domain_LM_3D_condition.hpp"
+#include "custom_conditions/deformable_contact/contact_domain_LM_2D_condition.hpp"
+#include "custom_conditions/deformable_contact/contact_domain_penalty_2D_condition.hpp"
+#include "custom_conditions/deformable_contact/axisym_contact_domain_LM_2D_condition.hpp"
+#include "custom_conditions/deformable_contact/axisym_contact_domain_penalty_2D_condition.hpp"
 
-#include "custom_conditions/thermal_contact_domain_penalty_2D_condition.hpp"
-#include "custom_conditions/axisym_thermal_contact_domain_penalty_2D_condition.hpp"
+#include "custom_conditions/thermal_contact/thermal_contact_domain_penalty_2D_condition.hpp"
+#include "custom_conditions/thermal_contact/axisym_thermal_contact_domain_penalty_2D_condition.hpp"
 
-#include "custom_conditions/point_rigid_contact_condition.hpp"
-#include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
-#include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
-#include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/rigid_contact/point_rigid_contact_condition.hpp"
+#include "custom_conditions/rigid_contact/point_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/rigid_contact/point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/rigid_contact/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
-#include "custom_conditions/EP_point_rigid_contact_penalty_3D_condition.hpp"
-#include "custom_conditions/EP_point_rigid_contact_penalty_2D_condition.hpp"
-#include "custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/rigid_contact/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
-
-#include "custom_conditions/hydraulic_rigid_contact_penalty_3D_condition.hpp"
-#include "custom_conditions/hydraulic_axisym_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/hydraulic_contact/hydraulic_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/hydraulic_contact/hydraulic_axisym_rigid_contact_penalty_2D_condition.hpp"
 
 // friction laws
 #include "custom_friction/friction_law.hpp"
 #include "custom_friction/coulomb_adhesion_friction_law.hpp"
 #include "custom_friction/hardening_coulomb_friction_law.hpp"
 
+//#include "custom_conditions/rigid_body_links/rigid_body_point_link_condition.hpp"
 
 // Core applications
 #include "contact_mechanics_application_variables.h"
@@ -250,10 +250,14 @@ private:
         const HydraulicRigidContactPenalty3DCondition mHydraulicRigidContactPenalty3DCondition;
         const HydraulicAxisymRigidContactPenalty2DCondition mHydraulicAxisymRigidContactPenalty2DCondition;
 
-	//friction laws
-	const FrictionLaw                                                       mFrictionLaw;
-	const CoulombAdhesionFrictionLaw                         mCoulombAdhesionFrictionLaw;
-	const HardeningCoulombFrictionLaw                       mHardeningCoulombFrictionLaw;
+        //friction laws
+        const FrictionLaw                                                       mFrictionLaw;
+        const CoulombAdhesionFrictionLaw                         mCoulombAdhesionFrictionLaw;
+        const HardeningCoulombFrictionLaw                       mHardeningCoulombFrictionLaw;
+
+        // const RigidBodyPointLinkCondition                   mRigidBodyPointLinkCondition2D1N;
+        // const RigidBodyPointLinkCondition                   mRigidBodyPointLinkCondition3D1N;
+
 
 	///@}
 	///@name Private Operators

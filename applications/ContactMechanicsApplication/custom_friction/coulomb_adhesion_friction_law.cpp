@@ -13,32 +13,6 @@ namespace Kratos
 {
 
    /**
-    * Constructor.
-    */
-   CoulombAdhesionFrictionLaw::CoulombAdhesionFrictionLaw()
-      :FrictionLaw()
-   {
-   }
-
-
-   /**
-    * Destructor.
-    */
-   CoulombAdhesionFrictionLaw::~CoulombAdhesionFrictionLaw()
-   {
-   }
-
-
-   /**
-    * Clone function (has to be implemented by any derived class)
-    * @return a pointer to a new instance of friction law
-    */
-   FrictionLaw::Pointer CoulombAdhesionFrictionLaw::Clone() const
-   {
-      return Kratos::make_shared<CoulombAdhesionFrictionLaw>(*this);
-   }
-
-   /**
     * Methods
     */
    double CoulombAdhesionFrictionLaw::EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables)

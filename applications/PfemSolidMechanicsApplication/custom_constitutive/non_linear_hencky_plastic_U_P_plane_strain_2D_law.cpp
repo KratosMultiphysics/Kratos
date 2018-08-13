@@ -8,17 +8,12 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
-#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
-
-#include "custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.hpp"
 #include "custom_constitutive/non_linear_hencky_plastic_U_P_plane_strain_2D_law.hpp"
+
 #include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
@@ -51,7 +46,7 @@ ConstitutiveLaw::Pointer NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::Clone(
     NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::Pointer p_clone(new NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw(*this));
     return p_clone;
 }
- 
+
 
 NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::~NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw()
 {
@@ -133,7 +128,7 @@ void NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::GetLawFeatures(Features& r
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 
@@ -145,4 +140,3 @@ void NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::GetLawFeatures(Features& r
 
 
 } //end namespace kratos
-
