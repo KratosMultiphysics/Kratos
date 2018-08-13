@@ -163,7 +163,11 @@ public:
     {
         const NodeType& node = *Node(IndexU, IndexV);
 
-        return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        if (node.Has(Kratos::NURBS_CONTROLPOINT_WEIGHT)) {
+            return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        } else {
+            return 1;
+        }
     }
 
     /** Sets the weight of the Kratos node at a given index.
