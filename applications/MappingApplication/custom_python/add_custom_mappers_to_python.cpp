@@ -93,15 +93,10 @@ inline void InverseMapWithoutOptionsVector(Mapper<TSparseSpace, TDenseSpace>& du
 }
 
 template<class TSparseSpace, class TDenseSpace>
-    void (Mapper<TSparseSpace, TDenseSpace>::*pMapScalarOptions)(const Variable<double> &,
-void  AddCustomMappersToPython(pybind11::module& m)
-{
-    namespace py = pybind11;
-
-    void (Mapper::*pMapScalarOptions)(const Variable<double> &,
-            const Variable<double> &,
-            Kratos::Flags)
-        = &Mapper<TSparseSpace, TDenseSpace>::Map;
+void (Mapper<TSparseSpace, TDenseSpace>::*pMapScalarOptions)(const Variable<double> &,
+        const Variable<double> &,
+        Kratos::Flags)
+    = &Mapper<TSparseSpace, TDenseSpace>::Map;
 
 template<class TSparseSpace, class TDenseSpace>
 void (Mapper<TSparseSpace, TDenseSpace>::*pMapVectorOptions)(const Variable< array_1d<double, 3> > &,
@@ -124,9 +119,10 @@ void (Mapper<TSparseSpace, TDenseSpace>::*pInverseMapVectorOptions)(const Variab
 template<class TSparseSpace, class TDenseSpace>
 void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
 {
-// Exposing the base class of the Mappers to Python, but without constructor
+    namespace py = pybind11;
+    // Exposing the base class of the Mappers to Python, but without constructor
     const auto mapper
-        = class_< Mapper<TSparseSpace, TDenseSpace>, typename Mapper<TSparseSpace, TDenseSpace>::Pointer >(m, rName.c_str())
+        = py::class_< Mapper<TSparseSpace, TDenseSpace>, typename Mapper<TSparseSpace, TDenseSpace>::Pointer >(m, rName.c_str())
             .def("UpdateInterface",  UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
             .def("UpdateInterface",  UpdateInterfaceWithOptions<TSparseSpace, TDenseSpace>)
             .def("UpdateInterface",  UpdateInterfaceWithSearchRadius<TSparseSpace, TDenseSpace>)
@@ -151,27 +147,25 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
     mapper.attr("REMESHED")         = MapperFlags::REMESHED;
 }
 
-} // namespace MapperToPython.
-
 void  AddCustomMappersToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     typedef MapperDefinitions::DenseSpaceType DenseSpaceType;
     typedef MapperDefinitions::SparseSpaceType SparseSpaceType;
-    MapperToPython::ExposeMapperToPython<SparseSpaceType, DenseSpaceType>(m, "Mapper");
+    ExposeMapperToPython<SparseSpaceType, DenseSpaceType>(m, "Mapper");
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     typedef MapperDefinitions::MPISparseSpaceType MPISparseSpaceType;
-    MapperToPython::ExposeMapperToPython<MPISparseSpaceType, DenseSpaceType>(m, "MPIMapper");
+    ExposeMapperToPython<MPISparseSpaceType, DenseSpaceType>(m, "MPIMapper");
 #endif
 
     // Exposing the MapperFactory
     py::class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
-        .def_static("CreateMapper", &MapperFactory::CreateMapper);
+        .def_static("CreateMapper", &MapperFactory::CreateMapper<SparseSpaceType, DenseSpaceType>)
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         .def_static("CreateMPIMapper", &MapperFactory::CreateMapper<MPISparseSpaceType, DenseSpaceType>)
 #endif
-        ;
+    ;
 }
 
 }  // namespace Python.
