@@ -1,12 +1,11 @@
 /*
-//  KRATOS .___  ________    _____
-//         |   |/  _____/   /  _  \
-//         |   /   \  ___  /  /_\  \
-//         |   \    \_\  \/    |    \
-//         |___|\______  /\____|__  /
-//                     \/         \/  Application
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
-//  Main authors:    Thomas Oberbichler
+//  Main authors:   Thomas Oberbichler
 */
 
 #if !defined(KRATOS_ANURBS_H_INCLUDED)

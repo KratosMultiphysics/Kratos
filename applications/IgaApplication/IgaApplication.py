@@ -1,14 +1,12 @@
-#
-#   KRATOS .___  ________    _____
-#          |   |/  _____/   /  _  \
-#          |   /   \  ___  /  /_\  \
-#          |   \    \_\  \/    |    \
-#          |___|\______  /\____|__  /
-#                      \/         \/  Application
-#
-#   License: BSD License
-#            Kratos default license: kratos/license.txt
-#
+# 
+#   KRATOS  _____________
+#          /  _/ ____/   |
+#          / // / __/ /| |
+#        _/ // /_/ / ___ |
+#       /___/\____/_/  |_| Application
+# 
+#   Main authors:   Thomas Oberbichler
+# 
 
 # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
