@@ -99,7 +99,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~EmcStepRotationMethod(){}
+    ~EmcStepRotationMethod() override{}
 
     ///@}
     ///@name Operators

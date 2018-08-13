@@ -142,7 +142,7 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        const SizeType size_b = b.size();
+        const SizeType size_b = TSparseSpace::Size(b);
         if (size_b != 0) { //if we are solving for something
 
             SizeType size_residual;
@@ -348,7 +348,7 @@ private:
 
             if (it_dof->IsFree()) {
                 dof_id = it_dof->EquationId();
-                residual_dof_value = b[dof_id];
+                residual_dof_value = TSparseSpace::GetValue(b,dof_id);
                 residual_solution_norm += residual_dof_value * residual_dof_value;
                 dof_num++;
             }
