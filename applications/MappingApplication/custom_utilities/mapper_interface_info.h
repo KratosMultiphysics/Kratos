@@ -112,7 +112,8 @@ public:
     * @brief Processing the result of the search
     * This function processes the results of the search, i.e. it extracts
     * the information needed from the neighbor and saves it such that it can be
-    * later accesse by the MapperLocalSystem for assembling it's local system
+    * later accesse by the MapperLocalSystem for assembling it's local system.
+    * This happens in the remote partition.
     * @param rpInterfaceObject The InterfaceObject found by the search
     * @param rpInterfaceObject The distance to the InterfaceObject found by the search
     * @author Philipp Bucher
@@ -127,6 +128,7 @@ public:
     * In case an approximation is found the function "SetIsApproximation" has to be
     * called to set internal flags for data-exchange and the computation of the
     * local system by the MapperLocalSystem
+    * This happens in the remote partition.
     * It's implementation is optional
     * @param rpInterfaceObject The InterfaceObject found by the search
     * @param rpInterfaceObject The distance to the InterfaceObject found by the search

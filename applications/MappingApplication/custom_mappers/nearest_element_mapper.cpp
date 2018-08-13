@@ -33,6 +33,8 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
     const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
 
     // trying to project to the geometry
+    // const double proj_dist = GeometricalProjectionUtilities::FastProjectDirection(
+    //     *p_geom, *mpNode);
     // ...
 
         // checking whether the projection is inside or outside
@@ -55,7 +57,7 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
 
     // looping the points of the geometry and finding the nearest neighbor
 
-    // SetIsApproximation()
+    SetIsApproximation();
 }
 
 void NearestElementLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeights,
