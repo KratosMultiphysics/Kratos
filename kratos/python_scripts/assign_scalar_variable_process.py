@@ -62,7 +62,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         self.step_is_active = False
 
     def ExecuteBeforeSolutionLoop(self):
-        self.ExecuteInitializeSolutionStep()
+        pass
 
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
