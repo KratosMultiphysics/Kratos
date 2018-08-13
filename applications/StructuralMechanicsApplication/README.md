@@ -124,9 +124,6 @@ The application includes tests to check the proper functioning of the applicatio
     * For displacement and other DoF
     * For displacement and rotation
 
-- Builder and solver:    
-    * Multi-point Constraint builder and solver
-
 - Utilities and others:
     * A process to post-process eigenvalues
     * A GiDIO utility for eigen values
