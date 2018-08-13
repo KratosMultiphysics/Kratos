@@ -250,6 +250,11 @@ private:
         const HydraulicRigidContactPenalty3DCondition mHydraulicRigidContactPenalty3DCondition;
         const HydraulicAxisymRigidContactPenalty2DCondition mHydraulicAxisymRigidContactPenalty2DCondition;
 
+        //friction laws
+        const FrictionLaw                                                       mFrictionLaw;
+        const CoulombAdhesionFrictionLaw                         mCoulombAdhesionFrictionLaw;
+        const HardeningCoulombFrictionLaw                       mHardeningCoulombFrictionLaw;
+
         // const RigidBodyPointLinkCondition                   mRigidBodyPointLinkCondition2D1N;
         // const RigidBodyPointLinkCondition                   mRigidBodyPointLinkCondition3D1N;
 
