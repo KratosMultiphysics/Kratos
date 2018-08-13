@@ -99,7 +99,7 @@ class DataLogger():
         self.DesignLogger.LogCurrentDesign( current_iteration )
 
     # --------------------------------------------------------------------------
-    def LogCurrentValues( self, current_iteration, additional_values={} ):
+    def LogCurrentValues( self, current_iteration, additional_values ):
         self.ValueLogger.LogCurrentValues( current_iteration, additional_values )
 
     # --------------------------------------------------------------------------

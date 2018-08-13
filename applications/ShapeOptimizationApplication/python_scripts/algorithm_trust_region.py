@@ -256,7 +256,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs
 
     # --------------------------------------------------------------------------
-    def __ConvertToLengthDirectionFormat(self, value, gradient, modified_gradient):
+    @staticmethod
+    def __ConvertToLengthDirectionFormat(value, gradient, modified_gradient):
         norm_inf = NormInf3D(modified_gradient)
         if norm_inf > 1e-12:
             direction = ScalarVectorProduct(-1/norm_inf,modified_gradient)
@@ -293,6 +294,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 return step_history[self.opt_iteration-1]
 
     # --------------------------------------------------------------------------
+    @staticmethod
     def __ExpressInStepLengthUnit(self, len_obj, len_eqs, len_ineqs, step_length):
         len_bar_obj = 1/step_length * len_obj
         len_bar_eqs = ScalarVectorProduct(1/step_length, len_eqs)
@@ -470,7 +472,7 @@ class Projector():
             dir_ineqs_hp.append(dir_ineqs_hp_i)
 
         # Project onto adjusted halfspaces along the intersection of hyperplanes
-        dX_o, subopt_itr, error, exit_code = self.__ProjectToHalfSpaces(dlambda_hp, HorzCat(pos_ineqs_hp, pos_obj_hp), HorzCat(dir_ineqs_hp, dir_obj_hp))
+        dX_o, _, _, exit_code = self.__ProjectToHalfSpaces(dlambda_hp, HorzCat(pos_ineqs_hp, pos_obj_hp), HorzCat(dir_ineqs_hp, dir_obj_hp))
 
         # Determine return values
         if exit_code == 0:

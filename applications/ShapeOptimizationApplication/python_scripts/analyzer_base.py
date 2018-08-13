@@ -14,6 +14,10 @@ from __future__ import print_function, absolute_import, division
 # ==============================================================================
 class AnalyzerBaseClass:
     # --------------------------------------------------------------------------
+    def __init__(self):
+        pass
+
+    # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop(self):
         pass
 
