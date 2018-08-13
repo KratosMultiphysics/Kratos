@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -180,7 +180,7 @@
 	>> ComponentParser<type >()[assign_a(variable)] \
 	>> ')' \
 	)[node_fix_a(nodes, variable, index)] \
- 
+
 #ifdef KRATOS_CONDITIONS_TEMPORARY_VARIABLES
 #undef KRATOS_CONDITIONS_TEMPORARY_VARIABLES
 #endif

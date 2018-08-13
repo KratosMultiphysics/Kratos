@@ -52,8 +52,8 @@ namespace Kratos
  * @class Line2D3
  * @ingroup KratosCore
  * @brief An three node 2D line geometry with quadratic shape functions
- * @details The node ordering corresponds with: 
- *      0-----2----1 
+ * @details The node ordering corresponds with:
+ *      0-----2----1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -266,7 +266,7 @@ public:
       // line 3 conectivities order 1-3-2
       return typename BaseType::Pointer( new Line2D3( ThisPoints ) );
     }
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -360,19 +360,19 @@ public:
 
         return sqrt( length );
     }
-    
+
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );

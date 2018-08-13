@@ -32,19 +32,19 @@ namespace Kratos
  * @class Hexahedra3D8
  * @ingroup KratosCore
  * @brief An eight node hexahedra geometry with linear shape functions
- * @details The node ordering corresponds with: 
+ * @details The node ordering corresponds with:
  *             v
- *      3----------2            
- *      |\     ^   |\          
- *      | \    |   | \        
- *      |  \   |   |  \       
- *      |   7------+---6        
- *      |   |  +-- |-- | -> u   
- *      0---+---\--1   |        
- *       \  |    \  \  |        
- *        \ |     \  \ |         
- *         \|      w  \|         
- *          4----------5   
+ *      3----------2
+ *      |\     ^   |\
+ *      | \    |   | \
+ *      |  \   |   |  \
+ *      |   7------+---6
+ *      |   |  +-- |-- | -> u
+ *      0---+---\--1   |
+ *       \  |    \  \  |
+ *        \ |     \  \ |
+ *         \|      w  \|
+ *          4----------5
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -471,16 +471,16 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
@@ -621,7 +621,7 @@ public:
             return true;
         if(Quadrilateral3D4Type(this->pGetPoint(1),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        
+
         CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the hexahedron or it does not have intersection
         if(IsInside(rLowPoint,local_coordinates))
@@ -694,7 +694,7 @@ public:
       rResult[4] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
       rResult[5] =  0.125*( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
       rResult[6] =  0.125*( 1.0 + rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
-      rResult[7] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;        
+      rResult[7] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ;
         return rResult;
     }
 
@@ -1255,4 +1255,4 @@ GeometryData Hexahedra3D8<TPointType>::msGeometryData(
 
 }// namespace Kratos.
 
-#endif // KRATOS_HEXAHEDRA_3D_8_H_INCLUDED  defined 
+#endif // KRATOS_HEXAHEDRA_3D_8_H_INCLUDED  defined

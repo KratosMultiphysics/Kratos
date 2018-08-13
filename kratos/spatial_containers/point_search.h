@@ -18,7 +18,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // External includes
 #include "spatial_containers/spatial_search.h"
@@ -27,20 +27,20 @@ namespace Kratos
 {
 
 ///@name Kratos Globals
-///@{ 
+///@{
 
-///@} 
+///@}
 ///@name Type Definitions
-///@{ 
+///@{
 
-///@} 
+///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
-///@name  Functions 
+///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -54,30 +54,30 @@ class PointSearch : public SpatialSearch
     public:
       ///@name Type Definitions
       ///@{
-    
+
       /// Pointer definition of DEMSearch
       KRATOS_CLASS_POINTER_DEFINITION(PointSearch);
-    
+
       ///@}
-      ///@name Life Cycle 
+      ///@name Life Cycle
       ///@{
-      
+
       /// Default constructor.
       PointSearch(){}
 
       /// Destructor.
       virtual ~PointSearch(){}
-      
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
-      
-      
+
+
       ///@}
       ///@name Operations
       ///@{
-        
+
         /**
          * Search neighbours for every node in "InputNodes" excluding itself
          * @param StructureNodes      List of nodes against which the neighbours are searched
@@ -95,7 +95,7 @@ class PointSearch : public SpatialSearch
 
             static_cast<TDerived*>(this)->SearchNodesInRadiusExclusiveImplementation(StructureNodes,InputNodes,Radius,rResults,rResultsDistance);
         }
-       
+
         /**
          * Search neighbours for every node in "InputNodes" including itself
          * @param StructureNodes      List of nodes against which the neighbours are searched
@@ -112,19 +112,19 @@ class PointSearch : public SpatialSearch
             VectorDistanceType& rResultsDistance ) {
 
             static_cast<TDerived*>(this)->SearchNodesInRadiusInclusiveImplementation(StructureNodes,InputNodes,Radius,rResults,rResultsDistance);
-        }   
-        
+        }
+
       ///@}
       ///@name Access
-      ///@{ 
-      
-      
+      ///@{
+
+
       ///@}
       ///@name Inquiry
       ///@{
-      
-      
-      ///@}      
+
+
+      ///@}
       ///@name Input and output
       ///@{
 
@@ -133,95 +133,95 @@ class PointSearch : public SpatialSearch
       {
           std::stringstream buffer;
           buffer << "PointSearch" ;
-          
+
           return buffer.str();
       }
-      
+
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "PointSearch";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
-      
-            
-      ///@}      
+
+
+      ///@}
       ///@name Friends
       ///@{
-      
-            
+
+
       ///@}
-      
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
+      ///@name Protected static Member Variables
+      ///@{
+
+
       ///@}
-      
+      ///@name Protected member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operators
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operations
+      ///@{
+
+
+      ///@}
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+
+      ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
+      ///@name Static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Member Variables
+      ///@{
+
+
+      ///@}
       ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
+      ///@{
+
+
+      ///@}
       ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
+      ///@{
+
+
+      ///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
       /// Assignment operator.
       PointSearch& operator=(PointSearch const& rOther)
       {
@@ -234,43 +234,43 @@ class PointSearch : public SpatialSearch
           *this = rOther;
       }
 
-        
-      ///@}    
-        
+
+      ///@}
+
     }; // Class PointSearch
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+
   /// input stream function
-//   inline std::istream& operator >> (std::istream& rIStream, 
+//   inline std::istream& operator >> (std::istream& rIStream,
 //                     PointSearch& rThis){return rIStream;}
-// 
+//
 //   /// output stream function
-//   inline std::ostream& operator << (std::ostream& rOStream, 
+//   inline std::ostream& operator << (std::ostream& rOStream,
 //                     const PointSearch& rThis)
 //     {
 //       rThis.PrintInfo(rOStream);
 //       rOStream << std::endl;
 //       rThis.PrintData(rOStream);
-// 
+//
 //       return rOStream;
 //     }
-    
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_SEARCH_H_INCLUDED  defined 
+#endif // KRATOS_POINT_SEARCH_H_INCLUDED  defined
 
 

@@ -68,7 +68,7 @@ public:
         return 1;
 #endif
     }
-    
+
 
     /// Wrapper for omp_get_thread_num().
     /**
@@ -82,7 +82,7 @@ public:
         return 0;
 #endif
     }
-    
+
     /// Wrapper for omp_in_parallel().
     /**
      @return Maximum number of OpenMP threads that will be used in
@@ -182,16 +182,16 @@ public:
     static inline void SetNumThreads(int NumThreads = 1)
     {
 #ifdef _OPENMP
-      
+
       int procs    = omp_get_num_procs();
       if( procs < NumThreads ){
 	std::cout<<" WARNING: Maximimun number of threads is EXCEEDED "<<std::endl;
-	/* Set thread number */  
+	/* Set thread number */
 	omp_set_num_threads(procs);
 	std::cout<<" Number of Threads Set To : "<<procs<<std::endl;
       }
       else{
-	/* Set thread number */  
+	/* Set thread number */
 	omp_set_num_threads(NumThreads);
       }
 
@@ -206,14 +206,14 @@ public:
 #ifdef _OPENMP
 
       int nthreads,tid, procs, maxt, inpar, dynamic, nested;
-  
+
       /* Start parallel region */
-  
+
 #pragma omp parallel private(nthreads, tid)
       {
 	/* Obtain thread number */
 	tid = omp_get_thread_num();
-    
+
 	/* Only master thread does this */
 	if (tid == 0)
 	  {
@@ -239,14 +239,14 @@ public:
 	    printf( "  | Nested parallelism supported? = %d |\n", nested);
 	    printf( "  | --------------------------------- |\n");
 	
-	    
+	
 	    if( procs < nthreads )
 	      std::cout<<" ( WARNING: Maximimun number of threads is EXCEEDED )"<<std::endl;
-	    	    
+	    	
 	  }
-    
+
       }
-      
+
 #endif
     }
 

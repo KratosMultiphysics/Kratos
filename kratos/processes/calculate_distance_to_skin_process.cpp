@@ -67,14 +67,14 @@ namespace Kratos
 		for (int i = 0; i < number_of_elements; ++i)
 		{
 			Element &r_element = *(r_elements[i]);
-			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i]; 
+			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i];
 
 			// Check if the element has intersections
 			if (r_element_intersections.empty())
 			{
 				r_element.Set(TO_SPLIT, false);
-			} 
-			else 
+			}
+			else
 			{
 				// This function assumes tetrahedra element and triangle intersected object as input at this moment
 				constexpr int number_of_tetrahedra_points = 4;

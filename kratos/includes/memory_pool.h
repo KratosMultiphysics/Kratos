@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 
@@ -36,7 +36,7 @@ namespace Kratos
   */
   class MemoryPool
     {
-    public:    
+    public:
 	  ///@name Type Definitions
 	  ///@{
 
@@ -49,7 +49,7 @@ namespace Kratos
 	  /// Copy constructor is deleted.
 	  MemoryPool(MemoryPool const& rOther) = delete;
 
-      /// Destructor 
+      /// Destructor
 	  virtual ~MemoryPool() {
 		   for (auto i_pool = GetInstance().mPools.begin(); i_pool != GetInstance().mPools.end(); i_pool++)
 			   delete *i_pool;
@@ -156,14 +156,14 @@ namespace Kratos
 			  overhead_percentage = static_cast<double>(memory_overhead)/(memory_used - memory_overhead);
 		  overhead_percentage *= 100.00;
 
-		  buffer << "Total memory usage: " 
-			  << SizeInBytesToString(MemoryUsed()) << " bytes and memory overhead " 
+		  buffer << "Total memory usage: "
+			  << SizeInBytesToString(MemoryUsed()) << " bytes and memory overhead "
 			  << SizeInBytesToString(MemoryOverhead()) << "(" << overhead_percentage << "%)" << std::endl;
 
 		  return buffer.str();
 	  }
 
- 
+
       ///@}
 
 

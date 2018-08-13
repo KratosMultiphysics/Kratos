@@ -126,7 +126,7 @@ public:
     /** Destructor.
      */
     virtual ~SolvingStrategy(){}
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -152,7 +152,7 @@ public:
 
     /**
      * @brief The problem of interest is solved.
-     * @details 
+     * @details
      * {
      * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
      * All those functions can otherwise be called separately.
@@ -222,7 +222,7 @@ public:
     /**
      * @brief This sets the level of echo for the solving strategy
      * @param Level of echo for the solving strategy
-     * @details 
+     * @details
      * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations

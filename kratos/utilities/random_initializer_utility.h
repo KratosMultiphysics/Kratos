@@ -45,7 +45,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class RandomInitializeUtility
  * @ingroup KratosCore
@@ -62,9 +62,9 @@ public:
     ///@{
 
     typedef UblasSpace<TDataType, CompressedMatrix, Vector> SparseSpaceType;
-    
+
     typedef UblasSpace<TDataType, Matrix, Vector> LocalSpaceType;
-    
+
     typedef typename SparseSpaceType::MatrixType SparseMatrixType;
 
     typedef typename SparseSpaceType::VectorType VectorType;
@@ -72,7 +72,7 @@ public:
     typedef typename LocalSpaceType::MatrixType DenseMatrixType;
 
     typedef typename LocalSpaceType::VectorType DenseVectorType;
-    
+
     typedef std::size_t SizeType;
 
     ///@}
@@ -87,7 +87,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief This method initializes a vector using a normal normal distribution
      * @param R The vector to fill with random values
@@ -103,14 +103,14 @@ public:
         // We create a random vector as seed of the method
         unsigned int seed = 1; // Constant seed
         std::default_random_engine generator(seed);
-        
+
         std::normal_distribution<TDataType> normal_distribution(MeanValue, VarianceValue);
-        
+
         for (SizeType i = 0; i < R.size(); ++i)
             R[i] = normal_distribution(generator);
     }
-    
-    
+
+
     /**
      * @brief This method initializes a vector using a normal distribution. The mean and the variance is taken from the norm of the matrix
      * @param K The stiffness matrix
@@ -120,7 +120,7 @@ public:
     static inline void RandomInitialize(
         const SparseMatrixType& K,
         DenseVectorType& R,
-        const bool Inverse = false 
+        const bool Inverse = false
         )
     {
         const TDataType threshold = std::numeric_limits<TDataType>::epsilon();
@@ -128,7 +128,7 @@ public:
         const TDataType aux_value = (Inverse == false) ? normK : (normK > threshold) ? 1.0/normK : 1.0;
         NormalDestributionRandom(R, aux_value, 0.25 * aux_value);
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -148,7 +148,7 @@ public:
     ///@{
 
 private:
-    
+
     ///@name Private static Member Variables
     ///@{
 
@@ -163,7 +163,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     ///@}
     ///@name Private  Access
     ///@{

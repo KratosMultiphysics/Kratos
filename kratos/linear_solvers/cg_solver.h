@@ -89,7 +89,7 @@ public:
 
     CGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
-        
+
     CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()):
         BaseType(settings, pNewPreconditioner) {}
 
@@ -393,6 +393,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CG_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_CG_SOLVER_H_INCLUDED  defined
 
 

@@ -25,9 +25,9 @@
 // Utility includes
 #include "utilities/geometry_utilities.h"
 
-namespace Kratos 
+namespace Kratos
 {
-namespace Testing 
+namespace Testing
 {
   /// Factory functions
 
@@ -446,7 +446,7 @@ namespace Testing
 		KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
 	}
 
-    /** 
+    /**
      * Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
      */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxEdge, KratosCoreGeometriesFastSuite) {
@@ -454,11 +454,11 @@ namespace Testing
         Point point_1( 0.3, 0.3,-0.3);
         Point point_2( 1.0, 1.0, 1.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-        
+
         Point point_3(-0.3, 0.3, 0.3);
         Point point_4( 1.0, 1.0, 1.0);
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
-        
+
         Point point_5( 0.3,-0.3, 0.3);
         Point point_6( 1.0, 1.0, 1.0);
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
@@ -472,11 +472,11 @@ namespace Testing
         Point point_1(-0.5, 0.8,-0.3);
         Point point_2( 0.5, 1.2, 0.3);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-        
+
         Point point_3(-0.3,-0.5, 0.8);
         Point point_4( 0.3, 0.5, 1.2);
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
-        
+
         Point point_5( 1.2, 0.3, 0.5);
         Point point_6( 0.8,-0.3,-0.5);
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));

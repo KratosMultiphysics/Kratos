@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+	
 #if !defined(KRATOS_MESH_SMOOTHING_PROCESS_H_INCLUDED )
 #define  KRATOS_MESH_SMOOTHING_PROCESS_H_INCLUDED
 
@@ -18,10 +18,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -37,24 +37,24 @@ namespace Kratos
   ///@{
 
   ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
+  ///@{
+
+  ///@}
   ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
+  ///@{
+
+  ///@}
   ///@name  Enum's
   ///@{
-      
+
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
-      
+
   ///@}
   ///@name Kratos Classes
   ///@{
-  
+
   /// Short class definition.
   /** Detail class definition.
   */
@@ -63,7 +63,7 @@ namespace Kratos
     public:
       ///@name Type Definitions
       ///@{
-      
+
       /// Pointer definition of MeshSmoothingProcess
       KRATOS_CLASS_POINTER_DEFINITION(MeshSmoothingProcess);
 
@@ -72,10 +72,10 @@ namespace Kratos
 	  typedef WeakPointerVector< Node<3> > NeighboursVectorType;
 
 	  typedef std::vector<Point > PointsVectorType;
-  
+
 	  ///@}
-	  ///@name Flags 
-	  ///@{ 
+	  ///@name Flags
+	  ///@{
 
 	  KRATOS_DEFINE_LOCAL_FLAG(LAPLACIAN_SMOOTHING);
 	  KRATOS_DEFINE_LOCAL_FLAG(EDGE_LENGTH_SMOOTHING);
@@ -84,116 +84,116 @@ namespace Kratos
 	  KRATOS_DEFINE_LOCAL_FLAG(COARSE_MESH_NODE);
 
 	  ///@}
-	  ///@name Life Cycle 
-	  ///@{ 
+	  ///@name Life Cycle
+	  ///@{
 
 	  /// Constructor takes the modelpart to apply smoothing to its mesh 0.
       MeshSmoothingProcess(ModelPart& rModelPart, Flags Options = LAPLACIAN_SMOOTHING, std::size_t IterationsNumber=10);
 
       /// Destructor.
       virtual ~MeshSmoothingProcess();
-      
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
-      
-      
+
+
       ///@}
       ///@name Operations
       ///@{
-      
+
 	  virtual void Execute();
-      
+
       ///@}
       ///@name Access
-      ///@{ 
-      
-      
+      ///@{
+
+
       ///@}
       ///@name Inquiry
       ///@{
-      
-      
-      ///@}      
+
+
+      ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
       virtual std::string Info() const;
-      
+
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const;
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
+
+
+      ///@}
       ///@name Friends
       ///@{
-      
-            
+
+
       ///@}
-      
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
+      ///@name Protected static Member Variables
+      ///@{
+
+
       ///@}
-      
+      ///@name Protected member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operators
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operations
+      ///@{
+
+
+      ///@}
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+
+      ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
+      ///@name Static Member Variables
+      ///@{
 
 		ModelPart& mrModelPart;
 
 		Flags mOptions;
 		std::size_t mMaxIterationsNumber;
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
+
+
+      ///@}
+      ///@name Member Variables
+      ///@{
+
+
+      ///@}
       ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
+      ///@{
+
+
+      ///@}
       ///@name Private Operations
       ///@{
 
@@ -223,48 +223,48 @@ namespace Kratos
 
 		void MovementSmoothingPositionsAndWeights(NodeType& rNode, NeighboursVectorType const& rNeighbours, PointsVectorType& rOptimumPoints, Vector& rWeights);
 
-		///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
+		///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
       /// Assignment operator.
       MeshSmoothingProcess& operator=(MeshSmoothingProcess const& rOther);
 
       /// Copy constructor.
       MeshSmoothingProcess(MeshSmoothingProcess const& rOther);
 
-        
-      ///@}    
-        
-    }; // Class MeshSmoothingProcess 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
+      ///@}
+
+    }; // Class MeshSmoothingProcess
+
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+
   /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
+  inline std::istream& operator >> (std::istream& rIStream,
 				    MeshSmoothingProcess& rThis);
 
   /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
+  inline std::ostream& operator << (std::ostream& rOStream,
 				    const MeshSmoothingProcess& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -279,6 +279,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESH_SMOOTHING_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_MESH_SMOOTHING_PROCESS_H_INCLUDED  defined
 
 

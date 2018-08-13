@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    hbui
-//                    
+//
 //
 
 
@@ -231,7 +231,7 @@ public:
         msIntegrationPoints[3] = IntegrationPointType( 0.501426509658179 , 0.249286745170910 , 0.116786275726379 );
         msIntegrationPoints[4] = IntegrationPointType( 0.249286745170910 , 0.501426509658179 , 0.116786275726379 );
         msIntegrationPoints[5] = IntegrationPointType( 0.249286745170910 , 0.249286745170910 , 0.116786275726379 );
-    
+
         msIntegrationPoints[6] = IntegrationPointType( 0.636502499121399 , 0.310352451033785 , 0.082851075618374 );
         msIntegrationPoints[7] = IntegrationPointType( 0.636502499121399 , 0.053145049844816 , 0.082851075618374 );
         msIntegrationPoints[8] = IntegrationPointType( 0.310352451033785 , 0.636502499121399 , 0.082851075618374 );
@@ -327,6 +327,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGLE_GAUSS_RADAU_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_TRIANGLE_GAUSS_RADAU_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

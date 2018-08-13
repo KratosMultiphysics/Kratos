@@ -316,6 +316,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CALCULATE_NODAL_AREA_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_CALCULATE_NODAL_AREA_PROCESS_H_INCLUDED  defined
 
 

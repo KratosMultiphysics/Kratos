@@ -432,9 +432,9 @@ public:
         Box.Set( CalculateCell(ThisPoint), mN, mIndexCellBegin );
         SearchNearestPointLocal( ThisPoint, rResult, rResultDistance, Box );
     }
-    
+
     //************************************************************************
-    
+
     void SearchNearestPoint( PointerType const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
     {
         #pragma omp parallel for
@@ -456,7 +456,7 @@ public:
         // initial search
         ++Box;
         SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
-        
+
         // increase mBox and try again
         while(!Found)
         {
@@ -531,9 +531,9 @@ public:
         Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN, mIndexCellBegin );
         SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
     }
-    
+
     //************************************************************************
-    
+
    void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, std::vector<CoordinateType> const& Radius, std::vector<IteratorType> Results,
                         std::vector<DistanceIteratorType> ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
     {

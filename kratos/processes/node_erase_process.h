@@ -265,6 +265,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NODE_ERASE_PROCESS_INCLUDED  defined 
+#endif // KRATOS_NODE_ERASE_PROCESS_INCLUDED  defined
 
 

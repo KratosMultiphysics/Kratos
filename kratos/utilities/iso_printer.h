@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
-//                    
+//
 //
 
 #if !defined(KRATOS_ISO_PRINTING_APP)
@@ -262,7 +262,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    
+
     //**********************************************************************************************************************
 
 
@@ -525,6 +525,6 @@ protected:
 
 } // namespace Kratos.
 
-#endif // KRATOS_ISO_PRINTING_APP  defined 
+#endif // KRATOS_ISO_PRINTING_APP  defined
 
 

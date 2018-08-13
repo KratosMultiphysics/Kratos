@@ -38,4 +38,4 @@ void  AddAMGCLSolverToPython(pybind11::module& m);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_AMGCL_SOLVER_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_AMGCL_SOLVER_TO_PYTHON_H_INCLUDED  defined

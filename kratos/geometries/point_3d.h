@@ -256,7 +256,7 @@ public:
         return typename BaseType::Pointer(new Point3D(ThisPoints));
     }
 
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -528,9 +528,9 @@ public:
 //     	    KRATOS_ERROR << "This method is not implemented yet!" << *this << std::endl;
 //       return 0;
 //          }
-// 
-// 
-// 
+//
+//
+//
 //          virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod) const
 //     	{
 //     		  KRATOS_ERROR << "Jacobian is not square" << std::endl;
@@ -651,7 +651,7 @@ private:
     ///@{
 
     static const GeometryData msGeometryData;
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -778,4 +778,4 @@ const GeometryData Point3D<TPointType>::msGeometryData( 3,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined 
+#endif // KRATOS_LINE_2D_H_INCLUDED  defined

@@ -198,8 +198,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
- * @class MortarKinematicVariables 
+/**
+ * @class MortarKinematicVariables
  * @ingroup KratosCore
  * @brief MortarKinematicVariables
  * @details This is the definition of the kinematic variables used on the mortar operators assemble, which means three shape functions (one for the slave , one for the master and the third for the Lagrange Multipliers), and the jacobian in the corresponding Gauss point
@@ -344,15 +344,15 @@ private:
 
 }; // Class MortarKinematicVariables
 
-/** 
- * @class MortarKinematicVariablesWithDerivatives 
+/**
+ * @class MortarKinematicVariablesWithDerivatives
  * @ingroup KratosCore
  * @brief MortarKinematicVariablesWithDerivatives
  * @details This class derives from MortarKinematicVariables and includes additionally to the variables of the previous class, the variables needed to define the directional derivatives of the mortar operators, like the gradients of the shape functions and the jacobians
  * @author Vicente Mataix Ferrandiz
  */
 template< const std::size_t TDim, const std::size_t TNumNodes>
-class MortarKinematicVariablesWithDerivatives 
+class MortarKinematicVariablesWithDerivatives
     : public MortarKinematicVariables<TNumNodes>
 {
 public:
@@ -496,8 +496,8 @@ private:
 
 }; // Class MortarKinematicVariablesWithDerivatives
 
-/** 
- * @class DerivativeData 
+/**
+ * @class DerivativeData
  * @ingroup KratosCore
  * @brief This data will be used to compute the derivatives.
  * @details This class includes different information that is used in order to compute the directional derivatives in the mortar contact conditions
@@ -610,15 +610,15 @@ public:
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
 
         // We initialize the derivatives
-        const array_1d<double, TNumNodes> zerovector(TNumNodes, 0.0); 
-        for (IndexType i = 0; i < TNumNodes * TDim; ++i) { 
+        const array_1d<double, TNumNodes> zerovector(TNumNodes, 0.0);
+        for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
             DeltaDetjSlave[i] = 0.0;
             if (TDim == 3) DeltaDetjSlave[i + TNumNodes * TDim] = 0.0;
-            noalias(DeltaPhi[i]) = zerovector; 
-            if (TDim == 3) noalias(DeltaPhi[i + TNumNodes * TDim]) = zerovector; 
-            noalias(DeltaN1[i]) = zerovector; 
-            if (TDim == 3) noalias(DeltaN1[i + TNumNodes * TDim]) = zerovector; 
-            noalias(DeltaN2[i]) = zerovector; 
+            noalias(DeltaPhi[i]) = zerovector;
+            if (TDim == 3) noalias(DeltaPhi[i + TNumNodes * TDim]) = zerovector;
+            noalias(DeltaN1[i]) = zerovector;
+            if (TDim == 3) noalias(DeltaN1[i + TNumNodes * TDim]) = zerovector;
+            noalias(DeltaN2[i]) = zerovector;
             if (TDim == 3) noalias(DeltaN2[i + TNumNodes * TDim]) = zerovector;
         }
     }
@@ -753,15 +753,15 @@ private:
 
 };  // Class DerivativeData
 
-/** 
- * @class DerivativeDataFrictional 
+/**
+ * @class DerivativeDataFrictional
  * @ingroup KratosCore
  * @brief This class is a derived class of DerivativeData
  * @details Includes additionally the derivatives necessary to compute the directional derivatives for the frictional conditions
  * @author Vicente Mataix Ferrandiz
  */
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation>
-class DerivativeDataFrictional 
+class DerivativeDataFrictional
     : public DerivativeData<TDim, TNumNodes, TNormalVariation>
 {
 public:
@@ -916,8 +916,8 @@ private:
 
 };  // Class DerivativeDataFrictional
 
-/** 
- * @class MortarOperator 
+/**
+ * @class MortarOperator
  * @ingroup KratosCore
  * @brief  This is the definition of the mortar operator according to the work of Alexander Popp: https://www.lnm.mw.tum.de/staff/alexander-popp/
  * @details In particular the thesis of contact mechanics based in mortar method available at: https://mediatum.ub.tum.de/?id=1109994
@@ -1103,15 +1103,15 @@ private:
 
 }; // Class MortarOperator
 
-/** 
- * @class MortarOperatorWithDerivatives 
+/**
+ * @class MortarOperatorWithDerivatives
  * @ingroup KratosCore
  * @brief  This class derives from the MortarOperator class and it includes the derived operators.
  * @details The derived operators are defined in each DoF of each domain, which means TNumNodes x TDim x 2 derivatives definitions in order to compute all the necessary derivatives. Popp thesis page 102 and following
  * @author Vicente Mataix Ferrandiz
  */
 template< const std::size_t TDim, const std::size_t TNumNodes, bool TFrictional, bool TNormalVariation>
-class MortarOperatorWithDerivatives 
+class MortarOperatorWithDerivatives
     : public MortarOperator<TNumNodes>
 {
 public:
@@ -1327,8 +1327,8 @@ private:
 
 }; // Class MortarOperatorWithDerivatives
 
-/** 
- * @class DualLagrangeMultiplierOperators 
+/**
+ * @class DualLagrangeMultiplierOperators
  * @ingroup KratosCore
  * @brief  This is the definition dual lagrange multiplier operators according to the work of Alexander Popp: https://www.lnm.mw.tum.de/staff/alexander-popp/
  * @details In particular the thesis of contact mechanics based in mortar method available at: https://mediatum.ub.tum.de/?id=1109994
@@ -1383,7 +1383,7 @@ public:
     }
 
     /**
-     * @brief Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shape functions. 
+     * @brief Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shape functions.
      * @details For that it integrates De and Me. Popp thesis page 70 eq. 3.65
      * @param rKinematicVariables The kinematic variables
      * @param rIntegrationWeight The integration weight considered
@@ -1553,15 +1553,15 @@ private:
 
 }; // Class DualLagrangeMultiplierOperators
 
-/** 
- * @class DualLagrangeMultiplierOperatorsWithDerivatives 
+/**
+ * @class DualLagrangeMultiplierOperatorsWithDerivatives
  * @ingroup KratosCore
  * @brief  This is the definition dual lagrange multiplier operators including the derivatives.
  * @details It is based in the same work as the previous class. In this case it computes the derivatives in order to compute the directionald erivative of the dual shape functions. Popp thesis page 111 and following
  * @author Vicente Mataix Ferrandiz
  */
 template< const std::size_t TDim, const std::size_t TNumNodes, bool TFrictional, bool TNormalVariation>
-class DualLagrangeMultiplierOperatorsWithDerivatives 
+class DualLagrangeMultiplierOperatorsWithDerivatives
     : public DualLagrangeMultiplierOperators<TNumNodes>
 {
 public:
@@ -1628,7 +1628,7 @@ public:
     }
 
     /**
-     * @brief Calculates the Ae components and its derivatives necessary to compute the Phi_LagrangeMultipliers shape functions. 
+     * @brief Calculates the Ae components and its derivatives necessary to compute the Phi_LagrangeMultipliers shape functions.
      * @details Popp thesis page 112 eq. 4.59
      * @param rKinematicVariables The kinematic variables
      * @param rDerivativeData The data containing the derivatives
@@ -1659,7 +1659,7 @@ public:
     }
 
     /**
-     * @brief Calculates the matrix DeltaAe. 
+     * @brief Calculates the matrix DeltaAe.
      * @details Popp thesis page 112 equation 4.58
      * @param rDerivativeData The data containing the derivatives
      */
@@ -1788,15 +1788,15 @@ private:
 
 }; // Class DualLagrangeMultiplierOperatorsWithDerivatives
 
-/** 
- * @class PointBelong 
+/**
+ * @class PointBelong
  * @ingroup KratosCore
  * @brief Custom Point container to be used by the mapper
  * @details This point which is a derived class of the standard point, contains the variable mBelongs. This variable is a "hash" that can be used to determine where in which intersections the point belongs
  * @author Vicente Mataix Ferrandiz
  */
 template<std::size_t TNumNodes>
-class PointBelong 
+class PointBelong
     : public Point
 {
 public:

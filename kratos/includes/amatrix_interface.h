@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -47,7 +47,7 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     using base_type::size1;
     using base_type::size2;
     using base_type::operator();
-    
+
     using iterator = AMatrix::RandomAccessIterator<TDataType>;
     using const_iterator = AMatrix::RandomAccessIterator<const TDataType>;
 
@@ -292,7 +292,7 @@ AMatrix::MatrixProductExpression<TExpression1Type, TExpression2Type> prod(
 
 }  // namespace Kratos.
 
-#endif // KRATOS_AMATRIX_INTERFACE_H_INCLUDED  defined 
+#endif // KRATOS_AMATRIX_INTERFACE_H_INCLUDED  defined
 
 
 

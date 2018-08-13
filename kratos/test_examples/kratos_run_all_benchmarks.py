@@ -16,18 +16,18 @@ def Run():
     Text += "Registered In Python test: "
     #os.chdir(".")
     sys.path.append(os.getcwd())
-    
+
     import test_variables_python_interface
     Text += test_variables_python_interface.CheckVariables()
     #os.chdir("..")
 
-    
+
     ##check geometries
     #import KratosMultiphysics
     #Text += KratosMultiphysics.GeometryTesterUtility().RunTest()
-    
-    
-    
+
+
+
     ###### here final output
     print(Text)
     return Text

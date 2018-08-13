@@ -93,13 +93,13 @@ namespace Kratos
 		         pos_ext_face_sh_func_1, neg_ext_face_sh_func_1,
 				     pos_ext_face_sh_func_2, neg_ext_face_sh_func_2;
 
-			ModifiedShapeFunctions::ShapeFunctionsGradientsType 
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType
 				pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
 				pos_ext_face_sh_func_gradients_1, neg_ext_face_sh_func_gradients_1,
 				pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2;
 
-			Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
-				     pos_ext_face_weights_1, neg_ext_face_weights_1, 
+			Vector pos_ext_face_weights_0, neg_ext_face_weights_0,
+				     pos_ext_face_weights_1, neg_ext_face_weights_1,
 				     pos_ext_face_weights_2, neg_ext_face_weights_2;
 
 			triangle_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
@@ -412,13 +412,13 @@ namespace Kratos
 				     pos_ext_face_sh_func_1, neg_ext_face_sh_func_1,
 				     pos_ext_face_sh_func_2, neg_ext_face_sh_func_2;
 
-			ModifiedShapeFunctions::ShapeFunctionsGradientsType 
+			ModifiedShapeFunctions::ShapeFunctionsGradientsType
 				pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
 				pos_ext_face_sh_func_gradients_1, neg_ext_face_sh_func_gradients_1,
 				pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2;
 
-			Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
-				     pos_ext_face_weights_1, neg_ext_face_weights_1, 
+			Vector pos_ext_face_weights_0, neg_ext_face_weights_0,
+				     pos_ext_face_weights_1, neg_ext_face_weights_1,
 				     pos_ext_face_weights_2, neg_ext_face_weights_2;
 
 			triangle_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(

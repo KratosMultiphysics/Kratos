@@ -198,7 +198,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeF
             mpTetrahedraSplitter->mEdgeNodeI,
             mpTetrahedraSplitter->mEdgeNodeJ,
             mpTetrahedraSplitter->mSplitEdges);
-        
+
         // Get the external faces
         std::vector < unsigned int > exterior_faces_parent_ids_vector;
         std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
@@ -207,7 +207,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeF
             exterior_faces_parent_ids_vector,
             mpTetrahedraSplitter->mPositiveSubdivisions,
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rPositiveExteriorFaceShapeFunctionsValues,
@@ -240,7 +240,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeF
             mpTetrahedraSplitter->mEdgeNodeI,
             mpTetrahedraSplitter->mEdgeNodeJ,
             mpTetrahedraSplitter->mSplitEdges);
-        
+
         // Get the external faces
         std::vector < unsigned int > exterior_faces_parent_ids_vector;
         std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
@@ -249,7 +249,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeF
             exterior_faces_parent_ids_vector,
             mpTetrahedraSplitter->mNegativeSubdivisions,
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rNegativeExteriorFaceShapeFunctionsValues,

@@ -43,6 +43,6 @@
 #include "bins_static_objects.h"
 
 
-#endif // KRATOS_SPACIAL_SEARCH_H_INCLUDED  defined 
+#endif // KRATOS_SPACIAL_SEARCH_H_INCLUDED  defined
 
 

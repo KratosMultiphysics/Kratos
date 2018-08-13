@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
 //
-	           
+//
+	
 // System includes
 #include <algorithm>
 #include <cmath>
@@ -24,7 +24,7 @@ namespace Kratos
 {
 	std::size_t PrimeNumbers::FindGreaterEqualPrecalculatedPrimeNumber(std::size_t TheNumber) {
 		auto i = std::lower_bound(mPrecalculatedPrimes.begin(), mPrecalculatedPrimes.end(), TheNumber);
-		KRATOS_DEBUG_ERROR_IF(i == mPrecalculatedPrimes.end()) << "Input number " 
+		KRATOS_DEBUG_ERROR_IF(i == mPrecalculatedPrimes.end()) << "Input number "
 			<< TheNumber << " is not within the range of the precalculated primes";
 		return *i;
 	}
@@ -12552,8 +12552,8 @@ namespace Kratos
 		,1299583	,1299601	,1299631	,1299637	,1299647	,1299653	,1299673	,1299689
 	}};
 
-  
-  
+
+
 }  // namespace Kratos.
 
 

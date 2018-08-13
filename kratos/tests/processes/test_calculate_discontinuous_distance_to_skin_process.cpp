@@ -226,9 +226,9 @@ namespace Testing {
         volume_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
 
         // Generate the skin such that there is 4 intersection pts.
-        // Recall that with more than 3 intersection pts. the plane 
-        // approximation is used. Since the skin in here yields a 
-        // uniplanar intersection, the approximated plane is the 
+        // Recall that with more than 3 intersection pts. the plane
+        // approximation is used. Since the skin in here yields a
+        // uniplanar intersection, the approximated plane is the
         // same one as the original intersection one.
         ModelPart skin_part("Skin");
         skin_part.AddNodalSolutionStepVariable(VELOCITY);

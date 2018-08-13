@@ -19,9 +19,9 @@
 #include "includes/kratos_flags.h"
 #include "includes/constitutive_law.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         /**
         * Checks the correct work of the Has methods

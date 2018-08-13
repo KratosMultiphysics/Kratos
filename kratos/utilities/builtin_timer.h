@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Michael Andre
@@ -60,4 +60,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BUILTIN_TIMER_H_INCLUDED  defined 
+#endif // KRATOS_BUILTIN_TIMER_H_INCLUDED  defined

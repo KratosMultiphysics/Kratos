@@ -205,7 +205,7 @@ namespace Kratos
   KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName)() : ParentName(KRATOS_TESTING_CONVERT_TO_STRING(Test##TestCaseName)) {}\
  private: \
   void TestFunction() override; \
-  static const Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy; 
+  static const Internals::RegisterThisTest< KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) > mDummy;
 
 #define KRATOS_TESTING_TEST_CASE_CLASS(TestCaseName,ParentName) \
 class KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public ParentName \
@@ -261,7 +261,7 @@ class TestFixtureName : public TestCase \
  private: \
   void Setup() override; \
   void TearDown() override; \
-}; 
+};
 
 #define KRATOS_TEST_FIXTURE_SETUP(TestFixtureName) \
 void TestFixtureName::Setup()

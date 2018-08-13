@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_DEFLATED_GMRES_SOLVER_H_INCLUDED )
@@ -29,7 +29,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include "utilities/openmp_utils.h"
 
-//#define NO_PRECOND 
+//#define NO_PRECOND
 
 namespace Kratos
 {
@@ -63,7 +63,7 @@ public:
     /// Pointer definition of DeflatedGMRESSolver
     KRATOS_CLASS_POINTER_DEFINITION (DeflatedGMRESSolver);
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;    
+    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
     typedef typename TSparseSpaceType::VectorType VectorType;
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
@@ -122,7 +122,7 @@ public:
     {
 	if (mBlocksAreAllocated == true)
 	{
-	    
+	
 	    mis_initialized = true;
 	}
 	else
@@ -139,7 +139,7 @@ public:
     @param rB. Right hand side vector.
     */
     void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {     
+    {
         //copy to local matrices
         if (mBlocksAreAllocated == false)
         {
@@ -151,9 +151,9 @@ public:
             FillBlockMatrices (false, rA, mK, mG, mD, mS);
             mBlocksAreAllocated = true;
         }
-        
+
         if(mis_initialized == false) this->Initialize(rA,rX,rB);
-        
+
     }
 
     /** This function actually performs the solution work, eventually taking advantage of what was done before in the
@@ -168,7 +168,7 @@ public:
         unsigned int max_iter = BaseType::GetMaxIterationsNumber();
         double tol = BaseType::GetTolerance();
         gmres_solve (rA,rX,rB,m,max_iter,tol);
-    } 
+    }
     /** This function is designed to be called at the end of the solve step.
      * for example this is the place to remove any data that we do not want to save for later
     @param rA. System matrix
@@ -177,7 +177,7 @@ public:
     */
     void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        
+
     }
     /** This function is designed to clean up all internal data in the solver.
      * Clear is designed to leave the solver object as if newly created.
@@ -189,7 +189,7 @@ public:
         mG.clear();
         mD.clear();
         mS.clear();
-        mBlocksAreAllocated = false;        
+        mBlocksAreAllocated = false;
 	mPred_solver->Clear();
 	mu.clear();
 	mp.clear();
@@ -444,7 +444,7 @@ protected:
             G.resize (mother_indices.size()   ,mpressure_indices.size() );
             D.resize (mpressure_indices.size(),mother_indices.size() );
             S.resize (mpressure_indices.size(),mpressure_indices.size() );
-	    
+	
 	    mrp.resize(mpressure_indices.size() );
 	    mru.resize(mother_indices.size() );
 	    mp.resize(mpressure_indices.size());
@@ -487,11 +487,11 @@ protected:
                 }
             }
 	
-            S = L;           
+            S = L;
             Vector diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
-           
+
 
         }
         else //allocation is not needed so only do copying
@@ -534,7 +534,7 @@ protected:
             Vector diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
-         
+
 
         }
 
@@ -580,7 +580,7 @@ private:
     SparseMatrixType mG;
     SparseMatrixType mD;
     SparseMatrixType mS;
-    
+
     Vector mrp;
     Vector mru;
     Vector mp;
@@ -729,7 +729,7 @@ private:
 #endif
 
                 const double normw = TSparseSpaceType::TwoNorm (w);
-                H (i+1, i) = normw;                
+                H (i+1, i) = normw;
                 // This breakdown is a good one ...
                 if (normw == 0)
                     TSparseSpaceType::Copy (V[i+1], w); //V[i+1] = w;
@@ -748,7 +748,7 @@ private:
                     this->Update (y, x, i, H, s, V);
 		   //WRITE THE NUMBER OF ITERATIONS INTO A FILE
 		   myfile <<j<<"\n";
-		   
+		
 
                     return 0;
                 }
@@ -756,14 +756,14 @@ private:
 		else if (j>=max_iter)
 			myfile <<j<<"\n";
             }
-	    
-            this->Update (y,x, m - 1, H, s, V);	 
-	    
+	
+            this->Update (y,x, m - 1, H, s, V);	
+	
             //r = b - Ax
             TSparseSpaceType::Mult (A,x,r);
-	    TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r	    
+	    TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r	
             beta = TSparseSpaceType::TwoNorm (r);
-            
+
 	    std::cout << "number of iterations at convergence = " << j << std::endl;
             if (beta < rel_tol)
             {
@@ -808,7 +808,7 @@ KRATOS_WATCH(norm_2(res))
 	mPred_solver->Solve(S_deflated, lambda, WT_rp);	
 	KRATOS_WATCH(norm_2(lambda) );
 
-	DeflationUtils::ApplyW(W, lambda, output);       
+	DeflationUtils::ApplyW(W, lambda, output);
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
     }
@@ -820,13 +820,13 @@ KRATOS_WATCH(norm_2(res))
     //std::size_t full_size = mS.size1();
 	
 
-    VectorType wp (full_size); 
-    VectorType WT_wp(reduced_size); 
-    VectorType W_WT_wp (full_size); 
-    VectorType temp (full_glob_size);     
+    VectorType wp (full_size);
+    VectorType WT_wp(reduced_size);
+    VectorType W_WT_wp (full_size);
+    VectorType temp (full_glob_size);
 
     GetPPart(w,wp);
-    VectorType ModulusSquared(reduced_size);  
+    VectorType ModulusSquared(reduced_size);
     VectorType identity(full_size,1.0);
     DeflationUtils::ApplyWtranspose(W, identity, ModulusSquared);
 
@@ -839,8 +839,8 @@ KRATOS_WATCH(norm_2(res))
 	
 	}
 
-    DeflationUtils::ApplyW(W, WT_wp, W_WT_wp);      
-        
+    DeflationUtils::ApplyW(W, WT_wp, W_WT_wp);
+
     wp-=W_WT_wp;
     WritePPart(w,wp);
     }
@@ -927,7 +927,7 @@ KRATOS_WATCH(norm_2(res))
         return sqrt (norm);
     }
 
-    
+
 
     /// Helper function for Sytem matrix functions
     void SortCols (
@@ -952,7 +952,7 @@ KRATOS_WATCH(norm_2(res))
         }
     }
 
-   
+
     ///@}
     ///@name Private Operations
     ///@{

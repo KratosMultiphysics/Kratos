@@ -386,5 +386,5 @@ inline std::ostream& operator << (std::ostream& OStream,
 }  // namespace Kratos.
 
 
-#endif // KRATOS_ILU_PRECONDITIONER_H_INCLUDED  defined 
+#endif // KRATOS_ILU_PRECONDITIONER_H_INCLUDED  defined
 

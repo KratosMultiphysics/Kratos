@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 
@@ -258,6 +258,6 @@ typename ObjectCounter<TCountedType>::SizeType ObjectCounter<TCountedType>::msCo
 
 }  // namespace Kratos.
 
-#endif // KRATOS_OBJECT_COUNTER_H_INCLUDED  defined 
+#endif // KRATOS_OBJECT_COUNTER_H_INCLUDED  defined
 
 

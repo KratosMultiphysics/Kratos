@@ -448,11 +448,11 @@ public:
 
 /// Class Description:
 /// +   Bounding volume tree is the spatial container for fast collision detection. It is mainly used as the contact search algorithm.
-/// +   
+/// +
 /// +   This class requires following components:
-/// +   -   
+/// +   -
 ///
-/// 
+///
 /// REFERENCE:
 /// +   Yang & Laursen, A contact searching algorithm including bounding volume trees applied to finite sliding mortar formulations
 /// +   Klosowski et al, Efficient collision detection using bounding volume hierarchies of k-DOPs
@@ -610,5 +610,5 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BOUNDING_VOLUME_TREE_H_INCLUDED  defined 
+#endif // KRATOS_BOUNDING_VOLUME_TREE_H_INCLUDED  defined
 

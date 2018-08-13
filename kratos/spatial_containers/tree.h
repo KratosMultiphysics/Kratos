@@ -248,7 +248,7 @@ public:
             //TODO: commenting the next line is plain wrong. it is just to try compiling without copy constructor
 //             KRATOS_THROW_ERROR(std::logic_error,"TODO: commenting the next line is plain wrong. it is just to try compiling without copy constructor - it completely breaks the code","")
             //CHAPUZA CHAPUZA CHAPUZA
-            
+
        mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, max_point, min_point, mBucketSize);
     }
 
@@ -325,7 +325,7 @@ public:
 
         return Result;
     }
-    
+
     void SearchNearestPoint( PointerType const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
     {
         #pragma omp parallel for
@@ -356,7 +356,7 @@ public:
         mRoot->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults);
         return NumberOfResults;
     }
-    
+
     void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, std::vector<CoordinateType> const& Radius, std::vector<IteratorType> Results,
                         std::vector<DistanceIteratorType> ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
     {
@@ -548,6 +548,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const Tree<TPartitionT
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TREE_H_INCLUDED  defined 
+#endif // KRATOS_TREE_H_INCLUDED  defined
 
 

@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 
@@ -35,8 +35,8 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), "Unknown");
             KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), -1);
 
-			message << LoggerMessage::Severity::DETAIL 
-                << LoggerMessage::Category::CRITICAL 
+			message << LoggerMessage::Severity::DETAIL
+                << LoggerMessage::Category::CRITICAL
                 << KRATOS_CODE_LOCATION << std::endl;
 
 			KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00\n");
@@ -69,7 +69,7 @@ namespace Kratos {
 
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestLabel: Test message with number 12e00");
 
-			Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output " 
+			Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output "
 				<< Logger::Category::CRITICAL << std::endl;
 
 			// The message has DETAIL severity and should not be written
@@ -231,9 +231,9 @@ namespace Kratos {
             reference_output << std::endl << "              2                        0.075               No           ";
             reference_output << std::endl << "3             1                        0.1                 ";
             reference_output << std::endl << "              2                        0.05                Yes          ";
-            
+
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
-            
+
             std::cout << std::endl;
             std::cout << buffer.str() << std::endl;
 

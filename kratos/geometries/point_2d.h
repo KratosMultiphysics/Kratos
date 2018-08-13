@@ -271,7 +271,7 @@ public:
 
     //     return p_clone;
     // }
-    
+
     //lumping factors for the calculation of the lumped mass matrix
     //    virtual Vector& LumpingFactors(Vector& rResult) const
     //	{
@@ -631,7 +631,7 @@ private:
     ///@name Member Variables
     ///@{
 
-   
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -701,7 +701,7 @@ private:
     // Default constructor needed for serialization only
     Point2D():BaseType( PointsArrayType(), &msGeometryData ) {}
 
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{
@@ -754,6 +754,6 @@ const GeometryData Point2D<TPointType>::msGeometryData( 2,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined 
+#endif // KRATOS_LINE_2D_H_INCLUDED  defined
 
 

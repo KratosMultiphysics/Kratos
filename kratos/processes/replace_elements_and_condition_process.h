@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED )
@@ -29,14 +29,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class ReplaceElementsAndConditionsProcess
  * @ingroup KratosCore
  * @brief This methods replaces elements and conditions in a model part by a given name
- * @details The submodelparts are later updated 
+ * @details The submodelparts are later updated
  * @author Riccardo Rossi
 */
-class KRATOS_API(KRATOS_CORE) ReplaceElementsAndConditionsProcess 
+class KRATOS_API(KRATOS_CORE) ReplaceElementsAndConditionsProcess
     : public Process
 {
 public:
@@ -49,17 +49,17 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /**
      * @brief Default constructor
      * @param rModelPart The model part where to assign the conditions and elements
      * @param Settings The parameters containing the names of the conditions and elements
      */
     ReplaceElementsAndConditionsProcess(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         Parameters Settings
-        ) : Process(Flags()) , 
-            mrModelPart(rModelPart), 
+        ) : Process(Flags()) ,
+            mrModelPart(rModelPart),
             mSettings( Settings)
     {
         KRATOS_TRY
@@ -73,16 +73,16 @@ public:
         // Some vvalues need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // so that an error is thrown if they don't exist
         KRATOS_ERROR_IF_NOT(KratosComponents< Element >::Has( Settings["element_name"].GetString() )) << "Element name not found in KratosComponents< Element > -- name is " << Settings["element_name"].GetString() << std::endl;
-        KRATOS_ERROR_IF_NOT(KratosComponents< Condition >::Has( Settings["condition_name"].GetString())) << "Condition name not found in KratosComponents< Condition > -- name is " << Settings["condition_name"].GetString() << std::endl;        
-        
+        KRATOS_ERROR_IF_NOT(KratosComponents< Condition >::Has( Settings["condition_name"].GetString())) << "Condition name not found in KratosComponents< Condition > -- name is " << Settings["condition_name"].GetString() << std::endl;
+
         // Now validate agains defaults -- this also ensures no type mismatch
         Settings.ValidateAndAssignDefaults(default_parameters);
-        
+
         KRATOS_CATCH("")
     }
-    
 
-    
+
+
     /// Destructor.
     ~ReplaceElementsAndConditionsProcess() override {}
 
@@ -145,7 +145,7 @@ public:
 
     ///@}
 protected:
-    
+
     ModelPart& mrModelPart; /// The main model part where the elements and conditions will be replaced
     Parameters mSettings;   /// The settings of the problem (names of the conditions and elements)
 
@@ -155,22 +155,22 @@ private:
 
     ///@}
     ///@name Un accessible methods
-    ///@{    
-    
+    ///@{
+
     /**
      * @brief This method obtains the root model part, checking if the current model part is the root
      * @param rModelPart The model part where the checking is performed
      * @return The root model part
      */
     ModelPart& ObtainRootModelPart( ModelPart& rModelPart );
-    
+
     /**
      * @brief This method updates the current elements and conditions ina given model part
      * @param rModelPart The model part where the elements and conditions are assigned
      * @param rRootModelPart The root model part
      */
     void UpdateSubModelPart(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         ModelPart& rRootModelPart
         );
 
@@ -215,6 +215,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED  defined
 
 

@@ -60,11 +60,11 @@ void SetArrayValue(
 {
     if(Data.size() != 3)
         KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << Data.size() << std::endl;
-    
+
     array_1d<double,3> tmp;
     for(unsigned int i=0;i<3; ++i)
         tmp[i] = Data[i];
-    
+
     el.SetValue(rVar,tmp);
 }
 
@@ -76,7 +76,7 @@ void SetVectorValue(
     Vector tmp(Data.size());
     for(unsigned int i=0;i<tmp.size(); ++i)
         tmp[i] = Data[i];
-    
+
     el.SetValue(rVar,tmp);
 }
 

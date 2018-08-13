@@ -113,6 +113,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DIRECT_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_DIRECT_SOLVER_H_INCLUDED  defined
 
 

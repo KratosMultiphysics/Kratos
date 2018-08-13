@@ -27,11 +27,11 @@ namespace Kratos
 
 namespace Python
 {
-  
+
 void  AddSearchStrategiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
-  
+
     class_<SpatialSearch, SpatialSearch::Pointer>(m, "SpatialSearch")
         .def(init< >())
         ;

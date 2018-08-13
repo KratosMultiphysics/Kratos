@@ -7,13 +7,13 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Josep Maria Carbonell                 
-//                   
+//  Main authors:    Josep Maria Carbonell
+//
 //  contributors:    Hoang Giang Bui
 //                   Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-		     
+		
 #if !defined(KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED )
 #define  KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED
 
@@ -313,9 +313,9 @@ public:
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -353,9 +353,9 @@ public:
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
         const double lz = point0.Z() - point1.Z();
-        
+
         const double length = lx * lx + ly * ly + lz * lz;
-        
+
         return sqrt( length );
     }
 
@@ -408,9 +408,9 @@ public:
     @return JacobiansType a Vector of jacobian
     matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
     point index of given integration method.
-    
+
     @param DeltaPosition Matrix with the nodes position increment which describes
-    the configuration where the jacobian has to be calculated.     
+    the configuration where the jacobian has to be calculated.
 
     @see DeterminantOfJacobian
     @see InverseOfJacobian
@@ -646,10 +646,10 @@ public:
     Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
-        rResult = ZeroMatrix( 2, 1 ); 
+        rResult = ZeroMatrix( 2, 1 );
         rResult( 0, 0 ) = -0.5;
-        rResult( 1, 0 ) =  0.5; 
-        return( rResult ); 
+        rResult( 1, 0 ) =  0.5;
+        return( rResult );
     }
 
 
@@ -922,5 +922,5 @@ const GeometryData LineGaussLobatto3D2<TPointType>::msGeometryData( 3,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED  defined 
+#endif // KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED  defined
 

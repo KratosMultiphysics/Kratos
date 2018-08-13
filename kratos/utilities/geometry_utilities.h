@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 
@@ -780,7 +780,7 @@ public:
 
     /**
      * @brief Calculate the deformation gradient.
-     * 
+     *
      * See, e.g., P. Wriggers, Nonlinear Finite Element Methods, Springer, 2008.
      * @param rJ element Jacobian.
      * @param rInvJ0 inverse of the element Jacobian of the initial configuration.
@@ -795,7 +795,7 @@ public:
 
     /**
      * @brief Calculate the Jacobian on the initial configuration.
-     * 
+     *
      * @param rGeom element geometry.
      * @param rCoords local coordinates of the current integration point.
      * @param rJ0 Jacobian on the initial configuration.
@@ -815,6 +815,6 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined 
+#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined
 
 

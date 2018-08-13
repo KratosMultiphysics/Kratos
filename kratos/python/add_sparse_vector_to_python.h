@@ -37,4 +37,4 @@ void  AddSparseVectorToPython();
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_SPARSE_VECTOR_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_SPARSE_VECTOR_TO_PYTHON_H_INCLUDED  defined

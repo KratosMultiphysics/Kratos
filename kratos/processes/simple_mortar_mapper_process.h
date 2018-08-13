@@ -33,7 +33,7 @@
 
 /* Tree structures */
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
-#include "spatial_containers/spatial_containers.h" // kd-tree 
+#include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
 {
@@ -43,11 +43,11 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -55,13 +55,13 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
+
+/**
  * @ingroup KratosCore
  * @class PointMapper
  * @brief Custom Point container to be used by the mapper
  * @details The main difference with this point and the base one is that it contains the pointer to condition where the center of the points belongs
- * @author Vicente Mataix Ferrandiz 
+ * @author Vicente Mataix Ferrandiz
  */
 class PointMapper
     : public Point
@@ -69,9 +69,9 @@ class PointMapper
 public:
     ///@name Type Definitions
     ///@{
-    
-    typedef Point BaseType; 
-    
+
+    typedef Point BaseType;
+
     /// Counted pointer of PointMapper
     KRATOS_CLASS_POINTER_DEFINITION( PointMapper );
 
@@ -89,13 +89,13 @@ public:
         :BaseType(Coords),
          mpOriginCond(nullptr)
     {}
-    
+
     PointMapper(Condition::Pointer pCond):
         mpOriginCond(pCond)
     {
         UpdatePoint();
     }
-    
+
     PointMapper(
         const array_1d<double, 3>& Coords,
         Condition::Pointer pCond
@@ -127,7 +127,7 @@ public:
         BaseType Point(this->Coordinates());
         return Point;
     }
-    
+
     /**
      * @brief Set the point
      * @param Point The point
@@ -145,7 +145,7 @@ public:
     {
         mpOriginCond = pCond;
     }
-    
+
     /**
      * @brief Returns the condition associated to the point
      * @return mpOriginCond The pointer to the condition associated to the point
@@ -155,21 +155,21 @@ public:
         KRATOS_DEBUG_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointMapper class" << std::endl;
         return mpOriginCond;
     }
-    
+
     /**
      * @brief This method checks everything is right
      */
     void Check()
     {
         KRATOS_TRY;
-        
+
         auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
         KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointMapper class" << std::endl;
         KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointMapper class" << std::endl;
-        
+
         KRATOS_CATCH("");
     }
-    
+
     /**
      * @brief This function updates the database, using as base for the coordinates the condition center
      */
@@ -181,16 +181,16 @@ public:
 private:
     ///@name Member Variables
     ///@{
-    Condition::Pointer mpOriginCond; /// Condition pointer  
+    Condition::Pointer mpOriginCond; /// Condition pointer
     ///@}
 
-}; // Class PointMapper 
-    
+}; // Class PointMapper
+
 /**
  * @ingroup KratosCore
  * @class SimpleMortarMapperProcess
  * @brief This is basic mapper of values between domains using mortar formulation
- * @details Using the dual mortar formulation the resolution of the system of equations is not needed. 
+ * @details Using the dual mortar formulation the resolution of the system of equations is not needed.
  * Several types of constructors are avaible depending of the needs.
  * If the pairs sets are not provided a serach will be performed using a KDTree
  * @author Vicente Mataix Ferrandiz
@@ -202,25 +202,25 @@ class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of SimpleMortarMapperProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcess);
-    
+
     typedef Point                                        PointType;
     typedef Node<3>                                       NodeType;
     typedef Geometry<NodeType>                        GeometryType;
     typedef Geometry<PointType>                  GeometryPointType;
     typedef ModelPart::NodesContainerType           NodesArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    
+
     /// Type definition for integration methods
     typedef GeometryData::IntegrationMethod      IntegrationMethod;
-    
+
     /// Auxiliar geometries
     typedef Line2D2<PointType>                            LineType;
     typedef Triangle3D3<PointType>                    TriangleType;
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompType;
-    
+
     /// Component type
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
@@ -230,10 +230,10 @@ public:
     typedef typename SparseSpaceType::MatrixType                 MatrixType;
     typedef typename SparseSpaceType::VectorType                 VectorType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    
+
     /// Component type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;  
-    
+    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
+
     /// Index type definition
     typedef std::size_t                                           IndexType;
 
@@ -242,7 +242,7 @@ public:
 
     /// A map for integers
     typedef std::unordered_map<IndexType, IndexType>                 IntMap;
-    
+
     /// BoundedMatrix
     typedef BoundedMatrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
 
@@ -253,41 +253,41 @@ public:
     typedef PointVector::iterator                             PointIterator;
     typedef std::vector<double>                              DistanceVector;
     typedef DistanceVector::iterator                       DistanceIterator;
-    
+
     // KDtree definitions
     typedef Bucket< 3ul, PointMapperType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTreeType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /**
      * @brief Default constructor
-     * @param rOriginModelPart The origin model part to compute 
-     * @param rDestinationModelPart The destination model part to compute 
+     * @param rOriginModelPart The origin model part to compute
+     * @param rDestinationModelPart The destination model part to compute
      * @param ThisVariable The variable to transfer and be transfered
      * @param ThisParameters The configuration parameters
      * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
      */
-    SimpleMortarMapperProcess( 
+    SimpleMortarMapperProcess(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
-        TVarType& ThisVariable, 
+        TVarType& ThisVariable,
         Parameters ThisParameters = Parameters(R"({})" ),
         LinearSolverType::Pointer pThisLinearSolver = nullptr
         );
-    
+
     /**
      * @brief A constructor where two different variables can be considered for each subdomain
-     * @param rOriginModelPart The origin model part to compute 
-     * @param rDestinationModelPart The destination model part to compute 
+     * @param rOriginModelPart The origin model part to compute
+     * @param rDestinationModelPart The destination model part to compute
      * @param OriginVariable The variable to transfer
      * @param DestinationVariable The variable to be transfered
      * @param ThisParameters The configuration parameters
      * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
      */
-    SimpleMortarMapperProcess( 
+    SimpleMortarMapperProcess(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         TVarType& OriginVariable,
@@ -323,11 +323,11 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     void Execute() override;
 
     ///@}
@@ -402,18 +402,18 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mOriginModelPart;                  /// The origin model part to compute
     ModelPart& mDestinationModelPart;             /// The destination model part to compute
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
-    
+
     bool mOriginHistorical;                       /// A bool that defines if the origin variables is historical
     bool mDestinationHistorical;                  /// A bool that defines if the destination variables is historical
 
-    unsigned int mEchoLevel;                      /// The verbosity level    
+    unsigned int mEchoLevel;                      /// The verbosity level
     Parameters mThisParameters;                   /// The configuration parameters
-    
+
     LinearSolverType::Pointer mpThisLinearSolver; // The linear solver used to compute the solution
 
     ///@}
@@ -423,22 +423,22 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * @brief Check if the pairs has been created
      */
     void CheckAndPerformSearch();
-    
+
     /**
      * @brief This method resets the nodal area
      */
     void ResetNodalArea();
-    
+
     /**
      * @brief This method gets the max area of the conditions from the modelpart
      */
     double GetReferenceArea();
-    
+
     /**
      * @brief This method assemble locally the mortar operators
      * @param ConditionsPointSlave The list of points that form the triangle decomposition
@@ -460,7 +460,7 @@ private:
         const IntegrationMethod& ThisIntegrationMethod,
         const BoundedMatrixType Ae = IdentityMatrix(TNumNodes)
         );
-    
+
     /**
      * @brief This method computes the Ae matrix
      * @param SlaveGeometry The slave geometry
@@ -475,7 +475,7 @@ private:
         std::vector<array_1d<PointType,TDim>>& ConditionsPointsSlave,
         const IntegrationMethod& ThisIntegrationMethod
         );
-        
+
     /**
      * @brief This method inverts a diagonal matrix
      * @param InputMatrix The matrix to invert
@@ -492,18 +492,18 @@ private:
         const BoundedMatrixType& InputMatrix,
         BoundedMatrixType& InvertedMatrix
         );
-    
+
     /**
      * @brief This method lumps a matrix
      * @param InputMatrix The matrix to lump
      */
     void LumpMatrix(BoundedMatrixType& InputMatrix);
-    
+
     /**
      * @brief This method computes the size of the system
      * @param SizeSystem The size of the system
      */
-        
+
     void GetSystemSize(std::size_t& SizeSystem);
 
     /**
@@ -512,26 +512,26 @@ private:
      * @param ConectivityDatabase The database that will be used to assemble the system
      * @param InverseConectivityDatabase The inverse database that will be used to assemble the system
      */
-        
+
     void CreateSlaveConectivityDatabase(
         std::size_t& SizeSystem,
         IntMap& ConectivityDatabase,
         IntMap& InverseConectivityDatabase
         );
-    
+
     /**
      * @brief This method returns the corresponding integration order considered
      * @return The integration order considered
      */
     IntegrationMethod GetIntegrationMethod();
-    
+
     /**
      * @brief This method checks if all components of a vector are true
      * @param VectorToCheck The vector to check
      * @return result True if all componets are true
      */
     bool CheckWholeVector(std::vector<bool> VectorToCheck);
-    
+
     /**
      * @brief This method computes the residual matrix of the mapping
      * @param ResidualMatrix The matrix containing the residual of the mappping
@@ -539,13 +539,13 @@ private:
      * @param MasterGeometry The master geometry
      * @param ThisMortarOperators The mortar operators
      */
-    void ComputeResidualMatrix(       
+    void ComputeResidualMatrix(
         Matrix& ResidualMatrix,
         GeometryType& SlaveGeometry,
         GeometryType& MasterGeometry,
         const MortarOperator<TNumNodes>& ThisMortarOperators
         );
-    
+
     /**
      * @brief This method assembles the LHS and the RHS
      * @param A The LHS of the system
@@ -565,7 +565,7 @@ private:
         IntMap& InverseConectivityDatabase,
         const MortarOperator<TNumNodes>& ThisMortarOperators
         );
-    
+
     /**
      * @brief This method assembles the RHS
      * @param b The RHS of the system
@@ -581,7 +581,7 @@ private:
         GeometryType& SlaveGeometry,
         IntMap& InverseConectivityDatabase
         );
-    
+
     /**
      * @brief This method executes the explicit mapping (when no linear solver is avalaible)
      */
@@ -591,7 +591,7 @@ private:
      * @brief This method executes the mapping when a linear solver is avalaible and a system of equations can be solved
      */
     void ExecuteImplicitMapping();
-    
+
     /**
      * @brief This method computes common methods between the implicit and explicit formulation
      */
@@ -702,7 +702,7 @@ private:
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     Parameters GetDefaultParameters();
-        
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -718,13 +718,13 @@ private:
 
     ///@name Unaccessible methods
     ///@{
-    
+
     /// Assignment operator.
     SimpleMortarMapperProcess& operator=(SimpleMortarMapperProcess const& rOther) = delete;
 
     /// Copy constructor.
     //SimpleMortarMapperProcess(SimpleMortarMapperProcess const& rOther);
-    
+
     ///@}
 };// class SimpleMortarMapperProcess
 

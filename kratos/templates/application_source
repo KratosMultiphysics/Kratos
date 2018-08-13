@@ -2,20 +2,20 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author1 Fullname
-//                   Author2 Fullname 
+//                   Author2 Fullname
 //
 
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -41,14 +41,14 @@ namespace Kratos
 // 	  KRATOS_REGISTER_CONDITION("ApplicationConditionName", msApplicationCondition);
 
 	}
-      
-      
+
+
   // Initializing static members
 //   const ApplicationElement  KratosApplicationNameApplication::msApplicationElement(arguments...);
-//   const ApplicationCondition  KratosApplicationNameApplication::msApplicationElement(arguments...); 
+//   const ApplicationCondition  KratosApplicationNameApplication::msApplicationElement(arguments...);
 
-  
-  
+
+
 }  // namespace Kratos.
 
 

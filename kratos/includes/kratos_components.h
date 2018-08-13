@@ -33,9 +33,9 @@
 namespace Kratos
 {
 
-/// KratosComponents class encapsulates a lookup table for a family of classes in a generic way. 
-/** KratosComponents class encapsulates a lookup table for a family of classes in a generic way. Prototypes must be added to this table by unique names to be accessible by IO. These names can be created automatically using C++ RTTI or given manually for each component. 
- * In this design the manual approach is chosen, so shorter and more clear names can be given to each component and also there is a flexibility to give different names to different states of an object and create them via different prototypes. 
+/// KratosComponents class encapsulates a lookup table for a family of classes in a generic way.
+/** KratosComponents class encapsulates a lookup table for a family of classes in a generic way. Prototypes must be added to this table by unique names to be accessible by IO. These names can be created automatically using C++ RTTI or given manually for each component.
+ * In this design the manual approach is chosen, so shorter and more clear names can be given to each component and also there is a flexibility to give different names to different states of an object and create them via different prototypes.
  * For example having TriangularThermal and  both
 */
 
@@ -99,7 +99,7 @@ public:
     {
         typename ComponentsContainerType::iterator i =  msComponents.find(Name);
         if(i == msComponents.end())
-          KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name); 
+          KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name);
         return *(i->second);
     }
 

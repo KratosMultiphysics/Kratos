@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
-//                    
+//
 //
 
 
@@ -42,19 +42,19 @@ class EnrichmentUtilities_2D
 public:
 
     /**
-     * 
-     * 
+     *
+     *
      * The method to calculate the ernriched shape functions for given triangle
-     * Basically, two shape functions are provided, 
-     * 1)one is the enrichment to capturate discontinuities in the gradients of the pressure 
-     *       ("Improving Eulerian two-phase flow finite element approximation with discontinuous gradient (i.e pressure) shape functions" Coppola-Owen and Codina) 
+     * Basically, two shape functions are provided,
+     * 1)one is the enrichment to capturate discontinuities in the gradients of the pressure
+     *       ("Improving Eulerian two-phase flow finite element approximation with discontinuous gradient (i.e pressure) shape functions" Coppola-Owen and Codina)
      * 2) the second one is to capturate discontinuities in the varialbe(ie. pressure). it is a shape function that is zero on the nodes and has a constant discontinuity along the found interfase)
-     * 
+     *
      * @param rPoints A 3x3 matrix where row i has the coordinates of node i.
      * @param DN_DX The gradient of the shape functions Ni respect to the reference coordinates
      * @param rDistances is an input  vector of 3 size which holds relative distance for each node.
      *        it is used internally to mark the position of the zero level
-     * @param rVolumes Result vector with size (3+1) (maximum number of partitions) holding the volume of each partition. 
+     * @param rVolumes Result vector with size (3+1) (maximum number of partitions) holding the volume of each partition.
      * 		  Partitions are given in the following order: first the one that is "alone". meaning that it is on the side of the interfase where there's only a triangle
      * 		   and the other 2 are the ones in the other side. So the paritition signs will be allways -1,1,1 or 1,-1,-1
      * 		  Note:volume 4 is not a partition itself, but is added to be used in the element. it would be the result of creating the 2 triangles of the cuadrilateral paritition with the opposite edge as the current configuration (joining node k_aux with node_4 instead of the current node_j-node5)
@@ -75,24 +75,24 @@ public:
      * 		  @warning therefore the discontinuity in the shape function is equal to 2.
      * @param type_of_cut the partition that is 'alone': the one that is on one side of the shape function
      * 		  the other two are the ones in the other side, meaning they have the same derivatives and , for example, densities.
-     * 
+     *
      * @return number of partitions created which can be from 1 to 3.
      *         1 holds for only 1 partition which is the original element. (No partitioning needed)
      */
-   
-    
+
+
     //with some added vectors, to be used when we need information about the interfase between the 2 elements
     template<class TMatrixType, class TVectorType, class TGradientType>
     static int CalculateTriangleEnrichedShapeFuncions(TMatrixType const& rPoints, TGradientType const& DN_DX,
             TVectorType rDistances, TVectorType& rVolumes, TMatrixType& rGPShapeFunctionValues,
             TVectorType& rPartitionsSign, std::vector<TMatrixType>& rGradientsValue, TMatrixType& NEnriched, //and information about the interfase:
-            TVectorType& face_gauss_N, TVectorType& face_gauss_Nenriched, double& face_Area, TVectorType& face_n ,unsigned int& type_of_cut)    
+            TVectorType& face_gauss_N, TVectorType& face_gauss_Nenriched, double& face_Area, TVectorType& face_n ,unsigned int& type_of_cut)
     {
         KRATOS_TRY
 	
 		//unsigned int i,j,k;
 		unsigned int i_aux,j_aux,k_aux; //
-		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   INTERFASES ON nodes are not contemplated   
+		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   INTERFASES ON nodes are not contemplated
 		const double one_third=1.0/3.0;
 		BoundedMatrix<double, 3, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
 		double Area;//area of the complete element
@@ -120,7 +120,7 @@ public:
 			//KRATOS_WATCH("one element IS in the intefase")
 			if ((rDistances(0)*rDistances(1))<0.0) //edge 12 is cut
 			{
-				if ((rDistances(0)*rDistances(2))<0.0) //edge 13 is cut. 
+				if ((rDistances(0)*rDistances(2))<0.0) //edge 13 is cut.
 				{
 					//check distances later to see if they're close to nodes and belong to case 4,5or6. for the moment we suppose all edges are cut (cases 1-3)
 					type_of_cut=1;
@@ -136,7 +136,7 @@ public:
 			}
 		}
 		
-		//KRATOS_WATCH(type_of_cut) 
+		//KRATOS_WATCH(type_of_cut)
 		switch (type_of_cut)
 		{
 			case 1: //  edge 12 and 13 is cut
@@ -162,7 +162,7 @@ public:
 		KRATOS_WATCH(k_aux)
 		*/
 		 //const double dist12=abs(rDistances(0)-rDistances(1) );
-		 if (rDistances(i_aux) < 0.0) 
+		 if (rDistances(i_aux) < 0.0)
 		 {
 			 rPartitionsSign[0] = -1.0;
 			 rPartitionsSign[1] =  1.0;
@@ -174,7 +174,7 @@ public:
 			 rPartitionsSign[1] = -1.0;
 			 rPartitionsSign[2] = -1.0;
 		 }
-		 
+		
 		//'TRICK' TO AVOID HAVING THE INTERFASE TOO CLOSE TO THE NODES:
 		//since we cannot collapse node because we have to contemplate the possibility of discontinuities, we will move a little the intefase so that it is not that close.
 		
@@ -199,16 +199,16 @@ public:
 			rDistances[2]=tolerable_distance*(rDistances[2]/fabs(rDistances[2]));
 		
 		//END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
-		 
-		 
+		
+		
 		 //for (int jj = 0; jj < 3; jj++)
 		 //	KRATOS_WATCH(rDistances(jj));
-		 
+		
 		 const double node4_relative_position=fabs(rDistances(j_aux)/(rDistances(i_aux)-rDistances(j_aux) ) ) ; //position in 'natural' coordinates of edge 12, 0 when it passes over node 2. (it is over the edge 12)
 		 const double node5_relative_position=fabs(rDistances(k_aux)/(rDistances(i_aux)-rDistances(k_aux) ) ) ; //position in 'natural' coordinates of edge 12, 0 when it passes over node 2. (it is over the edge 23)
 		 //KRATOS_WATCH(node4_relative_position);
 		 //KRATOS_WATCH(node5_relative_position);
-		 
+		
 		 //Standard Shape function values in the 'new nodes' created by the interfase:
 		 const double Ni_aux_node4 = node4_relative_position;
 		 const double Nj_aux_node4 = (1.0-node4_relative_position);
@@ -216,7 +216,7 @@ public:
 		 const double Ni_aux_node5 = node5_relative_position;
 		 //Nj_aux_node_5 is zero (we are on the ik edge)
 		 const double Nk_aux_node5 = (1.0-node5_relative_position);
-		 
+		
 		 //location of the midpoint of the interface : halfway between the two points
 		 const double x_midpoint=((rPoints(i_aux,0)*Ni_aux_node4+rPoints(j_aux,0)*Nj_aux_node4)+
 							(rPoints(i_aux,0)*Ni_aux_node5+rPoints(k_aux,0)*Nk_aux_node5))*0.5;
@@ -229,28 +229,28 @@ public:
 		 array_1d<double, 3 >  N;		
 		 bool is_found = CalculatePosition ( coord_subdomain , x_midpoint,y_midpoint,z_midpoint, N);
 		 face_gauss_N = N;
-		 
+		
 		  //we will adimensionalize the new shape functions so that the value is one on the midpoint on the interfase:
 		  const double adim_Nenriched_i_aux = 1.0 /(face_gauss_N(i_aux)); //for partitions 2 and 3
 		  //also the other 2 shape fuctions must be resized so that the new enrichment is constant along the interfase:
 		  const double adim_Nenriched_j_aux = adim_Nenriched_i_aux * Ni_aux_node4 / Nj_aux_node4 ; //to have a constant value in the interfase at node 4: =N_j_aux_node4 / N_j_aux when adimensionalized
 		  const double adim_Nenriched_k_aux =  adim_Nenriched_i_aux * Ni_aux_node5 / Nk_aux_node5 ; //to have a constant value in the interfase at node 5: = N_k_aux_node4 / N_k_aux when adimensionalized
-		  
-		  //for the jump, we will create a shape function that holds a constant difference of 2 along the interfase: 
+		
+		  //for the jump, we will create a shape function that holds a constant difference of 2 along the interfase:
 		  const double adim_Nenriched_j_aux_b = (2.0 - node4_relative_position * adim_Nenriched_i_aux) / Nj_aux_node4;
 		  const double adim_Nenriched_k_aux_b = (2.0 - node5_relative_position * adim_Nenriched_i_aux) / Nk_aux_node5;
-		  
-		 
+		
+		
 		  //value of the shape functions in the interfase
 		  face_gauss_Nenriched(i_aux)= 1.0;
 		  face_gauss_Nenriched(j_aux)= 0.0; //actualy it's not defined, it's a discontinous function
-		 
+		
 		 //first partition
 		 rGradientsValue[0](0,0)=DN_DX(j_aux,0)*adim_Nenriched_j_aux+DN_DX(k_aux,0)*adim_Nenriched_k_aux;
 		 rGradientsValue[0](0,1)=DN_DX(j_aux,1)*adim_Nenriched_j_aux+DN_DX(k_aux,1)*adim_Nenriched_k_aux;		  //	      i   j,k				 i    j,k
-		 
-		 rGradientsValue[0](1,0)=DN_DX(j_aux,0)*adim_Nenriched_j_aux_b+DN_DX(k_aux,0)*adim_Nenriched_k_aux_b;                 //the shape function are: 1:   ___/\____       2:	    ___/ ___ 
-		 rGradientsValue[0](1,1)=DN_DX(j_aux,1)*adim_Nenriched_j_aux_b+DN_DX(k_aux,1)*adim_Nenriched_k_aux_b;				//															/  
+		
+		 rGradientsValue[0](1,0)=DN_DX(j_aux,0)*adim_Nenriched_j_aux_b+DN_DX(k_aux,0)*adim_Nenriched_k_aux_b;                 //the shape function are: 1:   ___/\____       2:	    ___/ ___
+		 rGradientsValue[0](1,1)=DN_DX(j_aux,1)*adim_Nenriched_j_aux_b+DN_DX(k_aux,1)*adim_Nenriched_k_aux_b;				//															/
 		 //now we must calculate the position of the new nodes to get the area.
 		 coord_subdomain(0,0)=rPoints(i_aux,0);
 		 coord_subdomain(0,1)=rPoints(i_aux,1);
@@ -273,13 +273,13 @@ public:
 		 NEnriched(0,0)=rGPShapeFunctionValues(0,j_aux)*adim_Nenriched_j_aux+rGPShapeFunctionValues(0,k_aux)*adim_Nenriched_k_aux;
 		 NEnriched(0,1)=NEnriched(0,0);
 		 //KRATOS_WATCH(rVolumes(0));
-		 
+		
 		 //now the face area(actually it's just the distance from point 4 to 5.
 		 face_Area=sqrt(pow((coord_subdomain(2,0)-coord_subdomain(1,0)),2)+pow((coord_subdomain(2,1)-coord_subdomain(1,1)),2));
 		 //and the normal vector. face_Area already has the modulus of the vector, so:
 		 face_n(0)=(coord_subdomain(2,1)-coord_subdomain(1,1))/face_Area;
 		 face_n(1)=-(coord_subdomain(2,0)-coord_subdomain(1,0))/face_Area;
-		 
+		
 		 /*
 		 KRATOS_WATCH(coord_subdomain(0,0));
 		 KRATOS_WATCH(coord_subdomain(0,1));
@@ -294,15 +294,15 @@ public:
 		 KRATOS_WATCH( rGradientsValue[0](0,1))
 		*/
 		
-		//second partition and second GP 
+		//second partition and second GP
 		 rGradientsValue[1](0,0)=DN_DX(i_aux,0)*adim_Nenriched_i_aux;
 		 rGradientsValue[1](0,1)=DN_DX(i_aux,1)*adim_Nenriched_i_aux;
-		 
+		
 		 //for the jump we invert the sign of the partition.
 		 rGradientsValue[1](1,0)= -rGradientsValue[1](0,0);
 		 rGradientsValue[1](1,1)= -rGradientsValue[1](0,1);
-		 
- 
+		
+
 		 //now we must calculate the position of the new nodes to get the area.
 		 //coord_subdomain = rPoints; //easier to start this way. node 2 is already ok.
 		 coord_subdomain(0,0) = rPoints(j_aux,0);
@@ -324,9 +324,9 @@ public:
 		 rGPShapeFunctionValues(1,1)=N(1);
 		 rGPShapeFunctionValues(1,2)=N(2);
 		 NEnriched(1,0) = rGPShapeFunctionValues(1,i_aux)*adim_Nenriched_i_aux;
-		 NEnriched(1,1) = -NEnriched(1,0);   
+		 NEnriched(1,1) = -NEnriched(1,0);
 		 /*
-		 KRATOS_WATCH(rVolumes(1)); 
+		 KRATOS_WATCH(rVolumes(1));
 		 		 KRATOS_WATCH(coord_subdomain(0,0));
 		 KRATOS_WATCH(coord_subdomain(0,1));
 		 KRATOS_WATCH(coord_subdomain(1,0));
@@ -339,7 +339,7 @@ public:
 		 KRATOS_WATCH( rGradientsValue[1](0,0))
 		 KRATOS_WATCH( rGradientsValue[1](0,1))
 		 */
-		  
+		
 		 //NOT A PARTITION, just the volume of a different conectivity:
 		 //just replacing the third node. Useful only to recover information, for example N(i,j,k) of node5
 		 coord_subdomain(2,0) = rPoints(i_aux,0)*Ni_aux_node4+rPoints(j_aux,0)*Nj_aux_node4;
@@ -352,7 +352,7 @@ public:
 		 //for the jump we invert the sign of the partition.
 		 rGradientsValue[2](1,0)= -rGradientsValue[2](0,0);
 		 rGradientsValue[2](1,1)= -rGradientsValue[2](0,1);
-		 
+		
 
 
 		 coord_subdomain(0,0) = rPoints(j_aux,0);
@@ -372,9 +372,9 @@ public:
 		 rGPShapeFunctionValues(2,2)=N(2);
 		 NEnriched(2,0)= rGPShapeFunctionValues(2,i_aux)*adim_Nenriched_i_aux;
 		 NEnriched(2,1)= -NEnriched(2,0);
-		 
+		
 		 /*
-			KRATOS_WATCH(rVolumes(2)); 
+			KRATOS_WATCH(rVolumes(2));
 		 		 KRATOS_WATCH(coord_subdomain(0,0));
 		 KRATOS_WATCH(coord_subdomain(0,1));
 		 KRATOS_WATCH(coord_subdomain(1,0));
@@ -386,13 +386,13 @@ public:
 		 KRATOS_WATCH(rGPShapeFunctionValues(2,k_aux));
 		 KRATOS_WATCH( rGradientsValue[2](0,0))
 		 KRATOS_WATCH( rGradientsValue[2](0,1))
-		 */ 
+		 */
 		 /*
 		 std::cout <<"GAUSS POINTS" << '\n';
 		 for (unsigned int ji=0; ji<3; ji++)
 			std::cout <<rGPShapeFunctionValues(ji,0)<< "  " << rGPShapeFunctionValues(ji,1) << "  " << rGPShapeFunctionValues(ji,2) <<'\n';
 			
-		 std::cout <<"GRADIENTS" << '\n'; 
+		 std::cout <<"GRADIENTS" << '\n';
 		 for (unsigned int ji=0; ji<3; ji++)
 		 {
 			std::cout << "first Shape function" << '\n';
@@ -403,11 +403,11 @@ public:
 		 */
 		 return 3;
 		 KRATOS_CATCH("");
-        
+
     }
-    
-    
-    
+
+
+
     /**this function is designed to compute the shape function derivatives, shape functions and volume in 3D
      * @param geom it is the array of nodes. It is expected to be a triangle
      * @param a stack matrix of size 3*2 to store the shape function's derivatives
@@ -415,7 +415,7 @@ public:
      * @param the volume of the element
      */
     private:
-    
+
 		static inline void CalculateGeometryData(
 			const BoundedMatrix<double, 3, 3 > & coordinates,
 			BoundedMatrix<double,3,2>& DN_DX,
@@ -497,7 +497,7 @@ public:
 
             return false;
         }
-        
+
         static inline double CalculateVol(const double x0, const double y0,
                 const double x1, const double y1,
                 const double x2, const double y2
@@ -505,7 +505,7 @@ public:
         {
             return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
         }
-    
+
     };
 
 } // namespace Kratos.

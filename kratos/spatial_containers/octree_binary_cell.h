@@ -18,9 +18,9 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -82,8 +82,8 @@ namespace Kratos {
 
         typedef typename TConfiguration::data_type data_type;
 
-        typedef TConfiguration configuration_type;                
-        
+        typedef TConfiguration configuration_type;
+
         typedef typename TConfiguration::pointer_type pointer_type;
 
         typedef std::vector<pointer_type> object_container_type;
@@ -335,7 +335,7 @@ namespace Kratos {
             key_type position[3];
             //in total, there are a maximum of 27 nodes (as the Quadratic9 Hexa in GiD). The only difference is that here
             //the central node of the hexa (cell) is just after the lineal nodes.
-            // the node index              : 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
+            // the node index              : 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
             const std::size_t local_index[]={0, 9, 1,12,21,10, 3,11, 2,13,22,14,25, 8,23,16,24,15, 4,17, 5,20,26,18, 7,19,6};
 
             for(std::size_t i = 0 ; i < DIMENSION ; i++)
@@ -363,13 +363,13 @@ namespace Kratos {
 
         }
 
-        
+
         void Insert(pointer_type object){
             objects_.push_back(object);
         }
 
-        void TransferObjectsToSonsNormalized(){      
-          
+        void TransferObjectsToSonsNormalized(){
+
           if (!objects_.size()) return;
           assert(this->HasChildren());
 
@@ -377,7 +377,7 @@ namespace Kratos {
           double min_coord[3]={0.00, 0.00, 0.00};
           double max_coord[3]={0.00, 0.00, 0.00};
 
-          for (std::size_t i = 0; i < CHILDREN_NUMBER; i++){            
+          for (std::size_t i = 0; i < CHILDREN_NUMBER; i++){
             OctreeBinaryCell* son = pGetChild(i);
             if (son->HasChildren()){
               son->TransferObjectsToSonsNormalized();
@@ -393,11 +393,11 @@ namespace Kratos {
               if(is_intersected)
                 son->Insert(object);
             }
-          }        
+          }
 
           //clear the memory of objects_ (now the objects are transfered to children)
           object_container_type temp;
-          objects_.swap(temp);                   
+          objects_.swap(temp);
         }
 
         ///@}
@@ -467,7 +467,7 @@ namespace Kratos {
 
         void EmptyObjects()
         {
-          object_container_type tmp;     
+          object_container_type tmp;
           tmp.swap(objects_);
         }
 
@@ -579,7 +579,7 @@ namespace Kratos {
         OctreeBinaryCell* children_;
         data_type* data_;
         object_container_type objects_;
-        
+
 
         double CalcSizeNormalized() const {
           const double scale = 1.00 / (1 << ROOT_LEVEL);

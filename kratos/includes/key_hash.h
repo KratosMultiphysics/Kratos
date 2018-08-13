@@ -20,7 +20,7 @@
 #ifndef KRATOS_KEY_HASH_H_INCLUDED
 #define KRATOS_KEY_HASH_H_INCLUDED
 
-namespace Kratos 
+namespace Kratos
 {
 ///@addtogroup KratosCore
 ///@{
@@ -64,7 +64,7 @@ namespace Kratos
         std::hash<TClassType> hasher;
         Seed ^= hasher(Value) + 0x9e3779b9 + (Seed<<6) + (Seed>>2);
     }
-    
+
     /**
      * @brief This method combines hash until it reaches the last class in order to obtain a corresponding seed
      * @tparam TClassType The type of class to be hashed
@@ -74,7 +74,7 @@ namespace Kratos
      */
     template <class TClassType>
     inline HashType HashRange(
-        TClassType First, 
+        TClassType First,
         TClassType Last
         )
     {
@@ -84,10 +84,10 @@ namespace Kratos
             HashCombine(seed, *First);
             ++First;
         }
-        
+
         return seed;
     }
-    
+
     /**
      * @brief This is a key comparer of general pourpose between two classes
      * @tparam TClassType The type of class to be hashed
@@ -101,7 +101,7 @@ namespace Kratos
          * @param second The second class to be compared
          */
         bool operator()(
-            const TClassType& first, 
+            const TClassType& first,
             const TClassType& second
             ) const
         {
@@ -125,7 +125,7 @@ namespace Kratos
             return true;
         }
     };
-    
+
     /**
      * @brief This is a hasher of general pourpose
      * @tparam TClassType The type of class to be hashed
@@ -143,7 +143,7 @@ namespace Kratos
             return HashRange(rRange.begin(), rRange.end());
         }
     };
-    
+
     /**
      * @brief This is a hasher for variables
      * @tparam TVariable The type of variable to be hashed
@@ -200,7 +200,7 @@ namespace Kratos
             return reinterpret_cast<HashType>(pPointer.get());
         }
     };
-    
+
     /**
      * @brief This is a key comparer between two shared pointers
      * @tparam TSharedPointer The type of shared pointer to be compared
@@ -214,7 +214,7 @@ namespace Kratos
          * @param second The second class to be compared
          */
         bool operator()(
-            const TSharedPointer& first, 
+            const TSharedPointer& first,
             const TSharedPointer& second
             ) const
         {

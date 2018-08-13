@@ -36,20 +36,20 @@ namespace Kratos
 {
 
 ///@name Kratos Globals
-///@{ 
+///@{
 
-///@} 
+///@}
 ///@name Type Definitions
-///@{ 
+///@{
 
-///@} 
+///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
-///@name  Functions 
+///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -58,14 +58,14 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class SpatialSearch 
+class SpatialSearch
 {
     public:
-      
-      
+
+
       ///@name Type Definitions
       ///@{
-    
+
       /// Pointer definition of SpatialSearch
       KRATOS_CLASS_POINTER_DEFINITION(SpatialSearch);
 
@@ -73,10 +73,10 @@ class SpatialSearch
              MAX_LEVEL = 16,
              MIN_LEVEL = 2
       };
-      
+
       /// Common Defines
       typedef Point                          PointType;
-     
+
       typedef ModelPart::ElementsContainerType                  ElementsContainerType;
       typedef ModelPart::ElementType                            ElementType;
       typedef ModelPart::ElementType::Pointer                   ElementPointerType;
@@ -88,7 +88,7 @@ class SpatialSearch
       typedef ModelPart::NodeType::Pointer                      NodePointerType;
       typedef NodesContainerType::ContainerType                 ResultNodesContainerType;
       typedef std::vector<ResultNodesContainerType>             VectorResultNodesContainerType;
-      
+
       typedef ModelPart::ConditionsContainerType                ConditionsContainerType;
       typedef ModelPart::ConditionType                          ConditionType;
       typedef ModelPart::ConditionType::Pointer                 ConditionPointerType;
@@ -98,34 +98,34 @@ class SpatialSearch
       typedef std::vector<double>                               RadiusArrayType;
       typedef std::vector<double>                               DistanceType;
       typedef std::vector<DistanceType>                         VectorDistanceType;
-      
+
       typedef ElementsContainerType::ContainerType::iterator    ResultIteratorType;
-      
-      
+
+
       ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
+      ///@name Life Cycle
+      ///@{
+
       /// Default constructor.
       SpatialSearch(){}
 
       /// Destructor.
       virtual ~SpatialSearch(){}
-      
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
-      
-      
+
+
       ///@}
       ///@name Operations
       ///@{
-        
+
       //************************************************************************
-      // Elemental Exclusive search with distance calculation                            
+      // Elemental Exclusive search with distance calculation
       //************************************************************************
-    
+
       /**
        * Search neighbours for every element in "rModelpart" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -138,12 +138,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                                rModelPart.GetCommunicator().LocalMesh().Elements(), 
+                                                rModelPart.GetCommunicator().LocalMesh().Elements(),
                                                 Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -158,12 +158,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
-          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
-                                                InputElements, 
+      {
+          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                InputElements,
                                                 Radius,rResults,rResultsDistance);
       }
-      
+
       /**
        * Search neighbours for every element in "StructureElements" excluding itself
        * @param StructureElements   List of elements modelpart against which the neighbours are searched
@@ -176,12 +176,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           this->SearchElementsInRadiusExclusive(StructureElements,
                                                 StructureElements,
                                                 Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -196,15 +196,15 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Elemental Inclusive search with distance calculation                            
+      // Elemental Inclusive search with distance calculation
       //************************************************************************
-      
+
       /**
        * Search neighbours for every element in "rModelpart" including itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -217,12 +217,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
-          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
-                                                rModelPart.GetCommunicator().LocalMesh().Elements(), 
+      {
+          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                rModelPart.GetCommunicator().LocalMesh().Elements(),
                                                 Radius,rResults,rResultsDistance);
       }
-      
+
       /**
        * Search neighbours for every element in "InputElements" including itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -237,12 +237,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
-          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
-                                                InputElements, 
+      {
+          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                InputElements,
                                                 Radius,rResults,rResultsDistance);
       }
-      
+
       /**
        * Search neighbours for every element in "StructureElements" including itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -255,12 +255,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
-          this->SearchElementsInRadiusInclusive(StructureElements, 
-                                                StructureElements, 
+      {
+          this->SearchElementsInRadiusInclusive(StructureElements,
+                                                StructureElements,
                                                 Radius,rResults,rResultsDistance);
       }
-      
+
       /**
        * Search neighbours for every element in "InputElements" including itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -275,15 +275,15 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Elemental Exclusive search without distance calculation                            
+      // Elemental Exclusive search without distance calculation
       //************************************************************************
-    
+
       /**
        * Search neighbours for every element in "rModelpart" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -294,12 +294,12 @@ class SpatialSearch
           ModelPart& rModelPart,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults )
-      {     
+      {
           this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                                rModelPart.GetCommunicator().LocalMesh().Elements(), 
+                                                rModelPart.GetCommunicator().LocalMesh().Elements(),
                                                 Radius,rResults);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -312,12 +312,12 @@ class SpatialSearch
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults )
-      {     
-          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
-                                                InputElements, 
+      {
+          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                InputElements,
                                                 Radius,rResults);
       }
-      
+
       /**
        * Search neighbours for every element in "StructureElements" excluding itself
        * @param StructureElements   List of nodes against which the neighbours are searched
@@ -328,13 +328,13 @@ class SpatialSearch
           ElementsContainerType const& StructureElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults )
-      {     
+      {
           this->SearchElementsInRadiusExclusive(StructureElements,
                                                 StructureElements,
                                                 Radius,rResults);
-          
+
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -347,15 +347,15 @@ class SpatialSearch
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults )
-      {     
+      {
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Elemental Inclusive search without distance calculation                            
+      // Elemental Inclusive search without distance calculation
       //************************************************************************
-      
+
       /**
        * Search neighbours for every element in "rModelpart" including itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -366,12 +366,12 @@ class SpatialSearch
           ModelPart& rModelPart,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults )
-      {     
-          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
-                                                rModelPart.GetCommunicator().LocalMesh().Elements(), 
+      {
+          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                rModelPart.GetCommunicator().LocalMesh().Elements(),
                                                 Radius,rResults);
       }
-      
+
       /**
        * Search neighbours for every element in "InputElements" including itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -384,12 +384,12 @@ class SpatialSearch
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults )
-      {     
-          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
-                                                InputElements, 
+      {
+          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                InputElements,
                                                 Radius,rResults);
       }
-      
+
       /**
        * Search neighbours for every element in "StructureElements" including itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -400,12 +400,12 @@ class SpatialSearch
           ElementsContainerType const& StructureElements,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults )
-      {     
-          this->SearchElementsInRadiusInclusive(StructureElements, 
-                                                StructureElements, 
+      {
+          this->SearchElementsInRadiusInclusive(StructureElements,
+                                                StructureElements,
                                                 Radius,rResults);
       }
-      
+
       /**
        * Search neighbours for every element in "InputElements" including itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -418,15 +418,15 @@ class SpatialSearch
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults )
-      {     
+      {
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Nodal Exclusive search with distance calculation                            
+      // Nodal Exclusive search with distance calculation
       //************************************************************************
-      
+
       /**
        * Search neighbours for every node in "rModelpart" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -438,13 +438,13 @@ class SpatialSearch
           ModelPart& rModelPart,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance ) 
+          VectorDistanceType& rResultsDistance )
       {
-          this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(), 
-                                             rModelPart.GetCommunicator().LocalMesh().Nodes(), 
+          this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
+                                             rModelPart.GetCommunicator().LocalMesh().Nodes(),
                                              Radius,rResults,rResultsDistance);
       }
-      
+
       /**
        * Search neighbours for every node in "InputNodes" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -460,11 +460,11 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {
-          this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(), 
+          this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
                                              InputNodes,
                                              Radius,rResults,rResultsDistance);
       }
-      
+
       /**
        * Search neighbours for every node in "StructureNodes" excluding itself
        * @param StructureNodes      Lis of nodes against which the neighbours are searched
@@ -476,13 +476,13 @@ class SpatialSearch
           NodesContainerType const& StructureNodes,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance ) 
+          VectorDistanceType& rResultsDistance )
       {
           this->SearchNodesInRadiusExclusive(StructureNodes,
                                              StructureNodes,
                                              Radius,rResults,rResultsDistance);
       }
-      
+
       /**
        * Search neighbours for every node in "InputNodes" excluding itself
        * @param rModelPart          List of nodes against which the neighbours are searched
@@ -501,11 +501,11 @@ class SpatialSearch
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Nodal Inclusive search with distance calculation                            
+      // Nodal Inclusive search with distance calculation
       //************************************************************************
-      
+
       /**
        * Search neighbours for every node in "rModelpart" including itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -517,7 +517,7 @@ class SpatialSearch
           ModelPart& rModelPart,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance ) 
+          VectorDistanceType& rResultsDistance )
       {
           this->SearchNodesInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
                                              rModelPart.GetCommunicator().LocalMesh().Nodes(),
@@ -543,7 +543,7 @@ class SpatialSearch
                                              InputNodes,
                                              Radius,rResults,rResultsDistance);
       }
-      
+
       /**
        * Search neighbours for every node in "StructureNodes" including itself
        * @param StructureNodes      List of nodes against which the neighbours are searched
@@ -555,10 +555,10 @@ class SpatialSearch
           NodesContainerType const& StructureNodes,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance ) 
+          VectorDistanceType& rResultsDistance )
       {
-          this->SearchNodesInRadiusInclusive(StructureNodes, 
-                                             StructureNodes, 
+          this->SearchNodesInRadiusInclusive(StructureNodes,
+                                             StructureNodes,
                                              Radius,rResults,rResultsDistance);
       }
 
@@ -580,9 +580,9 @@ class SpatialSearch
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Condition Exclusive search with distance calculation                            
+      // Condition Exclusive search with distance calculation
       //************************************************************************
 
       /**
@@ -591,14 +591,14 @@ class SpatialSearch
        * @param Radius              List of search radius for every condition
        * @param rResults            Array of results for each condition
        * @param rResultDistance     Array of distances for each result of each condition
-       */      
+       */
       virtual void SearchConditionsInRadiusExclusive (
           ModelPart& rModelPart,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance ) 
+          VectorDistanceType& rResultsDistance )
       {
-          this->SearchConditionsInRadiusExclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().Conditions(), 
+          this->SearchConditionsInRadiusExclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().Conditions(),
                                                   Radius,rResults,rResultsDistance);
       }
 
@@ -620,11 +620,11 @@ class SpatialSearch
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Condition Inclusive search with distance calculation                            
+      // Condition Inclusive search with distance calculation
       //************************************************************************
-      
+
       /**
        * Search neighbours for every condition in "rModelpart" including itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -636,9 +636,9 @@ class SpatialSearch
           ModelPart& rModelPart,
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults,
-          VectorDistanceType& rResultsDistance ) 
+          VectorDistanceType& rResultsDistance )
       {
-          this->SearchConditionsInRadiusInclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().Conditions(), 
+          this->SearchConditionsInRadiusInclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().Conditions(),
                                                   Radius,rResults,rResultsDistance);
       }
 
@@ -660,17 +660,17 @@ class SpatialSearch
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
       //************************************************************************
-      
+
       //************************************************************************
       //************************************************************************
-      
+
       //************************************************************************
-      // Elemental vs Condition Exclusive search with distance calculation                            
+      // Elemental vs Condition Exclusive search with distance calculation
       //************************************************************************
-    
+
       /**
        * Search neighbours for every element in "rModelpart" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -683,12 +683,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           this->SearchConditionsOverElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                                              rModelPart.GetCommunicator().LocalMesh().Conditions(), 
+                                                              rModelPart.GetCommunicator().LocalMesh().Conditions(),
                                                               Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -703,12 +703,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
-          this->SearchConditionsOverElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
-                                                              InputConditions, 
+      {
+          this->SearchConditionsOverElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                              InputConditions,
                                                               Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -723,15 +723,15 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Elemental vs Condition Inclusive search with distance calculation                            
+      // Elemental vs Condition Inclusive search with distance calculation
       //************************************************************************
-    
+
       /**
        * Search neighbours for every element in "rModelpart" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -744,12 +744,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           this->SearchConditionsOverElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                                              rModelPart.GetCommunicator().LocalMesh().Conditions(), 
+                                                              rModelPart.GetCommunicator().LocalMesh().Conditions(),
                                                               Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -764,12 +764,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
-          this->SearchConditionsOverElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
-                                                              InputConditions, 
+      {
+          this->SearchConditionsOverElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                              InputConditions,
                                                               Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -784,15 +784,15 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Condition vs Elemental Exclusive search with distance calculation                            
+      // Condition vs Elemental Exclusive search with distance calculation
       //************************************************************************
-    
+
       /**
        * Search neighbours for every element in "rModelpart" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -805,12 +805,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           this->SearchElementsOverConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
-                                                              rModelPart.GetCommunicator().LocalMesh().Elements(), 
+                                                              rModelPart.GetCommunicator().LocalMesh().Elements(),
                                                               Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -825,12 +825,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
-          this->SearchElementsOverConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(), 
-                                                              InputElements, 
+      {
+          this->SearchElementsOverConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                                              InputElements,
                                                               Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -845,15 +845,15 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-      
+
       //************************************************************************
-      // Condition vs Elemental Inclusive search with distance calculation                            
+      // Condition vs Elemental Inclusive search with distance calculation
       //************************************************************************
-      
+
       /**
        * Search neighbours for every element in "rModelpart" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -866,12 +866,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           this->SearchElementsOverConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
-                                                              rModelPart.GetCommunicator().LocalMesh().Elements(), 
+                                                              rModelPart.GetCommunicator().LocalMesh().Elements(),
                                                               Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param rModelPart          Input modelpart against which the neighbours are searched
@@ -886,12 +886,12 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
-          this->SearchElementsOverConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(), 
-                                                              InputElements, 
+      {
+          this->SearchElementsOverConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
+                                                              InputElements,
                                                               Radius,rResults,rResultsDistance);
       }
-     
+
       /**
        * Search neighbours for every element in "Inputelements" excluding itself
        * @param StructureElements   List of elements against which the neighbours are searched
@@ -906,121 +906,121 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
-      {     
+      {
           /* Abstract */
           KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
-    
-        
+
+
       ///@}
       ///@name Access
-      ///@{ 
-      
-      
+      ///@{
+
+
       ///@}
       ///@name Inquiry
       ///@{
-      
-      
-      ///@}      
+
+
+      ///@}
       ///@name Input and output
       ///@{
-        
+
 
       /// Turn back information as a string.
       virtual std::string Info() const
       {
           std::stringstream buffer;
           buffer << "SpatialSearch" ;
-          
+
           return buffer.str();
       }
-      
+
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SpatialSearch";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
-      
-            
-      ///@}      
+
+
+      ///@}
       ///@name Friends
       ///@{
-      
-            
+
+
       ///@}
-      
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
+      ///@name Protected static Member Variables
+      ///@{
+
+
       ///@}
-      
+      ///@name Protected member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operators
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operations
+      ///@{
+
+
+      ///@}
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+
+      ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
+      ///@name Static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Member Variables
+      ///@{
+
+
+      ///@}
       ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
+      ///@{
+
+
+      ///@}
       ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
+      ///@{
+
+
+      ///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
       /// Assignment operator.
       SpatialSearch& operator=(SpatialSearch const& rOther)
       {
@@ -1033,23 +1033,23 @@ class SpatialSearch
           *this = rOther;
       }
 
-        
-      ///@}    
-        
+
+      ///@}
+
     }; // Class SpatialSearch
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-    
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
   /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
+  inline std::ostream& operator << (std::ostream& rOStream,
                     const SpatialSearch& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -1061,9 +1061,9 @@ class SpatialSearch
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_SPATIAL_SEARCH_H_INCLUDED  defined 
+#endif // KRATOS_SPATIAL_SEARCH_H_INCLUDED  defined
 
 

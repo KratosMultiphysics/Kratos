@@ -58,11 +58,11 @@ namespace Kratos
       ///@{
 
 	  TetrahedraBall() = delete;
-	  
+	
 	  /// Copy constructor is deleted
 	  TetrahedraBall(TetrahedraBall const& rOther) = delete;
 
-	  /// Constructor which creates the ball for given node. 
+	  /// Constructor which creates the ball for given node.
 	  /// This constructor uses the GetValue(NEIGHBOUR_ELEMENTS) of the node.
       TetrahedraBall(NodeType const& rThisNode);
 

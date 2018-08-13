@@ -82,7 +82,7 @@ public:
         mis_initialized = false;
         mm = m;
     }
-    
+
         MixedUPLinearSolver(Parameters settings,
                     typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer psolver_UU_block,
                     typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer psolver_PP_block
@@ -111,17 +111,17 @@ public:
         this->SetTolerance( settings["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
         mm = settings["gmres_krylov_space_dimension"].GetInt();
-        
+
         //storing other data
         mpsolver_UU_block = psolver_UU_block;
         mpsolver_PP_block = psolver_PP_block;
         mBlocksAreAllocated = false;
         mis_initialized = false;
-        
+
         KRATOS_CATCH("")
     }
 
-    
+
     /// Copy constructor.
     MixedUPLinearSolver (const MixedUPLinearSolver& Other)
     {
@@ -152,7 +152,7 @@ public:
     {
 	if (mBlocksAreAllocated == true)
 	{
-	    
+	
 	    mpsolver_UU_block->Initialize(mK, mu, mru);
 	    mpsolver_PP_block->Initialize(mS, mp, mrp);
 	    mis_initialized = true;
@@ -171,7 +171,7 @@ public:
     @param rB. Right hand side vector.
     */
     void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {     
+    {
         //copy to local matrices
         if (mBlocksAreAllocated == false)
         {
@@ -183,7 +183,7 @@ public:
             FillBlockMatrices (false, rA, mK, mG, mD, mS);
             mBlocksAreAllocated = true;
         }
-        
+
         if(mis_initialized == false) this->Initialize(rA,rX,rB);
 
         //initialize solvers
@@ -418,7 +418,7 @@ protected:
             G.resize (mother_indices.size()   ,mpressure_indices.size() );
             D.resize (mpressure_indices.size(),mother_indices.size() );
             S.resize (mpressure_indices.size(),mpressure_indices.size() );
-	    
+	
 	    mrp.resize(mpressure_indices.size() );
 	    mru.resize(mother_indices.size() );
 	    mp.resize(mpressure_indices.size());
@@ -554,7 +554,7 @@ private:
     SparseMatrixType mG;
     SparseMatrixType mD;
     SparseMatrixType mS;
-    
+
     Vector mrp;
     Vector mru;
     Vector mp;
@@ -696,7 +696,7 @@ private:
             TSparseSpaceType::Mult (A,x,r);
             TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r
             beta = TSparseSpaceType::TwoNorm (r);
-            
+
 	    std::cout << "number of iterations at convergence = " << j << std::endl;
             if (beta < rel_tol)
             {
@@ -870,7 +870,7 @@ private:
             VectorType CurrentRow(K.size2());
 
             for (unsigned int i = 0; i < rL.size1(); i++) CurrentRow[i] = 0.0;
-            
+
             IndexVector Next = IndexVector(rL.size1());
 //IndexVector& Next = *pNext; // Keeps track of which columns were filled
             for (unsigned int m=0; m < rL.size1(); m++) Next[m] = -1;

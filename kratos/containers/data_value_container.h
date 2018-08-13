@@ -173,12 +173,12 @@ public:
     {
         return mData.begin();
     }
-    
+
     const_iterator begin() const
     {
         return mData.begin();
     }
-    
+
     iterator end()
     {
         return mData.end();
@@ -213,12 +213,12 @@ public:
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
             return *static_cast<TDataType*>(i->second);
-        
+
 #ifdef KRATOS_DEBUG
         if(OpenMPUtils::IsInParallel() != 0)
             KRATOS_ERROR << "attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
-#endif 
-        
+#endif
+
         mData.push_back(ValueType(&rThisVariable,new TDataType(rThisVariable.Zero())));
 
         return *static_cast<TDataType*>(mData.back().second);
@@ -230,7 +230,7 @@ public:
 #ifdef KRATOS_DEBUG
         KRATOS_ERROR_IF(rThisVariable.Key() == 0) << "attempting to do a GetValue for: " << rThisVariable << " the variable has key zero" << std::endl;
 #endif
-        
+
         typename ContainerType::const_iterator i;
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
@@ -501,6 +501,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DATA_VALUE_CONTAINER_H_INCLUDED  defined 
+#endif // KRATOS_DATA_VALUE_CONTAINER_H_INCLUDED  defined
 
 

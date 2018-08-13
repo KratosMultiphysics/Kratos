@@ -48,7 +48,7 @@ namespace Kratos
  * @class IntersectionUtilities
  * @ingroup KratosCore
  * @brief Utilities to compute intersections between different geometries
- * @details This class provides static methods to check if there is 
+ * @details This class provides static methods to check if there is
  * intersections between different entities, and if there is, give back
  * the intersection points.
  * @author Ruben Zorrilla
@@ -62,7 +62,7 @@ public:
 
     /// Pointer definition of IntersectionUtilities
     KRATOS_CLASS_POINTER_DEFINITION( IntersectionUtilities );
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -89,17 +89,17 @@ public:
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
      * @return rIntersectionPoint The intersection point coordinates
-     * @return The intersection type index: 
+     * @return The intersection type index:
      * -1 (the triangle is degenerate)
-     * 0 (disjoint - no intersection) 
+     * 0 (disjoint - no intersection)
      * 1 (intersect in a unique point)
      * 2 (are in the same plane)
      */
 	template <class TGeometryType>
 	static int ComputeTriangleLineIntersection(
-        const TGeometryType& rTriangleGeometry, 
-        const array_1d<double,3>& rLinePoint1, 
-        const array_1d<double,3>& rLinePoint2, 
+        const TGeometryType& rTriangleGeometry,
+        const array_1d<double,3>& rLinePoint1,
+        const array_1d<double,3>& rLinePoint2,
         array_1d<double,3>& rIntersectionPoint,
 		const double epsilon = 1e-12) {
 
@@ -169,22 +169,22 @@ public:
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
      * @return rIntersectionPoint The intersection point coordinates
-     * @return The intersection type index: 
-     * 0 (disjoint - no intersection) 
+     * @return The intersection type index:
+     * 0 (disjoint - no intersection)
      * 1 (intersect in a unique point)
      * 2 (overlap)
      */
 	template <class TGeometryType>
 	static int ComputeLineLineIntersection(
-        const TGeometryType& rLineGeometry, 
-        const array_1d<double,3>& rLinePoint0, 
-        const array_1d<double,3>& rLinePoint1, 
+        const TGeometryType& rLineGeometry,
+        const array_1d<double,3>& rLinePoint0,
+        const array_1d<double,3>& rLinePoint1,
         array_1d<double,3>& rIntersectionPoint,
 		const double epsilon = 1e-12) {
 
 		const array_1d<double,3> r = rLineGeometry[1] - rLineGeometry[0];
 		const array_1d<double,3> s = rLinePoint1 - rLinePoint0;
-		const array_1d<double,3> p_q = rLineGeometry[0] - rLinePoint0;		// p - q 
+		const array_1d<double,3> p_q = rLineGeometry[0] - rLinePoint0;		// p - q
 		const array_1d<double,3> q_p = rLinePoint0 - rLineGeometry[0];		// q - p
 
 		const double aux_1 = CrossProd2D(r,s);

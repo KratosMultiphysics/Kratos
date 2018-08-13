@@ -858,6 +858,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TABLE_H_INCLUDED  defined 
+#endif // KRATOS_TABLE_H_INCLUDED  defined
 
 

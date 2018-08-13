@@ -135,16 +135,16 @@ public:
 
       std::vector<LocalSystemVectorType> *mpRHS_Element_Components;
       const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Element_Variables;
-      
+
       //conditions
       std::vector<LocalSystemMatrixType> *mpLHS_Condition_Components;
       const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Condition_Variables;
 
       std::vector<LocalSystemVectorType> *mpRHS_Condition_Components;
       const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Condition_Variables;
-      
+
     public:
-      
+
       void Initialize()
       {
 	mpLHS_Element_Components = NULL;
@@ -239,7 +239,7 @@ public:
     /*@{ */
 
     /**
-     * Clone 
+     * Clone
      */
     virtual Pointer Clone()
     {
@@ -306,29 +306,29 @@ public:
         ModelPart& rModelPart)
     {
         KRATOS_TRY
-        
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
         {
             auto itElem = rModelPart.ElementsBegin() + i;
-            itElem->Initialize(); 
+            itElem->Initialize();
         }
 
 //         int NumThreads = OpenMPUtils::GetNumThreads();
 //         OpenMPUtils::PartitionVector ElementPartition;
 //         OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), NumThreads, ElementPartition);
-// 
+//
 //         #pragma omp parallel
 //         {
 //             int k = OpenMPUtils::ThisThread();
 //             ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin() + ElementPartition[k];
 //             ElementsArrayType::iterator ElemEnd = rModelPart.Elements().begin() + ElementPartition[k + 1];
-// 
+//
 //             for (ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)
 //             {
 //                 itElem->Initialize(); //function to initialize the element
 //             }
-// 
+//
 //         }
 
         mElementsAreInitialized = true;
@@ -348,29 +348,29 @@ public:
 
         if(mElementsAreInitialized==false)
 	    KRATOS_THROW_ERROR(std::logic_error, "Before initilizing Conditions, initialize Elements FIRST","")
-            
+
                 #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++)
         {
             auto itElem = rModelPart.ConditionsBegin() + i;
-            itElem->Initialize(); 
+            itElem->Initialize();
         }
 
 //         int NumThreads = OpenMPUtils::GetNumThreads();
 //         OpenMPUtils::PartitionVector ConditionPartition;
 //         OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
-// 
+//
 //         #pragma omp parallel
 //         {
 //             int k = OpenMPUtils::ThisThread();
 //             ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin() + ConditionPartition[k];
 //             ConditionsArrayType::iterator CondEnd = rModelPart.Conditions().begin() + ConditionPartition[k + 1];
-// 
+//
 //             for (ConditionsArrayType::iterator itCond = CondBegin; itCond != CondEnd; itCond++)
 //             {
 //                 itCond->Initialize(); //function to initialize the condition
 //             }
-// 
+//
 //         }
 
         mConditionsAreInitialized = true;
@@ -422,33 +422,33 @@ public:
         //finalizes solution step for all of the elements
 //         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
         {
             auto itElem = rModelPart.ElementsBegin() + i;
             itElem->FinalizeSolutionStep(CurrentProcessInfo);
         }
-        
-        
+
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++)
         {
             auto itElem = rModelPart.ConditionsBegin() + i;
             itElem->FinalizeSolutionStep(CurrentProcessInfo);
-        }        
+        }
 
 //         int NumThreads = OpenMPUtils::GetNumThreads();
 //         OpenMPUtils::PartitionVector ElementPartition;
 //         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
-// 
+//
 //         #pragma omp parallel
 //         {
 //             int k = OpenMPUtils::ThisThread();
-// 
+//
 //             ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
 //             ElementsArrayType::iterator ElementsEnd = rElements.begin() + ElementPartition[k + 1];
-// 
+//
 //             for (ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
 //             {
 //                 itElem->FinalizeSolutionStep(CurrentProcessInfo);
@@ -456,17 +456,17 @@ public:
 //         }
 
 //         ConditionsArrayType& rConditions = rModelPart.Conditions();
-// 
+//
 //         OpenMPUtils::PartitionVector ConditionPartition;
 //         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
-// 
+//
 //         #pragma omp parallel
 //         {
 //             int k = OpenMPUtils::ThisThread();
-// 
+//
 //             ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
 //             ConditionsArrayType::iterator ConditionsEnd = rConditions.begin() + ConditionPartition[k + 1];
-// 
+//
 //             for (ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
 //             {
 //                 itCond->FinalizeSolutionStep(CurrentProcessInfo);
@@ -540,7 +540,7 @@ public:
         KRATOS_TRY
         KRATOS_CATCH("")
     }
-    
+
     virtual void InitializeNonLinearIteration(Condition::Pointer rCurrentCondition,
 					      ProcessInfo& CurrentProcessInfo)
     {

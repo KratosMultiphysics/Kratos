@@ -275,6 +275,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ELIMINATE_ISOLATED_NODES_PROCESS_INCLUDED  defined 
+#endif // KRATOS_ELIMINATE_ISOLATED_NODES_PROCESS_INCLUDED  defined
 
 
