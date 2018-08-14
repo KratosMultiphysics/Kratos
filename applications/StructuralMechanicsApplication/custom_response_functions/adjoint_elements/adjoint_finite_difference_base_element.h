@@ -69,6 +69,8 @@ public:
 
     AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement);
 
+    AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement, bool HasRotationDofs);
+
     ~AdjointFiniteDifferencingBaseElement() override;
 
     ///@}
@@ -354,7 +356,7 @@ public:
     // Sensitivity functions
 
     /**
-     * Calculates the pseudo-load contribution of the element w.r.t. all properties which are available at the element. 
+     * Calculates the pseudo-load contribution of the element w.r.t. all properties which are available at the element.
      * This is done by finite differencing of the RHS of the primal element when perturbing a property value.
      * This operation is thread-save, because the property pointer is exchanged by a local one before pertubation.
      */
@@ -419,6 +421,7 @@ protected:
      * pointer to the primal element
      */
     Element::Pointer mpPrimalElement;
+    bool mHasRotationDofs = false;
 
     ///@}
 
@@ -444,7 +447,7 @@ private:
     /**
      * Get the perturbation size modification factor for a scalar variable.
      * The computed factor reflects the current value of the property (design variable).
-     * Note: This approach is only based on experience. 
+     * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
     virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable);
@@ -452,7 +455,7 @@ private:
     /**
      * Get the perturbation size modification factor for a vector variable.
      * The computed factor reflects the size of the element.
-     * Note: This approach is only based on experience. 
+     * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
     virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable);

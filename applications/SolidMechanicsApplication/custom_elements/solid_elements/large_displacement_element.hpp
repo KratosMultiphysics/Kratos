@@ -81,7 +81,7 @@ public:
     LargeDisplacementElement(LargeDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~LargeDisplacementElement();
+    ~LargeDisplacementElement() override;
 
     ///@}
     ///@name Operators
@@ -279,9 +279,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

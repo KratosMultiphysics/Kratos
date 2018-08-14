@@ -173,8 +173,8 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
         }
     }
 
-    Triangle3D3<PointType> slave_geometry(points_array_slave);
-    Triangle3D3<PointType> master_geometry(points_array_master);
+    Triangle3D3<PointType> slave_geometry(Triangle3D3<PointType>::PointsArrayType{points_array_slave});
+    Triangle3D3<PointType> master_geometry(Triangle3D3<PointType>::PointsArrayType{points_array_master});
 
     // No we project both nodes from the slave side and the master side
     array_1d<bool, 3> all_inside;
@@ -259,9 +259,9 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
         }
     }
 
-    Quadrilateral3D4<PointType> slave_geometry(points_array_slave);
-    Quadrilateral3D4<PointType> slave_geometry_not_rotated(points_array_slave_not_rotated);
-    Quadrilateral3D4<PointType> master_geometry(points_array_master);
+    Quadrilateral3D4<PointType> slave_geometry(Quadrilateral3D4<PointType>::PointsArrayType{points_array_slave});
+    Quadrilateral3D4<PointType> slave_geometry_not_rotated(Quadrilateral3D4<PointType>::PointsArrayType{points_array_slave_not_rotated});
+    Quadrilateral3D4<PointType> master_geometry(Quadrilateral3D4<PointType>::PointsArrayType{points_array_master});
 
     // No we project both nodes from the slave side and the master side
     array_1d<bool, 4> all_inside;
@@ -461,8 +461,8 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
     }
 
-    Triangle3D3<PointType> slave_geometry(points_array_slave);
-    Triangle3D3<PointType> master_geometry(points_array_master);
+    Triangle3D3<PointType> slave_geometry(Triangle3D3<PointType>::PointsArrayType{points_array_slave});
+    Triangle3D3<PointType> master_geometry(Triangle3D3<PointType>::PointsArrayType{points_array_master});
 
     // No we project both nodes from the slave side and the master side
     array_1d<bool, 3> all_inside;
@@ -547,9 +547,9 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
         }
     }
 
-    Quadrilateral3D4<PointType> slave_geometry(points_array_slave);
-    Quadrilateral3D4<PointType> slave_geometry_not_rotated(points_array_slave_not_rotated);
-    Quadrilateral3D4<PointType> master_geometry(points_array_master);
+    Quadrilateral3D4<PointType> slave_geometry(Quadrilateral3D4<PointType>::PointsArrayType{points_array_slave});
+    Quadrilateral3D4<PointType> slave_geometry_not_rotated(Quadrilateral3D4<PointType>::PointsArrayType{points_array_slave_not_rotated});
+    Quadrilateral3D4<PointType> master_geometry(Quadrilateral3D4<PointType>::PointsArrayType{points_array_master});
 
     // No we project both nodes from the slave side and the master side
     array_1d<bool, 4> all_inside;
@@ -606,7 +606,7 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactIntegratio
             points_array[i_node] = Kratos::make_shared<PointType>(global_point);
         }
 
-        DecompositionType decomp_geom(points_array);
+        DecompositionType decomp_geom(PointerVector<PointType>{points_array});
 
         const GeometryPointType::IntegrationPointsArrayType& local_integration_slave = decomp_geom.IntegrationPoints(mAuxIntegrationMethod);
 
@@ -672,7 +672,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetTotalArea(
             points_array[i_node] = Kratos::make_shared<PointType>(global_point);
         }
 
-        DecompositionType decomp_geom( points_array );
+        DecompositionType decomp_geom( PointerVector<PointType>{points_array} );
 
         rArea += decomp_geom.Area();
     }
@@ -776,7 +776,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGiDDebug(Model
                                     points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
                                     node_counter++;
                                 }
-                                aux_model_part.CreateNewCondition("Condition3D", cond_counter, points_array, cond.pGetProperties());
+                                aux_model_part.CreateNewCondition("Condition3D", cond_counter, Geometry< Node < 3 > >::PointsArrayType{points_array}, cond.pGetProperties());
                                 cond_counter++;
                             }
                         }
@@ -797,7 +797,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGiDDebug(Model
                                     points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
                                     node_counter++;
                                 }
-                                aux_model_part.CreateNewCondition("Condition3D", cond_counter, points_array, cond.pGetProperties());
+                                aux_model_part.CreateNewCondition("Condition3D", cond_counter, Geometry< Node < 3 > >::PointsArrayType{points_array}, cond.pGetProperties());
                                 cond_counter++;
                             }
                         }
