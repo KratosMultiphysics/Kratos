@@ -44,13 +44,13 @@ namespace Kratos
 /**
  * @class GenericConstitutiveLawIntegratorPlasticity
  * @ingroup StructuralMechanicsApplication
- * @brief: This object integrates the predictive stress using the plasticity theory by means of 
+ * @brief: This object integrates the predictive stress using the plasticity theory by means of
  * linear/exponential softening or hardening+softening evolution laws
  * @details
  * @tparam TYieldSurfaceType
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TYieldSurfaceType> 
+template <class TYieldSurfaceType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorPlasticity
 {
   public:
@@ -122,7 +122,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @brief This method integrates the predictive stress vector with the CL using differents evolution laws using the backward euler scheme
      * @param PredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param StrainVector The equivalent strain vector of that integration point
-     * @param UniaxialStress The equivalent uniaxial stress 
+     * @param UniaxialStress The equivalent uniaxial stress
      * @param Threshold The maximum uniaxial stress of the linear behaviour
      * @param PlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
      * @param Fflux The derivative of the yield surface
@@ -184,7 +184,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @brief This method calculates all the plastic parameters required for the integration of the PredictiveStressVector
      * @param PredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param StrainVector The equivalent strain vector of that integration point
-     * @param UniaxialStress The equivalent uniaxial stress 
+     * @param UniaxialStress The equivalent uniaxial stress
      * @param Threshold The maximum uniaxial stress of the linear behaviour
      * @param PlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
      * @param Fflux The derivative of the yield surface
@@ -232,7 +232,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method calculates the derivative of the yield surface
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the deviatoric part of the stress vector
      * @param FFluxVector The derivative of the yield surface
@@ -252,7 +252,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method calculates the derivative of the plastic potential
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the deviatoric part of the stress vector
      * @param GFluxVector The derivative of the yield surface
@@ -272,7 +272,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method computes the tensile/compressive indicators
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param r0 The tensile indicator
      * @param r1 The compressive indicator
      */
@@ -309,7 +309,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method computes the plastic dissipation of the plasticity model
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param r0 The tensile indicator
      * @param r1 The compressive indicator
      * @param PlasticStrainIncrement The increment of plastic strain of this time step
@@ -364,7 +364,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method computes the uniaxial threshold that differentiates the elastic-plastic behaviour
-     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity 
+     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param r0 The tensile indicator
      * @param r1 The compressive indicator
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
@@ -426,7 +426,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method computes the uniaxial threshold using a linear softening
-     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity 
+     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param r0 The tensile indicator
      * @param r1 The compressive indicator
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
@@ -452,7 +452,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method computes the uniaxial threshold using a exponential softening
-     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity 
+     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param r0 The tensile indicator
      * @param r1 The compressive indicator
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
@@ -477,7 +477,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method computes the uniaxial threshold using a hardening-softening law
-     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity 
+     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param r0 The tensile indicator
      * @param r1 The compressive indicator
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
@@ -515,7 +515,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method computes the uniaxial threshold using a perfect plasticity law
-     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity 
+     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param r0 The tensile indicator
      * @param r1 The compressive indicator
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
@@ -562,7 +562,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     }
 
     /**
-     * @brief This method computes the plastic denominator needed 
+     * @brief This method computes the plastic denominator needed
      * to compute the plastic consistency factor
      * @param Fflux The derivative of the yield surface
      * @param Gflux The derivative of the plastic potential
