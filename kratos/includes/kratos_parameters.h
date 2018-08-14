@@ -19,6 +19,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 
 // External includes
 
@@ -151,7 +152,7 @@ public:
   using iterator = iterator_adaptor;
   using const_iterator = const_iterator_adaptor;
 
-  Parameters(const std::string json_string) {
+  Parameters(const std::string& json_string = "{}") {
 
     mpdoc = Kratos::make_shared<rapidjson::Document>();
     rapidjson::ParseResult ok = mpdoc->Parse<0>(json_string.c_str());
@@ -183,10 +184,22 @@ public:
 
     return *this;
   }
+
+  Parameters& operator=(Parameters&& rOther) {
+      Reset();
+      swap(rOther);
+      return *this;
+  }
+
   /// Copy constructor.
   Parameters(Parameters const &rOther) {
     mpdoc = rOther.mpdoc;
     mpvalue = rOther.mpvalue;
+  }
+
+  Parameters(Parameters&& rOther) {
+      Reset();
+      swap(rOther);
   }
 
   // generates a clone of the current document
@@ -233,7 +246,7 @@ public:
   }
 
   //*******************************************************************************************************
-  Parameters GetValue(const std::string entry) {
+  Parameters GetValue(const std::string& entry) {
     KRATOS_ERROR_IF_NOT(this->Has(entry))
         << "--------- ERROR : --------- getting a value that does not exist. "
            "entry string : "
@@ -242,17 +255,17 @@ public:
 
     return Parameters(pvalue, mpdoc);
   }
-  Parameters operator[](const std::string entry) {
+  Parameters operator[](const std::string& entry) {
     return this->GetValue(entry);
   }
-  void SetValue(const std::string entry, const Parameters &other_value) {
+  void SetValue(const std::string& entry, const Parameters &other_value) {
     KRATOS_ERROR_IF_NOT(this->Has(entry))
         << "value must exist to be set. Use AddValue instead" << std::endl;
     Parameters tmp(&(*mpvalue)[entry.c_str()], mpdoc);
     tmp.InternalSetValue(other_value);
   }
 
-  void AddValue(const std::string entry, const Parameters &other_value) {
+  void AddValue(const std::string& entry, const Parameters &other_value) {
     if (this->Has(entry) == false) {
       rapidjson::Value tmp;
       tmp.CopyFrom(*(other_value.GetUnderlyingStorage()),
@@ -262,7 +275,7 @@ public:
       this->mpvalue->AddMember(name, tmp, mpdoc->GetAllocator());
     }
   }
-  Parameters AddEmptyValue(const std::string entry) {
+  Parameters AddEmptyValue(const std::string& entry) {
     if (this->Has(entry) == false) {
       rapidjson::Value tmp;
       rapidjson::Value name(entry.c_str(),
@@ -272,12 +285,12 @@ public:
     return this->GetValue(entry);
   }
 
-  bool RemoveValue(const std::string entry) {
+  bool RemoveValue(const std::string& entry) {
     return mpvalue->RemoveMember(entry.c_str());
   }
 
   //*******************************************************************************************************
-  bool Has(const std::string entry) const {
+  bool Has(const std::string& entry) const {
     return mpvalue->HasMember(entry.c_str());
   }
 
@@ -396,7 +409,7 @@ public:
   void SetDouble(const double value) { mpvalue->SetDouble(value); }
   void SetInt(const int value) { mpvalue->SetInt(value); }
   void SetBool(const bool value) { mpvalue->SetBool(value); }
-  void SetString(const std::string value) {
+  void SetString(const std::string& value) {
     rapidjson::Value tmp(value.c_str(), mpdoc->GetAllocator());
     *mpvalue = tmp;
   }
@@ -448,6 +461,18 @@ public:
         << "size can only be queried if the value if of Array type"
         << std::endl;
     return mpvalue->Size();
+  }
+
+  void swap(Parameters& rOther) noexcept
+  {
+      std::swap(mpdoc, rOther.mpdoc);
+      std::swap(mpvalue, rOther.mpvalue);
+  }
+
+  void Reset() noexcept
+  {
+      Parameters p;
+      swap(p);
   }
 
   Parameters GetArrayItem(unsigned int index) {
@@ -506,7 +531,7 @@ public:
     mpvalue->PushBack(tmp_value, mpdoc->GetAllocator());
   }
 
-  void Append(const std::string value) {
+  void Append(const std::string& value) {
     KRATOS_ERROR_IF_NOT(mpvalue->IsArray())
         << "it must be an Array parameter to append" << std::endl;
     rapidjson::Value tmp_value(value.c_str(), mpdoc->GetAllocator());
@@ -948,7 +973,7 @@ private:
              Kratos::shared_ptr<rapidjson::Document> pdoc)
       : mpvalue(pvalue), mpdoc(pdoc) {}
 
-  rapidjson::Value *mpvalue;
+  rapidjson::Value *mpvalue = nullptr;
   Kratos::shared_ptr<rapidjson::Document> mpdoc;
 
   // ATTENTION: please DO NOT use this method. It is a low level accessor, and

@@ -137,7 +137,10 @@ void SetNonHistoricalDataBuffer(Variable<TDataType> const& rVariable,
     rData.resize(rNodes.size(), false);
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rNodes.size()); ++i)
-        rData[i] = rNodes[i]->GetValue(rVariable);
+    {
+        const NodeType& r_node = *rNodes[i];
+        rData[i] = r_node.GetValue(rVariable);
+    }
 
     KRATOS_CATCH("");
 }
@@ -152,7 +155,8 @@ void SetNonHistoricalDataBuffer(Variable<Vector<double>> const& rVariable,
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rNodes.size()); ++i)
     {
-        Vector<double> const& r_vec = rNodes[i]->GetValue(rVariable);
+        const NodeType& r_node = *rNodes[i];
+        Vector<double> const& r_vec = r_node.GetValue(rVariable);
         KRATOS_ERROR_IF(r_vec.size() != rData.size2())
             << "Invalid dimension.\n";
         for (std::size_t j = 0; j < rData.size2(); ++j)
@@ -172,7 +176,8 @@ void SetNonHistoricalDataBuffer(Variable<Matrix<double>> const& rVariable,
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rNodes.size()); ++i)
     {
-        const auto& r_data = rNodes[i]->GetValue(rVariable).data();
+        const NodeType& r_node = *rNodes[i];
+        const auto& r_data = r_node.GetValue(rVariable).data();
         KRATOS_ERROR_IF(r_data.size() != rData.size2())
             << "Invalid dimension.\n";
         for (std::size_t j = 0; j < rData.size2(); ++j)

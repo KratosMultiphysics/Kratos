@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shell_utilities.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -168,49 +169,96 @@ void BaseShellElement::ResetConstitutiveLaw()
     KRATOS_TRY
 
     const GeometryType& geom = GetGeometry();
-    const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
     const Properties& props = GetProperties();
     for(IndexType i = 0; i < mSections.size(); ++i)
-        mSections[i]->ResetCrossSection(props, geom, row(shapeFunctionsValues, i));
+        mSections[i]->ResetCrossSection(props, geom, row(r_shape_fct_values, i));
 
     KRATOS_CATCH("")
+}
+
+void BaseShellElement::Initialize()
+{
+    const GeometryType& r_geom = GetGeometry();
+    const PropertiesType& r_props = GetProperties();
+
+    const SizeType num_gps = GetNumberOfGPs();
+
+    if (mSections.size() != num_gps)
+    {
+        const Matrix& r_shape_fct_values =
+            r_geom.ShapeFunctionsValues(GetIntegrationMethod());
+
+        ShellCrossSection::Pointer p_ref_section;
+
+        if (r_props.Has(SHELL_CROSS_SECTION))
+        {
+            p_ref_section = r_props[SHELL_CROSS_SECTION];
+        }
+        else if (ShellUtilities::IsOrthotropic(r_props))
+        {
+            // make new instance of shell cross section
+            p_ref_section = Kratos::make_shared<ShellCrossSection>();
+
+            // Parse material properties for each layer
+            p_ref_section->ParseOrthotropicPropertyMatrix(r_props);
+        }
+        else
+        {
+            p_ref_section = Kratos::make_shared<ShellCrossSection>();
+            const IndexType ply_index = 0;
+            const SizeType num_points = 5;
+            p_ref_section->BeginStack();
+            p_ref_section->AddPly(ply_index, num_points, r_props);
+            p_ref_section->EndStack();
+        }
+
+        mSections.clear();
+        for (SizeType i = 0; i < num_gps; ++i)
+        {
+            ShellCrossSection::Pointer p_section_clone = p_ref_section->Clone();
+            p_section_clone->SetSectionBehavior(GetSectionBehavior());
+            p_section_clone->InitializeCrossSection(r_props, r_geom, row(r_shape_fct_values, i));
+            mSections.push_back(p_section_clone);
+        }
+    }
 }
 
 void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& geom = this->GetGeometry();
-    const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i)
-        mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
+        mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
 void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& geom = this->GetGeometry();
-    const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i)
-        mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
+        mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
 void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
 	const PropertiesType& props = GetProperties();
 	const GeometryType & geom = GetGeometry();
-	const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+	const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
 	for (IndexType i = 0; i < mSections.size(); ++i)
-		mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
+		mSections[i]->InitializeSolutionStep(props, geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
 void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     const PropertiesType& props = GetProperties();
     const GeometryType& geom = GetGeometry();
-    const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
     for (IndexType i = 0; i < mSections.size(); ++i)
-        mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
+        mSections[i]->FinalizeSolutionStep(props, geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
 void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -222,6 +270,19 @@ void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     const bool calculate_residual_vector_flag = true;
 
 	CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
+                 calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
+}
+
+
+void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo)
+{
+    // Calculation flags
+    const bool calculate_stiffness_matrix_flag = true;
+    const bool calculate_residual_vector_flag = true; // TODO check is this can be false => see solids
+
+	Vector dummy;
+	CalculateAll(rLeftHandSideMatrix, dummy, rCurrentProcessInfo,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
@@ -439,9 +500,10 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
     {
         CheckSpecificProperties();
 
+        // TODO is this needed???? => it is, the dummy is needed for "Check" => unify!
         ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
         dummySection->BeginStack();
-        dummySection->AddPly(props[THICKNESS], 0.0, 5, pGetProperties());
+        dummySection->AddPly(0, 5, GetProperties());
         dummySection->EndStack();
         dummySection->SetSectionBehavior(ShellCrossSection::Thick);
         dummySection->Check(props, geom, rCurrentProcessInfo);

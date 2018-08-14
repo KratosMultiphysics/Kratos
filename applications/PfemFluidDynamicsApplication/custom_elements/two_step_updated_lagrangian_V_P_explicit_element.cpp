@@ -564,7 +564,7 @@ namespace Kratos {
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
  
-    double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
+    double VolumetricCoeff = this->mMaterialVolumetricCoefficient;   
 	    
     double totalVolume=0;
     

@@ -42,9 +42,6 @@ class KRATOS_API(KRATOS_CORE) ReplaceElementsAndConditionsProcess
 public:
     ///@name Type Definitions
     ///@{
-    
-    KRATOS_DEFINE_LOCAL_FLAG(VARIABLE_IS_FIXED);
-
 
     /// Pointer definition of ReplaceElementsAndConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ReplaceElementsAndConditionsProcess);

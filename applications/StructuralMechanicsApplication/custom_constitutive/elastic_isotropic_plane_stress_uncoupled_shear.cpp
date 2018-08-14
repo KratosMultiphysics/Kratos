@@ -62,12 +62,19 @@ int ElasticIsotropicPlaneStressUncoupledShear::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    LinearPlaneStress::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] < 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
 
-    if (SHEAR_MODULUS.Key() == 0 || rMaterialProperties[SHEAR_MODULUS] <= 0.0)
-    {
-        KRATOS_ERROR << "SHEAR_MODULUS has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
+    const double& nu = rMaterialProperties[POISSON_RATIO];
+    const bool check = static_cast<bool>((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
+    KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;;
+
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is invalid value " << std::endl;
+
+    KRATOS_CHECK_VARIABLE_KEY(SHEAR_MODULUS);
+    KRATOS_ERROR_IF(rMaterialProperties[SHEAR_MODULUS] <= 0.0) << "SHEAR_MODULUS is invalid value " << std::endl;
 
     KRATOS_CHECK_VARIABLE_KEY(SHEAR_MODULUS_GAMMA12);
     KRATOS_CHECK_VARIABLE_KEY(SHEAR_MODULUS_GAMMA12_2);

@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 
@@ -557,11 +557,13 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructural
         {
             const double delta = 0.00000001;
             p_elem->GetGeometry()[i].GetInitialPosition()[d] += delta;
+            p_elem->GetGeometry()[i].Coordinates()[d] += delta;
             get_res(R_perturb);
             p_elem->GetGeometry()[i].GetInitialPosition()[d] -= delta;
+            p_elem->GetGeometry()[i].Coordinates()[d] -= delta;
             semi_analytic_sensitivity_vector = (1.0 / delta) * (R_perturb - R);
             for (std::size_t k = 0; k < semi_analytic_sensitivity_vector.size(); ++k)
-                semi_analytic_sensitivity_matrix(k, i * ws_dim + d) =
+                semi_analytic_sensitivity_matrix(i * ws_dim + d, k) =
                     semi_analytic_sensitivity_vector(k);
         }
     for (std::size_t i = 0; i < sensitivity_matrix.size1(); ++i)

@@ -44,15 +44,28 @@ class ContactUtilities
 public:
     ///@name Type Definitions
     ///@{
-    
-    // General type definitions
+
+    /// Pointer definition of MortarUtilities
+    KRATOS_CLASS_POINTER_DEFINITION( ContactUtilities );
+
+    // Some geometrical definitions
     typedef Node<3>                                              NodeType;
     typedef Point                                               PointType;
     typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
+
+    /// Definition of geometries
     typedef Geometry<NodeType>                               GeometryType;
+    typedef Geometry<PointType>                         GeometryPointType;
+
+    /// The containers of the components of the model parts
     typedef ModelPart::NodesContainerType                  NodesArrayType;
     typedef ModelPart::ConditionsContainerType        ConditionsArrayType;
+
+    /// Index type definition
     typedef std::size_t                                         IndexType;
+
+    /// Size type definition
+    typedef std::size_t                                          SizeType;
     
     ///@}
     ///@name Life Cycle
@@ -78,6 +91,115 @@ public:
     ///@name Operations
     ///@{
     
+    /**
+     * @brief This function computes the relative size of the mesh
+     * @param rThisModelPart The modelpart to compute
+     */
+
+    static inline double CalculateRelativeSizeMesh(ModelPart& rThisModelPart)
+    {
+        return CalculateMaxNodalH(rThisModelPart)/CalculateMinimalNodalH(rThisModelPart);
+    }
+
+    /**
+     * @brief This method computes the maximal nodal H
+     * @param rThisModelPart The modelpart to compute
+     */
+    static inline double CalculateMaxNodalH(ModelPart& rThisModelPart)
+    {
+        // We iterate over the nodes
+        NodesArrayType& nodes_array = rThisModelPart.Nodes();
+
+//         // Creating the max auxiliar value
+//         double max_value = 0.0;
+//         #pragma omp parallel for reduction(max:max_value)
+//         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+//             auto it_node = nodes_array.begin() + i;
+//             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
+//             max_value = std::max(max_value, it_node->FastGetSolutionStepValue(NODAL_H));
+//         }
+//
+//         return max_value;
+
+        // Creating a buffer for parallel vector fill
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        std::vector<double> max_vector(num_threads, 0.0);
+        double nodal_h;
+        #pragma omp parallel for private(nodal_h)
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+            auto it_node = nodes_array.begin() + i;
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
+            nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+
+            const int id = OpenMPUtils::ThisThread();
+
+            if (nodal_h > max_vector[id])
+                max_vector[id] = nodal_h;
+        }
+
+        return *std::max_element(max_vector.begin(), max_vector.end());
+    }
+
+    /**
+     * @brief This method computes the mean nodal H
+     * @param rThisModelPart The modelpart to compute
+     */
+    static inline double CalculateMeanNodalH(ModelPart& rThisModelPart)
+    {
+        // We iterate over the nodes
+        NodesArrayType& nodes_array = rThisModelPart.Nodes();
+
+        double sum_nodal_h = 0.0;
+
+        #pragma omp parallel for reduction(+:sum_nodal_h)
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+            auto it_node = nodes_array.begin() + i;
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
+            sum_nodal_h += it_node->FastGetSolutionStepValue(NODAL_H);;
+        }
+
+        return sum_nodal_h/static_cast<double>(nodes_array.size());
+    }
+
+    /**
+     * @brief This method computes the minimal nodal H
+     * @param rThisModelPart The modelpart to compute
+     */
+    static inline double CalculateMinimalNodalH(ModelPart& rThisModelPart)
+    {
+        // We iterate over the nodes
+        NodesArrayType& nodes_array = rThisModelPart.Nodes();
+
+//         // Creating the min auxiliar value
+//         double min_value = 0.0;
+//         #pragma omp parallel for reduction(min:min_value)
+//         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+//             auto it_node = nodes_array.begin() + i;
+//             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
+//             min_value = std::min(min_value, it_node->FastGetSolutionStepValue(NODAL_H));
+//         }
+//
+//         return min_value;
+
+        // Creating a buffer for parallel vector fill
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        std::vector<double> min_vector(num_threads, 0.0);
+        double nodal_h;
+        #pragma omp parallel for private(nodal_h)
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+            auto it_node = nodes_array.begin() + i;
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
+            nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+
+            const int id = OpenMPUtils::ThisThread();
+
+            if (nodal_h > min_vector[id])
+                min_vector[id] = nodal_h;
+        }
+
+        return *std::min_element(min_vector.begin(), min_vector.end());
+    }
+
     /**
      * @brief This function scales the points according to a factor (to increase the bounding box)
      * @param PointToScale The point to scale
@@ -175,38 +297,35 @@ public:
         return center;
     }
     
-         
-    /** 
-     * @brief It calculates the matrix of a variable of a geometry 
-     * @param Nodes The geometry to calculate 
-     * @param rVarName The name of the variable to calculate 
-     * @return var_matrix: The matrix containing the variables of the geometry 
-     */ 
-     
-    static inline Matrix GetVariableMatrix( 
-        const GeometryType& Nodes, 
-        const Variable<array_1d<double,3> >& rVarName
-        ) 
-    { 
-        /* DEFINITIONS */         
-        const std::size_t num_nodes = Nodes.size(); 
-        const std::size_t dim = Nodes.WorkingSpaceDimension(); 
-        Matrix var_matrix(num_nodes, dim); 
-         
-        for (IndexType i_node = 0; i_node < num_nodes; i_node++) { 
-            const array_1d<double, 3> value = Nodes[i_node].GetValue(rVarName); 
-            for (IndexType i_dof = 0; i_dof < dim; i_dof++) 
-                var_matrix(i_node, i_dof) = value[i_dof]; 
-        } 
-         
-        return var_matrix; 
-    } 
-    
 private:
-};// class ContactUtilities
 
-///@name Explicit Specializations
-///@{
+    /**
+     * @brief It calculates the matrix of a variable of a geometry
+     * @param Nodes The geometry to calculate
+     * @param rVarName The name of the variable to calculate
+     * @return var_matrix: The matrix containing the variables of the geometry
+     */
+
+    static inline Matrix GetVariableMatrix(
+        const GeometryType& Nodes,
+        const Variable<array_1d<double,3> >& rVarName
+        )
+    {
+        /* DEFINITIONS */
+        const SizeType num_nodes = Nodes.size();
+        const SizeType dim = Nodes.WorkingSpaceDimension();
+        Matrix var_matrix(num_nodes, dim);
+
+        for (IndexType i_node = 0; i_node < num_nodes; i_node++) {
+            const array_1d<double, 3> value = Nodes[i_node].GetValue(rVarName);
+            for (IndexType i_dof = 0; i_dof < dim; i_dof++)
+                var_matrix(i_node, i_dof) = value[i_dof];
+        }
+
+        return var_matrix;
+    }
+
+};// class ContactUtilities
 
 }
 #endif /* KRATOS_CONTACT_UTILITIES defined */

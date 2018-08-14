@@ -28,18 +28,6 @@ namespace Python
 using namespace pybind11;
 
 template< class TObjectType >
-void BufferPushBack(Buffer& rBuffer, TObjectType& rObject)
-{
-    return rBuffer.push_back(rObject);
-}
-
-template< class TObjectType >
-void BufferPopFront(Buffer& rBuffer, TObjectType& rObject)
-{
-    return rBuffer.pop_front(rObject);
-}
-
-template< class TObjectType >
 void SerializerSave(Serializer& rSerializer, std::string const & rName, TObjectType& rObject)
 {
     return rSerializer.save(rName, rObject);
@@ -59,15 +47,6 @@ void SerializerPrint(Serializer& rSerializer)
 
 void  AddSerializerToPython(pybind11::module& m)
 {
-    class_<Buffer, Buffer::Pointer >(m,"Buffer")
-    .def(init<>())
-    .def(init<Buffer::SizeType>())
-    .def("Size",&Buffer::size)
-    .def("Swap",&Buffer::swap)
-    .def("Clear",&Buffer::clear)
-    .def("__repr__", &Buffer::Info)
-    ;
-
     class_<Serializer, Serializer::Pointer >(m,"Serializer")
     .def(init<>())
     .def(init<std::string const&>())

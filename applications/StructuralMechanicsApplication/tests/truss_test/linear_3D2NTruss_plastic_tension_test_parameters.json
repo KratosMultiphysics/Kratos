@@ -16,7 +16,7 @@
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "truss_test/linear_3D2NTruss_plastic_tension_test"
-        },        
+        },
         "material_import_settings" :{
             "materials_filename": "truss_test/linear_3D2NTruss_plastic_tension_test_materials.json"
         },
@@ -24,7 +24,7 @@
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.0001,
+        "residual_relative_tolerance"        : 1e-6,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 40,
         "problem_domain_sub_model_part_list" : ["Parts_structure"],
@@ -119,6 +119,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"  : ["DISPLACEMENT_Y","REACTION_Y"],
+            "gauss_points_check_variables" : ["FORCE"],
             "input_file_name"  : "truss_test/linear_3D2NTruss_plastic_tension_test_results.json",
             "model_part_name"  : "Structure",
             "time_frequency"   : 0.8
@@ -139,5 +140,5 @@
             "time_frequency"   : 0.8
         }
     }
-    ]     
+    ]
 }

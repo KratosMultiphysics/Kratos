@@ -20,7 +20,7 @@ def Factory(custom_settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignModulusAndDirectionToConditionsProcess(Model, custom_settings["Parameters"])
 
-## All the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -33,6 +33,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
              "variable_name": "VARIABLE_NAME",
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0],
+             "compound_assignment": "direct",
              "constrained": false,
              "interval": [0.0, "End"],
              "local_axes" : {}
@@ -183,7 +184,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             #function values are assigned to a vector variable :: transformation is needed
             if( isinstance(self.var,KratosMultiphysics.Array1DVariable3) ):
                 variable_name = self.settings["variable_name"].GetString() + "_VECTOR"
-                print(" variable name modified:", variable_name)
+                #print("::[--Assign_Variable--]:: "+variable_name)
                 params.AddEmptyValue("variable_name")
                 params["variable_name"].SetString(variable_name)
             else:

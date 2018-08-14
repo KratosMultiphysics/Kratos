@@ -21,8 +21,6 @@
 
 namespace Kratos
 {
-    
-KRATOS_CREATE_LOCAL_FLAG(ReplaceElementsAndConditionsProcess,VARIABLE_IS_FIXED, 0);
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -40,8 +38,9 @@ void ReplaceElementsAndConditionsProcess::Execute()
         
         auto p_element = rReferenceElement.Create(it_elem->Id(), it_elem->pGetGeometry(), it_elem->pGetProperties());
         
-        // Deep copy elemental data
+        // Deep copy elemental data and flags
         p_element->Data() = it_elem->Data();
+        p_element->Set(Flags(*it_elem));
         
         (*it_elem.base()) = p_element;
     }
@@ -52,8 +51,9 @@ void ReplaceElementsAndConditionsProcess::Execute()
         
         auto p_condition = rReferenceCondition.Create(it_cond->Id(), it_cond->pGetGeometry(), it_cond->pGetProperties());
         
-        // Deep copy elemental data
+        // Deep copy elemental data and flags
         p_condition->Data() = it_cond->Data();
+        p_condition->Set(Flags(*it_cond));
         
         (*it_cond.base()) = p_condition;
 

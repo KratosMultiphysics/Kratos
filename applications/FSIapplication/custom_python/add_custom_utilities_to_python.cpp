@@ -24,8 +24,6 @@
 #include "custom_utilities/aitken_utils.h"
 #include "custom_utilities/partitioned_fsi_utilities.hpp"
 #include "custom_utilities/nodal_update_utilities.h"
-#include "custom_utilities/variable_redistribution_utility.h"
-
 namespace Kratos
 {
 
@@ -52,12 +50,12 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("ComputeRelaxedDisplacement",&AitkenUtils::ComputeRelaxedDisplacement)
         ;
 
-    class_<PartitionedFSIUtilities<TSpace,2>>(m,"PartitionedFSIUtilities2D")
+    class_<PartitionedFSIUtilities<TSpace,2>, PartitionedFSIUtilities<TSpace,2>::Pointer>(m,"PartitionedFSIUtilities2D")
         .def(init<>())
         .def("GetInterfaceArea",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceArea)
         .def("GetInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceResidualSize)
         .def("UpdateInterfaceValues",&PartitionedFSIUtilities<TSpace,2>::UpdateInterfaceValues)
-        .def("ComputeInterfaceVectorResidual",&PartitionedFSIUtilities<TSpace,2>::ComputeInterfaceVectorResidual)
+        .def("ComputeInterfaceResidualVector",&PartitionedFSIUtilities<TSpace,2>::ComputeInterfaceResidualVector)
         .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,2>::ComputeFluidInterfaceMeshVelocityResidualNorm)
         .def("ComputeAndPrintFluidInterfaceNorms",&PartitionedFSIUtilities<TSpace,2>::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms",&PartitionedFSIUtilities<TSpace,2>::ComputeAndPrintStructureInterfaceNorms)
@@ -65,12 +63,12 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CheckCurrentCoordinatesStructure",&PartitionedFSIUtilities<TSpace,2>::CheckCurrentCoordinatesStructure)
         ;
 
-    class_<PartitionedFSIUtilities<TSpace, 3>>(m,"PartitionedFSIUtilities3D")
+    class_<PartitionedFSIUtilities<TSpace,3>, PartitionedFSIUtilities<TSpace,3>::Pointer>(m,"PartitionedFSIUtilities3D")
         .def(init<>())
         .def("GetInterfaceArea", &PartitionedFSIUtilities<TSpace, 3>::GetInterfaceArea)
         .def("GetInterfaceResidualSize", &PartitionedFSIUtilities<TSpace, 3>::GetInterfaceResidualSize)
         .def("UpdateInterfaceValues", &PartitionedFSIUtilities<TSpace, 3>::UpdateInterfaceValues)
-        .def("ComputeInterfaceVectorResidual", &PartitionedFSIUtilities<TSpace, 3>::ComputeInterfaceVectorResidual)
+        .def("ComputeInterfaceResidualVector", &PartitionedFSIUtilities<TSpace, 3>::ComputeInterfaceResidualVector)
         .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &PartitionedFSIUtilities<TSpace, 3>::ComputeFluidInterfaceMeshVelocityResidualNorm)
         .def("ComputeAndPrintFluidInterfaceNorms", &PartitionedFSIUtilities<TSpace, 3>::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &PartitionedFSIUtilities<TSpace, 3>::ComputeAndPrintStructureInterfaceNorms)
@@ -96,26 +94,6 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def(init<const double>())
         .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<3>::UpdateMeshTimeDerivatives)
         .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateNewmark<3>::SetMeshTimeDerivativesOnInterface);
-
-    typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
-    typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);
-
-    DistributePointDoubleType DistributePointDouble = &VariableRedistributionUtility::DistributePointValues;
-    DistributePointArrayType  DistributePointArray  = &VariableRedistributionUtility::DistributePointValues;
-
-    typedef void (*ConvertDistributedDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&);
-    typedef void (*ConvertDistributedArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&);
-
-    ConvertDistributedDoubleType ConvertDistributedDouble = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
-    ConvertDistributedArrayType  ConvertDistributedArray  = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
-
-    // Note: The StaticMethod thing should be done only once for each set of overloads
-    class_< VariableRedistributionUtility >(m,"VariableRedistributionUtility")
-    .def_static("DistributePointValues",DistributePointDouble)
-    .def_static("DistributePointValues",DistributePointArray)
-    .def_static("ConvertDistributedValuesToPoint",ConvertDistributedDouble)
-    .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
-    ;
 }
 
 }  // namespace Python.

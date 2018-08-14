@@ -57,7 +57,7 @@ namespace Kratos
    Condition::Pointer EPAxisymPointRigidContactPenalty2DCondition::Create(IndexType NewId, NodesArrayType
          const& ThisNodes,  PropertiesType::Pointer pProperties) const
    {
-      return Condition::Pointer(new EPAxisymPointRigidContactPenalty2DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+     return Kratos::make_shared<EPAxisymPointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
    }
 
    //************************************CLONE*******************************************
@@ -66,13 +66,13 @@ namespace Kratos
    Condition::Pointer EPAxisymPointRigidContactPenalty2DCondition::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
    {
       EPAxisymPointRigidContactPenalty2DCondition NewCondition( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
-      NewCondition.mCurrentInfo = this->mCurrentInfo; 
+      NewCondition.mCurrentInfo = this->mCurrentInfo;
       NewCondition.mSavedInfo   = this->mSavedInfo;
 
       // in the constructor of NewCondition I create a new friction law and here I clone the this->
       NewCondition.mpFrictionLaw = this->mpFrictionLaw->Clone();
 
-      return Condition::Pointer( new EPAxisymPointRigidContactPenalty2DCondition( NewCondition)  ); 
+      return Kratos::make_shared<EPAxisymPointRigidContactPenalty2DCondition>(NewCondition);
    }
 
    //************************************************************************************
@@ -133,7 +133,7 @@ namespace Kratos
          {
             array_1d<double, 3 > & NodePosition = rN[i].Coordinates();
             if( NodePosition[0] != 0 ){
-               rCurrentRadius += NodePosition[0] * 0.225; 	    
+               rCurrentRadius += NodePosition[0] * 0.225;
                counter ++;
             }
 
@@ -190,6 +190,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-
-
