@@ -138,7 +138,7 @@ public:
             mMinPoint[i] = MinPoint[i];
             mMaxPoint[i] = MaxPoint[i];
         }
-        AssingnCellSize(BucketSize);
+        AssignCellSize(BucketSize);
         AllocateCellsContainer();
     }
 
@@ -151,7 +151,7 @@ public:
             return;
         mNumCells = std::distance(mPointBegin,mPointEnd);
         CalculateBoundingBox();
-        AssingnCellSize(BoxSize);
+        AssignCellSize(BoxSize);
         AllocateCellsContainer();
         GenerateBins();
     }
@@ -419,7 +419,7 @@ public:
 
     //************************************************************************
 
-    PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType ResultDistance )
+    PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& ResultDistance )
     {
         if( mPointBegin == mPointEnd )
             return this->NullPointer();
@@ -801,8 +801,8 @@ private:
     IteratorType     mPointBegin;
     IteratorType     mPointEnd;
 
-    CoordinateArray  mMinPoint;
-    CoordinateArray  mMaxPoint;
+    PointType        mMinPoint;
+    PointType        mMaxPoint;
     CoordinateArray  mCellSize;
     CoordinateArray  mInvCellSize;
     SizeArray        mN;
