@@ -507,6 +507,9 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
       thermo_mechanical = true;
 
+      if( GetValue(MASTER_ELEMENTS).size() != 1 )
+        KRATOS_ERROR<< " Multiple Thermal Element MASTER ELEMENTS "<<GetValue(MASTER_ELEMENTS).size()<<std::endl;
+
       Element::ElementType& MechanicalElement = GetValue(MASTER_ELEMENTS).back();
 
       MechanicalElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);

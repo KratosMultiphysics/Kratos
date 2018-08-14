@@ -60,9 +60,8 @@ class RigidBody(object):
         for node in self.rigid_body_model_part.Nodes:
             node.Set(KratosMultiphysics.RIGID,True)
 
-        for node in self.rigid_body_model_part.Conditions:
-            node.Set(KratosMultiphysics.ACTIVE,False)
-
+        #for node in self.rigid_body_model_part.Elements:
+        #    node.Set(KratosMultiphysics.ACTIVE,False)
 
         #check for the bounding box of a compound wall
         box_settings = KratosMultiphysics.Parameters("""
@@ -96,8 +95,7 @@ class RigidBody(object):
         creation_utility = KratosContact.RigidBodyCreationUtility()
         creation_utility.CreateRigidBodyElement(self.main_model_part, self.bounding_box, self.settings["rigid_body_settings"])
 
-
-        print("::[Rigid_Body]:: -BUILT-")
+        print(self._class_prefix()+" Ready")
 
     ####
 
@@ -149,3 +147,9 @@ class RigidBody(object):
 
     def Initialize(self):
         pass
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[-Rigid Body Create-]::"
+        return header

@@ -68,15 +68,11 @@ class ContactDomain(meshing_domain.MeshingDomain):
         if( self.settings["meshing_strategy"]["remesh"].GetBool() ):
             self.active_remeshing = True
 
-        print("::[Contact_Domain]:: (",self.settings["model_part_name"].GetString()," ) -BUILT-")
-
-
+        print(self._class_prefix()+"("+self.settings["model_part_name"].GetString()," ) Ready")
 
     ####
 
     def Initialize(self):
-
-        print("::[Meshing Contact Domain]:: -START-")
 
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
@@ -99,9 +95,6 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
         # Meshing Stratety
         self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
-
-        print("::[Meshing Contact Domain]:: -END- ")
-
 
     ####
 
@@ -127,3 +120,9 @@ class ContactDomain(meshing_domain.MeshingDomain):
         self.build_contact_model_part.Execute()
 
         self.MeshingStrategy.GenerateMesh()
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[---Contact Domain--]::"
+        return header

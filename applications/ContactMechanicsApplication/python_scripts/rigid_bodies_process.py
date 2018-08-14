@@ -50,7 +50,6 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
             self.rigid_bodies.append(body)
 
         # initialize rigid body domains
-        print("::[RigidBodies_Process]:: Initialize Domains ")
         import domain_utilities
         domain_utils = domain_utilities.DomainUtilities()
         domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
@@ -58,18 +57,17 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
         for body in self.rigid_bodies:
             body.Initialize();
 
+        print(self._class_prefix()+" Ready")
+
     ###
 
     #
     def ExecuteInitializeSolutionStep(self):
-
         pass
 
 
     #
     def ExecuteFinalizeSolutionStep(self):
-
-
         pass
 
 
@@ -78,6 +76,11 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
     #
     @classmethod
     def GetVariables(self):
-
         nodal_variables = ['RIGID_WALL']
         return nodal_variables
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[----Rigid Bodies---]::"
+        return header

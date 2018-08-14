@@ -91,6 +91,12 @@ namespace Kratos {
       KRATOS_REGISTER_CONDITION( "HydraulicRigidContactPenalty3DCondition", mHydraulicRigidContactPenalty3DCondition );
       KRATOS_REGISTER_CONDITION( "HydraulicAxisymRigidContactPenalty2DCondition", mHydraulicAxisymRigidContactPenalty2DCondition );
 
+
+      //Register friction laws
+      Serializer::Register( "FrictionLaw", mFrictionLaw );
+      Serializer::Register( "CoulombAdhesionFrictionLaw", mCoulombAdhesionFrictionLaw );
+      Serializer::Register( "HardeningCoulombFrictionLaw", mHardeningCoulombFrictionLaw );
+
       //Register Variables
       KRATOS_REGISTER_VARIABLE( FRICTION_LAW_NAME )
       KRATOS_REGISTER_VARIABLE( FRICTION_LAW )

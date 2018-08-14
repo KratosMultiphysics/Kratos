@@ -37,10 +37,9 @@ TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(IndexType NewId, Geomet
 {
     KRATOS_TRY
 
-    //DO NOT ADD DOFS HERE!!!
+    this->Set(RIGID);
 
     KRATOS_CATCH( "" )
-
 }
 
 //******************************CONSTRUCTOR*******************************************

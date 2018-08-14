@@ -76,6 +76,7 @@ class ModelManager(object):
 
         # Composite solving parts
         self.transfer_solving_parts = []
+        self.solving_parts_update_time = 0
 
     ########
 
@@ -88,16 +89,22 @@ class ModelManager(object):
         pass
     #
     def ExecuteInitializeSolutionStep(self):
-        self._update_composite_solving_parts()
+        if( self._domain_parts_updated() ):
+            self._update_composite_solving_parts()
+            print(" UPDATE_SOLVING_PARTS Initialize")
     #
     def ExecuteFinalizeSolutionStep(self):
         pass
     #
     def ExecuteBeforeOutputStep(self):
-        pass
+        if( self._domain_parts_updated() ):
+            self._update_composite_solving_parts()
+            print(" UPDATE_SOLVING_PARTS Before output")
     #
     def ExecuteAfterOutputStep(self):
-        pass
+        if( self._domain_parts_updated() ):
+            self._update_composite_solving_parts()
+            print(" UPDATE_SOLVING_PARTS After output")
 
     ########
 
@@ -397,10 +404,9 @@ class ModelManager(object):
             self.transfer_solving_parts.append(solving_part_transfer)
     #
     def _update_composite_solving_parts(self):
-
-        if( self._domain_parts_updated() ):
-            for transfer in self.transfer_solving_parts:
-                transfer.Execute()
+        self.solving_parts_update_time = self.process_info[KratosMultiphysics.TIME]
+        for transfer in self.transfer_solving_parts:
+            transfer.Execute()
     #
     def _build_model(self):
 
@@ -449,14 +455,16 @@ class ModelManager(object):
         if( self.process_info.Has(KratosSolid.MESHING_STEP_TIME) ):
             current_time  = self.process_info[KratosMultiphysics.TIME]
             delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
-            previous_time = current_time - delta_time
 
             #arithmetic floating point tolerance
             tolerance = delta_time * 0.001
 
             meshing_step_time = self.process_info[KratosSolid.MESHING_STEP_TIME]
 
-            if( meshing_step_time > previous_time-tolerance and meshing_step_time < previous_time+tolerance ):
+            if( self.solving_parts_update_time > current_time-tolerance and self.solving_parts_update_time < current_time+tolerance ):
+                return False
+
+            if( meshing_step_time > current_time-tolerance and meshing_step_time < current_time+tolerance ):
                 return True
 
         return False

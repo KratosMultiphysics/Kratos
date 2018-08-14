@@ -117,8 +117,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
     def RemeshDomains(self):
 
         if( self.echo_level > 0 ):
-            print("::[Meshing_Process]:: CONTACT SEARCH...( call:", self.counter,")")
-
+            print(self._class_prefix()+" [ Contact Search (call:"+str(self.counter)+") ]")
         meshing_options = KratosMultiphysics.Flags()
         self.model_structure = KratosContact.ContactModelStructure(self.main_model_part, meshing_options, self.echo_level)
 
@@ -165,3 +164,8 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
             return True
         else:
             return False
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[--Meshing Contact--]::"
+        return header

@@ -89,7 +89,7 @@ namespace Kratos
     typedef ConditionType::GeometryType       GeometryType;
     typedef Point2D<ModelPart::NodeType>       Point2DType;
     typedef Point3D<ModelPart::NodeType>       Point3DType;
-    //typedef FrictionLaw::pointer           FrictionLawType;
+    typedef FrictionLaw::Pointer           FrictionLawType;
 
     ///@}
     ///@name Life Cycle
@@ -516,9 +516,10 @@ namespace Kratos
 
       mpProperties = Kratos::make_shared<PropertiesType>(NumberOfProperties);
 
+      // Friction Law is not a Kratos Component
       // std::string FrictionLawName = CustomParameters["friction_law_type"].GetString();
-      // FrictionLawType const& rCloneFrictionLaw = KratosComponents<FrictionLawType>::Get(FrictionLawName);
-      // mpProperties->SetValue(FRICTION_LAW, rCloneFrictionLaw.Clone() );
+      // const FrictionLawType pCloneFrictionLaw = KratosComponents<FrictionLawType>::Get(FrictionLawName);
+      // mpProperties->SetValue(FRICTION_LAW, pCloneFrictionLaw->Clone() );
 
       Parameters CustomProperties = CustomParameters["variables_of_properties"];
 

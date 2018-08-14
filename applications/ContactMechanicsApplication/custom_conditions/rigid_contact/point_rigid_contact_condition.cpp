@@ -45,9 +45,6 @@ namespace Kratos
    {
 
       mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-      mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
-      //mpFrictionLaw = Kratos::make_shared<HardeningCoulombFrictionLaw>();
-
    }
 
 
@@ -59,10 +56,6 @@ namespace Kratos
 
       mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
       mpRigidWall = pRigidWall;
-      mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
-      //mpFrictionLaw = Kratos::make_shared<HardeningCoulombFrictionLaw>();
-
-      //DO NOT ADD DOFS HERE!!!
    }
 
 
@@ -72,11 +65,9 @@ namespace Kratos
       : Condition(rOther)
       ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
       ,mpRigidWall(rOther.mpRigidWall)
+      ,mpFrictionLaw(rOther.mpFrictionLaw)
       ,mContactStressVector(rOther.mContactStressVector)
-
    {
-     mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
-      //mpFrictionLaw = Kratos::make_shared<HardeningCoulombFrictionLaw>();
    }
 
    //***********************************************************************************
@@ -321,6 +312,10 @@ namespace Kratos
 
       mContactStressVector.resize(voigt_size);
       noalias(mContactStressVector) = ZeroVector(voigt_size);
+
+      mpFrictionLaw = GetProperties()[FRICTION_LAW]->Clone();
+      //mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
+      //mpFrictionLaw = Kratos::make_shared<HardeningCoulombFrictionLaw>();
 
       KRATOS_CATCH( "" )
    }

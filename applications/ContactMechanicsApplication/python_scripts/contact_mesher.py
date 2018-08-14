@@ -20,7 +20,7 @@ class ContactMesher(mesher.Mesher):
 
         mesher.Mesher.__init__(self, main_model_part, meshing_parameters)
 
-        print("::[Contact_Mesher]:: -BUILT-")
+        print(self._class_prefix()+" Ready")
 
     #
     def Initialize(self, dimension):
@@ -130,3 +130,9 @@ class ContactMesher(mesher.Mesher):
         self.MeshingParameters.SetExecutionOptions(execution_options)
 
         self.MeshingParameters.FinalizeMeshing()
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[---Contact Mesher--]::"
+        return header

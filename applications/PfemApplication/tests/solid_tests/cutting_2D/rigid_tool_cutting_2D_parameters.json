@@ -4,12 +4,12 @@
     },
     "problem_data" : {
 	"domain_type": "Solid",
-        "echo_level" : 0,
+        "echo_level" : 1,
         "threads"    : 2
     },
     "time_settings" : {
         "time_step" : 1.25e-8,
-        "end_time"  : 0.5
+        "end_time"  : 1.25e-7
     },
     "model_settings" : {
 	"model_name" : "Main_Domain",
@@ -36,6 +36,7 @@
             }],
 	    "generate_entities": [{
                 "origin_model_parts_list": ["computing_domain"],
+		"transfer_flags": ["NOT_RIGID"],
                 "entity_type": "Element",
 		"entity_kratos_type": "ThermalElement2D3N"
 	    }]
@@ -54,21 +55,21 @@
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"            : true,
-			"implex"                 : false,
+			"implex"                 : true,
 			"compute_reactions"      : true,
 			"reform_dofs_at_each_step" : true,
-			"max_iteration"          : 30
+			"max_iteration"          : 15
 		    },
 		    "convergence_criterion_settings" : {
 			"convergence_criterion"       : "Residual_criterion",
-			"residual_relative_tolerance" : 1e-5,
+			"residual_relative_tolerance" : 1e-4,
 			"residual_absolute_tolerance" : 1e-9
 		    },
 		    "linear_solver_settings"    : {
 			"solver_type" : "SuperLUSolver",
 			"tolerance"   : 1e-7,
 			"max_iteration" : 5000,
-			"scaling"     : false
+			"scaling"     : true
 		    },
 		    "dofs" : ["DISPLACEMENT","PRESSURE"],
 		    "solving_model_part": "computing_domain"
@@ -203,7 +204,7 @@
                         "compute_body_parameters": false,
                         "rigid_body_model_part_name": "Rigid_Tool",
                         "rigid_body_parameters":{
-                            "center_of_gravity": [0.0080251,0.003525,0],
+                            "center_of_gravity": [0.00702505,0.003525,0],
                             "mass": 1,
                             "main_inertias": [0, 0, 0],
                             "main_axes": [ [1,0,0], [0,1,0], [0,0,1] ]
@@ -216,7 +217,7 @@
                             "parameters_list":[
                                 {
                                     "radius": 2.52166e-5,
-                                    "center": [0.0080251, 0.003525, 0],
+                                    "center": [0.00702505, 0.003525, 0],
                                     "rake_angle": 0,
                                     "clearance_angle": 5,
                                     "convexity": 1
@@ -262,7 +263,7 @@
         "Parameters"      : {
             "model_part_name" : "piece_disp",
             "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0, 0.0,null]
+            "value"           : [0.0,0.0,null]
         }
     },{
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
@@ -270,7 +271,7 @@
         "Parameters"      : {
             "model_part_name" : "ini_temp",
             "variable_name"   : "TEMPERATURE",
-            "interval"        : [0.0, 0.0],
+            "interval"        : [0.0,0.0],
             "value"           : 293.15
         }
     },{
@@ -318,7 +319,7 @@
             "output_control_type" : "time",
             "output_frequency"    : 0.0,
             "body_output"         : true,
-            "node_output"         : false,
+            "node_output"         : true,
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT_REACTION","NORMAL","CONTACT_FORCE","PRESSURE","TEMPERATURE","DISPLACEMENT"],

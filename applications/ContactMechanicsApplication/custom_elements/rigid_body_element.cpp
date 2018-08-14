@@ -46,7 +46,7 @@ RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeome
 {
     KRATOS_TRY
 
-    //DO NOT ADD DOFS HERE!!!
+    this->Set(RIGID);
 
     KRATOS_CATCH( "" )
 

@@ -65,6 +65,10 @@ public:
         if(!mrModelPart.HasSubModelPart(mSolvingModelPartName))
           mrModelPart.CreateSubModelPart(mSolvingModelPartName);
 
+
+        for(unsigned int i = 0; i<rParameters["assign_flags"].size(); i++)
+          mrModelPart.GetSubModelPart(mSolvingModelPartName).Set(KratosComponents<Flags>::Get(rParameters["assign_flags"][i].GetString()));
+
         mCompositeConditions = rParameters["composite_conditions"].GetBool();
 
         for(unsigned int i=0; i<rParameters["transfer_entities"].size(); ++i)
@@ -398,7 +402,6 @@ private:
                                      std::vector<EntityTransfer<ConditionType> >&  rConditionGenerationList)
     {
         KRATOS_TRY
-
 
         //generate elements
         for(std::vector<EntityTransfer<Element> >::iterator i_entity = rElementGenerationList.begin(); i_entity != rElementGenerationList.end(); ++i_entity)
