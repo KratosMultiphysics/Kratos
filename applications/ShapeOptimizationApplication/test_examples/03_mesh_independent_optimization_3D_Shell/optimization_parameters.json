@@ -10,7 +10,8 @@
                 "gradient_mode"          : "semi_analytic",
                 "step_size"              : 1e-8,
                 "consider_discretization": false
-            }
+            },
+            "project_gradient_on_surface_normals" : true
         }],
         "constraints" : [],
         "design_variables" : {
@@ -59,15 +60,14 @@
             }
         },
         "optimization_algorithm" : {
-            "name"                                 : "steepest_descent",
-            "max_iterations"                       : 100,
-            "relative_tolerance"                   : 1e-1,
-            "project_gradients_on_surface_normals" : true
-        },
-        "line_search" : {
-            "line_search_type"           : "manual_stepping",
-            "normalize_search_direction" : true,
-            "step_size"                  : 0.1
+            "name"               : "steepest_descent",
+            "max_iterations"     : 100,
+            "relative_tolerance" : 1e-1,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 0.1
+            }
         },
         "output" : {
             "output_directory"        : "Optimization_Results",
@@ -75,8 +75,8 @@
             "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteDesignSurface",
             "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
-                                          "OBJECTIVE_SENSITIVITY",
-                                          "MAPPED_OBJECTIVE_SENSITIVITY",
+                                          "DF1DX",
+                                          "DF1DX_MAPPED",
                                           "CONTROL_POINT_UPDATE",
                                           "CONTROL_POINT_CHANGE",
                                           "SHAPE_UPDATE",
