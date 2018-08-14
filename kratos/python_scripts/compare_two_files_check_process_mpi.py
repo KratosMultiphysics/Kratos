@@ -10,8 +10,6 @@ def Factory(settings, Model):
 
 class CompareTwoFilesCheckProcessMPI(CompareTwoFilesCheckProcess):
     """Inserts MPI barrier before check to ensure results files are present."""
-    def __init__(self, model, params):
-        super(CompareTwoFilesCheckProcessMPI, self).__init__(model, params)
 
     def ExecuteFinalize(self):
         KratosMPI.mpi.world.barrier()
