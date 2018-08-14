@@ -84,7 +84,7 @@ public:
         mpResponseFunction = pResponseFunction;
 
         mHasRotationDofs = rParameters["rotation_dofs"].GetBool();
-        
+
         KRATOS_CATCH("");
     }
 
@@ -225,12 +225,12 @@ public:
         KRATOS_ERROR_IF(domain_size != 2 && domain_size != 3) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
         KRATOS_ERROR_IF(domain_size != working_space_dimension) << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
-        for(auto& rnode : rModelPart.Nodes()) 
-           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, rnode) 
+        for(auto& rnode : rModelPart.Nodes())
+           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, rnode)
         if(mHasRotationDofs)
         {
-            for(auto& rnode : rModelPart.Nodes()) 
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, rnode) 
+            for(auto& rnode : rModelPart.Nodes())
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, rnode)
         }
 
         return BaseType::Check(rModelPart); // check elements and conditions
@@ -261,7 +261,7 @@ public:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]); 
+        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);

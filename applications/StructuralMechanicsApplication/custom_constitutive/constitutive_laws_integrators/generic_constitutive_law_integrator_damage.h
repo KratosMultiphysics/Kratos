@@ -45,7 +45,7 @@ namespace Kratos
 /**
  * @class GenericConstitutiveLawIntegratorDamage
  * @ingroup StructuralMechanicsApplication
- * @brief: This object integrates the predictive stress using the isotropic damage theory by means of 
+ * @brief: This object integrates the predictive stress using the isotropic damage theory by means of
  * linear/exponential softening.
  * @details
  * @tparam TYieldSurfaceType
@@ -99,7 +99,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     /**
      * @brief This method integrates the predictive stress vector with the CL using linear or exponential softening
      * @param PredictiveStressVector The predictive stress vector
-     * @param UniaxialStress The equivalent uniaxial stress 
+     * @param UniaxialStress The equivalent uniaxial stress
      * @param Damage The internal variable of the damage model
      * @param Threshold The maximum uniaxial stress achieved previously
      * @param rMaterialProperties The material properties
