@@ -42,6 +42,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -371,6 +372,7 @@ private:
     const AdjointFiniteDifferencingBaseElement mAdjointFiniteDifferencingBaseElement;
     const AdjointFiniteDifferencingShellElement mAdjointFiniteDifferencingShellElement;
     const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
+    const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;
 
     /* CONDITIONS*/
     // Point load

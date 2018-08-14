@@ -28,9 +28,6 @@
 
 namespace Kratos
 {
-///@addtogroup FluidDynamicsApplication
-///@{
-
 ///@name Kratos Classes
 ///@{
 
@@ -47,7 +44,7 @@ public:
     ///@{
 
     /// Constructor.
-    SensitivityBuilder(Parameters& rParameters, ModelPart& rModelPart, AdjointResponseFunction::Pointer pResponseFunction)
+    SensitivityBuilder(Parameters const& rParameters, ModelPart& rModelPart, AdjointResponseFunction::Pointer pResponseFunction)
     : mrModelPart(rModelPart), mpResponseFunction(pResponseFunction)
     {
         KRATOS_TRY;
@@ -62,8 +59,12 @@ public:
         Parameters custom_settings = rParameters;
         custom_settings.ValidateAndAssignDefaults(default_settings);
 
-        mSensitivityModelPartName =
-            custom_settings["sensitivity_model_part_name"].GetString();
+        auto sensitivity_model_part_name = custom_settings["sensitivity_model_part_name"].GetString();
+        if (sensitivity_model_part_name != "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART")
+            mpSensitivityModelPart =
+                &mrModelPart.GetSubModelPart(sensitivity_model_part_name);
+        else
+            mpSensitivityModelPart = &mrModelPart;
 
         Parameters nodal_sensitivity_variables = custom_settings["nodal_sensitivity_variables"];
         mNodalSensitivityVariables.resize(nodal_sensitivity_variables.size());
@@ -87,8 +88,6 @@ public:
     {
         KRATOS_TRY;
 
-        Check();
-
         for (const std::string& r_label : mNodalSensitivityVariables)
             SetNodalSensitivityVariableToZero(r_label);
 
@@ -96,7 +95,7 @@ public:
                                                  mrModelPart.Nodes());
         VariableUtils().SetNonHistoricalVariable(
             UPDATE_SENSITIVITIES, true,
-            mrModelPart.GetSubModelPart(mSensitivityModelPartName).Nodes());
+            mpSensitivityModelPart->Nodes());
 
         KRATOS_CATCH("");
     }
@@ -139,8 +138,8 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    ModelPart* mpSensitivityModelPart = nullptr;
     AdjointResponseFunction::Pointer mpResponseFunction;
-    std::string mSensitivityModelPartName;
     std::vector<std::string> mNodalSensitivityVariables;
     bool mIntegrateInTime;
 
@@ -151,17 +150,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void Check()
-    {
-        KRATOS_TRY;
-
-        if (mrModelPart.HasSubModelPart(mSensitivityModelPartName) == false)
-            KRATOS_ERROR << "No sub model part \"" << mSensitivityModelPartName
-                         << "\"" << std::endl;
-
-        KRATOS_CATCH("");
-    }
 
     void SetNodalSensitivityVariableToZero(std::string const& rVariableName)
     {
@@ -192,8 +180,6 @@ private:
 };
 
 ///@} // Kratos Classes
-
-///@} // FluidDynamicsApplication group
 
 } /* namespace Kratos.*/
 

@@ -6,7 +6,6 @@
 
 // Application includes
 #include "custom_response_functions/drag_response_function.h"
-#include "custom_response_functions/sensitivity_builder.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
@@ -38,11 +37,6 @@ using namespace pybind11;
 
 void AddCustomResponseFunctionsToPython(pybind11::module& m)
 {
-    class_<SensitivityBuilder>(m, "SensitivityBuilder")
-        .def(init<Parameters&, ModelPart&, AdjointResponseFunction::Pointer>())
-        .def("Initialize", &SensitivityBuilder::Initialize)
-        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
-
     class_<
         DragResponseFunction<2>,
         PyDragResponseFunction<2>,
