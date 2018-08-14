@@ -43,9 +43,9 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         for element_id in element_list:
             sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
 
-        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
-        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
-        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
+        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 3)
+        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 3)
+        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 3)
 
     def test_nodal_displacement_response(self):
         # Create the adjoint solver
@@ -66,9 +66,9 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         for element_id in element_list:
             sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
 
-        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
-        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
-        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
+        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 4)
+        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 4)
+        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 4)
 
     def test_strain_energy_response(self):
         # Create the adjoint solver
@@ -89,9 +89,9 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         for element_id in element_list:
             sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
 
-        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
-        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
-        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
+        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 4)
+        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 4)
+        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 4)
 
     # called only once for this class, opposed of tearDown()
     @classmethod
