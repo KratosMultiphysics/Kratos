@@ -22,15 +22,18 @@ The application includes tests to check the proper functioning of the applicatio
     * Small displacement elements
     * Total Lagrangian elements
     * Updated Lagrangian elements
+    * Total Lagrangian prismatic solid-shell element (SPrism) 
     
 - Structural elements:
     * Zero-dimensional elements :
         * Nodal concentrated element (both 2D/3D). Includes nodal damping, nodal mass and nodal stiffness
     * Uni-dimensional elements :
+        * Spring-damper element (3D)
+        * Cable element (3D)
         * Truss element (3D)
         * Corrotational beam element (both 2D/3D)
     * Two-dimensional elements :
-        * Membrane (regular and pre-stress)
+        * Membrane (pre-stressed)
         * Isotropic shell element
         * Thin shell (Quadrilateral and triangular)
         * Thick shell (Quadrilateral and triangular)
@@ -110,6 +113,9 @@ The application includes tests to check the proper functioning of the applicatio
             * SmallStrainIsotropicDamage3DSimoJuDruckerPrager
             * SmallStrainIsotropicDamage3DSimoJuTresca
 
+- Adjoint Sensitivity Analysis:
+    * This feature provides the framework to compute sensitivities of structural responses (e.g. displacements, strain energy or stresses) with respect to different types of design variables (e.g. nodal coordinates, material or cross-sectional properties or load intensity) with the adjoint approach
+
 - Strategies:
     * Formfinding strategies
     * Eigensolver strategy
@@ -124,6 +130,9 @@ The application includes tests to check the proper functioning of the applicatio
     * For displacement and other DoF
     * For displacement and rotation
 
-- Utilities and others:
+- Utilities and processe:
     * A process to post-process eigenvalues
     * A GiDIO utility for eigen values
+    * Process to compute the global mass of the system
+    * Process to identify the neighbours in a prismatic mesh
+    * Process to transform a pure shell mesh (local dimension equal to 2), to solid-shell mesh (pure 3D mesh)
