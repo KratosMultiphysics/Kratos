@@ -20,6 +20,7 @@
 // Project includes
 #include "nearest_element_mapper.h"
 #include "custom_utilities/mapper_typedefs.h"
+#include "custom_utilities/mapper_utilities.h"
 #include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
@@ -32,22 +33,38 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
 {
     const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
 
-    // trying to project to the geometry
-    // const double proj_dist = GeometricalProjectionUtilities::FastProjectDirection(
-    //     *p_geom, *mpNode);
-    // ...
+    Point proj_point;
+    Point point_to_proj(this->Coordinates());
 
-        // checking whether the projection is inside or outside
-        // ...
+    typedef typename Geometry<Node<3>>::CoordinatesArrayType CoordinatesArrayType;
 
-            // SetLocalSearchWasSuccessful();
-            // checking whether this geometry gives a closer projection
+    CoordinatesArrayType local_coords_init;
+    CoordinatesArrayType local_coords;
 
-                // if it is closer, then we update the members to make this geometry the closest projection
-                // Store SF-values
-                // Store INTERFACE_EQUATION_ID s of the nodes of the geometry
+    p_geom->PointLocalCoordinates(local_coords_init, (*p_geom)[0]);
+
+    // // trying to project to the geometry
+    const double proj_dist = GeometricalProjectionUtilities::FastProjectDirection(
+        *p_geom, point_to_proj, proj_point, p_geom->UnitNormal(local_coords_init), p_geom->UnitNormal(local_coords_init));
+
+    const bool is_inside = p_geom->IsInside(proj_point, local_coords);
+
+    // if it is closer, then we update the members to make this geometry the closest projection
+    if (is_inside && proj_dist < mClosestProjectionDistance)
+    {
+        SetLocalSearchWasSuccessful();
+        mClosestProjectionDistance = proj_dist;
+        mShapeFunctionValues.clear();
+        mNodeIds.clear();
+        mShapeFunctionValues.resize(local_coords.size());
+        mNodeIds.resize(local_coords.size());
+        for (IndexType i=0; i<local_coords.size(); ++i)
+        {
+            mShapeFunctionValues[i] = local_coords[i];
+            mNodeIds[i] = (*p_geom)[i].GetValue(INTERFACE_EQUATION_ID);
+        }
+    }
 }
-
 
 
 void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject::Pointer& rpInterfaceObject,
@@ -56,6 +73,19 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
     const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
 
     // looping the points of the geometry and finding the nearest neighbor
+    for (const auto& r_point : p_geom->Points())
+    {
+        const double dist = MapperUtilities::ComputeDistance(this->Coordinates(), r_point.Coordinates());
+
+        if (dist < mClosestProjectionDistance)
+        {
+            mClosestProjectionDistance = dist;
+            if (mNodeIds.size() != 1) mNodeIds.resize(1);
+            if (mShapeFunctionValues.size() != 1) mShapeFunctionValues.resize(1);
+            mNodeIds[0] = r_point.GetValue(INTERFACE_EQUATION_ID);
+            mShapeFunctionValues[0] = 1.0; // Approximation is nearest node
+        }
+    }
 
     SetIsApproximation();
 }
