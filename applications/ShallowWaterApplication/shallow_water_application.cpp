@@ -32,6 +32,8 @@ namespace Kratos
     KratosShallowWaterApplication::KratosShallowWaterApplication():
         KratosApplication("ShallowWaterApplication"),
 
+        mShallowElement2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
+
         mPrimitiveVarElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>      >( Element::GeometryType::PointsArrayType (3) ) ) ),
         mPrimitiveVarElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
 
@@ -79,6 +81,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(WATER_HEIGHT_UNIT_CONVERTER)
 
         // Registering elements and conditions here
+        KRATOS_REGISTER_ELEMENT("ShallowElement2D3N", mShallowElement2D3N)
+
         KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D3N", mPrimitiveVarElement2D3N)   // mesh stage element
         KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D4N", mPrimitiveVarElement2D4N)   // mesh stage element
         

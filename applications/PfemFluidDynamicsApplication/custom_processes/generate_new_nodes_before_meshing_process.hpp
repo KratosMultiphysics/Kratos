@@ -22,7 +22,8 @@
 
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:      
@@ -45,7 +46,7 @@ namespace Kratos
 */
 
 class GenerateNewNodesBeforeMeshingProcess
-  : public Process
+  : public MesherProcess
 {
 public:
     ///@name Type Definitions
@@ -65,7 +66,7 @@ public:
 
     /// Default constructor.
     GenerateNewNodesBeforeMeshingProcess(ModelPart& rModelPart,
-					 ModelerUtilities::MeshingParameters& rRemeshingParameters,
+					 MesherUtilities::MeshingParameters& rRemeshingParameters,
 					 int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
@@ -180,45 +181,6 @@ public:
       }
 
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    void ExecuteInitialize() override
-    {
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    void ExecuteBeforeSolutionLoop() override
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
-    {	
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    void ExecuteBeforeOutputStep() override
-    {
-    }
-
-    /// this function will be executed at every time step AFTER writing the output
-    void ExecuteAfterOutputStep() override
-    {
-    }
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    void ExecuteFinalize() override
-    {
-    }
-
-
     ///@}
     ///@name Access
     ///@{
@@ -267,9 +229,9 @@ private:
     ///@{
     ModelPart& mrModelPart;
  
-    ModelerUtilities::MeshingParameters& mrRemesh;
+    MesherUtilities::MeshingParameters& mrRemesh;
 
-    ModelerUtilities mModelerUtilities;  
+    MesherUtilities mMesherUtilities;  
 
     int mEchoLevel;
 
@@ -692,8 +654,8 @@ private:
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     std::vector<Node<3>::Pointer > list_of_new_nodes;
-    double NodeIdParent = ModelerUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
-    double NodeId = ModelerUtilities::GetMaxNodeId(mrModelPart);
+    double NodeIdParent = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
+    double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
 
     unsigned int initial_node_size =NodeIdParent + 1 + ElementsToRefine; //total model part node size
 

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -214,7 +214,7 @@ struct HPX {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
 
-    struct provides_row_iterator : boost::false_type {};
+    struct provides_row_iterator : std::false_type {};
 
     struct params {
         /// Number of vector elements in a single segment.
@@ -222,15 +222,17 @@ struct HPX {
 
         params() : grain_size(4096) {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, grain_size)
         {
-            AMGCL_PARAMS_CHECK(p, (grain_size));
+            check_params(p, {"grain_size"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, grain_size);
         }
+#endif
     };
 
     typedef hpx_matrix<value_type>         matrix;
@@ -614,7 +616,8 @@ struct copy_impl<
 };
 
 template < typename real >
-struct copy_to_backend_impl<
+struct copy<
+    std::vector<real>,
     hpx_vector<real>
     >
 {

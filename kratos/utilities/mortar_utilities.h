@@ -34,9 +34,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    // Component type
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;  
-    
 ///@}
 ///@name  Enum's
 ///@{
@@ -437,17 +434,17 @@ public:
             // Aux coordinates
             CoordinatesArrayType aux_coords;
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
-            
+
             it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
             
-            const unsigned int number_nodes = this_geometry.PointsNumber();
+            const SizeType number_nodes = this_geometry.PointsNumber();
             
-            for (unsigned int i = 0; i < number_nodes; ++i) {
+            for (IndexType i = 0; i < number_nodes; ++i) {
                 auto& this_node = this_geometry[i];
                 aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
                 const array_1d<double, 3> normal = this_geometry.UnitNormal(aux_coords);
                 auto& aux_normal = this_node.FastGetSolutionStepValue(NORMAL);
-                for (unsigned int index = 0; index < 3; ++index) {
+                for (IndexType index = 0; index < 3; ++index) {
                     #pragma omp atomic
                     aux_normal[index] += normal[index];
                 }
@@ -460,11 +457,29 @@ public:
 
             array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
             const double norm_normal = norm_2(normal);
+
             if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
             else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
     
+    /**
+     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal
+     * @param rContainer reference to the objective container
+     */
+
+    template<class TContainerType>
+    static inline void InvertNormal(TContainerType& rContainer) {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
+            auto it_cont = rContainer.begin() + i;
+            GeometryType& this_geometry = it_cont->GetGeometry();
+
+            auto& data_geom = this_geometry.GetContainer();
+            std::reverse(data_geom.begin(), data_geom.end());
+        }
+    }
+
     /**
      * @brief It calculates the matrix of coordinates of a geometry
      * @param ThisNodes The geometry to calculate
@@ -810,16 +825,6 @@ inline void MortarUtilities::ResetValue<Variable<double>, Historical>(
 }
 
 template<> 
-inline void MortarUtilities::ResetValue<ComponentType, Historical>(
-        ModelPart& rThisModelPart,
-        ComponentType& ThisVariable
-        ) 
-{
-    NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetScalarVar(ThisVariable, 0.0, nodes_array);
-}
-
-template<> 
 inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, Historical>(
         ModelPart& rThisModelPart,
         Variable<array_1d<double, 3>>& ThisVariable
@@ -834,16 +839,7 @@ inline void MortarUtilities::ResetValue<Variable<double>, NonHistorical>(
         Variable<double>& ThisVariable
         ) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalScalarVar(ThisVariable, 0.0, nodes_array);
-}
-
-template<> 
-inline void MortarUtilities::ResetValue<ComponentType, NonHistorical>(
-        ModelPart& rThisModelPart,
-        ComponentType& ThisVariable
-        ) {
-    NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalScalarVar(ThisVariable, 0.0, nodes_array);
+    VariableUtils().SetNonHistoricalVariable(ThisVariable, 0.0, nodes_array);
 }
 
 template<> 
@@ -851,36 +847,27 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistor
         ModelPart& rThisModelPart,
         Variable<array_1d<double, 3>>& ThisVariable
         ) {    
+    const array_1d<double, 3> zero_array(3, 0.0);
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalVectorVar(ThisVariable, ZeroVector(3), nodes_array);
+    VariableUtils().SetNonHistoricalVariable(ThisVariable, zero_array, nodes_array);
 }
 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<Variable<double>>(ModelPart& rThisModelPart) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalScalarVar(NODAL_MAUX, 0.0, nodes_array);
-}
-
-template<>
-inline void MortarUtilities::ResetAuxiliarValue<ComponentType>(ModelPart& rThisModelPart) {
-    NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalScalarVar(NODAL_VAUX_X, 0.0, nodes_array);
+    VariableUtils().SetNonHistoricalVariable(NODAL_MAUX, 0.0, nodes_array);
 }
 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart) {
+    const array_1d<double, 3> zero_array(3, 0.0);
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalVectorVar(NODAL_VAUX, ZeroVector(3), nodes_array);
+    VariableUtils().SetNonHistoricalVariable(NODAL_VAUX, zero_array, nodes_array);
 }
 
 template< >
 inline Variable<double> MortarUtilities::GetAuxiliarVariable<Variable<double>>() {
     return NODAL_MAUX;
-}
-
-template< >
-inline ComponentType MortarUtilities::GetAuxiliarVariable<ComponentType>() {
-    return NODAL_VAUX_X;
 }
 
 template< >
@@ -894,14 +881,6 @@ inline double MortarUtilities::GetAuxiliarValue<Variable<double>>(
     unsigned int iSize
     ) {
     return pThisNode->GetValue(NODAL_MAUX);
-}
-
-template< >
-inline double MortarUtilities::GetAuxiliarValue<ComponentType>(
-    Node<3>::Pointer pThisNode,
-    unsigned int iSize
-    ) {
-    return pThisNode->GetValue(NODAL_VAUX_X);
 }
 
 template< >
@@ -927,19 +906,6 @@ template<>
 inline void MortarUtilities::MatrixValue<Variable<double>, Historical>(
         GeometryType& ThisGeometry,
         Variable<double>& ThisVariable,
-        Matrix& ThisValue
-        ) {
-    if (ThisValue.size1() != ThisGeometry.size() || ThisValue.size2() != 1)
-        ThisValue.resize(ThisGeometry.size(), 1, false);
-    
-    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-        ThisValue(i_node, 0) = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
-}
-
-template<> 
-inline void MortarUtilities::MatrixValue<ComponentType, Historical>(
-        GeometryType& ThisGeometry,
-        ComponentType& ThisVariable,
         Matrix& ThisValue
         ) {
     if (ThisValue.size1() != ThisGeometry.size() || ThisValue.size2() != 1)
@@ -977,19 +943,6 @@ inline void MortarUtilities::MatrixValue<Variable<double>, NonHistorical>(
 }
 
 template<> 
-inline void MortarUtilities::MatrixValue<ComponentType, NonHistorical>(
-        GeometryType& ThisGeometry,
-        ComponentType& ThisVariable,
-        Matrix& ThisValue
-        ) {
-    if (ThisValue.size1() != ThisGeometry.size() || ThisValue.size2() != 1)
-        ThisValue.resize(ThisGeometry.size(), 1, false);
-    
-    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-        ThisValue(i_node, 0) = ThisGeometry[i_node].GetValue(ThisVariable);
-}
-
-template<> 
 inline void MortarUtilities::MatrixValue<Variable<array_1d<double, 3>>, NonHistorical>(
         GeometryType& ThisGeometry,
         Variable<array_1d<double, 3>>& ThisVariable,
@@ -1015,16 +968,6 @@ inline void MortarUtilities::AddValue<Variable<double>, Historical>(
 }
 
 template<> 
-inline void MortarUtilities::AddValue<ComponentType, Historical>(
-        GeometryType& ThisGeometry,
-        ComponentType& ThisVariable,
-        const Matrix& ThisValue
-        ) {
-    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-        ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += ThisValue(i_node, 0);
-}
-
-template<> 
 inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, Historical>(
         GeometryType& ThisGeometry,
         Variable<array_1d<double, 3>>& ThisVariable,
@@ -1040,16 +983,6 @@ template<>
 inline void MortarUtilities::AddValue<Variable<double>, NonHistorical>(
         GeometryType& ThisGeometry,
         Variable<double>& ThisVariable,
-        const Matrix& ThisValue
-        ) {
-    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
-        ThisGeometry[i_node].GetValue(ThisVariable) += ThisValue(i_node, 0);
-}
-
-template<> 
-inline void MortarUtilities::AddValue<ComponentType, NonHistorical>(
-        GeometryType& ThisGeometry,
-        ComponentType& ThisVariable,
         const Matrix& ThisValue
         ) {
     for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
@@ -1086,22 +1019,6 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<double>, Histori
 }
 
 template<> 
-inline void MortarUtilities::AddAreaWeightedNodalValue<ComponentType, Historical>(
-        Node<3>::Pointer pThisNode,
-        ComponentType& ThisVariable,
-        const double RefArea,
-        const double Tolerance
-        ) {
-    double area_coeff = pThisNode->GetValue(NODAL_AREA);
-    const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG 
-    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
-#endif
-    area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    pThisNode->FastGetSolutionStepValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX_X);
-}
-
-template<> 
 inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, Historical>(
         Node<3>::Pointer pThisNode,
         Variable<array_1d<double, 3>>& ThisVariable,
@@ -1132,22 +1049,6 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<double>, NonHist
 #endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     pThisNode->GetValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
-}
-
-template<> 
-inline void MortarUtilities::AddAreaWeightedNodalValue<ComponentType, NonHistorical>(
-        Node<3>::Pointer pThisNode,
-        ComponentType& ThisVariable,
-        const double RefArea,
-        const double Tolerance
-        ) {
-    double area_coeff = pThisNode->GetValue(NODAL_AREA);
-    const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
-#ifdef KRATOS_DEBUG 
-    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
-#endif
-    area_coeff = null_area ? 0.0 : 1.0/area_coeff;
-    pThisNode->GetValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX_X);
 }
 
 template<> 
@@ -1183,21 +1084,6 @@ inline void MortarUtilities::UpdateDatabase<Variable<double>, Historical>(
 }
 
 template<> 
-inline void MortarUtilities::UpdateDatabase<ComponentType, Historical>(
-        ModelPart& rThisModelPart,
-        ComponentType& ThisVariable,
-        Vector& Dx,
-        unsigned int Index,
-        IntMap& ConectivityDatabase
-        ) {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(Dx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(ConectivityDatabase[i]);
-        p_node->FastGetSolutionStepValue(ThisVariable) += Dx[i];
-    }
-}
-
-template<> 
 inline void MortarUtilities::UpdateDatabase<Variable<array_1d<double, 3>>, Historical>(
         ModelPart& rThisModelPart,
         Variable<array_1d<double, 3>>& ThisVariable,
@@ -1216,21 +1102,6 @@ template<>
 inline void MortarUtilities::UpdateDatabase<Variable<double>, NonHistorical>(
         ModelPart& rThisModelPart,
         Variable<double>& ThisVariable,
-        Vector& Dx,
-        unsigned int Index,
-        IntMap& ConectivityDatabase
-        ) {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(Dx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(ConectivityDatabase[i]);
-        p_node->GetValue(ThisVariable) += Dx[i];
-    }
-}
-
-template<> 
-inline void MortarUtilities::UpdateDatabase<ComponentType, NonHistorical>(
-        ModelPart& rThisModelPart,
-        ComponentType& ThisVariable,
         Vector& Dx,
         unsigned int Index,
         IntMap& ConectivityDatabase

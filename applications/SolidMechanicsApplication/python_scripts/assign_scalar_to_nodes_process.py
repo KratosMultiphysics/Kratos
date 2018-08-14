@@ -22,7 +22,7 @@ def Factory(custom_settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignScalarToNodesProcess(Model, custom_settings["Parameters"])
 
-## All the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignScalarToNodesProcess(KratosMultiphysics.Process):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -34,6 +34,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
              "model_part_name": "MODEL_PART_NAME",
              "variable_name": "VARIABLE_NAME",
              "value": 0.0,
+             "compound_assignment": "direct",
              "constrained": true,
              "interval": [0.0, "End"],
              "local_axes" : {}

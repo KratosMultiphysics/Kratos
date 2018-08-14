@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -26,7 +26,7 @@ namespace Kratos
 class IntervalUtility
 {
 public:
-    
+
     KRATOS_CLASS_POINTER_DEFINITION(IntervalUtility);
 
     IntervalUtility(  Parameters settings )
