@@ -190,9 +190,9 @@ namespace Kratos
             if (i_properties->Has(CONSTITUTIVE_LAW)) {
 		// First we remove the entire line (we will add it by ourselves later) 
                 std::string::size_type it_constitutive_law_begin = aux_string.find("CONSTITUTIVE_LAW");
-                std::string::size_type it_constitutive_law_end = aux_string.find("\n", it_constitutive_law_begin);
 
                 if (it_constitutive_law_begin != std::string::npos) {
+	            std::string::size_type it_constitutive_law_end = aux_string.find("\n", it_constitutive_law_begin);
                     aux_string.erase(it_constitutive_law_begin, it_constitutive_law_end);
                 }
 		    
