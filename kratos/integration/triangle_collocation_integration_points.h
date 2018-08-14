@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//                    
+//
 //
 #if !defined(KRATOS_TRIANGLE_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED )
 #define  KRATOS_TRIANGLE_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED
@@ -173,8 +173,8 @@ public:
 
     typedef IntegrationPointType::PointType PointType;
 
-    static SizeType IntegrationPointsNumber()    
-    {  
+    static SizeType IntegrationPointsNumber()
+    {
         return 15;
     }
 
@@ -226,8 +226,8 @@ public:
 
     typedef IntegrationPointType::PointType PointType;
 
-    static SizeType IntegrationPointsNumber()    
-    {  
+    static SizeType IntegrationPointsNumber()
+    {
         return 21;
     }
 
@@ -286,6 +286,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGLE_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_TRIANGLE_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

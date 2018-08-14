@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//                    
+//
 //
 
 // System includes
@@ -158,14 +158,14 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
                 for( auto& node_buffer : nodes_buffer)
                     mrDestinationModelPart.AddNodes(node_buffer.begin(),node_buffer.end());
         }
-        
+
         #pragma omp single
         {
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
                 for( auto& element_buffer : elements_buffer)
                     mrDestinationModelPart.AddElements(element_buffer.begin(),element_buffer.end());
         }
-        
+
         #pragma omp single
         {
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
@@ -255,14 +255,14 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
                 for( auto& node_buffer : nodes_buffer)
                     mrDestinationModelPart.AddNodes(node_buffer.begin(),node_buffer.end());
         }
-        
+
         #pragma omp single
         {
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
                 for( auto& element_buffer : elements_buffer)
                     mrDestinationModelPart.AddElements(element_buffer.begin(),element_buffer.end());
         }
-        
+
         #pragma omp single
         {
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
@@ -340,14 +340,14 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
                 for( auto& node_buffer : nodes_buffer)
                     mrDestinationModelPart.AddNodes(node_buffer.begin(),node_buffer.end());
         }
-        
+
         #pragma omp single
         {
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
                 for( auto& element_buffer : elements_buffer)
                     mrDestinationModelPart.AddElements(element_buffer.begin(),element_buffer.end());
         }
-        
+
         #pragma omp single
         {
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))

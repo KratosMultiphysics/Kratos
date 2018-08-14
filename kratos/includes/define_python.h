@@ -24,7 +24,7 @@
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_VARIABLE(module,variable) \
-	module.attr(#variable) = &variable; 
+	module.attr(#variable) = &variable;
 
 #ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
@@ -39,9 +39,9 @@
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,flag) \
-    module.attr(#flag) = &flag; 
-    
- 
+    module.attr(#flag) = &flag;
+
+
 #ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG
 #endif
@@ -49,6 +49,6 @@
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,flag);   \
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,NOT_##flag)
 
-    
-    
+
+
 #endif /* KRATOS_DEFINE_H_INCLUDED  defined */

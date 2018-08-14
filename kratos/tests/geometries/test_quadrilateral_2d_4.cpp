@@ -90,15 +90,15 @@ namespace Testing
         Point point_1 (-0.3, 0.8, 0.0);
         Point point_2 ( 0.2, 1.5, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-        
+
         Point point_3 ( 0.9, 1.5, 0.0);
         Point point_4 ( 1.1, 0.8, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
-        
+
         Point point_5 ( 0.9,-0.8, 0.0);
         Point point_6 ( 1.1, 0.1, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
-        
+
         Point point_7 (-0.3, 0.1, 0.0);
         Point point_8 ( 0.2,-0.6, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_7, point_8));
@@ -109,15 +109,15 @@ namespace Testing
         Point point_1 ( 0.2, 0.2, 0.0 );
         Point point_2 ( 1.0, 1.0, 0.0 );
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-        
+
         Point point_3 (-0.2, 0.2, 0.0 );
         Point point_4 (-0.9, 0.9, 0.0 );
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
-        
+
         Point point_5 (-0.2,-0.2, 0.0 );
         Point point_6 (-0.9,-0.9, 0.0 );
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
-        
+
         Point point_7 ( 0.2,-0.2, 0.0 );
         Point point_8 ( 1.0,-1.0, 0.0 );
         KRATOS_CHECK(geom->HasIntersection(point_7, point_8));

@@ -23,7 +23,7 @@
 
 namespace Kratos {
 namespace Python {
-    
+
 
 
 
@@ -99,14 +99,14 @@ std::string GetVariableNames(Kernel& rKernel) {
 void RegisterInPythonKernelVariables()
 {
     auto comp = KratosComponents<VariableData>::GetComponents();
-    auto m = pybind11::module::import("KratosMultiphysics"); //Note that this is added to KratosMultiphysics not to 
-    
+    auto m = pybind11::module::import("KratosMultiphysics"); //Note that this is added to KratosMultiphysics not to
+
     for(auto item = comp.begin(); item!=comp.end(); item++)
     {
-        auto& var = (item->second);            
+        auto& var = (item->second);
         std::string name = item->first;
-        
-        m.attr(name.c_str()) = var; 
+
+        m.attr(name.c_str()) = var;
     }
 }
 
@@ -114,39 +114,39 @@ void RegisterInPythonApplicationVariables(KratosApplication& Application)
 {
     auto comp = KratosComponents<VariableData>::GetComponents();
     auto kernel_module = pybind11::module::import("KratosMultiphysics");
-    auto app_module = pybind11::module::import((std::string("KratosMultiphysics.")+Application.Name()).c_str()); 
-    
+    auto app_module = pybind11::module::import((std::string("KratosMultiphysics.")+Application.Name()).c_str());
+
     KRATOS_WATCH("****************************************")
     KRATOS_WATCH(Application.Name())
     KRATOS_WATCH("****************************************")
-    
+
     for(auto item = comp.begin(); item!=comp.end(); item++)
     {
-        auto& var = (item->second);            
+        auto& var = (item->second);
         std::string var_name = item->first;
         KRATOS_WATCH(var_name)
-        
+
         if(! hasattr(kernel_module,var_name.c_str()) ) //variable not present in kernel
-            app_module.attr(var_name.c_str()) = var; 
+            app_module.attr(var_name.c_str()) = var;
     }
 }
 
 void AddKernelToPython(pybind11::module& m) {
-        
-    
-    
-    using namespace pybind11;    
-    
-    
-    
+
+
+
+    using namespace pybind11;
+
+
+
     class_<Kernel, Kernel::Pointer>(m,"Kernel")
         .def(init<>())
         .def("Initialize", [](Kernel& self){
-                                self.Initialize(); 
+                                self.Initialize();
                                 /*RegisterInPythonKernelVariables();*/ }) //&Kernel::Initialize)
         .def("ImportApplication", &Kernel::ImportApplication)
         .def("InitializeApplication",  [](Kernel& self, KratosApplication& App){
-                                self.Initialize(); 
+                                self.Initialize();
                                 /*RegisterInPythonApplicationVariables(App);*/ }) //&Kernel::InitializeApplication)
         //.def(""A,&Kernel::Initialize)
         .def("IsImported", &Kernel::IsImported)

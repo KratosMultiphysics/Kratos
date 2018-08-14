@@ -51,14 +51,14 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A six node 3D triangular geometry with quadratic shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with:       
- *          2                    
- *          |`\              
- *          |  `\           
- *          5    `4           
- *          |      `\          
- *          |        `\          
- *          0-----3----1           
+ * The node ordering corresponds with:
+ *          2
+ *          |`\
+ *          |  `\
+ *          5    `4
+ *          |      `\
+ *          |        `\
+ *          0-----3----1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -335,7 +335,7 @@ public:
         return typename BaseType::Pointer( new Triangle3D6( ThisPoints ) );
     }
 
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -412,13 +412,13 @@ public:
     double Length() const override
     {
         // return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
-        // Approximation to avoid errors. Can be improved. 
+        // Approximation to avoid errors. Can be improved.
 
 		array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
 		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
 
 		array_1d<double, 3> vx( p1 - p0 );
-        
+
 		return MathUtils<double>::Norm3(vx);
     }
 
@@ -441,7 +441,7 @@ public:
     {
         //return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
         // Approximation to avoid errors. Can be improved.
-        
+
         array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
 		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
 		array_1d<double, 3> p2 = BaseType::GetPoint( 2 );
@@ -449,10 +449,10 @@ public:
 		
 		array_1d<double, 3> vx( p1 - p0 );
 		array_1d<double, 3> vy( p2 - p3 );
-        
+
 		double base = MathUtils<double>::Norm3(vx);
         double length = MathUtils<double>::Norm3(vy);
-        
+
         return base*length*0.5;
     }
 
@@ -474,19 +474,19 @@ public:
     {
         return Area();
     }
-    
+
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
@@ -1446,5 +1446,5 @@ GeometryData Triangle3D6<TPointType>::msGeometryData(
 );
 }// namespace Kratos.
 
-#endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined 
+#endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined
 

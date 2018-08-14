@@ -111,7 +111,7 @@ public:
         , massume_constant_structure(assume_constant_structure)
     {
     }
-    
+
     DeflatedCGSolver(Parameters settings,
                     typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()
                    ): BaseType ()
@@ -119,7 +119,7 @@ public:
     {
         KRATOS_TRY
 
-        
+
         Parameters default_parameters( R"(
         {
         "solver_type": "DeflatedCGSolver",
@@ -137,7 +137,7 @@ public:
         this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
         massume_constant_structure = settings["assume_constant_structure"].GetBool();
         mmax_reduced_size = settings["max_reduced_size"].GetInt();
-        
+
         KRATOS_CATCH("")
     }
 
@@ -517,6 +517,6 @@ inline std::ostream & operator <<(std::ostream& OStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_DEFLATED_CG_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_DEFLATED_CG_SOLVER_H_INCLUDED  defined
 
 

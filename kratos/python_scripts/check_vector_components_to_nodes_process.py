@@ -6,7 +6,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckVectorComponentsToNodesProcess(Model, settings["Parameters"])
 
-# Import KratosUnittest 
+# Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 ## All the processes python should be derived from "Process"
@@ -22,7 +22,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",
                 "interval"             : [0.0, 1e30],
                 "value"                : [10.0, "3*t", "x+y"],
-                "tolerance_rank"       : 3, 
+                "tolerance_rank"       : 3,
                 "reference_conf"       : false,
                 "local_axes"           : {}
             }
@@ -45,7 +45,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         self.aux_processes = []
-        
+
         print(settings.PrettyPrintJsonString())
 
         import check_scalar_to_nodes_process

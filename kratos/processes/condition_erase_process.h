@@ -105,7 +105,7 @@ public:
     void Execute() override
     {
         KRATOS_TRY;
-        
+
         mr_model_part.RemoveConditions(TO_ERASE);
 
         KRATOS_CATCH("")
@@ -263,6 +263,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONDITION_ERASE_PROCESS_INCLUDED  defined 
+#endif // KRATOS_CONDITION_ERASE_PROCESS_INCLUDED  defined
 
 

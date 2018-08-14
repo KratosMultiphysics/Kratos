@@ -90,7 +90,7 @@ public:
     typedef MatrixType ShapeFunctionsLocalGradientType;
 
     typedef MatrixType ShapeFunctionsGradientType;
-    
+
     typedef unsigned IndexType;
 
     typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;

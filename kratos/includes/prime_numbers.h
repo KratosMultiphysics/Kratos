@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 #if !defined(KRATOS_PRIME_NUMBERS_H_INCLUDED )
@@ -58,7 +58,7 @@ namespace Kratos
 
 	  /// Copy constructor.
 	  PrimeNumbers(PrimeNumbers const& rOther) = delete;
-	  
+	
 	  /// Destructor.
       virtual ~PrimeNumbers(){}
 
@@ -66,7 +66,7 @@ namespace Kratos
       ///@}
       ///@name Operators
       ///@{
-	  
+	
 	  /// Assignment operator.
 	  PrimeNumbers& operator=(PrimeNumbers const& rOther) = delete;
 
@@ -86,13 +86,13 @@ namespace Kratos
 	  static std::size_t GetNumberOfPreCalculatedPrimes() {
 		  return mNumberOfPreCalculatedPrimes;
 	  }
-	  
+	
 	  static std::size_t LargestPreCalculatedPrime() {
 		  return mLargestPreCalculatedPrime;
 	  }
 
 	  static std::size_t GetPreCalculatedPrime(std::size_t Index) {
-		  KRATOS_DEBUG_ERROR_IF(Index >= mNumberOfPreCalculatedPrimes) << "Index " << Index 
+		  KRATOS_DEBUG_ERROR_IF(Index >= mNumberOfPreCalculatedPrimes) << "Index " << Index
 			  << " is larger than Number of precalculated primes " << mNumberOfPreCalculatedPrimes << std::endl;
 		  return mPrecalculatedPrimes[Index];
 	  }
@@ -124,7 +124,7 @@ namespace Kratos
 		static std::size_t FindGreaterEqualPrecalculatedPrimeNumber(std::size_t TheNumber);
 
       ///@}
- 
+
     }; // Class PrimeNumbers
 
   ///@}

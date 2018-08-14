@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #include "includes/model_part.h"
@@ -94,7 +94,7 @@ public:
     ///       comply with the condition     rVariable<reference_value
     /// CASE 2 - active_if_lower_than_reference=false
     ///       here elements and conditions will be active if any of their nodes
-    ///       comply with the condition     rVariable>reference_value    
+    ///       comply with the condition     rVariable>reference_value
     ///
     ///@param rmodel_part model_part containing the elements and conditions to be activated/deactivated
     ///@param rVariable nodal variable to be used in the comparison
@@ -110,43 +110,43 @@ public:
         //KRATOS_WATCH(rVariable);
         ModelPart::ElementsContainerType::iterator el_begin = rmodel_part.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rmodel_part.ConditionsBegin();
-        
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rmodel_part.Elements().size()); i++)
         {
             ModelPart::ElementsContainerType::iterator it = el_begin + i;
-            
+
             const Geometry< Node<3> >& geom = it->GetGeometry();
             it->Set(ACTIVE,false);
-            
+
             for(unsigned int k=0; k<geom.size(); k++)
             {
-                if( geom[k].FastGetSolutionStepValue(rVariable) < reference_value) 
+                if( geom[k].FastGetSolutionStepValue(rVariable) < reference_value)
                 {
                     it->Set(ACTIVE,true);
                     break;
                 }
             }
         }
-            
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rmodel_part.Conditions().size()); i++)
         {
             ModelPart::ConditionsContainerType::iterator it = cond_begin + i;
-            
+
             const Geometry< Node<3> >& geom = it->GetGeometry();
             it->Set(ACTIVE,false);
             for(unsigned int k=0; k<geom.size(); k++)
             {
-                if( geom[k].FastGetSolutionStepValue(rVariable) < reference_value) 
+                if( geom[k].FastGetSolutionStepValue(rVariable) < reference_value)
                 {
                     it->Set(ACTIVE,true);
                     break;
                 }
-                
+
             }
         }
-        
+
          if( active_if_lower_than_reference == false) //flip everything
         {
              #pragma omp parallel for
@@ -155,7 +155,7 @@ public:
                 ModelPart::ElementsContainerType::iterator it = el_begin + i;
                 it->Flip(ACTIVE);
             }
-            
+
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(rmodel_part.Conditions().size()); i++)
             {

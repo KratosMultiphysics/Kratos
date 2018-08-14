@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//                    
+//
 //
 
 #if !defined(KRATOS_TABLE_STREAM_UTILITY)
@@ -30,26 +30,26 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
     typedef TableStream TableStreamType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 class TableStreamUtility
 {
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Counted pointer of TableStreamUtility
     KRATOS_CLASS_POINTER_DEFINITION( TableStreamUtility );
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -58,14 +58,14 @@ public:
     /**
      * The default constructor
      */
-    
+
     TableStreamUtility(const bool UseBoldFont = true):
         mTable(&std::cout, "|", UseBoldFont)
     {
     }
-    
+
     virtual ~TableStreamUtility()= default;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -81,60 +81,60 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * It prints the header of the table
      */
-    
+
     void PrintHeader()
     {
         mTable.PrintHeader();
     }
-    
+
     /**
-     * It prints the footer of the table 
+     * It prints the footer of the table
      */
-    
+
     void PrintFooter()
     {
         mTable.PrintFooter();
     }
-    
+
     /**
-     * It adds a value to the ouput of the current row 
+     * It adds a value to the ouput of the current row
      */
-    
+
     template<class TClass>
     void AddToRow(TClass ThisClass)
     {
         mTable << ThisClass;
     }
-    
+
     /**
      * It adds a column to the table
      * @param ThisName The name of the variable
      * @param ThisSpaces The number of spaces to consider
      */
-        
+
     void AddColumn(std::string ThisName, unsigned int ThisSpaces)
     {
         mTable.AddColumn(ThisName, ThisSpaces);
     }
-    
+
     /**
      * It returns the table of BPrinter
      * @return mTable: The table stream table
      */
-        
+
     TableStreamType& GetTable()
     {
         return mTable;
     }
-    
+
     /// Turn back information as a string.
     virtual std::string Info() const
     {
@@ -188,10 +188,10 @@ private:
     ///@{
     ///@}
     ///@name Member Variables
-    ///@{      
-    
+    ///@{
+
     TableStreamType mTable;
-    
+
     ///@}
     ///@name Private Operators
     ///@{

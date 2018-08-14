@@ -130,10 +130,10 @@ public:
     * @param rHighPoint Higher point of the boundingbox.
     */
     static inline void CalculateBoundingBox(
-        const PointerType& rObject, 
-        PointType& rLowPoint, 
+        const PointerType& rObject,
+        PointType& rLowPoint,
         PointType& rHighPoint
-        ) 
+        )
     {
         rHighPoint = rLowPoint = *rObject;
     }
@@ -146,11 +146,11 @@ public:
     * @param Radius The extension radius to be applied to the boundingbox.
     */
     static inline void CalculateBoundingBox(
-        const PointerType& rObject, 
-        PointType& rLowPoint, 
-        PointType& rHighPoint, 
+        const PointerType& rObject,
+        PointType& rLowPoint,
+        PointType& rHighPoint,
         const double Radius
-        ) 
+        )
     {
         auto radiusExtension = PointType(Radius, Radius, Radius);
 
@@ -163,9 +163,9 @@ public:
     * @param rCentralPoint The center point of the object.
     */
     static inline void CalculateCenter(
-        const PointerType& rObject, 
+        const PointerType& rObject,
         PointType& rCentralPoint
-        ) 
+        )
     {
         rCentralPoint = *rObject;
     }
@@ -177,9 +177,9 @@ public:
     * @return Boolean indicating the result of the intersection test described.
     */
     static inline bool Intersection(
-        const PointerType& rObj_1, 
+        const PointerType& rObj_1,
         const PointerType& rObj_2
-        ) 
+        )
     {
         for(std::size_t i = 0; i < Dimension; i++) {
             if(std::fabs((*rObj_1)[i] - (*rObj_2)[i]) > Epsilon) {
@@ -199,10 +199,10 @@ public:
     * @return Boolean indicating the result of the intersection test described.
     */
     static inline bool Intersection(
-        const PointerType& rObj_1, 
-        const PointerType& rObj_2, 
+        const PointerType& rObj_1,
+        const PointerType& rObj_2,
         double Radius
-    ) 
+    )
     {
         for(std::size_t i = 0; i < Dimension; i++) {
             if(std::fabs((*rObj_1)[i] - (*rObj_2)[i]) > Epsilon + Radius) {
@@ -222,10 +222,10 @@ public:
     * @return Boolean indicating the result of the intersection test described.
     */
     static inline bool IntersectionBox(
-        const PointerType& rObject, 
-        const PointType& rLowPoint, 
+        const PointerType& rObject,
+        const PointType& rLowPoint,
         const PointType& rHighPoint
-        ) 
+        )
     {
         for(std::size_t i = 0; i < Dimension; i++) {
             if( (*rObject)[i] < rLowPoint[i] - Epsilon || (*rObject)[i] > rHighPoint[i] + Epsilon) {
@@ -246,11 +246,11 @@ public:
     * @return Boolean indicating the result of the intersection test described.
     */
     static inline bool IntersectionBox(
-        const PointerType& rObject, 
-        const PointType& rLowPoint, 
-        const PointType& rHighPoint, 
+        const PointerType& rObject,
+        const PointType& rLowPoint,
+        const PointType& rHighPoint,
         const double Radius
-        ) 
+        )
     {
         for(std::size_t i = 0; i < Dimension; i++) {
             if( ((*rObject)[i] + Radius) < rLowPoint[i] - Epsilon || ((*rObject)[i] - Radius) > rHighPoint[i] + Epsilon) {
@@ -273,10 +273,10 @@ public:
     * @param distance The euclidean distance between 'rObj_1' and 'rObj_2'.
     */
     static inline void Distance(
-        const PointerType& rObj_1, 
-        const PointerType& rObj_2, 
+        const PointerType& rObj_1,
+        const PointerType& rObj_2,
         double& distance
-        ) 
+        )
     {
         double pwdDistance = 0.0f;
 
@@ -294,9 +294,9 @@ public:
     * @return 0.0f always.
     */
     static inline double GetObjectRadius(
-        const PointerType& rObject, 
+        const PointerType& rObject,
         const double Radius
-        ) 
+        )
     {
         return 0.0f;
     }

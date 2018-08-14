@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //                   Nelson Lafontaine
-//                    
+//
 //
 
 #if !defined(KRATOS_SPLIT_TRIANGLE)
@@ -240,7 +240,7 @@ int Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edges
                 t[7] = 0;
                 t[8] = 1;
             }
-            else if (edges[0] == 1) 
+            else if (edges[0] == 1)
             {
                 t[0] = 5;
                 t[1] = 4;
@@ -259,7 +259,7 @@ int Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edges
 
             /* caso 3*/
         else if (topology[0] == 1 && topology[2] == 1) {
-            if (edges[1] == 1) 
+            if (edges[1] == 1)
             {
                 t[0] = 5;
                 t[1] = 0;
@@ -273,7 +273,7 @@ int Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edges
                 t[7] = 1;
                 t[8] = 2;
             }
-            else if (edges[1] == 2) 
+            else if (edges[1] == 2)
             {
                 t[0] = 5;
                 t[1] = 0;

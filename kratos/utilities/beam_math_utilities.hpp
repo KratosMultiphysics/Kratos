@@ -32,13 +32,13 @@ template<class TDataType> class BeamMathUtils
 public:
   ///name Type Definitions
   ///@{
-  
+
   typedef Matrix                          MatrixType;
   typedef Vector                          VectorType;
 
-  typedef Quaternion<double>          QuaternionType;   
+  typedef Quaternion<double>          QuaternionType;
   typedef MathUtils<TDataType>         MathUtilsType;
-  typedef BeamMathUtils<TDataType> BeamMathUtilsType; 
+  typedef BeamMathUtils<TDataType> BeamMathUtilsType;
 
   ///@}
   ///name Math Utilities for beams
@@ -51,21 +51,21 @@ public:
    * Transform a vector from the reference to the current local frame (MATERIAL frame for a beam)
    * @param rQuaternion Quaternion representing the rotation from the reference to the current local frames
    * @param rVector Vector to be rotated
-   * the rotated vector rVector is returned. 
+   * the rotated vector rVector is returned.
    */
   template<class TVector3>
-  static inline TVector3& MapToCurrentLocalFrame(QuaternionType& rQuaternion, TVector3& rVector)  
+  static inline TVector3& MapToCurrentLocalFrame(QuaternionType& rQuaternion, TVector3& rVector)
   {
     KRATOS_TRY
 
-    //(rQuaternion.conjugate()).RotateVector3(rVariable); 
+    //(rQuaternion.conjugate()).RotateVector3(rVariable);
     // precision problems due to a rest included in the rotation
 
     //vector value :  v' = QT * v
 
     Matrix RotationMatrix;
     (rQuaternion.conjugate()).ToRotationMatrix(RotationMatrix);
-    
+
     rVector = prod(RotationMatrix,rVector);
 
     return rVector;
@@ -89,14 +89,14 @@ public:
   {
     KRATOS_TRY
 
-    //rQuaternion.RotateVector3(rVariable); 
+    //rQuaternion.RotateVector3(rVariable);
     // precision problems due to a rest included in the rotation
-      
+
     //vector value :  v = Q * v'
 
     Matrix RotationMatrix;
     rQuaternion.ToRotationMatrix(RotationMatrix);
-    
+
     rVector = prod(RotationMatrix,rVector);
 
     return rVector;
@@ -116,7 +116,7 @@ public:
    */
   template<class TVector3>
   static inline void ExponentialTransform(const TVector3& rVector, MatrixType& rExponentialTensor)
-  {  
+  {
     KRATOS_TRY
 
     //Initialize Local Matrices
@@ -128,7 +128,7 @@ public:
 
 
     KRATOS_CATCH( "" )
-  } 
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -140,18 +140,18 @@ public:
    */
   template<class TVector3>
   static inline void InverseExponentialTransform(const MatrixType& rExponentialTensor, TVector3& rVector)
-  {  
+  {
     KRATOS_TRY
-    
+
     //Initialize Local Matrices
     if( rVector.size() != 3 )
       rVector.resize(3,false);
-    
+
     QuaternionType QuaternionValue = QuaternionType::FromRotationMatrix(rExponentialTensor);
     QuaternionValue.ToRotationVector(rVector);
 
     KRATOS_CATCH( "" )
-  } 
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -163,7 +163,7 @@ public:
    */
   template<class TVector3>
   static inline void CayleyTransform(const TVector3& rVector, MatrixType& rCayleyTensor)
-  {  
+  {
     KRATOS_TRY
 
     //Initialize Local Matrices
@@ -173,19 +173,19 @@ public:
     rCayleyTensor(0,0) = 0.5 * (4.0+rVector[0]*rVector[0]-rVector[1]*rVector[1]-rVector[2]*rVector[2]);
     rCayleyTensor(1,1) = 0.5 * (4.0-rVector[0]*rVector[0]+rVector[1]*rVector[1]-rVector[2]*rVector[2]);
     rCayleyTensor(2,2) = 0.5 * (4.0-rVector[0]*rVector[0]-rVector[1]*rVector[1]+rVector[2]*rVector[2]);
-  
+
     rCayleyTensor(0,1) = (rVector[0]*rVector[1]-2.0*rVector[2]);
     rCayleyTensor(0,2) = (rVector[0]*rVector[2]+2.0*rVector[1]);
     rCayleyTensor(1,2) = (rVector[1]*rVector[2]-2.0*rVector[0]);
-  
+
     rCayleyTensor(1,0) = (rVector[0]*rVector[1]+2.0*rVector[2]);
     rCayleyTensor(2,0) = (rVector[0]*rVector[2]-2.0*rVector[1]);
     rCayleyTensor(2,1) = (rVector[1]*rVector[2]+2.0*rVector[0]);
-  
+
     rCayleyTensor *= (2.0 / (4.0+rVector[0]*rVector[0]+rVector[1]*rVector[1]+rVector[2]*rVector[2]));
-  
+
     KRATOS_CATCH( "" )
-  } 
+  }
 
   //***************************************************************************
   //***************************************************************************
@@ -197,27 +197,27 @@ public:
    */
   template<class TVector3>
   static inline void InverseCayleyTransform(const MatrixType& rCayleyTensor, TVector3& rVector)
-  {  
+  {
     KRATOS_TRY
-    
+
     //Initialize Local Matrices
     if( rVector.size() != 3 )
       rVector.resize(3,false);
-    
-    Matrix Identity = IdentityMatrix(3);     
+
+    Matrix Identity = IdentityMatrix(3);
     Matrix CayI     = rCayleyTensor + Identity;
-    Matrix CayII    = rCayleyTensor - Identity; 
+    Matrix CayII    = rCayleyTensor - Identity;
 
     Matrix InvertCayI;
     double det;
     MathUtilsType::InvertMatrix3(CayI, InvertCayI, det);
- 
+
     Matrix SkewSymTensor = 2 * prod( InvertCayI, CayII );
-      
+
     BeamMathUtilsType::SkewSymmetricTensorToVector( SkewSymTensor, rVector);
-     
+
     KRATOS_CATCH( "" )
-  } 
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -239,7 +239,7 @@ public:
     rSkewSymmetricTensor( 0, 0 ) = 0.0;
     rSkewSymmetricTensor( 1, 1 ) = 0.0;
     rSkewSymmetricTensor( 2, 2 ) = 0.0;
-    
+
     rSkewSymmetricTensor( 0, 1 ) = -rVector[2];
     rSkewSymmetricTensor( 0, 2 ) =  rVector[1];
     rSkewSymmetricTensor( 1, 2 ) = -rVector[0];
@@ -247,7 +247,7 @@ public:
     rSkewSymmetricTensor( 1, 0 ) =  rVector[2];
     rSkewSymmetricTensor( 2, 0 ) = -rVector[1];
     rSkewSymmetricTensor( 2, 1 ) =  rVector[0];
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -260,18 +260,18 @@ public:
    */
   template<class TMatrix3, class TVector3>
   static inline void SkewSymmetricTensorToVector(const TMatrix3& rSkewSymmetricTensor, TVector3& rVector)
-  { 
+  {
     KRATOS_TRY
 
     //Initialize Local Matrices
     if( rVector.size() != 3 )
       rVector.resize(3,false);
-         
+
     rVector[0] = 0.5 * ( rSkewSymmetricTensor( 2, 1 ) - rSkewSymmetricTensor( 1, 2 ) );
     rVector[1] = 0.5 * ( rSkewSymmetricTensor( 0, 2 ) - rSkewSymmetricTensor( 2, 0 ) );
     rVector[2] = 0.5 * ( rSkewSymmetricTensor( 1, 0 ) - rSkewSymmetricTensor( 0, 1 ) );
-    
-         
+
+
     KRATOS_CATCH( "" )
    }
 
@@ -284,14 +284,14 @@ public:
    * Returns a double with the value
    */
   static inline double KroneckerDelta(int i, int j)
-  { 
+  {
     KRATOS_TRY
 
     if( i==j )
       return 1;
     else
       return 0;
-         
+
     KRATOS_CATCH( "" )
    }
 
@@ -306,12 +306,12 @@ public:
    * Returns a double with the sign
    */
   static inline double LeviCivitaEpsilon(int i, int j, int k)
-  { 
+  {
     KRATOS_TRY
 
     if( i==j || j==k || k==i )
 	return 0;
-  
+
     if( (i==1 && j==2 && k==3) || (i==2 && j==3 && k==1) || (i==3 && j==1 && k==2) )
       return 1;
 
@@ -319,7 +319,7 @@ public:
       return -1;
 
     return 0;
-         
+
     KRATOS_CATCH( "" )
    }
 
@@ -336,7 +336,7 @@ public:
   static inline void AddVector(const VectorType& rInputVector,VectorType& rOutputVector,const unsigned int InitialRow)
   {
     KRATOS_TRY
-    
+
     for(unsigned int i=0; i<rInputVector.size(); i++)
       rOutputVector[InitialRow+i] += rInputVector[i];
 
@@ -374,7 +374,7 @@ public:
    * @param rInitialRow The initial row to compute
    * @param rInitialCol The initial column to compute
    */
-  
+
   template<class TMatrix, class TInputMatrix>
   static inline void  AddMatrix(TMatrix& rDestination,const TInputMatrix& rInputMatrix,const unsigned int rInitialRow,const unsigned int rInitialCol)
   {
@@ -388,7 +388,7 @@ public:
       }
     KRATOS_CATCH("")
   }
-    
+
   /**
    *  "InputMatrix" is SUBTRACTED to "Destination" matrix starting from
    * InitialRow and InitialCol of the destination matrix
@@ -404,7 +404,7 @@ public:
   static inline void  SubtractMatrix(TMatrix& rDestination,const TInputMatrix& rInputMatrix,const unsigned int rInitialRow,const unsigned int rInitialCol)
   {
     KRATOS_TRY;
-        
+
     for(unsigned int i = 0; i<rInputMatrix.size1(); i++)
       {
 	for(unsigned int j = 0; j<rInputMatrix.size2(); j++)
@@ -412,7 +412,7 @@ public:
 	    rDestination(rInitialRow+i, rInitialCol+j) -= rInputMatrix(i,j);
 	  }
       }
-        
+
     KRATOS_CATCH("");
   }
 
@@ -420,7 +420,7 @@ public:
   //*****************************************************************************
 
   /**
-   * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
+   * Map a Matrix expressed on the Local frame of an element to a Global frame expression
    * @param rLocalToGlobalQuaternion transformation quaternion from local to global frame
    * @param rMatrix matrix to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
@@ -439,16 +439,16 @@ public:
     KRATOS_CATCH( "" )
 
   }
-  
+
   //*****************************************************************************
   //*****************************************************************************
 
   /**
-   * Map a Vector expressed on the Local frame of an element to a Global frame expression 
+   * Map a Vector expressed on the Local frame of an element to a Global frame expression
    * @param rLocalToGlobalQuaternion transformation quaternion from local to global frame
    * @param rVector vector to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
-   */  
+   */
   static inline void MapLocalToGlobal2D(const QuaternionType& rLocalToGlobalQuaternion, VectorType& rVector)
   {
 
@@ -456,19 +456,19 @@ public:
 
     MatrixType LocalToGlobalMatrix;
     rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
-  
+
     MapLocalToGlobal2D(LocalToGlobalMatrix,rVector);
 
     KRATOS_CATCH( "" )
 
   }
 
-  
+
   //*****************************************************************************
   //*****************************************************************************
 
   /**
-   * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
+   * Map a Matrix expressed on the Local frame of an element to a Global frame expression
    * @param rLocalToGlobalMatrix transformation matrix from local to global frame
    * @param rMatrix matrix to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
@@ -483,7 +483,7 @@ public:
 
     Matrix AuxiliarRotationMatrix(MatSize,MatSize);
     noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
- 
+
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 2)
     {
@@ -502,7 +502,7 @@ public:
 
     //Stiffness Matrix
     noalias(rMatrix) = prod(aux_matrix,trans(AuxiliarRotationMatrix));
-         
+
 
     KRATOS_CATCH( "" )
 
@@ -512,7 +512,7 @@ public:
   //*****************************************************************************
 
   /**
-   * Map a Vector expressed on the Local frame of an element to a Global frame expression 
+   * Map a Vector expressed on the Local frame of an element to a Global frame expression
    * @param rLocalToGlobalMatrix transformation matrix from local to global frame
    * @param rVector vector to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
@@ -526,7 +526,7 @@ public:
 
     Matrix AuxiliarRotationMatrix(MatSize,MatSize);
     noalias(AuxiliarRotationMatrix) = ZeroMatrix(MatSize,MatSize);
- 
+
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += 2)
     {
@@ -540,7 +540,7 @@ public:
     }
 
     rVector = prod(AuxiliarRotationMatrix, rVector);
-          
+
     KRATOS_CATCH( "" )
 
   }
@@ -549,7 +549,7 @@ public:
   //*****************************************************************************
 
   /**
-   * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
+   * Map a Matrix expressed on the Local frame of an element to a Global frame expression
    * @param rLocalToGlobalQuaternion transformation quaternion from local to global frame
    * @param rMatrix matrix to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
@@ -562,18 +562,18 @@ public:
 
     MatrixType LocalToGlobalMatrix(3,3);
     rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
-  
+
     MapLocalToGlobal3D(LocalToGlobalMatrix,rMatrix);
 
     KRATOS_CATCH( "" )
 
   }
-  
+
   //*****************************************************************************
   //*****************************************************************************
 
   /**
-   * Map a Vector expressed on the Local frame of an element to a Global frame expression 
+   * Map a Vector expressed on the Local frame of an element to a Global frame expression
    * @param rLocalToGlobalQuaternion transformation quaternion from local to global frame
    * @param rVector vector to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
@@ -585,18 +585,18 @@ public:
 
     MatrixType LocalToGlobalMatrix(3,3);
     rLocalToGlobalQuaternion.ToRotationMatrix(LocalToGlobalMatrix);
-  
+
     MapLocalToGlobal3D(LocalToGlobalMatrix,rVector);
 
     KRATOS_CATCH( "" )
 
   }
-  
+
   //*****************************************************************************
   //*****************************************************************************
 
   /**
-   * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
+   * Map a Matrix expressed on the Local frame of an element to a Global frame expression
    * @param rLocalToGlobalMatrix transformation matrix from local to global frame
    * @param rMatrix matrix to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
@@ -630,7 +630,7 @@ public:
 
     //Stiffness Matrix
     noalias(rMatrix) = prod(aux_matrix,trans(AuxiliarRotationMatrix));
-         
+
 
     KRATOS_CATCH( "" )
 
@@ -640,7 +640,7 @@ public:
   //*****************************************************************************
 
   /**
-   * Map a Vector expressed on the Local frame of an element to a Global frame expression 
+   * Map a Vector expressed on the Local frame of an element to a Global frame expression
    * @param rLocalToGlobalMatrix transformation matrix from local to global frame
    * @param rVector vector to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
@@ -668,7 +668,7 @@ public:
     }
 
     rVector = prod(AuxiliarRotationMatrix, rVector);
-          
+
     KRATOS_CATCH( "" )
 
   }
@@ -693,11 +693,11 @@ public:
     TVector3 LocalZ = ZeroVector(3);
 
     BeamMathUtilsType::CalculateLocalAxesVectors(LocalX,LocalY,LocalZ);
-        
-    //Transformation matrix T = [e1_local, e2_local, e3_local] 
+
+    //Transformation matrix T = [e1_local, e2_local, e3_local]
     if( rRotationMatrix.size1() != 3 )
       rRotationMatrix.resize(3, 3, false);
-    
+
     //Building the rotation matrix
     for (unsigned int i=0; i<3; i++)
       {
@@ -705,7 +705,7 @@ public:
     	rRotationMatrix(i,1) = LocalY[i];
     	rRotationMatrix(i,2) = LocalZ[i];
       }
-    
+
     KRATOS_CATCH( "" )
 
   }
@@ -735,8 +735,8 @@ public:
     double VectorNorm = MathUtilsType::Norm(rLocalX);
     if( VectorNorm != 0)
       rLocalX /= VectorNorm;
-    
-    // local y-axis (e2_local)  
+
+    // local y-axis (e2_local)
     double tolerance = 1.0/64.0;
     if(fabs(rLocalX[0])< tolerance && fabs(rLocalX[1])< tolerance){
       MathUtilsType::CrossProduct(rLocalY,GlobalY,rLocalX);
@@ -744,19 +744,19 @@ public:
     else{
       MathUtilsType::CrossProduct(rLocalY,GlobalZ,rLocalX);
     }
-    
+
     VectorNorm = MathUtilsType::Norm(rLocalY);
     if( VectorNorm != 0)
       rLocalY /= VectorNorm;
-    
+
     // local z-axis (e3_local)
     MathUtilsType::CrossProduct(rLocalZ,rLocalX,rLocalY);
-    
+
     VectorNorm = MathUtilsType::Norm(rLocalZ);
     if( VectorNorm != 0 )
       rLocalZ /= VectorNorm;
-        
-    
+
+
     KRATOS_CATCH( "" )
   }
 
@@ -781,11 +781,11 @@ public:
     TVector3 LocalZ = ZeroVector(3);
 
     BeamMathUtilsType::CalculateLocalAxisVector(LocalX,LocalY,LocalZ);
-        
-    //Transformation matrix T = [e1_local, e2_local, e3_local] 
+
+    //Transformation matrix T = [e1_local, e2_local, e3_local]
     if( rRotationMatrix.size1() != 3 )
       rRotationMatrix.resize(3, 3, false);
-    
+
     //Building the rotation matrix
     for (unsigned int i=0; i<3; i++)
       {
@@ -793,11 +793,11 @@ public:
     	rRotationMatrix(i,1) = LocalY[i];
     	rRotationMatrix(i,2) = LocalZ[i];
       }
-    
+
     KRATOS_CATCH( "" )
 
   }
-  
+
   //*****************************************************************************
   //*****************************************************************************
 
@@ -816,19 +816,19 @@ public:
     double VectorNorm = MathUtilsType::Norm(rLocalX);
     if( VectorNorm != 0)
       rLocalX /= VectorNorm;
-    
+
     // local y-axis (e2_local) supplied
     VectorNorm = MathUtilsType::Norm(rLocalY);
     if( VectorNorm != 0)
       rLocalY /= VectorNorm;
-    
+
     // local z-axis (e3_local)
     MathUtilsType::CrossProduct(rLocalZ,rLocalX,rLocalY);
-    
+
     VectorNorm = MathUtilsType::Norm(rLocalZ);
     if( VectorNorm != 0 )
       rLocalZ /= VectorNorm;
-            
+
     KRATOS_CATCH( "" )
   }
 
@@ -842,7 +842,7 @@ public:
    * @param Verbose Set verbosity for the check
    */
   static inline bool CheckOrthogonality( const Matrix& rTensor, std::string Name, bool Verbose )
-  {  
+  {
     KRATOS_TRY
     	
     double Determinant    = MathUtilsType::Det(rTensor);
@@ -859,7 +859,7 @@ public:
 
       return false;
     }
-  
+
     return true;
 
     KRATOS_CATCH( "" )

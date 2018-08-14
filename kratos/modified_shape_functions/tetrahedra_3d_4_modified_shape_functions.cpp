@@ -197,7 +197,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFuncti
             mpTetrahedraSplitter->mEdgeNodeI,
             mpTetrahedraSplitter->mEdgeNodeJ,
             mpTetrahedraSplitter->mSplitEdges);
-        
+
         // Get the external faces
         std::vector < unsigned int > exterior_faces_parent_ids_vector;
         std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
@@ -206,7 +206,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFuncti
             exterior_faces_parent_ids_vector,
             mpTetrahedraSplitter->mPositiveSubdivisions,
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rPositiveExteriorFaceShapeFunctionsValues,
@@ -239,7 +239,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFuncti
             mpTetrahedraSplitter->mEdgeNodeI,
             mpTetrahedraSplitter->mEdgeNodeJ,
             mpTetrahedraSplitter->mSplitEdges);
-        
+
         // Get the external faces
         std::vector < unsigned int > exterior_faces_parent_ids_vector;
         std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
@@ -248,7 +248,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFuncti
             exterior_faces_parent_ids_vector,
             mpTetrahedraSplitter->mNegativeSubdivisions,
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rNegativeExteriorFaceShapeFunctionsValues,
@@ -379,7 +379,7 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeShapeFunctionsOnPositiveEdgeInt
 // Computes the negative side shape function values in the edges intersections
 void Tetrahedra3D4ModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeIntersections(
     Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues){
-    
+
     if (this->IsSplit()) {
         // Note that positive and negative sides values are equal for standard shape functions
         this->ComputeShapeFunctionsOnPositiveEdgeIntersections(

@@ -63,7 +63,7 @@ void AusasModifiedShapeFunctions::SetPositiveSideCondensationMatrix(
 
     const unsigned int nedges = (this->GetInputGeometry())->EdgesNumber();
     const unsigned int nnodes = (this->GetInputGeometry())->PointsNumber();
-        
+
     // Initialize intersection points condensation matrix
     rPosSideCondMatrix = ZeroMatrix(nnodes + nedges, nnodes);
 
@@ -101,7 +101,7 @@ void AusasModifiedShapeFunctions::SetNegativeSideCondensationMatrix(
 
     const unsigned int nedges = (this->GetInputGeometry())->EdgesNumber();
     const unsigned int nnodes = (this->GetInputGeometry())->PointsNumber();
-        
+
     // Initialize intersection points condensation matrix
     rNegSideCondMatrix = ZeroMatrix(nnodes + nedges, nnodes);
 
@@ -127,7 +127,7 @@ void AusasModifiedShapeFunctions::SetNegativeSideCondensationMatrix(
             rNegSideCondMatrix(row, edge_node_j) = (nodal_distances(edge_node_j) < 0.0) ? 1.0 : 0.0;
         }
         row++;
-    }   
+    }
 }
 
 }; //namespace Kratos

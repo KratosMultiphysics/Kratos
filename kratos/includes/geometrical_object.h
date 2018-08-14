@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 
@@ -67,9 +67,9 @@ public:
 
     /// Pointer definition of GeometricalObject
     KRATOS_CLASS_POINTER_DEFINITION(GeometricalObject);
-    
+
     typedef IndexedObject BaseType;
-    
+
     typedef Node < 3 > NodeType;
 
     typedef Geometry<NodeType> GeometryType;
@@ -86,7 +86,7 @@ public:
     GeometricalObject(IndexType NewId = 0) : BaseType(NewId),
         mpGeometry()
     {}
-    
+
     /// Default constructor.
     GeometricalObject(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId),
         mpGeometry(pGeometry)
@@ -97,7 +97,7 @@ public:
 
     /// Copy constructor.
     GeometricalObject(GeometricalObject const& rOther) : BaseType(rOther.Id()),
-        mpGeometry(rOther.mpGeometry) 
+        mpGeometry(rOther.mpGeometry)
     {}
 
 
@@ -120,7 +120,7 @@ public:
     ///@}
     ///@name Access
     ///@{
-      
+
     GeometryType::Pointer pGetGeometry()
     {
         return mpGeometry;
@@ -152,7 +152,7 @@ public:
     inline static bool HasSameType(const GeometricalObject * rLHS, const GeometricalObject* rRHS) {
         return GeometricalObject::HasSameType(*rLHS, *rRHS);
     }
-        
+
     inline static bool HasSameGeometryType(const GeometricalObject& rLHS, const GeometricalObject& rRHS) {
         return (rLHS.GetGeometry().GetGeometryType() == rRHS.GetGeometry().GetGeometryType());
     }
@@ -246,12 +246,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-      
+
     /**
      * pointer to the condition geometry
      */
     GeometryType::Pointer mpGeometry;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -260,7 +260,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-      
+
 
     ///@}
     ///@name Serialization
@@ -330,6 +330,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GEOMETRICAL_OBJECT_H_INCLUDED  defined 
+#endif // KRATOS_GEOMETRICAL_OBJECT_H_INCLUDED  defined
 
 

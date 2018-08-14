@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 
@@ -61,19 +61,19 @@ namespace Kratos
 ///@{
 
 /// Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
-/** 
+/**
  * Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
- * In other words, Mesh is a complete pack of all type of entities without any additional data associated with them. 
- * So a set of Elements and Conditions with their Nodes and Properties can be grouped together as a Mesh and send to 
- * procedures like mesh refinement, material optimization, mesh movement or any other procedure which works on entities 
+ * In other words, Mesh is a complete pack of all type of entities without any additional data associated with them.
+ * So a set of Elements and Conditions with their Nodes and Properties can be grouped together as a Mesh and send to
+ * procedures like mesh refinement, material optimization, mesh movement or any other procedure which works on entities
  * without needing additional data for their processes.
 */
 template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
 class Mesh : public DataValueContainer, public Flags
 {
 public:
-    
- 
+
+
     ///@name Type Definitions
     ///@{
 
@@ -185,7 +185,7 @@ public:
     ///@{
 
     /// Default constructor.
-    Mesh() : Flags() 
+    Mesh() : Flags()
         , mpNodes(new NodesContainerType())
         , mpProperties(new PropertiesContainerType())
         , mpElements(new ElementsContainerType())
@@ -232,7 +232,7 @@ public:
 	
         return Mesh(p_nodes, p_properties, p_elements, p_conditions, p_master_slave_constraints);
     }
-    
+
     void Clear()
     {
         Flags::Clear();
@@ -246,7 +246,7 @@ public:
     ///@}
     ///@name Informations
     ///@{
-    
+
     /** Dimensional space of the mesh geometries
 	@return SizeType, working space dimension of this geometry.
     */
@@ -255,8 +255,8 @@ public:
     {
       SizeType dimension = 3;
 
-      // NOTE: possible segmentacion fault if a Element or Condition  
-      // is created using the base class of geometry, then the mpGeometryData 
+      // NOTE: possible segmentacion fault if a Element or Condition
+      // is created using the base class of geometry, then the mpGeometryData
       // of the geometry is a null pointer and has not any mWorkingSpaceDimension
       if(NumberOfElements()!=0)
 	dimension = (mpElements->begin())->WorkingSpaceDimension();
@@ -1023,6 +1023,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESH_H_INCLUDED  defined 
+#endif // KRATOS_MESH_H_INCLUDED  defined
 
 

@@ -217,6 +217,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_PROCESS_H_INCLUDED  defined
 
 

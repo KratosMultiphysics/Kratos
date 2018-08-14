@@ -251,7 +251,7 @@ public:
         mpChilds[child_index]->SearchNearestPoint(ThisPoint, Result, rResultDistance);
 
         DistanceToPartitions(child_index, ThisPoint, distances_to_partitions);
-        
+
         for(SizeType i = 0 ; i < number_of_childs ; i++)
             if((i != child_index) && (distances_to_partitions[i] < rResultDistance))
                 mpChilds[i]->SearchNearestPoint(ThisPoint, Result, rResultDistance);
@@ -366,6 +366,6 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_OCT_TREE_H_INCLUDED   defined 
+#endif // KRATOS_OCT_TREE_H_INCLUDED   defined
 
 

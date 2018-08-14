@@ -12,7 +12,7 @@ EXE_NAME := application
 
 MAIN_PATH := ${cur_dir}
 
-vpath %cpp ${MAIN_PATH} 
+vpath %cpp ${MAIN_PATH}
 
 # set the external dependencies
 #
@@ -34,7 +34,7 @@ CXXFLAGS := -I${GIDPOST_INC} -I${BOOST_INC} -I${APPLICATION_INC}
 
 vpath %.cpp ${APPLICATION_SRC_PATH} ${APPLICATION_INC}/sources
 
-target := release                                                               
+target := release
 ifeq (${target},debug)
 OUTPUT_DIR := debug
 LIB_KRATOS := -L${KRATOS_PATH}/bin/debug -lkratos
@@ -50,7 +50,7 @@ CXXFLAGS := -O3 -funroll-loops ${CXXFLAGS}
 LDFLAGS := -O3
 LIBAPPLICATION := ${LIBAPPLICATION_PREFIX}.a
 endif
-status := $(shell mkdir -p $(OUTPUT_DIR))        
+status := $(shell mkdir -p $(OUTPUT_DIR))
 
 libapplication_src = \
 main.cpp

@@ -42,7 +42,7 @@ double TableGetNearestValue(DoubleTableType& ThisTable, double X)
 void  AddTableToPython(pybind11::module& m)
 {
     using namespace pybind11;
-    
+
     class_<DoubleTableType, DoubleTableType::Pointer>(m,"PiecewiseLinearTable")
     .def(init<>())
     .def(init<Matrix const&>())

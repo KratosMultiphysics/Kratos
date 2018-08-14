@@ -39,8 +39,8 @@ class AddThisTestToTestSuite {
 ///@{
 
 /// This class holds an array of test cases and run them one by one in its Run method
-/** this class implements a composite pattern. Derived from TestCase and has an array pointers to the 
-			TestCase to be run. The Run and Profile methods are overridden to call the corresponidng methods 
+/** this class implements a composite pattern. Derived from TestCase and has an array pointers to the
+			TestCase to be run. The Run and Profile methods are overridden to call the corresponidng methods
 			of the TestCases.
 		*/
 class KRATOS_API(KRATOS_CORE) TestSuite : public TestCase {

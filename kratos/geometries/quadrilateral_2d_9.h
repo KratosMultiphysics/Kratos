@@ -33,14 +33,14 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A nine node 2D quadrilateral geometry with quadratic shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
- *      3-----6-----2 
- *      |           |  
- *      |           |          
- *      7     8     5         
- *      |           |    
- *      |           |  
- *      0-----4-----1 
+ * The node ordering corresponds with:
+ *      3-----6-----2
+ *      |           |
+ *      |           |
+ *      7     8     5
+ *      |           |
+ *      |           |
+ *      0-----4-----1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -442,17 +442,17 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
@@ -556,7 +556,7 @@ public:
 
         return 0;
     }
-    
+
         /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -1302,4 +1302,4 @@ const GeometryData Quadrilateral2D9<TPointType>::msGeometryData(
 
 }  // namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_2D_9_H_INCLUDED  defined 
+#endif // KRATOS_QUADRILATERAL_2D_9_H_INCLUDED  defined

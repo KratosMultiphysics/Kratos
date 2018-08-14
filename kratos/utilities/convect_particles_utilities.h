@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
-//                    
+//
 //
 
 #if !defined(KRATOS_CONVECT_PARTICLES_UTILITIES_INCLUDED )
@@ -254,7 +254,7 @@ public:
 
             iparticle->FastGetSolutionStepValue(DISPLACEMENT) = x - iparticle->GetInitialPosition();
             noalias(pparticle->Coordinates()) = x;
-            
+
             end_of_particle:  (iparticle)->Set(TO_ERASE, true);
         }
 

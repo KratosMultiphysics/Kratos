@@ -49,6 +49,6 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTEGRATION_UTILITIES_INCLUDED  defined 
+#endif // KRATOS_INTEGRATION_UTILITIES_INCLUDED  defined
 
 

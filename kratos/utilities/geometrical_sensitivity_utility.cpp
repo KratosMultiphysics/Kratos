@@ -28,7 +28,7 @@ GeometricalSensitivityUtility::GeometricalSensitivityUtility(const JacobianType&
     KRATOS_TRY;
 
     Initialize();
-    
+
     KRATOS_CATCH("");
 }
 

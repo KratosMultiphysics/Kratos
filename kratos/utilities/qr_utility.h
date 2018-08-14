@@ -88,7 +88,7 @@ THE SOFTWARE.
 
 // #include <vector>
 // #include <cmath>
-// 
+//
 // #include <amgcl/util.hpp>
 // #include <amgcl/value_type/interface.hpp>
 
@@ -173,7 +173,7 @@ class QR {
                 }
             }
         }
-        
+
         //~ void append_cols(int cols) {
             //~ const int row_stride = (Order == row_major ? nmax : 1);
             //~ const int col_stride = (Order == row_major ? 1 : m);
@@ -433,34 +433,34 @@ class QR {
 // {
 //     public:
 //         typedef  value_type rhs_type;
-// 
+//
 //         QR() {}
-// 
+//
 //         void compute(int rows, int cols, value_type *A) {
 //             const int N = rows; //math::static_rows<value_type>::value;
 //             const int M = cols; //math::static_cols<value_type>::value;
-// 
+//
 //             buf.resize(rows * cols * N * M);
-// 
+//
 //             const int brows = M * rows;
 //             const int row_stride = (Order == row_major ? cols : 1);
 //             const int col_stride = (Order == row_major ? 1 : rows);
-// 
+//
 //             for(int i = 0, ib = 0; i < rows; ++i)
 //                 for(int ii = 0; ii < N; ++ii, ++ib)
 //                     for(int j = 0, jb = 0; j < cols; ++j)
 //                         for(int jj = 0; jj < M; ++jj, jb += brows)
 //                             buf[ib + jb] = A[i * row_stride + j * col_stride](ii, jj);
-// 
+//
 //             base.compute(rows * N, cols * M, buf.data());
 //         }
-// 
+//
 //         value_type R(int i, int j) const {
 //             const int N = rows; //math::static_rows<value_type>::value;
 //             const int M = cols; //math::static_cols<value_type>::value;
-// 
+//
 //             value_type v;
-// 
+//
 //             if (j < i) {
 //                 v = 0.0;
 //             } else {
@@ -468,24 +468,24 @@ class QR {
 //                     for(int jj = 0; jj < M; ++jj)
 //                         v(ii,jj) = base.R(i * N + ii, j * M + jj);
 //             }
-// 
+//
 //             return v;
 //         }
-// 
+//
 //         // Returns element of the matrix Q.
 //         value_type Q(int i, int j) const {
 //             const int N = rows; //math::static_rows<value_type>::value;
 //             const int M = cols; //math::static_cols<value_type>::value;
-// 
+//
 //             value_type v;
-// 
+//
 //             for(int ii = 0; ii < N; ++ii)
 //                 for(int jj = 0; jj < M; ++jj)
 //                     v(ii,jj) = base.Q(i * N + ii, j * M + jj);
-// 
+//
 //             return v;
 //         }
-// 
+//
 //         // Solves the system Q R x = f
 //         void solve(rhs_type *f, rhs_type *x) const {
 //             base.solve(
@@ -493,12 +493,12 @@ class QR {
 //                     reinterpret_cast<scalar_type*>(x)
 //                     );
 //         }
-// 
+//
 //         void compute_q() { base.compute_q(); }
-// 
+//
 //     private:
 //         typedef typename amgcl::math::scalar_of<value_type>::type scalar_type;
-// 
+//
 //         QR<scalar_type, col_major> base;
 //         std::vector<scalar_type> buf;
 // };

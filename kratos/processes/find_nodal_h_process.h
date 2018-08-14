@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborator:    Vicente Mataix Ferrandiz
-//                    
+//
 //
 
 #if !defined(KRATOS_FIND_NODAL_H_PROCESS_INCLUDED )
@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Default constructor.
-    FindNodalHProcess(ModelPart& rModelPart) 
+    FindNodalHProcess(ModelPart& rModelPart)
         : mrModelPart(rModelPart)
     {
     }
@@ -176,7 +176,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrModelPart;
     double mMinH;
 
@@ -244,6 +244,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FIND_NODAL_H_PROCESS_INCLUDED  defined 
+#endif // KRATOS_FIND_NODAL_H_PROCESS_INCLUDED  defined
 
 

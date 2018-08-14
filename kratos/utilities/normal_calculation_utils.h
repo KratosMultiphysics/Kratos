@@ -171,12 +171,12 @@ public:
         this->CalculateOnSimplex(rModelPart.Conditions(),Dimension);
         rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
     }
-    
-    
+
+
     /**this function swaps the normal of all of the conditions in a model part
 	 * This is done by swapping the two first nodes in the geometry and is thus appropriate for simplicial elements
 	 * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
-	 */    
+	 */
     void SwapNormals(ModelPart& rModelPart)
 	{
 		KRATOS_TRY
@@ -274,8 +274,8 @@ public:
         CalculateOnSimplex(rModelPart,Dimension,rVariable,TValueType());
     }
 
-    /// Calculates the area normal (vector oriented as the normal with a dimension proportional to the area) using only nodes marked with a flag variable and 
-    /** detecting corners. Corners are defined as nodes that recieves more than 2 normals from their neighbor conditions with a difference in angle greater than Alpha . 
+    /// Calculates the area normal (vector oriented as the normal with a dimension proportional to the area) using only nodes marked with a flag variable and
+    /** detecting corners. Corners are defined as nodes that recieves more than 2 normals from their neighbor conditions with a difference in angle greater than Alpha .
       *  This function is equivalent to other implementations of CalculateOnSimplex, but instead of using all conditions in the array, it only uses
       * those that contain a value of rVariable != Zero. This is useful in problems where a part of the boundary is a slip condition, as it provides
       * more reasonable values for the normals on the border between this area and other parts of the boundary. This function is safe to use in MPI.
@@ -300,7 +300,7 @@ public:
                 it !=rModelPart.NodesEnd(); it++)
         {
             noalias(it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
-            it->FastGetSolutionStepValue(NODAL_PAUX) = 0.0;	    
+            it->FastGetSolutionStepValue(NODAL_PAUX) = 0.0;	
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
@@ -325,19 +325,19 @@ public:
                     CalculateNormal3D(itCond,An,v1,v2);
             }
         }
-        
-        
+
+
       //loop over nodes to set normals
 	for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin();
                 it !=rModelPart.NodesEnd(); it++)
         {
-	  std::vector< array_1d<double,3> > N_Mat; 
+	  std::vector< array_1d<double,3> > N_Mat;
 	  N_Mat.reserve(10);
 	  double nodal_area = 0.0;
-	 
+	
 	  WeakPointerVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
-	  
-	  if(ng_cond.size() != 0){	  
+	
+	  if(ng_cond.size() != 0){	
 	    for(WeakPointerVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
 	    {
 		Condition::GeometryType& pGeom = ic->GetGeometry();
@@ -348,7 +348,7 @@ public:
 		if(norm_normal != 0.0)
 		{
 		  nodal_area += Coef * norm_normal;
-		  
+		
 		  if(N_Mat.size() == 0.0)
 		      N_Mat.push_back( rNormal * Coef );
 		  else{
@@ -358,44 +358,44 @@ public:
 			  {
 			  const array_1d<double,3>& temp_normal = N_Mat[ii];
 			  double norm_temp = norm_2( temp_normal );
-			  
+			
 			  double cos_alpha=temp_normal[0]*rNormal[0] + temp_normal[1]*rNormal[1] +temp_normal[2]*rNormal[2];
 			  cos_alpha /= (norm_temp*norm_normal);
-			  
+			
 			  if( cos_alpha > cos(0.017453293*rAlpha) ){
 			    N_Mat[ii] += rNormal * Coef;
-			    added = 1;}		      
+			    added = 1;}		
 			  }
-			  
+			
 			if(!added)
 			    N_Mat.push_back( rNormal*Coef );
-			  
+			
 		    }
 		  }
 	      }
 	  }
-	  //compute NORMAL and mark 
-	  array_1d<double,3> sum_Normal(3,0.0);	  
-	  
+	  //compute NORMAL and mark
+	  array_1d<double,3> sum_Normal(3,0.0);	
+	
 	  for(unsigned int ii=0; ii<N_Mat.size(); ++ii){
 	    sum_Normal += N_Mat[ii];
 	  }
-	  
+	
 	  noalias( it->FastGetSolutionStepValue(NORMAL) ) = sum_Normal;
 	  it->FastGetSolutionStepValue(NODAL_PAUX) = nodal_area;
 	  //assign IS_SLIP = 0 for vertices
 	  if(N_Mat.size() == 2){
-// 	    it->SetValue(IS_SLIP,0);	  
+// 	    it->SetValue(IS_SLIP,0);	
 	    it->FastGetSolutionStepValue(IS_SLIP)=20.0;}	
 	  else if(N_Mat.size() == 3)
 	    it->FastGetSolutionStepValue(IS_SLIP)=30.0;	
 	  else if(N_Mat.size() == 1)
 	    it->FastGetSolutionStepValue(IS_SLIP)=10.0;	
-	  
-	   
-	  
+	
+	
+	
 	}
-               
+
         // For MPI: correct values on partition boundaries
         rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_PAUX);
@@ -418,7 +418,7 @@ public:
                 it !=rModelPart.NodesEnd(); it++)
         {
             noalias(it->GetValue(NORMAL)) = ZeroNormal;
-            it->GetValue(NODAL_PAUX) = 0.0;	    
+            it->GetValue(NODAL_PAUX) = 0.0;	
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
@@ -443,19 +443,19 @@ public:
                     CalculateNormal3D(itCond,An,v1,v2);
             }
         }
-        
-        
+
+
       //loop over nodes to set normals
 	for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin();
                 it !=rModelPart.NodesEnd(); it++)
         {
-	  std::vector< array_1d<double,3> > N_Mat; 
+	  std::vector< array_1d<double,3> > N_Mat;
 	  N_Mat.reserve(10);
 	  double nodal_area = 0.0;
-	 
+	
 	  WeakPointerVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
-	  
-	  if(ng_cond.size() != 0){	  
+	
+	  if(ng_cond.size() != 0){	
 	    for(WeakPointerVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
 	    {
 		Condition::GeometryType& pGeom = ic->GetGeometry();
@@ -466,7 +466,7 @@ public:
 		if(norm_normal != 0.0)
 		{
 		  nodal_area += Coef * norm_normal;
-		  
+		
 		  if(N_Mat.size() == 0.0)
 		      N_Mat.push_back( rNormal * Coef );
 		  else{
@@ -476,44 +476,44 @@ public:
 			  {
 			  const array_1d<double,3>& temp_normal = N_Mat[ii];
 			  double norm_temp = norm_2( temp_normal );
-			  
+			
 			  double cos_alpha=temp_normal[0]*rNormal[0] + temp_normal[1]*rNormal[1] +temp_normal[2]*rNormal[2];
 			  cos_alpha /= (norm_temp*norm_normal);
-			  
+			
 			  if( cos_alpha > cos(0.017453293*rAlpha) ){
 			    N_Mat[ii] += rNormal * Coef;
-			    added = 1;}		      
+			    added = 1;}		
 			  }
-			  
+			
 			if(!added)
 			    N_Mat.push_back( rNormal*Coef );
-			  
+			
 		    }
 		  }
 	      }
 	  }
-	  //compute NORMAL and mark 
-	  array_1d<double,3> sum_Normal(3,0.0);	  
-	  
+	  //compute NORMAL and mark
+	  array_1d<double,3> sum_Normal(3,0.0);	
+	
 	  for(unsigned int ii=0; ii<N_Mat.size(); ++ii){
 	    sum_Normal += N_Mat[ii];
 	  }
-	  
+	
 	  noalias( it->FastGetSolutionStepValue(NORMAL) ) = sum_Normal;
 	  it->FastGetSolutionStepValue(NODAL_PAUX) = nodal_area;
 	  //assign IS_SLIP = 0 for vertices
 	  if(N_Mat.size() == 2){
-// 	    it->SetValue(IS_SLIP,0);	  
+// 	    it->SetValue(IS_SLIP,0);	
 	    it->FastGetSolutionStepValue(IS_SLIP)=20.0;}	
 	  else if(N_Mat.size() == 3)
 	    it->FastGetSolutionStepValue(IS_SLIP)=30.0;	
 	  else if(N_Mat.size() == 1)
 	    it->FastGetSolutionStepValue(IS_SLIP)=10.0;	
-	  
-	   
-	  
+	
+	
+	
 	}
-               
+
         // For MPI: correct values on partition boundaries
         rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_PAUX);

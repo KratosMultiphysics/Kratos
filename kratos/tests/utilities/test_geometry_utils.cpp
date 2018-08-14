@@ -30,7 +30,7 @@ namespace Testing {
         // Point out of plane to compute the distance to
         Point distance_point(0.357143, -0.214286, 0.0714286);
 
-        
+
         const double dist = GeometryUtils::PointDistanceToTriangle3D(triangle_point_1, triangle_point_2, triangle_point_3, distance_point);
 
         KRATOS_CHECK_NEAR(dist, 0.123718, 1e-6);
@@ -45,7 +45,7 @@ namespace Testing {
 
         // Point over the plane to compute the distance to
         Point distance_point(0.357143, -0.214286, 0.0714286);
-        
+
         const double dist = GeometryUtils::PointDistanceToTriangle3D(triangle_point_1, triangle_point_2, triangle_point_3, distance_point);
 
         KRATOS_CHECK_NEAR(dist, distance_point.Z(), 1e-6);

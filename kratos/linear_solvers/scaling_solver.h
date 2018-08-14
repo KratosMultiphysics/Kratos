@@ -88,7 +88,7 @@ public:
         msymmetric_scaling = true;
         mp_linear_solver = p_linear_solver;
     }
-    
+
     ScalingSolver(Parameters settings,
                   typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer p_linear_solver
                    ): BaseType ()
@@ -111,7 +111,7 @@ public:
         BaseType::mTolerance = settings["tolerance"].GetDouble();
         BaseType::mMaxIterationsNumber = settings["maximum_iterations"].GetInt();
         msymmetric_scaling = settings["symmetric_scaling"].GetBool();
-        
+
         KRATOS_CATCH("")
     }
 

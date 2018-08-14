@@ -51,7 +51,7 @@ namespace boost { namespace numeric { namespace bindings {
       atpla_min_degree = 2,   // min. degree on the structure of A^T + A
       colamd = 3              // approx. min. degree for unsymmetric matrices
     };
-    
+
 
     template <typename MatrA, typename MatrB>
     inline
@@ -92,7 +92,7 @@ namespace boost { namespace numeric { namespace bindings {
       assert (m == mbtraits::size1 (b));
 
       SuperMatrix A, B, L, U;
-      
+
       /** manual index vector generation
        */
       int *index1_vector = new (std::nothrow) int[a.index1_data().size()];
@@ -110,17 +110,17 @@ namespace boost { namespace numeric { namespace bindings {
       }
       std::cout << std::endl;
 
-      
+
       detail::Create_CompRow_Matrix (&A, m, m, matraits::num_nonzeros (aa),
                                      matraits::value_storage (aa),
                                      index2_vector,
                                      index1_vector
 //                                      (int*)matraits::index1_storage (aa),
-//                                      (int*)matraits::index2_storage (aa) 
+//                                      (int*)matraits::index2_storage (aa)
                                     );
-      
+
       std::cout << "Matrix storage type: " << A.Mtype << std::endl;
-     
+
       detail::Create_Dense_Matrix (&B, mbtraits::size1(b), mbtraits::size2(b),
                                    mbtraits::storage (b),
 //                                    mbtraits::leading_dimension (b));
@@ -154,8 +154,8 @@ namespace boost { namespace numeric { namespace bindings {
        * testing options
        */
 //       options.ColPerm = static_cast<colperm_t>(colamd);
-      
-      
+
+
       SuperLUStat_t stat;
       StatInit(&stat);
 
@@ -193,7 +193,7 @@ namespace boost { namespace numeric { namespace bindings {
       Destroy_SuperMatrix_Store (&A);
       delete[] index1_vector;
       delete[] index2_vector;
-      
+
       return info;
     }
 
@@ -205,7 +205,7 @@ namespace boost { namespace numeric { namespace bindings {
      */
     template <typename MatrA, typename VecB>
             inline
-        int gssv (MatrA const& a, VecB& b, int single, permc_spec_t perm_spec = colamd) 
+        int gssv (MatrA const& a, VecB& b, int single, permc_spec_t perm_spec = colamd)
     {
         // adapted to row_major
         typedef traits::sparse_matrix_traits<MatrA> matraits;
@@ -247,7 +247,7 @@ namespace boost { namespace numeric { namespace bindings {
                                       (int*)matraits::index2_storage (aa),
                                       (int*)matraits::index1_storage (aa) );
 
-      detail::Create_Dense_Matrix (&B, m, 1, 
+      detail::Create_Dense_Matrix (&B, m, 1,
                                     vtraits::storage(b),
                                     b.size()
 //                                     vtraits::vector_storage(b),

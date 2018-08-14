@@ -74,7 +74,7 @@ public:
         mNormal /= normal_length;
         // Compute the distance to origin
         mD = -inner_prod(mNormal,rReferencePoint);
-    }   
+    }
 
     Plane3D(const Point &Point1, const Point &Point2, const Point &Point3)
     {
@@ -105,16 +105,16 @@ public:
     @return Array containing the plane normal
     */
     array_1d<double,3> const& GetNormal()
-    { 
-        return mNormal; 
+    {
+        return mNormal;
     }
 
     /** Return the plane distance value
     @return Plane distance value
     */
     double GetDistanceToOrigin()
-    { 
-        return mD; 
+    {
+        return mD;
     }
 
     /** Calculates the plane signed distance value
@@ -173,7 +173,7 @@ private:
 
     double                       mD;
     array_1d<double,3>      mNormal;
-   
+
     ///@}
 
 }; // Class Plane3D
@@ -207,6 +207,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PLANE_3D_H_INCLUDED  defined 
+#endif // KRATOS_PLANE_3D_H_INCLUDED  defined
 
 

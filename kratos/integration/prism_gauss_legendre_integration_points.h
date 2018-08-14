@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
 //                   Vicente Mataix Ferrandiz
-//                    
+//
 //
 
 #if !defined(KRATOS_PRISM_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED )
@@ -191,7 +191,7 @@ public:
         std::stringstream buffer;
         buffer << "Prism Gauss-Legendre quadrature 3 ";
         return buffer.str();
-    }  
+    }
 protected:
 
 private:
@@ -540,6 +540,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PRISM_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_PRISM_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

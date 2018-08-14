@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
-//                    
+//
 //
 
 #if !defined(KRATOS_HEXAHEDRON_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED )
@@ -67,7 +67,7 @@ protected:
 private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
-    
+
 }; // Class HexahedronGaussLobattoIntegrationPoints1
 
 class KRATOS_API(KRATOS_CORE) HexahedronGaussLobattoIntegrationPoints2
@@ -122,6 +122,6 @@ private:
 
 }
 
-#endif // KRATOS_HEXAHEDRON_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined 
+#endif // KRATOS_HEXAHEDRON_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined
 
 

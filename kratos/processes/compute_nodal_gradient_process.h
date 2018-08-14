@@ -39,7 +39,7 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -52,7 +52,7 @@ namespace Kratos
 /** This process computes the gradient of a certain variable stored in the nodes
 */
 
-template< int TDim, class TVarType, HistoricalValues THist> 
+template< int TDim, class TVarType, HistoricalValues THist>
 class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process
 {
@@ -191,7 +191,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrModelPart;                            // The main model part
     TVarType& mrOriginVariable;                        // The scalar variable to compute
     Variable<array_1d<double,3> >& mrGradientVariable; // The resultant gradient variable
@@ -206,7 +206,7 @@ private:
     ///@{
 
     // TODO: Try to use enable_if!!!
-    
+
     /**
      * This clears the gradient
      */
@@ -220,10 +220,10 @@ private:
      */
     double& GetGradient(
         Element::GeometryType& rThisGeometry,
-        unsigned int i, 
+        unsigned int i,
         unsigned int k
         );
-    
+
     /**
      * This divides the gradient value by the nodal area
      */
@@ -267,7 +267,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   ComputeNodalGradientProcess& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const ComputeNodalGradientProcess& rThis)
@@ -275,13 +275,13 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 ///@}
-    
+
 }  // namespace Kratos.
 
-#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined 
+#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined
 
 

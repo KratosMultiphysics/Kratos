@@ -75,8 +75,8 @@ public:
     typedef std::vector<CoordinateType>         CoordinateVectorType;
     typedef std::vector<IteratorType>           IteratorVectorType;
     typedef std::vector<DistanceIteratorType>   DistanceIteratorVectorType;
-    
-    
+
+
 public:
 
     //************************************************************************
@@ -406,9 +406,9 @@ public:
         Box.Set( CalculateCell(ThisPoint), mN );
         SearchNearestPointLocal( ThisPoint, rResult, rResultDistance, Box );
     }
-    
+
     //************************************************************************
-        
+
     void SearchNearestPoint( PointType* const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
     {
         #pragma omp parallel for
@@ -481,7 +481,7 @@ public:
         Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
         SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
     }
-    
+
     //************************************************************************
 
     void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateVectorType const& Radius, IteratorVectorType Results,

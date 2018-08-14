@@ -21,7 +21,7 @@
 /* Project includes */
 #include "solving_strategies/schemes/residual_based_bdf_scheme.h"
 #include "includes/variables.h"
-#include "includes/checks.h" 
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -40,11 +40,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class ResidualBasedBDFDisplacementScheme
  * @ingroup KratosCore
  * @brief BDF integration scheme (displacement based)
- * @details The \f$ n \f$ order Backward Differentiation Formula (BDF) method is a two step \f$ n \f$ order accurate method. 
+ * @details The \f$ n \f$ order Backward Differentiation Formula (BDF) method is a two step \f$ n \f$ order accurate method.
  * Look at the base class for more details
  * @see ResidualBasedBDFScheme
  * @author Vicente Mataix Ferrandiz
@@ -59,9 +59,9 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBDFDisplacementScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
-    
+
     typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
-    
+
     typedef ResidualBasedBDFScheme<TSparseSpace,TDenseSpace>               BDFBaseType;
 
     typedef typename BDFBaseType::TDataType                                  TDataType;
@@ -167,7 +167,7 @@ public:
             const array_1d<double, 3>& dot2un0 = it_node->FastGetSolutionStepValue(ACCELERATION);
             array_1d<double, 3>& dotun0 = it_node->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-            
+
             if (it_node->HasDofFor(ACCELERATION_X)) {
                 if (it_node -> IsFixed(ACCELERATION_X)) {
                     dotun0[0] = (dot2un0[0] - BDFBaseType::mBDF[1] * dotun1[0])/BDFBaseType::mBDF[0];
@@ -203,11 +203,11 @@ public:
                     un0[2] = un1[2] + delta_time * dotun1[2] + 0.5 * std::pow(delta_time, 2) * dot2un1[2];
                 }
             }
-            
+
             for (std::size_t i_order = 2; i_order < BDFBaseType::mOrder + 1; ++i_order) {
                 const array_1d<double, 3>& dotun = it_node->FastGetSolutionStepValue(VELOCITY,     i_order);
                 const array_1d<double, 3>& un = it_node->FastGetSolutionStepValue(DISPLACEMENT, i_order);
-                
+
                 if (it_node->HasDofFor(ACCELERATION_X)) {
                     if (it_node -> IsFixed(ACCELERATION_X)) {
                         dotun0[0] -= (BDFBaseType::mBDF[i_order] * dotun[0])/BDFBaseType::mBDF[0];
@@ -249,7 +249,7 @@ public:
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. 
+     * on the input provided.
      * @details Checks can be "expensive" as the function is designed
      * to catch user's errors.
      * @param rModelPart The model of the problem to solve
@@ -265,23 +265,23 @@ public:
 
         // Check for variables keys
         // Verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT) 
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY) 
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION) 
+        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
 
         // Check that variables are correctly allocated
         for(auto& rnode : rModelPart.Nodes()) {
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode) 
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode) 
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode) 
-    
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
+
             KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
-            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode) 
-            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode) 
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
         }
 
         KRATOS_CATCH( "" );
-        
+
         return 0;
     }
 
@@ -317,12 +317,12 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * @brief Updating first time derivative (velocity)
      * @param itNode the node interator
      */
-    
+
     inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
         array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(VELOCITY);
@@ -335,7 +335,7 @@ protected:
      * @brief Updating second time derivative (acceleration)
      * @param itNode the node interator
      */
-    
+
     inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {
         array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
@@ -343,7 +343,7 @@ protected:
         for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
             noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -372,7 +372,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     ///@}
     ///@name Private  Access
     ///@{

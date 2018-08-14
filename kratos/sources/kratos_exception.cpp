@@ -2,20 +2,20 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos Roig
-//                   Pooyan Dadvand 
+//                   Pooyan Dadvand
 //
 
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -26,28 +26,28 @@
 namespace Kratos
 {
 
-	KratosException::KratosException() 
+	KratosException::KratosException()
 		: std::exception(), mWhat("Unknown Error"), mWhere("Unknown origin"), mMessage("Unknown Error")
 	{
 		mWhat.append("\n");
 		mWhat.append(mWhere);
 	}
 
-	KratosException::KratosException(const std::string& rWhat ) 
+	KratosException::KratosException(const std::string& rWhat )
 		: std::exception(), mWhat(rWhat), mWhere("Unknown origin"), mMessage(rWhat)
 	{
 		mWhat.append("\n");
 		mWhat.append(mWhere);
 	}
 
-	KratosException::KratosException(const std::string& rWhat, const std::string& rWhere) 
+	KratosException::KratosException(const std::string& rWhat, const std::string& rWhere)
 		: std::exception(), mWhat(rWhat), mWhere(rWhere), mMessage(rWhat)
 	{
 		mWhat.append("\n");
 		mWhat.append(mWhere);
 	}
 
-	KratosException::KratosException(const KratosException& rOther) 
+	KratosException::KratosException(const KratosException& rOther)
 		: std::exception(rOther), mWhat(rOther.mWhat), mWhere(rOther.mWhere), mMessage(rOther.mMessage)
 	{
 	}
@@ -92,7 +92,7 @@ namespace Kratos
 	{
 		return "KratosException";
 	}
-      
+
       /// Print information about this object.
     void KratosException::PrintInfo(std::ostream& rOStream) const
 	{

@@ -18,7 +18,7 @@
 // Project includes
 #include "modeler/tetrahedra_edge_shell.h"
 #include "includes/element.h"
- 
+
 namespace Kratos
 {
 	TetrahedraEdgeShell::TetrahedraEdgeShell(PointType& EdgePoint1, PointType& EdgePoint2)

@@ -37,7 +37,7 @@ namespace Kratos
         mrStream << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
         mrStream << "           Multi-Physics "<< KRATOS_VERSION << std::endl;
     }
-    
+
     void LoggerOutput::WriteMessage(LoggerMessage const& TheMessage)
     {
 		auto message_severity = TheMessage.GetSeverity();

@@ -139,20 +139,20 @@ public:
         KRATOS_TRY;
 
         ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
-        
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
             auto it_elem = rModelPart.ElementsBegin() + i;
             it_elem->InitializeNonLinearIteration(current_process_info);
         }
-        
-        
+
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
             auto it_elem = rModelPart.ConditionsBegin() + i;
             it_elem->InitializeNonLinearIteration(current_process_info);
-        }     
-        
+        }
+
         KRATOS_CATCH( "" );
     }
 
@@ -169,7 +169,7 @@ public:
     {
         pCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
-    
+
     /**
      * @brief It initializes a non-linear iteration (for an individual element)
      * @param pElement The element to compute
@@ -336,7 +336,7 @@ public:
 
         KRATOS_CATCH( "" );
     }
-    
+
     /**
      * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
      * @param rModelPart The model of the problem to solve
@@ -344,7 +344,7 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-    
+
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -361,13 +361,13 @@ public:
         const double delta_time = current_process_info[DELTA_TIME];
 
         KRATOS_ERROR_IF(delta_time < 1.0e-24) << "ERROR:: Detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current time step" << std::endl;
-        
+
         KRATOS_CATCH( "" );
     }
-    
+
     /**
      * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. 
+     * on the input provided.
      * @details Checks can be "expensive" as the function is designed
      * to catch user's errors.
      * @param rModelPart The model of the problem to solve
@@ -382,7 +382,7 @@ public:
         if(err!=0) return err;
 
         return 0;
-        
+
         KRATOS_CATCH( "" );
     }
 
@@ -417,9 +417,9 @@ protected:
         std::vector< Matrix > M; /// First derivative matrix  (usually mass matrix)
         std::vector< Matrix > D; /// Second derivative matrix (usually damping matrix)
     };
-    
+
     GeneralMatrices mMatrix;
-    
+
     ///@}
     ///@name Protected Operators
     ///@{

@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED )

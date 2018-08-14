@@ -151,8 +151,8 @@ public:
 
         this->SetTolerance( settings["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
-        
-        
+
+
         KRATOS_CATCH("")
     }
 
@@ -530,6 +530,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ITERATIVE_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_ITERATIVE_SOLVER_H_INCLUDED  defined
 
 

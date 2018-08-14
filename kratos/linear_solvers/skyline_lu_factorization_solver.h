@@ -576,7 +576,7 @@ public:
     /// Default constructor.
     SkylineLUFactorizationSolver() {}
     SkylineLUFactorizationSolver(Parameters settings): BaseType(settings) {}
-    
+
     /// Destructor.
     ~SkylineLUFactorizationSolver() override {}
 
@@ -789,6 +789,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SKYLINE_LU_FACTORIZATION_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_SKYLINE_LU_FACTORIZATION_SOLVER_H_INCLUDED  defined
 
 

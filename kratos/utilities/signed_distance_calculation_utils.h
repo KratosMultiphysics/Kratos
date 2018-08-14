@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #ifndef _SIGNED_DISTANCE_CALCULATION_UTILS_H
@@ -120,7 +120,7 @@ public:
 
      //   r_model_part.GetCommunicator().SynchronizeCurrentDataToMin(rDistanceVar);
     }
-    
+
     //***********************************************************************
     //***********************************************************************
     void CalculateDistances2D(
@@ -347,7 +347,7 @@ public:
 
         std::vector<array_1d<double,TDim + 1> > distances;
         std::vector<Element::Pointer> interface_elements;
-        
+
          //copy rDistance var to GetValue database
         for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
         {
@@ -364,7 +364,7 @@ public:
 
             bool positive = false;
             bool negative = false;
-            
+
             // loop over nodes to see if they have positive or negative distance.
             for(unsigned int i_node = 0; i_node < element_geometry.size() ; i_node++)
             {
@@ -380,7 +380,7 @@ public:
                 distances.push_back(element_distance);
             }
         }
-        
+
         // Reset the distance to a large value maintaining the sign
         for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
         {

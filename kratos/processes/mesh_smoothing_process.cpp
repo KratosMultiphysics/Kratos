@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+	
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -28,7 +28,7 @@
 namespace Kratos
 {
 
-	KRATOS_CREATE_LOCAL_FLAG(MeshSmoothingProcess, LAPLACIAN_SMOOTHING, 0); 
+	KRATOS_CREATE_LOCAL_FLAG(MeshSmoothingProcess, LAPLACIAN_SMOOTHING, 0);
 	KRATOS_CREATE_LOCAL_FLAG(MeshSmoothingProcess, EDGE_LENGTH_SMOOTHING, 1);
 	KRATOS_CREATE_LOCAL_FLAG(MeshSmoothingProcess, MOVEMENT_SMOOTHING, 2);
 	KRATOS_CREATE_LOCAL_FLAG(MeshSmoothingProcess, MULTI_LEVEL_SMOOTHING, 3);
@@ -39,7 +39,7 @@ namespace Kratos
 	{
 
 	}
-  
+
 	MeshSmoothingProcess::~MeshSmoothingProcess()
 	{
 
@@ -209,7 +209,7 @@ namespace Kratos
 
 		//return;
 		//// This algorithm can be return with less loop but has been return like this to be MPI compatible
-		//// The VISITED flag is used 
+		//// The VISITED flag is used
 		//int loop_counter = 0;
 		//for (ModelPart::NodeIterator i_node = rOriginalMesh.NodesBegin(); i_node != rOriginalMesh.NodesEnd(); i_node++)
 		//{
@@ -261,7 +261,7 @@ namespace Kratos
 		//				}
 		//			}
 		//		}
-		//		else 
+		//		else
 		//		{
 		//			bool is_seed = true; // as a candidate
 		//			WeakPointerVector< Node<3> >& r_neighbours = i_node->GetValue(NEIGHBOUR_NODES);
@@ -305,7 +305,7 @@ namespace Kratos
 		{
 			i_node->GetValue(FATHER_NODES).clear();
 			i_node->Set(COARSE_MESH_NODE, false);
-			if (i_node->Is(BOUNDARY)) // We want to keep all the boundary nodes 
+			if (i_node->Is(BOUNDARY)) // We want to keep all the boundary nodes
 				i_node->Set(COARSE_MESH_NODE);
 		}
 
@@ -406,7 +406,7 @@ namespace Kratos
 					ChangeElmentCoarseNodes(*i_element); // Find another coarse nodes to collapse in order to get better result.
 
 				rCoarsMesh.AddElement(p_new_element);
-			} 
+			}
 		}
 
 

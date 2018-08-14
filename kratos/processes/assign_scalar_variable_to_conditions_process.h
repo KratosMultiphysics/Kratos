@@ -40,7 +40,7 @@ public:
     ///@{
 
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
-    
+
     /// Pointer definition of AssignScalarVariableToConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarVariableToConditionsProcess);
 
@@ -50,7 +50,7 @@ public:
     AssignScalarVariableToConditionsProcess(
         ModelPart& rModelPart,
         Parameters rParameters
-        ) : Process(Flags()) , 
+        ) : Process(Flags()) ,
             mrModelPart(rModelPart)
     {
         KRATOS_TRY
@@ -68,7 +68,7 @@ public:
 
         mmesh_id       = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
-        
+
         if( KratosComponents< Variable<double> >::Has( mvariable_name )) //case of double variable
         {
             mdouble_value = rParameters["value"].GetDouble();
@@ -256,7 +256,7 @@ private:
             }
         }
     }
-    
+
     template< class TVarType, class TDataType >
     void InternalAssignValueSerial(TVarType& rVar, const TDataType value)
     {

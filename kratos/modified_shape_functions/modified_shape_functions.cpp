@@ -78,7 +78,7 @@ namespace Kratos
 
         const unsigned int nedges = mpInputGeometry->EdgesNumber();
         const unsigned int nnodes = mpInputGeometry->PointsNumber();
-            
+
         // Initialize intersection points condensation matrix
         rIntPointCondMatrix = ZeroMatrix(nnodes + nedges, nnodes);
 
@@ -212,7 +212,7 @@ namespace Kratos
         const unsigned int split_edges_size = n_edges + n_nodes;                                             // Split edges vector size
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
         const unsigned int n_dim = (*rParentGeometriesVector[0]).Dimension();                                // Number of dimensions
-        const unsigned int n_int_pts = 
+        const unsigned int n_int_pts =
             n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
@@ -293,7 +293,7 @@ namespace Kratos
                 aux_grad_sh_func_local = r_parent_geom.ShapeFunctionsLocalGradients(aux_grad_sh_func_local, loc_coords);
                 jac_mat = r_parent_geom.Jacobian(jac_mat, loc_coords);
                 MathUtils<double>::InvertMatrix( jac_mat, inv_jac_mat, det_jac );
-                aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat); 
+                aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat);
 
                 Matrix aux_grad_sh_func_exp = ZeroMatrix(n_dim, split_edges_size);
                 for (unsigned int dim = 0; dim < n_dim; ++dim ) {
@@ -316,7 +316,7 @@ namespace Kratos
 
         // Set some auxiliar variables
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
-        const unsigned int n_int_pts = 
+        const unsigned int n_int_pts =
             n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
@@ -353,7 +353,7 @@ namespace Kratos
 
         // Initialize the output matrix. Note that the non-split edges values must be equal to zero
         rEdgeShapeFunctionValues = ZeroMatrix(n_edges, n_nodes);
-        
+
         // Take the shape function values from the condensation matrix
         for (unsigned int i_edge = 0; i_edge < n_edges; ++i_edge){
             const unsigned int p_mat_row = n_nodes + i_edge;

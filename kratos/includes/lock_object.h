@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+	
 #if !defined(KRATOS_LOCK_OBJECT_H_INCLUDED )
 #define  KRATOS_LOCK_OBJECT_H_INCLUDED
 
@@ -25,18 +25,18 @@ namespace Kratos
 
   ///@name Kratos Classes
   ///@{
-  
+
   /// This class defines stores a lock and gives interface to it.
   /** The class makes a tiny wrapper over the OpenMP Lock and also
-  provides some auxiliary methods to obtain number of threads and 
+  provides some auxiliary methods to obtain number of threads and
   current thread number
   */
   class LockObject
     {
     public:
-      ///@name Life Cycle 
-      ///@{ 
-      
+      ///@name Life Cycle
+      ///@{
+
       /// Default constructor.
 		LockObject() noexcept {
 #ifdef _OPENMP
@@ -74,7 +74,7 @@ namespace Kratos
 		}
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
 
 	  /// Assignment operator.
@@ -85,11 +85,11 @@ namespace Kratos
 			return *this;
 		}
 
-      
+
       ///@}
       ///@name Operations
       ///@{
-      
+
 		static inline int GetNumberOfThreads()
 		{
 #ifdef _OPENMP
@@ -110,8 +110,8 @@ namespace Kratos
 
       ///@}
       ///@name Access
-      ///@{ 
-      
+      ///@{
+
 #ifdef _OPENMP
 		omp_lock_t& GetLock() const
 		{
@@ -136,26 +136,26 @@ namespace Kratos
 		}
 
       ///@}
-      
+
     private:
-      ///@name Member Variables 
-      ///@{ 
-        
+      ///@name Member Variables
+      ///@{
+
 #ifdef _OPENMP
 		mutable omp_lock_t mLock;
 #endif
 
-      ///@}    
-        
-    }; // Class LockObject 
+      ///@}
 
-  ///@} 
-  
+    }; // Class LockObject
+
+  ///@}
+
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_LOCK_OBJECT_H_INCLUDED  defined 
+#endif // KRATOS_LOCK_OBJECT_H_INCLUDED  defined
 
 

@@ -306,7 +306,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
     scope().attr(#flag) = std::ref(flag)      \
- 
+
 #ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG
 #endif
@@ -314,8 +314,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
 
-    
-    
+
+
 #if __cplusplus >= 201402L
 #define KRATOS_DEPRECATED [[deprecated]]
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
@@ -330,7 +330,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_DEPRECATED
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message)
 #endif
-    
+
 
 namespace Kratos
 {

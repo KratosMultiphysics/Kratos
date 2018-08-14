@@ -55,7 +55,7 @@ namespace Kratos
 
 /// Point class.
 /** Point class. Stores coordinates of a point and have some basic
-    operations defined. 
+    operations defined.
 
 @see Geometry
 @see Node

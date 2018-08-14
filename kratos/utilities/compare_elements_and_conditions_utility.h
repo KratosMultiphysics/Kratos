@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:    
+//  Main author:
 //
 
 #if !defined(KRATOS_COMPARE_ELEMENTS_AND_CONDITIONS_UTILITY_H_INCLUDED)

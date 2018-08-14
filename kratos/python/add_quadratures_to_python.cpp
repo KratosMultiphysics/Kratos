@@ -59,7 +59,7 @@ void  AddQuadraturesToPython(pybind11::module& m)
     ContainerInterface<  Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints1,1,Kratos::IntegrationPoint<3> > >::CreateInterface(m, "IntegrationPointsArray");
     ContainerInterface<  Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints1,2,Kratos::IntegrationPoint<3> > >::CreateInterface(m, "IntegrationPoints2DArray");
     ContainerInterface<  Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints1,3,Kratos::IntegrationPoint<3> > >::CreateInterface(m, "IntegrationPoints3DArray");
-    
+
 //     AddIntegrationPointsArray("IntegrationPointsArray", Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints1,1,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
 //     AddIntegrationPointsArray("IntegrationPoint2DsArray", Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints<1>,2,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
 //     AddIntegrationPointsArray("IntegrationPoint3DsArray", Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints<1>,3,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());

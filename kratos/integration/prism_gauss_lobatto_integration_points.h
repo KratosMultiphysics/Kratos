@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
-//                    
+//
 //
 
 #if !defined(KRATOS_PRISM_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED )
@@ -64,7 +64,7 @@ protected:
 private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
-    
+
 }; // Class PrismGaussLobattoIntegrationPoints1
 
 class KRATOS_API(KRATOS_CORE) PrismGaussLobattoIntegrationPoints2
@@ -117,6 +117,6 @@ private:
 
 }
 
-#endif // KRATOS_PRISM_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined 
+#endif // KRATOS_PRISM_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined
 
 

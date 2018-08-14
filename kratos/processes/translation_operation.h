@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_TRANSLATION_OPERATION_H_INCLUDED )
@@ -43,7 +43,7 @@ namespace Kratos
 
 /// The Transalation Operation.
 /** This Operation is a derived class from the process.h
- *  
+ *
 */
 
 class TranslationOperation : public Process
@@ -88,7 +88,7 @@ public:
 
     /// Execute method is used to execute the Process algorithms.
     /*
-    virtual void Execute() 
+    virtual void Execute()
     {
 
     }
@@ -123,7 +123,7 @@ public:
 	//tables are used in the following way
 	//table(table_ids[0]) is the x displacement, table(table_ids[1]) is the y_displacement and table(table_ids[2]) is the z_displacement
 	//table0(time,displacement(time)
-    
+
 	Table<double,double>& TranslationTableX = mr_model_part.GetTable(mtable_ids[0]);
 	Table<double,double>& TranslationTableY = mr_model_part.GetTable(mtable_ids[1]);
 	Table<double,double>& TranslationTableZ = mr_model_part.GetTable(mtable_ids[2]);
@@ -136,21 +136,21 @@ public:
 	
 	for (unsigned int mesh_index=0;mesh_index<mgroup_ids.size();mesh_index++) //we loop around the desired groups
 	{
-      
+
 		const int mesh_id=mgroup_ids[mesh_index];
 		ModelPart::MeshType& current_mesh = mr_model_part.GetMesh(mesh_id);
 		ModelPart::NodesContainerType::iterator inodebegin = current_mesh.NodesBegin();
 
-		#pragma omp parallel 
-        
+		#pragma omp parallel
+
         #pragma omp for
 		for(int ii=0; ii< static_cast<int>(current_mesh.Nodes().size()); ii++)
 		{
-                    
+
 			ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
-            
+
 			pnode->Coordinates() = pnode->GetInitialPosition().Coordinates()+translation;
-            
+
 			if (pnode->SolutionStepsDataHas(DISPLACEMENT_X))
             {
 
@@ -284,6 +284,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRANSLATION_OPERATION_H_INCLUDED  defined 
+#endif // KRATOS_TRANSLATION_OPERATION_H_INCLUDED  defined
 
 

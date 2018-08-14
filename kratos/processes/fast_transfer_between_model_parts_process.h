@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//                    
+//
 //
 
 #if !defined(KRATOS_FAST_TRANSFER_BETWEEN_MODEL_PARTS_PROCESS_H_INCLUDED )
@@ -39,7 +39,7 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-        
+
 ///@name Kratos Classes
 ///@{
 
@@ -96,7 +96,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /**
      * @brief Default constructor. Without flag
      * @param rDestinationModelPart The destination model part
@@ -204,21 +204,21 @@ private:
     ///@{
 
     ModelPart& mrDestinationModelPart; /// The destination model part
-    
+
     ModelPart& mrOriginModelPart;      /// The origin model part
-    
+
     const EntityTransfered mEntity;    /// The entity to transfer
 
     const Flags mFlag;                 /// A flag in order to tranfer only components with that flag
-    
+
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * @brief This method transfer the entities without considering the flags
      */

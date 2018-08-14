@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
 //                   Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_BINBASED_NODES_IN_ELEMENT_LOCATOR_INCLUDED )
@@ -189,10 +189,10 @@ private:
      */
     inline void CalculateCenterAndSearchRadius(
         Geometry<Node<3> >&geom,
-        double& xc, 
-        double& yc, 
-        double& zc, 
-        double& R, 
+        double& xc,
+        double& yc,
+        double& zc,
+        double& R,
         array_1d<double,3>& N
         )
     {
@@ -228,10 +228,10 @@ private:
      */
     inline void CalculateCenterAndSearchRadius(
         Geometry<Node<3> >&geom,
-        double& xc, 
-        double& yc, 
-        double& zc, 
-        double& R, 
+        double& xc,
+        double& yc,
+        double& zc,
+        double& R,
         array_1d<double,4>& N
         )
     {
@@ -272,12 +272,12 @@ private:
      * @param yc The Y coordinate of the center
      * @param zc The Z coordinate of the center
      * @param N The shape function
-     * @return False if is not possible to compute, true if it is  
+     * @return False if is not possible to compute, true if it is
      */
     inline bool CalculatePosition(
         Geometry<Node < 3 > >&geom,
-        const double xc, 
-        const double yc, 
+        const double xc,
+        const double yc,
         const double zc,
         array_1d<double, 3 > & N
         )
@@ -318,12 +318,12 @@ private:
      * @param yc The Y coordinate of the center
      * @param zc The Z coordinate of the center
      * @param N The shape function
-     * @return False if is not possible to compute, true if it is  
+     * @return False if is not possible to compute, true if it is
      */
     inline bool CalculatePosition(
         Geometry<Node < 3 > >&geom,
         const double xc,
-         const double yc, 
+         const double yc,
          const double zc,
         array_1d<double, 4 > & N
         )

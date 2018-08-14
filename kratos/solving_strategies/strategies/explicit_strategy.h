@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 
@@ -19,7 +19,7 @@
 
 /* System includes */
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
 /////////#define _OPENMP
@@ -44,11 +44,11 @@
 
 namespace Kratos
 {
-  
+
  template<
  class TSparseSpace,
- class TDenseSpace, 
- class TLinearSolver> 
+ class TDenseSpace,
+ class TLinearSolver>
  class ExplicitStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
 
@@ -59,11 +59,11 @@ namespace Kratos
 	  typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
 	  typedef typename BaseType::TDataType TDataType;
-	  
+	
 	  typedef TSparseSpace SparseSpaceType;
 
 	  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
-	  
+	
 	  typedef typename BaseType::TSchemeType TSchemeType;
 
 	  typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -83,9 +83,9 @@ namespace Kratos
 	  typedef ModelPart::ElementsContainerType ElementsArrayType;
 
 	  typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-	  
+	
 	  typedef ModelPart::ConditionsContainerType::ContainerType ConditionsContainerType;
-      
+
 	  typedef ConditionsContainerType::iterator                 ConditionsContainerIterator;
 
 	  typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
@@ -101,12 +101,12 @@ namespace Kratos
 
           //typedef WeakPointerVector<Element > ParticleWeakVector;
           //typedef WeakPointerVector<Element >::iterator ParticleWeakIterator;
-	  
+	
 
 
 
 	  ExplicitStrategy(
-	                ModelPart& model_part, 
+	                ModelPart& model_part,
 			const int        dimension,
 			const bool       move_mesh_flag
 			)
@@ -116,11 +116,11 @@ namespace Kratos
 			std::cout<< "*************************************"<< std::endl;
 	        std::cout <<"*   EXPLICIT CALCULATIONS STRATEGY  *"<< std::endl;
             std::cout<< "*************************************"<< std::endl;
-       
+
 	      }
 
 	  ~ExplicitStrategy () override {}
-	           
+	
 
 
 //***************************************************************************
@@ -133,7 +133,7 @@ void AssembleLoop()
 	ModelPart& r_model_part = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 	ElementsArrayType& pElements = r_model_part.Elements();
-  
+
 
 	typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
 	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
@@ -158,13 +158,13 @@ void AssembleLoop()
 
 //***************************************************************************
 //***************************************************************************
-        
+
 void NormalizeVariable(const Variable<array_1d<double, 3 > >& rRHSVariable, const Variable<double >& rNormalizationVariable)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double delta_t = CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
 
       #ifdef _OPENMP
@@ -176,30 +176,30 @@ void NormalizeVariable(const Variable<array_1d<double, 3 > >& rRHSVariable, cons
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 		   array_1d<double,3>& node_rhs_variable = (i)->FastGetSolutionStepValue(rRHSVariable);
 		   double& normalization_variable = (i)->FastGetSolutionStepValue(rNormalizationVariable);
-		   
-		   node_rhs_variable /= normalization_variable;		   
+		
+		   node_rhs_variable /= normalization_variable;		
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
 }
 
 void ExplicitUpdateLoop(const Variable<array_1d<double, 3 > >& rUpdateVariable, const Variable<array_1d<double, 3 > >& rRHSVariable, const double& factor)
 {
       KRATOS_TRY
-      
+
       ModelPart& r_model_part  = BaseType::GetModelPart();
-      NodesArrayType& pNodes   = r_model_part.Nodes(); 
+      NodesArrayType& pNodes   = r_model_part.Nodes();
 	  //const double delta_t = CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
 
       #ifdef _OPENMP
@@ -211,21 +211,21 @@ void ExplicitUpdateLoop(const Variable<array_1d<double, 3 > >& rUpdateVariable, 
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-      #pragma omp parallel for 
+      #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
 		   array_1d<double,3>& node_update_variable = (i)->FastGetSolutionStepValue(rUpdateVariable);
 		   array_1d<double,3>& node_rhs_variable = (i)->FastGetSolutionStepValue(rRHSVariable);
 		   noalias(node_update_variable) += factor* node_rhs_variable  ;
-		   
+		
 	  }
 	}
-                             
+
      KRATOS_CATCH("")
 }
 
@@ -238,14 +238,14 @@ inline void CreatePartition(unsigned int number_of_threads, const int number_of_
       for(unsigned int i = 1; i<number_of_threads; i++)
       partitions[i] = partitions[i-1] + partition_size ;
   }
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
   //********************************************
   //********************************************
 void InitializeSolutionStep() override
@@ -255,7 +255,7 @@ void InitializeSolutionStep() override
 	ModelPart& r_model_part = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 	ElementsArrayType& pElements = r_model_part.Elements();
-  
+
 
 	typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
 	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
@@ -274,7 +274,7 @@ void FinalizeSolutionStep() override
 	ModelPart& r_model_part = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 	ElementsArrayType& pElements = r_model_part.Elements();
-  
+
 
 	typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
 	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();

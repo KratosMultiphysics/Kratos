@@ -178,7 +178,7 @@ public:
         TCoordinateType NewDistance;
         for(TIteratorType Point = RangeBegin ; Point != RangeEnd ; Point++)
         {
-            NewDistance = TDistanceFunction()(**Point,ThisPoint);            
+            NewDistance = TDistanceFunction()(**Point,ThisPoint);
             if( NewDistance < Distance )
             {
                 Result = *Point;
@@ -373,9 +373,9 @@ public:
             Block *= MaxSize_[i-1];
             Axis[i].Set(Min_[i],Max_[i],MaxSize_[i],Block);
         }
-        
+
         DataBegin = IteratorBegin;
-        
+
         RowBegin = DataBegin + Axis[0].Min;
         RowEnd   = DataBegin + Axis[0].Max + 1;
     }
@@ -410,20 +410,20 @@ public:
     {
         for(SizeType i = 0; i < Dimension; i++)
             ++(Axis[i]);
-        
+
         RowBegin = DataBegin + Axis[0].Min;
         RowEnd   = DataBegin + Axis[0].Max + 1;
-        
+
         return *this;
     }
     SearchStructure const& operator--()
     {
         for(SizeType i = 0; i < Dimension; i++)
             (Axis[i])--;
-        
+
         RowBegin = DataBegin + Axis[0].Min;
         RowEnd   = DataBegin + Axis[0].Max + 1;
-        
+
         return *this;
     }
 

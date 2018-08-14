@@ -227,6 +227,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VECTOR_VECTOR_OPERATOR_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_VECTOR_VECTOR_OPERATOR_PYTHON_H_INCLUDED  defined
 
 

@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -496,7 +496,7 @@ protected:
             consecutive_nodeids_map[ *it ] = consecutive_id;
             consecutive_id++;
         }
-        
+
         ///////////////////////////////////////////////////
         //now order consecutively elements - reuse original_ids_set since it is not needed anymore - note that it requires two loops!
         ///////////////////////////////////////////////////
@@ -509,7 +509,7 @@ protected:
                 {
 
                     rapidjson::Value& connectivity = itr->value["connectivity"];
-                    
+
                     for (SizeType i = 0; i < connectivity.Size(); i++)
                     {
                         rapidjson::Value& local_data = connectivity[i];
@@ -524,8 +524,8 @@ protected:
         {
             consecutive_elementids_map[ *it ] = consecutive_id;
             consecutive_id++;
-        }        
-        
+        }
+
         ///////////////////////////////////////////////////
         //finally order consecutively conditions - reuse original_ids_set since it is not needed anymore - note that it requires two loops!
         ///////////////////////////////////////////////////
@@ -538,7 +538,7 @@ protected:
                 {
 
                     rapidjson::Value& connectivity = itr->value["connectivity"];
-                    
+
                     for (SizeType i = 0; i < connectivity.Size(); i++)
                     {
                         rapidjson::Value& local_data = connectivity[i];
@@ -553,8 +553,8 @@ protected:
         {
             consecutive_conditionids_map[ *it ] = consecutive_id;
             consecutive_id++;
-        }        
-        
+        }
+
 
         //now modify the json data inplace for the new consecutive_nodeids_map
         for(rapidjson::SizeType i = 0; i < json_nodes.Size(); i++) // rapidjson uses SizeType instead of size_t.
@@ -597,7 +597,7 @@ protected:
                         if(json_nodepointers.IsArray() == false) KRATOS_THROW_ERROR(std::invalid_argument, "the NodePointers section is not a json array as expected!!","")
                             for(rapidjson::SizeType i=0; i<json_nodepointers.Size(); i++) json_nodepointers[i].SetInt(  consecutive_nodeids_map[ json_nodepointers[i].GetInt()]  );
                     }
-                    
+
                     if((itr->value).HasMember("ElementPointers"))
                     {
                         rapidjson::Value& json_elementpointers = (itr->value)["ElementPointers"];
@@ -626,7 +626,7 @@ protected:
                 {
 
                     rapidjson::Value& connectivity = itr->value["connectivity"];
-                    
+
                     for (SizeType i = 0; i < connectivity.Size(); i++)
                     {
                         rapidjson::Value& local_data = connectivity[i];
@@ -659,8 +659,8 @@ protected:
                     }
                 }
         }
-        
-        
+
+
 
     }
 
@@ -828,5 +828,5 @@ protected:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_JSON_IO_H_INCLUDED  defined 
+#endif // KRATOS_JSON_IO_H_INCLUDED  defined
 

@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -91,7 +91,7 @@ public:
         else return false;
         KRATOS_CATCH("")
     }
-    
+
 
 //            virtual void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& rModelPart,
 //                                        double SolutionTag, unsigned int ValueIndex )
@@ -150,7 +150,7 @@ public:
                             int index = mIndexContainer[i];
                             GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[index] );
                         }
-                    }           
+                    }
                 }
             }
             if( mMeshConditions.size() != 0 )
@@ -167,7 +167,7 @@ public:
                             int index = mIndexContainer[i];
                             GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[index] );
                         }
-                    }                
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
@@ -197,7 +197,7 @@ public:
                             int index = mIndexContainer[i];
                             GiD_fWriteScalar( ResultFile, it->Id(), double(ValuesOnIntPoint[index]) );
                         }
-                    }             
+                    }
                 }
             }
             if( mMeshConditions.size() != 0 )
@@ -214,7 +214,7 @@ public:
                             int index = mIndexContainer[i];
                             GiD_fWriteScalar( ResultFile, it->Id(), double(ValuesOnIntPoint[index]) );
                         }
-                    }               
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
@@ -247,7 +247,7 @@ public:
                                 GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
                                                  ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
                         }
-                    }               
+                    }
                 }
             }
             if( mMeshConditions.size() != 0 )
@@ -298,7 +298,7 @@ public:
                                                ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
                                                ValuesOnIntPoint[index][5] );
                         }
-                    }             
+                    }
                 }
             }
             if( mMeshConditions.size() != 0 )
@@ -318,7 +318,7 @@ public:
                                                ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
                                                ValuesOnIntPoint[index][5] );
                         }
-                    }                   
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
@@ -377,7 +377,7 @@ public:
                                 GiD_fWrite3DMatrix( ResultFile, it->Id(), values[0], values[1], values[2],
                                     values[3], values[4], values[5] );
                         }
-                    }                 
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
@@ -764,7 +764,7 @@ public:
             }
         }
     }
-    
+
 
 protected:
 
@@ -780,5 +780,5 @@ protected:
 };//class GidGaussPointsContainer
 }// namespace Kratos.
 
-#endif // KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED defined 
+#endif // KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED defined
 

@@ -206,7 +206,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFunction
             exterior_faces_parent_ids_vector,
             mpTriangleSplitter->mPositiveSubdivisions,
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rPositiveExteriorFaceShapeFunctionsValues,
@@ -248,7 +248,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFunction
             exterior_faces_parent_ids_vector,
             mpTriangleSplitter->mNegativeSubdivisions,
             FaceId);
-        
+
         // Compute the positive side external face values
         this->ComputeFaceValuesOnOneSide(
             rNegativeExteriorFaceShapeFunctionsValues,
@@ -310,7 +310,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputePositiveExteriorFaceAreaNormals(
             exterior_faces_parent_ids_vector,
             mpTriangleSplitter->mPositiveSubdivisions,
             FaceId);
-        
+
         // Compute the positive side interface outwars area normal values
         this->ComputeFaceNormalOnOneSide(rPositiveExteriorFaceAreaNormal,
                                               exterior_faces_vector,
@@ -371,7 +371,7 @@ void Triangle2D3ModifiedShapeFunctions::ComputeShapeFunctionsOnPositiveEdgeInter
 // Computes the negative side shape function values in the edges intersections
 void Triangle2D3ModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeIntersections(
     Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues){
-    
+
     if (this->IsSplit()) {
         // Note that positive and negative sides values are equal for standard shape functions
         this->ComputeShapeFunctionsOnPositiveEdgeIntersections(

@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
-//  
+//
+//
 
 
 #if !defined(KRATOS_VECTOR_MAP_ITERATOR_H_INCLUDED )
@@ -189,6 +189,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VECTOR_MAP_ITERATOR_H_INCLUDED  defined 
+#endif // KRATOS_VECTOR_MAP_ITERATOR_H_INCLUDED  defined
 
 

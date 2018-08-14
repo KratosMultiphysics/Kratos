@@ -121,7 +121,7 @@ namespace Testing {
         Point PointInEdge(0.33, 0.33, 0.33);
 
         Point LocalCoords;
-        
+
         KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
         KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
         KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));

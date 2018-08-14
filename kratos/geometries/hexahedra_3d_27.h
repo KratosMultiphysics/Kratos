@@ -33,7 +33,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A twenty-seven node hexahedra geometry with second order shape functions
  * @details The node ordering corresponds with:
- *      3----10----2   
+ *      3----10----2
  *      |\         |\
  *      |15    23  | 14
  *      9  \ 20   11  \
@@ -500,17 +500,17 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
@@ -790,7 +790,7 @@ public:
     Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
       if(rResult.size() != 27) rResult.resize(27,false);
-      
+
         double fx1 = 0.5 * ( rCoordinates[0] - 1.0 ) * ( rCoordinates[0] );
         double fx2 = 0.5 * ( rCoordinates[0] + 1.0 ) * ( rCoordinates[0] );
         double fx3 = 1.0 - ( rCoordinates[0] * rCoordinates[0] );
@@ -800,7 +800,7 @@ public:
         double fz1 = 0.5 * ( rCoordinates[2] - 1.0 ) * ( rCoordinates[2] );
         double fz2 = 0.5 * ( rCoordinates[2] + 1.0 ) * ( rCoordinates[2] );
         double fz3 = 1.0 - ( rCoordinates[2] * rCoordinates[2] );
-      
+
         rResult[0] = ( fx1*fy1*fz1 );
         rResult[1] = ( fx2*fy1*fz1 );
         rResult[2] = ( fx2*fy2*fz1 );
@@ -1467,4 +1467,4 @@ GeometryData Hexahedra3D27<TPointType>::msGeometryData(
 
 }// namespace Kratos.
 
-#endif // KRATOS_HEXAHEDRA_3D_27_H_INCLUDED  defined 
+#endif // KRATOS_HEXAHEDRA_3D_27_H_INCLUDED  defined

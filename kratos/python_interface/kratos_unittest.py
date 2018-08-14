@@ -37,7 +37,7 @@ def SupressConsoleOutput():
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
-        try:  
+        try:
             yield
         finally:
             sys.stdout = old_stdout
@@ -47,7 +47,7 @@ def SupressConsoleError():
     with open(os.devnull, "w") as devnull:
         old_stderr = sys.stderr
         sys.stderr = devnull
-        try:  
+        try:
             yield
         finally:
             sys.stderr = old_stderr
@@ -59,7 +59,7 @@ def SupressAllConsole():
         old_stdout = sys.stdout
         sys.stderr = devnull
         sys.stdout = devnull
-        try:  
+        try:
             yield
         finally:
             sys.stderr = old_stderr

@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 
@@ -44,7 +44,7 @@ namespace Kratos
 
 /// The Rotation Operation.
 /** This Operation is a derived class from the process.h
- *  
+ *
 */
 
 class RotationOperation : public Process
@@ -89,7 +89,7 @@ public:
 
     /// Execute method is used to execute the Process algorithms.
     /*
-    virtual void Execute() 
+    virtual void Execute()
     {
 
     }
@@ -308,6 +308,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ROTATION_OPERATION_H_INCLUDED  defined 
+#endif // KRATOS_ROTATION_OPERATION_H_INCLUDED  defined
 
 

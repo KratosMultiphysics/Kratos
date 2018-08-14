@@ -39,8 +39,8 @@ typedef ConstitutiveLaw ConstitutiveLawBaseType;
 template<class TVariableType> bool ConstitutiveLawHas(ConstitutiveLaw& rThisConstitutiveLaw, TVariableType const& rThisVariable) { return rThisConstitutiveLaw.Has(rThisVariable); }
 
 //dirty trick. give back a copy instead of a reference
-template<class TDataType> const TDataType ConstitutiveLawGetValue(ConstitutiveLaw& rThisConstitutiveLaw, const Variable<TDataType >& rThisVariable, TDataType& value ) 
-{ 
+template<class TDataType> const TDataType ConstitutiveLawGetValue(ConstitutiveLaw& rThisConstitutiveLaw, const Variable<TDataType >& rThisVariable, TDataType& value )
+{
     TDataType tmp = rThisConstitutiveLaw.GetValue(rThisVariable, value);
     return tmp;
 }
@@ -54,10 +54,10 @@ void NewInterfaceCalculateMaterialResponse(ConstitutiveLaw& rThisConstitutiveLaw
 Flags GetFeaturesOptions(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetOptions();}
 double GetStrainSizeFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetStrainSize();}
 double GetSpaceDimensionFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetSpaceDimension();}
-std::vector<ConstitutiveLaw::StrainMeasure>& GetStrainMeasuresFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetStrainMeasures(); } 
+std::vector<ConstitutiveLaw::StrainMeasure>& GetStrainMeasuresFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetStrainMeasures(); }
 
 Flags GetLawOptions(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetOptions();}
-  
+
 double GetDeterminantF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeterminantF();}
 
 Vector& GetStrainVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStrainVector();}
@@ -73,7 +73,7 @@ Matrix& GetDeformationGradientF2(ConstitutiveLaw::Parameters& rThisParameters, M
 
 void  AddConstitutiveLawToPython(pybind11::module& m)
 {
-    
+
     enum_<ConstitutiveLaw::StrainMeasure>(m,"StrainMeasure")
         .value("StrainMeasure_Infinitesimal", ConstitutiveLaw::StrainMeasure_Infinitesimal)
         .value("StrainMeasure_GreenLagrange", ConstitutiveLaw::StrainMeasure_GreenLagrange)
@@ -141,10 +141,10 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
         .def("GetShapeFunctionsValues",&ConstitutiveLaw::Parameters::GetShapeFunctionsValues, return_value_policy::reference_internal)
         .def("GetProcessInfo",&ConstitutiveLaw::Parameters::GetProcessInfo, return_value_policy::reference_internal)
         .def("GetMaterialProperties",&ConstitutiveLaw::Parameters::GetMaterialProperties, return_value_policy::reference_internal)
-        .def("GetElementGeometry",&ConstitutiveLaw::Parameters::GetElementGeometry, return_value_policy::reference_internal)    
+        .def("GetElementGeometry",&ConstitutiveLaw::Parameters::GetElementGeometry, return_value_policy::reference_internal)
     ;
 
-    
+
     class_< ConstitutiveLaw, ConstitutiveLaw::Pointer , Flags >(m,"ConstitutiveLaw")
     .def(init<>() )
     .def("Create",&ConstitutiveLaw::Create)
@@ -154,7 +154,7 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     .def("GetStressMeasure",&ConstitutiveLaw::GetStressMeasure)
     .def("IsIncremental",&ConstitutiveLaw::IsIncremental)
     .def("WorkingSpaceDimension",&ConstitutiveLaw::WorkingSpaceDimension)
-    .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)   
+    .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)
     .def("Has", &ConstitutiveLawHas< Variable<int> >)
     .def("Has", &ConstitutiveLawHas< Variable<double> >)
     .def("Has", &ConstitutiveLawHas< Variable<array_1d<double,3> > >)
@@ -179,7 +179,7 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     .def("InitializeMaterialResponsePK1",&ConstitutiveLaw::InitializeMaterialResponsePK1)
     .def("InitializeMaterialResponsePK2",&ConstitutiveLaw::InitializeMaterialResponsePK2)
     .def("InitializeMaterialResponseKirchhoff",&ConstitutiveLaw::InitializeMaterialResponseKirchhoff)
-    .def("InitializeMaterialResponseCauchy",&ConstitutiveLaw::InitializeMaterialResponseCauchy)     
+    .def("InitializeMaterialResponseCauchy",&ConstitutiveLaw::InitializeMaterialResponseCauchy)
     .def("FinalizeMaterialResponse",&ConstitutiveLaw::FinalizeMaterialResponse)
     .def("FinalizeMaterialResponsePK1",&ConstitutiveLaw::FinalizeMaterialResponsePK1)
     .def("FinalizeMaterialResponsePK2",&ConstitutiveLaw::FinalizeMaterialResponsePK2)

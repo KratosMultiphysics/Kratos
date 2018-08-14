@@ -38,7 +38,7 @@ namespace Kratos
 		///@{
 
 		/// LoggerTableOutput takes columns names and only prints the messages with lable given with column name.
-		/** The columns width will be at least equal to the lable size and can be extended by adding additional 
+		/** The columns width will be at least equal to the lable size and can be extended by adding additional
          *  spaces to the end of the column name: "Time Step" width would be 9 and "Time Step   " width would be 12
 		*/
 		class KRATOS_API(KRATOS_CORE) LoggerTableOutput : public LoggerOutput
@@ -58,7 +58,7 @@ namespace Kratos
 
 			LoggerTableOutput(std::ostream& rOutputStream, std::vector<std::string> const& ColumnsNames);
 
-			LoggerTableOutput(LoggerTableOutput const& Other); 
+			LoggerTableOutput(LoggerTableOutput const& Other);
 
 			/// Destructor.
 			virtual ~LoggerTableOutput() {}

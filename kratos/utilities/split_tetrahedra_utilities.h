@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_SPLIT_TETRAHEDRA_UTILITIES_INCLUDED )
@@ -105,7 +105,7 @@ public:
         //int zero_distance_nodes[] = {-1, -1, -1, -1};
         array_1d<int,4> negative_distance_nodes(4,-1);//[] = {-1, -1, -1, -1};
         array_1d<int,4> positive_distance_nodes(4,-1);//[] = {-1, -1, -1, -1};
-        
+
         array_1d<double, n_nodes> exact_distance = rDistances;
         array_1d<double, n_nodes> abs_distance = ZeroVector(n_nodes);
 
@@ -145,17 +145,17 @@ public:
         //a not properly defined intersection is understood as a division whose positive distance volume is too small compared against the negative one
         //~ double max_neg_d = -1e-10;      // maximum negative distance
         //~ double max_pos_d =  1e-10;      // maximum positive distance
-        
+
         //~ //get the maximum negative distance value
         //~ for (unsigned int i=0; i<4; i++)
         //~ {
             //~ max_neg_d = std::min(max_neg_d, rDistances[i]);
             //~ max_pos_d = std::max(max_pos_d, rDistances[i]);
         //~ }
-        
+
         //~ //modify the positve distance values to avoid undesired cuts
         //~ double tol_rel_d = 1e-3; // relative tolerance for the max and min distances comparison
-        
+
         //~ for (unsigned int i=0; i<4; i++)
         //~ {
             //~ //check the positive distance nodes
@@ -178,9 +178,9 @@ public:
         array_1d<double, 3 > grad_d;
         noalias(grad_d) = prod(trans(DN_DX), rDistances);
         double norm = norm_2(grad_d);
-        
+
         if(norm < 1e-10) norm=1e-10;
-        
+
         grad_d /= (norm);
 
         //now decide splitting pattern
@@ -316,14 +316,14 @@ public:
 
                 //~ ComputeSubTetraVolumeAndGaussPoints(aux_coordinates, gauss_volumes, center_position, i0, i1, i2, i3);
                 double sub_volume = ComputeSubTetraVolumeAndGaussPoints(aux_coordinates, gauss_volumes, center_position, i0, i1, i2, i3);
-                
+
                 local_subtet_indices[0] = t[i*4];
                 local_subtet_indices[1] = t[i*4+1];
                 local_subtet_indices[2] = t[i*4+2];
                 local_subtet_indices[3] = t[i*4+3];
-                   
+
                 AddToEdgeAreas3D(rEdgeAreas,exact_distance,local_subtet_indices,sub_volume);
-                
+
                 for(unsigned int k=0; k<4; k++)
                 {
                     rVolumes[i*4+k] = gauss_volumes[k];
@@ -469,15 +469,15 @@ private:
         {
             center_position[3][i] = 0.13819660*aux_coordinates(i0, i) + 0.13819660*aux_coordinates(i1, i) + 0.13819660*aux_coordinates(i2, i) + 0.58541020*aux_coordinates(i3, i);
         }
-        
+
         return vol;
     }
 
 
     template<class TMatrixType>
-    static void ComputeElementCoordinates(array_1d<double, 4 > & N, 
-                                          const array_1d<double, 3 > & center_position, 
-                                          const TMatrixType& rPoints, 
+    static void ComputeElementCoordinates(array_1d<double, 4 > & N,
+                                          const array_1d<double, 3 > & center_position,
+                                          const TMatrixType& rPoints,
                                           const double vol)
     {
         double x0 = rPoints(0, 0); //geom[0].X();
@@ -533,7 +533,7 @@ private:
 
 
     template<class TVectorType>
-    static void AddToEdgeAreas3D(TVectorType& rEdgeAreas, 
+    static void AddToEdgeAreas3D(TVectorType& rEdgeAreas,
                                  const array_1d<double, 3+1 >& exact_distance,
                                  const array_1d<double, 3+1 >& indices,
                                  const double sub_volume)
@@ -543,7 +543,7 @@ private:
         unsigned int ncut=0, pos=0, positive_pos=0;
         for(unsigned int i=0; i<3+1; i++)
         {
-            if(indices[i] > 3) 
+            if(indices[i] > 3)
             {
                 ncut++;
             }
@@ -553,7 +553,7 @@ private:
                 pos++;
             }
         }
-               
+
         if(ncut == 3 && pos==1) //cut face with a positive node!!
         {
             double edge_area = sub_volume*3.0/fabs(exact_distance[positive_pos]);

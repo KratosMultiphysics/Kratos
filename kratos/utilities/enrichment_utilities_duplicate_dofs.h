@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
-//                    
+//
 //
 
 
@@ -133,8 +133,8 @@ public:
 //         for (int i = 0; i < 6; i++)
 //             for (int j = 0; j < n_nodes; j++)
 //                 rShapeFunctionValues(i, j) = 0.25;
-        
-                
+
+
 
 
 
@@ -169,8 +169,8 @@ public:
         for(unsigned int i=0; i<4;i++)
             if(fabs(rDistances[i]) < 1e-4*max_lenght) rDistances[i]=1e-4*max_lenght;
 
-        
-        
+
+
         for (unsigned int i = 0; i < 4; i++)
             abs_distance[i] = fabs(rDistances[i]);
 
@@ -178,9 +178,9 @@ public:
         array_1d<double, 3 > grad_d;
         noalias(grad_d) = prod(trans(DN_DX), rDistances);
         double norm = norm_2(grad_d);
-        
+
         if(norm < 1e-10) norm=1e-10;
-        
+
         grad_d /= (norm);
 
     //now decide splitting pattern

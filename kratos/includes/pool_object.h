@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 #if !defined(KRATOS_POOL_OBJECT_H_INCLUDED )

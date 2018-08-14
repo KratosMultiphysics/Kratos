@@ -61,10 +61,10 @@ namespace Kratos
 			///@name Life Cycle
 			///@{
 
-			LoggerOutput(std::ostream& rOutputStream) 
+			LoggerOutput(std::ostream& rOutputStream)
 				: mrStream(rOutputStream), mMaxLevel(1), mSeverity(LoggerMessage::Severity::INFO), mCategory(LoggerMessage::Category::STATUS) {}
 
-			LoggerOutput(LoggerOutput const& Other) 
+			LoggerOutput(LoggerOutput const& Other)
 				: mrStream(Other.mrStream), mMaxLevel(Other.mMaxLevel), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
 
 			/// Destructor.

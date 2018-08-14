@@ -84,10 +84,10 @@ public:
 
     BICGSTABSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
-        
+
     BICGSTABSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()):
         BaseType(settings, pNewPreconditioner) {}
-        
+
     /// Copy constructor.
     BICGSTABSolver(const BICGSTABSolver& Other) : BaseType(Other) {}
 
@@ -414,6 +414,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BICGSTAB_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_BICGSTAB_SOLVER_H_INCLUDED  defined
 
 

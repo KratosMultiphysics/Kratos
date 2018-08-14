@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 enum HistoricalValues {Historical = 0, NonHistorical = 1};
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -53,7 +53,7 @@ enum HistoricalValues {Historical = 0, NonHistorical = 1};
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ENUMS_INCLUDED  defined 
+#endif // KRATOS_ENUMS_INCLUDED  defined
 
 
- 
+
