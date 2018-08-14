@@ -295,7 +295,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     @staticmethod
-    def __ExpressInStepLengthUnit(self, len_obj, len_eqs, len_ineqs, step_length):
+    def __ExpressInStepLengthUnit(len_obj, len_eqs, len_ineqs, step_length):
         len_bar_obj = 1/step_length * len_obj
         len_bar_eqs = ScalarVectorProduct(1/step_length, len_eqs)
         len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
