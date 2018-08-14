@@ -342,20 +342,6 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("__repr__",&Timer::Info)
     ;
 
-    class_<BoundingBoxUtilities >(m,"BoundingBoxUtilities")
-    .def(init<ModelPart&, const unsigned int& >())
-    .def("Test", &BoundingBoxUtilities::Test)
-    ;
-
-
-    //           class_<SplitElements, boost::noncopyable >
-    //                     ("SplitElements", init<ModelPart&, int >() )
-    //                     .def("Split", &SplitElements::Split)
-    //                     ;
-
-
-    //    def("PrintTimingInformation",Timer::PrintTimingInformation);
-
     class_<OpenMPUtils >(m,"OpenMPUtils")
     .def(init<>())
     .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
