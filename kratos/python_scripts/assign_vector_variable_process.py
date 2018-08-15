@@ -20,6 +20,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 "interval"             : [0.0, 1e30],
                 "value"                : [10.0, "3*t", "x+y"],
                 "constrained"          : [true,true,true],
+                "fill_buffer"     : true,
                 "local_axes"           : {}
             }
             """
@@ -42,8 +43,13 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             msg = "Error in AssignVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
             raise Exception(msg)
 
+        # We get the corresponding model part
         self.model_part = Model[settings["model_part_name"].GetString()]
 
+        # To know if we will fill the buffer of the solution
+        self.fill_buffer = settings["fill_buffer"].GetBool()
+
+        # We initialize the auxiliar list of processes (depending of the components set)
         self.aux_processes = []
 
         import assign_scalar_variable_process
@@ -62,7 +68,9 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, i_params) )
 
     def ExecuteBeforeSolutionLoop(self):
-        pass
+        # We fill the buffer if necessary (common in fluid problems)
+        if (self.fill_buffer is True):
+            self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
         for process in self.aux_processes:

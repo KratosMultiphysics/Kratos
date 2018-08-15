@@ -21,31 +21,40 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 "variable_name"   : "SPECIFY_VARIABLE_NAME",
                 "interval"        : [0.0, 1e30],
                 "constrained"     : true,
+                "fill_buffer"     : true,
                 "value"           : 0.0,
                 "local_axes"      : {}
             }
             """
             )
 
-        #assign this here since it will change the "interval" prior to validation
+        # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
-        #here i do a trick, since i want to allow "value" to be a string or a double value
+        # Here i do a trick, since i want to allow "value" to be a string or a double value
         if(settings.Has("value")):
             if(settings["value"].IsString()):
                 default_settings["value"].SetString("0.0")
 
         settings.ValidateAndAssignDefaults(default_settings)
 
+        # We get the variable, could be a double or a component of a 3D variable
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         if(type(self.variable) != KratosMultiphysics.Array1DComponentVariable and type(self.variable) != KratosMultiphysics.DoubleVariable and type(self.variable) != KratosMultiphysics.VectorVariable):
             msg = "Error in AssignScalarToNodesProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a scalar or a component"
             raise Exception(msg)
 
+        # We get the model part and the corresponding mesh (NOTE: Mesh ID is deprecated, will be eventually removed)
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
+        
+        # If the value imposed is fixed or not
         self.is_fixed = settings["constrained"].GetBool()
+        
+        # To know if we will fill the buffer of the solution
+        self.fill_buffer = settings["fill_buffer"].GetBool()
 
+        # Depending if the value is numeric or a function we create the corresponding function
         self.value_is_numeric = False
         if settings["value"].IsNumber():
             self.value_is_numeric = True
@@ -57,12 +66,14 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             if(self.aux_function.DependsOnSpace()):
                 self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
 
-        #construct a variable_utils object to speedup fixing
+        # Construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
         self.step_is_active = False
 
     def ExecuteBeforeSolutionLoop(self):
-        pass
+        # We fill the buffer if necessary (common in fluid problems)
+        if (self.fill_buffer is True):
+            self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
