@@ -67,7 +67,7 @@ class RestartProcess(KratosMultiphysics.Process):
 
         self.echo_level  = 1
         if( self.echo_level > 0 ):
-            print("::[Restart]:: -BUILT-")
+            print("::[------Restart------]:: -BUILT-")
     #
     def ExecuteInitialize(self):
 
@@ -130,7 +130,7 @@ class RestartProcess(KratosMultiphysics.Process):
             label = self.printed_step_count
 
         if( self.echo_level > 0 ):
-            print("::[Restart]:: Save [ step:", step,"] [ label:", label,"]")
+            print("::[------Restart------]:: Save [ step:", step,"] [ label:", label,"]")
 
         current_restart_path = self.restart_path + "__" + str(label)
 
@@ -173,7 +173,7 @@ class RestartProcess(KratosMultiphysics.Process):
     #
     def CleanPreviousFiles(self):
 
-        print(" ::[Restart]:: Remove Previous Files")
+        print(" ::[------Restart------]:: Remove Previous Files")
 
         # remove previous results:
         file_ending_type = ".post.bin"
@@ -204,7 +204,7 @@ class RestartProcess(KratosMultiphysics.Process):
     #
     def CleanPosteriorFiles(self, restart_step):
 
-        print(" ::[Restart]:: Clean Post Restart Files) [ STEP:",restart_step," ]")
+        print(" ::[------Restart------]:: Clean Post Restart Files) [ STEP:",restart_step," ]")
 
         # remove posterior results after restart:
         file_ending_type = ".post.bin"
@@ -230,7 +230,7 @@ class RestartProcess(KratosMultiphysics.Process):
     def CleanPreviousFileType(self, file_ending_type):
 
         if(os.path.exists(self.problem_path) == False):
-            print("::[Restart]:: Problem Path does not exist , check the Problem Path selected ")
+            print("::[------Restart------]:: Problem Path does not exist , check the Problem Path selected ")
         else:
             filelist = [f for f in os.listdir(self.problem_path) if f.endswith(file_ending_type)]
 
@@ -252,7 +252,7 @@ class RestartProcess(KratosMultiphysics.Process):
     def CleanPosteriorFileType(self, restart_step, file_ending_type):
 
         if(os.path.exists(self.problem_path) == False):
-            print(" ::[Restart]:: Problem Path does not exist , check the Problem Path selected ")
+            print(" ::[------Restart------]:: Problem Path does not exist , check the Problem Path selected ")
         else:
             filelist = []
             for f in os.listdir(self.problem_path):

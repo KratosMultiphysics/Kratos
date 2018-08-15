@@ -498,7 +498,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         # Duplicate model part
         num_nodes_elements = 0
         if (len(self.main_model_part.Elements) > 0):
-            num_nodes_elements = len(self.main_model_part.Elements[1].GetNodes())
+            for elem in self.main_model_part.Elements:
+                num_nodes_elements = len(elem.GetNodes())
+                break
 
         ## Elements
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
@@ -528,7 +530,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         ## Conditions
         num_nodes_conditions = 0
         if (len(self.main_model_part.Conditions) > 0):
-            num_nodes_conditions = len(self.main_model_part.Conditions[1].GetNodes())
+            for cond in self.main_model_part.Conditions:
+                num_nodes_conditions = len(cond.GetNodes())
+                break
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
                 self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition2D2N")

@@ -1,7 +1,7 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-import KratosMultiphysics.PfemApplication as PfemApplication
+import KratosMultiphysics.DelaunayMeshingApplication as DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication as PfemFluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
 
@@ -16,7 +16,7 @@ import SmallTests
 # NIGTHLY TESTS
 import NightTests
 
-def AssambleTestSuites():
+def AssembleTestSuites():
 
     # Suites to run
     suites = KratosUnittest.KratosSuites
@@ -38,5 +38,5 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
 

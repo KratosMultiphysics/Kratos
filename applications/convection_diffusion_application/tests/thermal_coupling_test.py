@@ -161,7 +161,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
             if node.X == boundary_x:
                 node.Fix(KratosMultiphysics.TEMPERATURE)
-    
+
     def setUpDirichletCouplingBoundary(self,model_part):
         for cond in model_part.Conditions:
             for node in cond.GetNodes():
@@ -178,7 +178,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
         self.mapper = ncosm.NonConformant_OneSideMap(self.left_model_part,self.right_model_part,
                  search_radius_factor=2.0, it_max=50, tol=1e-5)
-        
+
     def runTest(self):
         time = 0.0
 
@@ -194,7 +194,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
                 self.right_solver.Solve()
 
                 # Map reactions
-                FSIApplication.VariableRedistributionUtility.DistributePointValues(
+                KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
                     self.mapper.str_interface, KratosMultiphysics.REACTION_FLUX, KratosMultiphysics.NODAL_PAUX, 1e-5, 50)
                 self.mapper.StructureToFluid_ScalarMap(KratosMultiphysics.NODAL_PAUX,KratosMultiphysics.FACE_HEAT_FLUX,False)
 
@@ -260,7 +260,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
         self.left_gid_io.FinalizeMesh()
         self.left_gid_io.InitializeResults(mesh_name,(self.left_model_part).GetMesh())
 
-        
+
         self.right_gid_io.InitializeMesh( mesh_name)
         self.right_gid_io.WriteMesh( self.right_model_part.GetMesh() )
         self.right_gid_io.FinalizeMesh()

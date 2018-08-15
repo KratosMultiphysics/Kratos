@@ -21,6 +21,7 @@ class MmgProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "help"                             : "This process remeshes using MMG library. This process uses different utilities and processes",
             "mesh_id"                          : 0,
             "filename"                         : "out",
             "model_part_name"                  : "MainModelPart",
@@ -76,6 +77,7 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "anisotropy_remeshing"             : true,
             "anisotropy_parameters":{
+                "reference_variable_name"          : "DISTANCE",
                 "hmin_over_hmax_anisotropic_ratio" : 0.01,
                 "boundary_layer_max_distance"      : 1.0,
                 "boundary_layer_min_size_ratio"    : 2.0,

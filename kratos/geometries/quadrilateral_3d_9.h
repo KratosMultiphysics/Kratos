@@ -29,11 +29,22 @@
 namespace Kratos
 {
 /**
-  * A nine node quadrilateral geometry. While the shape functions are only defined in
-  * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
-  * defining surfaces on 3D elements.
+ * @class Quadrilateral3D9
+ * @ingroup KratosCore
+ * @brief A nine node 3D quadrilateral geometry with quadratic shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *      3-----6-----2 
+ *      |           |  
+ *      |           |          
+ *      7     8     5         
+ *      |           |    
+ *      |           |  
+ *      0-----4-----1 
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Quadrilateral3D9 : public Geometry<TPointType>
 {
 public:

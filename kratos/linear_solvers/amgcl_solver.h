@@ -25,9 +25,9 @@
 #endif
 
 // External includes
-#include "boost/smart_ptr.hpp"
 #include <iostream>
 #include <fstream>
+#include <utility>
 
 #include "includes/ublas_interface.h"
 
@@ -35,20 +35,21 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
-#include<utility>
 
-#include <amgcl/amg.hpp>
-#include <boost/utility.hpp>
+#include <boost/range/iterator_range.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
+#include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/adapter/ublas.hpp>
-#include <amgcl/runtime.hpp>
-#include <amgcl/make_solver.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
 #include <amgcl/adapter/block_matrix.hpp>
+#include <amgcl/backend/builtin.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
-#include <amgcl/adapter/crs_tuple.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_arithmetic.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <amgcl/make_solver.hpp>
+#include <amgcl/amg.hpp>
+#include <amgcl/coarsening/runtime.hpp>
+#include <amgcl/relaxation/runtime.hpp>
+#include <amgcl/solver/runtime.hpp>
 
 namespace Kratos
 {
@@ -138,8 +139,8 @@ public:
 
         mprovide_coordinates = rParameters["provide_coordinates"].GetBool();
         mcoarse_enough = rParameters["coarse_enough"].GetInt();
-        
-        
+
+
         mndof = rParameters["block_size"].GetInt(); //set the mndof to an inital number
         mTol = rParameters["tolerance"].GetDouble();
         mmax_it = rParameters["max_iteration"].GetInt();
@@ -166,7 +167,7 @@ public:
 
         muse_block_matrices_if_possible = rParameters["use_block_matrices_if_possible"].GetBool();
 
-        
+
 
         if(mprovide_coordinates==true && muse_block_matrices_if_possible==true)
         {
@@ -201,9 +202,9 @@ public:
         mverbosity=verbosity;
         mndof = 1;
         mcoarse_enough = 5000;
-        
+
         mgmres_size = gmres_size;
-        
+
 
 
         //choose smoother in the list "gauss_seidel, multicolor_gauss_seidel, ilu0, parallel_ilu0, ilut, damped_jacobi, spai0, chebyshev"
@@ -307,8 +308,8 @@ public:
         mndof = 1;
         mgmres_size = gmres_size;
         mcoarse_enough = 5000;
-        
-        
+
+
 
 
         //choose smoother in the list "gauss_seidel, multicolor_gauss_seidel, ilu0, parallel_ilu0, ilut, damped_jacobi, spai0, chebyshev"
@@ -435,9 +436,9 @@ public:
         }
         mprm.put("solver.tol", mTol);
         mprm.put("solver.maxiter", mmax_it);
-        
+
         mprm.put("precond.coarse_enough",mcoarse_enough/mndof);
-        
+
 
 
         Matrix B;
@@ -461,39 +462,39 @@ public:
             mprm.put("precond.coarsening.nullspace.rows", B.size1());
             mprm.put("precond.coarsening.nullspace.B",    &(B.data()[0]));
         }
-        
+
         if(mverbosity > 1)
             write_json(std::cout, mprm);
- 
+
         if(mverbosity == 4)
         {
             //output to matrix market
             std::stringstream matrix_market_name;
             matrix_market_name << "A" <<  ".mm";
             TSparseSpaceType::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), rA, false);
-            
+
             std::stringstream matrix_market_vectname;
             matrix_market_vectname << "b" << ".mm.rhs";
             TSparseSpaceType::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rB);
-                
+
             if(mprovide_coordinates == true)
             {
-          
+
                 //output of coordinates
                 std::ofstream coordsfile;
                 coordsfile.open ("coordinates.txt");
                 for(unsigned int i=0; i<mcoords.size(); i++)
                 {
-                    
+
                     coordsfile << mcoords[i][0] << " " << mcoords[i][1] << " " << mcoords[i][2] << std::endl;
-                    
+
                 }
                 coordsfile.close();
             }
-            
+
             KRATOS_THROW_ERROR(std::logic_error, "verobsity = 4 prints the matrix and exits","")
         }
-        
+
         size_t iters;
         double resid;
         {
@@ -690,15 +691,19 @@ private:
         typedef amgcl::backend::builtin<double> Backend;
 
         amgcl::make_solver<
-        amgcl::runtime::amg<Backend>,
-              amgcl::runtime::iterative_solver<Backend>
-              > solve(amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), mprm);
+            amgcl::amg<
+                Backend,
+                amgcl::runtime::coarsening::wrapper,
+                amgcl::runtime::relaxation::wrapper
+                >,
+            amgcl::runtime::solver::wrapper<Backend>
+            > solve(amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), mprm);
 
         //compute preconditioner
 //         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
 //         else solve.precond();
 
-        boost::tie(iters, resid) = solve(rB, rX);
+        std::tie(iters, resid) = solve(rB, rX);
     }
 
     template< size_t TBlockSize>
@@ -713,9 +718,13 @@ private:
         size_t n = rA.size1();
 
         amgcl::make_solver<
-        amgcl::runtime::amg<Backend>,
-              amgcl::runtime::iterative_solver<Backend>
-              > solve( amgcl::adapter::block_matrix<value_type>(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), mprm);
+            amgcl::amg<
+                Backend,
+                amgcl::runtime::coarsening::wrapper,
+                amgcl::runtime::relaxation::wrapper
+                >,
+            amgcl::runtime::solver::wrapper<Backend>
+            > solve( amgcl::adapter::block_matrix<value_type>(std::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), mprm);
 
 //         //compute preconditioner
 //         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
@@ -727,7 +736,7 @@ private:
         const rhs_type* b_begin = reinterpret_cast<const rhs_type*>(&rB[0]);
         boost::iterator_range<const rhs_type*> b_range = boost::make_iterator_range(b_begin, b_begin + n / TBlockSize);
 
-        boost::tie(iters, resid) = solve(b_range, x_range);
+        std::tie(iters, resid) = solve(b_range, x_range);
     }
 
     /**

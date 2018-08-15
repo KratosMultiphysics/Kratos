@@ -49,10 +49,10 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) MooneyRivlinModel : public HyperElasticModel
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of MooneyRivlinModel
     KRATOS_CLASS_POINTER_DEFINITION( MooneyRivlinModel );
 
@@ -60,8 +60,8 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.    
-    MooneyRivlinModel(); 
+    /// Default constructor.
+    MooneyRivlinModel();
 
     /// Copy constructor.
     MooneyRivlinModel(MooneyRivlinModel const& rOther);
@@ -70,33 +70,33 @@ namespace Kratos
     MooneyRivlinModel& operator=(MooneyRivlinModel const& rOther);
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override;
+    ConstitutiveModel::Pointer Clone() const override;
 
 
     /// Destructor.
-    virtual ~MooneyRivlinModel();
+    ~MooneyRivlinModel() override;
 
 
     ///@}
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
 
-    
+
     /**
      * Check
-     */    
-    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
-    
+     */
+    int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
 
-     
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -107,7 +107,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MooneyRivlinModel";
@@ -115,13 +115,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MooneyRivlinModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "MooneyRivlinModel Data";
     }
@@ -145,8 +145,8 @@ namespace Kratos
     ///@}
     ///@name Protected Operators
     ///@{
-    
-   
+
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -155,45 +155,45 @@ namespace Kratos
     /**
      * Calculate Stresses
      */
-    virtual void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
+    void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
 
     /**
      * Calculate Constitutive Components
-     */    
+     */
 
-    virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+    double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 					     const unsigned int& a, const unsigned int& b,
 					     const unsigned int& c, const unsigned int& d) override;
 
 
     //************// Strain Data
-    
 
-    virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override;    
-    
-    virtual void CalculateScalingFactors(HyperElasticDataType& rVariables) override;
+
+    void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override;
+
+    void CalculateScalingFactors(HyperElasticDataType& rVariables) override;
 
 
     //************// dW
-    
-    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //dU/dJ
 
-    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //ddU/dJdJ
+    double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //dU/dJ
 
-    
+    double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //ddU/dJdJ
+
+
     virtual double& GetFunction1stI1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI1
- 
+
     virtual double& GetFunction1stI2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI2
- 
+
     virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI3
 
-    
+
     virtual double& GetFunction2ndI1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI1dI1
 
     virtual double& GetFunction2ndI2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI2dI2
 
     virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI3dI3
-    
+
     // the implementation of the crossed derivatives have to be added for a more general form (usually they are zero)
     // virtual double& GetFunction2ndI2I1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI2dI1
     // virtual double& GetFunction2ndI3I1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI3dI1
@@ -203,7 +203,7 @@ namespace Kratos
     // virtual double& GetFunction2ndI2I3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI2dI3
 
     //isochoric volumetric slit
-      
+
     MatrixType& GetIsochoricRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dC'/dC
 
     double& GetIsochoricRightCauchyGreenDerivative(const StrainData& rStrain,
@@ -212,8 +212,8 @@ namespace Kratos
 						   const double& b,
 						   const double& c,
 						   const double& d); //dC'/dC
-   
-    
+
+
     MatrixType& GetIsochoricLeftCauchyGreenDerivative(const StrainData& rStrain,
 						      MatrixType& rDerivative); //db'/db
 
@@ -223,14 +223,14 @@ namespace Kratos
 						  const double& b,
 						  const double& c,
 						  const double& d); //db'/db
-    
+
     //************// right cauchy green: C
-    
+
     MatrixType& GetI1RightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI1/dC
 
     MatrixType& GetI2RightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI2/dC
 
-    MatrixType& GetI3RightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI3/dC 
+    MatrixType& GetI3RightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI3/dC
 
 
 
@@ -239,8 +239,8 @@ namespace Kratos
 				     const double& b,
 				     const double& c,
 				     const double& d); //ddC/dCdC or ddb/dbdb
-    
-    
+
+
     double& GetInverseRightCauchyGreenDerivative(const StrainData& rStrain,
 						 double& rDerivative,
 						 const double& a,
@@ -248,7 +248,7 @@ namespace Kratos
 						 const double& c,
 						 const double& d); //dC^-1/dC
 
-    
+
     //Invariants 1st derivatives by components
     double& GetI1RightCauchyGreen1stDerivative(const StrainData& rStrain,
 					       double& rDerivative,
@@ -260,7 +260,7 @@ namespace Kratos
 					       double& rDerivative,
 					       const double& a,
 					       const double& b); //dI2/dC
- 
+
 
     double& GetI3RightCauchyGreen1stDerivative(const StrainData& rStrain,
 					       double& rDerivative,
@@ -269,7 +269,7 @@ namespace Kratos
 
 
 
- 
+
 
     //Invariants Square of the 1st derivatives by components
     double& GetI1RightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
@@ -278,7 +278,7 @@ namespace Kratos
 						     const double& b,
 						     const double& c,
 						     const double& d); //dI1/dC * dI2/dC
- 
+
 
     double& GetI2RightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
 						     double& rDerivative,
@@ -286,7 +286,7 @@ namespace Kratos
 						     const double& b,
 						     const double& c,
 						     const double& d); //dI2/dC * dI3/dC
- 
+
 
     double& GetI3RightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
 						     double& rDerivative,
@@ -294,9 +294,9 @@ namespace Kratos
 						     const double& b,
 						     const double& c,
 						     const double& d); //dI3/dC * dI3/dC
- 
-       
-    
+
+
+
     //Invariants 2nd derivatives by components
     double& GetI1RightCauchyGreen2ndDerivative(const StrainData& rStrain,
 					       double& rDerivative,
@@ -304,7 +304,7 @@ namespace Kratos
 					       const double& b,
 					       const double& c,
 					       const double& d); //ddI1/dCdC
- 
+
 
     double& GetI2RightCauchyGreen2ndDerivative(const StrainData& rStrain,
 					       double& rDerivative,
@@ -321,9 +321,9 @@ namespace Kratos
 					       const double& c,
 					       const double& d); //ddI3/dCdC
 
-    
+
     //************// left cauchy green : b
-    
+
     MatrixType& GetI1LeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI1/db
 
     MatrixType& GetI2LeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative);  //dI2/db
@@ -336,7 +336,7 @@ namespace Kratos
 					      double& rDerivative,
 					      const double& a,
 					      const double& b); //dI1/db
- 
+
 
     double& GetI2LeftCauchyGreen1stDerivative(const StrainData& rStrain,
 					      double& rDerivative,
@@ -349,8 +349,8 @@ namespace Kratos
 					      const double& a,
 					      const double& b); //dI3/db
 
-    
-  
+
+
     //Invariants Square of the 1st derivatives by components
     double& GetI1LeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
 						    double& rDerivative,
@@ -358,7 +358,7 @@ namespace Kratos
 						    const double& b,
 						    const double& c,
 						    const double& d); //dI1/db * dI1/db
- 
+
 
     double& GetI2LeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
 						    double& rDerivative,
@@ -375,8 +375,8 @@ namespace Kratos
 						    const double& c,
 						    const double& d); //dI3/db * dI3/db
 
-  
-    
+
+
     //Invariants 2nd derivatives by components
     double& GetI1LeftCauchyGreen2ndDerivative(const StrainData& rStrain,
 					      double& rDerivative,
@@ -384,7 +384,7 @@ namespace Kratos
 					      const double& b,
 					      const double& c,
 					      const double& d); //ddI1/dbdb
- 
+
 
     double& GetI2LeftCauchyGreen2ndDerivative(const StrainData& rStrain,
 					      double& rDerivative,
@@ -420,7 +420,7 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
@@ -428,7 +428,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -444,19 +444,19 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )
     }
@@ -491,6 +491,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MOONEY_RIVLIN_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_MOONEY_RIVLIN_MODEL_H_INCLUDED  defined
 
 

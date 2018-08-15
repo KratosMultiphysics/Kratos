@@ -4912,7 +4912,9 @@ void exactinit()
   /*  cword = 4735; */
   cword = 4722;                 /* set FPU control word for double precision */
 #endif /* not SINGLE */
+#ifdef _86
   _FPU_SETCW(cword);
+#endif
 #endif /* not APPLE */
 #endif /* LINUX */
 

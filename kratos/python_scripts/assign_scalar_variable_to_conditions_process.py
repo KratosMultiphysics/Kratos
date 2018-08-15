@@ -14,6 +14,7 @@ class AssignScalarVariableToConditionsProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"            : "This process assigns a given value (scalar) to the conditions belonging a certain submodelpart",
                 "mesh_id"         : 0,
                 "model_part_name" : "please_specify_model_part_name",
                 "variable_name"   : "SPECIFY_VARIABLE_NAME",

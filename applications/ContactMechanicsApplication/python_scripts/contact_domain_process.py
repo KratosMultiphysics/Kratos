@@ -1,14 +1,14 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.PfemApplication as KratosPfem
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 KratosMultiphysics.CheckForPreviousImport()
 
 import remesh_domains_process
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ContactDomainProcess(Model, settings["Parameters"])
 
@@ -45,7 +45,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         elif(meshing_control_type == "step"):
             self.meshing_control_is_time = False
 
-        # mesh modeler initial values
+        # mesh mesher initial values
         self.remesh_domains_active = False
         self.neighbours_search_performed = False
 
@@ -85,7 +85,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
 
         # execute initialize base class
-        if( self.main_model_part.ProcessInfo[KratosPfem.INITIALIZED_DOMAINS] == False ):
+        if( self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):
             import domain_utilities
             domain_utils = domain_utilities.DomainUtilities()
             domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
@@ -98,7 +98,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
     #
     def ExecuteInitializeSolutionStep(self):
         self.step_count += 1
-        meshing_step_performed = self.main_model_part.ProcessInfo[KratosPfem.MESHING_STEP_PERFORMED]
+        meshing_step_performed = self.main_model_part.ProcessInfo[KratosDelaunay.MESHING_STEP_PERFORMED]
         restart_performed = self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
         #if( not restart_performed ):
         if(self.IsMeshingStep() or meshing_step_performed):
@@ -121,14 +121,14 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
             print("::[Meshing_Process]:: CONTACT SEARCH...( call:", self.counter,")")
 
         meshing_options = KratosMultiphysics.Flags()
-        self.model_meshing = KratosContact.ContactModelMeshing(self.main_model_part, meshing_options, self.echo_level)
+        self.model_structure = KratosContact.ContactModelStructure(self.main_model_part, meshing_options, self.echo_level)
 
-        self.model_meshing.ExecuteInitialize()
+        self.model_structure.ExecuteInitialize()
 
         for domain in self.meshing_domains:
             domain.ExecuteMeshing();
 
-        self.model_meshing.ExecuteFinalize()
+        self.model_structure.ExecuteFinalize()
 
         if(self.echo_level>1):
             print("")

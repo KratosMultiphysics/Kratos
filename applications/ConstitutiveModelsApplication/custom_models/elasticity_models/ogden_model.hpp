@@ -70,11 +70,11 @@ namespace Kratos
     OgdenModel& operator=(OgdenModel const& rOther);
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override;
+    ConstitutiveModel::Pointer Clone() const override;
 
 
     /// Destructor.
-    virtual ~OgdenModel();
+    ~OgdenModel() override;
 
 
     ///@}
@@ -89,18 +89,18 @@ namespace Kratos
    /**
      * Calculate Strain Energy Density Functions
      */
-    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override;
+    void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override;
 
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override; 
+    void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
 
-    
+
     /**
      * Check
      */
-    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -117,7 +117,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "OgdenModel";
@@ -125,13 +125,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "OgdenModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "OgdenModel Data";
     }
@@ -164,13 +164,13 @@ namespace Kratos
     /**
      * Calculate Stresses
      */
-    virtual void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
+    void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
 
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix) override;
-    
+    void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix) override;
+
     virtual void CalculateAndAddConstitutiveTensorB(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
 
     /**
@@ -187,7 +187,7 @@ namespace Kratos
     void GetEigenCoincidence(const array_1d<double,3>& rStrainEigenValues,
 			     array_1d<unsigned int,3>& Order,
 			     unsigned int& option);
-    
+
     /**
      * Calculate Derivative of a general isotropic tensor
      */
@@ -201,18 +201,18 @@ namespace Kratos
 					       double &rCabcd,
 					       const unsigned int& a, const unsigned int& b,
 					       const unsigned int& c, const unsigned int& d);
-    
+
 
     /**
      * Calculate Tensor Derivative Factors
      */
     void CalculateDerivativeFactors(array_1d<double,6>& rDerivativeFactors, const MatrixType& rStressDerivatives, const array_1d<double,3>& rStressEigenValues, const array_1d<double,3>& rStrainEigenValues, const array_1d<unsigned int,3>& rOrder);
 
-    
+
     //************// Strain Data
 
 
-    virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override;
+    void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override;
 
     virtual void CalculateMainStresses(HyperElasticDataType& rVariables, array_1d<double,3>& rMainStresses);
 
@@ -223,7 +223,7 @@ namespace Kratos
 
     //************//W
 
-    virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override;
+    void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override;
 
     ///@}
     ///@name Protected  Access
@@ -263,7 +263,7 @@ namespace Kratos
     ///@{
 
     using HyperElasticModel::AddConstitutiveComponent;
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -275,12 +275,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )
     }

@@ -22,7 +22,7 @@
 
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 ///VARIABLES used:
 //Data:
@@ -169,7 +169,7 @@ private:
     ///@{
     ModelPart& mrModelPart;
 
-    ModelerUtilities mModelerUtilities;
+    MesherUtilities mMesherUtilities;
 
     int mEchoLevel;
 

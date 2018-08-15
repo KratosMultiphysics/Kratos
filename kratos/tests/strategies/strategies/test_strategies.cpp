@@ -100,7 +100,7 @@ namespace Kratos
             NodeType::Pointer pnode = ModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
             std::vector<NodeType::Pointer> geom(1);
             geom[0] = pnode;
-            GeometryType::Pointer pgeom = Kratos::make_shared<GeometryType>(geom);
+            GeometryType::Pointer pgeom = Kratos::make_shared<GeometryType>(PointerVector<NodeType>{geom});
             Element::Pointer pelem = Kratos::make_shared<TestElement>(1, pgeom, ThisResidualType);
             ModelPart.AddElement(pelem);
             

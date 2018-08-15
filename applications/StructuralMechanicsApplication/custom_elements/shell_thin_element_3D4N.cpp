@@ -371,6 +371,10 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
     {
         caseId = 10;
     }
+    else if (rVariable == SHEAR_ANGLE)
+    {
+        caseId = 40;
+    }
     else if (rVariable == VON_MISES_STRESS ||
         rVariable == VON_MISES_STRESS_TOP_SURFACE ||
         rVariable == VON_MISES_STRESS_MIDDLE_SURFACE ||
@@ -387,8 +391,6 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
     {
         caseId = 30;
     }
-
-
 
     if (caseId > 19)
     {
@@ -462,6 +464,10 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
                 }
 
                 CalculateVonMisesStress(data, rVariable, resultDouble);
+            }
+            else if (caseId == 40)
+            {
+                resultDouble = std::atan(0.5*data.generalizedStrains[2]) * 180 / Kratos::Globals::Pi;
             }
             else
             {

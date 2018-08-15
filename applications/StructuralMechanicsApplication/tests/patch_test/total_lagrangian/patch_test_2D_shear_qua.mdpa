@@ -5,9 +5,6 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Properties 1
-    DENSITY   1.00000E+03 
-    YOUNG_MODULUS   1.00000E+03 
-    POISSON_RATIO   3.00000E-01 
 End Properties
 
 Begin Nodes
@@ -23,11 +20,11 @@ End Nodes
 
 
 Begin Elements TotalLagrangianElement2D4N// GUI group identifier: Parts Auto1
-         1          1          8          7          3          5 
-         2          1          6          4          7          8 
-         3          1          1          2          4          6 
-         4          1          4          2          3          7 
-         5          1          2          1          5          3 
+         1          1          8          7          3          5
+         2          1          6          4          7          8
+         3          1          1          2          4          6
+         4          1          4          2          3          7
+         5          1          2          1          5          3
 End Elements
 
 Begin Conditions LineLoadCondition2D2N// GUI group identifier: Load on lines Auto2
