@@ -379,7 +379,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  //isochoric volumetric slit
+  //isochoric volumetric split
 
   MooneyRivlinModel::MatrixType& MooneyRivlinModel::GetIsochoricRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative) //dC'/dC
   {

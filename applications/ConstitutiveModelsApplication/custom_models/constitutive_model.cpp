@@ -25,8 +25,9 @@ namespace Kratos
   //************************************************************************************
 
   ConstitutiveModel::ConstitutiveModel()
+      :mHistoryVector(ZeroVector(6))
   {
-    this->mHistoryVector.clear();
+    //this->mHistoryVector.clear();
   }
 
   //******************************COPY CONSTRUCTOR**************************************

@@ -27,24 +27,7 @@ class ModelManager(object):
            "processes_parts_list": [],
            "output_model_part": "output_domain",
            "solving_model_part": "computing_domain",
-           "composite_solving_parts": [{
-               "model_part_name": "thermal_computing_domain",
-               "assign_flags": ["ACTIVE"],
- 	       "composite_conditions": false,
-               "transfer_entities": [{
-                  "origin_model_parts_list": ["computing_domain"],
-                  "entity_type": "Nodes",
-	          "transfer_flags" : [],
-                  "assign_flags" : []
-               }],
-	       "generate_entities": [{
-                  "origin_model_parts_list": [],
-                  "entity_type": "Element",
-	          "transfer_flags" : [],
-                  "assign_flags" : [],
-		  "entity_kratos_type": "ThermalElement2D3N"
-	       }]
-           }],
+           "composite_solving_parts": [],
            "input_file_settings": {
                 "type" : "mdpa",
                 "name" : "unknown_name",

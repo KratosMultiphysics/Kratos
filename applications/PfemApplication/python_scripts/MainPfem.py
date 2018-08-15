@@ -16,17 +16,22 @@ class PfemSolution(MainSolid.Solution):
 
     def _get_processes_parameters(self):
 
-        # get processes parameters from base class
-        processes_parameters = MainSolid.Solution._get_processes_parameters(self)
+        # add fluid processes
+        add_fluid_process = True
+        if self.ProjectParameters.Has("problem_data"):
+            if self.ProjectParameters["problem_data"].Has("domain_type"):
+                if(self.ProjectParameters["problem_data"]["domain_type"].GetString() != "Solid"):
+                    add_fluid_process = False
 
-        if( self.ProjectParameters.Has("problem_data") ):
-            if( self.ProjectParameters["problem_data"].Has("domain_type") ):
-                if( self.ProjectParameters["problem_data"]["domain_type"].GetString() != "Solid" ):
-                    self._add_fluid_processes()
-
-        return processes_parameters
+        if add_fluid_process is True:
+            return self._add_fluid_processes()
+        else:
+            return MainSolid.Solution._get_processes_parameters(self)
 
     def _add_fluid_processes(self):
+
+        # get processes parameters from base class
+        processes_parameters = MainSolid.Solution._get_processes_parameters(self)
 
         # add process to manage assignation of material properties to particles
         # modify processes_parameters to introduce this process in the problem_process_list
@@ -59,6 +64,8 @@ class PfemSolution(MainSolid.Solution):
             processes_parameters.AddValue("loads_process_list", extended_loads_processes)
             if(self.echo_level>0):
                 print(" EXTENDED_LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
+
+        return processes_parameters
 
     def _set_isolated_nodes_management_process(self, constraints_processes):
 

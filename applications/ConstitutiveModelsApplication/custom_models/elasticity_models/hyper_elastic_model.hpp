@@ -319,7 +319,7 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
 
-    const MatrixType msIdentityMatrix;
+    static const MatrixType msIdentityMatrix;
 
 
     ///@}
@@ -535,5 +535,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_HYPER_ELASTIC_MODEL_H_INCLUDED  defined
-
-
