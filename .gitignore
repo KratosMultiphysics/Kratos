@@ -62,9 +62,13 @@ kratos/includes/kratos_version.h
 *.o.sol
 *.o.mesh
 
+# Backup files
 *.bak
-
 *.h~
 *.cpp~
 
+# Residual output
+*.dat
+
+# Dummy file
 applications/python_scripts/beam_profiles\.csv
