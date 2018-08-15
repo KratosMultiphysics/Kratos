@@ -1223,8 +1223,15 @@ void FluidElement::CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
-    //contributions to stiffness matrix calculated on the reference config
+    // contributions to stiffness matrix calculated on the reference config
     noalias( rLeftHandSideMatrix ) += rVariables.IntegrationWeight * prod( trans( rVariables.B ), Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
+
+    // optimized matrix triple multiplication: (slower)
+    // for(SizeType i=0; i<rVariables.B.size2(); ++i)
+    //   for(SizeType j=0; j<rVariables.B.size1(); ++j)
+    //     for(SizeType k=0; k<rVariables.B.size1(); ++k)
+    //       for(SizeType l=0; l<rVariables.B.size2(); ++l)
+    //         rLeftHandSideMatrix(i,l) += rVariables.IntegrationWeight * rVariables.B(j,i) * rVariables.ConstitutiveMatrix(j,k) * rVariables.B(k,l);
 
     //std::cout << "Kvvm" << rLeftHandSideMatrix << "(" << this->Id() << ")" << std::endl;
 

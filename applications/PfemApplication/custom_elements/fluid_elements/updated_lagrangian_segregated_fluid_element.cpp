@@ -891,40 +891,24 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvm(MatrixType& rL
   // 1.- Calculate Stiffness Matrix to get the bulk correction
   const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
 
-  double StiffnessFactor = 0.0;
-
-  // Add volumetric part to the constitutive tensor to compute:
-  // Kvvm = Kdev + Kvol(quasi incompressible)
-  // add fluid bulk modulus for quasi-incompressibility
-  // (can be implemented in a ConstituiveModel for Quasi-Incompressible Newtonian Fluid.
-
   double BulkFactor = GetProperties()[BULK_MODULUS] * TimeStep;
 
-  // add fluid bulk modulus
-  this->AddVolumetricPart(rVariables.ConstitutiveMatrix,BulkFactor);
+  double StiffnessFactor = 0.0;
 
-  FluidElement::CalculateAndAddKvvm( rLeftHandSideMatrix, rVariables );
+  this->CalculateStiffnessFactor(rLeftHandSideMatrix, rVariables, BulkFactor, StiffnessFactor);
 
-  rLeftHandSideMatrix *= rVariables.Alpha;
-
-  //remove fluid bulk modulus
-  this->RemoveVolumetricPart(rVariables.ConstitutiveMatrix,BulkFactor);
-
-  //a. Proposed calculation:
-  //this->CalculateDenseMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
-
-  //b. Alternative calculation:
-  this->CalculateLumpedMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
-  //StiffnessFactor *= 0.75;
 
   // 2.- Estimate the bulk correction coefficient and the new tangent
-
   double MassFactor = GetGeometry().DomainSize() * GetProperties()[DENSITY] / double(number_of_nodes);
 
   BulkFactor = 0.0;
   if(StiffnessFactor!=0 && MassFactor!=0)
     BulkFactor = GetProperties()[BULK_MODULUS] * TimeStep * ( MassFactor * 2.0 / (TimeStep * StiffnessFactor) );
 
+  // Add volumetric part to the constitutive tensor to compute:
+  // Kvvm = Kdev + Kvol(quasi incompressible)
+  // add fluid bulk modulus for quasi-incompressibility
+  // (can be implemented in a ConstituiveModel for Quasi-Incompressible Newtonian Fluid).
   this->AddVolumetricPart(rVariables.ConstitutiveMatrix, BulkFactor);
 
   rLeftHandSideMatrix.clear();
@@ -937,6 +921,66 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvm(MatrixType& rL
   KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateStiffnessFactor(MatrixType& rLeftHandSideMatrix,
+                                                                       ElementDataType& rVariables,
+                                                                       const double& rBulkFactor,
+                                                                       double& rStiffnessFactor)
+
+{
+  KRATOS_TRY
+
+  // First approach:
+  // {
+  // // add fluid bulk modulus
+  // this->AddVolumetricPart(rVariables.ConstitutiveMatrix,rBulkFactor);
+
+  // FluidElement::CalculateAndAddKvvm( rLeftHandSideMatrix, rVariables );
+
+  // rLeftHandSideMatrix *= rVariables.Alpha;
+
+  // //remove fluid bulk modulus
+  // this->RemoveVolumetricPart(rVariables.ConstitutiveMatrix,rBulkFactor);
+
+  // //a. Proposed calculation:
+  // // this->CalculateDenseMatrixMeanValue(rLeftHandSideMatrix,rStiffnessFactor);
+
+  // //b. Alternative calculation:
+  // this->CalculateLumpedMatrixMeanValue(rLeftHandSideMatrix,rStiffnessFactor);
+  // //rStiffnessFactor *= 0.75;
+  // }
+
+  //std::cout<<" StiffnessFactor A "<<rStiffnessFactor<<std::endl;
+  // Seccond approach:
+  // {
+  rStiffnessFactor = 0;
+
+  double diagonal = 0;
+  for(SizeType i=0; i<rVariables.B.size2(); ++i)
+  {
+    diagonal = 0;
+    for(SizeType j=0; j<rVariables.B.size1(); ++j)
+    {
+      for(SizeType k=0; k<rVariables.B.size1(); ++k)
+      {
+        diagonal += rVariables.B(j,i) * (rVariables.ConstitutiveMatrix(j,k) + rBulkFactor) * rVariables.B(k,i);
+      }
+    }
+
+    rStiffnessFactor += fabs(diagonal);
+  }
+
+  double factor = 1.0/ double(GetGeometry().WorkingSpaceDimension() * rLeftHandSideMatrix.size1());
+
+  rStiffnessFactor *= factor * rVariables.IntegrationWeight * rVariables.Alpha;
+  // }
+
+  //std::cout<<" StiffnessFactor B "<<rStiffnessFactor<<std::endl;
+
+  KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -959,7 +1003,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvg(MatrixType& rL
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor)
+void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Matrix& rConstitutiveMatrix, const double& rBulkFactor)
 {
   KRATOS_TRY
 
@@ -979,12 +1023,12 @@ void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Matrix& rConstit
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor)
+void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Matrix& rConstitutiveMatrix, const double& rBulkFactor)
 {
   KRATOS_TRY
 
-  rBulkFactor *= (-1);
-  this->AddVolumetricPart(rConstitutiveMatrix,rBulkFactor);
+  double BulkFactor = -rBulkFactor;
+  this->AddVolumetricPart(rConstitutiveMatrix, BulkFactor);
 
   KRATOS_CATCH( "" )
 }
@@ -992,7 +1036,7 @@ void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Matrix& rCons
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Vector& rStressVector, double& rMeanPressure)
+void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Vector& rStressVector, const double& rMeanPressure)
 {
   KRATOS_TRY
 
@@ -1009,12 +1053,12 @@ void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Vector& rStressV
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Vector& rStressVector, double& rMeanPressure)
+void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Vector& rStressVector, const double& rMeanPressure)
 {
   KRATOS_TRY
 
-  rMeanPressure *= (-1);
-  this->AddVolumetricPart(rStressVector,rMeanPressure);
+  double MeanPressure = -rMeanPressure;
+  this->AddVolumetricPart(rStressVector,MeanPressure);
 
   KRATOS_CATCH( "" )
 }

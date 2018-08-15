@@ -647,14 +647,14 @@ class InsertFluidNodesMesherProcess
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     std::vector<Node<3>::Pointer > list_of_new_nodes;
-    double NodeIdParent = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
-    double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
+    const unsigned int NodeIdParent = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
+    const unsigned int NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
 
-    unsigned int initial_node_size =NodeIdParent + 1 + rElementsToRefine; //total model part node size
+    unsigned int Id = NodeIdParent + 1; //total model part node size
 
     if(NodeId>NodeIdParent){
-      initial_node_size =NodeId + 1 + rElementsToRefine;
-      std::cout<<"initial_node_size  "<<initial_node_size<<std::endl;
+      Id = NodeId + 1;
+      std::cout<<"initial_node_size  "<<Id<<std::endl;
     }
 
     //assign data to dofs
@@ -663,8 +663,6 @@ class InsertFluidNodesMesherProcess
     for(unsigned int nn= 0; nn< rNewPositions.size(); ++nn)
     {
 
-      unsigned int id = initial_node_size + nn;
-
       double  x = rNewPositions[nn][0];
       double  y = rNewPositions[nn][1];
       double  z = 0;
@@ -672,7 +670,8 @@ class InsertFluidNodesMesherProcess
         z=rNewPositions[nn][2];
 
       //create a new node
-      Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id,x,y,z);
+      Node<3>::Pointer pnode = mrModelPart.CreateNewNode(Id,x,y,z);
+      ++Id;
 
       //to control the inserted nodes
       // pnode->Set(MODIFIED);
@@ -681,10 +680,11 @@ class InsertFluidNodesMesherProcess
       pnode->Set(NEW_ENTITY,true); //not boundary
       list_of_new_nodes.push_back( pnode );
 
-      if(mrRemesh.InputInitializedFlag){
-        mrRemesh.NodalPreIds.push_back( pnode->Id() );
-        pnode->SetId(id);
-      }
+      // commented JMC august 15-18
+      // if(mrRemesh.InputInitializedFlag){
+      //   mrRemesh.NodalPreIds.push_back( pnode->Id() );
+      //   pnode->SetId(Id);
+      // }
 
       //giving model part variables list to the node
       pnode->SetSolutionStepVariablesList(&rVariablesList);
