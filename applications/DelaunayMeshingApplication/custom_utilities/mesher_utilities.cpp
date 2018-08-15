@@ -1298,29 +1298,51 @@ namespace Kratos
     double MovedVolume = 0.0;
     if(rDimension==2){
 
-      GeometryType MovedVertices;
-      for(unsigned int i=0; i<rVertices.size(); ++i)
-      {
-        Node<3>::Pointer pNode = rVertices[i].Clone();
-        pNode->Coordinates() += MovementFactor * (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
-        MovedVertices.push_back(pNode);
-      }
-      Triangle2D3<Node<3> > MovedTriangle(MovedVertices);
-      MovedVolume = MovedTriangle.Area();
+      //Triangle geometry
+      array_1d<double,3> P0;
+      noalias(P0) = rVertices[0].Coordinates() + MovementFactor * (rVertices[0].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[0].FastGetSolutionStepValue(DISPLACEMENT,1));
+      array_1d<double,3> P1;
+      noalias(P1) = rVertices[1].Coordinates() + MovementFactor * (rVertices[1].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[1].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x10 = P1[0] - P0[0];
+      double y10 = P1[1] - P0[1];
+
+      noalias(P1) = rVertices[2].Coordinates() + MovementFactor * (rVertices[2].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[2].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x20 = P1[0] - P0[0];
+      double y20 = P1[1] - P0[1];
+
+      MovedVolume = 0.5 * ( x10 * y20 - y10 * x20 );
 
     }
     else if(rDimension==3){
 
-      Geometry<Node<3> > MovedVertices;
-      for(unsigned int i=0; i<rVertices.size(); ++i)
-      {
-        Node<3>::Pointer pNode = rVertices[i].Clone();
-        pNode->Coordinates() += MovementFactor * (pNode->FastGetSolutionStepValue(DISPLACEMENT)-pNode->FastGetSolutionStepValue(DISPLACEMENT,1));
-        MovedVertices.push_back(pNode);
-      }
+      //Tetrahedron geometry
+      const double onesixth = 1.0/6.0;
 
-      Tetrahedra3D4<Node<3> > MovedTetrahedron(MovedVertices);
-      MovedVolume = MovedTetrahedron.Volume();
+      array_1d<double,3> P0;
+      noalias(P0) = rVertices[0].Coordinates() + MovementFactor * (rVertices[0].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[0].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      array_1d<double,3> P1;
+      noalias(P1) = rVertices[1].Coordinates() + MovementFactor * (rVertices[1].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[1].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x10 = P1[0] - P0[0];
+      double y10 = P1[1] - P0[1];
+      double z10 = P1[2] - P0[2];
+
+      noalias(P1) = rVertices[2].Coordinates() + MovementFactor * (rVertices[2].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[2].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x20 = P1[0] - P0[0];
+      double y20 = P1[1] - P0[1];
+      double z20 = P1[2] - P0[2];
+
+     noalias(P1)  = rVertices[3].Coordinates() + MovementFactor * (rVertices[3].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[3].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x30 = P1[0] - P0[0];
+      double y30 = P1[1] - P0[1];
+      double z30 = P1[2] - P0[2];
+
+      MovedVolume = onesixth * (x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30);
 
       // if(MovedVolume<0)
       //   std::cout<<" VOLUME negative "<<std::endl;
