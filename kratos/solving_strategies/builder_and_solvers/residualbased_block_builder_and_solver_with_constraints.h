@@ -955,13 +955,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         VectorType master_weights_vector;
         double slave_constant;
         int i_masters_total = rEquationIds.size();
-
         for (const auto &slave_index : rLocalIndices.SlaveIndices())
         {
             auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
             KRATOS_DEBUG_ERROR_IF (global_master_slave_constraint == mGlobalMasterSlaveRelations.end()) <<
                              "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
-
             global_master_slave_constraint->second->EquationIdVector(slave_equation_id, master_equation_ids);
             global_master_slave_constraint->second->CalculateLocalSystem(master_weights_vector, slave_constant);
             for (IndexType i_master = 0; i_master < master_equation_ids.size(); ++i_master)
@@ -1078,7 +1076,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         // Get number of master indices for this current container
         rLocalIndexStructure.MasterIndices().reserve(rTotalNumberOfMasters + rEquationIds.size() );
-        for (IndexType i = rEquationIds.size(); i < rTotalNumberOfMasters + rEquationIds.size(); i++)
+        for (IndexType i = rEquationIds.size()-1; i < rEquationIds.size() -rTotalNumberOfMasters; --i)
             rLocalIndexStructure.MasterIndices().push_back(i);
     }
 

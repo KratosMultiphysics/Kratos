@@ -109,7 +109,7 @@ class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
     virtual void EquationIdVector(IndexType& rSlaveEquationId,
                                   EquationIdVectorType& rMasterEquationIds)
     {
-        if (rMasterEquationIds.size() != 0)
+        if (rMasterEquationIds.size() == 0)
             rMasterEquationIds.resize(this->GetNumberOfMasters(), false);
 
         rSlaveEquationId = this->SlaveEquationId();
@@ -126,7 +126,7 @@ class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
     virtual void CalculateLocalSystem(VectorType &rMasterWeightsVector,
                                       double &rConstant)
     {
-        if (rMasterWeightsVector.size() != 0)
+        if (rMasterWeightsVector.size() == 0)
             rMasterWeightsVector.resize(this->GetNumberOfMasters(), false);
 
         for (IndexType i = 0; i < this->GetNumberOfMasters(); ++i)
