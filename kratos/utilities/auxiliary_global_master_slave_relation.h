@@ -24,6 +24,7 @@
 namespace Kratos
 {
 
+namespace Internals{
 /**
  * @class AuxiliaryGlobalMasterSlaveRelation
  * @ingroup KratosCore
@@ -74,7 +75,7 @@ class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief Function to set the lefthand side of the constraint (the slave dof value)
      * @param LhsValue the value of the lhs (the slave dof value)
      */
-    void SetLHSValue(const double LhsValue)
+    void SetLeftHandSide(const double LhsValue)
     {
         mLockObject.SetLock();
             mLhsValue = LhsValue;
@@ -85,11 +86,11 @@ class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
      * @param RHSValue the value of the lhs (the slave dof value)
      */
-    void SetRHSValue(const double RhsValue)
+    void SetRightHandSide(const double RhsValue)
     {
         mRhsValue = RhsValue;
     }
-    void UpdateRHSValue(const double RhsValueUpdate)
+    void UpdateRightHandSide(const double RhsValueUpdate)
     {
         mLockObject.SetLock();
             mRhsValue = mRhsValue + RhsValueUpdate;
@@ -97,7 +98,7 @@ class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
     }
 
     // Get number of masters for this slave
-    IndexType GetNumberOfMasters() const
+    IndexType NumberOfMasters() const
     {
         return mMasterEquationIdVector.size();
     }
@@ -106,11 +107,11 @@ class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
      * @brief this determines the master equation IDs connected to this constraint
      * @param rResult the elemental equation ID vector
      */
-    virtual void EquationIdVector(IndexType& rSlaveEquationId,
+    virtual void EquationIdsVector(IndexType& rSlaveEquationId,
                                   EquationIdVectorType& rMasterEquationIds)
     {
         if (rMasterEquationIds.size() == 0)
-            rMasterEquationIds.resize(this->GetNumberOfMasters(), false);
+            rMasterEquationIds.resize(this->NumberOfMasters(), false);
 
         rSlaveEquationId = this->SlaveEquationId();
         rMasterEquationIds = mMasterEquationIdVector;
@@ -127,9 +128,9 @@ class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
                                       double &rConstant)
     {
         if (rMasterWeightsVector.size() == 0)
-            rMasterWeightsVector.resize(this->GetNumberOfMasters(), false);
+            rMasterWeightsVector.resize(this->NumberOfMasters(), false);
 
-        for (IndexType i = 0; i < this->GetNumberOfMasters(); ++i)
+        for (IndexType i = 0; i < this->NumberOfMasters(); ++i)
             rMasterWeightsVector(i) = mMasterWeightsVector[i];
 
 
@@ -155,31 +156,35 @@ class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
 
     void Clear()
     {
-        mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
             //clearing the contents
             mMasterEquationIdVector.clear();
             mMasterWeightsVector.clear();
             //shrinking the memory
             mMasterEquationIdVector.shrink_to_fit();
             mMasterWeightsVector.shrink_to_fit();
-        mLockObject.UnSetLock(); // unlocking
     }
 
     void AddMaster(IndexType MasterEquationId, double Weight)
     {
-        mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
-            int index = MasterEquationIdExists(MasterEquationId);
-            if (index > 0)
+            int index = GetMasterEquationIdPosition(MasterEquationId);
+            if (index >= 0)
             {
-                mMasterWeightsVector[index] += Weight;
+                #pragma omp atomic
+                    mMasterWeightsVector[index] += Weight;
             } else
             {
-                mMasterEquationIdVector.push_back(MasterEquationId);
-                mMasterWeightsVector.push_back(Weight);
+                mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
+                    mMasterEquationIdVector.push_back(MasterEquationId);
+                    mMasterWeightsVector.push_back(Weight);
+                mLockObject.UnSetLock(); // unlocking
             }
-        mLockObject.UnSetLock(); // unlocking
     }
 
+    void Reset()
+    {
+        this->mLhsValue = 0.0;
+        this->mRhsValue = 0.0;
+    }
   private:
     ///@name Serialization
     ///@{
@@ -197,7 +202,7 @@ class AuxiliaryGlobalMasterSlaveRelation : public IndexedObject
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
     }
 
-    int MasterEquationIdExists(IndexType MasterEquationId)
+    int GetMasterEquationIdPosition(IndexType MasterEquationId) const
     {
         auto it = find(mMasterEquationIdVector.begin(), mMasterEquationIdVector.end(), MasterEquationId);
         if (it != mMasterEquationIdVector.end())
@@ -245,13 +250,7 @@ class LocalIndices
 
     ~LocalIndices()
     {
-        internal_index_vector.resize(0);
-        master_index_vector.resize(0);
-        slave_index_vector.resize(0);
 
-        internal_index_vector.shrink_to_fit();
-        master_index_vector.shrink_to_fit();
-        slave_index_vector.shrink_to_fit();
     }
 
     /*
@@ -266,6 +265,8 @@ class LocalIndices
     VectorIndexType master_index_vector; // indicies corresponding to master DOFs
     VectorIndexType slave_index_vector; // indicies corresponding to slave DOFs
 };
+
+} // namespace Internals
 
 } // namespace Kratos
 
