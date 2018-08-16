@@ -146,20 +146,20 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
         max_required_eigenfrequency = int(max(response_settings["traced_eigenfrequencies"].GetVector()))
         if max_required_eigenfrequency is not eigen_solver_settings["number_of_eigenvalues"].GetInt():
-            print("\n> WARNING: Specified number of eigenvalues in the primal analysis and the max required eigenvalue according the response settings do not match!!!")
-            print("  Primal parameters were adjusted accordingly!\n")
+            Logger.PrintWarning("\n> WARNING: Specified number of eigenvalues in the primal analysis and the max required eigenvalue according the response settings do not match!!!")
+            Logger.PrintWarning("  Primal parameters were adjusted accordingly!\n")
             eigen_solver_settings["number_of_eigenvalues"].SetInt(max_required_eigenfrequency)
 
         if not eigen_solver_settings.Has("normalize_eigenvectors"):
             eigen_solver_settings.AddEmptyValue("normalize_eigenvectors")
             eigen_solver_settings["normalize_eigenvectors"].SetBool(True)
-            print("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
-            print("  Primal parameters were adjusted accordingly!\n")
+            Logger.PrintWarning("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
+            Logger.PrintWarning("  Primal parameters were adjusted accordingly!\n")
 
         if not eigen_solver_settings["normalize_eigenvectors"].GetBool():
             eigen_solver_settings["normalize_eigenvectors"].SetBool(True)
-            print("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
-            print("  Primal parameters were adjusted accordingly!\n")
+            Logger.PrintWarning("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
+            Logger.PrintWarning("  Primal parameters were adjusted accordingly!\n")
 
         model = Model()
         model.AddModelPart(self.primal_model_part)
