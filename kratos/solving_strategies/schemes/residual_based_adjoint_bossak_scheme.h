@@ -397,8 +397,8 @@ protected:
         for (unsigned int i_node = 0; i_node < num_nodes; ++i_node) {
             auto& r_node = r_geometry[i_node];
             const array_1d<double, 3>& r_aux_adjoint_vector = r_node.FastGetSolutionStepValue(mAuxiliaryVariable,1);
-            const array_1d<double, 3>& r_velocity_adjoint = r_node.FastGetSolutionStepValue(mVelocityUpdateAdjointVariable);
-            const array_1d<double, 3>& r_acceleration_adjoint = r_node.FastGetSolutionStepValue(mAccelerationUpdateAdjointVariable);
+            const array_1d<double, 3>& r_velocity_adjoint = r_node.FastGetSolutionStepValue(mVelocityUpdateAdjointVariable,1);
+            const array_1d<double, 3>& r_acceleration_adjoint = r_node.FastGetSolutionStepValue(mAccelerationUpdateAdjointVariable,1);
             const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
             for (unsigned int d = 0; d < domain_size; d++) {
