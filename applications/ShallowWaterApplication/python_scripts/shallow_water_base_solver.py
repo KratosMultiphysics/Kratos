@@ -153,7 +153,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         (self.solver).Initialize()
 
-        self.print_on_rank_zero("ShallowWaterApplication", "Mesh stage solver initialization finished")
+        self.print_on_rank_zero("::[ShallowWaterBaseSolver]::", "Mesh stage solver initialization finished")
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
@@ -195,7 +195,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         message += "solver.SolveSolutionStep()\n",
         message += "solver.FinalizeSolutionStep()\n"
 
-        KratosMultiphysics.Logger.PrintWarning("ShallowWaterBaseSolver", message)
+        self.print_warning_on_rank_zero("::[ShallowWaterBaseSolver]:: ", message)
 
         self.InitializeSolutionStep()
         self.Predict()
