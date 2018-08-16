@@ -146,11 +146,10 @@ public:
         KRATOS_CATCH("");
     }
 
-    void FinalizeSolutionStep(
-                        ModelPart& rModelPart,
-                        SystemMatrixType& rA,
-                        SystemVectorType& rDx,
-                        SystemVectorType& rb) override
+    void FinalizeSolutionStep(ModelPart& rModelPart,
+                              SystemMatrixType& rA,
+                              SystemVectorType& rDx,
+                              SystemVectorType& rb) override
     {
         KRATOS_TRY;
 
@@ -162,10 +161,10 @@ public:
     }
 
     void Update(ModelPart& rModelPart,
-                        DofsArrayType& rDofSet,
-                        SystemMatrixType& rA,
-                        SystemVectorType& rDx,
-                        SystemVectorType& rb) override
+                DofsArrayType& rDofSet,
+                SystemMatrixType& rA,
+                SystemVectorType& rDx,
+                SystemVectorType& rb) override
     {
         KRATOS_TRY;
 
