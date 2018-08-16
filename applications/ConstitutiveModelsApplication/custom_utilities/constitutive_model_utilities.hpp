@@ -196,7 +196,6 @@ namespace Kratos
     static inline void RightCauchyToGreenLagrangeStrain( const MatrixType& rRightCauchyGreen,
 							 MatrixType& rStrainMatrix )
     {
-
       rStrainMatrix = rRightCauchyGreen;
 
       rStrainMatrix(0,0) -= 1.0;
@@ -1163,7 +1162,14 @@ namespace Kratos
 							  const unsigned int& a, const unsigned int& b,
 							  const unsigned int& c, const unsigned int& d )
     {
-      rValue = 0.5*(rIdentityMatrix(a,c)*rIdentityMatrix(b,d)+rIdentityMatrix(a,d)*rIdentityMatrix(b,c));
+      //rValue = 0.5*(rIdentityMatrix(a,c)*rIdentityMatrix(b,d)+rIdentityMatrix(a,d)*rIdentityMatrix(b,c));
+
+      if((a==c && b==d) && (a==d && b==c))
+        rValue = 1.0;
+      else if((a==c && b==d) || (a==d && b==c))
+        rValue = 0.5;
+      else
+        rValue = 0.0;
 
       return rValue;
     }
@@ -1746,4 +1752,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_CONSTITUTIVE_MODEL_UTILITIES defined
-

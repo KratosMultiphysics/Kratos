@@ -208,38 +208,40 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    // virtual void CalculateAndAddIsochoricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
-    // {
-    //   KRATOS_TRY
+    // Specialized method instead of the general one (faster)
+    virtual void CalculateAndAddIsochoricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
+    {
+      KRATOS_TRY
 
-    //   const ModelDataType&  rModelData        = rVariables.GetModelData();
-    //   const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
+      const ModelDataType&  rModelData        = rVariables.GetModelData();
+      const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
 
-    //   MatrixType StressMatrix;
-    //   const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+      MatrixType StressMatrix;
+      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
 
-    //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
 
-    // 	StressMatrix  = msIdentityMatrix;
-    // 	StressMatrix -= 1.0/3.0 * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.InverseMatrix;
+    	StressMatrix  = msIdentityMatrix;
+    	StressMatrix -= 1.0/3.0 * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.InverseMatrix;
 
-    // 	StressMatrix *= rMaterial.GetLameMu() * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
+    	StressMatrix *= rMaterial.GetLameMu() * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
 
-    // 	rStressMatrix += StressMatrix;
-    //   }
-    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
+    	rStressMatrix += StressMatrix;
+      }
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 
-    // 	StressMatrix  = rVariables.Strain.Matrix;
-    // 	StressMatrix -= 1.0/3.0 * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * msIdentityMatrix;
-    // 	StressMatrix *= rMaterial.GetLameMu() * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
+    	StressMatrix  = rVariables.Strain.Matrix;
+    	StressMatrix -= 1.0/3.0 * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * msIdentityMatrix;
+    	StressMatrix *= rMaterial.GetLameMu() * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
 
-    // 	rStressMatrix += StressMatrix;
-    //   }
+    	rStressMatrix += StressMatrix;
+      }
 
 
-    //   KRATOS_CATCH(" ")
-    // }
+      KRATOS_CATCH(" ")
+    }
 
+    // Specialized method instead of the general one (faster) needs compatibility for incompressible law (BulkFactor Method)
     // virtual void CalculateAndAddVolumetricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
     // {
     //   KRATOS_TRY
@@ -272,63 +274,63 @@ namespace Kratos
     //   KRATOS_CATCH(" ")
     // }
 
-
-    // virtual double& AddIsochoricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
-    // 						      const unsigned int& a, const unsigned int& b,
-    // 						      const unsigned int& c, const unsigned int& d) override
-    // {
-    //   KRATOS_TRY
-
-
-    //   double Cabcd = 0;
-
-    //   const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-
-    //   const ModelDataType&  rModelData         = rVariables.GetModelData();
-    //   const StressMeasureType& rStressMeasure  = rModelData.GetStressMeasure();
-    //   const MatrixType& rIsochoricStressMatrix = rModelData.GetStressMatrix();
+    // Specialized method instead of the general one (faster)
+    virtual double& AddIsochoricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+    						      const unsigned int& a, const unsigned int& b,
+    						      const unsigned int& c, const unsigned int& d) override
+    {
+      KRATOS_TRY
 
 
-    //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
+      double Cabcd = 0;
 
-    // 	Cabcd  = (1.0/3.0) * (rVariables.Strain.InverseMatrix(a,b)*rVariables.Strain.InverseMatrix(d,c));
+      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
 
-    // 	Cabcd -= 0.5 * (rVariables.Strain.InverseMatrix(a,c)*rVariables.Strain.InverseMatrix(b,d)+rVariables.Strain.InverseMatrix(a,d)*rVariables.Strain.InverseMatrix(b,c));
-
-    // 	Cabcd *= rMaterial.GetLameMu() * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
-
-    // 	Cabcd += (rVariables.Strain.InverseMatrix(c,d)*rIsochoricStressMatrix(a,b)+rIsochoricStressMatrix(c,d)*rVariables.Strain.InverseMatrix(a,b));
-
-    // 	Cabcd *= (-2.0/3.0);
-
-    //   }
-    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
-
-    // 	Cabcd  = (1.0/3.0) * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
+      const ModelDataType&  rModelData         = rVariables.GetModelData();
+      const StressMeasureType& rStressMeasure  = rModelData.GetStressMeasure();
+      const MatrixType& rIsochoricStressMatrix = rModelData.GetStressMatrix();
 
 
-    // 	Cabcd -= 0.5 * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
+
+    	Cabcd  = (1.0/3.0) * (rVariables.Strain.InverseMatrix(a,b)*rVariables.Strain.InverseMatrix(d,c));
+
+    	Cabcd -= 0.5 * (rVariables.Strain.InverseMatrix(a,c)*rVariables.Strain.InverseMatrix(b,d)+rVariables.Strain.InverseMatrix(a,d)*rVariables.Strain.InverseMatrix(b,c));
+
+    	Cabcd *= rMaterial.GetLameMu() * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
+
+    	Cabcd += (rVariables.Strain.InverseMatrix(c,d)*rIsochoricStressMatrix(a,b)+rIsochoricStressMatrix(c,d)*rVariables.Strain.InverseMatrix(a,b));
+
+    	Cabcd *= (-2.0/3.0);
+
+      }
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
+
+    	Cabcd  = (1.0/3.0) * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
 
 
-    // 	Cabcd *= rMaterial.GetLameMu() * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
+    	Cabcd -= 0.5 * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));
 
 
-    // 	Cabcd +=  (msIdentityMatrix(c,d)*rIsochoricStressMatrix(a,b)+rIsochoricStressMatrix(c,d)*msIdentityMatrix(a,b));
-
-    // 	Cabcd *= (-2.0/3.0);
-
-    //   }
-
-    //   rCabcd += Cabcd;
-
-    //   rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
-
-    //   return rCabcd;
-
-    //   KRATOS_CATCH(" ")
-    // }
+    	Cabcd *= rMaterial.GetLameMu() * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13;
 
 
+    	Cabcd +=  (msIdentityMatrix(c,d)*rIsochoricStressMatrix(a,b)+rIsochoricStressMatrix(c,d)*msIdentityMatrix(a,b));
+
+    	Cabcd *= (-2.0/3.0);
+
+      }
+
+      rCabcd += Cabcd;
+
+      rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED);
+
+      return rCabcd;
+
+      KRATOS_CATCH(" ")
+    }
+
+    // Specialized method instead of the general one (faster) needs compatibility for incompressible law (BulkFactor Method)
     // virtual double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
     // 						       const unsigned int& a, const unsigned int& b,
     // 						       const unsigned int& c, const unsigned int& d) override

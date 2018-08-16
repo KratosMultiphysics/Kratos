@@ -197,8 +197,12 @@ class LineSearchSolutionStrategy
   {
     KRATOS_TRY
 
-    SystemVectorType Dx0((*this->mpb).size());
+    SystemVectorType Dx0((*this->mpDx).size());
     TSparseSpace::Assign(Dx0,1.0,(*this->mpDx));
+
+    SystemVectorType b0((*this->mpb).size());
+    TSparseSpace::Assign(b0,1.0,(*this->mpb));
+    ComputeResidual(); // initial computation of the residual (if scaling the value of b is not the real one)
 
     //compute slopes:
 
@@ -209,14 +213,17 @@ class LineSearchSolutionStrategy
     double s1 = 0;
     ComputeUpdatedSlope(s1,Dx0);
 
-    double alpha = mAlpha;
+    //std::cout<<" s0 "<<s0<<" s1 "<<s1<<std::endl;
+
+    double alpha = 1;
+    // if(mAlpha>1e-3)
+    //   alpha = mAlpha;
+
     if( s0 * s1 < 0 ){
 
       double s2 = s1; //current slope
-      if( fabs(s1)<fabs(s0) )
-        s2 = s0;
 
-      double s_p   = s0;
+      double s0_0  = s0;
       double nabla = 0.0;
       double delta = 1.0;
       alpha = 1.0;
@@ -224,7 +231,7 @@ class LineSearchSolutionStrategy
       unsigned int iterations = 0;
       unsigned int max_iterations = 10;
 
-      while(fabs(s2/s_p)>0.3 && iterations<max_iterations && fabs(s0)>1e-7 && fabs(s1)>1e-7 && (s0*s1)<0) {
+      while(fabs(s2/s0_0)>0.5 && iterations<max_iterations && fabs(s0)>1e-5 && fabs(s1)>1e-5 && (s0*s1)<0) {
 
         alpha = 0.5*(nabla+delta);
 
@@ -232,7 +239,7 @@ class LineSearchSolutionStrategy
         TSparseSpace::Assign((*this->mpDx),alpha,Dx0);
         ComputeUpdatedSlope(s2,Dx0);
 
-        if( s2*s1 < 0 ){
+        if( s2 * s1 < 0 ){
           nabla = alpha;
           s0 = s2;
         }
@@ -246,6 +253,9 @@ class LineSearchSolutionStrategy
 
         iterations++;
       }
+
+      if(iterations>0)
+        KRATOS_INFO("LineSearch") << "alpha: "<<alpha<<" iterations: "<<iterations<<std::endl;
 
       if( alpha > 1 )
         alpha = 1;
@@ -261,7 +271,8 @@ class LineSearchSolutionStrategy
     BaseType::Update();
 
     //restore
-    TSparseSpace::Assign((*this->mpDx),1.0, Dx0);
+    TSparseSpace::Assign((*this->mpDx), 1.0, Dx0);
+    TSparseSpace::Assign((*this->mpb), 1.0, b0);
 
     KRATOS_CATCH( "" )
   }
@@ -274,8 +285,12 @@ class LineSearchSolutionStrategy
   {
     KRATOS_TRY
 
-    SystemVectorType Dx0((*this->mpb).size());
+    SystemVectorType Dx0((*this->mpDx).size());
     TSparseSpace::Assign(Dx0,1.0,(*this->mpDx));
+
+    SystemVectorType b0((*this->mpb).size());
+    TSparseSpace::Assign(b0,1.0,(*this->mpb));
+    ComputeResidual(); // initial computation of the residual (if scaling the value of b is not the real one)
 
     //compute slopes:
 
@@ -286,7 +301,11 @@ class LineSearchSolutionStrategy
     double s1 = 0;
     ComputeUpdatedSlope(s1,Dx0);
 
-    double alpha = mAlpha;
+
+    double alpha = 1;
+    // if(mAlpha>1e-3)
+    //   alpha = mAlpha;
+
     if( s0 * s1 < 0 ){
 
       double s2 = s1; //current slope
@@ -297,7 +316,7 @@ class LineSearchSolutionStrategy
       unsigned int iterations = 0;
       unsigned int max_iterations = 3;
 
-      while(fabs(s2)>0.5*fabs(s0) && iterations<max_iterations && fabs(s0)>1e-7 && fabs(s2)>1e-7 && (s0*s2)<0) {
+      while(fabs(s2)>0.5*fabs(s0) && iterations<max_iterations && fabs(s0)>1e-5 && fabs(s2)>1e-5 && (s0*s2)<0) {
 
 
         nabla = s0/s2;
@@ -316,8 +335,11 @@ class LineSearchSolutionStrategy
         TSparseSpace::Assign((*this->mpDx),alpha,Dx0);
         ComputeUpdatedSlope(s2,Dx0);
 
-        iterations++;
+        ++iterations;
       }
+
+      if(iterations>0)
+        KRATOS_INFO("LineSearch") << "alpha: "<<alpha<<" iterations: "<<iterations<<std::endl;
 
       if( alpha > 1 )
         alpha = 1;
@@ -334,6 +356,7 @@ class LineSearchSolutionStrategy
 
     //restore
     TSparseSpace::Assign((*this->mpDx),1.0, Dx0);
+    TSparseSpace::Assign((*this->mpb), 1.0, b0);
 
     KRATOS_CATCH( "" )
   }
@@ -347,8 +370,12 @@ class LineSearchSolutionStrategy
   {
     KRATOS_TRY
 
-    SystemVectorType Dx0((*this->mpb).size());
+    SystemVectorType Dx0((*this->mpDx).size());
     TSparseSpace::Assign(Dx0,1.0,(*this->mpDx));
+
+    SystemVectorType b0((*this->mpb).size());
+    TSparseSpace::Assign(b0,1.0,(*this->mpb));
+    ComputeResidual(); // initial computation of the residual (if scaling the value of b is not the real one)
 
     //compute slopes:
 
@@ -359,7 +386,10 @@ class LineSearchSolutionStrategy
     double s1 = 0;
     ComputeUpdatedSlope(s1,Dx0);
 
-    double alpha = mAlpha;
+    double alpha = 1;
+    // if(mAlpha>1e-3)
+    //   alpha = mAlpha;
+
     if( s0 * s1 < 0 ){
 
       double s2 = s1; //current slope
@@ -370,7 +400,7 @@ class LineSearchSolutionStrategy
       unsigned int iterations = 0;
       unsigned int max_iterations = 10;
 
-      while(fabs(s2/s0)>0.5 && iterations<max_iterations && fabs(s2)>1e-4) {
+      while(fabs(s2/s0)>0.5 && iterations<max_iterations && fabs(s2)>1e-5) {
 
         if( nabla < 0 ){
           alpha = nabla/(0.5*(nabla-sqrt(nabla*(nabla-4.0))));
@@ -390,10 +420,13 @@ class LineSearchSolutionStrategy
 
         nabla = s0/s2;
 
-        iterations++;
+        ++iterations;
       }
 
-      if( alpha > 1 )
+      if(iterations>0)
+        KRATOS_INFO("LineSearch") << "alpha: "<<alpha<<" iterations: "<<iterations<<std::endl;
+
+     if( alpha > 1 )
         alpha = 1;
 
       if( alpha <= 0 )
@@ -408,6 +441,7 @@ class LineSearchSolutionStrategy
 
     //restore
     TSparseSpace::Assign((*this->mpDx),1.0, Dx0);
+    TSparseSpace::Assign((*this->mpb), 1.0, b0);
 
     KRATOS_CATCH( "" )
   }
@@ -420,8 +454,12 @@ class LineSearchSolutionStrategy
   {
     KRATOS_TRY
 
-    SystemVectorType Dx0((*this->mpb).size());
+    SystemVectorType Dx0((*this->mpDx).size());
     TSparseSpace::Assign(Dx0,1.0,(*this->mpDx));
+
+    SystemVectorType b0((*this->mpb).size());
+    TSparseSpace::Assign(b0,1.0,(*this->mpb));
+    ComputeResidual(); // initial computation of the residual (if scaling the value of b is not the real one)
 
     //compute slopes:
 
@@ -432,40 +470,37 @@ class LineSearchSolutionStrategy
     double s1 = 0;
     ComputeUpdatedSlope(s1,Dx0);
 
-    double alpha = mAlpha; //new alpha
+    double alpha = 1;
+    // if(mAlpha>1e-3)
+    //   alpha = mAlpha;
+
     if( s0 * s1 < 0 ){
 
-      double s_c = 0; //current slope
-      double s_p = 0; //previous slope
-      double alpha_c = 1.0; //current_alpha
-      double alpha_p = 0.0; //previous_alpha
-
-      //s_p  (alpha=alpha_p)
-      TSparseSpace::Assign((*this->mpDx),alpha_p,Dx0);
-      ComputeUpdatedSlope(s_p,Dx0);
-
-      //s_c  (alpha=alpha_c)
-      TSparseSpace::Assign((*this->mpDx),alpha_c,Dx0);
-      ComputeUpdatedSlope(s_c,Dx0);
+      double alpha = 1.0; //current_alpha
+      double nabla = 0.0; //previous_alpha
+      double delta = 0.0;
 
       unsigned int iterations = 0;
       unsigned int max_iterations = 3;
 
-      while(fabs(s_c)>0.8*fabs(s0) && iterations<=max_iterations && fabs(s_c)>1e-5 && fabs(s_p)>1e-5 && (s0*s1)<0) {
+      while(fabs(s1)>0.8*fabs(s0) && iterations<=max_iterations && fabs(s1)>1e-5 && fabs(s0)>1e-5 && (s0*s1)<0) {
 
-        alpha = alpha_c - s_c * (alpha_c-alpha_p) / (s_c-s_p);
+        delta = -s1 * (alpha-nabla) / (s1-s0);
 
         //update:
-        alpha_p = alpha_c;
-        alpha_c = alpha;
-        s_p = s_c;
+        nabla = alpha;
+        alpha += delta;
+        s0 = s1;
 
         //compute:
-        TSparseSpace::Assign((*this->mpDx),alpha_c,Dx0);
-        ComputeUpdatedSlope(s_c,Dx0);
+        TSparseSpace::Assign((*this->mpDx),alpha,Dx0);
+        ComputeUpdatedSlope(s1,Dx0);
 
-        iterations++;
+        ++iterations;
       }
+
+      if(iterations>0)
+        KRATOS_INFO("LineSearch") << "alpha: "<<alpha<<" iterations: "<<iterations<<std::endl;
 
       if( alpha > 1 )
         alpha = 1;
@@ -482,6 +517,7 @@ class LineSearchSolutionStrategy
 
     //restore
     TSparseSpace::Assign((*this->mpDx),1.0, Dx0);
+    TSparseSpace::Assign((*this->mpb), 1.0, b0);
 
     KRATOS_CATCH( "" )
   }
@@ -494,12 +530,15 @@ class LineSearchSolutionStrategy
   {
     KRATOS_TRY
 
-    SystemVectorType Dx0((*this->mpb).size());
+    SystemVectorType Dx0((*this->mpDx).size());
     TSparseSpace::Assign(Dx0,1.0,(*this->mpDx));
+
+    SystemVectorType b0((*this->mpb).size());
+    TSparseSpace::Assign(b0,1.0,(*this->mpb));
 
     //compute residual without update
     double ro = 0;
-    ComputeUpdatedResidualNorm(ro);
+    ComputeResidualNorm(ro);
 
     //compute half step residual
     TSparseSpace::Assign((*this->mpDx),0.5,Dx0);
@@ -546,9 +585,11 @@ class LineSearchSolutionStrategy
 
     //restore
     TSparseSpace::Assign((*this->mpDx),1.0,Dx0);
+    TSparseSpace::Assign((*this->mpb), 1.0, b0);
 
     KRATOS_CATCH( "" )
   }
+
 
   //**************************************************************************
   //**************************************************************************
@@ -568,7 +609,6 @@ class LineSearchSolutionStrategy
     TSparseSpace::SetToZero((*this->mpb));
     this->mpBuilderAndSolver->BuildRHS(this->mpScheme, BaseType::GetModelPart(), (*this->mpb) );
     rSlope = TSparseSpace::Dot(rDx,(*this->mpb));
-    Restore();
   }
 
   //**************************************************************************
@@ -578,17 +618,27 @@ class LineSearchSolutionStrategy
   {
     BaseType::Update();
     ComputeSlope(rSlope,rDx);
+    Restore();
   }
+
+
+  //**************************************************************************
+  //**************************************************************************
+
+  void ComputeResidual()
+  {
+    TSparseSpace::SetToZero((*this->mpb));
+    this->mpBuilderAndSolver->BuildRHS(this->mpScheme, BaseType::GetModelPart(), (*this->mpb) );
+  }
+
 
   //**************************************************************************
   //**************************************************************************
 
   void ComputeResidualNorm(double& rNorm)
   {
-    TSparseSpace::SetToZero((*this->mpb));
-    this->mpBuilderAndSolver->BuildRHS(this->mpScheme, BaseType::GetModelPart(), (*this->mpb) );
+    ComputeResidual();
     rNorm = TSparseSpace::TwoNorm((*this->mpb));
-    Restore();
   }
 
   //**************************************************************************
@@ -598,6 +648,7 @@ class LineSearchSolutionStrategy
   {
     BaseType::Update();
     ComputeResidualNorm(rNorm);
+    Restore();
   }
 
 

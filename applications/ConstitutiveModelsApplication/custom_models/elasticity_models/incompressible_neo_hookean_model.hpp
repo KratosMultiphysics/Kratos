@@ -194,6 +194,25 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+    //specialized methods:
+
+    void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    {
+      KRATOS_TRY
+
+      rFactor = 1.0;
+
+      KRATOS_CATCH(" ")
+    }
+
+    void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    {
+      KRATOS_TRY
+
+      rFactor = 2.0;
+
+      KRATOS_CATCH(" ")
+    }
 
     double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 						       const unsigned int& a, const unsigned int& b,
