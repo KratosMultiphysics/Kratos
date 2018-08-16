@@ -65,15 +65,21 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
 
         self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(model_part, response_settings)
 
+        self.primal_model_part = model_part
+
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
 
+        self._CheckModelPartNameInPrimalSettings(ProjectParametersPrimal)
 
-        self.primal_model_part = model_part
         model = Model()
         model.AddModelPart(self.primal_model_part)
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+
+    def _CheckModelPartNameInPrimalSettings(self, primal_parameters):
+        if self.primal_model_part.Name != primal_parameters["problem_data"]["model_part_name"].GetString():
+            raise RuntimeError("The model part of the primal analysis has a different name than the model part used to create the response function: " + self.primal_model_part.Name)
 
     def Initialize(self):
         self.primal_analysis.Initialize()
@@ -141,6 +147,8 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
+
+        self._CheckModelPartNameInPrimalSettings(ProjectParametersPrimal)
 
         eigen_solver_settings = ProjectParametersPrimal["solver_settings"]["eigensolver_settings"]
 
