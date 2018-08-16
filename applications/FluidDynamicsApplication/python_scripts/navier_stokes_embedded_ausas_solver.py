@@ -55,8 +55,9 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
                 "minimum_delta_time"  : 1e-2,
                 "maximum_delta_time"  : 1.0
             },
-            "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "slip_length": 1e+8,
+            "penalty_coefficient": 10.0
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -81,7 +82,7 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
         if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
             number_of_avg_elems = 10
             number_of_avg_nodes = 10
-            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part,
+            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart(),
                                                                                                number_of_avg_elems,
                                                                                                number_of_avg_nodes)
 
@@ -93,3 +94,10 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
             (self.find_nodal_neighbours_process).Execute()
             
         super(NavierStokesEmbeddedAusasMonolithicSolver,self).InitializeSolutionStep()
+
+    def _SetEmbeddedFormulation(self):
+        # Save the slip length and penalty coefficient values in ProcessInfo
+        slip_length = self.settings["slip_length"].GetDouble()
+        self.main_model_part.ProcessInfo[KratosCFD.SLIP_LENGTH] = slip_length
+        penalty_coefficient = self.settings["penalty_coefficient"].GetDouble()
+        self.main_model_part.ProcessInfo[KratosCFD.PENALTY_COEFFICIENT] = penalty_coefficient

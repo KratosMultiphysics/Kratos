@@ -61,7 +61,9 @@
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 0.1
-        }
+        },
+        "slip_length": 1e+08,
+        "penalty_coefficient": 10
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{

@@ -122,20 +122,20 @@ void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLH
     const unsigned int LocalSize = TDim+1;
     noalias(lhs_gauss) = ZeroMatrix(TNumNodes*LocalSize, TNumNodes*LocalSize);
 
-    // // LHS boundary term coming from the integration by parts of the mass conservation equation
-    // for (unsigned int i=0; i<TNumNodes; ++i)
-    // {
-    //     const unsigned int row = i*LocalSize + TDim;
+    // LHS boundary term coming from the integration by parts of the mass conservation equation
+    for (unsigned int i=0; i<TNumNodes; ++i)
+    {
+        const unsigned int row = i*LocalSize + TDim;
 
-    //     for (unsigned int j=0; j<TNumNodes; ++j)
-    //     {
-    //         for (unsigned int dim=0; dim<TDim; ++dim)
-    //         {
-    //             const unsigned int col = j*LocalSize + dim;
-    //             lhs_gauss(row, col) = rData.wGauss * rData.N[i] * rData.N[j] * rData.Normal[dim];
-    //         }
-    //     }
-    // }
+        for (unsigned int j=0; j<TNumNodes; ++j)
+        {
+            for (unsigned int dim=0; dim<TDim; ++dim)
+            {
+                const unsigned int col = j*LocalSize + dim;
+                lhs_gauss(row, col) = rData.wGauss * rData.N[i] * rData.N[j] * rData.Normal[dim];
+            }
+        }
+    }
 
 }
 
@@ -161,19 +161,19 @@ void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRH
         this->ComputeRHSOutletInflowContribution(rhs_gauss, rData);
     }
 
-    // // RHS boundary term coming from the integration by parts of the mass conservation equation
-    // for (unsigned int i=0; i<TNumNodes; ++i)
-    // {
-    //     const unsigned int row = i*LocalSize + TDim;
+    // RHS boundary term coming from the integration by parts of the mass conservation equation
+    for (unsigned int i=0; i<TNumNodes; ++i)
+    {
+        const unsigned int row = i*LocalSize + TDim;
 
-    //     for (unsigned int j=0; j<TNumNodes; ++j)
-    //     {
-    //         for (unsigned int dim=0; dim<TDim; ++dim)
-    //         {
-    //             rhs_gauss[row] -= rData.wGauss * rData.N[i] * rData.N[j] * rData.Normal[dim] * rData.v(j,dim);
-    //         }
-    //     }
-    // }
+        for (unsigned int j=0; j<TNumNodes; ++j)
+        {
+            for (unsigned int dim=0; dim<TDim; ++dim)
+            {
+                rhs_gauss[row] -= rData.wGauss * rData.N[i] * rData.N[j] * rData.Normal[dim] * rData.v(j,dim);
+            }
+        }
+    }
 }
 
 /// Computes the condition RHS Neumann BC contribution
