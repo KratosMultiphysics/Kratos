@@ -214,6 +214,9 @@ namespace Kratos
 		}
 		else if(itNode->Is(FLUID)){
 		  deviatoricCoeff = itNode->FastGetSolutionStepValue(VISCOSITY);
+		  if(deviatoricCoeff>1.0){
+		    deviatoricCoeff=1.0;
+		  }
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
 		}
 
@@ -287,8 +290,8 @@ namespace Kratos
 		    if(dimension==2){
 		      nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + 2*Normal[0]*SpatialDefRate[2]*Normal[1];
 		      /* nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X,1) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y,1); */
-		      /* nodalNormalAcceleration=(itNode->FastGetSolutionStepValue(VELOCITY_X,0)-itNode->FastGetSolutionStepValue(VELOCITY_X,1))*Normal[0]/timeInterval + */
-		      /* 	(itNode->FastGetSolutionStepValue(VELOCITY_Y,0)-itNode->FastGetSolutionStepValue(VELOCITY_Y,1))*Normal[1]/timeInterval; */
+		      nodalNormalAcceleration=(0.5*(itNode->FastGetSolutionStepValue(VELOCITY_X,0)-itNode->FastGetSolutionStepValue(VELOCITY_X,1))/timeInterval+0.5*itNode->FastGetSolutionStepValue(ACCELERATION_X,1))*Normal[0] +
+		      	(0.5*(itNode->FastGetSolutionStepValue(VELOCITY_Y,0)-itNode->FastGetSolutionStepValue(VELOCITY_Y,1))/timeInterval+0.5*itNode->FastGetSolutionStepValue(ACCELERATION_Y,1))*Normal[1];
 		      nodalNormalAcceleration=Normal[0]*nodalAcceleration[0] + Normal[1]*nodalAcceleration[1];
 		    }else if(dimension==3){
 		      nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + Normal[2]*SpatialDefRate[2]*Normal[2] +
@@ -305,7 +308,7 @@ namespace Kratos
 		    /* accelerationContribution=0; */
 		    /* deviatoricContribution=0; */
 		    if(itNode->IsNot(RIGID)){
-		      RHS_Contribution[0]  += 2.0* tauStab * (accelerationContribution + deviatoricContribution) * nodalVolume;
+		      RHS_Contribution[0]  += 2.0* tauStab * (accelerationContribution - deviatoricContribution) * nodalVolume;
 		    }else{
 		      RHS_Contribution[0]  += 1.0* tauStab * (accelerationContribution - deviatoricContribution) * nodalVolume;
 		    }
