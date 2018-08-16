@@ -264,18 +264,18 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
-        print("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
+        Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
 
         self._SynchronizeAdjointFromPrimal()
 
         # Run the primal analysis.
         # TODO if primal_analysis.status==solved: return
-        print("\n> Starting primal analysis for response:", self.identifier)
+        Logger.PrintInfo("\n> Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
         if not self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.end_time += 1
         self.primal_analysis.RunSolutionLoop()
-        print("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
         # TODO the response value calculation for stresses currently only works on the adjoint modelpart
         # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
@@ -286,17 +286,17 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def CalculateValue(self):
         startTime = timer.time()
         value = self._GetResponseFunctionUtility().CalculateValue(self.adjoint_model_part)
-        print("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
 
 
     def CalculateGradient(self):
-        print("\n> Starting adjoint analysis for response:", self.identifier)
+        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
         startTime = timer.time()
         self.adjoint_analysis._GetSolver().Predict()
         self.adjoint_analysis._GetSolver().SolveSolutionStep()
-        print("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
 
     def GetValue(self):
@@ -345,6 +345,6 @@ class AdjointLinearStrainEnergyResponse(AdjointResponseFunction):
         startTime = timer.time()
         #The linear strain energy response needs the primal model part to calculate the response value!
         value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
-        print("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
