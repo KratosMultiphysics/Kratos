@@ -17,8 +17,6 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "utilities/color_utilities.h"

@@ -17,8 +17,6 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/model_part.h"
-#include "includes/define.h"
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
@@ -86,9 +84,6 @@ public:
 
     /// The key type definition
     typedef std::size_t                                       KeyType;
-
-    /// The OMP partition definition
-    typedef OpenMPUtils::PartitionVector              PartitionVector;
 
     ///@}
     ///@name Life Cycle

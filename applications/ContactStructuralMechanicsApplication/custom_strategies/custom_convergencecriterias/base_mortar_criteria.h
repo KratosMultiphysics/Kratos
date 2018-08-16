@@ -18,8 +18,6 @@
 
 /* Project includes */
 #include "contact_structural_mechanics_application_variables.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
