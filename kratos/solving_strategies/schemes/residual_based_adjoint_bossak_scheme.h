@@ -581,7 +581,7 @@ protected:
 
             noalias(r_adjoint_auxiliary) = - prod(r_second_lhs,r_residual_adjoint) - r_second_response_gradient;
 
-            // Assemble the contributions to the corresponing nodal unkowns.
+            // Assemble the contributions to the corresponding nodal unkowns.
             unsigned int local_index = 0;
             Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
             for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
