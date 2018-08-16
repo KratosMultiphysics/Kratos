@@ -61,21 +61,18 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Slip_condition
     set Groups [GiD_Info conditions Slip_condition groups]
     if {$Dim eq 2} {
-        # NothingCondition2D2N
         WriteFaceConditions FileVar ConditionId ConditionDict $Groups Condition2D2N $PropertyDict
     }
 
     # Water_height
     set Groups [GiD_Info conditions Water_height groups]
     if {$Dim eq 2} {
-        # NothingCondition2D2N
         WriteFaceConditions FileVar ConditionId ConditionDict $Groups Condition2D2N $PropertyDict
     }
 
     # Imposed_flux
     set Groups [GiD_Info conditions Imposed_flux groups]
     if {$Dim eq 2} {
-        # NothingCondition2D2N
         WriteFaceConditions FileVar ConditionId ConditionDict $Groups Condition2D2N $PropertyDict
     }
 
@@ -88,11 +85,11 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Initial_water_level
     WriteConstraintSubmodelPart FileVar Initial_water_level
     # Slip_condition
-    WriteConstraintSubmodelPart FileVar Slip_condition
+    WriteLoadSubmodelPart FileVar Slip_condition $ConditionDict
     # Water_height
-    WriteConstraintSubmodelPart FileVar Water_height
+    WriteLoadSubmodelPart FileVar Water_height $ConditionDict
     # Imposed_flux
-    WriteConstraintSubmodelPart FileVar Imposed_flux
+    WriteLoadSubmodelPart FileVar Imposed_flux $ConditionDict
 
 
     close $FileVar
