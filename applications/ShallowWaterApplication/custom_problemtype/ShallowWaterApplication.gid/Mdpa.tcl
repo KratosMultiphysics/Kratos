@@ -26,8 +26,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     ## Nodes
     set Nodes [GiD_Info Mesh Nodes]
     puts $FileVar "Begin Nodes"
-    for {set i 0} {$i < [llength $Nodes]} {incr i 4}
-    {
+    for {set i 0} {$i < [llength $Nodes]} {incr i 4} {
         puts -nonewline $FileVar "  [lindex $Nodes $i]  "
         puts -nonewline $FileVar [format  "%.10f" [lindex $Nodes [expr { $i+1 }]]]
         puts -nonewline $FileVar " "
@@ -44,8 +43,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     set FrameworkType [GiD_AccessValue get gendata Framework]
     # Body_Part
     set Groups [GiD_Info conditions Bottom_friction groups]
-    for {set i 0} {$i < [llength $Groups]} {incr i}
-    {
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
         # Elements Property
         set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
         # Trinagles: Element2D3N
