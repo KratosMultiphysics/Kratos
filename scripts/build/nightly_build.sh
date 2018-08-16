@@ -19,7 +19,7 @@ export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 sleep 300 # 5 minutes
 
 # Install packages needed by the hdf5 app
-sudo apt-get install -y python3-h5py libhdf5-openmpi-dev
+sudo apt-get install -y python3-h5py libhdf5-dev
 
 # Install packaged nedded by the mailing
 sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
