@@ -153,7 +153,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         (self.solver).Initialize()
 
-        print ("Mesh stage solver initialization finished")
+        self.print_on_rank_zero("ShallowWaterApplication", "Mesh stage solver initialization finished")
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()

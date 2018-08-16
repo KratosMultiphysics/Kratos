@@ -47,7 +47,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
         if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("Pfem2PrimitiveVarSolver", "Shallow water solver DOFs added correctly.")
+            self.print_on_rank_zero("Pfem2PrimitiveVarSolver", "Shallow water solver DOFs added correctly.")
 
     def Initialize(self):
         super(Pfem2PrimitiveVarSolver, self).Initialize()
@@ -64,7 +64,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         # Creating the solution strategy for the particle stage
         self.moveparticles = Shallow.MoveShallowWaterParticleUtility(self.main_model_part, self.settings["pfem2_settings"])
         self.moveparticles.MountBin()
-        print("Pfem2 stage initialization finished")
+        self.print_on_rank_zero("Pfem2PrimitiveVarSolver", "Pfem2 stage initialization finished")
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():

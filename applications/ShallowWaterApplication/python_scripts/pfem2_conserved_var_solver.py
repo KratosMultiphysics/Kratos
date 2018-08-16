@@ -34,7 +34,7 @@ class Pfem2ConservedVarSolver(Pfem2PrimitiveVarSolver):
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
         if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("Pfem2ConservedVarSolver", "Shallow water solver DOFs added correctly.")
+            self.print_on_rank_zero("Pfem2ConservedVarSolver", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
