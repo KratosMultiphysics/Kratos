@@ -367,7 +367,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             typename ElementsContainerType::iterator i_element = rModelPart.Elements().begin() + iii;
             pScheme->EquationId(*(i_element.base()), ids, rModelPart.GetProcessInfo());
-            ApplyConstraints<Element>(rModelPart, *i_element, ids, rModelPart.GetProcessInfo());
+            ApplyConstraints<Element>(*i_element, ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -388,7 +388,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             typename ConditionsArrayType::iterator i_condition = rModelPart.Conditions().begin() + iii;
             pScheme->Condition_EquationId(*(i_condition.base()), ids, rModelPart.GetProcessInfo());
-            ApplyConstraints<Condition>(rModelPart, *i_condition, ids, rModelPart.GetProcessInfo());
+            ApplyConstraints<Condition>(*i_condition, ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -493,7 +493,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    ApplyConstraints<Element>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    ApplyConstraints<Element>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -522,7 +522,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 {
                     //calculate elemental contribution
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    ApplyConstraints<Condition>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    ApplyConstraints<Condition>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -588,7 +588,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      *          matrix and the right hand side
      * @param   rModelPart The model part of the problem to solve
      */
-    void FormulateGlobalMasterSlaveRelations(const ModelPart& rModelPart)
+    void FormulateGlobalMasterSlaveRelations(ModelPart& rModelPart)
     {
         KRATOS_TRY
         const double start_formulate = OpenMPUtils::GetCurrentTime();
@@ -598,7 +598,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // Getting the beginning iterator
 
-        const ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+        ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
         //contributions to the system
         LocalSystemMatrixType relation_matrix;
@@ -735,7 +735,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      *          of the individual AuxilaryGlobalMasterSlaveRelation object. That is the value of Slave as LHS and the T*M+C as RHS value
      * @param   rMasterSlaveConstraint The MasterSlaveConstraint which is to be updated
      */
-    void UpdateMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType& rMasterSlaveConstraint, const ProcessInfo& rCurrentProcessInfo)
+    void UpdateMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType& rMasterSlaveConstraint, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         //contributions to the system
@@ -772,9 +772,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
 
     /**
-     * @brief   This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
+     * @brief   This adds the equation IDs of masters of all the slaves corresponding to pCurrentElement to EquationIds
      * @details Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
-     * @param   rModelPart The model part of the problem to solve
      * @param   rCurrentContainer the element or condition where the rEquationIds to be modified for master-slave constraints
      * @param   rEquationIds the equation id vector for the above element or condition
      * @param   rCurrentProcessInfo the current process info
@@ -782,7 +781,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     template <typename TContainerType>
     void ApplyConstraints(TContainerType& rCurrentContainer,
                           typename TContainerType::EquationIdVectorType& rEquationIds,
-                          const ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         // If no slave is found for this container , no need of going on
@@ -819,7 +818,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @brief   This function modifies the LHS and RHS of the rCurrentContainer to account for any master-slave constraints its nodes/dofs 
      *          are carrying.
      * @details Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
-     * @param   rModelPart The model part of the problem to solve
      * @param   rCurrentContainer the element or condition where the rEquationIds to be modified for master-slave constraints
      * @param   rLHSContribution the LHS contibution of the rCurrentContainer
      * @param   rRHSContribution the RHS contibution of the rCurrentContainer
@@ -831,7 +829,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                           LocalSystemMatrixType& rLHSContribution,
                           LocalSystemVectorType& rRHSContribution,
                           typename TContainerType::EquationIdVectorType& rEquationIds,
-                          const ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         // If no slave is found for this container , no need of going on
@@ -862,8 +860,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         CalculateLocalTransformationMatrix(local_indices, transformation_matrix_local, equation_ids);
 
         CalculateLocalConstantVector(local_indices, constant_vector_local, equation_ids);
-        // Here order is important as lhs_contribution should be unodified for usin in calculation
-        // of RHS constribution. Later on lhs_contribution is modified to apply the constraint.
+        // Here order is important as lhs_contribution should be unmodified for using in calculation
+        // of RHS contribution. Later on lhs_contribution is modified to apply the constraint.
         // rhs_h =  T'*(rhs - K*g)
         VectorType temp_vec = ( rhs_contribution - prod(lhs_contribution, constant_vector_local) );
         noalias(rhs_contribution) = prod( trans(transformation_matrix_local), temp_vec );
@@ -987,7 +985,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /**
      * @brief   This function calculates the local constant vector for each
      *          each element or condition. C vector for each element or condition for the slaves they contain .
-     * @param   rLocalSlaveIndexVector vectof slave indices
+     * @param   rLocalSlaveIndexVector vector of slave indices
      * @param   rConstantVectorLocal reference to the constant vector to be calculated
      * @param   rEquationIds the list of equation ids.
      */
