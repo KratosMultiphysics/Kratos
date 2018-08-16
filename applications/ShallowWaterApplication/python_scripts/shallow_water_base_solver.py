@@ -187,21 +187,6 @@ class ShallowWaterBaseSolver(PythonSolver):
     def Clear(self):
         self.solver.Clear()
 
-    def Solve(self):
-        message  = "Calling ShallowWaterBaseSolver.Solve() method, which is deprecated\n",
-        message += "Please call the individual methods instead:\n",
-        message += "solver.InitializeSolutionStep()\n",
-        message += "solver.Predict()\n",
-        message += "solver.SolveSolutionStep()\n",
-        message += "solver.FinalizeSolutionStep()\n"
-
-        self.print_warning_on_rank_zero("::[ShallowWaterBaseSolver]:: ", message)
-
-        self.InitializeSolutionStep()
-        self.Predict()
-        self.SolveSolutionStep()
-        self.FinalizeSolutionStep()
-
     #### Specific internal functions ####
 
     def _IsPrintingRank(self):
