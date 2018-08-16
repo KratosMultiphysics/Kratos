@@ -18,6 +18,12 @@ export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 ## Step0: Let it rest some time so the unassisted updated can finish
 sleep 300 # 5 minutes
 
+# Install packages needed by the hdf5 app
+sudo apt-get install -y python3-h5py libhdf5-dev
+
+# Install packaged nedded by the mailing
+sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
+
 ## Step1: Prepare
 cd ${HOME}
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
@@ -75,11 +81,6 @@ cat ${LOG_DIR}/unittest_gcc.log >> ${MAIL_GCC};
 # echo "Benchmarking: \n" >> ${MAIL_GCC}
 # echo "============= \n" >> ${MAIL_GCC}
 # cat ${LOG_DIR}/benchmarking_gcc.log >> ${MAIL_GCC};
-
-#### Ugly Fix ####
-# Apparently, this needs to go here because someone didn't had anything else to do apart from adding autoupdates in ubuntu 16....
-sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
-##################
 
 cd ${HOME}
 tar -zcvf /tmp/logs_gcc.tar.gz ${LOG_DIR}/*
