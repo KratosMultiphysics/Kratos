@@ -241,9 +241,9 @@ public:
     }
 
     void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
-                                            LocalSystemMatrixType& rLHS_Contribution,
-                                            Element::EquationIdVectorType& rEquationId,
-                                            ProcessInfo& rCurrentProcessInfo) override
+                                    LocalSystemMatrixType& rLHS_Contribution,
+                                    Element::EquationIdVectorType& rEquationId,
+                                    ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -256,10 +256,10 @@ public:
     }
 
     void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
-                                                        LocalSystemMatrixType& rLHS_Contribution,
-                                                        LocalSystemVectorType& rRHS_Contribution,
-                                                        Condition::EquationIdVectorType& rEquationId,
-                                                        ProcessInfo& rCurrentProcessInfo) override
+                                                LocalSystemMatrixType& rLHS_Contribution,
+                                                LocalSystemVectorType& rRHS_Contribution,
+                                                Condition::EquationIdVectorType& rEquationId,
+                                                ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -270,9 +270,9 @@ public:
     }
 
     void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
-                                                      LocalSystemMatrixType& rLHS_Contribution,
-                                                      Condition::EquationIdVectorType& rEquationId,
-                                                      ProcessInfo& rCurrentProcessInfo) override
+                                              LocalSystemMatrixType& rLHS_Contribution,
+                                              Condition::EquationIdVectorType& rEquationId,
+                                              ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
