@@ -10,8 +10,11 @@ import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+try:
+    from KratosMultiphysics.HDF5Application import *
+    has_hdf5_application = True
+except ImportError:
+    has_hdf5_application = False
 
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
@@ -28,11 +31,14 @@ class controlledExecutionScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+def _get_test_working_dir():
+    this_file_dir = os.path.dirname(os.path.realpath(__file__))
+    return os.path.join(this_file_dir, "response_function_tests")
+
 class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
-        with controlledExecutionScope(self.path):
-            print(os.getcwd())
+        with controlledExecutionScope(_get_test_working_dir()):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters( parameter_file.read())
 
@@ -55,7 +61,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
 
     def _calculate_response_and_gradient(self):
         # Within this location context:
-        with controlledExecutionScope(self.path):
+        with controlledExecutionScope(_get_test_working_dir()):
             self.response_function.InitializeSolutionStep()
             self.response_function.CalculateValue()
             self.value = self.response_function.GetValue()
@@ -65,7 +71,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         # Within this location context:
-        with controlledExecutionScope(self.path):
+        with controlledExecutionScope(_get_test_working_dir()):
             self.response_function.Finalize()
 
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".post.bin")
@@ -74,8 +80,8 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             kratos_utils.DeleteFileIfExisting(self.problem_name + "-1.0000.h5")
             kratos_utils.DeleteFileIfExisting("response_function_tests.post.lst")
 
+@KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
-    path = "response_function_tests"
     file_name = "adjoint_strain_energy_response"
 
     def test_execution(self):
@@ -87,8 +93,8 @@ class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFact
         self.assertAlmostEqual(self.gradient[nodeId][1], 3.600817901573548e-08, 12)
         self.assertAlmostEqual(self.gradient[nodeId][2], -3.2834294133347997e-10, 12)
 
+@KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFactory):
-    path = "response_function_tests"
     file_name = "adjoint_displacement_response"
 
     def test_execution(self):
@@ -100,8 +106,8 @@ class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFact
         self.assertAlmostEqual(self.gradient[nodeId][1], -2917975324.12118, 12)
         self.assertAlmostEqual(self.gradient[nodeId][2], 32.22475716410058, 12)
 
+@KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
-    path = "response_function_tests"
     file_name = "adjoint_stress_response"
 
     def test_execution(self):
@@ -114,7 +120,6 @@ class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[nodeId][2], -3.108459599353836e-06, 12)
 
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
-    path = GetFilePath("response_function_tests")
     file_name = "mass_response"
 
     def test_execution(self):
@@ -125,7 +130,6 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertNotEqual(self.gradient[1][0], 0.0)
 
 class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
-    path = GetFilePath("response_function_tests")
     file_name = "strain_energy_response"
 
     def test_execution(self):
