@@ -108,6 +108,23 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
         self.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
 
+    # Embedded Ausas development element tests
+    def testEmbeddedAusasDevelopmentCouette2D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette2DTest"
+        self.reference_file = "reference_couette_ausas_development_2D"
+        self.settings = "EmbeddedAusasDevelopmentCouette2DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
+    def testEmbeddedAusasDevelopmentCouette3D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette3DTest"
+        self.reference_file = "reference_couette_ausas_development_3D"
+        self.settings = "EmbeddedAusasDevelopmentCouette3DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
     def ExecuteEmbeddedCouetteTest(self):
         with WorkFolderScope(self.work_folder):
             self.setUp()
@@ -264,7 +281,6 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
             time = 0.0
-            step = 0
 
             for process in self.list_of_processes:
                 process.ExecuteBeforeSolutionLoop()
@@ -372,7 +388,7 @@ if __name__ == '__main__':
     test.setUpDistanceField()
     if (test.slip_flag):
         test.setUpSlipInitialCondition()
-        test.setUpSLipBoundaryConditions()
+        test.setUpSlipBoundaryConditions()
     else:
         test.setUpNoSlipInitialCondition()
         test.setUpNoSlipBoundaryConditions()

@@ -34,7 +34,7 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                  : "EmbeddedAusas",
+        "solver_type"                  : "EmbeddedAusasDevelopment",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "model_import_settings"        : {
@@ -62,6 +62,7 @@
             "automatic_time_step" : false,
             "time_step"           : 0.1
         },
+        "slip_length": 1e+08,
         "penalty_coefficient": 10.0
     },
     "initial_conditions_process_list"  : [],

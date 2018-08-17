@@ -1,9 +1,9 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "couette_ausas_2D",
+        "problem_name"    : "couette_ausas_3D",
         "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
-        "domain_size"     : 2,
+        "domain_size"     : 3,
         "start_step"      : 0.0,
         "end_time"        : 0.2
     },
@@ -34,12 +34,12 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                  : "EmbeddedAusas",
+        "solver_type"                  : "EmbeddedAusasDevelopment",
         "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
+        "domain_size"     : 3,
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "couette_2D"
+            "input_filename" : "couette_3D"
         },
         "maximum_iterations"           : 7,
         "dynamic_tau"                  : 1.0,
@@ -52,47 +52,62 @@
         "relative_pressure_tolerance"  : 1e-5,
         "absolute_pressure_tolerance"  : 1e-7,
         "linear_solver_settings"       : {
-            "solver_type"         : "SuperLUSolver",
-            "verbosity"           : 0
+            "solver_type": "SuperLUSolver",
+            "verbosity": 0
         },
         "volume_model_part_name"       : "Parts_Fluid",
-        "skin_parts"                   : ["Inlet","Outlet","Top","Bottom"],
+        "skin_parts"                   : ["Inlet","Outlet","Top","Sides"],
         "no_skin_parts"                : [],
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 0.1
         },
-        "penalty_coefficient": 10.0
+        "slip_length": 1e+08,
+        "penalty_coefficient": 10
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Outlet",
+            "variable_name"   : "VELOCITY",
+            "value"           : [null, 0.0, 0.0],
+            "constrained"     : [false,true,true]
+        }
+    },{
         "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
+            "mesh_id"         : 0,
             "model_part_name" : "Outlet",
             "variable_name"   : "PRESSURE",
             "value"           : 0.0,
             "constrained"     : true
         }
     },{
-        "python_module": "assign_vector_variable_process",
-        "kratos_module": "KratosMultiphysics",
-        "process_name": "AssignVectorVariableProcess",
-        "Parameters": {
-            "model_part_name" : "Top",
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Sides",
             "variable_name"   : "VELOCITY",
-            "value"           : [null,0.0,0.0],
-            "constrained"     : [false,true,true]
+            "value"           : [null, 0.0, 0.0],
+            "constrained"     : [false,true,false]
         }
     },{
-        "python_module": "assign_vector_variable_process",
-        "kratos_module": "KratosMultiphysics",
-        "process_name": "AssignVectorVariableProcess",
-        "Parameters": {
-            "model_part_name" : "Outlet",
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Top",
             "variable_name"   : "VELOCITY",
-            "value"           : [null,0.0,0.0],
+            "value"           : [null, 0.0, 0.0],
             "constrained"     : [false,true,true]
         }
     },{
