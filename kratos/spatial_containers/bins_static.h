@@ -486,7 +486,7 @@ public:
     PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance, SearchStructureType& Box )
     {
         PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
-        CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+        rResultDistance = static_cast<CoordinateType>(DBL_MAX);
         Box.Set( CalculateCell(ThisPoint), mN, mIndexCellBegin );
         SearchNearestPointLocal( ThisPoint, Result, rResultDistance, Box);
         return Result;
