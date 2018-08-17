@@ -86,12 +86,12 @@ class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFact
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 8.484005297318718e-05)
+        self.assertAlmostEqual(self.value, 0.011841310779599155)
 
-        nodeId = 109
-        self.assertAlmostEqual(self.gradient[nodeId][0], -1.732547909522536e-05, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][1], 3.600817901573548e-08, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -3.2834294133347997e-10, 12)
+        nodeId = 4
+        self.assertAlmostEqual(self.gradient[nodeId][0], -0.02211883892695645, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][1], 0.0034659667625643337, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -3.942528133752394e-07, 12)
 
 @KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFactory):
@@ -99,12 +99,12 @@ class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFact
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 0.00016968010594636793)
+        self.assertAlmostEqual(self.value, 0.0023682621559198303)
 
-        nodeId = 50
-        self.assertAlmostEqual(self.gradient[nodeId][0], 2046491212.095884, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][1], -2917975324.12118, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], 32.22475716410058, 12)
+        nodeId = 4
+        self.assertAlmostEqual(self.gradient[nodeId][0], 35162269878424.273, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][1], 4507732710819.046, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], 1125096436.1808963, 12)
 
 @KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
@@ -112,34 +112,37 @@ class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 0.21798768581799344)
+        self.assertAlmostEqual(self.value, -0.8233392989483465)
 
-        nodeId = 50
-        self.assertAlmostEqual(self.gradient[nodeId][0], -0.4522249114784208, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][1], -0.058397339300157336, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -3.108459599353836e-06, 12)
+        nodeId = 4
+        self.assertAlmostEqual(self.gradient[nodeId][0], -8.480870212810133, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][1], -2.6870951672193213, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -0.0002913758359272386, 12)
 
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 1569.9999999999998)
+        self.assertAlmostEqual(self.value, 2355.0)
 
-        self.assertEqual(len(self.gradient.keys()), 125)
-        self.assertNotEqual(self.gradient[1][0], 0.0)
+        self.assertEqual(len(self.gradient.keys()), 9)
+        nodeId = 4
+        self.assertAlmostEqual(self.gradient[nodeId][0], -1177.5000000397995, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][1], 2.2737367544323206e-07, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], 0.0017662387108430266, 12)
 
 class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "strain_energy_response"
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 8.484005297318718e-05)
+        self.assertAlmostEqual(self.value, 0.00011841310779599155)
 
-        nodeId = 109
-        self.assertAlmostEqual(self.gradient[nodeId][0], -1.7336721959838976e-05, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][1], 3.6004964666202887e-08, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -2.8850710891511207e-09, 12)
+        nodeId = 4
+        self.assertAlmostEqual(self.gradient[nodeId][0], -0.00022118866455491083, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][1],  0.00003465968099176853, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -4.974301305577504e-09, 12)
 
 
 if __name__ == "__main__":
