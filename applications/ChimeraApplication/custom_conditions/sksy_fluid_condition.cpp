@@ -1,4 +1,7 @@
 #include "custom_conditions/sksy_fluid_condition.h"
+#include "includes/variables.h"
+#include "includes/cfd_variables.h"
+#include "includes/mesh_moving_variables.h"
 
 namespace Kratos
 {

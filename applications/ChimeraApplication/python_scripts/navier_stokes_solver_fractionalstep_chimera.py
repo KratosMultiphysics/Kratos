@@ -11,26 +11,20 @@ KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-import navier_stokes_base_solver
+from fluid_solver import FluidSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return NavierStokesSolverFractionalStepForChimera(main_model_part, custom_settings)
 
-class NavierStokesSolverFractionalStepForChimera(navier_stokes_base_solver.NavierStokesBaseSolver):
+class NavierStokesSolverFractionalStepForChimera(FluidSolver):
 
-    def __init__(self, main_model_part, custom_settings):
-
-        self.element_name = "FractionalStep"
-        self.condition_name = "WallCondition"
-        self.min_buffer_size = 3
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
+    def _ValidateSettings(self, settings):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "FractionalStep",
+            "model_part_name" :"",
+            "domain_size" :-1,
             "model_import_settings": {
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
@@ -89,8 +83,16 @@ class NavierStokesSolverFractionalStepForChimera(navier_stokes_base_solver.Navie
         }""")
 
         ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
+    def __init__(self, main_model_part, custom_settings):
+        super(NavierStokesSolverFractionalStepForChimera,self).__init__(main_model_part,custom_settings)
+        self.element_name = "FractionalStep"
+        self.condition_name = "WallCondition"
+        self.min_buffer_size = 3
+
+        self._is_printing_rank = True
 
         ## Construct the linear solvers
         import linear_solver_factory
@@ -101,6 +103,9 @@ class NavierStokesSolverFractionalStepForChimera(navier_stokes_base_solver.Navie
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Construction of NavierStokesSolverFractionalStepForChimera solver finished.")
 
+
+        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
+        #self.main_model_part = main_model_part
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
@@ -125,18 +130,21 @@ class NavierStokesSolverFractionalStepForChimera(navier_stokes_base_solver.Navie
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONV_PROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Fluid solver variables added correctly.")
 
-    def ImportModelPart(self):
-        super(NavierStokesSolverFractionalStepForChimera, self).ImportModelPart()
-
-        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
-        self._set_physical_properties()
-
+    def PrepareModelPart(self):
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._set_physical_properties()
+        super(NavierStokesSolverFractionalStepForChimera, self).PrepareModelPart()
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
@@ -205,19 +213,12 @@ class NavierStokesSolverFractionalStepForChimera(navier_stokes_base_solver.Navie
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Solver initialization finished.")
 
 
-    def FinalizeSolutionStep(self):
-        (self.solver).FinalizeSolutionStep()
-        if(self.compute_reactions):
-            (self.solver).CalculateReactions()
-
-
-    def Solve(self):
-        # Note that the first two time steps are dropped to fill the buffer
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
-            self.solver.Solve()
-
-        if(self.compute_reactions):
-            self.solver.CalculateReactions()
+    # def SolveSolutionStep(self):
+    #     print("solve solution step")
+    #     if self._TimeBufferIsInitialized():
+    #         self.solver.SolveSolutionStep()
+    #         if self.compute_reactions:
+    #             self.solver.CalculateReactions()
 
 
     def _set_physical_properties(self):

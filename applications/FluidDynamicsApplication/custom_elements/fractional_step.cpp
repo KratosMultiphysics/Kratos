@@ -55,7 +55,6 @@ void FractionalStep<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     default:
     {
         KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",r_process_info[FRACTIONAL_STEP]);
-        std::cout<<"Rishith;test 1"<<std::endl;
     }
     }
 
@@ -607,12 +606,11 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
                                                         VectorType& rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
-    std::cout<<"::CalculateLocalPressureSystem::"<<std::endl;
+    //std::cout<<"::CalculateLocalPressureSystem::"<<std::endl;
 
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
 
-    std::cout<<"::Number of Nodes::"<<NumNodes<<std::endl;
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes )
@@ -632,19 +630,10 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-    std::cout<<"::DN_DX::"<<DN_DX<<std::endl;
-    std::cout<<"::Ncontainer::"<<NContainer<<std::endl;
-    std::cout<<"::GaussWeights::"<<GaussWeights<<std::endl;
-    std::cout<<"::NumGauss::"<<NumGauss<<std::endl;
-
-
     // Stabilization parameters
     double ElemSize = this->ElementSize();
     double TauOne;
     double TauTwo;
-
-    std::cout<<"::ElemSize::"<<ElemSize<<"\n\n\n\n"<<std::endl;
-
 
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
@@ -694,7 +683,6 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
         const double LaplacianCoeff = 1.0 / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]) ;
 
 
-        std::cout<<"LHS For element"<<"\n"<<std::endl;
         // Add convection, stabilization and RHS contributions to the local system equation
         for (SizeType i = 0; i < NumNodes; ++i)
         {
@@ -707,10 +695,8 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
                 Lij *= (LaplacianCoeff + TauOne);
 
                 rLeftHandSideMatrix(i,j) += GaussWeight * Lij;
-                std::cout<<rLeftHandSideMatrix(i,j)<<"\t"<<std::endl;
             }
 
-            std::cout<<"\n"<<std::endl;
             // RHS contribution
 
             // Velocity divergence
@@ -728,7 +714,6 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 
         }
     }
-    getchar();
 }
 
 

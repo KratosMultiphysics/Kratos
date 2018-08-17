@@ -2155,10 +2155,12 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
                             *(++i_intersection) = *i_begin;
                     }
 
-                //Not yet tested , this can occus in some rare cases (depending on mesh):  once it happens we need to test this code
- /*                else
-                {
-                    double Line1 = (fabs(i_begin->first - i_begin->second->Points()[0][direction]) > fabs(i_begin->first - i_begin->second->Points()[1][direction])) ? i_begin->first - i_begin->second->Points()[0][direction] : i_begin->first - i_begin->second->Points()[1][direction];
+                //Not yet tested , this can occur in some rare cases (depending on mesh):  once it happens we need to test this code
+                // else
+                //{
+                   // std::cout<<" test this area to solve the distance calculation isse"<<std::endl;
+
+                    /* double Line1 = (fabs(i_begin->first - i_begin->second->Points()[0][direction]) > fabs(i_begin->first - i_begin->second->Points()[1][direction])) ? i_begin->first - i_begin->second->Points()[0][direction] : i_begin->first - i_begin->second->Points()[1][direction];
                     double Line2 = (fabs(i_intersection->first - i_intersection->second->Points()[0][direction]) > fabs(i_intersection->first - i_intersection->second->Points()[1][direction])) ? i_intersection->first - i_intersection->second->Points()[0][direction] : i_intersection->first - i_intersection->second->Points()[1][direction];
 
                     std::cout<<"Rishith##########################################################################"<<Line1<<std::endl;
@@ -2174,9 +2176,9 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
                         i_begin--;
                         std::exit(-1);
 
-                    }
+                    } */
 
-                } */
+               // }
             }
             intersections.resize((++i_intersection) - intersections.begin());
 
@@ -2225,6 +2227,11 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
                 std::cout<<"navPoint 1 "<<(*i_object)->GetGeometry()[0][0]<<","<<(*i_object)->GetGeometry()[0][1]<<std::endl;
                 std::cout<<"navPoint 2 "<<(*i_object)->GetGeometry()[1][0]<<","<<(*i_object)->GetGeometry()[1][1]<<std::endl;
                 std::cout<<"navIntersection  "<<intersection[direction]<<" Direction "<<direction<<std::endl;*/
+                //KRATOS_WATCH(intersection[direction]);
+
+                //KRATOS_WATCH(((*i_object)->GetGeometry()));
+
+
 
                 intersections.push_back(std::pair<double, Element::GeometryType *>(intersection[direction], &((*i_object)->GetGeometry())));
             }
