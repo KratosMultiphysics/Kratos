@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -61,37 +61,37 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
     def _set_cl_options(self, dict_options):
         cl_options = KratosMultiphysics.Flags()
-        if ("USE_ELEMENT_PROVIDED_STRAIN" in dict_options): 
+        if ("USE_ELEMENT_PROVIDED_STRAIN" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, dict_options["USE_ELEMENT_PROVIDED_STRAIN"])
-        if ("COMPUTE_STRESS" in dict_options): 
+        if ("COMPUTE_STRESS" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRESS, dict_options["COMPUTE_STRESS"])
-        if ("COMPUTE_CONSTITUTIVE_TENSOR" in dict_options): 
+        if ("COMPUTE_CONSTITUTIVE_TENSOR" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, dict_options["COMPUTE_CONSTITUTIVE_TENSOR"])
-        if ("COMPUTE_STRAIN_ENERGY" in dict_options): 
+        if ("COMPUTE_STRAIN_ENERGY" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, dict_options["COMPUTE_STRAIN_ENERGY"])
-        if ("ISOCHORIC_TENSOR_ONLY" in dict_options): 
+        if ("ISOCHORIC_TENSOR_ONLY" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.ISOCHORIC_TENSOR_ONLY, dict_options["ISOCHORIC_TENSOR_ONLY"])
-        if ("VOLUMETRIC_TENSOR_ONLY" in dict_options): 
+        if ("VOLUMETRIC_TENSOR_ONLY" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.VOLUMETRIC_TENSOR_ONLY, dict_options["VOLUMETRIC_TENSOR_ONLY"])
-        if ("FINALIZE_MATERIAL_RESPONSE" in dict_options): 
+        if ("FINALIZE_MATERIAL_RESPONSE" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, dict_options["FINALIZE_MATERIAL_RESPONSE"])
 
         # From here below it should be an otput not an input
-        if ("FINITE_STRAINS" in dict_options): 
-            cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINITE_STRAINS, dict_options["FINITE_STRAINS"]) 
-        if ("INFINITESIMAL_STRAINS" in dict_options): 
+        if ("FINITE_STRAINS" in dict_options):
+            cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINITE_STRAINS, dict_options["FINITE_STRAINS"])
+        if ("INFINITESIMAL_STRAINS" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.INFINITESIMAL_STRAINS, dict_options["INFINITESIMAL_STRAINS"])
-        if ("PLANE_STRAIN_LAW" in dict_options): 
+        if ("PLANE_STRAIN_LAW" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.PLANE_STRAIN_LAW, dict_options["PLANE_STRAIN_LAW"])
-        if ("PLANE_STRESS_LAW" in dict_options): 
+        if ("PLANE_STRESS_LAW" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.PLANE_STRESS_LAW, dict_options["PLANE_STRESS_LAW"])
-        if ("AXISYMMETRIC_LAW" in dict_options): 
+        if ("AXISYMMETRIC_LAW" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.AXISYMMETRIC_LAW, dict_options["AXISYMMETRIC_LAW"])
-        if ("U_P_LAW" in dict_options): 
+        if ("U_P_LAW" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.U_P_LAW, dict_options["U_P_LAW"])
-        if ("ISOTROPIC" in dict_options): 
+        if ("ISOTROPIC" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.ISOTROPIC, dict_options["ISOTROPIC"])
-        if ("ANISOTROPIC" in dict_options): 
+        if ("ANISOTROPIC" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.ANISOTROPIC, dict_options["ANISOTROPIC"])
         return cl_options
 

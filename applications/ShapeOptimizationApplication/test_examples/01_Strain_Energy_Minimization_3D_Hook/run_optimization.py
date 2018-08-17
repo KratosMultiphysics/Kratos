@@ -15,5 +15,5 @@ optimization_model_part = ModelPart(parameters["optimization_settings"]["design_
 optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
 
 # Create optimizer and perform optimization
-optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part)
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], optimization_model_part)
 optimizer.Optimize()

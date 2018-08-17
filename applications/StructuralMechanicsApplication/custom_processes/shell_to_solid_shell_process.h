@@ -33,19 +33,19 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
     /// The size definition
     typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/** 
+
+/**
  * @class ShellToSolidShellProcess
  * @ingroup StructuralMechanicsApplication
  * @brief This method transforms triangular and quadrilateral elements into prisms and hexahedra elements
@@ -63,7 +63,7 @@ public:
 
     /// Pointer definition of ShellToSolidShellProcess
     KRATOS_CLASS_POINTER_DEFINITION(ShellToSolidShellProcess);
-    
+
     /// The index definition
     typedef std::size_t                                     IndexType;
 
@@ -109,7 +109,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -118,13 +118,13 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     void Execute() override;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -181,7 +181,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -207,7 +207,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart;              /// The main model part
     Parameters mThisParameters;              /// The parameters (can be used for general pourposes)
 
@@ -284,7 +284,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   ShellToSolidShellProcess& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const ShellToSolidShellProcess& rThis)
@@ -292,7 +292,7 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 
