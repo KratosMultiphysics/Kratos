@@ -98,8 +98,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
 
     // Iterate over the negative side volume integration points
     const unsigned int number_of_negative_gauss_points = data.NegativeSideWeights.size();
-    for (unsigned int g = 0; g < number_of_positive_gauss_points; ++g){
-        const size_t gauss_pt_index = g + number_of_positive_gauss_points;
+    for (unsigned int g = 0; g < number_of_negative_gauss_points; ++g){
+        const size_t gauss_pt_index = g + number_of_negative_gauss_points;
         data.UpdateGeometryValues(gauss_pt_index, data.NegativeSideWeights[g], row(data.NegativeSideN, g), data.NegativeSideDNDX[g]);
         this->CalculateMaterialResponse(data);
         this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -179,11 +179,38 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::Calculate(
             for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
 
                 // Update the Gauss pt. data
-                data.UpdateGeometryValues(g + number_of_positive_gauss_points,
-                   data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
+                data.UpdateGeometryValues(g + number_of_positive_gauss_points,data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
 
                 // Get the interface Gauss pt. unit noromal
                 const auto &aux_unit_normal = data.PositiveInterfaceUnitNormals[g];
+
+                // Compute Gauss pt. pressure
+                const double p_gauss = inner_prod(data.N, data.Pressure);
+
+                // Call the constitutive law to compute the shear contribution
+                this->CalculateMaterialResponse(data);
+
+                // Get the normal projection matrix in Voigt notation
+                BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+                FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+                // Add the shear and pressure drag contributions
+                const array_1d<double, Dim> shear_proj = data.Weight * prod(voigt_normal_proj_matrix, data.ShearStress);
+                for (unsigned int i = 0; i < Dim ; ++i){
+                    rOutput(i) -= shear_proj(i);
+                }
+                rOutput += data.Weight * p_gauss * aux_unit_normal;
+            }
+
+            // Integrate negative interface side drag
+            const unsigned int n_int_neg_gauss = data.NegativeInterfaceWeights.size();
+            for (unsigned int g = 0; g < n_int_neg_gauss; ++g) {
+
+                // Update the Gauss pt. data
+                data.UpdateGeometryValues(g + number_of_positive_gauss_points,data.NegativeInterfaceWeights[g],row(data.NegativeInterfaceN, g),data.NegativeInterfaceDNDX[g]);
+
+                // Get the interface Gauss pt. unit noromal
+                const auto &aux_unit_normal = data.NegativeInterfaceUnitNormals[g];
 
                 // Compute Gauss pt. pressure
                 const double p_gauss = inner_prod(data.N, data.Pressure);
