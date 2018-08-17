@@ -21,7 +21,7 @@ def CreateSolver(model, custom_settings):
         elif (solver_type == "FractionalStep"):
             solver_module_name = "navier_stokes_solver_fractionalstep"
 
-        elif ((solver_type == "Embedded") or (solver_type == "EmbeddedDevelopment")):
+        elif ((solver_type == "Embedded") or (solver_type == "EmbeddedDevelopment") or (solver_type == "EmbeddedAusasDevelopment")):
             solver_module_name = "navier_stokes_embedded_solver"
 
         elif (solver_type == "EmbeddedAusas"):

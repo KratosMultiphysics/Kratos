@@ -78,6 +78,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
             self.element_name = "EmbeddedSymbolicNavierStokes"
 
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedAusasDevelopment"):
+            self.settings["is_slip"].SetBool(True)
+            self.element_name = "EmbeddedSymbolicNavierStokesDiscontinuous"
+
         ## Construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
