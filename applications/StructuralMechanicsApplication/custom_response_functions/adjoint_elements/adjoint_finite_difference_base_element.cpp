@@ -92,7 +92,7 @@ void AdjointFiniteDifferencingBaseElement::GetDofList(DofsVectorType& rElemental
         rElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
         rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
         rElementalDofList[index + 2] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
-        
+
         if(mHasRotationDofs)
         {
             rElementalDofList[index + 3] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X);
@@ -249,7 +249,7 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
-        
+
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
@@ -403,7 +403,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    
+
     const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
     const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;

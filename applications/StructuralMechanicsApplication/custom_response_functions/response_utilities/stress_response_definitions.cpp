@@ -90,7 +90,7 @@ namespace Kratos
                 KRATOS_ERROR << "Chosen stress treatment \n" <<Str<<"\" is not available!" << std::endl;
         }
 
-    }  // namespace StressResponseDefinitions.  
+    }  // namespace StressResponseDefinitions.
 
 }  // namespace Kratos.
 
