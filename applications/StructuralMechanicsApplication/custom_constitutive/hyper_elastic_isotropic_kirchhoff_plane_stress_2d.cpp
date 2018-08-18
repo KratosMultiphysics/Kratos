@@ -305,7 +305,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateConstitutiveMatrixKir
     const Matrix& DeformationGradientF,
     const double& YoungModulus,
     const double& PoissonCoefficient) {
-        
+
     ConstitutiveMatrix.clear();
 
     CalculateConstitutiveMatrixPK2(ConstitutiveMatrix, YoungModulus, PoissonCoefficient);
@@ -368,7 +368,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateGreenLagrangianStrain
 void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateAlmansiStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector) {
-        
+
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 

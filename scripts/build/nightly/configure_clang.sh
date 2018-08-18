@@ -15,6 +15,7 @@ cmake .. \
 -DMESH_MOVING_APPLICATION=ON                                                                            \
 -DADJOINT_FLUID_APPLICATION=OFF                                                                 \
 -DCONVECTION_DIFFUSION_APPLICATION=ON                                                           \
+-DHDF5_APPLICATION=ON                                                                           \
 -DDAM_APPLICATION=ON                                                                            \
 -DDEM_APPLICATION=ON                                                                            \
 -DEMPIRE_APPLICATION=ON                                                                         \
