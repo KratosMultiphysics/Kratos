@@ -103,8 +103,8 @@ public:
     {
         KRATOS_TRY;
 
-        double step_size = mOptimizationSettings["line_search"]["step_size"].GetDouble();
-        bool normalize_search_direction = mOptimizationSettings["line_search"]["normalize_search_direction"].GetBool();
+        double step_size = mOptimizationSettings["optimization_algorithm"]["line_search"]["step_size"].GetDouble();
+        bool normalize_search_direction = mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool();
 
 
         // Computation of update of design variable. Normalization is applied if specified.
@@ -162,7 +162,7 @@ public:
         // search direction is negative of filtered gradient
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i.FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
+            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
         }
 
         KRATOS_CATCH("");
@@ -182,7 +182,7 @@ public:
         double norm_2_dCds_i = 0.0;
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
             norm_2_dCds_i += inner_prod(dCds_i,dCds_i);
         }
         norm_2_dCds_i = std::sqrt(norm_2_dCds_i);
@@ -195,16 +195,16 @@ public:
         double dot_dFds_dCds = 0.0;
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d dFds_i = node_i.FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
-        	array_3d dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d dFds_i = node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
+        	array_3d dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
             dot_dFds_dCds += inner_prod(dFds_i,(dCds_i / norm_2_dCds_i));
         }
 
         // Compute and assign projected search direction
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d& dFds_i = node_i.FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
-        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d& dFds_i = node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
+        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
 
         	array_3d projection_term = dot_dFds_dCds * (dCds_i / norm_2_dCds_i);
 
@@ -227,7 +227,7 @@ public:
         double correction_factor = ComputeCorrectionFactor();
     	for (auto & node_i : mrDesignSurface.Nodes())
     	{
-    		array_3d correction_term = correction_factor * mConstraintValue * node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+    		array_3d correction_term = correction_factor * mConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
     		node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) -= correction_term;
     	}
 
@@ -242,7 +242,7 @@ public:
     	double norm_search_direction = 0.0;
     	for (auto & node_i : mrDesignSurface.Nodes())
     	{
-    		array_3d correction_term = mConstraintValue * node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+    		array_3d correction_term = mConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
     		norm_correction_term += inner_prod(correction_term,correction_term);
 
     		array_3d ds = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
