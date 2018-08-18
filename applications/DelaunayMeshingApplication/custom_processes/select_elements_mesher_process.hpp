@@ -303,8 +303,8 @@ class SelectElementsMesherProcess
       std::cout<<"  (passed_alpha_shape: "<<passed_alpha_shape<<", passed_inner_outer: "<<passed_inner_outer<<") "<<std::endl;
     }
 
-
-    this->SelectNodesToErase();
+    if( mrModelPart.IsNot(CONTACT) )
+      this->SelectNodesToErase();
 
     // AF for fluids ???
     // mrRemesh.InputInitializedFlag = false;

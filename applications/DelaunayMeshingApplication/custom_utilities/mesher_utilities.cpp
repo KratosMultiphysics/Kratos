@@ -1670,10 +1670,10 @@ namespace Kratos
       std::cout<<" ]"<<std::endl;
 
     }
-    else{
+    // else{
 
-      std::cout<<"    [Face Elements: "<<face_elements<<" Edge Elements: "<<edge_elements<<"]"<<std::endl;
-    }
+    //   std::cout<<"    [Face Elements: "<<face_elements<<" Edge Elements: "<<edge_elements<<"]"<<std::endl;
+    // }
 
 
     return pMasterCondition;

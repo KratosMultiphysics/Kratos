@@ -237,6 +237,7 @@ void LargeDisplacementSegregatedVPElement::InitializeSolutionStep( ProcessInfo& 
         KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
     }
 
+    this->Set(SolidElement::FINALIZED_STEP,false);
 
     KRATOS_CATCH( "" )
 

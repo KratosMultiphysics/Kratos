@@ -49,7 +49,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.next_meshing = 0.0
         self.meshing_before_output = self.settings["meshing_before_output"].GetBool()
 
-        self.Model = Model
+        self.model = Model
 
         #construct meshing domains
         self.meshing_domains = []
@@ -64,8 +64,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     #
     def ExecuteInitialize(self):
 
-        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
-
+        self.main_model_part = self.model[self.settings["model_part_name"].GetString()]
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # mesh mesher initial values
@@ -155,18 +154,10 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             domain.ExecuteMeshing()
 
-
-        #parallel (not working pickling instances not enabled)
-        #domains_number = len(self.meshing_domains)
-        #if(domains_number>8):
-        #    domains_number = 8
-
-        #pool = Pool(domains_number)
-        #pool.map(self.ExecuteMeshing,self.meshing_domains)
-        #pool.close()
-        #pool.joint()
-        #
-
+        if(self.echo_level>1):
+            print("")
+            print(self.main_model_part)
+            
         self.model_manager.ExecuteFinalize()
 
         self.counter += 1
@@ -219,7 +210,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             nodal_variables = nodal_variables + domain.GetVariables()
 
-        #print(self._class_prefix()+" Variables added")
+        # print(self._class_prefix()+" Variables added")
 
         return nodal_variables
 

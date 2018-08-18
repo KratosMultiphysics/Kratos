@@ -398,8 +398,8 @@ private:
     ///OriginModelPart but their type is determined by @param rReferenceElement and @param rReferenceBoundaryCondition
 
     void GenerateAndTransferEntities(ModelPart& rDestinationModelPart,
-                                     std::vector<EntityTransfer<ElementType> >&  rElementGenerationList,
-                                     std::vector<EntityTransfer<ConditionType> >&  rConditionGenerationList)
+                                     std::vector<EntityTransfer<ElementType> >& rElementGenerationList,
+                                     std::vector<EntityTransfer<ConditionType> >& rConditionGenerationList)
     {
         KRATOS_TRY
 

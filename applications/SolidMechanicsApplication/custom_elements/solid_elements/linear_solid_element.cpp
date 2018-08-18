@@ -338,6 +338,7 @@ void LinearSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
                 row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
                 rCurrentProcessInfo );
 
+   
     KRATOS_CATCH( "" )
 }
 

@@ -98,8 +98,6 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
     Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
     mContactVariables.SetMasterNode(MasterNode);
 
-    // std::cout<<" Master Nodes "<<GetValue(MASTER_NODES)<<std::endl;
-
     int  slave=-1;
     for(unsigned int i=0; i<MasterElement.GetGeometry().PointsNumber(); i++)
     {

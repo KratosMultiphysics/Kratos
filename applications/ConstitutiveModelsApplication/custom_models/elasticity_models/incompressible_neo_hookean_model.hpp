@@ -205,25 +205,35 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
+    void CalculatePressureFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    {
+      KRATOS_TRY
+
+      this->CalculateVolumetricFactor(rVariables,rFactor);
+
+      rFactor *= rVariables.GetModelData().GetPressure();
+
+      KRATOS_CATCH(" ")
+    }    
+
     void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
-      rFactor = 2.0;
+      rFactor = 1.0;
 
       KRATOS_CATCH(" ")
     }
 
-    double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
-						       const unsigned int& a, const unsigned int& b,
-						       const unsigned int& c, const unsigned int& d) override
+    void CalculateConstitutiveMatrixPressureFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
-      return IsochoricMooneyRivlinModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+      rFactor = rVariables.GetModelData().GetPressure() * rVariables.Strain.Invariants.J;
 
       KRATOS_CATCH(" ")
     }
+    
 
     //************// dW
 

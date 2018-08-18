@@ -93,7 +93,7 @@ class MeshingDomain(object):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.Model = Model
+        self.model = Model
 
         self.active_remeshing = False
         if( self.settings["meshing_strategy"]["remesh"].GetBool() or self.settings["meshing_strategy"]["transfer"].GetBool() ):
@@ -103,11 +103,11 @@ class MeshingDomain(object):
 
     def Initialize(self):
 
-        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
+        self.main_model_part = self.model[self.settings["model_part_name"].GetString()]
 
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
-        #construct the meshing strategy
+        # Construct the meshing strategy
         meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
         self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
 
@@ -129,7 +129,8 @@ class MeshingDomain(object):
         Remesh = "No"
         if(self.active_remeshing):
             Remesh = "Yes"
-        print("::[---Meshed_Domain---]:: "+self.settings["model_part_name"].GetString()+" ("+BodyType+") "+Remesh)
+            
+        print(self._class_prefix()+"("+self.settings["model_part_name"].GetString()+" ("+BodyType+") "+Remesh)
 
     ####
 
@@ -329,3 +330,8 @@ class MeshingDomain(object):
             nodal_variables.append(transfer_variables[i].GetString())
 
         return nodal_variables
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[---Meshed_Domain---]::"
+        return header

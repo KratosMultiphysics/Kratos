@@ -109,9 +109,11 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      if( mEchoLevel > 0 )
+      if( mEchoLevel > 0 ){
 	std::cout<<" [ GENERATE NEW CONTACT ELEMENTS: "<<std::endl;
-
+        std::cout<<"   Total Conditions BEFORE: ["<<mrModelPart.Conditions().size()<<"] ];"<<std::endl;
+      }
+      
       if( mrModelPart.Name() != mrRemesh.SubModelPartName )
 	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
 

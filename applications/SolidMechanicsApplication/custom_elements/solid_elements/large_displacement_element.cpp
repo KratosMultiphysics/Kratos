@@ -384,12 +384,12 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 	    }
 
             //Compute Green-Lagrange Strain
-
 	    if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
 	      this->CalculateGreenLagrangeStrain( Variables.H, Variables.StrainVector );
             else
 	      this->CalculateAlmansiStrain( Variables.H, Variables.StrainVector );
 
+                       
             if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
 	      rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
 

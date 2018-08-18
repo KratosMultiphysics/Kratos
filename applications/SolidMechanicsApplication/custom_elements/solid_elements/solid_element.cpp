@@ -1214,6 +1214,8 @@ void SolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
                 row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
                 rCurrentProcessInfo );
 
+    this->Set(SolidElement::FINALIZED_STEP,false);
+    
     KRATOS_CATCH( "" )
 
 }
@@ -1276,6 +1278,8 @@ void SolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 	this->FinalizeStepVariables(Variables,PointNumber);
     }
 
+    this->Set(SolidElement::FINALIZED_STEP,true);
+    
     KRATOS_CATCH( "" )
 }
 
