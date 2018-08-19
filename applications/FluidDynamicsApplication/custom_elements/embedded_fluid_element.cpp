@@ -107,15 +107,15 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
 
         if (this->Is(SLIP)){
             // Nitsche Navier-Slip boundary condition implementation (Winter, 2018)
-            AddSlipNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddSlipNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
             AddSlipNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
-            AddSlipTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-            AddSlipTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+            AddSlipTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
+            AddSlipTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
         } else {
             // First, compute and assemble the penalty level set BC imposition contribution
             // Secondly, compute and assemble the modified Nitsche method level set BC imposition contribution (Codina and Baiges, 2009)
             // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous constributions
-            AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data, rCurrentProcessInfo);
             DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
             AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
         }
@@ -330,8 +330,9 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
@@ -351,7 +352,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
     }
 
     // Compute the Nitsche normal imposition penalty coefficient
-    const double pen_coef = this->ComputeSlipNormalPenaltyCoefficient(rData);
+    const double pen_coef = this->ComputeSlipNormalPenaltyCoefficient(rData, rCurrentProcessInfo);
 
     // Compute LHS contribution
     // BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
@@ -470,14 +471,15 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
 
     // Compute the Nitsche tangential imposition penalty coefficients
-    std::pair<const double, const double> pen_coefs = this->ComputeSlipTangentialPenaltyCoefficients(rData);
+    std::pair<const double, const double> pen_coefs = this->ComputeSlipTangentialPenaltyCoefficients(rData, rCurrentProcessInfo);
 
     // Declare auxiliar arrays
     BoundedMatrix<double, LocalSize, LocalSize> aux_LHS_1 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution coming from the tangential component of the Cauchy stress vector
@@ -552,8 +554,9 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
@@ -562,7 +565,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
     const double adjoint_consistency = -1.0;
 
     // Compute the coefficients
-    std::pair<const double, const double> nitsche_coefs = this->ComputeSlipTangentialNitscheCoefficients(rData);
+    std::pair<const double, const double> nitsche_coefs = this->ComputeSlipTangentialNitscheCoefficients(rData, rCurrentProcessInfo);
 
     // Declare auxiliar arrays
     BoundedMatrix<double, LocalSize, LocalSize> aux_LHS_1 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution coming from the tangential component of the Cauchy stress vector
@@ -639,8 +642,9 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
 
 template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
     // Compute the element average velocity norm
     double v_norm = 0.0;
     for (unsigned int comp = 0; comp < Dim; ++comp){
@@ -657,7 +661,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
     const double avg_rho = rData.Density;
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
-    const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE
+    const double penalty = 1.0/rCurrentProcessInfo[PENALTY_COEFFICIENT];
     const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
 
     return cons_coef;
@@ -665,10 +669,11 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
 
 template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialPenaltyCoefficients(
-    const EmbeddedElementData& rData) const {
-
-    const double penalty = 1.0/10.0;
-    const double slip_length = 1.0e+08;
+    const EmbeddedElementData& rData,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
+    const double slip_length = rCurrentProcessInfo[SLIP_LENGTH];
+    const double penalty = 1.0/rCurrentProcessInfo[PENALTY_COEFFICIENT];
 
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
@@ -682,10 +687,11 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
 
 template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialNitscheCoefficients(
-    const EmbeddedElementData& rData) const {
-
-    const double penalty = 1.0/10.0;
-    const double slip_length = 1.0e+08;
+    const EmbeddedElementData& rData,
+    const ProcessInfo &rCurrentProcessInfo) const 
+{
+    const double slip_length = rCurrentProcessInfo[SLIP_LENGTH];
+    const double penalty = 1.0/rCurrentProcessInfo[PENALTY_COEFFICIENT];
 
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
@@ -701,8 +707,9 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
@@ -719,7 +726,7 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
     }
 
     // Multiply the penalty matrix by the penalty coefficient
-    double penalty_coefficient = this->ComputePenaltyCoefficient(rData);
+    double penalty_coefficient = this->ComputePenaltyCoefficient(rData, rCurrentProcessInfo);
     p_gamma *= penalty_coefficient;
 
     MatrixType penalty_lhs = ZeroMatrix(LocalSize, LocalSize);
@@ -761,8 +768,9 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
 
 template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
     // Compute the intersection area using the Gauss pts. weights
     double intersection_area = 0.0;
     for (unsigned int g = 0; g < rData.PositiveInterfaceWeights.size(); ++g) {
@@ -790,7 +798,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
                                 rho*v_norm*std::pow(h, Dim-1);
 
     // Return the penalty coefficient
-    constexpr double K = 10.0;
+    const double K = rCurrentProcessInfo[PENALTY_COEFFICIENT];
     const double pen_coef = K * pen_cons / intersection_area;
 
     return pen_coef;
