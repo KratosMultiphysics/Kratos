@@ -120,12 +120,10 @@ def FD_calculate_sensitivity_matrix(primal_element, primal_model_part, perturbed
     FDPseudoLoadMatrix = KratosMultiphysics.Matrix(num_derivatives,num_dofs)
     RHSPerturbed = KratosMultiphysics.Vector()
 
-    row_index = 0
-    for element in perturbed_model_part.Elements:
+    for i, element in enumerate(perturbed_model_part.Elements):
         element.CalculateLocalSystem(LHS_dummy, RHSPerturbed, perturbed_model_part.ProcessInfo)
         for j in range(num_dofs):
-            FDPseudoLoadMatrix[row_index,j] = (RHSPerturbed[j] - RHSUnperturbed[j]) / delta
-        row_index += 1
+            FDPseudoLoadMatrix[i,j] = (RHSPerturbed[j] - RHSUnperturbed[j]) / delta
 
     return FDPseudoLoadMatrix
 
