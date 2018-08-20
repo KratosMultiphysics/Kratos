@@ -29,6 +29,7 @@ ContactSPRErrorProcess<TDim>::ContactSPRErrorProcess(
 {
     Parameters default_parameters = Parameters(R"(
     {
+        "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
         "penalty_normal"                      : 1.0e4,
         "penalty_tangential"                  : 1.0e4,
         "echo_level"                          : 0
@@ -39,6 +40,8 @@ ContactSPRErrorProcess<TDim>::ContactSPRErrorProcess(
 
     mPenaltyNormal = ThisParameters["penalty_normal"].GetDouble();
     mPenaltyTangent = ThisParameters["penalty_tangential"].GetDouble();
+
+    BaseType::mStressVariable = KratosComponents<Variable<Vector>>::Get(ThisParameters["stress_vector_variable"].GetString());
     BaseType::mEchoLevel = ThisParameters["echo_level"].GetInt();
 }
 
@@ -72,7 +75,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
 
         auto& process_info = BaseType::mThisModelPart.GetProcessInfo();
-        it_elem->GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,stress_vector, process_info);
+        it_elem->GetValueOnIntegrationPoints(BaseType::mStressVariable,stress_vector, process_info);
         it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector, process_info);
 
         KRATOS_INFO_IF("ContactSPRErrorProcess", BaseType::mEchoLevel > 3)

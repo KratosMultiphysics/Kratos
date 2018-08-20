@@ -29,12 +29,14 @@ SPRErrorProcess<TDim>::SPRErrorProcess(
 {
     Parameters default_parameters = Parameters(R"(
     {
+        "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
         "echo_level"                          : 0
     })"
     );
 
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
+    mStressVariable = KratosComponents<Variable<Vector>>::Get(ThisParameters["stress_vector_variable"].GetString());
     mEchoLevel = ThisParameters["echo_level"].GetInt();
 }
 
@@ -213,7 +215,7 @@ void SPRErrorProcess<TDim>::CalculatePatch(
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
 
-        it_elem->GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,stress_vector,mThisModelPart.GetProcessInfo());
+        it_elem->GetValueOnIntegrationPoints(mStressVariable,stress_vector,mThisModelPart.GetProcessInfo());
         it_elem->GetValueOnIntegrationPoints(INTEGRATION_COORDINATES,coordinates_vector,mThisModelPart.GetProcessInfo());
 
         KRATOS_INFO_IF("SPRErrorProcess", mEchoLevel > 3)
