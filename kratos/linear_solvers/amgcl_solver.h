@@ -68,7 +68,7 @@ namespace Kratos
 
 enum AMGCLSmoother
 {
-    SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV
+    SPAI0,SPAI1,ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV
 };
 
 enum AMGCLIterativeSolverType
@@ -78,7 +78,7 @@ enum AMGCLIterativeSolverType
 
 enum AMGCLCoarseningType
 {
-    RUGE_STUBEN,AGGREGATION,SA,SA_EMIN
+    RUGE_STUBEN,AGGREGATION,SA,SA_EMIN,TENTATIVE_PROLONGATION,POINTWISE_AGGREGATES,PLAIN_AGGREGATES
 };
 
 ///@}
@@ -163,9 +163,9 @@ public:
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // Validate if values are admissible
-        std::set<std::string> available_smoothers = {"spai0","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
+        std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
         std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres", "bicgstab_with_gmres_fallback","idrs"};
-        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
+        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin","tentative_prolongation","pointwise_aggregates","plain_aggregates"};
 
         std::stringstream msg;
 
@@ -624,7 +624,7 @@ private:
 
     std::vector<array_1d<double,3> > mCoordinates; /// The vector containing the local coordinates
 
-    amgcl::runtime::coarsening::type mCoarsening;  /// the corasening type considered
+    amgcl::runtime::coarsening::type mCoarsening;  /// The corasening type considered
     amgcl::runtime::relaxation::type mRelaxation;  /// The relaxation type considered
     amgcl::runtime::solver::type mIterativeSolver; /// The iterative solver considered
     boost::property_tree::ptree mAMGCLParameters;  /// The configuration parameters of the AMGCl
@@ -648,6 +648,12 @@ private:
             {
                 mAMGCLParameters.put("precond.relax.type","spai0");
                 mRelaxation = amgcl::runtime::relaxation::spai0;
+                break;
+            }
+            case SPAI1:
+            {
+                mAMGCLParameters.put("precond.relax.type","spai1");
+                mRelaxation = amgcl::runtime::relaxation::spai1;
                 break;
             }
             case ILU0:
@@ -754,6 +760,21 @@ private:
             case SA_EMIN:
             {
                 mAMGCLParameters.put("precond.coarsening.type", "smoothed_aggr_emin");
+                break;
+            }
+            case PLAIN_AGGREGATES:
+            {
+                mAMGCLParameters.put("precond.coarsening.type", "plain_aggregates");
+                break;
+            }
+            case POINTWISE_AGGREGATES:
+            {
+                mAMGCLParameters.put("precond.coarsening.type", "pointwise_aggregates");
+                break;
+            }
+            case TENTATIVE_PROLONGATION:
+            {
+                mAMGCLParameters.put("precond.coarsening.type", "tentative_prolongation");
                 break;
             }
         };

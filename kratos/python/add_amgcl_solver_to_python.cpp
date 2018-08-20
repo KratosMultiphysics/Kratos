@@ -48,6 +48,7 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
 
     enum_<AMGCLSmoother>(m,"AMGCLSmoother")
     .value("SPAI0", SPAI0)
+    .value("SPAI1", SPAI1)
     .value("ILU0", ILU0)
     .value("DAMPED_JACOBI",DAMPED_JACOBI)
     .value("GAUSS_SEIDEL",GAUSS_SEIDEL)
@@ -56,6 +57,8 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
 
     enum_<AMGCLIterativeSolverType>(m,"AMGCLIterativeSolverType")
     .value("GMRES", GMRES)
+    .value("LGMRES", LGMRES)
+    .value("FGMRES", FGMRES)
     .value("BICGSTAB", BICGSTAB)
     .value("CG",CG)
     .value("BICGSTAB_WITH_GMRES_FALLBACK",BICGSTAB_WITH_GMRES_FALLBACK)
@@ -67,6 +70,9 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     .value("AGGREGATION", AGGREGATION)
     .value("SA",SA)
     .value("SA_EMIN",SA_EMIN)
+    .value("TENTATIVE_PROLONGATION",TENTATIVE_PROLONGATION)
+    .value("PLAIN_AGGREGATES",POINTWISE_AGGREGATES)
+    .value("POINTWISE_AGGREGATES",PLAIN_AGGREGATES)
     ;
 
     typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
