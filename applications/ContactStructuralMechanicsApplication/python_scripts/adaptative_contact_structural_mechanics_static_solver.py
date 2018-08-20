@@ -50,6 +50,7 @@ class AdaptativeContactStaticMechanicalSolver(contact_structural_mechanics_stati
                 "error_mesh_constant"  : 5.0e-3,
                 "compute_error_extra_parameters":
                 {
+                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
                     "penalty_normal"                      : 1.0e4,
                     "penalty_tangential"                  : 1.0e4,
                     "echo_level"                          : 0
