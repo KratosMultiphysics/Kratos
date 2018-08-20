@@ -38,12 +38,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
      class_<VolumeCalculationUnderPlaneUtility>(m,"VolumeCalculationUnderPlaneUtility")
-        .def(init<ModelPart &>())
+        .def(init<Vector, double, Vector>())
         //.def("CalculateVolumeEnclosedByClosedSurface", &VolumeCalcUsingSurfaceUtility::CalculateVolumeEnclosedByClosedSurface)
         .def("CalculateVolume", &VolumeCalculationUnderPlaneUtility::CalculateVolume)
         .def("UpdatePositionOfPlaneBasedOnTargetVolume", &VolumeCalculationUnderPlaneUtility::UpdatePositionOfPlaneBasedOnTargetVolume)
-        .def("GetIntersectedArea", &VolumeCalculationUnderPlaneUtility::GetIntersectedArea); 
-
+        .def("SetPlaneParameters", &VolumeCalculationUnderPlaneUtility::SetPlaneParameters)
+        .def("GetIntersectedArea", &VolumeCalculationUnderPlaneUtility::GetIntersectedArea);
+        
     class_<VtkOutput>(m,"VtkOutput")
         .def(init<ModelPart &, std::string, Parameters>())
         .def("PrintOutput", &VtkOutput::PrintOutput)

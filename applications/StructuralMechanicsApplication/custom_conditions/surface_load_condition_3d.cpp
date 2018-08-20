@@ -21,6 +21,7 @@
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
@@ -191,6 +192,7 @@ namespace Kratos
 
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int mat_size = number_of_nodes * 3;
+
 
         //Resizing as needed the LHS
         if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required

@@ -155,6 +155,9 @@ class MechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SPECIFIC_WEIGHT)
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
@@ -240,6 +243,7 @@ class MechanicalSolver(PythonSolver):
             except AttributeError:
                 pass
         self.Check()
+       
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def GetOutputVariables(self):
@@ -598,6 +602,8 @@ class MechanicalSolver(PythonSolver):
                                                      self.settings["compute_reactions"].GetBool(),
                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                      self.settings["move_mesh_flag"].GetBool())
+
+
 
     def _create_restart_utility(self):
         """Create the restart utility. Has to be overridden for MPI/trilinos-solvers"""

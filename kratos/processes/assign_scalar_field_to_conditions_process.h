@@ -122,6 +122,10 @@ public:
         {
             InternalAssignValueComponents<>(KratosComponents< array_1d_component_type >::Get(mVariableName), rCurrentTime);
         }
+         else if( KratosComponents< Variable<double> >::Has( mVariableName )) //case of double scalar variable 
+        {
+            InternalAssignValueComponents<>(KratosComponents< Variable<double> >::Get(mVariableName), rCurrentTime);
+        }  
         else
         {
             KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mVariableName << std::endl;
@@ -423,6 +427,7 @@ private:
                 for(int i = 0; i<nconditions; i++)
                 {
                     ModelPart::ConditionsContainerType::iterator it = itBegin + i;
+                    
                     it->SetValue(rVar, TimeValue);
                 }
 

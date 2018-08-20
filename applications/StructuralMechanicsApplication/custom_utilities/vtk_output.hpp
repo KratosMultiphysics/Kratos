@@ -315,9 +315,9 @@ class VtkOutput
         if (model_part.NumberOfElements() > 0)
         {
             outputFile << "CELL_DATA " << model_part.NumberOfElements() << "\n";
-            outputFile << "SCALARS ACTIVE float 1\nLOOKUP_TABLE default\n";
+                         outputFile << "SCALARS ACTIVE float 1\nLOOKUP_TABLE default\n";
 
-            // write element results for active
+             // write element results for active
             for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
             {
                 //outputFile << numberOfNodes;
@@ -329,7 +329,7 @@ class VtkOutput
 
                 else
                     outputFile << "1\n";
-            }
+            }  
 
             for (unsigned int entry = 0; entry < elementResults.size(); entry++)
             {
@@ -374,17 +374,17 @@ class VtkOutput
                     }
                 }
             }
-            /*
-        outputFile << "SCALARS SPLIT_ELEMENT float 1\nLOOKUP_TABLE default\n";
 
-        // write element results for active
-        for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
-        {
-            //outputFile << numberOfNodes;
-            bool is_split = elem_i->GetValue(SPLIT_ELEMENT);
-            outputFile << is_split << "\n";
-        }
-*/
+            outputFile << "SCALARS SPLIT_ELEMENT float 1\nLOOKUP_TABLE default\n";
+
+            // write element results for split elements
+            for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+            {
+                //outputFile << numberOfNodes;
+                bool is_split = elem_i->GetValue(SPLIT_ELEMENT);
+                outputFile << is_split << "\n";
+            }
+
             outputFile.close();
         }
     }
@@ -629,7 +629,7 @@ class VtkOutput
         {
             // write cells header
             outputFile << "\nCELL_DATA " << model_part.NumberOfElements() << "\n";
-            outputFile << "SCALARS ACTIVE float \nLOOKUP_TABLE default\n";
+          outputFile << "SCALARS ACTIVE float \nLOOKUP_TABLE default\n";
 
             // write element results for active
             for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
@@ -651,7 +651,7 @@ class VtkOutput
                     outputFile.write((char *)(&is_active), sizeof(float));
                 }
             }
-
+ 
             for (unsigned int entry = 0; entry < elementResults.size(); entry++)
             {
 
@@ -700,17 +700,17 @@ class VtkOutput
                     }
                 }
             }
-            /*
-        outputFile << "SCALARS SPLIT_ELEMENT float \nLOOKUP_TABLE default\n";
 
-        // write element results for active
-        for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
-        {
-            //outputFile << numberOfNodes;
-            float is_split = elem_i->GetValue(SPLIT_ELEMENT);
-            force_big_endian((unsigned char *)&is_split);
-            outputFile.write((char *)(&is_split), sizeof(float));
-        }*/
+            outputFile << "SCALARS SPLIT_ELEMENT float \nLOOKUP_TABLE default\n";
+
+            // write element results for active
+            for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+            {
+                //outputFile << numberOfNodes;
+                float is_split = elem_i->GetValue(SPLIT_ELEMENT);
+                force_big_endian((unsigned char *)&is_split);
+                outputFile.write((char *)(&is_split), sizeof(float));
+            }
 
             outputFile.close();
         }

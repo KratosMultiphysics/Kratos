@@ -71,7 +71,7 @@
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
-
+#include "custom_conditions/hydrostatic_load_condition.h"
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/truss_constitutive_law.h"
@@ -376,6 +376,9 @@ private:
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D6N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
+
+    // Hydrostatic loading condition
+    const HydrostaticLoadCondition mHydrostaticLoadCondition3D3N;
 
     // Point moment
     const PointMomentCondition3D mPointMomentCondition3D1N;

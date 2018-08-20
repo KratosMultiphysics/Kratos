@@ -97,6 +97,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_condition_3d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/hydrostatic_load_condition.cpp
 )
 
 ## generate variables with the testing sources

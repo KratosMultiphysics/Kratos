@@ -24,6 +24,7 @@
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
+#include "custom_strategies/custom_strategies/newton_raphson_with_hydrostatic_load_strategy.hpp"
 
 // Schemes
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
@@ -43,7 +44,6 @@
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
 
-
 namespace Kratos
 {
 
@@ -51,130 +51,125 @@ namespace Python
 {
 using namespace pybind11;
 
-void  AddCustomStrategiesToPython(pybind11::module& m)
+void AddCustomStrategiesToPython(pybind11::module &m)
 {
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
-    // Base types
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef LinearSolverType::Pointer LinearSolverPointer;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-//     typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
-    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-    typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
-    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-    typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
-    typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
+        // Base types
+        typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+        typedef LinearSolverType::Pointer LinearSolverPointer;
+        typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+        //     typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
+        typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
+        typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
+        typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+        typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
+        typedef ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedNewtonRaphsonStrategyType;
 
-    // Custom strategy types
-    // typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
-    typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
-    typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
-    typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
-    typedef MechanicalExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MechanicalExplicitStrategyType;
+        // Custom strategy types
+        // typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
+        typedef EigensolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> EigensolverStrategyType;
+        typedef HarmonicAnalysisStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> HarmonicAnalysisStrategyType;
+        typedef FormfindingUpdatedReferenceStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> FormfindingUpdatedReferenceStrategyType;
+        typedef MechanicalExplicitStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> MechanicalExplicitStrategyType;
+        typedef NewtonRaphsonWithHydrostaticLoadStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> NewtonRaphsonWithHydrostaticLoadStrategyType;
 
+        // Custom scheme types
+        typedef ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType> ResidualBasedRelaxationSchemeType;
+        typedef EigensolverDynamicScheme<SparseSpaceType, LocalSpaceType> EigensolverDynamicSchemeType;
+        typedef ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType> ExplicitCentralDifferencesSchemeType;
 
-    // Custom scheme types
-    typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
-    typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
-    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
+        // Custom convergence criterion types
+        typedef DisplacementAndOtherDoFCriteria<SparseSpaceType, LocalSpaceType> DisplacementAndOtherDoFCriteriaType;
+        typedef ResidualDisplacementAndOtherDoFCriteria<SparseSpaceType, LocalSpaceType> ResidualDisplacementAndOtherDoFCriteriaType;
 
+        // Custom builder and solvers types
 
-    // Custom convergence criterion types
-    typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
-    typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
+        //********************************************************************
+        //*************************STRATEGY CLASSES***************************
+        //********************************************************************
 
-    // Custom builder and solvers types
+        // Residual Based Arc Length Strategy
+        // Currently not woking
+        // class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
+        // .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
+        //                                                             unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
+        //        ;
 
-    //********************************************************************
-    //*************************STRATEGY CLASSES***************************
-    //********************************************************************
+        // Eigensolver Strategy
+        class_<EigensolverStrategyType, typename EigensolverStrategyType::Pointer, BaseSolvingStrategyType>(m, "EigensolverStrategy")
+            .def(init<ModelPart &, BaseSchemeType::Pointer, BuilderAndSolverPointer>());
 
-    // Residual Based Arc Length Strategy
-    // Currently not woking
-    // class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
-    // .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
-    //                                                             unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
-    //        ;
+        class_<FormfindingUpdatedReferenceStrategyType, typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType>(m, "FormfindingUpdatedReferenceStrategy")
+            .def(init<ModelPart &, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool, bool>())
+            .def(init<ModelPart &, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool, bool, bool>())
+            .def("SetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::SetMaxIterationNumber)
+            .def("GetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::GetMaxIterationNumber)
+            .def("SetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::SetKeepSystemConstantDuringIterations)
+            .def("GetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::GetKeepSystemConstantDuringIterations)
+            .def("SetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::SetInitializePerformedFlag)
+            .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag);
 
-    // Eigensolver Strategy
-    class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
-    .def(init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
-            ;
+        class_<MechanicalExplicitStrategyType, typename MechanicalExplicitStrategyType::Pointer, BaseSolvingStrategyType>(m, "MechanicalExplicitStrategy")
+            .def(init<ModelPart &, BaseSchemeType::Pointer, bool, bool, bool>())
+            .def("SetInitializePerformedFlag", &MechanicalExplicitStrategyType::SetInitializePerformedFlag)
+            .def("GetInitializePerformedFlag", &MechanicalExplicitStrategyType::GetInitializePerformedFlag);
 
-    class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingUpdatedReferenceStrategy")
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool, bool >())
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool, bool, bool >())
-        .def("SetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::SetMaxIterationNumber)
-        .def("GetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::GetMaxIterationNumber)
-        .def("SetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::SetKeepSystemConstantDuringIterations)
-        .def("GetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::GetKeepSystemConstantDuringIterations)
-        .def("SetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::SetInitializePerformedFlag)
-        .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag)
-        ;
-
-
-    class_< MechanicalExplicitStrategyType, typename MechanicalExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"MechanicalExplicitStrategy")
-        .def(init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
-        .def("SetInitializePerformedFlag", &MechanicalExplicitStrategyType::SetInitializePerformedFlag)
-        .def("GetInitializePerformedFlag", &MechanicalExplicitStrategyType::GetInitializePerformedFlag)
-        ;
-
-    // harmonic Analysis Strategy
-    class_< HarmonicAnalysisStrategyType,typename HarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"HarmonicAnalysisStrategy")
-    .def(init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
+        // harmonic Analysis Strategy
+        class_<HarmonicAnalysisStrategyType, typename HarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType>(m, "HarmonicAnalysisStrategy")
+            .def(init<ModelPart &, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>())
             .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
-            .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
-            ;
+            .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag);
 
+        //hydrostatic Analysis Strategy
 
-    //********************************************************************
-    //*************************SCHEME CLASSES*****************************
-    //********************************************************************
+         class_<NewtonRaphsonWithHydrostaticLoadStrategyType, typename NewtonRaphsonWithHydrostaticLoadStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType>(m, "NewtonRaphsonWithHydrostaticLoadStrategy")
+            .def(init<ModelPart &, BaseSchemeType::Pointer,LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool>())
+            .def(init<ModelPart &, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool>());
+            
 
-    // Residual Based Relaxation Scheme Type
-    class_< ResidualBasedRelaxationSchemeType,typename ResidualBasedRelaxationSchemeType::Pointer, BaseSchemeType >(m,"ResidualBasedRelaxationScheme")
-    .def(init< double , double >() )
-            .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-            ;
+        //********************************************************************
+        //*************************SCHEME CLASSES*****************************
+        //********************************************************************
 
-    // Eigensolver Scheme Type
-    class_< EigensolverDynamicSchemeType,typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m,"EigensolverDynamicScheme")
-    .def(init<>() )
-            ;
+        // Residual Based Relaxation Scheme Type
+        class_<ResidualBasedRelaxationSchemeType, typename ResidualBasedRelaxationSchemeType::Pointer, BaseSchemeType>(m, "ResidualBasedRelaxationScheme")
+            .def(init<double, double>())
+            .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize);
 
-    // Explicit Central Differences Scheme Type
-    class_< ExplicitCentralDifferencesSchemeType,typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType >(m,"ExplicitCentralDifferencesScheme")
-    .def(init< const double, const double, const double>() );
+        // Eigensolver Scheme Type
+        class_<EigensolverDynamicSchemeType, typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m, "EigensolverDynamicScheme")
+            .def(init<>());
 
-    //********************************************************************
-    //*******************CONVERGENCE CRITERIA CLASSES*********************
-    //********************************************************************
+        // Explicit Central Differences Scheme Type
+        class_<ExplicitCentralDifferencesSchemeType, typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType>(m, "ExplicitCentralDifferencesScheme")
+            .def(init<const double, const double, const double>());
 
-    // Displacement and other DoF Convergence Criterion
-    class_< DisplacementAndOtherDoFCriteriaType,typename DisplacementAndOtherDoFCriteriaType::Pointer,ConvergenceCriteriaType>(m,"DisplacementAndOtherDoFCriteria")
-            .def(init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
+        //********************************************************************
+        //*******************CONVERGENCE CRITERIA CLASSES*********************
+        //********************************************************************
 
-    // Displacement and other DoF residual Convergence Criterion
-    class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
-    .def( init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
+        // Displacement and other DoF Convergence Criterion
+        class_<DisplacementAndOtherDoFCriteriaType, typename DisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType>(m, "DisplacementAndOtherDoFCriteria")
+            .def(init<double, double, std::string>())
+            .def(init<double, double>());
 
-    //********************************************************************
-    //*************************BUILDER AND SOLVER*************************
-    //********************************************************************
-    class_< ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-     typename ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >(m,"ResidualBasedBlockBuilderAndSolverWithMpc")
-                .def(init<LinearSolverType::Pointer>());
+        // Displacement and other DoF residual Convergence Criterion
+        class_<ResidualDisplacementAndOtherDoFCriteriaType, typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType>(m, "ResidualDisplacementAndOtherDoFCriteria")
+            .def(init<double, double, std::string>())
+            .def(init<double, double>());
+
+        //********************************************************************
+        //*************************BUILDER AND SOLVER*************************
+        //********************************************************************
+        class_<ResidualBasedBlockBuilderAndSolverWithMpc<SparseSpaceType, LocalSpaceType, LinearSolverType>,
+               typename ResidualBasedBlockBuilderAndSolverWithMpc<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
+               ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(m, "ResidualBasedBlockBuilderAndSolverWithMpc")
+            .def(init<LinearSolverType::Pointer>());
 }
 
-}  // namespace Python.
+} // namespace Python.
 
 } // Namespace Kratos
-
