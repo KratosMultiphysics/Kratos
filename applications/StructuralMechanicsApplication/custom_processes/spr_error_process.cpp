@@ -270,7 +270,7 @@ void SPRErrorProcess<TDim>::CalculatePatch(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SPRErrorProcess<2>;
-template class SPRErrorProcess<3>;
+template KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) class SPRErrorProcess<2>;
+template KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) class SPRErrorProcess<3>;
 
 };// namespace Kratos.

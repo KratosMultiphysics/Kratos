@@ -58,7 +58,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosContactStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES} ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES})
 
-target_link_libraries(KratosContactStructuralMechanicsApplication PRIVATE KratosCore)
+target_link_libraries(KratosContactStructuralMechanicsApplication PRIVATE KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "CONTACT_STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES PREFIX "")
 if(USE_COTIRE MATCHES ON)
