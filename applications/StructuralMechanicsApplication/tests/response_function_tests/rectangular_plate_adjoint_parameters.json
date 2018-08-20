@@ -49,7 +49,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "rectangular_plate_structure.DISPLACEMENT_DIR_BC",
-            "variable_name"   : "DISPLACEMENT",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
