@@ -184,19 +184,19 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                     if (linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver"):
                         amgcl_param = KM.Parameters("""
                         {
-                            "solver_type" : "AMGCL",
-                            "smoother_type":"ilu0",
-                            "krylov_type": "lgmres",
-                            "coarsening_type": "aggregation",
-                            "max_iteration": 100,
-                            "provide_coordinates": false,
-                            "gmres_krylov_space_dimension": 100,
-                            "verbosity" : 1,
-                            "tolerance": 1e-6,
-                            "scaling": false,
-                            "block_size": 3,
+                            "solver_type"                    : "AMGCL",
+                            "smoother_type"                  : "gauss_seidel",
+                            "krylov_type"                    : "fgmres",
+                            "coarsening_type"                : "smoothed_aggregation",
+                            "max_iteration"                  : 1000,
+                            "provide_coordinates"            : false,
+                            "gmres_krylov_space_dimension"   : 1000,
+                            "verbosity"                      : 1,
+                            "tolerance"                      : 1e-6,
+                            "scaling"                        : false,
+                            "block_size"                     : 3,
                             "use_block_matrices_if_possible" : true,
-                            "coarse_enough" : 500
+                            "coarse_enough"                  : 10000
                         }
                         """)
                         amgcl_param["block_size"].SetInt(self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
