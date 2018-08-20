@@ -5,136 +5,127 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import math
 
-def get_displacement_vector(mp,disp):
-    index=0
-    for node in mp.Nodes:
-        disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
-        index = index + 1
-        disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
-        index = index + 1
-        disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
-        index = index + 1
- 
-def add_variables(mp):
-    mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-    mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-    mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-    mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-    mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+def get_displacement_vector(model_part,disp):
+    for i, node in enumerate(model_part.Nodes):
+        disp[i*3+0] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
+        disp[i*3+1] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
+        disp[i*3+2] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0)
 
-def apply_material_properties(mp,dim):
+def add_variables(model_part):
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+
+def apply_material_properties(model_part,dim):
     #define properties
-    mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,1000)
-    mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,7850)
-    mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.CROSS_AREA,10)
-    mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,5)
+    model_part.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,1000)
+    model_part.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,7850)
+    model_part.GetProperties()[1].SetValue(StructuralMechanicsApplication.CROSS_AREA,10)
+    model_part.GetProperties()[1].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,5)
     g = [0,0,0]
-    mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
+    model_part.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
     cl = StructuralMechanicsApplication.TrussConstitutiveLaw()
-    mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+    model_part.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
-def copy_solution_step_data_of_node(node, mp_old, node_id, step=0):
+def copy_solution_step_data_of_node(node, old_node, step=0, step_old=0):
     node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,
-    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0))
-    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,
-    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0))
-    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,
-    mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0))
+    old_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step_old))
+    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,step,
+    old_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,step_old))
+    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,step,
+    old_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,step_old))
 
 def shape_perturbation_correction_factor(node_1, node_2):
     dx = node_1.X - node_2.X
     dy = node_1.Y - node_2.Y
     dz = node_1.Z - node_2.Z
     l = math.sqrt(dx*dx + dy*dy + dz*dz)
-    return l    
-  
-def zero_vector(size):
-    v = KratosMultiphysics.Vector(size)
-    for i in range(size):
-        v[i] = 0.0
-    return v
+    return l
 
-def create_property_perturbed_elements(mp, delta, new_element_name):
+def create_property_perturbed_elements(model_part, delta, new_element_name):
     dim = 3
-    model_part = KratosMultiphysics.ModelPart("Property_Perturbed_Elements")
-    model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim)
-    add_variables(model_part)
-    model_part.CreateNewNode(1, mp.Nodes[1].X, mp.Nodes[1].Y, mp.Nodes[1].Z)
-    model_part.CreateNewNode(2, mp.Nodes[2].X, mp.Nodes[2].Y, mp.Nodes[2].Z)
-    apply_material_properties(model_part,dim)
+    perturbed_model_part = KratosMultiphysics.ModelPart("Property_Perturbed_Elements")
+    perturbed_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim)
+    add_variables(perturbed_model_part)
+    perturbed_model_part.CreateNewNode(1, model_part.Nodes[1].X, model_part.Nodes[1].Y, model_part.Nodes[1].Z)
+    perturbed_model_part.CreateNewNode(2, model_part.Nodes[2].X, model_part.Nodes[2].Y, model_part.Nodes[2].Z)
+    apply_material_properties(perturbed_model_part,dim)
 
-    A_initial = mp.GetProperties()[1][StructuralMechanicsApplication.CROSS_AREA]
-    model_part.GetProperties()[1].SetValue(StructuralMechanicsApplication.CROSS_AREA, A_initial + delta )
-    prop = model_part.GetProperties()[1]
+    A_initial = model_part.GetProperties()[1][StructuralMechanicsApplication.CROSS_AREA]
+    perturbed_model_part.GetProperties()[1].SetValue(StructuralMechanicsApplication.CROSS_AREA, A_initial + delta )
+    prop = perturbed_model_part.GetProperties()[1]
 
-    model_part.CreateNewElement(new_element_name, 1, [1, 2], prop)
+    perturbed_model_part.CreateNewElement(new_element_name, 1, [1, 2], prop)
 
-    for i in range(2):
-        copy_solution_step_data_of_node(model_part.Nodes[i+1], mp, i+1, 0)
+    for node, old_node in zip(perturbed_model_part.Nodes, model_part.Nodes):
+        copy_solution_step_data_of_node(node, old_node, 0, 0)
 
-    for element in model_part.Elements:
+    for element in perturbed_model_part.Elements:
         element.Initialize()
 
-    return model_part
+    return perturbed_model_part
 
-def create_shape_perturbed_elements(mp, delta, new_element_name):
+def create_shape_perturbed_elements(model_part, delta, new_element_name):
     dim=3
-    model_part = KratosMultiphysics.ModelPart("Shape_Perturbed_Elements")
-    add_variables(model_part)
+    perturbed_model_part = KratosMultiphysics.ModelPart("Shape_Perturbed_Elements")
+    add_variables(perturbed_model_part)
 
-    x1 = mp.Nodes[1].X
-    y1 = mp.Nodes[1].Y
-    z1 = mp.Nodes[1].Z
-    x2 = mp.Nodes[2].X
-    y2 = mp.Nodes[2].Y
-    z2 = mp.Nodes[2].Z
-    model_part.CreateNewNode(1, x1, y1, z1)
-    model_part.CreateNewNode(2, x1+delta, y1, z1)
-    model_part.CreateNewNode(3, x1, y1+delta, z1)
-    model_part.CreateNewNode(4, x1, y1, z1+delta)
-    model_part.CreateNewNode(5, x2, y2, z2)
-    model_part.CreateNewNode(6, x2+delta, y2, z2)
-    model_part.CreateNewNode(7, x2, y2+delta, z2)
-    model_part.CreateNewNode(8, x2, y2, z2+delta)
+    x1 = model_part.Nodes[1].X
+    y1 = model_part.Nodes[1].Y
+    z1 = model_part.Nodes[1].Z
+    x2 = model_part.Nodes[2].X
+    y2 = model_part.Nodes[2].Y
+    z2 = model_part.Nodes[2].Z
+    perturbed_model_part.CreateNewNode(1, x1, y1, z1)
+    perturbed_model_part.CreateNewNode(2, x1+delta, y1, z1)
+    perturbed_model_part.CreateNewNode(3, x1, y1+delta, z1)
+    perturbed_model_part.CreateNewNode(4, x1, y1, z1+delta)
+    perturbed_model_part.CreateNewNode(5, x2, y2, z2)
+    perturbed_model_part.CreateNewNode(6, x2+delta, y2, z2)
+    perturbed_model_part.CreateNewNode(7, x2, y2+delta, z2)
+    perturbed_model_part.CreateNewNode(8, x2, y2, z2+delta)
 
-    apply_material_properties(model_part,dim)
-    prop = model_part.GetProperties()[1]
+    apply_material_properties(perturbed_model_part,dim)
+    prop = perturbed_model_part.GetProperties()[1]
 
-    model_part.CreateNewElement(new_element_name, 1, [2, 5], prop)
-    model_part.CreateNewElement(new_element_name, 2, [3, 5], prop)
-    model_part.CreateNewElement(new_element_name, 3, [4, 5], prop)
-    model_part.CreateNewElement(new_element_name, 4, [1, 6], prop)
-    model_part.CreateNewElement(new_element_name, 5, [1, 7], prop)
-    model_part.CreateNewElement(new_element_name, 6, [1, 8], prop)
+    perturbed_model_part.CreateNewElement(new_element_name, 1, [2, 5], prop)
+    perturbed_model_part.CreateNewElement(new_element_name, 2, [3, 5], prop)
+    perturbed_model_part.CreateNewElement(new_element_name, 3, [4, 5], prop)
+    perturbed_model_part.CreateNewElement(new_element_name, 4, [1, 6], prop)
+    perturbed_model_part.CreateNewElement(new_element_name, 5, [1, 7], prop)
+    perturbed_model_part.CreateNewElement(new_element_name, 6, [1, 8], prop)
 
-    index = 1
-    for i in range(2):
-        for _ in range(4):
-            copy_solution_step_data_of_node(model_part.Nodes[index], mp, i + 1, 0)
-            index += 1
+    for i, old_node in enumerate(model_part.Nodes):
+        copy_solution_step_data_of_node(perturbed_model_part.Nodes[i*4+1], old_node, 0, 0)
+        copy_solution_step_data_of_node(perturbed_model_part.Nodes[i*4+2], old_node, 0, 0)
+        copy_solution_step_data_of_node(perturbed_model_part.Nodes[i*4+3], old_node, 0, 0)
+        copy_solution_step_data_of_node(perturbed_model_part.Nodes[i*4+4], old_node, 0, 0)
 
-    for element in model_part.Elements:
+    for element in perturbed_model_part.Elements:
         element.Initialize()
 
-    return model_part
+    return perturbed_model_part
 
-def FD_calculate_sensitivity_matrix(primal_element, primal_mp, perturbed_mp, delta):
+def FD_calculate_sensitivity_matrix(primal_element, primal_model_part, perturbed_model_part, delta):
     # unperturbed residual
-    LHS_dummy = KratosMultiphysics.Matrix(6,6)
-    RHSUnperturbed = zero_vector(6)
-    primal_element.CalculateLocalSystem(LHS_dummy, RHSUnperturbed, primal_mp.ProcessInfo)
+    LHS_dummy = KratosMultiphysics.Matrix()
+    RHSUnperturbed = KratosMultiphysics.Vector()
+    primal_element.CalculateLocalSystem(LHS_dummy, RHSUnperturbed, primal_model_part.ProcessInfo)
 
     # pseudo-load by finite difference approximation
-    num_derivatives = len(perturbed_mp.Elements)
-    FDPseudoLoadMatrix = KratosMultiphysics.Matrix(num_derivatives,6)
-    RHSPerturbed = zero_vector(6)
+    num_derivatives = perturbed_model_part.NumberOfElements()
+    num_dofs = RHSUnperturbed.Size()
+    FDPseudoLoadMatrix = KratosMultiphysics.Matrix(num_derivatives,num_dofs)
+    RHSPerturbed = KratosMultiphysics.Vector()
 
     row_index = 0
-    for element in perturbed_mp.Elements:
-        element.CalculateLocalSystem(LHS_dummy, RHSPerturbed, perturbed_mp.ProcessInfo)
-        for j in range(6):
+    for element in perturbed_model_part.Elements:
+        element.CalculateLocalSystem(LHS_dummy, RHSPerturbed, perturbed_model_part.ProcessInfo)
+        for j in range(num_dofs):
             FDPseudoLoadMatrix[row_index,j] = (RHSPerturbed[j] - RHSUnperturbed[j]) / delta
-        row_index = row_index + 1
+        row_index += 1
 
     return FDPseudoLoadMatrix
 
@@ -184,13 +175,13 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         delta = A_initial * h
 
         # Create perturbed elements
-        perturbed_mp = create_property_perturbed_elements(self.model_part,delta,"TrussLinearElement3D2N")
-        
+        perturbed_model_part = create_property_perturbed_elements(self.model_part,delta,"TrussLinearElement3D2N")
+
         # Derive RHS by finite differences
-        FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_mp, delta)  
-        
+        FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_model_part, delta)
+
         # Pseudo-load computation by adjoint element
-        PseudoLoadMatrix = KratosMultiphysics.Matrix(1,6)
+        PseudoLoadMatrix = KratosMultiphysics.Matrix()
         self.adjoint_truss_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
         self.adjoint_truss_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.CROSS_AREA, PseudoLoadMatrix, self.model_part.ProcessInfo)
         assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
@@ -202,13 +193,13 @@ class TestTrussLinearAdjointElement(KratosUnittest.TestCase):
         corr_factor = shape_perturbation_correction_factor(self.model_part.Nodes[1], self.model_part.Nodes[2])
         delta = corr_factor * h
 
-        perturbed_mp = create_shape_perturbed_elements(self.model_part,delta,"TrussLinearElement3D2N")
+        perturbed_model_part = create_shape_perturbed_elements(self.model_part,delta,"TrussLinearElement3D2N")
 
         # Derive RHS by finite differences
-        FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_mp, delta)  
+        FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_model_part, delta)
 
         # pseudo-load computation by adjoint element
-        PseudoLoadMatrix = KratosMultiphysics.Matrix(6,6)
+        PseudoLoadMatrix = KratosMultiphysics.Matrix()
         self.adjoint_truss_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
         self.adjoint_truss_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.SHAPE,PseudoLoadMatrix,self.model_part.ProcessInfo)
         assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
@@ -220,7 +211,7 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         # create test model part
         dim=3
         self.model_part = KratosMultiphysics.ModelPart("test")
-       
+
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim)
         add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -235,7 +226,7 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
 
         self.model_part.CreateNewElement("TrussElement3D2N", 2, [1, 2], prop)
         self.truss_element = self.model_part.GetElement(2)
-      
+
         self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, 0.14725)
         self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, 0.01200)
         self.model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, 0.725715)
@@ -254,13 +245,13 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         delta = A_initial * h
 
         # Create perturbed elements
-        perturbed_mp = create_property_perturbed_elements(self.model_part,delta,"TrussElement3D2N")
-        
+        perturbed_model_part = create_property_perturbed_elements(self.model_part,delta,"TrussElement3D2N")
+
         # Derive RHS by finite differences
-        FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_mp, delta)  
-        
+        FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_model_part, delta)
+
         # Pseudo-load computation by adjoint element
-        PseudoLoadMatrix = KratosMultiphysics.Matrix(1,6)
+        PseudoLoadMatrix = KratosMultiphysics.Matrix()
         self.adjoint_truss_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
         self.adjoint_truss_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.CROSS_AREA, PseudoLoadMatrix, self.model_part.ProcessInfo)
         assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
@@ -273,13 +264,13 @@ class TestTrussAdjointElement(KratosUnittest.TestCase):
         delta = corr_factor * h
 
         # Create perturbed elements
-        perturbed_mp = create_shape_perturbed_elements(self.model_part,delta,"TrussElement3D2N")
+        perturbed_model_part = create_shape_perturbed_elements(self.model_part,delta,"TrussElement3D2N")
 
         # Derive RHS by finite differences
-        FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_mp, delta)  
+        FDPseudoLoadMatrix = FD_calculate_sensitivity_matrix(self.truss_element, self.model_part, perturbed_model_part, delta)
 
         # pseudo-load computation by adjoint element
-        PseudoLoadMatrix = KratosMultiphysics.Matrix(6,6)
+        PseudoLoadMatrix = KratosMultiphysics.Matrix()
         self.adjoint_truss_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
         self.adjoint_truss_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.SHAPE,PseudoLoadMatrix,self.model_part.ProcessInfo)
         assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
