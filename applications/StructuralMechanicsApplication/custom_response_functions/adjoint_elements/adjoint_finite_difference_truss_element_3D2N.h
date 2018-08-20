@@ -18,6 +18,12 @@
 namespace Kratos
 {
 
+/** \brief AdjointFiniteDifferencingBaseElement
+ *
+ * This element is a wrapper for a primal truss element. It is responsible to deliver local stresses and
+ * the stress displacement derivative. It is designed to be used in adjoint
+ * sensitivity analysis.
+ */
 class AdjointFiniteDifferenceTrussElement : public AdjointFiniteDifferencingBaseElement
 {
 public:
@@ -35,6 +41,11 @@ public:
                         Vector& rOutput,
                         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * Calculates the derivative of stresses/stress resultants w.r.t primal displacement. The calculation is done analytically.
+     * The derivative consists of two parts: The analytic derivative of the current length w.r.t. displacement
+     * and an individual pre-factor for the different stresses/stress resultants.
+     */
     void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
