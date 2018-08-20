@@ -47,6 +47,7 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
                 "error_mesh_constant"  : 5.0e-3,
                 "compute_error_extra_parameters":
                 {
+                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
                     "echo_level"                          : 0
                 }
             },

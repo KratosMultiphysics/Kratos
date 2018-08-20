@@ -48,6 +48,7 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
                 "error_mesh_constant"  : 5.0e-3,
                 "compute_error_extra_parameters":
                 {
+                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
                     "echo_level"                          : 0
                 }
             },
