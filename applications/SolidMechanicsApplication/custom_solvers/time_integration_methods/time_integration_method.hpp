@@ -152,7 +152,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~TimeIntegrationMethod(){}
+    ~TimeIntegrationMethod() override{}
 
     ///@}
     ///@name Operators
@@ -378,7 +378,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "TimeIntegrationMethod";
@@ -386,13 +386,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "TimeIntegrationMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "TimeIntegrationMethod Data";
     }
@@ -696,7 +696,7 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
       rSerializer.save("Variable", mpVariable->Name());
@@ -706,7 +706,7 @@ namespace Kratos
       rSerializer.save("InputVariable", mpInputVariable->Name());
     };
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
       std::string Name;

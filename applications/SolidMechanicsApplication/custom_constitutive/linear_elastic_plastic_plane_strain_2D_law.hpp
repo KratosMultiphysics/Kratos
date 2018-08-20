@@ -77,7 +77,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearElasticPlasticPlaneStrain2DLaw();
+    ~LinearElasticPlasticPlaneStrain2DLaw() override;
 
     /**
      * Operators

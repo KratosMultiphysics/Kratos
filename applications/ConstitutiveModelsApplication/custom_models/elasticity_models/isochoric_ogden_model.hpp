@@ -78,7 +78,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~IsochoricOgdenModel() {}
+    ~IsochoricOgdenModel() override {}
 
 
     ///@}

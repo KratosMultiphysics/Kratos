@@ -1,14 +1,12 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+/*
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
-//
-//  Main authors:    Thomas Oberbichler
-//
+//  Main authors:   Thomas Oberbichler
+*/
 
 #if !defined(KRATOS_NODE_SURFACE_GEOMETRY_3D_H_INCLUDED)
 #define KRATOS_NODE_SURFACE_GEOMETRY_3D_H_INCLUDED
@@ -16,12 +14,12 @@
 // System includes
 
 // External includes
-#include <ANurbs/Core>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/variables.h"
+#include "anurbs.h"
 
 namespace Kratos {
 
@@ -31,14 +29,14 @@ namespace Kratos {
  *  changes whenever the Nodes are moving.
  */
 class NodeSurfaceGeometry3D
-    : public ANurbs::SurfaceGeometryBase<double, Kratos::array_1d<double, 3>>
+    : public ANurbs::SurfaceGeometryBase<Kratos::array_1d<double, 3>>
 {
 protected:
     using NodePointer = typename Node<3>::Pointer;
 
 public:
     using NodeType = Node<3>;
-    using SurfaceGeometryBaseType = SurfaceGeometryBase<double,
+    using SurfaceGeometryBaseType = SurfaceGeometryBase<
         Kratos::array_1d<double, 3>>;
     using typename SurfaceGeometryBaseType::KnotsType;
     using typename SurfaceGeometryBaseType::ScalarType;
@@ -165,7 +163,11 @@ public:
     {
         const NodeType& node = *Node(IndexU, IndexV);
 
-        return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        if (node.Has(Kratos::NURBS_CONTROLPOINT_WEIGHT)) {
+            return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        } else {
+            return 1;
+        }
     }
 
     /** Sets the weight of the Kratos node at a given index.

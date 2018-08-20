@@ -923,12 +923,12 @@ public:
         rVariables.Initialize();
 
         for (IndexType i_geom = 0; i_geom < ConditionsPointsSlave.size(); ++i_geom) {
-            std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+            PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
             array_1d<BelongType, TDim> belong_array;
             for (IndexType i_node = 0; i_node < TDim; ++i_node) {
                 PointType global_point;
                 SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
-                points_array[i_node] = PointType::Pointer( new PointType(global_point) );
+                points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                 belong_array[i_node] = ConditionsPointsSlave[i_geom][i_node].GetBelong();
             }
 

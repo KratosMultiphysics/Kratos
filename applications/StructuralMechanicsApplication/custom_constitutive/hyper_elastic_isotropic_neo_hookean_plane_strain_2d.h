@@ -97,7 +97,7 @@ public:
     {
         return 2;
     };
-    
+
     /**
      * Voigt tensor size:
      */
@@ -105,7 +105,7 @@ public:
     {
         return 3;
     };
-    
+
 protected:
 
     ///@name Protected static Member Variables
@@ -114,7 +114,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -177,15 +177,15 @@ private:
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
         ) override;
-    
+
     /**
      * Calculates the Almansi strains
      * @param @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
-    void CalculateAlmansiStrain( 
+    void CalculateAlmansiStrain(
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector 
+        Vector& rStrainVector
         ) override;
 
     ///@}
@@ -216,4 +216,4 @@ private:
 
 }; // Class HyperElasticIsotropicNeoHookeanPlaneStrain2D
 }  // namespace Kratos.
-#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined
