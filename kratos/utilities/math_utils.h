@@ -422,7 +422,7 @@ public:
         typedef permutation_matrix<SizeType> pmatrix;
         pmatrix pm(size1);
         int singular = lu_factorize(A,pm);
-        KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << rA << std::endl;
+        KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
     }
 
