@@ -13,14 +13,13 @@
 #include "adjoint_finite_difference_truss_element_linear_3D2N.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
-#include "includes/checks.h"
 
 
 namespace Kratos
 {
 
 AdjointFiniteDifferenceTrussElementLinear::AdjointFiniteDifferenceTrussElementLinear(Element::Pointer pPrimalElement)
-    : AdjointFiniteDifferencingBaseElement(pPrimalElement)
+    : AdjointFiniteDifferenceTrussElement(pPrimalElement)
 {
 }
 
@@ -39,7 +38,7 @@ void AdjointFiniteDifferenceTrussElementLinear::Calculate(const Variable<Vector 
         TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
 
         const SizeType  GP_num = (mpPrimalElement->GetGeometry().IntegrationPoints()).size();
-        if (rOutput.size() != GP_num) 
+        if (rOutput.size() != GP_num)
             rOutput.resize(GP_num, false);
 
         switch (traced_stress_type)
@@ -91,79 +90,8 @@ void AdjointFiniteDifferenceTrussElementLinear::CalculateStressDisplacementDeriv
     else
         AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative(rStressVariable,
                                    rOutput, rCurrentProcessInfo);
- 
-    KRATOS_CATCH("")                               
-}
-
-int AdjointFiniteDifferenceTrussElementLinear::Check(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
-
-    //TODO: Check() of primal element should be called, but is not possible because of DOF check!
-
-    KRATOS_ERROR_IF(this->GetGeometry().WorkingSpaceDimension() != 3 || this->GetGeometry().size() != 2)
-        << "The truss element works only in 3D and with 2 noded elements" << "" << std::endl;
-
-    CheckVariables();
-    CheckDofs();
-    CheckProperties(rCurrentProcessInfo);
-
-    KRATOS_ERROR_IF(this->GetGeometry().Length() < std::numeric_limits<double>::epsilon()*1000)
-        << "Element #" << this->Id() << " has an length of zero!" << std::endl;
-   
-    return 0;
 
     KRATOS_CATCH("")
-}
-
-
-void AdjointFiniteDifferenceTrussElementLinear::CheckVariables()
-{
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-}
-
-void AdjointFiniteDifferenceTrussElementLinear::CheckDofs()
-{
-    const SizeType number_of_nodes = this->GetGeometry().size();
-
-    for (IndexType i = 0; i < number_of_nodes; ++i) 
-    {
-        NodeType &r_node = this->GetGeometry()[i];
-
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
-
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
-    }
-}
-
-void AdjointFiniteDifferenceTrussElementLinear::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
-{
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
-    const PropertiesType & r_properties = GetProperties();
-
-    KRATOS_ERROR_IF(r_properties.Has(CROSS_AREA) == false || r_properties[CROSS_AREA] <= numerical_limit)
-    << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
-    KRATOS_ERROR_IF(r_properties.Has(YOUNG_MODULUS) == false || r_properties[YOUNG_MODULUS] <= numerical_limit)
-    << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
-    KRATOS_ERROR_IF_NOT( r_properties.Has(DENSITY) )
-    << "DENSITY not provided for this element" << this->Id() << std::endl;
-
-    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-    << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-    const ConstitutiveLaw::Pointer& cl = r_properties[CONSTITUTIVE_LAW];
-    KRATOS_ERROR_IF(cl == nullptr) 
-    << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-    cl->Check(r_properties ,this->GetGeometry(),rCurrentProcessInfo);
 }
 
 double AdjointFiniteDifferenceTrussElementLinear::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
@@ -178,7 +106,7 @@ double AdjointFiniteDifferenceTrussElementLinear::GetPerturbationSizeModificatio
         const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
         const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
 
-        KRATOS_ERROR_IF(L<=numerical_limit)
+        KRATOS_DEBUG_ERROR_IF(L<=numerical_limit)
             << "Pertubation size for shape derivatives of element" << this->Id() << "~ 0" << std::endl;
         return L;
     }
@@ -190,12 +118,12 @@ double AdjointFiniteDifferenceTrussElementLinear::GetPerturbationSizeModificatio
 
 void AdjointFiniteDifferenceTrussElementLinear::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, AdjointFiniteDifferenceTrussElement);
 }
 
 void AdjointFiniteDifferenceTrussElementLinear::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, AdjointFiniteDifferenceTrussElement);
 }
 
 } // namespace Kratos.

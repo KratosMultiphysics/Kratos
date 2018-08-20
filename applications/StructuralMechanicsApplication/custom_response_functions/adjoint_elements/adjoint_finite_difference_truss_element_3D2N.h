@@ -13,17 +13,17 @@
 #if !defined(ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_H_INCLUDED )
 #define  ADJOINT_FINITE_DIFFERENCE_TRUSS_ELEMENT_H_INCLUDED
 
-#include "adjoint_finite_difference_truss_element_linear_3D2N.h"
+#include "adjoint_finite_difference_base_element.h"
 
 namespace Kratos
 {
 
-class AdjointFiniteDifferenceTrussElement : public AdjointFiniteDifferenceTrussElementLinear
+class AdjointFiniteDifferenceTrussElement : public AdjointFiniteDifferencingBaseElement
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferenceTrussElement);
 
-    AdjointFiniteDifferenceTrussElement(): AdjointFiniteDifferenceTrussElementLinear()
+    AdjointFiniteDifferenceTrussElement(): AdjointFiniteDifferencingBaseElement()
     {
     }
 
@@ -33,12 +33,20 @@ public:
 
     void Calculate(const Variable<Vector >& rVariable,
                         Vector& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo) override;                    
+                        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
 private:
+    void CheckVariables();
+
+    void CheckDofs();
+
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
+
     double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
     double CalculateReferenceLength();
