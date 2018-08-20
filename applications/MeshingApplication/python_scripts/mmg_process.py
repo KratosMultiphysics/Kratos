@@ -47,8 +47,9 @@ class MmgProcess(KratosMultiphysics.Process):
                     "error_threshold"                       : 0.05,
                     "interpolation_error"                   : 0.04
                 },
-                "set_number_of_elements"              : false,
-                "number_of_elements"                  : 1000,
+                "set_target_number_of_elements"       : false,
+                "target_number_of_elements"           : 1000,
+                "perform_nodal_h_averaging"           : false
                 "max_iterations"                      : 3
             },
             "framework"                            : "Eulerian",
@@ -319,9 +320,9 @@ class MmgProcess(KratosMultiphysics.Process):
             spr_parameters.AddValue("maximal_size",self.settings["maximal_size"])
             spr_parameters.AddValue("error",self.settings["spr_set_strategy_parameters"]["error_parameters"]["interpolation_error"])
             spr_parameters.AddValue("echo_level", self.settings["echo_level"])
-            spr_parameters.AddValue("set_number_of_elements", self.settings["spr_set_strategy_parameters"]["set_number_of_elements"])
-            spr_parameters.AddValue("number_of_elements", self.settings["spr_set_strategy_parameters"]["number_of_elements"])
-            spr_parameters.AddValue("average_nodal_h", self.settings["spr_set_strategy_parameters"]["average_nodal_h"])
+            spr_parameters.AddValue("set_target_number_of_elements", self.settings["spr_set_strategy_parameters"]["set_target_number_of_elements"])
+            spr_parameters.AddValue("target_number_of_elements", self.settings["spr_set_strategy_parameters"]["target_number_of_elements"])
+            spr_parameters.AddValue("perform_nodal_h_averaging", self.settings["spr_set_strategy_parameters"]["perform_nodal_h_averaging"])
 
             if (self.dim == 2):
                 self.metric_process = StructuralMechanicsApplication.SPRMetricProcess2D(

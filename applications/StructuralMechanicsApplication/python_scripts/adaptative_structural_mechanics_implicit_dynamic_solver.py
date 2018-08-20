@@ -59,9 +59,9 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
                 "error_strategy_parameters":
                 {
                     "target_error"                        : 0.01,
-                    "set_number_of_elements"              : false,
-                    "number_of_elements"                  : 1000,
-                    "average_nodal_h"                     : false
+                    "set_target_number_of_elements"       : false,
+                    "target_number_of_elements"           : 1000,
+                    "perform_nodal_h_averaging"           : false
                 },
                 "echo_level"                          : 0
             },
