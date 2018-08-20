@@ -52,7 +52,7 @@ namespace Kratos
 
 /**
  * @class ContactErrorMeshCriteria
- * @ingroup StructuralMechanicsApplication
+ * @ingroup ContactStructuralMechanicsApplication
  * @brief Custom convergence for used to check the convergence in the mesh error
  * @tparam TSparseSpace The sparse space considered
  * @tparam TDenseSpace The dense space considered
