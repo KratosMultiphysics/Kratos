@@ -85,7 +85,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT", "SHAPE_SENSITIVITY"],
+            "nodal_results"       : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "DISPLACEMENT", "SHAPE_SENSITIVITY"],
             "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
         },
         "point_data_configuration"  : []
