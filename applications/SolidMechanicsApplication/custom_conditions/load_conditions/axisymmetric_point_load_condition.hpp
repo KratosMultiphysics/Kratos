@@ -60,7 +60,7 @@ public:
     AxisymmetricPointLoadCondition( AxisymmetricPointLoadCondition const& rOther);
 
     /// Destructor
-    virtual ~AxisymmetricPointLoadCondition();
+    ~AxisymmetricPointLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -103,7 +103,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -136,21 +136,21 @@ protected:
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables,
+    void CalculateKinematics(ConditionVariables& rVariables,
 				     const double& rPointNumber) override;
 
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     ConditionVariables& rVariables,
                                     double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     ConditionVariables& rVariables,
 				    double& rIntegrationWeight) override;
 
@@ -210,9 +210,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class AxisymmetricPointLoadCondition.

@@ -1,0 +1,90 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "3D_Shell",
+        "model_part_name" : "3D_Shell",
+        "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 1.0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
+        "echo_level"                         : 0,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "3D_Shell"
+        },
+            "material_import_settings" :{
+            "materials_filename": "materials_2D.json"
+        },
+        "line_search"                        : false,
+        "eigensolver_settings":{
+            "solver_type": "eigen_eigensystem",
+            "number_of_eigenvalues": 1,
+            "max_iteration": 1000,
+            "tolerance": 1e-6,
+            "echo_level": 1
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_solid"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_disp_fix","DISPLACEMENT_disp_slide"],
+        "rotation_dofs"                      : true
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "3D_Shell.DISPLACEMENT_disp_fix",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "3D_Shell.DISPLACEMENT_disp_slide",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [false,true,true],
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "loads_process_list"       : [],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","POINT_LOAD"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}

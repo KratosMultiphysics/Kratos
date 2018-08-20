@@ -69,7 +69,7 @@ class ShellT3_CorotationalCoordinateTransformation : public ShellT3_CoordinateTr
   {
   }
 
-  virtual ~ShellT3_CorotationalCoordinateTransformation()
+  ~ShellT3_CorotationalCoordinateTransformation() override
   {
   }
 

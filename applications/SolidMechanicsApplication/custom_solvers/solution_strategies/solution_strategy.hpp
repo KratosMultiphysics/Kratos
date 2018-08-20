@@ -82,7 +82,7 @@ class SolutionStrategy : public Flags
   SolutionStrategy(ModelPart& rModelPart, Flags& rOptions) : Flags(), mOptions(rOptions), mrModelPart(rModelPart) {mEchoLevel = 0; }
 
   /// Destructor.
-  virtual ~SolutionStrategy() {}
+  ~SolutionStrategy() override {}
 
   ///@}
   ///@name Operators

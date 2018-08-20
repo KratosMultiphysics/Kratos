@@ -103,7 +103,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    ~BossakStepMethod(){}
+    ~BossakStepMethod() override{}
 
     ///@}
     ///@name Operators

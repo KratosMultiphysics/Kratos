@@ -345,9 +345,16 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
   if (rVariable == PK2_STRESS_VECTOR) {
 
     array_1d<double, 3 > truss_stresses;
-    this->mpConstitutiveLaw->GetValue(FORCE,truss_stresses);
+    array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
+    ProcessInfo temp_process_information;
 
-    rOutput[0] = truss_stresses;
+    ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
+    Vector temp_strain = ZeroVector(1);
+    temp_strain[0] = this->CalculateGreenLagrangeStrain();
+    Values.SetStrainVector(temp_strain);
+    this->mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
+
+    rOutput[0] = temp_internal_stresses;
   }
 
 
@@ -379,11 +386,18 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     const double L0 = this->CalculateReferenceLength();
     const double l = this->CalculateCurrentLength();
 
-    array_1d<double, 3 > truss_stresses;
-    this->mpConstitutiveLaw->GetValue(FORCE,truss_stresses);
+
+    array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
+    ProcessInfo temp_process_information;
+    ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
+
+    Vector temp_strain = ZeroVector(1);
+    temp_strain[0] = this->CalculateGreenLagrangeStrain();
+    Values.SetStrainVector(temp_strain);
+    this->mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
 
     truss_forces[0] =
-        ((truss_stresses[0] + prestress) * l * A) / L0;
+        ((temp_internal_stresses[0] + prestress) * l * A) / L0;
 
     rOutput[0] = truss_forces;
   }
@@ -532,6 +546,11 @@ void TrussElement3D2N::UpdateInternalForces(
   Vector temp_internal_stresses = ZeroVector(msLocalSize);
   ProcessInfo temp_process_information;
   ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
+
+
+  Vector temp_strain = ZeroVector(1);
+  temp_strain[0] = this->CalculateGreenLagrangeStrain();
+  Values.SetStrainVector(temp_strain);
   this->mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
 
 
@@ -938,11 +957,11 @@ void TrussElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 
 void TrussElement3D2N::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-  rSerializer.save("mpConstitutiveLaw", mpConstitutiveLaw);
+  rSerializer.save("mpConstitutiveLaw", this->mpConstitutiveLaw);
 }
 void TrussElement3D2N::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-  rSerializer.load("mpConstitutiveLaw", mpConstitutiveLaw);
+  rSerializer.load("mpConstitutiveLaw", this->mpConstitutiveLaw);
 }
 
 bool TrussElement3D2N::HasSelfWeight() const
