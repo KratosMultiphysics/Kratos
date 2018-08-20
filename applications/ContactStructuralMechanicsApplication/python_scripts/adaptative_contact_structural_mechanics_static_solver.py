@@ -143,10 +143,10 @@ class AdaptativeContactStaticMechanicalSolver(contact_structural_mechanics_stati
                 raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
         else:
             if (error_criteria == "adaptative_remesh_criteria"):
-                adaptative_error_criteria = SMA.ErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
+                adaptative_error_criteria = CSMA.ContactErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
                 convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.GetMortarCriteria(False), adaptative_error_criteria)
             elif ("with_adaptative_remesh" in error_criteria): # If we combine the regular convergence criteria with adaptative
-                adaptative_error_criteria = SMA.ErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
+                adaptative_error_criteria = CSMA.ContactErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
                 convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
 
         return convergence_criterion.mechanical_convergence_criterion
@@ -154,7 +154,7 @@ class AdaptativeContactStaticMechanicalSolver(contact_structural_mechanics_stati
         # If we combine the regular convergence criteria with adaptative
         if (missing_meshing_dependencies is False):
             if ("with_adaptative_remesh" in error_criteria):
-                adaptative_error_criteria = SMA.ErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
+                adaptative_error_criteria = CSMA.ContactErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
                 convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
         return convergence_criterion.mechanical_convergence_criterion
 
