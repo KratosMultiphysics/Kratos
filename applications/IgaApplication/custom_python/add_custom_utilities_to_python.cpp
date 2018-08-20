@@ -285,6 +285,10 @@ void RegisterSurfaceGeometryBase(
         .def_property_readonly("NbKnotsV", &Type::NbKnotsV)
         .def_property_readonly("NbPolesU", &Type::NbPolesU)
         .def_property_readonly("NbPolesV", &Type::NbPolesV)
+        .def("KnotsU", &Type::KnotsU)
+        .def("KnotsV", &Type::KnotsV)
+        .def("SpansU", &Type::SpansU)
+        .def("SpansV", &Type::SpansV)
         .def("KnotU", &Type::KnotU,
             "Index"_a)
         .def("KnotV", &Type::KnotV,
@@ -732,6 +736,10 @@ void RegisterIntegrationPoint2(
     using Type = ANurbs::IntegrationPoint2<double>;
 
     pybind11::class_<Type>(m, name.c_str())
+        .def("__iter__", 
+            [](const Type &self) {
+                return pybind11::make_iterator(&self.u, &self.u + 3);
+            }, pybind11::keep_alive<0, 1>())
         .def_readwrite("u", &Type::u)
         .def_readwrite("v", &Type::v)
         .def_readwrite("weight", &Type::weight)
