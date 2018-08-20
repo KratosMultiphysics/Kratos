@@ -31,9 +31,9 @@ MetricErrorProcess<TDim>::MetricErrorProcess(
      * minimal_size: The minimal size to consider on the remeshing
      * maximal_size: The maximal size to consider on the remeshing
      * target_error: The target error
-     * set_number_of_elements: If the number of elements will be forced or not
-     * number_of_elements: The estimated/desired number of elements
-     * average_nodal_h: If the nodal size to consider will be averaged over the mesh
+     * set_target_number_of_elements: If the number of elements will be forced or not
+     * target_number_of_elements: The estimated/desired number of elements
+     * perform_nodal_h_averaging: If the nodal size to consider will be averaged over the mesh
      * echo_level: The verbosity
      */
     Parameters default_parameters = Parameters(R"(
@@ -43,9 +43,9 @@ MetricErrorProcess<TDim>::MetricErrorProcess(
         "error_strategy_parameters":
         {
             "target_error"                        : 0.01,
-            "set_number_of_elements"              : false,
-            "number_of_elements"                  : 1000,
-            "average_nodal_h"                     : false
+            "set_target_number_of_elements"       : false,
+            "target_number_of_elements"           : 1000,
+            "perform_nodal_h_averaging"           : false
         },
         "echo_level"                          : 0
     })"
@@ -56,10 +56,10 @@ MetricErrorProcess<TDim>::MetricErrorProcess(
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
 
-    mSetElementNumber = ThisParameters["error_strategy_parameters"]["set_number_of_elements"].GetBool();
-    mElementNumber = ThisParameters["error_strategy_parameters"]["number_of_elements"].GetInt();
+    mSetElementNumber = ThisParameters["error_strategy_parameters"]["set_target_number_of_elements"].GetBool();
+    mElementNumber = ThisParameters["error_strategy_parameters"]["target_number_of_elements"].GetInt();
     mTargetError = ThisParameters["error_strategy_parameters"]["target_error"].GetDouble();
-    mAverageNodalH = ThisParameters["error_strategy_parameters"]["average_nodal_h"].GetBool();
+    mAverageNodalH = ThisParameters["error_strategy_parameters"]["perform_nodal_h_averaging"].GetBool();
 
     mEchoLevel = ThisParameters["echo_level"].GetInt();
 }
