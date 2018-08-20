@@ -10,21 +10,15 @@
 //  Co-author   :    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SPR_ERROR_PROCESS)
-#define KRATOS_SPR_ERROR_PROCESS
+#if !defined(KRATOS_CONTACT_SPR_ERROR_PROCESS)
+#define KRATOS_CONTACT_SPR_ERROR_PROCESS
 
 // System includes
-#include <omp.h>
 
 // External includes
 
 // Project includes
-#include "processes/process.h"
-#include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
-#include "structural_mechanics_application_variables.h"
-#include "spaces/ublas_space.h"
-#include "utilities/math_utils.h"
+#include "custom_processes/spr_error_process.h"
 
 namespace Kratos
 {
@@ -51,8 +45,8 @@ namespace Kratos
 ///@{
 
 /**
- * @class SPRErrorProcess
- * @ingroup StructuralMechanicsApplication
+ * @class ContactSPRErrorProcess
+ * @ingroup ContactStructuralMechanicsApplication
  * @brief This class is can be used to compute the metrics of the model part with a superconvergent patch recovery approach
  * @details The formulation employed in order to compute the super patch recovery is based on the work of O. C. Zienkiewicz
 J. Z. Zhu, and extended for contact mechanics. In the papers:
@@ -63,13 +57,16 @@ J. Z. Zhu, and extended for contact mechanics. In the papers:
  * @author Anna Rehr
  */
 template<SizeType TDim>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SPRErrorProcess
-    : public Process
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ContactSPRErrorProcess
+    : public SPRErrorProcess<TDim>
 {
 public:
 
     ///@name Type Definitions
     ///@{
+
+    // Basetype definition
+    typedef SPRErrorProcess<TDim>                                                   BaseType;
 
     /// Containers definition
     typedef ModelPart::NodesContainerType                                     NodesArrayType;
@@ -87,8 +84,8 @@ public:
     /// Definition of the indextype
     typedef std::size_t                                                            IndexType;
 
-    /// Pointer definition of SPRErrorProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SPRErrorProcess);
+    /// Pointer definition of ContactSPRErrorProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ContactSPRErrorProcess);
 
     /// The Voigt notation size
     static constexpr SizeType SigmaSize = (TDim == 2) ? 3 : 6;
@@ -103,13 +100,13 @@ public:
      * @param ThisParameters The input parameters
      */
 
-    SPRErrorProcess(
+    ContactSPRErrorProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
     /// Destructor.
-    virtual ~SPRErrorProcess() {}
+    virtual ~ContactSPRErrorProcess() {}
 
     ///@}
     ///@name Operators
@@ -117,17 +114,12 @@ public:
 
     void operator()()
     {
-        Execute();
+        BaseType::Execute();
     }
 
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief We initialize the metrics of the MMG sol using the Hessian metric matrix approach
-     */
-    void Execute() override;
 
     ///@}
     ///@name Access
@@ -146,13 +138,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "SPRErrorProcess";
+        return "ContactSPRErrorProcess";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "SPRErrorProcess";
+        rOStream << "ContactSPRErrorProcess";
     }
 
     /// Print object"s data.
@@ -169,9 +161,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mThisModelPart; /// The model part to compute
-
-    SizeType mEchoLevel;       /// The echo level
 
     ///@}
     ///@name Protected Operators
@@ -183,33 +172,18 @@ protected:
     ///@{
 
     /**
-     * @brief This method computes the superconvergent stresses
-     */
-    void CalculateSuperconvergentStresses();
-
-    /**
-     * @brief This method estimates the error
-     * @param rEnergyNormOverall The mean of the energy norm
-     * @param rErrorOverall The mean of the error
-     */
-    void CalculateErrorEstimation(
-        double& rEnergyNormOverall,
-        double& rErrorOverall
-        );
-
-    /**
      * @brief Calculates the recovered stress. Checks whatever this is a contact case or a standard one
      * @param itNode the node for which the recovered stress should be calculated
      * @param itPatchNode the center node of the patch
      * @param NeighbourSize Number of neighbour elements
      * @param rSigmaRecovered The recovered stress
      */
-    virtual void CalculatePatch(
+    void CalculatePatch(
         NodeItType itNode,
         NodeItType itPatchNode,
         SizeType NeighbourSize,
         Vector& rSigmaRecovered
-        );
+        ) override;
 
     ///@}
     ///@name Protected  Access
@@ -236,6 +210,9 @@ private:
     ///@name Private member Variables
     ///@{
 
+    double mPenaltyNormal;   /// The normal penalty
+    double mPenaltyTangent;  /// The tangent penalty
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -261,15 +238,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    SPRErrorProcess& operator=(SPRErrorProcess const& rOther)
+    ContactSPRErrorProcess& operator=(ContactSPRErrorProcess const& rOther)
     {
         return *this;
     };
 
     /// Copy constructor.
-    //SPRErrorProcess(SPRErrorProcess const& rOther);
+    //ContactSPRErrorProcess(ContactSPRErrorProcess const& rOther);
 
-};// class SPRErrorProcess
+};// class ContactSPRErrorProcess
 
 };// namespace Kratos.
-#endif /* KRATOS_SPR_ERROR_PROCESS defined */
+#endif /* KRATOS_CONTACT_SPR_ERROR_PROCESS defined */
