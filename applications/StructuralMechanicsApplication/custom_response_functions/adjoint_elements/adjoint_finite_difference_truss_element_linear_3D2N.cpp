@@ -100,13 +100,8 @@ double AdjointFiniteDifferenceTrussElementLinear::GetPerturbationSizeModificatio
 
     if(rDesignVariable == SHAPE)
     {
-        const double numerical_limit = std::numeric_limits<double>::epsilon();
-        const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-        const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-        const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-        const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
-
-        KRATOS_DEBUG_ERROR_IF(L<=numerical_limit)
+        const double L = this->GetGeometry().DomainSize();
+        KRATOS_DEBUG_ERROR_IF(L <= std::numeric_limits<double>::epsilon())
             << "Pertubation size for shape derivatives of element" << this->Id() << "~ 0" << std::endl;
         return L;
     }
