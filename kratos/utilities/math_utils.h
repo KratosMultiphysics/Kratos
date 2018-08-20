@@ -406,21 +406,20 @@ public:
 
     /**
      * @brief This function is designed to be called when a dense linear system is needed to be solved
-     * @param rA System matrix
+     * @param A System matrix
      * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB Right hand side vector.
      */
     static void Solve(
-        const MatrixType& rA,
+        MatrixType A,
         VectorType& rX,
         const VectorType& rB
         )
     {
-        const SizeType size1 = rA.size1();
+        const SizeType size1 = A.size1();
 
         rX = rB;
         typedef permutation_matrix<SizeType> pmatrix;
-        Matrix A(rA);
         pmatrix pm(size1);
         int singular = lu_factorize(A,pm);
         KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << rA << std::endl;
