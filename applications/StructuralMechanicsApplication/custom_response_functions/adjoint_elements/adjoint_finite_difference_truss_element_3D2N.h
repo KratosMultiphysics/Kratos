@@ -64,12 +64,26 @@ private:
 
     double CalculateCurrentLength();
 
+    /**
+     * Calculates the derivative of the current length w.r.t. primal displacements. This derivative is part of the
+     * analytic stress displacement derivative.
+     */
     void CalculateCurrentLengthDisplacementDerivative(Vector& rDerivativeVector);
 
+    /**
+    * Calculates the stress displacement derivative pre-factor. This pre-factor gives together with the current length displacement
+    * derivative the complete stress displacement derivative.
+    */
     void GetDerivativePreFactor(double& rDerivativePreFactor, const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+    * Calculates the individual stress displacement derivative pre-factor for the normal force.
+    */
     double CalculateDerivativePreFactorFX(const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+    * Calculates the individual stress displacement derivative pre-factor for the 2nd Piola-Kirchhoff stress.
+    */
     double CalculateDerivativePreFactorPK2(const ProcessInfo& rCurrentProcessInfo);
 
     friend class Serializer;
