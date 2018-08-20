@@ -14,7 +14,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ## MAIN FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/contact_structural_mechanics_application.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/contact_structural_mechanics_application_variables.cpp
-  
+
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
@@ -34,6 +34,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_fast_init_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_variables_calculation_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_dynamic_factor_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_spr_error_process.cpp
 
   ## EXTERNAL LIBRARIES
 

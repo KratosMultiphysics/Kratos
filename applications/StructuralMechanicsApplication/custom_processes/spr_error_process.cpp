@@ -29,8 +29,8 @@ SPRErrorProcess<TDim>::SPRErrorProcess(
 {
     Parameters default_parameters = Parameters(R"(
     {
-        "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
-        "echo_level"                          : 0
+        "stress_vector_variable" : "CAUCHY_STRESS_VECTOR",
+        "echo_level"             : 0
     })"
     );
 
