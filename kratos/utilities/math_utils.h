@@ -440,56 +440,42 @@ public:
         TDataType& InputMatrixDet
         )
     {
-        const unsigned int size = InputMatrix.size2();
+        const SizeType size = InputMatrix.size2();
 
-        if(size == 1)
-        {
-            if(InvertedMatrix.size1() != 1 || InvertedMatrix.size2() != 1)
-            {
+        if(size == 1) {
+            if(InvertedMatrix.size1() != 1 || InvertedMatrix.size2() != 1) {
                 InvertedMatrix.resize(1,1,false);
             }
             InvertedMatrix(0,0) = 1.0/InputMatrix(0,0);
             InputMatrixDet = InputMatrix(0,0);
-        }
-        else if (size == 2)
-        {
+        } else if (size == 2) {
             InvertMatrix2(InputMatrix, InvertedMatrix, InputMatrixDet);
-        }
-        else if (size == 3)
-        {
+        } else if (size == 3) {
             InvertMatrix3(InputMatrix, InvertedMatrix, InputMatrixDet);
-        }
-        else if (size == 4)
-        {
+        } else if (size == 4) {
             InvertMatrix4(InputMatrix, InvertedMatrix, InputMatrixDet);
-        }
-        else
-        {
+        } else {
             const SizeType size1 = InputMatrix.size1();
             const SizeType size2 = InputMatrix.size2();
-            if(InvertedMatrix.size1() != size1 || InvertedMatrix.size2() != size2)
-            {
+            if(InvertedMatrix.size1() != size1 || InvertedMatrix.size2() != size2) {
                 InvertedMatrix.resize(size1, size2,false);
             }
 
-            int singular = 0;
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix A(InputMatrix);
             pmatrix pm(A.size1());
-            singular = lu_factorize(A,pm);
+            const int singular = lu_factorize(A,pm);
             InvertedMatrix.assign( IdentityMatrix(A.size1()));
+            KRATOS_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << InputMatrix << std::endl;
             lu_substitute(A, pm, InvertedMatrix);
 
             // Calculating determinant
             InputMatrixDet = 1.0;
 
-            for (IndexType i = 0; i < A.size1();i++)
-            {
+            for (IndexType i = 0; i < A.size1();++i) {
                 IndexType ki = pm[i] == i ? 0 : 1;
-                InputMatrixDet *= std::pow(-1.0, ki) * A(i,i);
+                InputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
-
-            KRATOS_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << InputMatrix << std::endl;
         }
     }
 
