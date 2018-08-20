@@ -242,11 +242,8 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
     KRATOS_INFO_IF("ContactSPRErrorProcess", BaseType::mEchoLevel > 3) << A << std::endl;
 
     Vector coeff(SigmaSize * (TDim+1));
-    Vector b_vector = row(b, 0);
-    Matrix invA;
-    double det;
-    MathUtils<double>::InvertMatrix(A, invA, det);
-    noalias(coeff) = prod(invA, b_vector);
+    const Vector& b_vector = row(b, 0);
+    MathUtils<double>::Solve(A, coeff, b_vector);
 
     for (IndexType j = 0; j < SigmaSize;++j){
         p_k(j,j*(TDim + 1) + 1) = itNode->X() - itPatchNode->X();
