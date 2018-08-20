@@ -97,7 +97,7 @@
             "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
             "input_file_name"  : "linear_shell_test_nodal_disp_results.json",
             "model_part_name"  : "Structure",
-            "tolerance"            : 1e-6,
+            "tolerance"            : 1e-5,
             "time_frequency"   : -2.0
         }
     }],
