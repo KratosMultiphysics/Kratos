@@ -17,7 +17,7 @@
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"

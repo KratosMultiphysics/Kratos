@@ -26,7 +26,7 @@ from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 import run_cpp_unit_tests
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
@@ -51,7 +51,7 @@ def AssambleTestSuites():
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
-    #smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
+    smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -87,14 +87,14 @@ def AssambleTestSuites():
     nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
+    nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
+    nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
 
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(VolumeSourceTest('validationEulerian'))
-    #validationSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
-    #validationSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
 
 
     # Create a test suite that contains all the tests:
@@ -120,5 +120,5 @@ if __name__ == '__main__':
         KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

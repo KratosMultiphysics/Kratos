@@ -39,7 +39,9 @@ class ALMContactProcess(KM.Process):
         "ELEMENTAL_DERIVATIVES":  CSMA.NormalDerivativesComputation.ELEMENTAL_DERIVATIVES,
         "elemental_derivatives":  CSMA.NormalDerivativesComputation.ELEMENTAL_DERIVATIVES,
         "NODAL_ELEMENTAL_DERIVATIVES": CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES,
-        "nodal_elemental_derivatives": CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES
+        "nodal_elemental_derivatives": CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES,
+        "NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE": CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE,
+        "no_derivatives_computation_with_normal_update": CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE
         }
 
     def __init__(self, Model, settings):
@@ -55,19 +57,23 @@ class ALMContactProcess(KM.Process):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
+            "help"                        : "This class is used in order to compute the contact using a mortar ALM formulation. This class constructs the model parts containing the contact conditions and initializes parameters and variables related with the contact. The class creates search utilities to be used to create the contact pairs",
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
             "contact_model_part"          : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "contact_property_ids"        : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
             "contact_type"                : "Frictionless",
             "interval"                    : [0.0,"End"],
             "normal_variation"            : "no_derivatives_computation",
             "frictional_law"              : "Coulomb",
             "tangent_factor"              : 0.1,
             "integration_order"           : 2,
+            "clear_inactive_for_post"     : true,
             "search_parameters" : {
                 "type_search"                 : "in_radius",
+                "adapt_search"                : false,
                 "search_factor"               : 3.5,
                 "active_check_factor"         : 0.01,
                 "max_number_results"          : 1000,
@@ -130,6 +136,8 @@ class ALMContactProcess(KM.Process):
         # If we compute a frictional contact simulation
         if self.settings["contact_type"].GetString() == "Frictional":
             self.is_frictional = True
+            if self.normal_variation == CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION:
+                self.normal_variation = CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE
         else:
             self.is_frictional = False
 
@@ -176,6 +184,15 @@ class ALMContactProcess(KM.Process):
         # We compute NODAL_H that can be used in the search and some values computation
         self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
         self.find_nodal_h.Execute()
+
+        ## We recompute the serach factor and the check in function of the relative size of the mesh
+        if (self.settings["search_parameters"]["adapt_search"].GetBool() is True):
+            factor = CSMA.ContactUtilities.CalculateRelativeSizeMesh(self.computing_model_part)
+            KM.Logger.PrintWarning("SEARCH ADAPT FACTOR: ", "{:.2e}".format(factor))
+            search_factor = self.settings["search_parameters"]["search_factor"].GetDouble() * factor
+            self.settings["search_parameters"]["search_factor"].SetDouble(search_factor)
+            active_check_factor = self.settings["search_parameters"]["active_check_factor"].GetDouble() * factor
+            self.settings["search_parameters"]["active_check_factor"].SetDouble(active_check_factor)
 
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
@@ -240,12 +257,11 @@ class ALMContactProcess(KM.Process):
         current_time = self.main_model_part.ProcessInfo[KM.TIME]
         if(self.interval.IsInInterval(current_time)):
             self.database_step += 1
-            self.global_step = self.main_model_part.ProcessInfo[KM.STEP]
+            global_step = self.main_model_part.ProcessInfo[KM.STEP]
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (self.database_step >= database_step_update or self.global_step == 1):
+            if (self.database_step >= database_step_update or global_step == 1):
                 # We unset the flag MARKER (used in the nodes to not deactivate it)
                 KM.VariableUtils().SetFlag(KM.MARKER, False, self.contact_model_part.Nodes)
-
                 # We solve one linear step with a linear strategy if needed
                 for key in self.settings["contact_model_part"].keys():
                     if (self.settings["contact_model_part"][key].size() > 0):
@@ -260,7 +276,7 @@ class ALMContactProcess(KM.Process):
 
                 # Debug
                 if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
-                    self._debug_output(self.global_step, "")
+                    self._debug_output(global_step, "")
                     # We compute the total integrated area, for debugging
                     total_area = 0.0
                     if (self.dimension == 2):
@@ -299,7 +315,13 @@ class ALMContactProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        pass
+        if (self.settings["clear_inactive_for_post"].GetBool()):
+            zero_vector = KM.Array3()
+            zero_vector[0] = 0.0
+            zero_vector[1] = 0.0
+            zero_vector[2] = 0.0
+            KM.VariableUtils().SetNonHistoricalVariable(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0, self.computing_model_part.Nodes, KM.ACTIVE, False)
+            KM.VariableUtils().SetNonHistoricalVariable(CSMA.AUGMENTED_TANGENT_CONTACT_PRESSURE, zero_vector, self.computing_model_part.Nodes, KM.ACTIVE, False)
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -308,14 +330,16 @@ class ALMContactProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.main_model_part.ProcessInfo[KM.TIME]
+        global_step = self.main_model_part.ProcessInfo[KM.STEP]
         if(self.interval.IsInInterval(current_time)):
             modified = self.main_model_part.Is(KM.MODIFIED)
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (modified is False and (self.database_step >= database_step_update or self.global_step == 1)):
+            if (modified is False and (self.database_step >= database_step_update or global_step == 1)):
                 for key in self.settings["contact_model_part"].keys():
                     if (self.settings["contact_model_part"][key].size() > 0):
                         self.contact_search[key].ClearMortarConditions()
                 self.database_step = 0
+
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -360,7 +384,7 @@ class ALMContactProcess(KM.Process):
                     KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Conditions)
                     KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Conditions)
 
-    def _interface_preprocess(self, partial_model_part):
+    def _interface_preprocess(self, partial_model_part, key = "0"):
         """ This method creates the process used to compute the contact interface
 
         Keyword arguments:
@@ -372,7 +396,8 @@ class ALMContactProcess(KM.Process):
         self.interface_preprocess = CSMA.InterfacePreprocessCondition(self.computing_model_part)
 
         # It should create the conditions automatically
-        interface_parameters = KM.Parameters("""{"simplify_geometry": false}""")
+        interface_parameters = KM.Parameters("""{"simplify_geometry": false, "contact_property_id": 0}""")
+        interface_parameters["contact_property_id"].SetInt(self.settings["contact_property_ids"][key].GetInt())
         if (self.dimension == 2):
             self.interface_preprocess.GenerateInterfacePart2D(partial_model_part, interface_parameters)
         else:
@@ -549,6 +574,8 @@ class ALMContactProcess(KM.Process):
         gid_io.WriteNodalFlags(KM.SLAVE, "SLAVE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KM.NORMAL, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResultsNonHistorical(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes, label)
+        if (self.is_frictional is True):
+            gid_io.WriteNodalResultsNonHistorical(CSMA.AUGMENTED_TANGENT_CONTACT_PRESSURE, self.main_model_part.Nodes, label)
         gid_io.WriteNodalResultsNonHistorical(KM.NODAL_AREA, self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KM.DISPLACEMENT, self.main_model_part.Nodes, label, 0)
         if (self.main_model_part.Nodes[1].SolutionStepsDataHas(KM.VELOCITY_X) is True):
@@ -603,14 +630,22 @@ class ALMContactProcess(KM.Process):
                 KM.VariableUtils().SetFlag(KM.INTERFACE, True, partial_model_part.Conditions)
 
         if (self.preprocess is True):
-            sub_contact_model_part.SetProperties(self.main_model_part.GetProperties())
+            id_prop = self.settings["contact_property_ids"][key].GetInt()
+            if (id_prop != 0):
+                sub_contact_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
+            else:
+                sub_contact_model_part.SetProperties(self.main_model_part.GetProperties())
 
             # We transfer the list of submodelparts to the contact model part
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
 
+                if (self.computing_model_part.Is(KM.MODIFIED)):
+                    KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
+                    partial_model_part.RemoveConditions(KM.TO_ERASE)
+
                 # We generate the conditions
-                self._interface_preprocess(partial_model_part)
+                self._interface_preprocess(partial_model_part, key)
 
                 # We copy the conditions to the contact model part
                 transfer_process = KM.FastTransferBetweenModelPartsProcess(sub_contact_model_part, partial_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODESANDCONDITIONS)
@@ -618,7 +653,6 @@ class ALMContactProcess(KM.Process):
 
     def __detect_skin(self, model_part, key = "0"):
         """ Generates a contact model part from the skin
-        TODO Adapt for the consideration of multiple model part
         Keyword arguments:
         self -- It signifies an instance of a class
         key -- The key to identify the current pair.

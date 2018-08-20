@@ -21,36 +21,36 @@ namespace Kratos
 {
   ///@addtogroup SolidMechanicsApplication
   ///@{
-  
+
   ///@name Kratos Globals
   ///@{
-  
+
   ///@}
   ///@name Type Definitions
   ///@{
-  
+
   ///@}
   ///@name  Enum's
   ///@{
-  
+
   ///@}
   ///@name  Functions
   ///@{
-  
+
   ///@}
   ///@name Kratos Classes
   ///@{
 
- 
+
   /// Short class definition.
-  /** Detail class definition.     
-   * This class performs predict and update of dofs variables, their time derivatives and time integrals      
+  /** Detail class definition.
+   * This class performs predict and update of dofs variables, their time derivatives and time integrals
    */
   template<class TVariableType, class TValueType>
   class KRATOS_API(SOLID_MECHANICS_APPLICATION) NewmarkStepRotationMethod : public NewmarkStepMethod<TVariableType,TValueType>
-  {   
+  {
   public:
- 
+
     ///@name Type Definitions
     ///@{
 
@@ -59,37 +59,37 @@ namespace Kratos
 
     /// BasePointerType
     typedef typename BaseType::Pointer                BasePointerType;
-    
+
     /// NodeType
     typedef typename BaseType::NodeType                      NodeType;
-    
-    /// KratosVariable or KratosVariableComponent    
+
+    /// KratosVariable or KratosVariableComponent
     typedef typename BaseType::VariablePointer        VariablePointer;
 
     /// DerivedType
     typedef NewmarkStepMethod<TVariableType,TValueType>   DerivedType;
 
-   
+
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkStepRotationMethod );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    
+
     /// Default Constructor.
     NewmarkStepRotationMethod() : DerivedType() {}
 
     /// Constructor.
     NewmarkStepRotationMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
-    
+
     /// Constructor.
     NewmarkStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
-    
+
     /// Constructor.
     NewmarkStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
 
-    
+
     /// Copy Constructor.
     NewmarkStepRotationMethod(NewmarkStepRotationMethod& rOther)
       :DerivedType(rOther)
@@ -103,7 +103,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~NewmarkStepRotationMethod(){}
+    ~NewmarkStepRotationMethod() override{}
 
     ///@}
     ///@name Operators
@@ -112,11 +112,11 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-    
-        
+
+
     // update
     void Update(NodeType& rNode) override;
- 
+
     ///@}
     ///@name Access
     ///@{
@@ -147,17 +147,17 @@ namespace Kratos
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "NewmarkStepRotationMethod Data";     
+      rOStream << "NewmarkStepRotationMethod Data";
     }
 
-    
+
     ///@}
     ///@name Friends
     ///@{
 
 
     ///@}
-    
+
   protected:
 
     ///@name Protected static Member Variables
@@ -166,7 +166,7 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-   
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -181,16 +181,16 @@ namespace Kratos
 
       // predict step variable from previous and current values
       TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
-	
+
       const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-      
+
       CurrentStepVariable = CurrentVariable-PreviousVariable;
-	
+
       KRATOS_CATCH( "" )
     }
-    
-    
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -202,30 +202,30 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-  
+
     ///@}
 
   private:
 
     ///@name Static Member Variables
     ///@{
-  
+
     ///@}
     ///@name Member Variables
     ///@{
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     ///@}
     ///@name Private Operations
     ///@{
-  
+
     ///@}
     ///@name Private  Access
     ///@{
-  
+
     ///@}
     ///@name Serialization
     ///@{
@@ -240,7 +240,7 @@ namespace Kratos
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
     };
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -248,23 +248,23 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
-  
+
     ///@}
-  
+
   }; // Class NewmarkStepRotationMethod
-  
+
   ///@}
 
   ///@name Type Definitions
   ///@{
-  
+
   template<>
   void NewmarkStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
 
   ///@}
   ///@name Input and output
   ///@{
-  
+
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, NewmarkStepRotationMethod<TVariableType,TValueType>& rThis)
   {
@@ -276,11 +276,11 @@ namespace Kratos
   {
     return rOStream << rThis.Info();
   }
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_NEWMARK_STEP_ROTATION_METHOD_H_INCLUDED defined

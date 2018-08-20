@@ -371,6 +371,10 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
         this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
     }
 
+    // Update the total determinant of deformation gradient after return mapping
+    // This is necessary for non-isochoric return mapping
+    Variables.detFT = Values.GetDeterminantF();
+
     /* NOTE:
     The material points will have constant mass as defined at the beginning.
     However, the density and volume (integration weight) are changing every time step.*/
@@ -426,11 +430,19 @@ void UpdatedLagrangianQuadrilateral::CalculateKinematics(GeneralVariables& rVari
     1. By: noalias( rVariables.F ) = prod( rVariables.j, InvJ);
     2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee  
     
-    (NOTICE: Here, we are using method no. 1)
-    */
+    (NOTICE: Here, we are using method no. 2)*/
 
-    // Update Deformation gradient
-    noalias( rVariables.F ) = prod( rVariables.j, InvJ);
+    // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
+    // noalias( rVariables.F ) = prod( rVariables.j, InvJ);
+    
+    // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    Matrix I = identity_matrix<double>(dimension);
+    Matrix GradientDisp = ZeroMatrix(dimension, dimension);
+    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+    GradientDisp = prod(trans(rVariables.CurrentDisp),rVariables.DN_DX);
+    
+    noalias( rVariables.F ) = (I + GradientDisp);
 
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;

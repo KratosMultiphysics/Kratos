@@ -5,8 +5,6 @@
 #THE FORMULATION IS THE ELEMENTWISE CONSTANT PRESSURE
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
-#from KratosMultiphysics.PFEMApplication import PfemUtils
-from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.MeshingApplication import *
 # Check that KratosMultiphysics was imported in the main script
 #CheckForPreviousImport()
@@ -101,7 +99,7 @@ class ULF_FSISolver:
 
         #self.pressure_calculate_process = PressureCalculateProcess(fluid_model_part,domain_size);
         self.pressure_calculate_process_axisym = PressureCalculateProcessAxisym(fluid_model_part,domain_size);
-        self.ulf_apply_bc_process = UlfApplyBCProcess(fluid_model_part);
+        self.mark_free_surface_process = MarkFreeSurfaceProcess(fluid_model_part);
         self.ulf_time_step_dec_process = UlfTimeStepDecProcess(fluid_model_part);
         self.mark_fluid_process = MarkFluidProcess(fluid_model_part);
         self.mark_close_nodes_process = MarkCloseNodesProcess(fluid_model_part);
@@ -186,7 +184,7 @@ class ULF_FSISolver:
         
         #marking the fluid
         (self.fluid_neigh_finder).Execute();
-        (self.ulf_apply_bc_process).Execute();  
+        (self.mark_free_surface_process).Execute();  
         (self.mark_fluid_process).Execute();
 
         #remeshing before the first solution
@@ -327,7 +325,7 @@ class ULF_FSISolver:
         (self.condition_neigh_finder).Execute();
         
         #print "marking fluid" and applying fluid boundary conditions
-        (self.ulf_apply_bc_process).Execute();  
+        (self.mark_free_surface_process).Execute();  
         (self.mark_fluid_process).Execute();
         
         #merging the structural elements back (they are saved in the Initialize)

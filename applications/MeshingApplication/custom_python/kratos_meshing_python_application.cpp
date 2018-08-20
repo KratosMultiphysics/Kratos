@@ -25,7 +25,6 @@
 #include "custom_python/add_meshers_to_python.h"
 #include "custom_python/add_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 
 namespace Kratos
 {
@@ -48,13 +47,16 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
     AddMeshersToPython(m);
     AddProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
-    AddCustomStrategiesToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AVERAGE_NODAL_ERROR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ANISOTROPIC_RATIO)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_GRADIENT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_HESSIAN)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MMG_METRIC)
+        
+    //for ULF (surface_tension) application:
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TRIPLE_POINT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONTACT_ANGLE)
         
     //KRATOS_REGISTER_IN_PYTHON_VARIABLE(COUNTER)
 

@@ -60,7 +60,7 @@ namespace Kratos
 
     /// Default constructor.
     YeohModel() : HyperElasticModel() {}
-    
+
     /// Copy constructor.
     YeohModel(YeohModel const& rOther) : HyperElasticModel(rOther) {}
 
@@ -70,11 +70,11 @@ namespace Kratos
       HyperElasticModel::operator=(rOther);
       return *this;
     }
-    
+
     /// Clone.
     virtual ConstitutiveModel::Pointer Clone() const override
     {
-      return ( YeohModel::Pointer(new YeohModel(*this)) );      
+      return Kratos::make_shared<YeohModel>(*this);
     }
 
     /// Destructor.
@@ -89,21 +89,21 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-       
+
     virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction)
     {
       KRATOS_TRY
-	
+
       HyperElasticDataType Variables;
       this->CalculateStrainData(rValues, Variables);
 
       rDensityFunction += rVariables.GetMaterialParameters()[0] * ( Variables.Strain.Invariants.I1 - 3.0) + rVariables.GetMaterialParameters()[1] * ( Variables.Strain.Invariants.I2 - 3.0) + rVariables.GetMaterialParameters()[2] * ( Variables.Strain.Invariants.I3 - 3.0);
-	
+
       KRATOS_CATCH(" ")
     }
 
-        
-    
+
+
     virtual int Check(const Properties& rMaterialProperties,
 		      const ProcessInfo& rCurrentProcessInfo)
     {
@@ -119,18 +119,18 @@ namespace Kratos
 
       if( C30.Key() == 0 || rMaterialProperties[C30] <= 0.00 )
 	KRATOS_ERROR << "C30 has an invalid key or value" << std::endl;
-	    
+
       if( BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.00 )
 	KRATOS_ERROR << "BULK_MODULUS has an invalid key or value" << std::endl;
-	  
-      KRATOS_CATCH(" ")	  
+
+      KRATOS_CATCH(" ")
     }
-    
-    
+
+
     ///@}
     ///@name Access
     ///@{
-        
+
 
     ///@}
     ///@name Inquiry
@@ -160,7 +160,7 @@ namespace Kratos
     {
       rOStream << "YeohModel Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
@@ -169,24 +169,24 @@ namespace Kratos
     ///@}
 
   protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
     ///@}
     ///@name Protected member Variables
     ///@{
-		
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
 
     //************// dW
-    
+
     virtual double& GetFunction1stI1Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI1
     {
       KRATOS_TRY
@@ -203,7 +203,7 @@ namespace Kratos
     virtual double& GetFunction1stI2Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI2
     {
       KRATOS_TRY
-	
+
       rDerivative = 0;
 
       return rDerivative;
@@ -214,9 +214,9 @@ namespace Kratos
     virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //dW/dI3
     {
       KRATOS_TRY
-      
+
       rDerivative  = 0;
-      
+
       return rDerivative;
 
       KRATOS_CATCH(" ")
@@ -226,9 +226,9 @@ namespace Kratos
     virtual double& GetFunction2ndI1Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI1dI1
     {
       KRATOS_TRY
-	
+
       rDerivative = 0.0;
-      
+
       return rDerivative;
 
       KRATOS_CATCH(" ")
@@ -244,19 +244,19 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-    
+
     virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) //ddW/dI3dI3
     {
       KRATOS_TRY
-	
+
       rDerivative  = 0;
-      
+
       return rDerivative;
 
       KRATOS_CATCH(" ")
     }
-    
-    
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -275,7 +275,7 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
@@ -283,7 +283,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -299,13 +299,13 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    
+
     virtual void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
@@ -313,7 +313,7 @@ namespace Kratos
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )
     }
 
     ///@}
@@ -346,6 +346,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_YEOH_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_YEOH_MODEL_H_INCLUDED  defined

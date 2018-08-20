@@ -27,6 +27,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "help"                  : "This process checks that two files are the same. This can be used in order to create tests, where a given solution is expected",
             "reference_file_name"   : "",
             "output_file_name"      : "",
             "remove_output_file"    : true,
@@ -77,23 +78,22 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         """The files are compared in this function
         Please see the respective files for details on the format of the files
         """
-        if kratos_utils.IsRankZero():
-            if (self.comparison_type == "deterministic"):
-                value = filecmp.cmp(self.reference_file_name, self.output_file_name)
-                self.assertTrue(value, msg = self.info_msg)
-            elif (self.comparison_type == "mesh_file"):
-                self.__CompareMeshVerticesFile()
-            elif (self.comparison_type == "sol_file"):
-                self.__CompareSolMetricFile()
-            elif (self.comparison_type == "post_res_file"):
-                self.__ComparePostResFile()
-            elif (self.comparison_type == "dat_file"):
-                self.__CompareDatFile()
-            else:
-                raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
+        if (self.comparison_type == "deterministic"):
+            value = filecmp.cmp(self.reference_file_name, self.output_file_name)
+            self.assertTrue(value, msg = self.info_msg)
+        elif (self.comparison_type == "mesh_file"):
+            self.__CompareMeshVerticesFile()
+        elif (self.comparison_type == "sol_file"):
+            self.__CompareSolMetricFile()
+        elif (self.comparison_type == "post_res_file"):
+            self.__ComparePostResFile()
+        elif (self.comparison_type == "dat_file"):
+            self.__CompareDatFile()
+        else:
+            raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
 
         if self.remove_output_file == True:
-            kratos_utils.DeleteFileIfExisting(self.output_file_name) # this checks internally if it is rank 0
+            kratos_utils.DeleteFileIfExisting(self.output_file_name)
 
     def __GetFileLines(self):
         """This function reads the reference and the output file

@@ -24,6 +24,7 @@
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
 #include "custom_utilities/process_factory_utility.h"
+#include "custom_utilities/contact_utilities.h"
 
 namespace Kratos
 {
@@ -92,6 +93,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("IsOutputStep",&ProcessFactoryUtility::IsOutputStep)
     .def("PrintOutput",&ProcessFactoryUtility::PrintOutput)
     .def("Clear",&ProcessFactoryUtility::Clear)
+    ;
+
+    // Contact utilities
+    class_<ContactUtilities, typename ContactUtilities::Pointer>(m, "ContactUtilities")
+    .def(init<>())
+    .def("CalculateRelativeSizeMesh",&ContactUtilities::CalculateRelativeSizeMesh)
+    .def("CalculateMaxNodalH",&ContactUtilities::CalculateMaxNodalH)
+    .def("CalculateMeanNodalH",&ContactUtilities::CalculateMeanNodalH)
+    .def("CalculateMinimalNodalH",&ContactUtilities::CalculateMinimalNodalH)
     ;
 }
 
