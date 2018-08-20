@@ -423,9 +423,8 @@ public:
         Matrix A(rA);
         pmatrix pm(size1);
         int singular = lu_factorize(A,pm);
+        KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << rA << std::endl;
         lu_substitute(A, pm, rX);
-
-        KRATOS_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << rA << std::endl;
     }
 
     /**
