@@ -86,12 +86,11 @@ class TestAdjointStrainEnergyResponseFunction(StructuralResponseFunctionTestFact
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 0.011841310779599155)
+        self.assertAlmostEqual(self.value, 0.6062751119154768)
 
-        nodeId = 4
-        self.assertAlmostEqual(self.gradient[nodeId][0], -0.02211883892695645, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][1], 0.0034659667625643337, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -3.942528133752394e-07, 12)
+        self.assertAlmostEqual(self.gradient[4][0], -1.1324845531182395)
+        self.assertAlmostEqual(self.gradient[4][1], 0.17745749816739564)
+        self.assertAlmostEqual(self.gradient[4][2], -1.22992394412451e-05, 10)
 
 @KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFactory):
@@ -99,12 +98,17 @@ class TestAdjointDisplacementResponseFunction(StructuralResponseFunctionTestFact
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 0.0023682621559198303)
+        model_part = self.response_function.adjoint_analysis.model.GetModelPart("rectangular_plate_structure")
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_X), 0.0, 12)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Y), 0.0, 12)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Z), 0.012125502238309537)
+        self.assertAlmostEqual(model_part.Nodes[4].GetSolutionStepValue(ADJOINT_ROTATION_Y), -0.029186453309188263)
 
-        nodeId = 4
-        self.assertAlmostEqual(self.gradient[nodeId][0], 35162269878424.273, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][1], 4507732710819.046, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], 1125096436.1808963, 12)
+        self.assertAlmostEqual(self.value, 0.12125502238309535)
+
+        self.assertAlmostEqual(self.gradient[4][0], -0.22649691062364785)
+        self.assertAlmostEqual(self.gradient[4][1], 0.03549149963347915)
+        self.assertAlmostEqual(self.gradient[4][2], -2.4598478882490207e-06, 9)
 
 @KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
@@ -112,37 +116,43 @@ class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
 
     def test_execution(self):
         self._calculate_response_and_gradient()
+
+        model_part = self.response_function.adjoint_analysis.model.GetModelPart("rectangular_plate_structure")
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_X), 0.0, 12)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Y), 0.0, 12)
+        self.assertAlmostEqual(model_part.Nodes[5].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Z), -0.0823339298948347)
+        self.assertAlmostEqual(model_part.Nodes[4].GetSolutionStepValue(ADJOINT_ROTATION_Y), 0.5348048603644553)
+
         self.assertAlmostEqual(self.value, -0.8233392989483465)
 
-        nodeId = 4
-        self.assertAlmostEqual(self.gradient[nodeId][0], -8.480870212810133, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][1], -2.6870951672193213, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -0.0002913758359272386, 12)
+        self.assertAlmostEqual(self.gradient[4][0], 0.3527576390219701)
+        self.assertAlmostEqual(self.gradient[4][1], -0.6917252774393834)
+        self.assertAlmostEqual(self.gradient[4][2], 1.1013492791909624e-05, 9)
 
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 2355.0)
+        self.assertAlmostEqual(self.value, 2943.7499999999995)
 
         self.assertEqual(len(self.gradient.keys()), 9)
         nodeId = 4
-        self.assertAlmostEqual(self.gradient[nodeId][0], -1177.5000000397995, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][1], 2.2737367544323206e-07, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], 0.0017662387108430266, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][0], -1471.874999879219, 5)
+        self.assertAlmostEqual(self.gradient[nodeId][1], 2.2737367544323206e-07, 9)
+        self.assertAlmostEqual(self.gradient[nodeId][2], 0.0022077983885537833, 9)
 
 class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "strain_energy_response"
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 0.00011841310779599155)
+        self.assertAlmostEqual(self.value, 0.00606275111915477)
 
         nodeId = 4
-        self.assertAlmostEqual(self.gradient[nodeId][0], -0.00022118866455491083, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][1],  0.00003465968099176853, 12)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -4.974301305577504e-09, 12)
+        self.assertAlmostEqual(self.gradient[nodeId][0], -0.011324859625486555, 9)
+        self.assertAlmostEqual(self.gradient[nodeId][1],  0.0017745756664132117, 9)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -1.5466215093998671e-07, 9)
 
 
 if __name__ == "__main__":
