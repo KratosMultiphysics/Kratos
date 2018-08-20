@@ -41,7 +41,7 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
     CoordinatesArrayType local_coords_init;
     CoordinatesArrayType local_coords;
 
-    p_geom->PointLocalCoordinates(local_coords_init, (*p_geom)[0]);
+    p_geom->PointLocalCoordinates(local_coords_init, p_geom->Center());
 
     // // trying to project to the geometry
     const double proj_dist = GeometricalProjectionUtilities::FastProjectDirection(
@@ -132,6 +132,18 @@ void NearestElementLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeigh
     //     rDestinationIds[0] = 0;
     // }
 
+}
+
+std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel, const int CommRank) const
+{
+    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+
+    std::stringstream buffer;
+    buffer << "NearestElementLocalSystem based on " << mpNode->Info();
+    if (EchoLevel > 1) // TODO leave here?
+        buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+    buffer << " in rank " << CommRank;
+    return buffer.str();
 }
 
 /***********************************************************************************/
