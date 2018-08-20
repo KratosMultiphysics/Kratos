@@ -10,8 +10,8 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ERROR_MESH_CRITERIA_H)
-#define  KRATOS_ERROR_MESH_CRITERIA_H
+#if !defined(KRATOS_CONTACT_ERROR_MESH_CRITERIA_H)
+#define  KRATOS_CONTACT_ERROR_MESH_CRITERIA_H
 
 /* System includes */
 
@@ -51,7 +51,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ErrorMeshCriteria
+ * @class ContactErrorMeshCriteria
  * @ingroup StructuralMechanicsApplication
  * @brief Custom convergence for used to check the convergence in the mesh error
  * @tparam TSparseSpace The sparse space considered
@@ -60,14 +60,14 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace, class TDenseSpace>
-class ErrorMeshCriteria
+class ContactErrorMeshCriteria
     : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION( ErrorMeshCriteria );
+    KRATOS_CLASS_POINTER_DEFINITION( ContactErrorMeshCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >        BaseType;
 
@@ -98,7 +98,7 @@ public:
     ///@{
 
     /// Default constructors
-    explicit ErrorMeshCriteria(Parameters ThisParameters = Parameters(R"({})"))
+    explicit ContactErrorMeshCriteria(Parameters ThisParameters = Parameters(R"({})"))
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mThisParameters(ThisParameters)
     {
@@ -115,6 +115,8 @@ public:
             "error_mesh_constant"  : 5.0e-3,
             "compute_error_extra_parameters":
             {
+                "penalty_normal"                      : 1.0e4,
+                "penalty_tangential"                  : 1.0e4,
                 "echo_level"                          : 0
             }
         })" );
@@ -127,7 +129,7 @@ public:
     }
 
     ///Copy constructor
-    ErrorMeshCriteria( ErrorMeshCriteria const& rOther )
+    ContactErrorMeshCriteria( ContactErrorMeshCriteria const& rOther )
       :BaseType(rOther)
       ,mErrorTolerance(rOther.mErrorTolerance)
       ,mConstantError(rOther.mConstantError)
@@ -135,7 +137,7 @@ public:
     }
 
     /// Destructor
-    ~ErrorMeshCriteria() override = default;
+    ~ContactErrorMeshCriteria() override = default;
 
     ///@}
     ///@name Operators
@@ -186,9 +188,9 @@ public:
         const bool converged_error = (estimated_error > mErrorTolerance) ? false : true;
 
         if (converged_error) {
-            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "NL ITERATION: " << process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << mErrorTolerance << ". " << BOLDFONT(FGRN("No remeshing required")) << std::endl;
+            KRATOS_INFO_IF("ContactErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "NL ITERATION: " << process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << mErrorTolerance << ". " << BOLDFONT(FGRN("No remeshing required")) << std::endl;
         } else {
-            KRATOS_INFO_IF("ErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+            KRATOS_INFO_IF("ContactErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             << "NL ITERATION: " << process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << mErrorTolerance << ". "<< BOLDFONT(FRED("Remeshing required")) << std::endl;
         }
 
@@ -279,12 +281,12 @@ private:
     ///@{
     ///@}
 
-}; // Class ErrorMeshCriteria
+}; // Class ContactErrorMeshCriteria
 
 ///@name Explicit Specializations
 ///@{
 
 }  // namespace Kratos
 
-#endif /* KRATOS_ERROR_MESH_CRITERIA_H  defined */
+#endif /* KRATOS_CONTACT_ERROR_MESH_CRITERIA_H  defined */
 
