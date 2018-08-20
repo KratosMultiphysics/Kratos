@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -25,7 +25,7 @@ MetricErrorProcess<TDim>::MetricErrorProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters
         ):mrThisModelPart(rThisModelPart)
-{               
+{
     /**
      * We configure using the following parameters:
      * minimal_size: The minimal size to consider on the remeshing
@@ -77,6 +77,7 @@ void MetricErrorProcess<TDim>::Execute()
     const Variable<Vector>& metric_variable = KratosComponents<Variable<Vector>>::Get("MMG_METRIC");
 
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    KRATOS_DEBUG_ERROR_IF(nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
     if (nodes_array.begin()->Has(metric_variable) == false) {
         // The process info
         const ProcessInfo& process_info = mrThisModelPart.GetProcessInfo();
@@ -169,6 +170,7 @@ void MetricErrorProcess<TDim>::CalculateMetric()
 
     // Iteration over all nodes
     const int num_nodes = static_cast<int>(nodes_array.size());
+    KRATOS_DEBUG_ERROR_IF(num_nodes == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
 
     #pragma omp parallel for
     for(int i_node = 0; i_node < num_nodes; ++i_node) {
@@ -190,8 +192,8 @@ void MetricErrorProcess<TDim>::CalculateMetric()
             }
         }
 
-        if(mAverageNodalH == true)
-            h_min = h_min/static_cast<double>(neigh_elements.size());
+        // Average Nodal H
+        if(mAverageNodalH) h_min = h_min/static_cast<double>(neigh_elements.size());
 
         // Set metric
         BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
