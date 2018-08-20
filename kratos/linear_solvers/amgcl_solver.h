@@ -78,7 +78,7 @@ enum AMGCLIterativeSolverType
 
 enum AMGCLCoarseningType
 {
-    RUGE_STUBEN,AGGREGATION,SA,SA_EMIN,TENTATIVE_PROLONGATION,POINTWISE_AGGREGATES,PLAIN_AGGREGATES
+    RUGE_STUBEN,AGGREGATION,SA,SA_EMIN
 };
 
 ///@}
@@ -165,23 +165,23 @@ public:
         // Validate if values are admissible
         std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
         std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres", "bicgstab_with_gmres_fallback","idrs"};
-        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin","tentative_prolongation","pointwise_aggregates","plain_aggregates"};
+        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
 
         std::stringstream msg;
 
         if(available_smoothers.find(ThisParameters["smoother_type"].GetString()) == available_smoothers.end()) {
-            msg << "currently prescribed smoother_type : " << ThisParameters["smoother_type"].GetString() << std::endl;
-            msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
+            msg << "Currently prescribed smoother_type : " << ThisParameters["smoother_type"].GetString() << std::endl;
+            msg << "Admissible values are : spai0,spai1,ilu0,ilut,iluk,damped_jacobi,gauss_seidel,chebyshev" << std::endl;
             KRATOS_ERROR << " smoother_type is invalid: " << msg.str() << std::endl;
         }
         if(available_solvers.find(ThisParameters["krylov_type"].GetString()) == available_solvers.end()) {
-            msg << "currently prescribed krylov_type : " << ThisParameters["krylov_type"].GetString() << std::endl;
-            msg << "admissible values are : gmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback,idrs"<< std::endl;
+            msg << "Currently prescribed krylov_type : " << ThisParameters["krylov_type"].GetString() << std::endl;
+            msg << "Admissible values are : gmres,bicgstab,cg,bicgstabl,lgmres,fgmres, bicgstab_with_gmres_fallback,idrs" << std::endl;
             KRATOS_ERROR << " krylov_type is invalid: available possibilities are : " << msg.str() << std::endl;
         }
         if(available_coarsening.find(ThisParameters["coarsening_type"].GetString()) == available_coarsening.end()) {
-            msg << "currently prescribed krylov_type : " << ThisParameters["coarsening_type"].GetString() << std::endl;
-            msg << "admissible values are : ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" << std::endl;
+            msg << "Currently prescribed krylov_type : " << ThisParameters["coarsening_type"].GetString() << std::endl;
+            msg << "Admissible values are : ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" << std::endl;
             KRATOS_ERROR << " coarsening_type is invalid: available possibilities are : " << msg.str() << std::endl;
         }
 
@@ -624,7 +624,7 @@ private:
 
     std::vector<array_1d<double,3> > mCoordinates; /// The vector containing the local coordinates
 
-    amgcl::runtime::coarsening::type mCoarsening;  /// The corasening type considered
+    amgcl::runtime::coarsening::type mCoarsening;  /// The coarsening type considered
     amgcl::runtime::relaxation::type mRelaxation;  /// The relaxation type considered
     amgcl::runtime::solver::type mIterativeSolver; /// The iterative solver considered
     boost::property_tree::ptree mAMGCLParameters;  /// The configuration parameters of the AMGCl
@@ -760,21 +760,6 @@ private:
             case SA_EMIN:
             {
                 mAMGCLParameters.put("precond.coarsening.type", "smoothed_aggr_emin");
-                break;
-            }
-            case PLAIN_AGGREGATES:
-            {
-                mAMGCLParameters.put("precond.coarsening.type", "plain_aggregates");
-                break;
-            }
-            case POINTWISE_AGGREGATES:
-            {
-                mAMGCLParameters.put("precond.coarsening.type", "pointwise_aggregates");
-                break;
-            }
-            case TENTATIVE_PROLONGATION:
-            {
-                mAMGCLParameters.put("precond.coarsening.type", "tentative_prolongation");
                 break;
             }
         };

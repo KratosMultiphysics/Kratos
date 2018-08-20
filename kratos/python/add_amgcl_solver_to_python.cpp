@@ -70,9 +70,6 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     .value("AGGREGATION", AGGREGATION)
     .value("SA",SA)
     .value("SA_EMIN",SA_EMIN)
-    .value("TENTATIVE_PROLONGATION",TENTATIVE_PROLONGATION)
-    .value("PLAIN_AGGREGATES",POINTWISE_AGGREGATES)
-    .value("POINTWISE_AGGREGATES",PLAIN_AGGREGATES)
     ;
 
     typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
