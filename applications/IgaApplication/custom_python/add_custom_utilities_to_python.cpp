@@ -183,6 +183,8 @@ void RegisterSurfaceShapeEvaluator(
             &Type::NbNonzeroPolesU)
         .def_property_readonly("NumberOfNonzeroPolesV",
             &Type::NbNonzeroPolesV)
+        .def_property_readonly("NumberOfNonzeroPoles",
+            &Type::NbNonzeroPoles)
         .def_property_readonly("FirstNonzeroPoleU",
             &Type::FirstNonzeroPoleU)
         .def_property_readonly("FirstNonzeroPoleV",
@@ -191,6 +193,7 @@ void RegisterSurfaceShapeEvaluator(
             &Type::LastNonzeroPoleU)
         .def_property_readonly("LastNonzeroPoleV",
             &Type::LastNonzeroPoleV)
+        .def_property_readonly("NonzeroPoleIndices", &Type::NonzeroPoleIndices)
         .def("__call__", (double (Type::*)(const int, const int, const int)
             const) &Type::operator(),
             "Derivative"_a,
@@ -293,6 +296,8 @@ void RegisterSurfaceGeometryBase(
         .def_property_readonly("DomainV", &Type::DomainV)
         .def_property_readonly("NbKnotsU", &Type::NbKnotsU)
         .def_property_readonly("NbKnotsV", &Type::NbKnotsV)
+        .def_property_readonly("NbPolesU", &Type::NbPolesU)
+        .def_property_readonly("NbPolesV", &Type::NbPolesV)
         .def("KnotU", &Type::KnotU,
             "Index"_a)
         .def("KnotV", &Type::KnotV,
@@ -759,11 +764,21 @@ void RegisterIntegrationPoints(
         .def_static("Points1", &Type::Points1,
             "Degree"_a,
             "Domain"_a)
-        .def_static("Points2", &Type::Points2,
+        .def_static("Points2", (std::vector<ANurbs::IntegrationPoint2<double>>
+            (*)(const size_t, const size_t, const ANurbs::Interval<double>&,
+            const ANurbs::Interval<double>&)) &Type::Points2,
             "DegreeU"_a,
             "DegreeV"_a,
             "DomainU"_a,
             "DomainV"_a)
+        .def_static("Points2", (std::vector<ANurbs::IntegrationPoint2<double>>
+            (*)(const size_t, const size_t,
+            const std::vector<ANurbs::Interval<double>>&,
+            const std::vector<ANurbs::Interval<double>>&)) &Type::Points2,
+            "DegreeU"_a,
+            "DegreeV"_a,
+            "DomainsU"_a,
+            "DomainsV"_a)
     ;
 }
 
