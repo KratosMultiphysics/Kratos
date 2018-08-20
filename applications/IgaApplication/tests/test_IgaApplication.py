@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from node_curve_geometry_3d_tests import NodeCurveGeometry3DTests
 from node_surface_geometry_3d_tests import NodeSurfaceGeometry3DTests
 from truss_discrete_element_test import TrussDiscreteElementTest
+from shell_kl_discrete_element_test import ShellKLDiscreteElementTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -27,6 +28,7 @@ def AssembleTestSuites():
         NodeCurveGeometry3DTests,
         NodeSurfaceGeometry3DTests,
         TrussDiscreteElementTest,
+        ShellKLDiscreteElementTest,
     ]))
 
     nightSuite = suites['nightly']
