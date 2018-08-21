@@ -25,7 +25,7 @@ namespace Kratos
 {
 ///@addtogroup ContactStructuralMechanicsApplication
 ///@{
-    
+
 ///@name Kratos Globals
 ///@{
 
@@ -45,10 +45,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Custom convergence criteria for the mortar condition 
+/** @brief Custom convergence criteria for the mortar condition
  */
 template<class TSparseSpace, class TDenseSpace>
-class MeshTyingMortarConvergenceCriteria 
+class MeshTyingMortarConvergenceCriteria
     : public  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
@@ -81,14 +81,14 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /// Default constructors
-    MeshTyingMortarConvergenceCriteria()
+    explicit MeshTyingMortarConvergenceCriteria()
         : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
     }
 
-    ///Copy constructor 
+    ///Copy constructor
     MeshTyingMortarConvergenceCriteria( MeshTyingMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
     {
@@ -105,38 +105,36 @@ public:
      * Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
-    {        
+    {
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             // TODO: Add somethig if necessary
         }
-        
+
         return true;
     }
-    
+
     /**
      * This function initialize the convergence criteria
      * @param rModelPart The model part of interest
-     */ 
-    
+     */
     void Initialize(ModelPart& rModelPart) override
     {
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
-        
+
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
@@ -161,7 +159,7 @@ public:
     ///@{
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -193,11 +191,11 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -222,12 +220,12 @@ private:
     ///@{
     ///@}
 
-}; // Class MeshTyingMortarConvergenceCriteria 
+}; // Class MeshTyingMortarConvergenceCriteria
 
 ///@name Explicit Specializations
 ///@{
 
-}  // namespace Kratos 
+}  // namespace Kratos
 
 #endif /* KRATOS_MESH_TYING_MORTAR_CRITERIA_H  defined */
 

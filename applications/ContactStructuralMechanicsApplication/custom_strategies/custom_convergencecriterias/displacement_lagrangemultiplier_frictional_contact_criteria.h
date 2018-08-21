@@ -40,13 +40,13 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@name Kratos Classes
 ///@{
 
 /**
  * @class DisplacementLagrangeMultiplierFrictionalContactCriteria
- * @ingroup ContactStructuralMechanicsApplication 
+ * @ingroup ContactStructuralMechanicsApplication
  * @brief Convergence criteria for contact problems
  * @details This class implements a convergence control based on nodal displacement and
  * lagrange multiplier values. The error is evaluated separately for each of them, and
@@ -78,7 +78,7 @@ public:
 
     /// The table stream definition TODO: Replace by logger
     typedef TableStreamUtility::Pointer       TablePrinterPointerType;
-    
+
     /// The index type definition
     typedef std::size_t                                     IndexType;
 
@@ -99,8 +99,7 @@ public:
      * @param pTable The pointer to the output table
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
-    
-    DisplacementLagrangeMultiplierFrictionalContactCriteria(
+    explicit DisplacementLagrangeMultiplierFrictionalContactCriteria(
         const TDataType DispRatioTolerance,
         const TDataType DispAbsTolerance,
         const TDataType LMNormalRatioTolerance,
@@ -132,7 +131,7 @@ public:
      * @brief Default constructor (parameters)
      * @param ThisParameters The configuration parameters
      */
-    DisplacementLagrangeMultiplierFrictionalContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
+    explicit DisplacementLagrangeMultiplierFrictionalContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mTableIsInitialized(false)
     {
@@ -170,7 +169,7 @@ public:
 
     //* Copy constructor.
     DisplacementLagrangeMultiplierFrictionalContactCriteria( DisplacementLagrangeMultiplierFrictionalContactCriteria const& rOther )
-      :BaseType(rOther) 
+      :BaseType(rOther)
       ,mDispRatioTolerance(rOther.mDispRatioTolerance)
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
       ,mLMNormalRatioTolerance(rOther.mLMNormalRatioTolerance)
@@ -181,7 +180,7 @@ public:
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
-    
+
     /// Destructor.
     ~DisplacementLagrangeMultiplierFrictionalContactCriteria() override = default;
 
@@ -193,20 +192,20 @@ public:
      * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-    bool PostCriteria(  
+    bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b 
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        if (SparseSpaceType::Size(Dx) != 0) { //if we are solving for something
+        if (SparseSpaceType::Size(rDx) != 0) { //if we are solving for something
             // Initialize
             TDataType disp_solution_norm = 0.0, normal_lm_solution_norm = 0.0, tangent_lm_solution_norm = 0.0, disp_increase_norm = 0.0, normal_lm_increase_norm = 0.0, tangent_lm_increase_norm = 0.0;
             IndexType disp_dof_num(0),lm_dof_num(0);
@@ -225,7 +224,7 @@ public:
                 if (it_dof->IsFree()) {
                     dof_id = it_dof->EquationId();
                     dof_value = it_dof->GetSolutionStepValue(0);
-                    dof_incr = Dx[dof_id];
+                    dof_incr = rDx[dof_id];
 
                     const auto curr_var = it_dof->GetVariable();
                      if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) {
@@ -281,7 +280,7 @@ public:
             if(disp_solution_norm == 0.0) disp_solution_norm = 1.0;
 
             KRATOS_ERROR_IF(mEnsureContact && normal_lm_solution_norm == 0.0) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
-            
+
             const TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
             const TDataType normal_lm_ratio = std::sqrt(normal_lm_increase_norm/normal_lm_solution_norm);
             const TDataType tangent_lm_ratio = std::sqrt(tangent_lm_increase_norm/tangent_lm_solution_norm);
@@ -292,7 +291,7 @@ public:
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-            
+
             // We print the results  // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                 if (r_process_info.Has(TABLE_UTILITY)) {
@@ -319,7 +318,7 @@ public:
             // We check if converged
             const bool disp_converged = (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
             const bool lm_converged = (!mEnsureContact && normal_lm_solution_norm == 0.0) ? true : (normal_lm_ratio <= mLMNormalRatioTolerance || normal_lm_abs <= mLMNormalAbsTolerance) && (tangent_lm_ratio <= mLMTangentRatioTolerance || tangent_lm_abs <= mLMTangentAbsTolerance);
-            
+
             if (disp_converged && lm_converged) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
                     if (r_process_info.Has(TABLE_UTILITY)) {
@@ -364,11 +363,10 @@ public:
      * This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the contact problem. (unused)
      */
-    
     void Initialize( ModelPart& rModelPart ) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
-        
+
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
@@ -407,7 +405,7 @@ public:
     ///@{
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -439,16 +437,16 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     bool mEnsureContact; /// This "flag" is used to check that the norm of the LM is always greater than 0 (no contact)
-    
+
     bool mPrintingOutput;          /// If the colors and bold are printed
     bool mTableIsInitialized;      /// If the table is already initialized
-    
+
     TDataType mDispRatioTolerance; /// The ratio threshold for the norm of the displacement
     TDataType mDispAbsTolerance;   /// The absolute value threshold for the norm of the displacement
 
@@ -457,7 +455,7 @@ private:
 
     TDataType mLMTangentRatioTolerance; /// The ratio threshold for the norm of the LM (tangent)
     TDataType mLMTangentAbsTolerance;   /// The absolute value threshold for the norm of the LM (tangent)
-    
+
     ///@}
     ///@name Private Operators
     ///@{
