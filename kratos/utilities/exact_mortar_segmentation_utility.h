@@ -361,9 +361,10 @@ protected:
      * @param AllInside The nodes that are inside or not the geometry
      * @return True if all the nodes are inside, false otherwise
      */
-    static inline bool CheckAllInside(const array_1d<bool, TNumNodes>& AllInside)
+    template<SizeType TSizeCheck = TNumNodes>
+    static inline bool CheckAllInside(const array_1d<bool, TSizeCheck>& AllInside)
     {
-        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
+        for (IndexType i_node = 0; i_node < TSizeCheck; ++i_node)
             if (!AllInside[i_node])
                 return false;
 
@@ -537,12 +538,19 @@ protected:
      * @param Geometry1 The geometry where the points are checked
      * @param Geometry2 The geometry to check
      */
+    template<SizeType TSizeCheck = TNumNodes>
     inline void CheckInside(
-        array_1d<bool, TNumNodes>& AllInside,
+        array_1d<bool, TSizeCheck>& AllInside,
         GeometryPointType& Geometry1,
         GeometryPointType& Geometry2,
         const double Tolerance
-        );
+        )
+    {
+        for (IndexType i_node = 0; i_node < TSizeCheck; ++i_node) {
+            GeometryNodeType::CoordinatesArrayType projected_gp_local;
+            AllInside[i_node] = Geometry1.IsInside( Geometry2[i_node].Coordinates( ), projected_gp_local, Tolerance) ;
+        }
+    }
 
     /**
      * @brief This function computes the angles indexes
