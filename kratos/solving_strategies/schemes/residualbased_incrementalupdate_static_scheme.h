@@ -38,7 +38,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class ResidualBasedIncrementalUpdateStaticScheme
  * @ingroup KratosCore
  * @brief This class provides the implementation of a static scheme
@@ -57,7 +57,7 @@ class ResidualBasedIncrementalUpdateStaticScheme : public Scheme<TSparseSpace,TD
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of ResidualBasedIncrementalUpdateStaticScheme
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticScheme);
 
@@ -83,13 +83,16 @@ public:
     /// Conditions containers definition
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
 
+    /// The definition of the vector containing the equation ids
+    typedef Element::EquationIdVectorType             EquationIdVectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /** Constructor.
     */
-    ResidualBasedIncrementalUpdateStaticScheme()
+    explicit ResidualBasedIncrementalUpdateStaticScheme()
         : Scheme<TSparseSpace,TDenseSpace>()
     {}
 
@@ -109,21 +112,21 @@ public:
      * @brief Performing the update of the solution.
      * @param rModelPart The model part of the problem to solve
      * @param rDofSet Set of all primary variables
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      */
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY
 
-        mpDofUpdater->UpdateDofs(rDofSet,Dx);
+        mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         KRATOS_CATCH("")
     }
@@ -131,16 +134,16 @@ public:
     /**
      * @brief Performing the prediction of the solution.
      * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      */
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY
@@ -151,35 +154,35 @@ public:
     /**
      * @brief It initializes a non-linear iteration (for the element)
      * @param rModelPart The model of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      */
     void InitializeNonLinIteration(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY;
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    
+
         // Initialize solution step for all of the elements
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
             it_elem->InitializeNonLinearIteration(r_current_process_info);
         }
-        
+
         // Initialize solution step for all of the conditions
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
             it_cond->InitializeNonLinearIteration(r_current_process_info);
-        } 
-        
+        }
+
         KRATOS_CATCH( "" );
     }
 
@@ -193,69 +196,69 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        (rCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
+        (rCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
 
     /**
      * @brief It initializes a non-linear iteration (for an individual element)
-     * @param rCurrentElement The element to compute
+     * @param pCurrentElement The element to compute
      * @param rCurrentProcessInfo The current process info instance
      */
     void InitializeNonLinearIteration(
-        Element::Pointer rCurrentElement,
+        Element::Pointer pCurrentElement,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        (rCurrentElement) -> InitializeNonLinearIteration(rCurrentProcessInfo);
+        (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
 
-    /** 
-     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme. 
+    /**
+     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
      * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
      * @param pCurrentElement The element to compute
-     * @param LHS_Contribution The LHS matrix contribution
-     * @param RHS_Contribution The RHS vector contribution
+     * @param rLHSContribution The LHS matrix contribution
+     * @param rRHSContribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Element::Pointer pCurrentElement,
+        LocalSystemMatrixType& rLHSContribution,
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
+        (pCurrentElement)->CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,rCurrentProcessInfo);
+        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
-    
-    /** 
+
+    /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param pCurrentCondition The condition to compute
-     * @param LHS_Contribution The LHS matrix contribution
-     * @param RHS_Contribution The RHS vector contribution
+     * @param rLHSContribution The LHS matrix contribution
+     * @param rRHSContribution The RHS vector contribution
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        LocalSystemMatrixType& rLHSContribution,
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
+        (rCurrentCondition)->CalculateLocalSystem(rLHSContribution, rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,rCurrentProcessInfo);
+        (rCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -263,22 +266,22 @@ public:
     /**
      * @brief This function is designed to calculate just the RHS contribution
      * @param pCurrentElement The element to compute
-     * @param RHS_Contribution The RHS vector contribution
+     * @param rRHSContribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Element::Pointer pCurrentElement,
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+        (pCurrentElement)->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,rCurrentProcessInfo);
+        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -286,45 +289,45 @@ public:
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param pCurrentCondition The condition to compute
-     * @param RHS_Contribution The RHS vector contribution
+     * @param rRHSContribution The RHS vector contribution
      * @param EquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+        (rCurrentCondition)->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,rCurrentProcessInfo);
+        (rCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
-    
+
     /**
      * @brief This function is designed to calculate just the LHS contribution
      * @param pCurrentElement The element to compute
-     * @param LHS_Contribution The RHS vector contribution
+     * @param rLHSContribution The RHS vector contribution
      * @param EquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Calculate_LHS_Contribution(
-        Element::Pointer rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Element::Pointer pCurrentElement,
+        LocalSystemMatrixType& rLHSContribution,
+        EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        (rCurrentElement) -> CalculateLeftHandSide(LHS_Contribution,rCurrentProcessInfo);
+        (pCurrentElement)->CalculateLeftHandSide(rLHSContribution, rCurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,rCurrentProcessInfo);
+        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -336,7 +339,7 @@ public:
     {
         this->mpDofUpdater->Clear();
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -402,9 +405,9 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-    
+
     ///@}
-    ///@name Private Inquiry 
+    ///@name Private Inquiry
     ///@{
 
     ///@}

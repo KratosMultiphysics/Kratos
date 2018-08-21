@@ -95,7 +95,7 @@ public:
      * Constructor.
      * The implicit method method
      */
-    ResidualBasedImplicitTimeScheme()
+    explicit ResidualBasedImplicitTimeScheme()
         :BaseType()
     {
         // Allocate auxiliary memory
@@ -234,13 +234,13 @@ public:
     /**
      * @brief This function is designed to calculate just the RHS contribution
      * @param pCurrentElement The element to compute
-     * @param rRHS_Contribution The RHS vector contribution
+     * @param rRHSContribution The RHS vector contribution
      * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Calculate_RHS_Contribution(
         Element::Pointer pCurrentElement,
-        LocalSystemVectorType& rRHS_Contribution,
+        LocalSystemVectorType& rRHSContribution,
         Element::EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
@@ -253,7 +253,7 @@ public:
         // pCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Basic operations for the element considered
-        pCurrentElement->CalculateRightHandSide(rRHS_Contribution,rCurrentProcessInfo);
+        pCurrentElement->CalculateRightHandSide(rRHSContribution,rCurrentProcessInfo);
 
         pCurrentElement->CalculateMassMatrix(mMatrix.M[this_thread], rCurrentProcessInfo);
 
@@ -261,7 +261,7 @@ public:
 
         pCurrentElement->EquationIdVector(rEquationId,rCurrentProcessInfo);
 
-        AddDynamicsToRHS (pCurrentElement, rRHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToRHS (pCurrentElement, rRHSContribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
         KRATOS_CATCH("ResidualBasedImplicitTimeScheme.Calculate_RHS_Contribution");
     }
@@ -269,15 +269,15 @@ public:
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param pCurrentCondition The condition to compute
-     * @param rLHS_Contribution The LHS matrix contribution
-     * @param rRHS_Contribution The RHS vector contribution
+     * @param rLHSContribution The LHS matrix contribution
+     * @param rRHSContribution The RHS vector contribution
      * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
-        LocalSystemMatrixType& rLHS_Contribution,
-        LocalSystemVectorType& rRHS_Contribution,
+        LocalSystemMatrixType& rLHSContribution,
+        LocalSystemVectorType& rRHSContribution,
         Element::EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
@@ -290,7 +290,7 @@ public:
         //pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Basic operations for the condition considered
-        pCurrentCondition->CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution, rCurrentProcessInfo);
+        pCurrentCondition->CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
 
         pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -298,9 +298,9 @@ public:
 
         pCurrentCondition->CalculateDampingMatrix(mMatrix.D[this_thread], rCurrentProcessInfo);
 
-        AddDynamicsToLHS(rLHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToLHS(rLHSContribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
-        AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToRHS(pCurrentCondition, rRHSContribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
         // AssembleTimeSpaceLHS_Condition(pCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix,rCurrentProcessInfo);
 
@@ -310,13 +310,13 @@ public:
     /**
      * @brief Functions that calculates the RHS of a "condition" object
      * @param pCurrentCondition The condition to compute
-     * @param rRHS_Contribution The RHS vector contribution
+     * @param rRHSContribution The RHS vector contribution
      * @param rEquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Condition_Calculate_RHS_Contribution(
         Condition::Pointer pCurrentCondition,
-        LocalSystemVectorType& rRHS_Contribution,
+        LocalSystemVectorType& rRHSContribution,
         Element::EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
@@ -329,7 +329,7 @@ public:
         //pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Basic operations for the condition considered
-        pCurrentCondition->CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
+        pCurrentCondition->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
         pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -338,7 +338,7 @@ public:
         pCurrentCondition->CalculateDampingMatrix(mMatrix.D[this_thread], rCurrentProcessInfo);
 
         // Adding the dynamic contributions (static is already included)
-        AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToRHS(pCurrentCondition, rRHSContribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
         KRATOS_CATCH("ResidualBasedImplicitTimeScheme.Condition_Calculate_RHS_Contribution");
     }

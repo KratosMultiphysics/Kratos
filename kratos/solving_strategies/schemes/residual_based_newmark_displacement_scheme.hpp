@@ -10,7 +10,7 @@
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME 
+#define  KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME
 
 /* System includes */
 
@@ -36,7 +36,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class ResidualBasedNewmarkDisplacementScheme
  * @ingroup KratosCore
  * @brief Bossak integration scheme (for dynamic problems) for displacements
@@ -72,17 +72,17 @@ public:
     typedef ModelPart::ElementsContainerType                               ElementsArrayType;
 
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
-    
+
     typedef typename BaseType::Pointer                                       BaseTypePointer;
-  
+
     typedef ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>  DerivedBaseType;
-    
+
     typedef typename BaseType::LocalSystemComponents               LocalSystemComponentsType;
 
     ///@}
     ///@name Life Cycle
     ///@{
-    ResidualBasedNewmarkDisplacementScheme()
+    explicit ResidualBasedNewmarkDisplacementScheme()
       :DerivedBaseType(0.0)
     {
     }
@@ -95,13 +95,13 @@ public:
     }
 
     /**
-     * Clone 
+     * Clone
      */
     BaseTypePointer Clone() override
     {
       return BaseTypePointer( new ResidualBasedNewmarkDisplacementScheme(*this) );
     }
-    
+
     /** Destructor.
      */
     ~ResidualBasedNewmarkDisplacementScheme
@@ -122,11 +122,11 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-    
+
     ///@}
     ///@name Input and output
     ///@{
-    
+
     ///@}
     ///@name Friends
     ///@{
@@ -135,7 +135,7 @@ protected:
     ///@}
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected  Variables
     ///@{
@@ -148,7 +148,7 @@ protected:
     ///@name Protected Operations*
     ///@{
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{

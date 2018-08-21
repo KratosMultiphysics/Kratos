@@ -20,7 +20,7 @@
 
 /* Project includes */
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h" 
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -39,7 +39,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class Scheme
  * @ingroup KratosCore
  * @brief This class provides the implementation of the basic tasks that are needed by the solution strategy.
@@ -56,10 +56,10 @@ class Scheme
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of Scheme
     KRATOS_CLASS_POINTER_DEFINITION(Scheme);
-    
+
     /// Data type definition
     typedef typename TSparseSpace::DataType TDataType;
     /// Matrix type definition
@@ -70,7 +70,7 @@ public:
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     /// Local system vector type definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
-    
+
     /// DoF type definition
     typedef Dof<double> TDofType;
     /// DoF array type definition
@@ -101,7 +101,7 @@ public:
 
         std::vector<LocalSystemVectorType> *mpRHS_Element_Components;
         const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Element_Variables;
-        
+
         // Conditions
         std::vector<LocalSystemMatrixType> *mpLHS_Condition_Components;
         const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Condition_Variables;
@@ -163,7 +163,7 @@ public:
         const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Condition_Variables() { return *mpLHS_Condition_Variables; };
         std::vector<LocalSystemVectorType>& GetRHS_Condition_Components() { return *mpRHS_Condition_Components; };
         const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Condition_Variables() { return *mpRHS_Condition_Variables; };
-        
+
         ///@}
     };
 
@@ -171,11 +171,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** 
+    /**
      * @brief Default Constructor
      * @details Initiliazes the flags
      */
-    Scheme()
+    explicit Scheme()
     {
         mSchemeIsInitialized = false;
         mElementsAreInitialized = false;
@@ -203,7 +203,7 @@ public:
 
     /**
      * @brief Clone method
-     * @return The pointer of the cloned scheme 
+     * @return The pointer of the cloned scheme
      */
     virtual Pointer Clone()
     {
@@ -249,7 +249,7 @@ public:
     {
         mSchemeIsInitialized = SchemeIsInitializedFlag;
     }
-    
+
     /**
      * @brief This method returns if the elements are initialized
      * @return True if initilized, false otherwise
@@ -267,7 +267,7 @@ public:
     {
         mElementsAreInitialized = ElementsAreInitializedFlag;
     }
-    
+
     /**
      * @brief This method returns if the conditions are initialized
      * @return True if initilized, false otherwise
@@ -294,11 +294,11 @@ public:
     virtual void InitializeElements( ModelPart& rModelPart)
     {
         KRATOS_TRY
-        
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Initialize(); 
+            it_elem->Initialize();
         }
 
         SetElementsAreInitialized();
@@ -316,15 +316,15 @@ public:
         KRATOS_TRY
 
         KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
-        
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
-            it_cond->Initialize(); 
+            it_cond->Initialize();
         }
 
         SetConditionsAreInitialized();
-        
+
         KRATOS_CATCH("")
     }
 
@@ -345,22 +345,22 @@ public:
     )
     {
         KRATOS_TRY
-    
+
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    
+
         // Initialize solution step for all of the elements
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
             it_elem->InitializeSolutionStep(r_current_process_info);
         }
-        
+
         // Initialize solution step for all of the conditions
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
             it_cond->InitializeSolutionStep(r_current_process_info);
-        } 
+        }
         KRATOS_CATCH("")
     }
 
@@ -380,20 +380,20 @@ public:
         KRATOS_TRY
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        
+
         // Finalizes solution step for all of the elements
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
             it_elem->FinalizeSolutionStep(r_current_process_info);
         }
-        
+
         // Finalizes solution step for all of the conditions
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
             it_cond->FinalizeSolutionStep(r_current_process_info);
-        }        
+        }
 
         KRATOS_CATCH("")
     }
@@ -401,11 +401,11 @@ public:
     /************************ BEGIN FRACTIONAL STEP METHODS ****************************/
     /********************* TODO: DECIDE IF NECESSARY TO DEFINE *************************/
     /***********************************************************************************/
-    
-//     /** 
+
+//     /**
 //      * @brief Initializes solution step, to be used when system is not explicitely defined
 //      * @details For example for fractional step strategies
-//      * @warning Must be defined in derived classes 
+//      * @warning Must be defined in derived classes
 //      * @param rModelPart The model part of the problem to solve
 //      */
 //     virtual void InitializeSolutionStep(ModelPart& rModelPart)
@@ -413,11 +413,11 @@ public:
 //         KRATOS_TRY
 //         KRATOS_CATCH("")
 //     }
-//     
+//
 //     /**
 //      * @brief Finalizes solution step, to be used when system is not explicitely defined
 //      * @details For example for fractional step strategies
-//      * @warning Must be defined in derived classes 
+//      * @warning Must be defined in derived classes
 //      * @param rModelPart The model part of the problem to solve
 //      */
 //     virtual void FinalizeSolutionStep(ModelPart& rModelPart)
@@ -425,10 +425,10 @@ public:
 //         KRATOS_TRY
 //         KRATOS_CATCH("")
 //     }
-// 
+//
 //     /**
 //      * @brief Executed before each fractional step
-//      * @warning Must be defined in derived classes 
+//      * @warning Must be defined in derived classes
 //      * @param rModelPart The model part of the problem to solve
 //      */
 //     virtual void InitializeFractionalSolutionStep(ModelPart& rModelPart)
@@ -436,10 +436,10 @@ public:
 //         KRATOS_TRY
 //         KRATOS_CATCH("")
 //     }
-// 
+//
 //     /**
 //      * @brief Executed after each fractional step
-//      * @warning Must be defined in derived classes 
+//      * @warning Must be defined in derived classes
 //      * @param rModelPart The model part of the problem to solve
 //      */
 //     virtual void FinalizeFractionalSolutionStep(ModelPart& rModelPart)
@@ -454,7 +454,7 @@ public:
     /**
      * @brief unction to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
      * @note Take care: the elemental function with the same name is NOT called here.
-     * @warning Must be defined in derived classes 
+     * @warning Must be defined in derived classes
      * @details The function is called in the builder for memory efficiency
      * @param rModelPart The model part of the problem to solve
      * @param A LHS matrix
@@ -471,10 +471,10 @@ public:
         KRATOS_TRY
         KRATOS_CATCH("")
     }
-    
+
     /**
      * @brief It initializes a non-linear iteration (for an individual condition)
-     * @warning Must be defined in derived classes 
+     * @warning Must be defined in derived classes
      * @param rCurrentElement The element to compute
      * @param rCurrentProcessInfo The current process info instance
      */
@@ -486,10 +486,10 @@ public:
         KRATOS_TRY
         KRATOS_CATCH("")
     }
-    
+
     /**
      * @brief It initializes a non-linear iteration (for an individual condition)
-     * @warning Must be defined in derived classes 
+     * @warning Must be defined in derived classes
      * @param rCurrentCondition The condition to compute
      * @param rCurrentProcessInfo The current process info instance
      */
@@ -517,29 +517,29 @@ public:
         )
     {
         KRATOS_TRY
-        
+
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        
+
         // Finalizes non-linear iteration for all of the elements
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
             it_elem->FinalizeNonLinearIteration(r_current_process_info);
         }
-        
+
         // Finalizes non-linear iteration  for all of the conditions
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
             it_cond->FinalizeNonLinearIteration(r_current_process_info);
-        }   
-        
+        }
+
         KRATOS_CATCH("")
     }
 
     /**
      * @brief Performing the prediction of the solution.
-     * @warning Must be defined in derived classes 
+     * @warning Must be defined in derived classes
      * @param rModelPart The model part of the problem to solve
      * @param A LHS matrix
      * @param Dx Incremental update of primary variables
@@ -559,7 +559,7 @@ public:
 
     /**
      * @brief Performing the update of the solution.
-     * @warning Must be defined in derived classes 
+     * @warning Must be defined in derived classes
      * @param rModelPart The model part of the problem to solve
      * @param rDofSet Set of all primary variables
      * @param A LHS matrix
@@ -580,7 +580,7 @@ public:
 
     /**
      * @brief Functions to be called to prepare the data needed for the output of results.
-     * @warning Must be defined in derived classes 
+     * @warning Must be defined in derived classes
      * @param rModelPart The model part of the problem to solve
      * @param rDofSet Set of all primary variables
      * @param A LHS matrix
@@ -660,27 +660,27 @@ public:
         KRATOS_TRY
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        
+
         // Checks for all of the elements
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
             it_elem->Check(r_current_process_info);
         }
-        
+
         // Checks for all of the conditions
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
             it_cond->Check(r_current_process_info);
-        }        
+        }
 
         return 0;
         KRATOS_CATCH("");
     }
 
-    /** 
-     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme. 
+    /**
+     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
      * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
      * @param pCurrentElement The element to compute
      * @param LHS_Contribution The LHS matrix contribution
@@ -699,7 +699,7 @@ public:
         pCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
 
-    /** 
+    /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param pCurrentCondition The condition to compute
      * @param LHS_Contribution The LHS matrix contribution
@@ -717,7 +717,7 @@ public:
     {
         pCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
-    
+
     /**
      * @brief This function is designed to calculate just the RHS contribution
      * @param pCurrentElement The element to compute
@@ -751,7 +751,7 @@ public:
     {
         pCurrentCondition->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
-    
+
     /**
      * @brief This function is designed to calculate just the LHS contribution
      * @param pCurrentElement The element to compute
@@ -768,7 +768,7 @@ public:
     {
         pCurrentElement->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
-    
+
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param pCurrentCondition The condition to compute
@@ -816,7 +816,7 @@ public:
         (pCurrentCondition)->EquationIdVector(EquationId, rCurrentProcessInfo);
     }
 
-    /** 
+    /**
      * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given element
      * @param pCurrentElement The element to compute
      * @param ElementalDofList The list containing the element degrees of freedom
@@ -831,7 +831,7 @@ public:
         pCurrentElement->GetDofList(ElementalDofList, rCurrentProcessInfo);
     }
 
-    /** 
+    /**
      * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given condition
      * @param pCurrentCondition The condition to compute
      * @param ConditionDofList The list containing the condition degrees of freedom

@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_NEW_CONVERGENCE_CRITERIA )
-#define  KRATOS_NEW_CONVERGENCE_CRITERIA
+#if !defined(KRATOS_BASE_CONVERGENCE_CRITERIA_H )
+#define  KRATOS_BASE_CONVERGENCE_CRITERIA_H
 
 /* System includes */
 
@@ -82,7 +82,7 @@ public:
 
     /** Constructor.
      */
-    ConvergenceCriteria()
+    explicit ConvergenceCriteria()
     {
         mActualizeRHSIsNeeded = false;
         mConvergenceCriteriaIsInitialized = false;
@@ -432,5 +432,5 @@ private:
 }; /* Class ConvergenceCriteria */
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_CONVERGENCE_CRITERIA  defined */
+#endif /* KRATOS_BASE_CONVERGENCE_CRITERIA_H  defined */
 
