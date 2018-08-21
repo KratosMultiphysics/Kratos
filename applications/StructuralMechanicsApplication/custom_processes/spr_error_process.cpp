@@ -85,9 +85,11 @@ void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
     NodesArrayType& nodes_array = mThisModelPart.Nodes();
 
     // We do a find of neighbours
-    FindNodalNeighboursProcess find_neighbours(mThisModelPart);
-    if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
-    find_neighbours.Execute();
+    {
+        FindNodalNeighboursProcess find_neighbours(mThisModelPart);
+        if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+        find_neighbours.Execute();
+    }
 
     // Iteration over all nodes -- construction of patches
     const int num_nodes = static_cast<int>(nodes_array.size());
