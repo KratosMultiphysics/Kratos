@@ -173,7 +173,7 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
             node_01 = model_part.CreateNewNode(4, 0.0, 0.5, 0)
             node_11 = model_part.CreateNewNode(5, 2.5, 0.5, 0)
             node_21 = model_part.CreateNewNode(6, 5.0, 0.5, 0)
-            
+
             node_02 = model_part.CreateNewNode(7, 0.0, 1.0, 0)
             node_12 = model_part.CreateNewNode(8, 2.5, 1.0, 0)
             node_22 = model_part.CreateNewNode(9, 5.0, 1.0, 0)
@@ -237,7 +237,7 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
             node_01 = model_part.CreateNewNode(4, 0.0, 0.5, 0)
             node_11 = model_part.CreateNewNode(5, 2.5, 0.5, 0)
             node_21 = model_part.CreateNewNode(6, 5.0, 0.5, 0)
-            
+
             node_02 = model_part.CreateNewNode(7, 0.0, 1.0, 0)
             node_12 = model_part.CreateNewNode(8, 2.5, 1.0, 0)
             node_22 = model_part.CreateNewNode(9, 5.0, 1.0, 0)
