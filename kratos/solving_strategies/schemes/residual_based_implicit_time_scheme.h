@@ -38,7 +38,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class ResidualBasedImplicitTimeScheme
  * @ingroup KratosCore
  * @brief This is the base class for the implicit time schemes
@@ -83,6 +83,9 @@ public:
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
     /// Conditions containers definition
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
+
+    /// Index type definition
+    typedef std::size_t                                          IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -147,20 +150,20 @@ public:
     {
         KRATOS_TRY;
 
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
-        
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
             auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->InitializeNonLinearIteration(current_process_info);
+            it_elem->InitializeNonLinearIteration(r_current_process_info);
         }
-        
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_elem = rModelPart.ConditionsBegin() + i;
-            it_elem->InitializeNonLinearIteration(current_process_info);
-        }     
-        
+            auto it_cond = rModelPart.ConditionsBegin() + i;
+            it_cond->InitializeNonLinearIteration(r_current_process_info);
+        }
+
         KRATOS_CATCH( "" );
     }
 
@@ -176,7 +179,7 @@ public:
     {
         pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
-    
+
     /**
      * @brief It initializes a non-linear iteration (for an individual element)
      * @param pCurrentElement The element to compute
@@ -191,7 +194,7 @@ public:
     }
 
     /**
-     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme. 
+     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
      * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
      * @param pCurrentElement The element to compute
      * @param LHS_Contribution The LHS matrix contribution
@@ -209,7 +212,7 @@ public:
     {
         KRATOS_TRY;
 
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const IndexType this_thread = OpenMPUtils::ThisThread();
 
         //pCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
 
@@ -225,151 +228,151 @@ public:
 
         AddDynamicsToRHS(pCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("ResidualBasedImplicitTimeScheme.CalculateSystemContributions");
     }
 
     /**
      * @brief This function is designed to calculate just the RHS contribution
      * @param pCurrentElement The element to compute
-     * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Calculate_RHS_Contribution(
         Element::Pointer pCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY;
 
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const IndexType this_thread = OpenMPUtils::ThisThread();
 
         // Initializing the non linear iteration for the current element
         // pCurrentElement->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Basic operations for the element considered
-        pCurrentElement->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+        pCurrentElement->CalculateRightHandSide(rRHS_Contribution,rCurrentProcessInfo);
 
         pCurrentElement->CalculateMassMatrix(mMatrix.M[this_thread], rCurrentProcessInfo);
 
         pCurrentElement->CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
 
-        pCurrentElement->EquationIdVector(EquationId,rCurrentProcessInfo);
+        pCurrentElement->EquationIdVector(rEquationId,rCurrentProcessInfo);
 
-        AddDynamicsToRHS (pCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToRHS (pCurrentElement, rRHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("ResidualBasedImplicitTimeScheme.Calculate_RHS_Contribution");
     }
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param pCurrentCondition The condition to compute
-     * @param LHS_Contribution The LHS matrix contribution
-     * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the element degrees of freedom
+     * @param rLHS_Contribution The LHS matrix contribution
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Condition_CalculateSystemContributions(
         Condition::Pointer pCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY;
 
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const IndexType this_thread = OpenMPUtils::ThisThread();
 
         // Initializing the non linear iteration for the current condition
         //pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Basic operations for the condition considered
-        pCurrentCondition->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
+        pCurrentCondition->CalculateLocalSystem(rLHS_Contribution,rRHS_Contribution, rCurrentProcessInfo);
 
-        pCurrentCondition->EquationIdVector(EquationId,rCurrentProcessInfo);
+        pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         pCurrentCondition->CalculateMassMatrix(mMatrix.M[this_thread], rCurrentProcessInfo);
 
-        pCurrentCondition->CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
+        pCurrentCondition->CalculateDampingMatrix(mMatrix.D[this_thread], rCurrentProcessInfo);
 
-        AddDynamicsToLHS(LHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToLHS(rLHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
-        AddDynamicsToRHS(pCurrentCondition, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
         // AssembleTimeSpaceLHS_Condition(pCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix,rCurrentProcessInfo);
 
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("ResidualBasedImplicitTimeScheme.Condition_CalculateSystemContributions");
     }
 
     /**
      * @brief Functions that calculates the RHS of a "condition" object
      * @param pCurrentCondition The condition to compute
-     * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the condition degrees of freedom
      * @param rCurrentProcessInfo The current process info instance
      */
     void Condition_Calculate_RHS_Contribution(
         Condition::Pointer pCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY;
 
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const IndexType this_thread = OpenMPUtils::ThisThread();
 
         // Initializing the non linear iteration for the current condition
         //pCurrentCondition->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // Basic operations for the condition considered
-        pCurrentCondition->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        pCurrentCondition->CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 
-        pCurrentCondition->EquationIdVector(EquationId, rCurrentProcessInfo);
+        pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         pCurrentCondition->CalculateMassMatrix(mMatrix.M[this_thread], rCurrentProcessInfo);
 
         pCurrentCondition->CalculateDampingMatrix(mMatrix.D[this_thread], rCurrentProcessInfo);
 
         // Adding the dynamic contributions (static is already included)
-        AddDynamicsToRHS(pCurrentCondition, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        AddDynamicsToRHS(pCurrentCondition, rRHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
 
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("ResidualBasedImplicitTimeScheme.Condition_Calculate_RHS_Contribution");
     }
-    
+
     /**
      * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
      * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      */
     void InitializeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY;
 
-        ProcessInfo current_process_info= rModelPart.GetProcessInfo();
+        ProcessInfo r_current_process_info= rModelPart.GetProcessInfo();
 
-        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        const double delta_time = current_process_info[DELTA_TIME];
+        const double delta_time = r_current_process_info[DELTA_TIME];
 
         KRATOS_ERROR_IF(delta_time < 1.0e-24) << "ERROR:: Detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current time step" << std::endl;
-        
-        KRATOS_CATCH( "" );
+
+        KRATOS_CATCH("ResidualBasedImplicitTimeScheme.InitializeSolutionStep");
     }
-    
+
     /**
      * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. 
+     * on the input provided.
      * @details Checks can be "expensive" as the function is designed
      * to catch user's errors.
      * @param rModelPart The model part of the problem to solve
@@ -383,8 +386,8 @@ public:
         if(err!=0) return err;
 
         return 0;
-        
-        KRATOS_CATCH( "" );
+
+        KRATOS_CATCH("ResidualBasedImplicitTimeScheme.Check");
     }
 
 
@@ -418,9 +421,9 @@ protected:
         std::vector< Matrix > M; /// First derivative matrix  (usually mass matrix)
         std::vector< Matrix > D; /// Second derivative matrix (usually damping matrix)
     };
-    
+
     GeneralMatrices mMatrix;
-    
+
     ///@}
     ///@name Protected Operators
     ///@{

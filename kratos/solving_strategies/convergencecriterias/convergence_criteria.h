@@ -61,7 +61,7 @@ public:
 
     /// Pointer definition of ConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION(ConvergenceCriteria);
-    
+
     /// Data type definition
     typedef typename TSparseSpace::DataType TDataType;
     /// Matrix type definition
@@ -115,7 +115,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief Get component wise element components
      * @warning Must be defined on the derived classes
@@ -169,7 +169,7 @@ public:
     {
         mEchoLevel = Level;
     }
-    
+
     /**
      * @brief This returns the level of echo for the solving strategy
      * @details The different levels of echo are:
@@ -206,17 +206,17 @@ public:
      * @brief Criterias that need to be called before getting the solution
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
     virtual bool PreCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         )
     {
         return true;
@@ -226,22 +226,22 @@ public:
      * @brief Criterias that need to be called after getting the solution
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      * @return true if convergence is achieved, false otherwise
      */
     virtual bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         )
     {
         return true;
     }
-    
+
     /**
      * @brief This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the problem. (unused)
@@ -265,35 +265,35 @@ public:
      * @warning Must be defined on the derived classes
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      */
     virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         )
     {
     }
 
     /**
-     * @brief This function initializes the non-linear iteration 
+     * @brief This function initializes the non-linear iteration
      * @warning Must be defined on the derived classes
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      */
     virtual void InitializeNonLinearIteration(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         )
     {
     }
@@ -303,35 +303,35 @@ public:
      * @warning Must be defined on the derived classes
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      */
     virtual void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         )
     {
     }
 
     /**
-     * @brief This function finalizes the non-linear iteration 
+     * @brief This function finalizes the non-linear iteration
      * @warning Must be defined on the derived classes
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual + reactions)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
      */
     virtual void FinalizeNonLinearIteration(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         )
     {
     }
@@ -371,11 +371,11 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     bool mActualizeRHSIsNeeded = false;             /// This "flag" is set in order to know if it is necessary to actualize the RHS
     bool mConvergenceCriteriaIsInitialized = false; /// This "flag" is set in order to know if it is convergence criteria is initialized
 
-    int mEchoLevel; /// The echo level 
+    int mEchoLevel; /// The echo level
 
     ///@}
     ///@name Protected Operators
