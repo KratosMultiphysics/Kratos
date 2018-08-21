@@ -129,6 +129,9 @@ public:
     /// The definition of the size type
     typedef std::size_t SizeType;
 
+    /// Definition of epsilon
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(ExactMortarIntegrationUtility);
 
@@ -142,10 +145,12 @@ public:
      * @param DistanceThreshold The maximum distance to be considered (if too far the integration will be skiped)
      */
     ExactMortarIntegrationUtility(
-        const unsigned int IntegrationOrder = 0,
-        const double DistanceThreshold = std::numeric_limits<double>::max()
+        const SizeType IntegrationOrder = 0,
+        const double DistanceThreshold = std::numeric_limits<double>::max(),
+        const SizeType EchoLevel = 0
         ) :mIntegrationOrder(IntegrationOrder),
-           mDistanceThreshold(DistanceThreshold)
+           mDistanceThreshold(DistanceThreshold),
+           mEchoLevel(EchoLevel)
     {
         GetIntegrationMethod();
     }
@@ -539,8 +544,12 @@ protected:
     /**
      * @brief This function computes the angles indexes
      * @param PointList The intersection points
+     * @param Normal The normal vector
      */
-    inline std::vector<std::size_t> ComputeAnglesIndexes(PointListType& PointList) const;
+    inline std::vector<std::size_t> ComputeAnglesIndexes(
+        PointListType& PointList,
+        const array_1d<double, 3>& Normal
+        ) const;
 
     /**
      * @brief This function computes the angles indexes
@@ -560,8 +569,8 @@ protected:
      * @brief This function calculates the triangles intersections (this is a module, that can be used directly in the respective function)
      * @param ConditionsPointsSlave The final solution vector, containing all the nodes
      * @param PointList The intersection points
-     * @param Geometry1 The first geometry studied (projected)
-     * @param Geometry2 The second geometry studied (projected)
+     * @param SlaveGeometry The first (slave) geometry studied (projected)
+     * @param MasterGeometry The second (master) geometry studied (projected)
      * @param SlaveTangentXi The first vector used as base to rotate
      * @param SlaveTangentEta The second vector used as base to rotate
      * @param RefCenter The reference point to rotate
@@ -573,13 +582,20 @@ protected:
         ConditionArrayListType& ConditionsPointsSlave,
         PointListType& PointList,
         TGeometryType& OriginalSlaveGeometry,
-        GeometryPointType& Geometry1,
-        GeometryPointType& Geometry2,
+        GeometryPointType& SlaveGeometry,
+        GeometryPointType& MasterGeometry,
         const array_1d<double, 3>& SlaveTangentXi,
         const array_1d<double, 3>& SlaveTangentEta,
         const PointType& RefCenter,
         const bool IsAllInside = false
         );
+
+    /**
+     * @brief This method checks if the center of the geometry is inside the slave geometry (to prevent convex geometries)
+     * @param AuxiliarCenterLocalCoordinates These are the local coordinates corresponding to the center
+     * @return True if is inside false otherwise
+     */
+    static inline bool CheckCenterIsInside(const array_1d<double, 2>& AuxiliarCenterLocalCoordinates);
 
     ///@}
     ///@name Protected  Access
@@ -600,7 +616,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    const unsigned int mIntegrationOrder;    /// The integration order to consider
+    const SizeType mEchoLevel;               /// The echo level considered
+    const SizeType mIntegrationOrder;        /// The integration order to consider
     const double mDistanceThreshold;         /// The distance where we directly  consider out of integration limits
     IntegrationMethod mAuxIntegrationMethod; /// The auxiliar list of Gauss Points taken from the geometry
 

@@ -942,7 +942,10 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::CheckInside
 /***********************************************************************************/
 
 template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-inline std::vector<std::size_t> ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::ComputeAnglesIndexes(PointListType& PointList) const
+inline std::vector<std::size_t> ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::ComputeAnglesIndexes(
+    PointListType& PointList,
+    const array_1d<double, 3>& Normal
+    ) const
 {
     const SizeType list_size = PointList.size();
 
@@ -952,14 +955,15 @@ inline std::vector<std::size_t> ExactMortarIntegrationUtility<TDim, TNumNodes, T
     array_1d<double, 3> v = PointList[1].Coordinates() - ref_point_coordinates;
 
     v /= norm_2(v);
-    array_1d<double, 3> n = GetNormalVector2D(v);
+    array_1d<double, 3> n;
+    MathUtils<double>::CrossProduct( n, Normal, v);
 
     for (IndexType elem = 1; elem < list_size; ++elem) {
         angles[elem - 1] = AnglePoints(PointList[0], PointList[elem], v, n);
         if (angles[elem - 1] < 0.0) {
             v = PointList[elem].Coordinates() - ref_point_coordinates;
             v /= norm_2(v);
-            n = GetNormalVector2D(v);
+            MathUtils<double>::CrossProduct( n, Normal, v);
             for (IndexType aux_elem = 0; aux_elem <= (elem - 1); ++aux_elem)
                 angles[aux_elem] -= angles[elem - 1];
         }
@@ -1025,8 +1029,8 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TriangleInt
     ConditionArrayListType& ConditionsPointsSlave,
     PointListType& PointList,
     TGeometryType& OriginalSlaveGeometry,
-    GeometryPointType& Geometry1,
-    GeometryPointType& Geometry2,
+    GeometryPointType& SlaveGeometry,
+    GeometryPointType& MasterGeometry,
     const array_1d<double, 3>& SlaveTangentXi,
     const array_1d<double, 3>& SlaveTangentEta,
     const PointType& RefCenter,
@@ -1035,33 +1039,63 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TriangleInt
 {
     // We do the clipping
     if (IsAllInside == false)
-        ComputeClippingIntersections(PointList, Geometry1, Geometry2, RefCenter);
+        ComputeClippingIntersections(PointList, SlaveGeometry, MasterGeometry, RefCenter);
 
     // We compose the triangles
     const SizeType list_size = PointList.size();
     if (list_size >  2) { // Technically the minimum is three, just in case I consider 2
-        const std::vector<IndexType> index_vector = ComputeAnglesIndexes(PointList);
-
-        ConditionsPointsSlave.resize((list_size - 2));
+        // Declaring auxiliar local point
+        PointType local_point;
+        PointListType aux_master_point_list(list_size);
 
         // We recover this point to the triangle plane and compute the local coordinates
         for (IndexType i_point_list = 0; i_point_list < PointList.size(); ++i_point_list) {
+            MasterGeometry.PointLocalCoordinates(local_point, PointList[i_point_list].Coordinates());
+            aux_master_point_list[i_point_list].Coordinates() = local_point.Coordinates();
             MortarUtilities::RotatePoint(PointList[i_point_list], RefCenter, SlaveTangentXi, SlaveTangentEta, true);
-            PointType local_point;
             OriginalSlaveGeometry.PointLocalCoordinates(local_point, PointList[i_point_list].Coordinates());
             PointList[i_point_list].Coordinates() = local_point.Coordinates();
         }
 
+        // We will check if the triangle is inside the slave geometry, so we will compute an auxiliar shape function
+        array_1d<double, 2> auxiliar_slave_center_local_coords, auxiliar_master_center_local_coords;
+
+        // We compute the angles between the nodes
+        SlaveGeometry.PointLocalCoordinates(local_point, SlaveGeometry.Center());
+        const array_1d<double, 3>& normal = SlaveGeometry.UnitNormal(local_point);
+        const std::vector<IndexType> index_vector = ComputeAnglesIndexes(PointList, normal);
+
+        // We resize the array of points of the decomposed triangles
+        ConditionsPointsSlave.resize((list_size - 2));
+
+        IndexType aux_elem_index = 0;
         for (IndexType elem = 0; elem < list_size - 2; ++elem) { // NOTE: We always have two points less that the number of nodes
-            ArrayTriangleType points_locals;
+            ArrayTriangleType points_locals_slave, points_locals_master;
 
-            const bool inverted_triangle = (FastTriagleCheck2D(PointList[0],  PointList[index_vector[elem] + 1], PointList[index_vector[elem + 1] + 1]) < 0.0);
+            points_locals_slave[0] = PointList[0];
+            points_locals_slave[1] = PointList[index_vector[elem + 0] + 1];
+            points_locals_slave[2] = PointList[index_vector[elem + 1] + 1];
+            points_locals_master[0] = aux_master_point_list[0];
+            points_locals_master[1] = aux_master_point_list[index_vector[elem + 0] + 1];
+            points_locals_master[2] = aux_master_point_list[index_vector[elem + 1] + 1];
 
-            points_locals[(inverted_triangle == false) ? 0 : 2] = PointList[0];
-            points_locals[1] = PointList[index_vector[elem + 0] + 1];
-            points_locals[(inverted_triangle) ? 0 : 2] = PointList[index_vector[elem + 1] + 1];
+            // We compute if the center is inside the slave geometry
+            auxiliar_slave_center_local_coords[0] = 1.0/3.0 * (points_locals_slave[0].X() + points_locals_slave[1].X() + points_locals_slave[2].X());
+            auxiliar_slave_center_local_coords[1] = 1.0/3.0 * (points_locals_slave[0].Y() + points_locals_slave[1].Y() + points_locals_slave[2].Y());
+            auxiliar_master_center_local_coords[0] = 1.0/3.0 * (points_locals_master[0].X() + points_locals_master[1].X() + points_locals_master[2].X());
+            auxiliar_master_center_local_coords[1] = 1.0/3.0 * (points_locals_master[0].Y() + points_locals_master[1].Y() + points_locals_master[2].Y());
+            const bool center_is_inside = CheckCenterIsInside(auxiliar_slave_center_local_coords) && CheckCenterIsInside(auxiliar_master_center_local_coords);
+            if (!center_is_inside) {
+                ConditionsPointsSlave.erase(ConditionsPointsSlave.begin() + aux_elem_index);
+                KRATOS_WARNING_IF("ExactMortarIntegrationUtility", mEchoLevel > 0) << "The generated intersection is probably a concave polygon. Check it out: \n" << SlaveGeometry << "\n" << MasterGeometry << std::endl;
+                continue; // We skip this triangle
+            }
 
-            ConditionsPointsSlave[elem] = points_locals;
+            // We add the triangle to the vector
+            ConditionsPointsSlave[aux_elem_index] = points_locals_slave;
+
+            // We update the auxiliar index
+            ++aux_elem_index;
         }
 
         if (ConditionsPointsSlave.size() > 0)
@@ -1074,6 +1108,31 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TriangleInt
     }
 
     ConditionsPointsSlave.clear();
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
+inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::CheckCenterIsInside(const array_1d<double, 2>& AuxiliarCenterLocalCoordinates)
+{
+    if (TNumNodes == 3) {
+        if ( (AuxiliarCenterLocalCoordinates[0] >= (0.0-ZeroTolerance)) && (AuxiliarCenterLocalCoordinates[0] <= (1.0+ZeroTolerance)) ) {
+            if ( (AuxiliarCenterLocalCoordinates[1] >= (0.0-ZeroTolerance)) && (AuxiliarCenterLocalCoordinates[1] <= (1.0+ZeroTolerance)) ) {
+                if ( (AuxiliarCenterLocalCoordinates[0] + AuxiliarCenterLocalCoordinates[1]) <= (1.0+ZeroTolerance) ) {
+                    return true;
+                }
+            }
+        }
+    } if (TNumNodes == 4) {
+        if ( std::abs(AuxiliarCenterLocalCoordinates[0]) <= (1.0+ZeroTolerance) ) {
+            if ( std::abs(AuxiliarCenterLocalCoordinates[1]) <= (1.0+ZeroTolerance) ) {
+                return true;
+            }
+        }
+    }
+
     return false;
 }
 
