@@ -156,7 +156,7 @@ public:
             "scaling"                        : false,
             "block_size"                     : 1,
             "use_block_matrices_if_possible" : true,
-            "coarse_enough"                  : 5000
+            "coarse_enough"                  : 1000
         }  )" );
 
         // Now validate agains defaults -- this also ensures no type mismatch
@@ -238,7 +238,7 @@ public:
             mVerbosity(Verbosity),
             mBlockSize(1),
             mGMRESSize(GMRESSize),
-            mCoarseEnough(5000),
+            mCoarseEnough(1000),
             mFallbackToGMRES(false),
             mProvideCoordinates(false),
             mUseBlockMatricesIfPossible(false)
@@ -277,7 +277,7 @@ public:
             mVerbosity(Verbosity),
             mBlockSize(1),
             mGMRESSize(GMRESSize),
-            mCoarseEnough(5000),
+            mCoarseEnough(1000),
             mFallbackToGMRES(false),
             mProvideCoordinates(ProvideCoordinates),
             mUseBlockMatricesIfPossible(false)
