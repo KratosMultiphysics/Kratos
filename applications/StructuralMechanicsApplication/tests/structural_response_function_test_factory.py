@@ -127,7 +127,7 @@ class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
 
         self.assertAlmostEqual(self.gradient[4][0], 0.3527576390219701)
         self.assertAlmostEqual(self.gradient[4][1], -0.6917252774393834)
-        self.assertAlmostEqual(self.gradient[4][2], 1.1013492791909624e-05, 9)
+        self.assertAlmostEqual(self.gradient[4][2], 1.1013492791909624e-05, 8)
 
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
@@ -139,8 +139,8 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertEqual(len(self.gradient.keys()), 9)
         nodeId = 4
         self.assertAlmostEqual(self.gradient[nodeId][0], -1471.874999879219, 5)
-        self.assertAlmostEqual(self.gradient[nodeId][1], 2.2737367544323206e-07, 9)
-        self.assertAlmostEqual(self.gradient[nodeId][2], 0.0022077983885537833, 9)
+        self.assertAlmostEqual(self.gradient[nodeId][1], 0.0)
+        self.assertAlmostEqual(self.gradient[nodeId][2], 0.022078165784478184)
 
 class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "strain_energy_response"
