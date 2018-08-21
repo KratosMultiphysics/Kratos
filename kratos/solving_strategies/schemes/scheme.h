@@ -184,7 +184,7 @@ public:
 
     /** Copy Constructor.
      */
-    Scheme(Scheme& rOther)
+    explicit Scheme(Scheme& rOther)
       :mSchemeIsInitialized(rOther.mSchemeIsInitialized)
       ,mElementsAreInitialized(rOther.mElementsAreInitialized)
       ,mConditionsAreInitialized(rOther.mConditionsAreInitialized)
