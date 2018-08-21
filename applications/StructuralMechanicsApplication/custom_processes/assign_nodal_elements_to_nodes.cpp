@@ -190,8 +190,8 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
     // We get the reference element
     const bool rayleigh_damping = mThisParameters["rayleigh_damping"].GetBool();
     const bool assign_active_flag_node = mThisParameters["assign_active_flag_node"].GetBool();
-    std::vector<NodeType::Pointer> aux_node_array(1);
-    aux_node_array[0] = *(r_model_part.NodesBegin()).base();
+    PointerVector<NodeType> aux_node_array(1);
+    aux_node_array(0) = *(r_model_part.NodesBegin()).base();
 
     if (domain_size == 2) {
         GeometryType::Pointer p_dummy_geom = Kratos::make_shared<Point2D<NodeType>>(aux_node_array);
@@ -208,8 +208,8 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
             for(int i=0; i< static_cast<int>(r_model_part.Nodes().size()); i++) {
                 auto it_node = r_model_part.NodesBegin() + i;
 
-                std::vector<NodeType::Pointer> this_node_array(1);
-                this_node_array[0] = *(it_node).base();
+                PointerVector<NodeType> this_node_array(1);
+                this_node_array(0) = *(it_node).base();
 
                 auto p_element = rReferenceElement.Create(number_elements + 1 + i, Kratos::make_shared<Point2D<NodeType>>(this_node_array), p_properties);
 
@@ -239,8 +239,8 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
             for(int i=0; i< static_cast<int>(r_model_part.Nodes().size()); i++) {
                 auto it_node = r_model_part.NodesBegin() + i;
 
-                std::vector<NodeType::Pointer> this_node_array(1);
-                this_node_array[0] = *(it_node).base();
+                PointerVector<NodeType> this_node_array(1);
+                this_node_array(0) = *(it_node).base();
 
                 auto p_element = rReferenceElement.Create(number_elements + 1 + i, Kratos::make_shared<Point3D<NodeType>>(this_node_array), p_properties);
 
