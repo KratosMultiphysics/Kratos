@@ -286,7 +286,7 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorFX(const
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
     const double A = mpPrimalElement->GetProperties()[CROSS_AREA];
-    const double l0 = CalculateReferenceLength();
+    const double l_0 = CalculateReferenceLength();
     const double l = CalculateCurrentLength();
     double prestress = 0.0;
     if (mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2))
@@ -295,7 +295,7 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorFX(const
     mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, GL_strain, rCurrentProcessInfo);
     const double GL_strain_X = GL_strain[0][0]; //one Gauss-Point result is enough due to constant strains.
 
-    double derivative_pre_factor = A / l0 * (E * GL_strain_X + prestress + E * l * l / (l0 * l0));
+    double derivative_pre_factor = A / l_0 * (E * GL_strain_X + prestress + E * l * l / (l_0 * l_0));
 
     KRATOS_DEBUG_ERROR_IF(std::abs(derivative_pre_factor) <= numerical_limit)
         << "Derivative pre-factor of " << this->Id() << "~ 0" << std::endl;
@@ -308,8 +308,8 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorPK2(cons
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
     const double l = CalculateCurrentLength();
-    const double l0 = CalculateReferenceLength();
-    double derivative_pre_factor = E * l / (l0 * l0);
+    const double l_0 = CalculateReferenceLength();
+    double derivative_pre_factor = E * l / (l_0 * l_0);
 
     KRATOS_DEBUG_ERROR_IF(derivative_pre_factor<=numerical_limit)
         << "Derivative pre-factor of " << this->Id() << "~ 0" << std::endl;

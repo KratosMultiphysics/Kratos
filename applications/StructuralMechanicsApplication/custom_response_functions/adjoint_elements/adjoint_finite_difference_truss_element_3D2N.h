@@ -65,8 +65,7 @@ private:
     double CalculateCurrentLength();
 
     /**
-     * Calculates the derivative of the current length w.r.t. primal displacements. This derivative is part of the
-     * analytic stress displacement derivative.
+     * Calculates the derivative of the current length w.r.t. primal displacements.
      */
     void CalculateCurrentLengthDisplacementDerivative(Vector& rDerivativeVector);
 
