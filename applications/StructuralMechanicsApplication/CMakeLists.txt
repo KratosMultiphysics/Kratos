@@ -35,8 +35,12 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/prism_neighbours_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shell_to_solid_shell_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/solid_shell_thickness_compute_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_nodal_elements_to_nodes.cpp
+
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/spr_error_process.cpp
+
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.cpp
+
+
 
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
@@ -61,7 +65,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_viscoplasticity_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_kelvin_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_maxwell_3d.cpp
- 
+
 
   ## ELEMENTS
   #Adding truss element
@@ -102,7 +106,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   # Adding the SPRISM element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_shell_element_sprism_3D6N.cpp
 
-  # Adding the nodal concentrated element (generalized spring)
+  # Adding the nodal concentrated element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
 
   # Adding the spring + damper element
