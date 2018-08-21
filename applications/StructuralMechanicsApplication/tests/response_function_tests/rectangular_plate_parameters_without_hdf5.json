@@ -64,7 +64,7 @@
             "interval"        : [0.0,"End"]
         }
     }],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
