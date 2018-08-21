@@ -21,6 +21,7 @@ def GetFilePath(fileName):
 
 
 class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
+
     def solve_cantilever(create_geometry):
         model_part = ModelPart('Model')
 
