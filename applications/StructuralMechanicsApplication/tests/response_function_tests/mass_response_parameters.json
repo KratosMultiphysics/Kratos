@@ -15,7 +15,7 @@
             "materials_filename": "StructuralMaterials.json"
         },
         "gradient_mode"          : "finite_differencing",
-        "step_size"              : 1e-6,
+        "step_size"              : 1e-5,
         "consider_discretization": false
     }
 }

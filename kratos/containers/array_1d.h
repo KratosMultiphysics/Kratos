@@ -21,6 +21,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <array>
 
 
 // External	includes
