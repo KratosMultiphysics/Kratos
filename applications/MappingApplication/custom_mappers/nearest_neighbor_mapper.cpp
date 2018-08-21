@@ -58,6 +58,8 @@ void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeig
 
         for (SizeType i=1; i<mInterfaceInfos.size(); ++i)
         {
+            // no check if this InterfaceInfo is an approximation is necessary
+            // bcs this does not exist for NearestNeighbor
             double distance;
             mInterfaceInfos[i]->GetValue(distance);
 

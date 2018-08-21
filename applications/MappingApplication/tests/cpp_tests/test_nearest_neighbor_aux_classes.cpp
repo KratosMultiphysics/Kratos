@@ -139,6 +139,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, Kr
     const double dist_1 = MapperUtilities::ComputeDistance(coords, *interface_node_1);
     const double dist_2 = MapperUtilities::ComputeDistance(coords, *interface_node_2);
 
+    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful()); // this is the default
+
     nearest_neighbor_info.ProcessSearchResult(interface_node_1, dist_1);
     nearest_neighbor_info.ProcessSearchResult(interface_node_2, dist_2);
 

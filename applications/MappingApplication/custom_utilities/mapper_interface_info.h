@@ -236,7 +236,11 @@ protected:
 
     void SetIsApproximation()
     {
-        mLocalSearchWasSuccessful = true; // If an approximation is found also means that the local search has been successful!
+        // If an approximation is found also means that the local search has been successful!
+        // this is needed otherwise it won't be properly processes by the search
+        // the MapperLocalSystem has to take care of this!
+        mLocalSearchWasSuccessful = true;
+
         mIsApproximation = true;
     }
 

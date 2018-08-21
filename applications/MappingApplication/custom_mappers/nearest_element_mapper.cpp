@@ -43,9 +43,13 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
 
     p_geom->PointLocalCoordinates(local_coords_init, p_geom->Center());
 
-    // // trying to project to the geometry
-    const double proj_dist = GeometricalProjectionUtilities::FastProjectDirection(
-        *p_geom, point_to_proj, proj_point, p_geom->UnitNormal(local_coords_init), p_geom->UnitNormal(local_coords_init));
+    // trying to project to the geometry
+    const double proj_dist = std::abs(GeometricalProjectionUtilities::FastProjectDirection(
+        *p_geom,
+        point_to_proj,
+        proj_point,
+        p_geom->UnitNormal(local_coords_init),
+        p_geom->UnitNormal(local_coords_init)));
 
     const bool is_inside = p_geom->IsInside(proj_point, local_coords);
 
@@ -56,8 +60,8 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
         mClosestProjectionDistance = proj_dist;
         mShapeFunctionValues.clear();
         mNodeIds.clear();
-        mShapeFunctionValues.resize(local_coords.size());
-        mNodeIds.resize(local_coords.size());
+        if (mShapeFunctionValues.size() != local_coords.size()) mShapeFunctionValues.resize(local_coords.size());
+        if (mNodeIds.size() != local_coords.size()) mNodeIds.resize(local_coords.size());
         for (IndexType i=0; i<local_coords.size(); ++i)
         {
             mShapeFunctionValues[i] = local_coords[i];
@@ -77,6 +81,8 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
     {
         const double dist = MapperUtilities::ComputeDistance(this->Coordinates(), r_point.Coordinates());
 
+        // in case of an approximation this is the actual distance,
+        // not the projected one bcs no valid projection could be found!
         if (dist < mClosestProjectionDistance)
         {
             mClosestProjectionDistance = dist;
