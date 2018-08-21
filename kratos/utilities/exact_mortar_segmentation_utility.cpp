@@ -587,14 +587,14 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
     const bool is_inside = GetExactIntegration(OriginalSlaveGeometry, SlaveNormal, OriginalMasterGeometry, MasterNormal, conditions_points_slave);
 
     for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
-        std::vector<PointType::Pointer> points_array(TDim);  // The points are stored as local coordinates, we calculate the global coordinates of this points
+        PointerVector<PointType> points_array(TDim);  // The points are stored as local coordinates, we calculate the global coordinates of this points
         for (IndexType i_node = 0; i_node < TDim; ++i_node) {
             PointType global_point;
             OriginalSlaveGeometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-            points_array[i_node] = Kratos::make_shared<PointType>(global_point);
+            points_array(i_node) = Kratos::make_shared<PointType>(global_point);
         }
 
-        DecompositionType decomp_geom(PointerVector<PointType>{points_array});
+        DecompositionType decomp_geom(points_array);
 
         const GeometryPointType::IntegrationPointsArrayType& local_integration_slave = decomp_geom.IntegrationPoints(mAuxIntegrationMethod);
 
