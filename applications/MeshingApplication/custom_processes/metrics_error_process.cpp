@@ -161,9 +161,11 @@ void MetricErrorProcess<TDim>::CalculateMetric()
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
 
     // We do a find of neighbours
-    FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
-    if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
-    find_neighbours.Execute();
+    {
+        FindNodalNeighboursProcess find_neighbours(mrThisModelPart);
+        if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+        find_neighbours.Execute();
+    }
 
     // Getting metric variable
     const Variable<Vector>& metric_variable = KratosComponents<Variable<Vector>>::Get("MMG_METRIC");
