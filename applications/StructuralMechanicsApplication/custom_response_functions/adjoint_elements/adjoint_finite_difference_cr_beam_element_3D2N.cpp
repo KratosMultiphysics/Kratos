@@ -20,7 +20,7 @@ namespace Kratos
 {
 
 AdjointFiniteDifferenceCrBeamElement::AdjointFiniteDifferenceCrBeamElement(Element::Pointer pPrimalElement)
-    : AdjointFiniteDifferencingBaseElement(pPrimalElement)
+    : AdjointFiniteDifferencingBaseElement(pPrimalElement, true)
 {
 }
 

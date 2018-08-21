@@ -209,14 +209,6 @@ public:
     void Test()
     {
     }
-
-
-
-
-
-private:
-    ModelPart& mr_model_part;
-    unsigned int mrdimension;
 };
 
 

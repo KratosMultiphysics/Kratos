@@ -70,7 +70,7 @@ public:
     ElasticCondition( ElasticCondition const& rOther);
 
     /// Destructor
-    virtual ~ElasticCondition();
+    ~ElasticCondition() override;
 
     ///@}
     ///@name Operators
@@ -112,7 +112,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -162,21 +162,21 @@ protected:
     /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight) override;
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector
      */
-    virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
+    void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
 					       double& rIntegrationWeight) override;
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector
      */
-    virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
+    double& CalculateAndAddExternalEnergy(double& rEnergy,
 						  ConditionVariables& rVariables,
 						  double& rIntegrationWeight,
 						  const ProcessInfo& rCurrentProcessInfo) override;
@@ -216,9 +216,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class ElasticCondition.

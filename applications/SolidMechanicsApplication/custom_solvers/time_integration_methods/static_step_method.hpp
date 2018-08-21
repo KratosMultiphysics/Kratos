@@ -115,7 +115,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    ~StaticStepMethod(){}
+    ~StaticStepMethod() override{}
 
     ///@}
     ///@name Operators

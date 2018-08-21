@@ -75,7 +75,7 @@ public:
     UpdatedLagrangianVElement(UpdatedLagrangianVElement const& rOther);
 
     /// Destructor.
-    virtual ~UpdatedLagrangianVElement();
+    ~UpdatedLagrangianVElement() override;
 
     ///@}
     ///@name Operators
@@ -153,7 +153,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Updated Lagrangian V Element #" << Id();
@@ -161,13 +161,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Updated Lagrangian V Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -274,9 +274,9 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
