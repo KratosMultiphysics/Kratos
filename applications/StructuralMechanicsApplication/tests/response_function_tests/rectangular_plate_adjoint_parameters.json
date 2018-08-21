@@ -49,7 +49,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "rectangular_plate_structure.DISPLACEMENT_DIR_BC",
-            "variable_name"   : "DISPLACEMENT",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
@@ -70,7 +70,7 @@
         }
      }],
     "loads_process_list"       : [],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -85,7 +85,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT", "SHAPE_SENSITIVITY"],
+            "nodal_results"       : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "DISPLACEMENT", "SHAPE_SENSITIVITY"],
             "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
         },
         "point_data_configuration"  : []
