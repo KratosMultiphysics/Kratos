@@ -230,7 +230,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                             "scaling"                        : false,
                             "block_size"                     : 3,
                             "use_block_matrices_if_possible" : true,
-                            "coarse_enough"                  : 10000
+                            "coarse_enough"                  : 1000
                         }
                         """)
                         amgcl_param["block_size"].SetInt(self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
