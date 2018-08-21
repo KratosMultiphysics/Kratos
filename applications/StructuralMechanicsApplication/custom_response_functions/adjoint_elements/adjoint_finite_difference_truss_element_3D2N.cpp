@@ -52,7 +52,7 @@ void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVa
                     rOutput(i) = force_vector[i][0];
                 break;
             }
-            case TracedStressType::PK2_TRUSS:
+            case TracedStressType::PK2:
             {
                 std::vector<Vector> stress_vector;
                 mpPrimalElement->GetValueOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
@@ -271,7 +271,7 @@ void AdjointFiniteDifferenceTrussElement::GetDerivativePreFactor(double& rDeriva
             rDerivativePreFactor = this->CalculateDerivativePreFactorFX(rCurrentProcessInfo);
             break;
         }
-        case TracedStressType::PK2_TRUSS:
+        case TracedStressType::PK2:
         {
             rDerivativePreFactor = this->CalculateDerivativePreFactorPK2(rCurrentProcessInfo);
             break;

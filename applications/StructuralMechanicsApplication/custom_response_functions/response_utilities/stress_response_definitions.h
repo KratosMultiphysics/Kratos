@@ -49,7 +49,7 @@ namespace Kratos
         MZX,
         MZY,
         MZZ,
-        PK2_TRUSS
+        PK2
     };
 
     enum class StressTreatment
