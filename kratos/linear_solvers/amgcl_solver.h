@@ -189,7 +189,7 @@ public:
         mCoarseEnough = ThisParameters["coarse_enough"].GetInt();
 
         mBlockSize = ThisParameters["block_size"].GetInt(); //set the mndof to an inital number
-        mMaxTolerance = ThisParameters["tolerance"].GetDouble();
+        mTolerance = ThisParameters["tolerance"].GetDouble();
         mMaxIterationsNumber = ThisParameters["max_iteration"].GetInt();
         mVerbosity=ThisParameters["verbosity"].GetInt();
         mGMRESSize = ThisParameters["gmres_krylov_space_dimension"].GetInt();
@@ -221,7 +221,7 @@ public:
      * @brief Default constructor - uses ILU+GMRES
      * @param Smoother The smoother type considered
      * @param Solver The solver type considered
-     * @param MaxTolerance tolerance that will be achieved by the iterative solver
+     * @param Tolerance tolerance that will be achieved by the iterative solver
      * @param MaxIterationsNumber this number represents both the number of iterations AND the size of the krylov space
      * @param Verbosity, a number from 0 (no output) to 2 (maximal output)
      * @param GMRESSize The size of the GMRES
@@ -229,11 +229,11 @@ public:
     AMGCLSolver(
         AMGCLSmoother Smoother,
         AMGCLIterativeSolverType Solver,
-        double MaxTolerance,
+        double Tolerance,
         int MaxIterationsNumber,
         int Verbosity,
         int GMRESSize = 50
-        ) : mMaxTolerance(MaxTolerance),
+        ) : mTolerance(Tolerance),
             mMaxIterationsNumber(MaxIterationsNumber),
             mVerbosity(Verbosity),
             mBlockSize(1),
@@ -258,7 +258,7 @@ public:
      * @param Smoother The smoother type considered
      * @param Solver The solver type considered
      * @param Coarsening The coarsening type considered
-     * @param MaxTolerance tolerance that will be achieved by the iterative solver
+     * @param Tolerance tolerance that will be achieved by the iterative solver
      * @param MaxIterationsNumber this number represents both the number of iterations AND the size of the krylov space
      * @param Verbosity, a number from 0 (no output) to 2 (maximal output)
      * @param GMRESSize The size of the GMRES
@@ -267,12 +267,12 @@ public:
         AMGCLSmoother Smoother,
         AMGCLIterativeSolverType Solver,
         AMGCLCoarseningType Coarsening,
-        double MaxTolerance,
+        double Tolerance,
         int MaxIterationsNumber,
         int Verbosity,
         int GMRESSize = 50,
         bool ProvideCoordinates = false
-        ) : mMaxTolerance(MaxTolerance),
+        ) : mTolerance(Tolerance),
             mMaxIterationsNumber(MaxIterationsNumber),
             mVerbosity(Verbosity),
             mBlockSize(1),
@@ -328,7 +328,7 @@ public:
             mAMGCLParameters.put("precond.coarsening.aggr.eps_strong",0.0);
             mAMGCLParameters.put("precond.coarsening.aggr.block_size",mBlockSize);
         }
-        mAMGCLParameters.put("solver.tol", mMaxTolerance);
+        mAMGCLParameters.put("solver.tol", mTolerance);
         mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
 
         mAMGCLParameters.put("precond.coarse_enough",mCoarseEnough/mBlockSize);
@@ -396,12 +396,12 @@ public:
             }
         } //please do not remove this parenthesis!
 
-        if(mFallbackToGMRES && resid > mMaxTolerance ) {
+        if(mFallbackToGMRES && resid > mTolerance ) {
             mAMGCLParameters.put("solver.type", "gmres");
             ScalarSolve(rA,rX,rB, iters, resid);
         }
 
-        KRATOS_WARNING_IF("AMGCL Linear Solver", mMaxTolerance < resid)<<"Non converged linear solution. ["<< resid << " > "<< mMaxTolerance << "]" << std::endl;
+        KRATOS_WARNING_IF("AMGCL Linear Solver", mTolerance < resid)<<"Non converged linear solution. ["<< resid << " > "<< mTolerance << "]" << std::endl;
 
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1)
                     << "Iterations: " << iters << std::endl
@@ -412,7 +412,7 @@ public:
         SetIterationsNumber(iters);
 
         // We check the convergence
-        if(resid > mMaxTolerance)
+        if(resid > mTolerance)
             return false;
 
         return true;
@@ -612,7 +612,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mMaxTolerance;             /// The tolerance considered
+    double mTolerance;                /// The tolerance considered
     IndexType mMaxIterationsNumber;   /// The maximum number of iterations considered
     int mVerbosity;                   /// The versoisty level
     int mBlockSize;                   /// The size of the dof block
