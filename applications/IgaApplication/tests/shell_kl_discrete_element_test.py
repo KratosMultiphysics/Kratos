@@ -228,7 +228,7 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
         self.assertAlmostEqual(surface.Node(2, 1).Z, -0.140899868451905)
         self.assertAlmostEqual(surface.Node(2, 2).Z, -0.141013552223511)
 
-    def testCantileverOneQuadraticSpanWithoutParameterDistortion(self):
+    def testCantileverOneQuadraticSpanWithParameterDistortion(self):
         def create_geometry(model_part):
             node_00 = model_part.CreateNewNode(1, 0.0, 0.0, 0)
             node_10 = model_part.CreateNewNode(2, 2.5, 0.0, 0)
