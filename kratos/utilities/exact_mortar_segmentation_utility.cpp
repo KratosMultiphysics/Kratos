@@ -585,8 +585,8 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactIntegration(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetExactIntegration(
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -632,8 +632,8 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactIntegratio
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactAreaIntegration(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetExactAreaIntegration(
     GeometryNodeType& OriginalSlaveGeometry,
     const array_1d<double, 3>& SlaveNormal,
     GeometryNodeType& OriginalMasterGeometry,
@@ -645,8 +645,10 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactAreaIntegr
     const bool is_inside = GetExactIntegration(OriginalSlaveGeometry, SlaveNormal, OriginalMasterGeometry, MasterNormal, conditions_points_slave);
     if (is_inside) {
         GetTotalArea(OriginalSlaveGeometry, conditions_points_slave, rArea);
-//         // Debugging
-//         MathematicaDebug(0, OriginalSlaveGeometry, 0, OriginalMasterGeometry, conditions_points_slave);
+        // Debugging
+        if (mEchoLevel > 1) {
+            MathematicaDebug(0, OriginalSlaveGeometry, 0, OriginalMasterGeometry, conditions_points_slave);
+        }
     }
 
     return is_inside;
@@ -655,8 +657,8 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactAreaIntegr
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetTotalArea(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetTotalArea(
     GeometryNodeType& OriginalSlaveGeometry,
     ConditionArrayListType& ConditionsPointsSlave,
     double& rArea
@@ -681,8 +683,8 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetTotalArea(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactIntegration(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGetExactIntegration(
     Condition::Pointer& SlaveCond,
     Condition::Pointer& MasterCond,
     Matrix& CustomSolution
@@ -712,8 +714,8 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactIntegr
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactAreaIntegration(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGetExactAreaIntegration(
     ModelPart& rMainModelPart,
     Condition::Pointer& SlaveCond
     )
@@ -747,8 +749,8 @@ double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactArea
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGiDDebug(ModelPart& rMainModelPart)
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGiDDebug(ModelPart& rMainModelPart)
 {
     if (TDim == 3) {
         ModelPart aux_model_part;
@@ -817,8 +819,8 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGiDDebug(Model
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetIntegrationMethod()
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetIntegrationMethod()
 {
     // Setting the auxiliar integration points
     switch (mIntegrationOrder) {
@@ -846,8 +848,8 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetIntegrationMeth
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-GeometryNodeType::IntegrationPointsArrayType ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetIntegrationTriangle()
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+GeometryNodeType::IntegrationPointsArrayType ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetIntegrationTriangle()
 {
     // Setting the auxiliar integration points
     switch (mIntegrationOrder) {
@@ -869,8 +871,8 @@ GeometryNodeType::IntegrationPointsArrayType ExactMortarIntegrationUtility<TDim,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::PushBackPoints(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::PushBackPoints(
     VectorPoints& PointList,
     const array_1d<bool, TNumNodes>& AllInside,
     GeometryPointType& ThisGeometry
@@ -892,8 +894,8 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::PushBackPoi
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::PushBackPoints(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::PushBackPoints(
     VectorPointsBelong& PointList,
     const array_1d<bool, TNumNodes>& AllInside,
     GeometryPointType& ThisGeometry,
@@ -924,8 +926,8 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::PushBackPoi
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::CheckInside(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::CheckInside(
     array_1d<bool, TNumNodes>& AllInside,
     GeometryPointType& Geometry1,
     GeometryPointType& Geometry2,
@@ -941,8 +943,8 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::CheckInside
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-inline std::vector<std::size_t> ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::ComputeAnglesIndexes(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+inline std::vector<std::size_t> ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::ComputeAnglesIndexes(
     PointListType& PointList,
     const array_1d<double, 3>& Normal
     ) const
@@ -975,8 +977,8 @@ inline std::vector<std::size_t> ExactMortarIntegrationUtility<TDim, TNumNodes, T
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::ComputeClippingIntersections(
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::ComputeClippingIntersections(
     PointListType& PointList,
     GeometryPointType& Geometry1,
     GeometryPointType& Geometry2,
@@ -1023,9 +1025,9 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::ComputeClip
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 template <class TGeometryType>
-inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TriangleIntersections(
+inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TriangleIntersections(
     ConditionArrayListType& ConditionsPointsSlave,
     PointListType& PointList,
     TGeometryType& OriginalSlaveGeometry,
@@ -1114,8 +1116,8 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TriangleInt
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong>
-inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::CheckCenterIsInside(const array_1d<double, 2>& AuxiliarCenterLocalCoordinates)
+template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
+inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::CheckCenterIsInside(const array_1d<double, 2>& AuxiliarCenterLocalCoordinates)
 {
     if (TNumNodes == 3) {
         if ( (AuxiliarCenterLocalCoordinates[0] >= (0.0-ZeroTolerance)) && (AuxiliarCenterLocalCoordinates[0] <= (1.0+ZeroTolerance)) ) {
@@ -1142,9 +1144,13 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::CheckCenter
 template class ExactMortarIntegrationUtility<2, 2, false>;
 template class ExactMortarIntegrationUtility<3, 3, false>;
 template class ExactMortarIntegrationUtility<3, 4, false>;
+// template class ExactMortarIntegrationUtility<3, 3, false, 4>;
+// template class ExactMortarIntegrationUtility<3, 4, false, 3>;
 
 template class ExactMortarIntegrationUtility<2, 2, true>;
 template class ExactMortarIntegrationUtility<3, 3, true>;
 template class ExactMortarIntegrationUtility<3, 4, true>;
+// template class ExactMortarIntegrationUtility<3, 3, true, 4>;
+// template class ExactMortarIntegrationUtility<3, 4, true, 3>;
 
 }  // namespace Kratos.

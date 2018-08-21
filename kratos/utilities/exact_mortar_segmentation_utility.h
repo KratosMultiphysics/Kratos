@@ -58,6 +58,9 @@ namespace Kratos {
     typedef IntegrationPoint<2> IntegrationPointType;
     typedef GeometryNodeType::IntegrationPointsArrayType IntegrationPointsType;
 
+    /// The definition of the size type
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -77,7 +80,7 @@ namespace Kratos {
  * @details The utility performs a mortar segmentation in order to obtain the exact integration of the geometry intersected
  * @author Vicente Mataix Ferrandiz
  */
-template <unsigned int TDim, unsigned int TNumNodes, bool TBelong = false>
+template <SizeType TDim, SizeType TNumNodes, bool TBelong = false, SizeType TNumNodesMaster = TNumNodes>
 class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility
 {
 public:
@@ -126,8 +129,8 @@ public:
     /// The definition of the index type
     typedef std::size_t IndexType;
 
-    /// The definition of the size type
-    typedef std::size_t SizeType;
+    /// Current class definition
+//     typedef ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster> ExactMortarIntegrationUtilityType;
 
     /// Definition of epsilon
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -268,9 +271,9 @@ public:
     * @param ConditionsPointSlave The triangular decomposition
     */
     static inline void MathematicaDebug(
-        const unsigned int IndexSlave,
+        const IndexType IndexSlave,
         GeometryType& SlaveGeometry,
-        const unsigned int IndexMaster,
+        const IndexType IndexMaster,
         GeometryType& MasterGeometry,
         ConditionArrayListType& ConditionsPointSlave
         )
@@ -306,7 +309,7 @@ public:
 
         for (IndexType i_geom = 0; i_geom < ConditionsPointSlave.size(); ++i_geom) {
             std::vector<PointType::Pointer> points_array(3);  // The points are stored as local coordinates, we calculate the global coordinates of this points
-            for (unsigned int i_node = 0; i_node < 3; ++i_node) {
+            for (IndexType i_node = 0; i_node < 3; ++i_node) {
                 PointType global_point;
                 SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointSlave[i_geom][i_node]);
                 points_array[i_node] = Kratos::make_shared<PointType>(global_point);
