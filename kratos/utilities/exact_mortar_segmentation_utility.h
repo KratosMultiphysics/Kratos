@@ -619,9 +619,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    const SizeType mEchoLevel;               /// The echo level considered
     const SizeType mIntegrationOrder;        /// The integration order to consider
     const double mDistanceThreshold;         /// The distance where we directly  consider out of integration limits
+    const SizeType mEchoLevel;               /// The echo level considered
     IntegrationMethod mAuxIntegrationMethod; /// The auxiliar list of Gauss Points taken from the geometry
 
     ///@}
