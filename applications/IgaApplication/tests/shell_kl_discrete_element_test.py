@@ -21,7 +21,7 @@ def GetFilePath(fileName):
 
 
 class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
-    def solve_cantilever(self, create_geometry):
+    def solve_cantilever(create_geometry):
         model_part = ModelPart('Model')
 
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
@@ -208,7 +208,7 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
 
             return surface
 
-        surface = self.solve_cantilever(create_geometry)
+        surface = ShellKLDiscreteElementTest.solve_cantilever(create_geometry)
 
         for i in range(surface.NbPolesU):
             for j in range(surface.NbPolesV):
@@ -272,7 +272,7 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
 
             return surface
 
-        surface = self.solve_cantilever(create_geometry)
+        surface = ShellKLDiscreteElementTest.solve_cantilever(create_geometry)
 
         for i in range(surface.NbPolesU):
             for j in range(surface.NbPolesV):
