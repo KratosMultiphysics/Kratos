@@ -70,26 +70,6 @@
         }
      }],
     "loads_process_list"       : [],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "DISPLACEMENT", "SHAPE_SENSITIVITY"],
-            "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
-        },
-        "point_data_configuration"  : []
-    },
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,
