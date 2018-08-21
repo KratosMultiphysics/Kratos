@@ -31,14 +31,13 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
 
         # create property for shell elements
 
-        shell_properties = Properties(1)
+        shell_properties = model_part.GetProperties()[1]
         shell_properties.SetValue(THICKNESS       , 0.1      )
         shell_properties.SetValue(YOUNG_MODULUS   , 210000000)
         shell_properties.SetValue(POISSON_RATIO   , 0        )
         shell_properties.SetValue(DENSITY         , 78.5     )
         shell_properties.SetValue(CONSTITUTIVE_LAW,
             LinearElasticPlaneStress2DLaw())
-        model_part.AddProperties(shell_properties)
 
         # create a node based geometry
 
@@ -112,8 +111,7 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
 
         # apply neumann conditions
 
-        prop = Properties(2)
-        model_part.AddProperties(prop)
+        prop = model_part.GetProperties()[2]
 
         node_n0 = surface.Node(surface.NbPolesU - 1, 0)
         node_nm = surface.Node(surface.NbPolesU - 1, surface.NbPolesV - 1)

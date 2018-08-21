@@ -21,13 +21,12 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
         # create property for truss elements
 
-        truss_properties = Properties(1)
+        truss_properties = model_part.GetProperties()[1]
         truss_properties.SetValue(CROSS_AREA      , 0.01  )
         truss_properties.SetValue(PRESTRESS_CAUCHY, 0     )
         truss_properties.SetValue(YOUNG_MODULUS   , 210000)
         truss_properties.SetValue(POISSON_RATIO   , 0     )
         truss_properties.SetValue(DENSITY         , 7856  )
-        model_part.AddProperties(truss_properties)
 
         # create a node based geometry
 
@@ -79,10 +78,9 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
         # apply neumann conditions
 
-        prop = Properties(2)
-        model_part.AddProperties(prop)
+        prop = model_part.GetProperties()[2]
 
-        model_part.CreateNewCondition('PointLoadCondition3D1N', 1, [node_2.Id],
+        model_part.CreateNewCondition('PointLoadCondition3D1N', 2, [node_2.Id],
             prop)
 
         node_2.SetSolutionStepValue(POINT_LOAD_X, 1000)
