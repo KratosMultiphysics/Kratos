@@ -75,7 +75,7 @@ public:
 
 
     /// Destructor.
-    virtual ~TransferComputingModelPartEntitiesProcess() {}
+    ~TransferComputingModelPartEntitiesProcess() override {}
 
 
     ///@}

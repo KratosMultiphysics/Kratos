@@ -84,7 +84,7 @@ public:
     SmallDisplacementElement(SmallDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementElement();
+    ~SmallDisplacementElement() override;
 
     ///@}
     ///@name Operators
@@ -260,9 +260,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

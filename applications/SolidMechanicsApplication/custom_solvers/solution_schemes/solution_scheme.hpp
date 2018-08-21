@@ -135,7 +135,7 @@ class SolutionScheme : public Flags
   }
 
   /// Destructor.
-  virtual ~SolutionScheme() {}
+  ~SolutionScheme() override {}
 
   ///@}
   ///@name Operators

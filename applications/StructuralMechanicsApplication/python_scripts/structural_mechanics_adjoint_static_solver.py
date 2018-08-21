@@ -124,4 +124,5 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         return mechanical_solution_strategy
 
     def _create_solution_scheme(self):
+        self.scheme_settings.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         return StructuralMechanicsApplication.AdjointStructuralStaticScheme(self.scheme_settings, self.response_function)

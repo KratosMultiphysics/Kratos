@@ -147,7 +147,7 @@ namespace Kratos {
     KratosConstitutiveModelsApplication();
 
     /// Destructor.
-    virtual ~KratosConstitutiveModelsApplication(){}
+    ~KratosConstitutiveModelsApplication() override{}
 
 
     ///@}
@@ -159,7 +159,7 @@ namespace Kratos {
     ///@name Operations
     ///@{
 
-    virtual void Register() override;
+    void Register() override;
 
 
 
