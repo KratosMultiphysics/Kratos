@@ -94,7 +94,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
         time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         linear_solver = new_linear_solver_factory.ConstructSolver(Parameters(
-            r"""{"solver_type": "eigen_sparse_lu"}"""))
+            r'{"solver_type": "SkylineLUFactorizationSolver"}'))
 
         relative_tolerance = 1e-7
         absolute_tolerance = 1e-7
