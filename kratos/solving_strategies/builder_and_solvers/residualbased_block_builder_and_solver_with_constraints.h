@@ -111,8 +111,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      */
     explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver),
-          mConstraintImposer(mGlobalMasterSlaveConstraints)
+        : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
     }
 
@@ -322,6 +321,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
+        ConstraintImposerType constraint_imposer(mGlobalMasterSlaveConstraints);
 
         const std::size_t equation_size = BaseType::mEquationSystemSize;
 
@@ -345,12 +345,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         Element::EquationIdVectorType ids(3, 0);
 
         const int nelements = static_cast<int>(rModelPart.Elements().size());
-#pragma omp parallel for firstprivate(nelements, ids, mConstraintImposer)
+#pragma omp parallel for firstprivate(nelements, ids, constraint_imposer)
         for (int iii = 0; iii < nelements; iii++)
         {
             typename ElementsContainerType::iterator i_element = rModelPart.Elements().begin() + iii;
             pScheme->EquationId(*(i_element.base()), ids, rModelPart.GetProcessInfo());
-            mConstraintImposer.template ApplyConstraints<Element>(*i_element, ids, rModelPart.GetProcessInfo());
+            constraint_imposer.template ApplyConstraints<Element>(*i_element, ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -366,12 +366,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
 
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-#pragma omp parallel for firstprivate(nconditions, ids, mConstraintImposer)
+#pragma omp parallel for firstprivate(nconditions, ids, constraint_imposer)
         for (int iii = 0; iii < nconditions; iii++)
         {
             typename ConditionsArrayType::iterator i_condition = rModelPart.Conditions().begin() + iii;
             pScheme->Condition_EquationId(*(i_condition.base()), ids, rModelPart.GetProcessInfo());
-            mConstraintImposer.template ApplyConstraints<Condition>(*i_condition, ids, rModelPart.GetProcessInfo());
+            constraint_imposer.template ApplyConstraints<Condition>(*i_condition, ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -437,6 +437,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_TRY
 
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+        ConstraintImposerType constraint_imposer(mGlobalMasterSlaveConstraints);
 
         // Getting the elements from the model
         const int nelements = static_cast<int>(rModelPart.Elements().size());
@@ -459,7 +460,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, mConstraintImposer)
+#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, constraint_imposer)
         {
 #pragma omp for schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++)
@@ -476,7 +477,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    mConstraintImposer.template ApplyConstraints<Element>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    constraint_imposer.template ApplyConstraints<Element>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -505,7 +506,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 {
                     //calculate elemental contribution
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    mConstraintImposer.template ApplyConstraints<Condition>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    constraint_imposer.template ApplyConstraints<Condition>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -555,7 +556,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
     // This is the set of condenced global constraints.
     GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveConstraints; //This can be changed to more efficient implementation later on.
-    ConstraintImposerType mConstraintImposer;
 
     ///@}
     ///@name Private Operators
