@@ -27,6 +27,7 @@ ImposeRigidMovementProcess::ImposeRigidMovementProcess(
 {
     Parameters default_parameters = Parameters(R"(
     {
+        "model_part_name"             : "please_specify_model_part_name",
         "new_model_part_name"         : "Rigid_Movement_ModelPart",
         "master_variable_name"        : "DISPLACEMENT",
         "slave_variable_name"         : "",
@@ -58,8 +59,9 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
 
     // Getting model parts
     ModelPart& root_model_part = mrThisModelPart.GetRootModelPart();
+    ModelPart& model_part = root_model_part.GetSubModelPart(mThisParameters["model_part_name"].GetString());
     const std::string& new_model_part_name = mThisParameters["new_model_part_name"].GetString();
-    ModelPart& rigid_model_part = mrThisModelPart.HasSubModelPart(new_model_part_name) ? mrThisModelPart.GetSubModelPart(new_model_part_name) : mrThisModelPart.CreateSubModelPart(new_model_part_name);
+    ModelPart& rigid_model_part = model_part.HasSubModelPart(new_model_part_name) ? model_part.GetSubModelPart(new_model_part_name) : model_part.CreateSubModelPart(new_model_part_name);
 
     // Reorder constrains
     IndexType constrain_id = 1;
