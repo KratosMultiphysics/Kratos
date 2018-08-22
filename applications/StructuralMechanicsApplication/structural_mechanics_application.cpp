@@ -149,7 +149,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferenceCrBeamElement(),
       mAdjointFiniteDifferenceTrussElement(),
       mAdjointFiniteDifferenceTrussLinearElement(),
-    
+
       /* CONDITIONS */
       // Adding point load conditions
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
@@ -370,6 +370,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( IS_ADJOINT );
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SHAPE );
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_NL_SENSITIVITY)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NL_SENSITIVITY_FIRST_ORDER)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NL_SENSITIVITY_SECOND_ORDER)
 
     // Variables to for computing parts of sensitivity analysis
     KRATOS_REGISTER_VARIABLE( TRACED_STRESS_TYPE );
