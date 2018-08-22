@@ -25,7 +25,6 @@
 #include "custom_python/add_meshers_to_python.h"
 #include "custom_python/add_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 
 namespace Kratos
 {
@@ -48,7 +47,6 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
     AddMeshersToPython(m);
     AddProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
-    AddCustomStrategiesToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AVERAGE_NODAL_ERROR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ANISOTROPIC_RATIO)

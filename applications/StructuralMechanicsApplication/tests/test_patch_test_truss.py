@@ -105,7 +105,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-16,1e-24)
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000
@@ -131,7 +131,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(0.00)
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-8,1e-8)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-16,1e-24)
         convergence_criterion.SetEchoLevel(0)
 
         max_iters = 1000

@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
-//                    
+//
 //
 
 #if !defined(KRATOS_TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED )
@@ -34,7 +34,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 1> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -74,7 +74,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 3> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 3> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -116,7 +116,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -159,13 +159,13 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 6> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 6> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
-    static SizeType IntegrationPointsNumber()    
-    {  
-        return 6; 
+    static SizeType IntegrationPointsNumber()
+    {
+        return 6;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -210,13 +210,13 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 12> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 12> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
-    static SizeType IntegrationPointsNumber()    
-    {  
-        return 12; 
+    static SizeType IntegrationPointsNumber()
+    {
+        return 12;
     }
 
     static IntegrationPointsArrayType& IntegrationPoints()
@@ -224,7 +224,7 @@ public:
         const double wa = 0.025422453185103408460;
         const double wb = 0.058393137863189683013;
         const double wc = 0.041425537809186787597;
-        
+
         const double N1 = 0.87382197101699554332;
         const double N2 = 0.063089014491502228340;
         const double N3 = 0.50142650965817915742;
@@ -277,6 +277,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_TRIANGLE_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

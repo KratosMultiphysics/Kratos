@@ -76,19 +76,19 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("Execute", &AssignScalarVariableToEntitiesProcess::Execute)
       ;
 
-  class_<AssignScalarFieldToEntitiesProcess, AssignScalarFieldToEntitiesProcess::Pointer, Process>(m,"AssignScalarFieldToEntitiesProcess")
+  class_<AssignScalarFieldToEntitiesProcess, AssignScalarFieldToEntitiesProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignScalarFieldToEntitiesProcess")
       .def(init<ModelPart&, pybind11::object&, const std::string, const bool, Parameters>())
       .def(init< ModelPart&, pybind11::object&, const std::string, const bool, Parameters& >())
       .def("Execute", &AssignScalarFieldToEntitiesProcess::Execute)
       ;
 
-  class_<AssignVectorFieldToEntitiesProcess, AssignVectorFieldToEntitiesProcess::Pointer, Process>(m,"AssignVectorFieldToEntitiesProcess")
+  class_<AssignVectorFieldToEntitiesProcess, AssignVectorFieldToEntitiesProcess::Pointer, AssignScalarFieldToEntitiesProcess>(m,"AssignVectorFieldToEntitiesProcess")
       .def(init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
       .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
       .def("Execute", &AssignVectorFieldToEntitiesProcess::Execute)
       ;
 
-  class_<AssignVectorVariableToConditionsProcess, AssignVectorVariableToConditionsProcess::Pointer, Process>(m,"AssignVectorToConditionsProcess")
+  class_<AssignVectorVariableToConditionsProcess, AssignVectorVariableToConditionsProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignVectorToConditionsProcess")
       .def(init<ModelPart&, Parameters>())
       .def(init< ModelPart&, Parameters& >())
       .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
