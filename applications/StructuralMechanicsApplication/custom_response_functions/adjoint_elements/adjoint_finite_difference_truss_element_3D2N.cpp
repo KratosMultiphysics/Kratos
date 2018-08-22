@@ -183,11 +183,26 @@ double AdjointFiniteDifferenceTrussElement::GetPerturbationSizeModificationFacto
     KRATOS_TRY;
 
     if(rDesignVariable == SHAPE)
-        return this->GetGeometry().Length();
+        return this->CalculateReferenceLength();
     else
         return 1.0;
 
     KRATOS_CATCH("")
+}
+
+double AdjointFiniteDifferenceTrussElement::CalculateReferenceLength()
+{
+  KRATOS_TRY;
+  const double numerical_limit = std::numeric_limits<double>::epsilon();
+  const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+  const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+  const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+  const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
+
+  KRATOS_DEBUG_ERROR_IF(L <= numerical_limit)
+   << "Reference Length of element" << this->Id() << "~ 0" << std::endl;
+  return L;
+  KRATOS_CATCH("")
 }
 
 double AdjointFiniteDifferenceTrussElement::CalculateCurrentLength()
@@ -209,7 +224,7 @@ double AdjointFiniteDifferenceTrussElement::CalculateCurrentLength()
     const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
                                (dw + dz) * (dw + dz));
 
-    KRATOS_DEBUG_ERROR_IF(l<=numerical_limit)
+    KRATOS_DEBUG_ERROR_IF(l <= numerical_limit)
         << "Current Length of element" << this->Id() << "~ 0" << std::endl;
     return l;
     KRATOS_CATCH("")
@@ -273,7 +288,7 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorFX(const
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
     const double A = mpPrimalElement->GetProperties()[CROSS_AREA];
-    const double l_0 = this->GetGeometry().Length();
+    const double l_0 = CalculateReferenceLength();
     const double l = CalculateCurrentLength();
     double prestress = 0.0;
     if (mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2))
@@ -295,7 +310,7 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorPK2(cons
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
     const double l = CalculateCurrentLength();
-    const double l_0 = this->GetGeometry().Length();
+    const double l_0 = CalculateReferenceLength();
     double derivative_pre_factor = E * l / (l_0 * l_0);
 
     KRATOS_DEBUG_ERROR_IF(derivative_pre_factor<=numerical_limit)

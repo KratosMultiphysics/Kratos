@@ -60,6 +60,8 @@ private:
 
     double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
+    double CalculateReferenceLength();
+
     double CalculateCurrentLength();
 
     /**
