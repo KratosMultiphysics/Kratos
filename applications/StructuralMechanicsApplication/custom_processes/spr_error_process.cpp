@@ -116,7 +116,7 @@ void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
                 Vector sigma_recovered_i(SigmaSize,0);
 
                 IndexType count_i = 0;
-                for(IndexType i_node_loop = 0; i_node_loop < num_nodes; ++i_node_loop) { // FIXME: Avoid this double loop, extreamily expensive
+                for(int i_node_loop = 0; i_node_loop < num_nodes; ++i_node_loop) { // FIXME: Avoid this double loop, extreamily expensive
                     auto it_node_loop = nodes_array.begin() + i_node_loop;
                     const SizeType size_elem_neigh = it_node_loop->GetValue(NEIGHBOUR_ELEMENTS).size();
                     if (it_node_loop->Id() == it_neighbour_nodes->Id() && size_elem_neigh > TDim){
