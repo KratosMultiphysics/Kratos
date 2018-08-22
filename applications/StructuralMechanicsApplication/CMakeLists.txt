@@ -139,7 +139,6 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
 )
 
