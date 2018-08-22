@@ -54,14 +54,18 @@ public:
     /// Pointer definition of ImposeRigidMovementProcess
     KRATOS_CLASS_POINTER_DEFINITION(ImposeRigidMovementProcess);
     
-    // General type definitions
-    typedef Node<3>                                              NodeType;
+    /// General type definitions
+    typedef Node<3>                                                      NodeType;
 
-    typedef VectorComponentAdaptor< array_1d< double, 3 > > ComponentType;
+    /// General containers type definitions
+    typedef ModelPart::MasterSlaveConstraintContainerType ConstraintContainerType;
 
-    // Definitions of the integers
-    typedef std::size_t                                         IndexType;
-    typedef std::size_t                                          SizeType;
+    /// Component definition
+    typedef VectorComponentAdaptor< array_1d< double, 3 > >         ComponentType;
+
+    /// Definitions of the integers
+    typedef std::size_t                                                 IndexType;
+    typedef std::size_t                                                  SizeType;
 
     ///@}
     ///@name Life Cycle
