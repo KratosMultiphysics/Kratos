@@ -25,6 +25,7 @@
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
+#include "custom_processes/impose_rigid_movement_process.h"
 
 
 namespace Kratos
@@ -59,6 +60,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     class_<ShellToSolidShellProcess<4>, ShellToSolidShellProcess<4>::Pointer, Process>(m, "QuadrilateralShellToSolidShellProcess")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        ;
+
+    class_<ImposeRigidMovementProcess, ImposeRigidMovementProcess::Pointer, Process>(m, "ImposeRigidMovementProcess")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
         ;
