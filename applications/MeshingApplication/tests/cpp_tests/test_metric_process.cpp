@@ -234,7 +234,7 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestLevelSetMetricProcess1, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(LevelSetMetricProcess1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -285,7 +285,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestLevelSetMetricProcess2, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(LevelSetMetricProcess2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -341,7 +341,7 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestHessianMetricProcess1, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(HessianMetricProcess1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -388,7 +388,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestHessianMetricProcess2, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(HessianMetricProcess2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -439,7 +439,7 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSPRMetricProcess1, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SPRMetricProcess1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -492,8 +492,8 @@ namespace Kratos
             const double tolerance = 1.0e-4;
             array_1d<double, 3> ref_metric(3);
             ref_metric[0] = 246.507;
-            ref_metric[1] = 0;
-            ref_metric[2] = 246.507;
+            ref_metric[1] = 246.507;
+            ref_metric[2] = 0;
 
             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric)/norm_2(ref_metric), tolerance);
             KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_2D) - ref_metric)/norm_2(ref_metric), tolerance);
@@ -504,7 +504,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSPRMetricProcess2, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SPRMetricProcess2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);

@@ -49,7 +49,7 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess1, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MMGProcess1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -103,8 +103,8 @@ namespace Kratos
             // Set DISTANCE and other variables
             Vector ref_metric(3);
             ref_metric[0] = 1.0;
-            ref_metric[1] = 0;
-            ref_metric[2] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 0.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->SetValue(METRIC_TENSOR_2D, ref_metric);
@@ -137,7 +137,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess2, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MMGProcess2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -259,10 +259,10 @@ namespace Kratos
                 i_elem.Set(ACTIVE, true);
 
             // Set DISTANCE and other variables
-            Vector ref_metric = ZeroVector(6);
+            array_1d<double, 6> ref_metric = ZeroVector(6);
             ref_metric[0] = 1.0;
-            ref_metric[3] = 1.0;
-            ref_metric[5] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 1.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->SetValue(METRIC_TENSOR_3D, ref_metric);

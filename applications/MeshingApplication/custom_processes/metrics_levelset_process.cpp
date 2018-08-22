@@ -161,7 +161,7 @@ array_1d<double, 6> ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTen
     const double ElementSize
     )
 {
-    array_1d<double, 3> metric;
+    array_1d<double, 6> metric;
 
     const double coeff_0 = 1.0/(ElementSize * ElementSize);
     const double coeff_1 = coeff_0/(Ratio * Ratio);
