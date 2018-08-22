@@ -13,6 +13,9 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/iga_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/iga_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/curve_base_discrete_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_discrete_element.cpp
 )
 
 # define library Kratos which defines the basic python interface

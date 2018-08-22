@@ -15,14 +15,13 @@ export LIBC_FATAL_STDERR_=1
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/libs:/home/ubuntu/CompiledLibs/clang-3.8.0-16.04-prebuilt/lib
 export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 
-## Step0: Let it rest some time so the unassisted updated can finish
-sleep 300 # 5 minutes
+## Step0: Prevent apt-get from triggering before the unasisted updates have finished
+while fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
+  echo "Waiting for apt-get to finish"
+done
 
-# Install packages needed by the hdf5 app
-sudo apt-get install -y python3-h5py libhdf5-dev
-
-# Install packaged nedded by the mailing
-sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
+# Install dependencies
+sudo apt-get install -y python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
 
 ## Step1: Prepare
 cd ${HOME}
