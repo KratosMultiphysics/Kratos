@@ -42,7 +42,6 @@ KRATOS_DEFINE_VARIABLE(double, AVERAGE_NODAL_ERROR);                          //
 KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);                            // The anisotropic aspect ratio
 KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);                           // An auxiliar gradient needed to compute the metric
 KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);                            // An auxiliar hessian needed to compute the metric
-KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);                                  // The condensed metric used to remesh with MMG utility
 KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
 KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
 
