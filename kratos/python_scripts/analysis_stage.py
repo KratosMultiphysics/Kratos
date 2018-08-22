@@ -105,6 +105,8 @@ class AnalysisStage(object):
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
 
+        self._GetSolver().Finalize()   
+          
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 

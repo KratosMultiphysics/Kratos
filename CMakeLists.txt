@@ -194,10 +194,10 @@ endif(USE_COTIRE MATCHES ON)
 include(pybind11Tools)
 
 # Reset pybind11 config and remove -LTO on FullDebug to speedup linking time,
-if(CMAKE_CONFIGURATION_TYPES MATCHES FullDebug)
+if(CMAKE_BUILD_TYPE MATCHES FullDebug)
     set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
     set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
-endif(CMAKE_CONFIGURATION_TYPES MATCHES FullDebug)
+endif(CMAKE_BUILD_TYPE MATCHES FullDebug)
 
 ######################################################################################
 ######################################################################################

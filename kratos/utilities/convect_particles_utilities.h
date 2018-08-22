@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pablo Becker
-//                    
+//
 //
 
 #if !defined(KRATOS_CONVECT_PARTICLES_UTILITIES_INCLUDED )
@@ -81,7 +81,7 @@ public:
         //do movement
         array_1d<double, 3 > veulerian;
         array_1d<double, 3 > acc_particle;
-        Vector N;
+        Vector N(TDim + 1);
         const int max_results = rModelPart.Nodes().size();
 
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
@@ -173,7 +173,11 @@ public:
 
         //do movement
         array_1d<double, 3 > v1,v2,v3,v4,vtot,x;
+<<<<<<< HEAD
         Vector N;
+=======
+        Vector N(TDim + 1);
+>>>>>>> 41f87618ace4211dd58ead5fba297e35b9468f05
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
@@ -254,7 +258,7 @@ public:
 
             iparticle->FastGetSolutionStepValue(DISPLACEMENT) = x - iparticle->GetInitialPosition();
             noalias(pparticle->Coordinates()) = x;
-            
+
             end_of_particle:  (iparticle)->Set(TO_ERASE, true);
         }
 

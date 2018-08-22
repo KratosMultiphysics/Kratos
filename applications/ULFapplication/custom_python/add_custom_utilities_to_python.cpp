@@ -52,16 +52,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+
 
 
 // Project includes
+#include <pybind11/pybind11.h>
 #include "includes/define.h"
+#include "includes/model_part.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/ulf_utilities.h"
 #include "custom_utilities/nist_utilities.h"
 #include "custom_utilities/assign_point_neumann_conditions.h"
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -84,11 +89,12 @@ void GenerateModelPart(NistUtils& NistUtils,ModelPart& origin_model_part,ModelPa
     }
 }
 
-void  AddCustomUtilitiesToPython()
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<UlfUtils>("UlfUtils", init<>())
+    class_<UlfUtils>(m,"UlfUtils")
+    .def(init<>())
     .def ("CalculateFreeSurfaceArea", &UlfUtils::CalculateFreeSurfaceArea)
     .def("ApplyBoundaryConditions",&UlfUtils::ApplyBoundaryConditions)
     .def("ApplyMinimalPressureConditions",&UlfUtils::ApplyMinimalPressureConditions)
@@ -120,13 +126,15 @@ void  AddCustomUtilitiesToPython()
 
     ;
 
-    class_<NistUtils>("NistUtils", init<>())
-    .def("GenerateModelPart",GenerateModelPart)
-    .def("ApplyInitialTemperature",&NistUtils::ApplyInitialTemperature)
-    .def("FindFluidLevel",&NistUtils::FindFluidLevel)
-    ;
+    class_<NistUtils>(m,"NistUtils")
+        .def(init<>())
+        .def("GenerateModelPart",GenerateModelPart)
+        .def("ApplyInitialTemperature",&NistUtils::ApplyInitialTemperature)
+        .def("FindFluidLevel",&NistUtils::FindFluidLevel)
+        ;
 
-   class_<AssignPointNeumannConditions > ("AssignPointNeumannConditions", init<>())
+   class_<AssignPointNeumannConditions > (m,"AssignPointNeumannConditions")
+    .def(init<>())
     .def("AssignPointNeumannConditionsDisp", &AssignPointNeumannConditions::AssignPointNeumannConditionsDisp)
     .def("AssignPointNeumannConditionsDispAxisym", &AssignPointNeumannConditions::AssignPointNeumannConditionsDispAxisym)
     //.def("AssignPointNeumannConditionsMonolithic2D", &AssignPointNeumannConditions::AssignPointNeumannConditionsMonolithic2D)

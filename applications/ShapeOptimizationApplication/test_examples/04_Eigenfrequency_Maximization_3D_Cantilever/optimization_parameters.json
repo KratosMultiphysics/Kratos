@@ -13,7 +13,8 @@
                 "weighting_method"       : "linear_scaling",
                 "weighting_factors"      : [1.0, 1.0],
                 "consider_discretization": false
-            }
+            },
+            "project_gradient_on_surface_normals" : true
         }],
         "constraints" : [{
             "identifier" : "mass",
@@ -28,7 +29,8 @@
                 "gradient_mode"          : "finite_differencing",
                 "step_size"              : 1e-8,
                 "consider_discretization": false
-            }
+            },
+            "project_gradient_on_surface_normals" : true
         }],
         "design_variables" : {
             "type"                               : "vertex_morphing",
@@ -73,17 +75,16 @@
             }
         },
         "optimization_algorithm" : {
-            "name"                                 : "penalized_projection",
-            "correction_scaling"                   : 0.1,
-            "use_adaptive_correction"              : true,
-            "max_iterations"                       : 100,
-            "relative_tolerance"                   : 1e-04,
-            "project_gradients_on_surface_normals" : true
-        },
-        "line_search" : {
-            "line_search_type"           : "manual_stepping",
-            "normalize_search_direction" : true,
-            "step_size"                  : 0.005
+            "name"                    : "penalized_projection",
+            "correction_scaling"      : 0.1,
+            "use_adaptive_correction" : true,
+            "max_iterations"          : 100,
+            "relative_tolerance"      : 1e-04,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 0.005
+            }
         },
         "output" : {
             "output_directory"        : "Optimization_Results",
@@ -91,8 +92,8 @@
             "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteOptimizationModelPart",
             "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
-                                          "OBJECTIVE_SENSITIVITY",
-                                          "CONSTRAINT_SENSITIVITY",
+                                          "DF1DX",
+                                          "DC1DX",
                                           "SEARCH_DIRECTION",
                                           "SHAPE_UPDATE",
                                           "SHAPE_CHANGE" ],

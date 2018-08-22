@@ -5,8 +5,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -41,8 +41,6 @@
 #include "utilities/divide_elem_utils.h"
 #include "utilities/timer.h"
 
-//#include "spatial_containers/bounding_box.h"
-#include "utilities/bounding_box_utilities.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/geometry_tester.h"
@@ -54,6 +52,7 @@
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/variable_redistribution_utility.h"
 
 namespace Kratos
 {
@@ -133,8 +132,11 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Vector>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Matrix>>)
         .def("SetVectorVar", &VariableUtils::SetVectorVar)
+        .def("SetVectorVar", &VariableUtils::SetVectorVarForFlag)
         .def("SetScalarVar", &VariableUtils::SetScalarVar<Variable<double>>)
         .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<Variable<double>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
         .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVectorVar)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<Variable<double>>)
         .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
@@ -143,6 +145,11 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SetVariable", &VariableUtils::SetVariable<array_1d<double, 3>>)
         .def("SetVariable", &VariableUtils::SetVariable<Vector>)
         .def("SetVariable", &VariableUtils::SetVariable<Matrix>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<bool>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<double>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<array_1d<double, 3>>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<Vector>)
+        .def("SetVariable", &VariableUtils::SetVariableForFlag<Matrix>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
@@ -158,9 +165,25 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Vector, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Matrix, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<bool, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<double, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 3>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Vector, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Matrix, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<bool, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<double, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 3>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Vector, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Matrix, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<bool, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<double, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 3>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Vector, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Matrix, ModelPart::ElementsContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::NodesContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ConditionsContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ElementsContainerType>)
+        .def("SetFlag", &VariableUtils::SetFlag<ModelPart::MasterSlaveConstraintContainerType>)
         .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
         .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
         .def("SaveVectorNonHistoricalVar", &VariableUtils::SaveVectorNonHistoricalVar)
@@ -293,15 +316,15 @@ void AddUtilitiesToPython(pybind11::module& m)
     ;
 
 
-    // 	  class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
-    // 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
+    //    class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
+    //            .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
     //                           .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
-    // 			  ;
+    //            ;
     //
-    // 	  class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
-    // 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
+    //    class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
+    //            .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
     //                           .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
-    // 			  ;
+    //            ;
 
     class_<DivideElemUtils >(m,"DivideElemUtils")
     .def(init<>())
@@ -315,26 +338,9 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def_static("Stop", &Timer::Stop)
 //     .staticmethod("Start")
 //     .staticmethod("Stop")
-    // 	    .def("PrintTimingInformation",Timer::PrintTimingInformation)
+    //      .def("PrintTimingInformation",Timer::PrintTimingInformation)
     .def("__repr__",&Timer::Info)
     ;
-
-
-
-
-    class_<BoundingBoxUtilities >(m,"BoundingBoxUtilities")
-    .def(init<ModelPart&, const unsigned int& >())
-    .def("Test", &BoundingBoxUtilities::Test)
-    ;
-
-
-    //           class_<SplitElements, boost::noncopyable >
-    //                     ("SplitElements", init<ModelPart&, int >() )
-    //                     .def("Split", &SplitElements::Split)
-    //                     ;
-
-
-    // 	  def("PrintTimingInformation",Timer::PrintTimingInformation);
 
     class_<OpenMPUtils >(m,"OpenMPUtils")
     .def(init<>())
@@ -466,6 +472,28 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
     .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
+
+    // VariableRedistributionUtility
+    typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
+    typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);
+
+    DistributePointDoubleType DistributePointDouble = &VariableRedistributionUtility::DistributePointValues;
+    DistributePointArrayType  DistributePointArray  = &VariableRedistributionUtility::DistributePointValues;
+
+    typedef void (*ConvertDistributedDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&);
+    typedef void (*ConvertDistributedArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&);
+
+    ConvertDistributedDoubleType ConvertDistributedDouble = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
+    ConvertDistributedArrayType  ConvertDistributedArray  = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
+
+    // Note: The StaticMethod thing should be done only once for each set of overloads
+    class_< VariableRedistributionUtility >(m,"VariableRedistributionUtility")
+    .def_static("DistributePointValues",DistributePointDouble)
+    .def_static("DistributePointValues",DistributePointArray)
+    .def_static("ConvertDistributedValuesToPoint",ConvertDistributedDouble)
+    .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
+    ;
+
 }
 
 } // namespace Python.

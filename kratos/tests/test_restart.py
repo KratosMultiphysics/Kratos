@@ -13,13 +13,19 @@ import sys
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def ReadModelPart(file_path):
+def CreateModelPart(file_path):
     model_part_name = "MainRestart"
     model_part = KratosMultiphysics.ModelPart(model_part_name)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
     model_part_io = KratosMultiphysics.ModelPartIO(file_path)
     model_part_io.ReadModelPart(model_part)
+
+    # Manually adding a constraint to check the serialization of constraints in the ModelPart
+    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+    c1 = KratosMultiphysics.MasterSlaveConstraint(10)
+    model_part.AddMasterSlaveConstraint(c1)
+
     return model_part
 
 def IsRestartFile(file_name):
@@ -140,8 +146,10 @@ class TestRestart(KratosUnittest.TestCase):
         self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
         self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
 
+        self.assertTrue( 10 in model_part.MasterSlaveConstraints )
+
     def __execute_restart_save(self, file_name, serializer_flag):
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"))
+        model_part = CreateModelPart(GetFilePath("test_model_part_io_read"))
 
         serializer_save = KratosMultiphysics.Serializer(file_name, serializer_flag)
         serializer_save.Save(model_part.Name, model_part)
@@ -164,7 +172,7 @@ class TestRestart(KratosUnittest.TestCase):
         self._check_modelpart(model_part)
 
     def __execute_restart_utility_save(self, model_part_name, restart_time):
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"))
+        model_part = CreateModelPart(GetFilePath("test_model_part_io_read"))
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0 # saving is only done if time > 0.0
 
@@ -227,7 +235,7 @@ class TestRestart(KratosUnittest.TestCase):
         self._check_modelpart(loaded_model_part)
 
     def test_save_restart_process(self):
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"))
+        model_part = CreateModelPart(GetFilePath("test_model_part_io_read"))
         model = KratosMultiphysics.Model()
         model.AddModelPart(model_part)
 
