@@ -290,7 +290,7 @@ class AuxiliaryGlobalMasterSlaveConstraint : public IndexedObject
 }; // End of ConstraintEquation class
 
 /**
- * @class LocalIndices
+ * @structure LocalIndices
  * @ingroup KratosCore
  * @brief This class stores the stores three different vectors of local internal, slave, master indices
  *          which are used in constraint builder and solver.
@@ -304,21 +304,6 @@ class LocalIndices
     typedef Internals::IndexType IndexType;
     typedef Internals::VectorIndexType VectorIndexType;
 
-    /**
-     * Structure "LocalIndices" to be used as an encapsulation for set of local elemental/conditional indices
-    */
-    LocalIndices()
-    {
-        internal_index_vector.resize(0);
-        master_index_vector.resize(0);
-        slave_index_vector.resize(0);
-    }
-
-    ~LocalIndices()
-    {
-
-    }
-
     void Reset()
     {
         internal_index_vector.resize(0);
@@ -329,14 +314,6 @@ class LocalIndices
         slave_index_vector.shrink_to_fit();
     }
 
-    /*
-    * Access functions for the index vectors
-    */
-    VectorIndexType& InternalIndices(){return internal_index_vector;}
-    VectorIndexType& MasterIndices(){return master_index_vector;}
-    VectorIndexType& SlaveIndices(){return slave_index_vector;}
-
-    private:
     VectorIndexType internal_index_vector; // indicies corresponding to internal DOFs
     VectorIndexType master_index_vector; // indicies corresponding to master DOFs
     VectorIndexType slave_index_vector; // indicies corresponding to slave DOFs
@@ -474,19 +451,19 @@ public:
         noalias(lhs_contribution) = prod( trans(mTransformationMatrixLocal),  temp_mat);
         // rhs_h(s,s) = rhs(s,s) : that is reassigning the slave part of the matrix back. We do not modify the (slave, slave) block
         // this is to facilitate the solution of the linear system of equation.
-        for (const auto &slave_index : mLocalIndices.SlaveIndices())
-            for (const auto &slave_index_other : mLocalIndices.SlaveIndices())
+        for (const auto &slave_index : mLocalIndices.slave_index_vector)
+            for (const auto &slave_index_other : mLocalIndices.slave_index_vector)
                 lhs_contribution(slave_index, slave_index_other) = rLHSContribution(slave_index, slave_index_other);
         // rhs_h(s,i) = 0 and rhs_h(i,s) = 0
         // making this blocks zero will ensure that the slaves are not connected to internal dofs
-        for (const auto &slave_index : mLocalIndices.SlaveIndices())
-            for (const auto &internal_index : mLocalIndices.InternalIndices())
+        for (const auto &slave_index : mLocalIndices.slave_index_vector)
+            for (const auto &internal_index : mLocalIndices.internal_index_vector)
             {
                 lhs_contribution(slave_index, internal_index) = 0.0;
                 lhs_contribution(internal_index, slave_index) = 0.0;
             }
 
-        for (const auto &slave_index : mLocalIndices.SlaveIndices())
+        for (const auto &slave_index : mLocalIndices.slave_index_vector)
             rhs_contribution(slave_index) = 0.0;
 
         rLHSContribution.resize(rEquationIds.size(), rEquationIds.size());
@@ -537,7 +514,7 @@ private:
         VectorType mMasterWeightsVector;
         double slave_constant;
         int i_masters_total = rEquationIds.size();
-        for (const auto &slave_index : rLocalIndices.SlaveIndices())
+        for (const auto &slave_index : rLocalIndices.slave_index_vector)
         {
             auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index]);
             KRATOS_DEBUG_ERROR_IF (global_master_slave_constraint == mrGlobalMasterSlaveConstraints.end()) <<
@@ -550,10 +527,10 @@ private:
                 i_masters_total++;
             }
         }
-        for (const auto &master_index : rLocalIndices.MasterIndices())
+        for (const auto &master_index : rLocalIndices.master_index_vector)
             rTransformationMatrixLocal(master_index, master_index) = 1.0;
 
-        for (const auto &internal_index : rLocalIndices.InternalIndices())
+        for (const auto &internal_index : rLocalIndices.internal_index_vector)
             rTransformationMatrixLocal(internal_index, internal_index) = 1.0;
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalTransformationMatrix failed ..");
@@ -576,7 +553,7 @@ private:
         VectorType mMasterWeightsVector;
         double slave_constant;
 
-        for (const auto &slave_index : rLocalIndexStructure.SlaveIndices())
+        for (const auto &slave_index : rLocalIndexStructure.slave_index_vector)
         {
             auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index]);
             if (global_master_slave_constraint != mrGlobalMasterSlaveConstraints.end())
@@ -618,7 +595,7 @@ private:
         {
             auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(eq_id);
             if (global_master_slave_constraint != mrGlobalMasterSlaveConstraints.end())
-                rLocalIndexStructure.SlaveIndices().push_back(index);
+                rLocalIndexStructure.slave_index_vector.push_back(index);
 
             index++;
         }
@@ -638,11 +615,11 @@ private:
             local_index_vector[i] = i;
 
         std::sort(local_index_vector.begin(), local_index_vector.end());
-        std::sort(rLocalIndexStructure.SlaveIndices().begin(), rLocalIndexStructure.SlaveIndices().end());
+        std::sort(rLocalIndexStructure.slave_index_vector.begin(), rLocalIndexStructure.slave_index_vector.end());
 
         std::set_difference(local_index_vector.begin(), local_index_vector.end(),
-                            rLocalIndexStructure.SlaveIndices().begin(), rLocalIndexStructure.SlaveIndices().end(),
-                            std::back_inserter(rLocalIndexStructure.InternalIndices()));
+                            rLocalIndexStructure.slave_index_vector.begin(), rLocalIndexStructure.slave_index_vector.end(),
+                            std::back_inserter(rLocalIndexStructure.internal_index_vector));
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalInternalIndices failed ..");
     }
@@ -656,9 +633,9 @@ private:
     void CalculateLocalMasterIndices(EquationIdVectorType& rEquationIds, LocalIndicesType& rLocalIndexStructure, IndexType rTotalNumberOfMasters)
     {
         // Get number of master indices for this current container
-        rLocalIndexStructure.MasterIndices().reserve(rTotalNumberOfMasters + rEquationIds.size() );
+        rLocalIndexStructure.master_index_vector.reserve(rTotalNumberOfMasters + rEquationIds.size() );
         for (IndexType i = rEquationIds.size()-1; i < rEquationIds.size() -rTotalNumberOfMasters; --i)
-            rLocalIndexStructure.MasterIndices().push_back(i);
+            rLocalIndexStructure.master_index_vector.push_back(i);
     }
 
 };
