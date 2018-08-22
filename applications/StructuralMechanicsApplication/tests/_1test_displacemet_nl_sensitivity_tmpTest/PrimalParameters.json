@@ -52,7 +52,7 @@
         "Parameters"    : {
             "model_part_name" : "DISPLACEMENT_BC_DIRICHLET_Z",
             "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,false,true],
+            "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
@@ -67,8 +67,8 @@
         "Parameters"    : {
             "model_part_name" : "PointLoad2D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : "0.15*t",
-            "direction"       : [0.0,1,0.0],
+            "modulus"         : "0.35*t",
+            "direction"       : [-1.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
     }],
