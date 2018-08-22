@@ -27,7 +27,7 @@
 /* Project includes */
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "includes/master_slave_constraint.h"
-#include "utilities/auxilary_global_master_slave_relation.h"
+#include "utilities/helper_classes_for_constraint_builder.h"
 
 #include "containers/pointer_vector_map.h"
 #include "containers/pointer_hash_map_set.h"
@@ -64,7 +64,7 @@ namespace Kratos
  * the end of the system ordered in reverse order with respect to the DofSet.
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
- * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * Calculation of the reactions involves a cost very similar to the calculation of the total residual
  * @author Aditya Ghantasala
  */
 template <class TSparseSpace,
@@ -80,56 +80,39 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolverWithConstraints);
 
     typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-
     typedef typename BaseType::TSchemeType TSchemeType;
-
     typedef typename BaseType::TDataType TDataType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
     typedef typename BaseType::NodeType NodeType;
-
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
-
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
     typedef typename MasterSlaveConstraint::Pointer MasterSlaveConstraintPointerType;
-
-    typedef AuxilaryGlobalMasterSlaveRelation AuxilaryGlobalMasterSlaveRelationType;
-
-    //typedef PointerVectorSet<AuxilaryGlobalMasterSlaveRelationType, IndexedObject> GlobalMasterSlaveRelationContainerType;
-    typedef std::unordered_map< IndexType, unique_ptr< AuxilaryGlobalMasterSlaveRelationType > > GlobalMasterSlaveRelationContainerType;
-
+    typedef Internals::AuxiliaryGlobalMasterSlaveConstraint AuxiliaryGlobalMasterSlaveConstraintType;
+    typedef Internals::GlobalMasterSlaveRelationContainerType GlobalMasterSlaveRelationContainerType;
     typedef std::vector<IndexType> EquationIdVectorType;
     typedef std::vector<IndexType> VectorIndexType;
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-    typedef Matrix MatrixType;
     typedef Vector VectorType;
-    typedef Geometry<NodeType> GeometryType;
-
+    typedef Internals::ConstraintImposer<TSparseSpace, TDenseSpace, TLinearSolver> ConstraintImposerType;
     ///@}
     ///@name Life Cycle
     ///@{
 
     /** Constructor.
      */
-    ResidualBasedBlockBuilderAndSolverWithConstraints(
+    explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
+        : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver),
+          mConstraintImposer(mGlobalMasterSlaveConstraints)
     {
     }
 
@@ -219,7 +202,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             it->InitializeSolutionStep(); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
         }
 
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to intialize")
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to initialize solution step.")
     }
 
 
@@ -232,14 +215,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_TRY
         BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+        const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; k++)
         {
             auto it = constraints_begin + k;
             it->FinalizeSolutionStep();
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to finalize")
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to finalize solution step.")
     }
 
     ///@}
@@ -362,12 +345,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         Element::EquationIdVectorType ids(3, 0);
 
         const int nelements = static_cast<int>(rModelPart.Elements().size());
-#pragma omp parallel for firstprivate(nelements, ids)
+#pragma omp parallel for firstprivate(nelements, ids, mConstraintImposer)
         for (int iii = 0; iii < nelements; iii++)
         {
             typename ElementsContainerType::iterator i_element = rModelPart.Elements().begin() + iii;
             pScheme->EquationId(*(i_element.base()), ids, rModelPart.GetProcessInfo());
-            ApplyConstraints<Element>(rModelPart, *i_element, ids, rModelPart.GetProcessInfo());
+            mConstraintImposer.template ApplyConstraints<Element>(*i_element, ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -383,12 +366,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
 
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-#pragma omp parallel for firstprivate(nconditions, ids)
+#pragma omp parallel for firstprivate(nconditions, ids, mConstraintImposer)
         for (int iii = 0; iii < nconditions; iii++)
         {
             typename ConditionsArrayType::iterator i_condition = rModelPart.Conditions().begin() + iii;
             pScheme->Condition_EquationId(*(i_condition.base()), ids, rModelPart.GetProcessInfo());
-            ApplyConstraints<Condition>(rModelPart, *i_condition, ids, rModelPart.GetProcessInfo());
+            mConstraintImposer.template ApplyConstraints<Condition>(*i_condition, ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -476,7 +459,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
 
-#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId)
+#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, mConstraintImposer)
         {
 #pragma omp for schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++)
@@ -493,7 +476,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    ApplyConstraints<Element>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    mConstraintImposer.template ApplyConstraints<Element>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -522,7 +505,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 {
                     //calculate elemental contribution
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    ApplyConstraints<Condition>(rModelPart, *it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    mConstraintImposer.template ApplyConstraints<Condition>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -571,7 +554,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     ///@{
 
     // This is the set of condenced global constraints.
-    GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveRelations; //This can be changed to more efficient implementation later on.
+    GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveConstraints; //This can be changed to more efficient implementation later on.
+    ConstraintImposerType mConstraintImposer;
 
     ///@}
     ///@name Private Operators
@@ -582,10 +566,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     ///@{
 
     /**
-     * @brief   this method condences the MasterSlaveConstraints which are added on the rModelPart
+     * @brief   this method condenses the MasterSlaveConstraints which are added on the rModelPart
      *          into objects of AuxilaryGlobalMasterSlaveRelation. One unique object for each unique slave.
-     *          these will be used in the ApplyConstraints functions late on.
-     *          matrix and the right hand side
+     *          these will be used in the ApplyConstraints functions later on.
      * @param   rModelPart The model part of the problem to solve
      */
     void FormulateGlobalMasterSlaveRelations(ModelPart& rModelPart)
@@ -593,24 +576,24 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_TRY
         const double start_formulate = OpenMPUtils::GetCurrentTime();
         // First delete the existing ones
-        mGlobalMasterSlaveRelations.clear();
+        mGlobalMasterSlaveConstraints.clear();
         // Getting the array of the conditions
-        int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // Getting the beginning iterator
 
-        ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+        const ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
         //contributions to the system
-        LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
-        EquationIdVectorType slave_equation_ids = EquationIdVectorType(0);
-        EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
+        LocalSystemMatrixType relation_matrix;
+        LocalSystemVectorType constant_vector;
+        EquationIdVectorType slave_equation_ids;
+        EquationIdVectorType master_equation_ids;
 
-#pragma omp parallel for schedule(guided, 512) firstprivate(number_of_constraints, constraints_begin, relation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
+#pragma omp parallel for schedule(guided, 512) private (relation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
-            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + i_constraints;
-
+            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin;
+            std::advance(it, i_constraints);
             //detect if the element is active or not. If the user did not make any choice the element
             //is active by default
             bool constraint_is_active = true;
@@ -619,11 +602,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             if (constraint_is_active)
             {
-                //get the equation Ids of the constraint
                 it->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
                 //calculate constraint's T and b matrices
                 it->CalculateLocalSystem(relation_matrix, constant_vector, r_current_process_info);
-
                 //assemble the Constraint contribution
                 AssembleSlaves(slave_equation_ids, master_equation_ids, relation_matrix);
             }
@@ -636,7 +617,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
 
     /**
-     * @brief   this method assembles the given list of slave equation ids and corresponding master equatio ids
+     * @brief   this method assembles the given list of slave equation ids and corresponding master equation ids
      * @param   rSlaveEquationIdVector list of slave equation ids to be assembled.
      * @param   rMasterEquationIdVector list of corresponding master equation ids.
      * @param   rRelationMatrix the matrix relating the rSlaveEquationIdVector with rMasterEquationIdVector
@@ -645,55 +626,53 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
         int slave_count = 0;
-        for (auto &slave_equation_id : rSlaveEquationIdVector)
+        for (auto slave_equation_id : rSlaveEquationIdVector)
         {
             /*int master_count = 0;
-            auto global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
-            if (global_constraint == mGlobalMasterSlaveRelations.end())
+            auto global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
+            if (global_constraint == mGlobalMasterSlaveConstraints.end())
             {
-                mGlobalMasterSlaveRelations.insert(mGlobalMasterSlaveRelations.begin(), Kratos::make_shared<AuxilaryGlobalMasterSlaveRelationType>(slave_equation_id));
-                global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
+                mGlobalMasterSlaveConstraints.insert(mGlobalMasterSlaveConstraints.begin(), Kratos::make_shared<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id));
+                global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             }*/
             int master_count = 0;
-            if (mGlobalMasterSlaveRelations.count(slave_equation_id) == 0 )
+            if (mGlobalMasterSlaveConstraints.count(slave_equation_id) == 0 )
             {
-                mGlobalMasterSlaveRelations[slave_equation_id] = Kratos::make_unique<AuxilaryGlobalMasterSlaveRelationType>(slave_equation_id);
+                mGlobalMasterSlaveConstraints[slave_equation_id] = Kratos::make_unique<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id);
             }
 
-            auto& global_constraint = mGlobalMasterSlaveRelations[slave_equation_id];
-            for (auto &master_equation_id : rMasterEquationIdVector)
+            auto& global_constraint = mGlobalMasterSlaveConstraints[slave_equation_id];
+            for (auto master_equation_id : rMasterEquationIdVector)
             {
                 global_constraint->AddMaster(master_equation_id, rRelationMatrix(slave_count, master_count));
                 master_count++;
             }
             slave_count++;
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::AssembleSlaves failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::AssembleSlaves failed ...");
     }
 
 
     /**
      * @brief   this method resets the LHS and RHS values of the AuxilaryGlobalMasterSlaveRelation objects
-     * @param   rModelPart The model part of the problem to solve
      */
-    void ResetConstraintRelations(ModelPart& rModelPart)
+    void ResetConstraintRelations()
     {
         KRATOS_TRY
-        IndexType number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
+        const IndexType number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
         // Getting the beginning iterator
 
-        GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveRelations.begin();
-#pragma omp parallel for schedule(guided, 512) firstprivate(number_of_constraints, constraints_begin)
-        for (IndexType i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+        const GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveConstraints.begin();
+#pragma omp parallel for schedule(guided, 512)
+        for (unsigned int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             //GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin;
             std::advance(it, i_constraints);
 
-            (it->second)->SetLHSValue(0.0);
-            (it->second)->SetRHSValue(0.0);
+            (it->second)->Reset();
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ResetConstraintRelations failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ResetConstraintRelations failed to reset constraint relations..");
     }
 
     /**
@@ -705,17 +684,18 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
         // Reset the constraint equations
-        ResetConstraintRelations(rModelPart);
+        ResetConstraintRelations();
         // Getting the array of the conditions
-        int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // Getting the beginning iterator
-        ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+        const ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
 
-#pragma omp parallel for schedule(guided, 512) firstprivate(number_of_constraints, constraints_begin)
+#pragma omp parallel for schedule(guided, 512)
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
-            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + i_constraints;
+            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin;
+            std::advance(it, i_constraints);
 
             //detect if the element is active or not. If the user did not make any choice the element
             //is active by default
@@ -741,10 +721,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
         //contributions to the system
-        LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
-        EquationIdVectorType slave_equation_ids = EquationIdVectorType(0);
-        EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
+        LocalSystemMatrixType relation_matrix(0,0);
+        LocalSystemVectorType constant_vector(0);
+        EquationIdVectorType slave_equation_ids(0);
+        EquationIdVectorType master_equation_ids(0);
 
         //get the equation Ids of the constraint
         rMasterSlaveConstraint.EquationIdVector(slave_equation_ids, master_equation_ids, rCurrentProcessInfo);
@@ -754,7 +734,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         MasterSlaveConstraintType::DofPointerVectorType slave_dofs_vector;
         MasterSlaveConstraintType::DofPointerVectorType master_dofs_vector;
         rMasterSlaveConstraint.GetDofList(slave_dofs_vector, master_dofs_vector, rCurrentProcessInfo);
-        double slave_value = 0.0;
 
         int slave_index = 0;
         for (auto &slave_dof : slave_dofs_vector)
@@ -762,332 +741,15 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             double slave_value_calc = 0.0;
             for (IndexType master_index = 0; master_index < master_dofs_vector.size(); master_index++)
             {
-                slave_value_calc += slave_dof->GetSolutionStepValue() * relation_matrix(slave_index, master_index);
+                slave_value_calc += master_dofs_vector[master_index]->GetSolutionStepValue() * relation_matrix(slave_index, master_index);
             }
             slave_value_calc += constant_vector[slave_index];
-            slave_value = slave_dof->GetSolutionStepValue();
-            auto global_constraint = mGlobalMasterSlaveRelations.find(slave_dof->EquationId());
-            global_constraint->second->SetLHSValue(slave_value);
-            global_constraint->second->UpdateRHSValue(slave_value_calc);
+            auto global_constraint = mGlobalMasterSlaveConstraints.find(slave_dof->EquationId());
+            global_constraint->second->SetLeftHandSide( slave_dof->GetSolutionStepValue() );
+            global_constraint->second->UpdateRightHandSide(slave_value_calc);
             slave_index++;
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::UpdateMasterSlaveConstraint failed ..");
-    }
-
-
-    /**
-     * @brief   This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
-     * @details Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
-     * @param   rModelPart The model part of the problem to solve
-     * @param   rCurrentContainer the element or condition where the rEquationIds to be modified for master-slave constraints
-     * @param   rEquationIds the equation id vector for the above element or condition
-     * @param   rCurrentProcessInfo the current process info
-     */
-    template <typename TContainerType>
-    void ApplyConstraints(ModelPart& rModelPart,
-                          TContainerType& rCurrentContainer,
-                          typename TContainerType::EquationIdVectorType& rEquationIds,
-                          ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-        // If no slave is found for this container , no need of going on
-        if (! HasSlaveNode(rCurrentContainer.GetGeometry()))
-        {
-            return;
-        }
-        DofsVectorType container_dofs;
-        typename TContainerType::EquationIdVectorType master_equation_ids;
-        rCurrentContainer.GetDofList(container_dofs, rCurrentProcessInfo);
-        IndexType slave_equation_id;
-
-        // For each node check if it is ac slave or not If it is .. we change the Transformation matrix
-        for (IndexType j = 0; j < container_dofs.size(); j++)
-        {
-            slave_equation_id = container_dofs[j]->EquationId(); // consider everything as a slave.
-            // Get the global constraint equation for this slave.
-            auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
-            if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
-            { // if a equation exists for this slave
-                global_master_slave_constraint->second->EquationIdVector(slave_equation_id, master_equation_ids); // get the slave and master equation ids for this slave.
-                rEquationIds.reserve(master_equation_ids.size());
-                for (auto &master_eq_id : master_equation_ids)
-                {
-                    // Add the current slaves master eq ids to the equation ids
-                    rEquationIds.push_back(master_eq_id);
-                }
-            }
-        }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ApplyConstraints failed ..");
-    }
-
-    /**
-     * @brief   This function modifies the LHS and RHS of the rCurrentContainer to account for any master-slave constraints its nodes/dofs 
-     *          are carrying.
-     * @details Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
-     * @param   rModelPart The model part of the problem to solve
-     * @param   rCurrentContainer the element or condition where the rEquationIds to be modified for master-slave constraints
-     * @param   rLHSContribution the LHS contibution of the rCurrentContainer
-     * @param   rRHSContribution the RHS contibution of the rCurrentContainer
-     * @param   rEquationIds the equation id vector for the above element or condition
-     * @param   rCurrentProcessInfo the current process info
-     */
-    template <typename TContainerType>
-    void ApplyConstraints(ModelPart& rModelPart,
-                          TContainerType& rCurrentContainer,
-                          LocalSystemMatrixType& rLHSContribution,
-                          LocalSystemVectorType& rRHSContribution,
-                          typename TContainerType::EquationIdVectorType& rEquationIds,
-                          ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-        // If no slave is found for this container , no need of going on
-        if (! HasSlaveNode(rCurrentContainer.GetGeometry()))
-            return;
-
-        typename TContainerType::EquationIdVectorType equation_ids = rEquationIds;
-        // Saving th original system size
-        const IndexType initial_sys_size = rLHSContribution.size1();
-
-        // Formulating which are the internal, slave indices locally.
-        LocalIndices local_indices;
-
-        // first fill in the rEquationIds using the above function (overloaded one)
-        ApplyConstraints<TContainerType>(rModelPart, rCurrentContainer, rEquationIds, rCurrentProcessInfo); // now rEquationIds has all the slave equation ids appended to it.
-        IndexType total_number_of_masters = rEquationIds.size() - initial_sys_size;
-        // Calculating the local indices corresponding to internal, master, slave dofs of this container
-        CalculateLocalIndices(rEquationIds, local_indices, total_number_of_masters);
-
-        // resizing the matrices to the new required length
-        MatrixType lhs_contribution = rLHSContribution;
-        VectorType rhs_contribution = rRHSContribution;
-        ResizeAndInitializeLocalMatrices(lhs_contribution, rhs_contribution, rEquationIds.size());
-        MatrixType transformation_matrix_local;
-        VectorType constant_vector_local;
-        ResizeAndInitializeLocalMatrices(transformation_matrix_local, constant_vector_local, rEquationIds.size());
-        // Calculagint the T and C which are local to this container
-        CalculateLocalTransformationMatrix(local_indices, transformation_matrix_local, equation_ids);
-
-        CalculateLocalConstantVector(local_indices, constant_vector_local, equation_ids);
-        // Here order is important as lhs_contribution should be unodified for usin in calculation
-        // of RHS constribution. Later on lhs_contribution is modified to apply the constraint.
-        // rhs_h =  T'*(rhs - K*g)
-        VectorType temp_vec = ( rhs_contribution - prod(lhs_contribution, constant_vector_local) );
-        noalias(rhs_contribution) = prod( trans(transformation_matrix_local), temp_vec );
-        // lhs_h = T'*K*T
-        MatrixType temp_mat = prod(lhs_contribution, transformation_matrix_local);
-        noalias(lhs_contribution) = prod( trans(transformation_matrix_local),  temp_mat);
-        // rhs_h(s,s) = rhs(s,s) : that is reassigning the slave part of the matrix back. We do not modify the (slave, slave) block
-        // this is to facilitate the solution of the linear system of equation.
-        for (const auto &slave_index : local_indices.SlaveIndices())
-            for (const auto &slave_index_other : local_indices.SlaveIndices())
-                lhs_contribution(slave_index, slave_index_other) = rLHSContribution(slave_index, slave_index_other);
-        // rhs_h(s,i) = 0 and rhs_h(i,s) = 0
-        // making this blocks zero will ensure that the slaves are not connected to internal dofs
-        for (const auto &slave_index : local_indices.SlaveIndices())
-            for (const auto &internal_index : local_indices.InternalIndices())
-            {
-                lhs_contribution(slave_index, internal_index) = 0.0;
-                lhs_contribution(internal_index, slave_index) = 0.0;
-            }
-
-        for (const auto &slave_index : local_indices.SlaveIndices())
-            rhs_contribution(slave_index) = 0.0;
-
-        rLHSContribution.resize(rEquationIds.size(), rEquationIds.size());
-        rRHSContribution.resize(rEquationIds.size());
-        noalias(rLHSContribution) = lhs_contribution;
-        noalias(rRHSContribution) = rhs_contribution;
-
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
-    }
-
-
-
-    /**
-     * @brief   This function resizes the given matrix and vector pair to the new size provided.
-     *          And Initializes the extra part added to zero.
-     * @param   rMatrix matrix to be resized
-     * @param   rVector vector to be resized
-     * @param   FinalSize the final size of the resized quantities.
-     */
-    void ResizeAndInitializeLocalMatrices(MatrixType& rMatrix, VectorType& rVector,
-                                            IndexType FinalSize)
-    {
-        KRATOS_TRY
-        // storing the initial matrix and vector and their properties
-        KRATOS_ERROR_IF(rMatrix.size1() != rVector.size())<<"ResizeAndInitializeLocalMatrices :: Dimension of the matrix and vector passed are not the same !"<<std::endl;
-        const IndexType initial_sys_size = rMatrix.size1();
-        MatrixType matrix(initial_sys_size, initial_sys_size);
-        noalias(matrix) = rMatrix;
-        VectorType vector(initial_sys_size);
-        noalias(vector) = rVector;
-
-        rMatrix.resize(FinalSize, FinalSize, false);
-        rVector.resize(FinalSize, false);
-        // reassigning the original part of the matrix
-        for (IndexType m = 0; m < initial_sys_size; ++m)
-        {
-            for (IndexType n = 0; n < initial_sys_size; ++n)
-            {
-                rMatrix(m,n) = matrix(m,n);
-            }
-            rVector(m) = vector(m);
-        }
-        // Making the extra part of matrix zero
-        for (IndexType m = initial_sys_size; m < FinalSize; ++m)
-        {
-            for (IndexType n = 0; n < FinalSize; ++n)
-            {
-                rMatrix(m, n) = 0.0;
-                rMatrix(n, m) = 0.0;
-            }
-            rVector(m) = 0.0;
-        }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ResizeAndInitializeLocalMatrices failed ..");
-    }
-
-    /**
-     * @brief   This function calculates the local transformation matrix and the constant vector for each
-     *          each element or condition. The T matrix and C vector for each element or condition for the slaves they contain .
-     * @param   rLocalIndices object of Struct LocalIndices containing the local internal, master and slave indices
-     * @param   rTransformationMatrixLocal reference to the tranformation matrix which is to be calculated.
-     * @param   rEquationIds the list of equation ids.
-     */
-    void CalculateLocalTransformationMatrix(LocalIndices& rLocalIndices,
-                                                             MatrixType& rTransformationMatrixLocal,
-                                                             EquationIdVectorType& rEquationIds)
-    {
-        KRATOS_TRY
-        IndexType slave_equation_id;
-        EquationIdVectorType master_equation_ids;
-        VectorType master_weights_vector;
-        double slave_constant;
-        int i_masters_total = rEquationIds.size();
-
-        for (const auto &slave_index : rLocalIndices.SlaveIndices())
-        {
-            auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
-            KRATOS_DEBUG_ERROR_IF (global_master_slave_constraint == mGlobalMasterSlaveRelations.end()) <<
-                             "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
-
-            global_master_slave_constraint->second->EquationIdVector(slave_equation_id, master_equation_ids);
-            global_master_slave_constraint->second->CalculateLocalSystem(master_weights_vector, slave_constant);
-            for (IndexType i_master = 0; i_master < master_equation_ids.size(); ++i_master)
-            {
-                rTransformationMatrixLocal(slave_index, i_masters_total) += master_weights_vector(i_master);
-                i_masters_total++;
-            }
-        }
-
-        for (const auto &master_index : rLocalIndices.MasterIndices())
-            rTransformationMatrixLocal(master_index, master_index) = 1.0;
-
-        for (const auto &internal_index : rLocalIndices.InternalIndices())
-            rTransformationMatrixLocal(internal_index, internal_index) = 1.0;
-
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalTransformationMatrix failed ..");
-    }
-
-
-
-    /**
-     * @brief   This function calculates the local constant vector for each
-     *          each element or condition. C vector for each element or condition for the slaves they contain .
-     * @param   rLocalSlaveIndexVector vectof slave indices
-     * @param   rConstantVectorLocal reference to the constant vector to be calculated
-     * @param   rEquationIds the list of equation ids.
-     */
-    void CalculateLocalConstantVector(LocalIndices& rLocalIndexStructure,
-                                      VectorType& rConstantVectorLocal,
-                                      EquationIdVectorType& rEquationIds)
-    {
-        KRATOS_TRY
-        VectorType master_weights_vector;
-        double slave_constant;
-
-        for (const auto &slave_index : rLocalIndexStructure.SlaveIndices())
-        {
-            auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
-            if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
-            {
-                global_master_slave_constraint->second->CalculateLocalSystem(master_weights_vector, slave_constant);
-                rConstantVectorLocal(slave_index) = slave_constant;
-            }
-            else
-                KRATOS_ERROR << "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
-        }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalConstantVector failed ..");
-    }
-
-
-    /**
-     * @brief   This function calculates the local indices of a given element or condition
-     * @param   rEquationIds vector of the equation ids
-     * @param   rLocalIndexStructure reference to the structure of LocalIndices
-     */
-    void CalculateLocalIndices(EquationIdVectorType& rEquationIds, LocalIndices& rLocalIndexStructure, IndexType rTotalNumberOfMasters)
-    {
-        CalculateLocalSlaveIndices(rEquationIds, rLocalIndexStructure);
-        CalculateLocalInternalIndices(rEquationIds, rLocalIndexStructure);
-        CalculateLocalMasterIndices(rEquationIds, rLocalIndexStructure, rTotalNumberOfMasters);
-    }
-
-
-
-    /**
-     * @brief   This function calculates the local slave indices of a given element or condition
-     * @param   rEquationIds vector of the equation ids
-     * @param   rLocalSlaveIndexVector reference to the vector of slave indices
-     */
-    void CalculateLocalSlaveIndices(EquationIdVectorType& rEquationIds, LocalIndices& rLocalIndexStructure)
-    {
-        KRATOS_TRY
-        int index = 0;
-        for (auto &eq_id : rEquationIds)
-        {
-            auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(eq_id);
-            if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
-                rLocalIndexStructure.SlaveIndices().push_back(index);
-
-            index++;
-        }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalTransformationMatrix failed ..");
-    }
-
-    /**
-     * @brief   This function calculates the local internal indices of a given element or condition
-     * @param   rEquationIds vector of the equation ids
-     * @param   rLocalIndexStructure reference to the vector of slave indices
-     */
-    void CalculateLocalInternalIndices(EquationIdVectorType& rEquationIds, LocalIndices& rLocalIndexStructure)
-    {
-        KRATOS_TRY
-        VectorIndexType local_index_vector(rEquationIds.size());
-        for (IndexType i = 0; i<rEquationIds.size(); ++i)
-            local_index_vector[i] = i;
-
-        std::sort(local_index_vector.begin(), local_index_vector.end());
-        std::sort(rLocalIndexStructure.SlaveIndices().begin(), rLocalIndexStructure.SlaveIndices().end());
-
-        std::set_difference(local_index_vector.begin(), local_index_vector.end(),
-                            rLocalIndexStructure.SlaveIndices().begin(), rLocalIndexStructure.SlaveIndices().end(),
-                            std::back_inserter(rLocalIndexStructure.InternalIndices()));
-
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalInternalIndices failed ..");
-    }
-
-    /**
-     * @brief   This function calculates the local internal indices of a given element or condition
-     * @param   rEquationIds vector of the equation ids
-     * @param   rLocalIndexStructure reference to the vector of slave indices
-     * @param   rTotalNumberOfMasters total number of masters for the given element or condition.
-     */
-    void CalculateLocalMasterIndices(EquationIdVectorType& rEquationIds, LocalIndices& rLocalIndexStructure, IndexType rTotalNumberOfMasters)
-    {
-        // Get number of master indices for this current container
-        rLocalIndexStructure.MasterIndices().reserve(rTotalNumberOfMasters + rEquationIds.size() );
-        for (IndexType i = rEquationIds.size(); i < rTotalNumberOfMasters + rEquationIds.size(); i++)
-            rLocalIndexStructure.MasterIndices().push_back(i);
     }
 
     /**
@@ -1104,27 +766,27 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         TSystemVectorType& rb)
     {
         KRATOS_TRY
-        int number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
+        const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
         // Getting the beginning iterator
 
-        GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveRelations.begin();
+        const GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveConstraints.begin();
         //contributions to the system
         VectorType master_weights_vector;
         double constant = 0.0;
-        double slave_dx_value = 0.0;
+
         IndexType slave_equation_id = 0;
         EquationIdVectorType master_equation_ids = EquationIdVectorType(0);
 
-#pragma omp parallel for schedule(guided, 512) firstprivate(number_of_constraints, constraints_begin, slave_equation_id, master_equation_ids, master_weights_vector, constant)
+#pragma omp parallel for schedule(guided, 512) firstprivate(slave_equation_id, master_equation_ids, master_weights_vector, constant)
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             //GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin;
             std::advance(it, i_constraints);
 
-            slave_dx_value = 0.0;
+            double slave_dx_value = 0.0;
             //get the equation Ids of the constraint
-            (it->second)->EquationIdVector(slave_equation_id, master_equation_ids);
+            (it->second)->EquationIdsVector(slave_equation_id, master_equation_ids);
             //calculate constraint's T and b matrices
             (it->second)->CalculateLocalSystem(master_weights_vector, constant);
             int master_index = 0;
@@ -1138,19 +800,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             rDx[slave_equation_id] = slave_dx_value; // this access is always unique for an object so no need of special care for openmp
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ReconstructSlaveSolutionAfterSolve failed ..");
-    }
-
-    /**
-     * @brief this method checks if any of the nodes of the given rGeometry is marked SLAVE.
-     * @param rGeometry The geometry to check for.
-     */
-    bool HasSlaveNode(GeometryType& rGeometry)
-    {
-        for(auto& node : rGeometry)
-            if (node.IsDefined(SLAVE))
-                return node.Is(SLAVE);
-
-        return false;
     }
 
     ///@}
