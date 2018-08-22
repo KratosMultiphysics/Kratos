@@ -917,8 +917,8 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     double MP_Mass = this->GetValue(MP_MASS);
     array_1d<double,3> MP_Momentum;
     array_1d<double,3> MP_Inertia;
-    array_1d<double,3> NodalMomentum;
-    array_1d<double,3> NodalInertia;
+    array_1d<double,3> NodalMomentum = ZeroVector(3);
+    array_1d<double,3> NodalInertia  = ZeroVector(3);
 
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
