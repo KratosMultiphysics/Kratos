@@ -90,7 +90,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         if self.settings["multi_point_constraints_used"].GetBool():
             raise Exception("MPCs not yet implemented in MPI")
 
-        if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+        if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
             self.print_warning_on_rank_zero("Constraints are not yet implemented in MPI and will therefore not be considered!")
 
         linear_solver = self.get_linear_solver()
