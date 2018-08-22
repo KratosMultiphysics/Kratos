@@ -31,7 +31,13 @@ THE SOFTWARE.
  * \brief  Runtime-configurable wrappers around amgcl classes.
  */
 
+#ifdef AMGCL_NO_BOOST
+#  error Runtime interface relies on Boost.PropertyTree!
+#endif
+
 #include <boost/property_tree/ptree.hpp>
+
+#include <amgcl/util.hpp>
 #include <amgcl/solver/runtime.hpp>
 #include <amgcl/coarsening/runtime.hpp>
 #include <amgcl/relaxation/runtime.hpp>

@@ -14,15 +14,12 @@
 #define AUXILARY_GLOBAL_MASTER_SLAVE_RELATION
 // System includes
 #include <vector>
-#include <unordered_set>
-#include <iostream>
-#include <assert.h>
-
 // project includes
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
-#include "includes/process_info.h"
+#include "includes/lock_object.h"
+
 
 namespace Kratos
 {
@@ -49,46 +46,51 @@ namespace Kratos
 class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 {
   public:
-    typedef std::size_t IndexType;
+    typedef IndexedObject BaseType;
+    typedef BaseType::IndexType IndexType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
     typedef std::vector<IndexType> EquationIdVectorType;
     KRATOS_CLASS_POINTER_DEFINITION(AuxilaryGlobalMasterSlaveRelation);
 
-    // empty constructor and methods to add master and slave independently.
-    AuxilaryGlobalMasterSlaveRelation() : IndexedObject(0)
+    /**
+     * @brief Constructor of the class
+     * @param SlaveEquationId the slave equation id for which this class is being constructed.
+     */
+    AuxilaryGlobalMasterSlaveRelation(IndexType SlaveEquationId = 0) : IndexedObject(SlaveEquationId), mConstant(0.0)
     {
-        mConstant = 0.0;
-    }
-
-    AuxilaryGlobalMasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId)
-    {
-        mConstant = 0.0;
     }
 
     /**
-     * Function to get the slave equation Id corresponding to this constraint.
+     * @brief Function to get the slave equation Id corresponding to this constraint.
      * @param Constant the value of the constant to be assigned.
      */
     IndexType SlaveEquationId() const { return this->Id(); }
 
     /**
-     * Function to set the lefthand side of the constraint (the slave dof value)
+     * @brief Function to set the lefthand side of the constraint (the slave dof value)
      * @param LhsValue the value of the lhs (the slave dof value)
      */
-    void SetLHSValue(double const &LhsValue)
+    void SetLHSValue(const double& LhsValue)
     {
-        mLhsValue = LhsValue;
+        mLockObject.SetLock();
+            mLhsValue = LhsValue;
+        mLockObject.UnSetLock();
     }
 
     /**
-     * Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
-     * @param RhsValue the value of the lhs (the slave dof value)
+     * @brief Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
+     * @param RHSValue the value of the lhs (the slave dof value)
      */
-    void SetRhsValue(double const &RhsValue) { mRhsValue = RhsValue; }
-    void UpdateRhsValue(double const &RhsValueUpdate)
+    void SetRHSValue(const double& RhsValue)
     {
-        mRhsValue += RhsValueUpdate;
+        mRhsValue = RhsValue;
+    }
+    void UpdateRHSValue(const double RhsValueUpdate)
+    {
+        mLockObject.SetLock();
+            mRhsValue = mRhsValue + RhsValueUpdate;
+        mLockObject.UnSetLock();
     }
 
     // Get number of masters for this slave
@@ -98,81 +100,87 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     }
 
     /**
-     * this determines the master equation IDs connected to this constraint
+     * @brief this determines the master equation IDs connected to this constraint
      * @param rResult the elemental equation ID vector
-     * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void EquationIdVector(IndexType &rSlaveEquationId,
-                                  EquationIdVectorType &rMasterEquationIds,
-                                  ProcessInfo &rCurrentProcessInfo)
+    virtual void EquationIdVector(IndexType& rSlaveEquationId,
+                                  EquationIdVectorType& rMasterEquationIds)
     {
         if (rMasterEquationIds.size() != 0 || rMasterEquationIds.size() == 0)
             rMasterEquationIds.resize(this->GetNumberOfMasters(), false);
 
         rSlaveEquationId = this->SlaveEquationId();
 
-        for (IndexType i = 0; i < this->GetNumberOfMasters(); i++)
+        for (IndexType i = 0; i < this->GetNumberOfMasters(); ++i)
         {
             rMasterEquationIds[i] = mMasterEquationIdVector[i];
         }
     }
 
     /**
-     * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
+     * @brief   this is called during the assembling process in order
+     *          to calculate all elemental contributions to the global system
      * matrix and the right hand side
      * @param rMasterWeightsVector the elemental left hand side matrix
      * @param rConstant the elemental right hand side
-     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalSystem(VectorType &rMasterWeightsVector,
-                                      double &rConstant,
-                                      ProcessInfo &rCurrentProcessInfo)
+                                      double &rConstant)
     {
         if (rMasterWeightsVector.size() != 0 || rMasterWeightsVector.size() == 0)
         {
             rMasterWeightsVector.resize(this->GetNumberOfMasters(), false);
         }
 
-        for (IndexType i = 0; i < this->GetNumberOfMasters(); i++)
+        for (IndexType i = 0; i < this->GetNumberOfMasters(); ++i)
             rMasterWeightsVector(i) = mMasterWeightsVector[i];
 
 
-        mConstant = mRhsValue - mLhsValue;
+        mLockObject.SetLock();
+            mConstant = mRhsValue - mLhsValue;
+        mLockObject.UnSetLock();
         rConstant = mConstant;
     }
 
     void PrintInfo() const
     {
-        std::cout<<std::endl;
-        std::cout << "------------------------------" << std::endl;
-        std::cout << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
-        std::cout << "Constant :: " << mConstant << std::endl;
-        std::cout << "------------------------------ :: Masters = " << mMasterEquationIdVector.size()<< std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation")<<std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "------------------------------" << std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "Constant :: " << mConstant << std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "------------------------------ :: Masters = " << mMasterEquationIdVector.size()<< std::endl;
         for (IndexType i = 0; i< mMasterEquationIdVector.size(); i++)
         {
-            std::cout << i << " Master  equation id :: " <<mMasterEquationIdVector[i] << ", weight :: " << mMasterWeightsVector[i] << std::endl;
+            KRATOS_INFO("GlobalMasterSlaveRelation") << i << " Master  equation id :: " <<mMasterEquationIdVector[i] << ", weight :: " << mMasterWeightsVector[i] << std::endl;
         }
-        std::cout << "------------------------------" << std::endl;
+        KRATOS_INFO("GlobalMasterSlaveRelation") << "------------------------------" << std::endl;
     }
 
     void Clear()
     {
-        mMasterEquationIdVector.clear();
-        mMasterWeightsVector.clear();
+        mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
+            //clearing the contents
+            mMasterEquationIdVector.clear();
+            mMasterWeightsVector.clear();
+            //shrinking the memory
+            mMasterEquationIdVector.shrink_to_fit();
+            mMasterWeightsVector.shrink_to_fit();
+        mLockObject.UnSetLock(); // unlocking
     }
 
     void AddMaster(IndexType MasterEquationId, double Weight)
     {
-        int index = MasterEquationIdExists(MasterEquationId);
-        if (index > 0)
-        {
-            mMasterWeightsVector[index] += Weight;
-        } else
-        {
-            mMasterEquationIdVector.push_back(MasterEquationId);
-            mMasterWeightsVector.push_back(Weight);
-        }
+        mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
+            int index = MasterEquationIdExists(MasterEquationId);
+            if (index > 0)
+            {
+                mMasterWeightsVector[index] += Weight;
+            } else
+            {
+                mMasterEquationIdVector.push_back(MasterEquationId);
+                mMasterWeightsVector.push_back(Weight);
+            }
+        mLockObject.UnSetLock(); // unlocking
     }
 
   private:
@@ -180,12 +188,16 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer &rSerializer) const override
+    void save(Serializer &rSerializer) const override
     {
+        // No need to save anything from this class as they will be reconstructed
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
     }
 
-    virtual void load(Serializer &rSerializer) override
+    void load(Serializer &rSerializer) override
     {
+        // No need to load anything from this class as they will be reconstructed
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
     }
 
     int MasterEquationIdExists(IndexType MasterEquationId)
@@ -205,6 +217,7 @@ class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
     std::vector<double> mMasterWeightsVector;
 
     double mConstant;
+    LockObject mLockObject;
 
 }; // End of ConstraintEquation class
 

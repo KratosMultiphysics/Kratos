@@ -187,6 +187,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 		    ::wkcf::WriteDemNodalVariables2 $AppId $filechannel
 		    ::wkcf::WriteGroupMeshProperties $AppId
 		    ::wkcf::WriteInletGroupMeshProperties $AppId
+			::wkcf::WriteCustomSubModelParts $AppId
 		}
 	    }
 	    ::wkcf::CloseChannels $AppId
