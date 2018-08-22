@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "utilities/openmp_utils.h"
 #include "custom_processes/impose_rigid_movement_process.h"
 #include "structural_mechanics_application_variables.h"
 
