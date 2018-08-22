@@ -55,6 +55,8 @@ from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProce
 # Test adjoint elements
 from test_cr_beam_adjoint_element_3d2n import TestCrBeamAdjointElement as TTestCrBeamAdjointElement
 from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
+from test_truss_adjoint_element_3d2n import TestTrussAdjointElement as TTestTrussAdjointElement
+from test_truss_adjoint_element_3d2n import TestTrussLinearAdjointElement as TTestTrussLinearAdjointElement
 from test_adjoint_sensitity_analysis_beam_3d2n_structure import TestAdjointSensitivityAnalysisBeamStructure as TTestAdjointSensitivityAnalysisBeamStructure
 from test_adjoint_sensitity_analysis_shell_3d3n_structure import TestAdjointSensitivityAnalysisShell3D3NStructure as TTestAdjointSensitivityAnalysisShell3D3NStructure
 
@@ -234,6 +236,8 @@ def AssembleTestSuites():
     # Adjoint Elements
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
