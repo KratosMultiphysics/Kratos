@@ -7,17 +7,17 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 # Importing the base class
 from structural_mechanics_analysis import StructuralMechanicsAnalysis
 
-class StructuralMechanicsAnalysisCurvatureEFGraph(StructuralMechanicsAnalysis):
+class StructuralMechanicsAnalysisNLSensitivity(StructuralMechanicsAnalysis):
     """
-    This class is the main-script of the StructuralMechanicsApplication put in a class
+    This class is the special-script of the StructuralMechanicsApplication put in a class
 
-    It can be imported and used as "black-box"
+    It is used to specifiy the non-linear (over- resp. under-linear ) behaviour of state results (e.g. displacements, stresses).
     """
     def __init__(self, model, project_parameters):
         #solver_settings = project_parameters["solver_settings"]
         self.time_array = [0.15,0.2,0.25]
 
-        super(StructuralMechanicsAnalysisCurvatureEFGraph, self).__init__(model, project_parameters)
+        super(StructuralMechanicsAnalysisNLSensitivity, self).__init__(model, project_parameters)
 
     def RunSolutionLoop(self):
         while self.time < self.end_time:
