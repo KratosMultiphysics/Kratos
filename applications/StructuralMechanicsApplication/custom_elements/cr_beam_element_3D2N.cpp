@@ -632,6 +632,13 @@ CrBeamElement3D2N::CalculateInitialLocalCS() {
       direction_vector_x /= vector_norm;
 
     direction_vector_y = this->GetValue(LOCAL_AXIS_2);
+
+    KRATOS_ERROR_IF(MathUtils<double>::Norm(direction_vector_y)<numerical_limit)
+      << "GIVEN LOCAL_AXIS_2 has length 0 for element" << this->Id() << std::endl;
+
+    KRATOS_ERROR_IF(std::abs(MathUtils<double>::Dot(direction_vector_x,direction_vector_y))>numerical_limit)
+      << "LOCAL_AXIS_1 is not perpendicular to LOCAL_AXIS_2 for element" << this->Id() << std::endl;
+
     direction_vector_z[0] = direction_vector_x[1] * direction_vector_y[2] -
                             direction_vector_x[2] * direction_vector_y[1];
     direction_vector_z[1] = direction_vector_x[2] * direction_vector_y[0] -
