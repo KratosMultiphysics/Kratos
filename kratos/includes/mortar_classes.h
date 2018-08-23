@@ -32,12 +32,19 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // Point and nodes defines
     typedef Point                                                PointType;
     typedef Node<3>                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
 
     // Type definition for integration methods
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
+
+    /// The definition of the size type
+    typedef std::size_t SizeType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
 
 ///@}
 ///@name  Enum's
@@ -194,6 +201,132 @@ namespace Kratos
         IntersectionQuadrilateral3D4N0303 = 30308
     };
 
+    /**
+    * @brief Case for 3D triangle intersected with quadrilateral 3D
+    */
+    enum class PointBelongsQuadrilateral3D4NTriangle3D3N
+    {
+        MasterTriangle3D3N0                           = 0,
+        MasterTriangle3D3N1                           = 1,
+        MasterTriangle3D3N2                           = 2,
+        SlaveQuadrilateral3D4N0                       = 3,
+        SlaveQuadrilateral3D4N1                       = 4,
+        SlaveQuadrilateral3D4N2                       = 5,
+        SlaveQuadrilateral3D4N3                       = 6,
+        IntersectionQuadrilateral3D4NTriangle3D3N     = 7,
+        IntersectionQuadrilateral3D4NTriangle3D3N0101 = 10107,
+        IntersectionQuadrilateral3D4NTriangle3D3N0110 = 1107,
+        IntersectionQuadrilateral3D4NTriangle3D3N0112 = 21107,
+        IntersectionQuadrilateral3D4NTriangle3D3N0121 = 12107,
+        IntersectionQuadrilateral3D4NTriangle3D3N0123 = 32107,
+        IntersectionQuadrilateral3D4NTriangle3D3N0132 = 23107,
+        IntersectionQuadrilateral3D4NTriangle3D3N0130 = 3107,
+        IntersectionQuadrilateral3D4NTriangle3D3N0103 = 30107,
+        IntersectionQuadrilateral3D4NTriangle3D3N1001 = 10017,
+        IntersectionQuadrilateral3D4NTriangle3D3N1010 = 1017,
+        IntersectionQuadrilateral3D4NTriangle3D3N1012 = 21017,
+        IntersectionQuadrilateral3D4NTriangle3D3N1021 = 12017,
+        IntersectionQuadrilateral3D4NTriangle3D3N1023 = 32017,
+        IntersectionQuadrilateral3D4NTriangle3D3N1032 = 23017,
+        IntersectionQuadrilateral3D4NTriangle3D3N1030 = 3017,
+        IntersectionQuadrilateral3D4NTriangle3D3N1003 = 30017,
+        IntersectionQuadrilateral3D4NTriangle3D3N1201 = 10217,
+        IntersectionQuadrilateral3D4NTriangle3D3N1210 = 1217,
+        IntersectionQuadrilateral3D4NTriangle3D3N1212 = 21217,
+        IntersectionQuadrilateral3D4NTriangle3D3N1221 = 12217,
+        IntersectionQuadrilateral3D4NTriangle3D3N1223 = 32217,
+        IntersectionQuadrilateral3D4NTriangle3D3N1232 = 23217,
+        IntersectionQuadrilateral3D4NTriangle3D3N1230 = 3217,
+        IntersectionQuadrilateral3D4NTriangle3D3N1203 = 30217,
+        IntersectionQuadrilateral3D4NTriangle3D3N2101 = 10127,
+        IntersectionQuadrilateral3D4NTriangle3D3N2110 = 1127,
+        IntersectionQuadrilateral3D4NTriangle3D3N2112 = 21127,
+        IntersectionQuadrilateral3D4NTriangle3D3N2121 = 12127,
+        IntersectionQuadrilateral3D4NTriangle3D3N2123 = 32127,
+        IntersectionQuadrilateral3D4NTriangle3D3N2132 = 23127,
+        IntersectionQuadrilateral3D4NTriangle3D3N2130 = 3127,
+        IntersectionQuadrilateral3D4NTriangle3D3N2103 = 30127,
+        IntersectionQuadrilateral3D4NTriangle3D3N2001 = 10027,
+        IntersectionQuadrilateral3D4NTriangle3D3N2010 = 1027,
+        IntersectionQuadrilateral3D4NTriangle3D3N2012 = 21027,
+        IntersectionQuadrilateral3D4NTriangle3D3N2021 = 12027,
+        IntersectionQuadrilateral3D4NTriangle3D3N2023 = 32027,
+        IntersectionQuadrilateral3D4NTriangle3D3N2032 = 23027,
+        IntersectionQuadrilateral3D4NTriangle3D3N2030 = 3027,
+        IntersectionQuadrilateral3D4NTriangle3D3N2003 = 30027,
+        IntersectionQuadrilateral3D4NTriangle3D3N0201 = 10207,
+        IntersectionQuadrilateral3D4NTriangle3D3N0210 = 1207,
+        IntersectionQuadrilateral3D4NTriangle3D3N0212 = 21207,
+        IntersectionQuadrilateral3D4NTriangle3D3N0221 = 12207,
+        IntersectionQuadrilateral3D4NTriangle3D3N0223 = 32207,
+        IntersectionQuadrilateral3D4NTriangle3D3N0232 = 23207,
+        IntersectionQuadrilateral3D4NTriangle3D3N0230 = 3207,
+        IntersectionQuadrilateral3D4NTriangle3D3N0203 = 30207
+    };
+
+    /**
+    * @brief Case for 3D quadrilateral intersected with triangle 3D
+    */
+    enum class PointBelongsTriangle3D3NQuadrilateral3D4N
+    {
+        MasterQuadrilateral3D4N0                      = 0,
+        MasterQuadrilateral3D4N1                      = 1,
+        MasterQuadrilateral3D4N2                      = 2,
+        MasterQuadrilateral3D4N3                      = 3,
+        SlaveTriangle3D3N0                            = 4,
+        SlaveTriangle3D3N1                            = 5,
+        SlaveTriangle3D3N2                            = 6,
+        IntersectionTriangle3D3NQuadrilateral3D4N     = 7,
+        IntersectionTriangle3D3NQuadrilateral3D4N0101 = 10107,
+        IntersectionTriangle3D3NQuadrilateral3D4N1001 = 1107,
+        IntersectionTriangle3D3NQuadrilateral3D4N1201 = 21107,
+        IntersectionTriangle3D3NQuadrilateral3D4N2101 = 12107,
+        IntersectionTriangle3D3NQuadrilateral3D4N2301 = 32107,
+        IntersectionTriangle3D3NQuadrilateral3D4N3201 = 23107,
+        IntersectionTriangle3D3NQuadrilateral3D4N3001 = 3107,
+        IntersectionTriangle3D3NQuadrilateral3D4N0301 = 30107,
+        IntersectionTriangle3D3NQuadrilateral3D4N0110 = 10017,
+        IntersectionTriangle3D3NQuadrilateral3D4N1010 = 1017,
+        IntersectionTriangle3D3NQuadrilateral3D4N1210 = 21017,
+        IntersectionTriangle3D3NQuadrilateral3D4N2110 = 12017,
+        IntersectionTriangle3D3NQuadrilateral3D4N2310 = 32017,
+        IntersectionTriangle3D3NQuadrilateral3D4N3210 = 23017,
+        IntersectionTriangle3D3NQuadrilateral3D4N3010 = 3017,
+        IntersectionTriangle3D3NQuadrilateral3D4N0310 = 30017,
+        IntersectionTriangle3D3NQuadrilateral3D4N0112 = 10217,
+        IntersectionTriangle3D3NQuadrilateral3D4N1012 = 1217,
+        IntersectionTriangle3D3NQuadrilateral3D4N1212 = 21217,
+        IntersectionTriangle3D3NQuadrilateral3D4N2112 = 12217,
+        IntersectionTriangle3D3NQuadrilateral3D4N2312 = 32217,
+        IntersectionTriangle3D3NQuadrilateral3D4N3212 = 23217,
+        IntersectionTriangle3D3NQuadrilateral3D4N3012 = 3217,
+        IntersectionTriangle3D3NQuadrilateral3D4N0312 = 30217,
+        IntersectionTriangle3D3NQuadrilateral3D4N0121 = 10127,
+        IntersectionTriangle3D3NQuadrilateral3D4N1021 = 1127,
+        IntersectionTriangle3D3NQuadrilateral3D4N1221 = 21127,
+        IntersectionTriangle3D3NQuadrilateral3D4N2121 = 12127,
+        IntersectionTriangle3D3NQuadrilateral3D4N2321 = 32127,
+        IntersectionTriangle3D3NQuadrilateral3D4N3221 = 23127,
+        IntersectionTriangle3D3NQuadrilateral3D4N3021 = 3127,
+        IntersectionTriangle3D3NQuadrilateral3D4N0321 = 30127,
+        IntersectionTriangle3D3NQuadrilateral3D4N0120 = 10027,
+        IntersectionTriangle3D3NQuadrilateral3D4N1020 = 1027,
+        IntersectionTriangle3D3NQuadrilateral3D4N1220 = 21027,
+        IntersectionTriangle3D3NQuadrilateral3D4N2120 = 12027,
+        IntersectionTriangle3D3NQuadrilateral3D4N2320 = 32027,
+        IntersectionTriangle3D3NQuadrilateral3D4N3220 = 23027,
+        IntersectionTriangle3D3NQuadrilateral3D4N3020 = 3027,
+        IntersectionTriangle3D3NQuadrilateral3D4N0320 = 30027,
+        IntersectionTriangle3D3NQuadrilateral3D4N0102 = 10207,
+        IntersectionTriangle3D3NQuadrilateral3D4N1002 = 1207,
+        IntersectionTriangle3D3NQuadrilateral3D4N1202 = 21207,
+        IntersectionTriangle3D3NQuadrilateral3D4N2102 = 12207,
+        IntersectionTriangle3D3NQuadrilateral3D4N2302 = 32207,
+        IntersectionTriangle3D3NQuadrilateral3D4N3202 = 23207,
+        IntersectionTriangle3D3NQuadrilateral3D4N3002 = 3207,
+        IntersectionTriangle3D3NQuadrilateral3D4N0302 = 30207
+    };
+
 ///@}
 ///@name  Functions
 ///@{
@@ -202,14 +335,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
- * @class MortarKinematicVariables 
+/**
+ * @class MortarKinematicVariables
  * @ingroup KratosCore
  * @brief MortarKinematicVariables
  * @details This is the definition of the kinematic variables used on the mortar operators assemble, which means three shape functions (one for the slave , one for the master and the third for the Lagrange Multipliers), and the jacobian in the corresponding Gauss point
  * @author Vicente Mataix Ferrandiz
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const std::size_t TNumNodes>
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class MortarKinematicVariables
 {
 public:
@@ -228,7 +363,7 @@ public:
     virtual ~MortarKinematicVariables(){}
 
     // Shape functions for contact pair
-    Vector NMaster = Vector(TNumNodes, 0.0);
+    Vector NMaster = Vector(TNumNodesMaster, 0.0);
     Vector NSlave = Vector(TNumNodes, 0.0);
     Vector PhiLagrangeMultipliers = Vector(TNumNodes, 0.0);
 
@@ -250,7 +385,7 @@ public:
     void Initialize()
     {
         // Shape functions
-        noalias(NMaster)                = ZeroVector(TNumNodes);
+        noalias(NMaster)                = ZeroVector(TNumNodesMaster);
         noalias(NSlave)                 = ZeroVector(TNumNodes);
         noalias(PhiLagrangeMultipliers) = ZeroVector(TNumNodes);
 
@@ -348,22 +483,25 @@ private:
 
 }; // Class MortarKinematicVariables
 
-/** 
- * @class MortarKinematicVariablesWithDerivatives 
+/**
+ * @class MortarKinematicVariablesWithDerivatives
  * @ingroup KratosCore
  * @brief MortarKinematicVariablesWithDerivatives
  * @details This class derives from MortarKinematicVariables and includes additionally to the variables of the previous class, the variables needed to define the directional derivatives of the mortar operators, like the gradients of the shape functions and the jacobians
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const std::size_t TDim, const std::size_t TNumNodes>
-class MortarKinematicVariablesWithDerivatives 
-    : public MortarKinematicVariables<TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+class MortarKinematicVariablesWithDerivatives
+    : public MortarKinematicVariables<TNumNodes, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef MortarKinematicVariables<TNumNodes> BaseClassType;
+    typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster> BaseClassType;
 
     /// Counted pointer of MortarKinematicVariables
     KRATOS_CLASS_POINTER_DEFINITION( MortarKinematicVariablesWithDerivatives );
@@ -377,7 +515,7 @@ public:
     ~MortarKinematicVariablesWithDerivatives() override= default;
 
     // Shape functions local derivatives for contact pair
-    Matrix DNDeMaster = Matrix(TNumNodes, TDim - 1, 0.0);
+    Matrix DNDeMaster = Matrix(TNumNodesMaster, TDim - 1, 0.0);
     Matrix DNDeSlave = Matrix(TNumNodes, TDim - 1, 0.0);
 
     /*
@@ -405,7 +543,7 @@ public:
         BaseClassType::Initialize();
 
         // Shape functions local derivatives
-        noalias(DNDeMaster) = ZeroMatrix(TNumNodes, TDim - 1);
+        noalias(DNDeMaster) = ZeroMatrix(TNumNodesMaster, TDim - 1);
         noalias(DNDeSlave)  = ZeroMatrix(TNumNodes, TDim - 1);
 
         // Jacobians on all integration points
