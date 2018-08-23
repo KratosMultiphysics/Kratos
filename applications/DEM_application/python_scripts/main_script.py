@@ -89,8 +89,7 @@ class Solution(object):
         self.p_count = self.p_frequency
 
         self.solver = self.SetSolver()
-        #self.final_time = DEM_parameters.FinalTime
-        #self.dt = DEM_parameters.MaxTimeStep
+
         self.Setdt()
         self.SetFinalTime()
 
@@ -524,18 +523,30 @@ class Solution(object):
 
     def CleanUpOperations(self):
 
-        objects_to_destroy = [self.demio, self.procedures, self.creator_destructor, self.dem_fem_search, self.solver, self.DEMFEMProcedures, self.post_utils,
-                              self.cluster_model_part, self.rigid_face_model_part, self.spheres_model_part, self.DEM_inlet_model_part, self.mapping_model_part]
-
-        if self.DEM_parameters["dem_inlet_option"].GetBool():
-            objects_to_destroy.append(self.DEM_inlet)
-
-        for obj in objects_to_destroy:
-            del obj
-
         self.procedures.DeleteFiles()
 
         self.KRATOSprint(self.report.FinalReport(timer))
+
+        if self.post_normal_impact_velocity_option:
+            del self.analytic_model_part
+
+        del self.KRATOSprint
+        del self.all_model_parts
+        del self.demio
+        del self.procedures
+        del self.creator_destructor
+        del self.dem_fem_search
+        del self.solver
+        del self.DEMFEMProcedures
+        del self.post_utils
+        del self.cluster_model_part
+        del self.rigid_face_model_part
+        del self.spheres_model_part
+        del self.DEM_inlet_model_part
+        del self.mapping_model_part
+
+        if self.DEM_parameters["dem_inlet_option"].GetBool():
+            del self.DEM_inlet
 
     def SetGraphicalOutput(self):
         self.demio = DEM_procedures.DEMIo(self.DEM_parameters, self.post_path)

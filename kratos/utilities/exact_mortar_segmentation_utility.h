@@ -307,7 +307,7 @@ public:
                 points_array[i_node] = Kratos::make_shared<PointType>(global_point);
             }
 
-            TriangleType decomp_geom(points_array);
+            TriangleType decomp_geom(TriangleType::PointsArrayType{points_array});
 
             std::cout << "\nGraphics3D[{Opacity[.3],Triangle[{{";
             for (IndexType i = 0; i < 3; ++i) {

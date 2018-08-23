@@ -185,7 +185,7 @@ protected:
     ///@{
 
     // ==============================================================================
-    void CheckSettingsForGradientAnalysis(Parameters& rResponseSettings)
+    void CheckSettingsForGradientAnalysis(Parameters rResponseSettings)
     {
         const std::string gradient_mode = rResponseSettings["gradient_mode"].GetString();
 
@@ -210,7 +210,7 @@ protected:
     }
 
     // --------------------------------------------------------------------------
-    void CalculateLinearWeights(Parameters& rResponseSettings)
+    void CalculateLinearWeights(Parameters rResponseSettings)
     {
         KRATOS_ERROR_IF_NOT(rResponseSettings.Has("weighting_factors")) << "No weighting factors defined for given eigenfrequency response!" << std::endl;
         KRATOS_ERROR_IF_NOT(rResponseSettings["weighting_factors"].size() == mTracedEigenfrequencyIds.size()) << "The number of chosen eigenvalues does not fit to the number of weighting factors!" << std::endl;

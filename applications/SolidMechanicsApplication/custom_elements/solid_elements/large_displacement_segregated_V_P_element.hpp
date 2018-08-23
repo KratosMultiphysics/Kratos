@@ -84,7 +84,7 @@ public:
 
 
     /// Destructor.
-    virtual ~LargeDisplacementSegregatedVPElement();
+    ~LargeDisplacementSegregatedVPElement() override;
 
     ///@}
     ///@name Operators
