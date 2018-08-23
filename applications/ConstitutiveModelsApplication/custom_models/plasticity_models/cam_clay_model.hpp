@@ -104,7 +104,7 @@ namespace Kratos
          }
 
          /// Destructor.
-         virtual ~CamClayModel() {}
+         ~CamClayModel() override {}
 
 
          ///@}
@@ -119,7 +119,7 @@ namespace Kratos
          /**
           * Check
           */
-         virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
+         int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
          {
             KRATOS_TRY
 
@@ -137,7 +137,7 @@ namespace Kratos
          /**
           * Has Values
           */
-         virtual bool Has(const Variable<double>& rThisVariable) override
+         bool Has(const Variable<double>& rThisVariable) override
          {
             if(rThisVariable == PLASTIC_STRAIN || rThisVariable == DELTA_PLASTIC_STRAIN )
                return true;
@@ -149,7 +149,7 @@ namespace Kratos
          /**
           * Get Values
           */
-         virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
+         double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
          {
 
             rValue=0;
@@ -179,7 +179,7 @@ namespace Kratos
          ///@{
 
          /// Turn back information as a string.
-         virtual std::string Info() const override
+         std::string Info() const override
          {
             std::stringstream buffer;
             buffer << "CamClayModel" ;
@@ -187,13 +187,13 @@ namespace Kratos
          }
 
          /// Print information about this object.
-         virtual void PrintInfo(std::ostream& rOStream) const override
+         void PrintInfo(std::ostream& rOStream) const override
          {
             rOStream << "CamClayModel";
          }
 
          /// Print object's data.
-         virtual void PrintData(std::ostream& rOStream) const override
+         void PrintData(std::ostream& rOStream) const override
          {
             rOStream << "CamClayModel Data";
          }
@@ -277,12 +277,12 @@ namespace Kratos
          ///@{
          friend class Serializer;
 
-         virtual void save(Serializer& rSerializer) const override
+         void save(Serializer& rSerializer) const override
          {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
          }
 
-         virtual void load(Serializer& rSerializer) override
+         void load(Serializer& rSerializer) override
          {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
          }

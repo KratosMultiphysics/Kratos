@@ -410,8 +410,6 @@ void VariableRedistributionUtility::DummyUpdateDistributionRHS(
     const Variable< TValueType >& rDistributedVariable)
 {
     const Variable<TValueType>& rhs_variable = GetRHSVariable(rDistributedVariable);
-    const TValueType rhs_zero = rhs_variable.Zero(); // something of the correct type to initialize our values to zero
-
     // Assemble distributed contributions
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rhs_variable);
 }

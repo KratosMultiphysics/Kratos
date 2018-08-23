@@ -422,10 +422,10 @@ void SmallDisplacementBbar::CalculateBbar(
 void SmallDisplacementBbar::CalculateHydrostaticDeformationMatrix(KinematicVariables& rVariables)
 {
     KRATOS_TRY
-      
+
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    
+
     const GeometryType::IntegrationPointsArrayType& integration_points =
         GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
     rVariables.Bh.resize(dimension * number_of_nodes, false);

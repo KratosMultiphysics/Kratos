@@ -57,7 +57,8 @@ public:
                 "variable_name": "VARIABLE_NAME",
                 "entity_type": "NODES",
                 "value" : [0.0, 0.0, 0.0],
-                "local_axes" : {}
+                "local_axes" : {},
+                "compound_assignment": "direct"
             }  )" );
 
 
@@ -90,16 +91,16 @@ public:
 	}
 
         if( rParameters["entity_type"].GetString() == "NODES" ){
-          this->mEntity = NODES;
+          this->mEntity = EntityType::NODES;
         }
         else if(  rParameters["entity_type"].GetString() == "CONDITIONS" ){
-          this->mEntity = CONDITIONS;
+          this->mEntity = EntityType::CONDITIONS;
         }
         else{
           KRATOS_ERROR <<" Entity type "<< rParameters["entity_type"].GetString() <<" is not supported "<<std::endl;
         }
 
-        if( this->mEntity == CONDITIONS ){
+        if( this->mEntity == EntityType::CONDITIONS ){
 
           if(KratosComponents< Variable<Vector> >::Has(this->mvariable_name) == false) //case of vector variable
           {
@@ -112,18 +113,21 @@ public:
 
         }
         else{
-          KRATOS_ERROR << " Assignment to " << mEntity << " not implemented "<< std::endl;
+          KRATOS_ERROR << " Assignment to " << rParameters["entity_type"].GetString() << " not implemented "<< std::endl;
         }
 
         mvector_value[0] = rParameters["value"][0].GetDouble();
         mvector_value[1] = rParameters["value"][1].GetDouble();
         mvector_value[2] = rParameters["value"][2].GetDouble();
 
+
+       this->SetAssignmentType(rParameters["compound_assignment"].GetString(), this->mAssignment);
+
         KRATOS_CATCH("");
     }
 
     /// Destructor.
-    virtual ~AssignVectorFieldToEntitiesProcess() {}
+    ~AssignVectorFieldToEntitiesProcess() override {}
 
 
     ///@}
@@ -221,8 +225,9 @@ public:
 
         KRATOS_TRY
 
-        if( this->mEntity == CONDITIONS ){
+        if( this->mEntity == EntityType::CONDITIONS ){
 
+          mAssignment = AssignmentType::DIRECT;
           if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
           {
 
@@ -376,6 +381,11 @@ private:
     template< class TVarType, class TDataType >
     void AssignValueToConditions(TVarType& rVariable, TDataType& Value, const double& rTime )
     {
+
+        typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ConditionType&, const TVarType&, const TDataType&);
+
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
+
         const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
@@ -389,7 +399,7 @@ private:
 
 		this->CallFunction<TDataType>(*(it.base()), rTime, Value);
 
-                it->SetValue(rVariable, Value);
+                (this->*AssignmentMethod)(*it, rVariable, Value);
             }
         }
 
@@ -399,6 +409,9 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+
+
     ///@}
     ///@name Private  Access
     ///@{
