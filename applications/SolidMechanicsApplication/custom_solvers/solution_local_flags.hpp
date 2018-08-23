@@ -44,7 +44,7 @@ namespace Kratos
 /** @brief Solver local flags class definition
  *  @details This is the base class for solver local flags
  */
-class SolverLocalFlags
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolverLocalFlags
 {
  public:
   /// Flags for the solution control:
@@ -69,7 +69,7 @@ class SolverLocalFlags
 /** @brief Solver local flags class definition
  *  @details This is the base class for criterion local flags
  */
-class CriterionLocalFlags
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) CriterionLocalFlags
 {
  public:
   /// Flags for the solution control:
@@ -87,7 +87,7 @@ class CriterionLocalFlags
  *  @details This is the base class for time integration local flags
  */
 
-class TimeIntegrationLocalFlags
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) TimeIntegrationLocalFlags
 {
  public:
 

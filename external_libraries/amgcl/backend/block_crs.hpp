@@ -159,7 +159,7 @@ struct block_crs {
 
         params(size_t block_size = 4) : block_size(block_size) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, block_size)
         {

@@ -68,7 +68,7 @@ class chebyshev {
 
             params() : degree(5), lower(1.0f / 30), power_iters(0) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, degree),
                   AMGCL_PARAMS_IMPORT_VALUE(p, lower),
@@ -170,6 +170,13 @@ class chebyshev {
             solve(A, rhs, x);
         }
 
+        size_t bytes() const {
+            return
+                backend::bytes(C) +
+                backend::bytes(*p) +
+                backend::bytes(*q);
+        }
+
     private:
         std::vector<scalar_type> C;
         mutable std::shared_ptr<vector> p, q;
@@ -191,8 +198,17 @@ class chebyshev {
 };
 
 } // namespace relaxation
+
+namespace backend {
+
+template <class Backend>
+struct bytes_impl< relaxation::chebyshev<Backend> > {
+    static size_t get(const relaxation::chebyshev<Backend> &R) {
+        return R.bytes();
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
-
-
 
 #endif

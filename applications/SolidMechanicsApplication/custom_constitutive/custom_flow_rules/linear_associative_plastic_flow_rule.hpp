@@ -71,7 +71,7 @@ namespace Kratos
     LinearAssociativePlasticFlowRule& operator=(LinearAssociativePlasticFlowRule const& rOther);
 
     /// Destructor.
-    virtual ~LinearAssociativePlasticFlowRule();
+    ~LinearAssociativePlasticFlowRule() override;
 
 
     ///@}

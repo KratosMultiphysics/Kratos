@@ -1175,7 +1175,7 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
         condition_nodes[0] = mrThisModelPart.pGetNode(edge_0);
         condition_nodes[1] = mrThisModelPart.pGetNode(edge_1);    
         
-        p_condition = mpRefCondition[PropId]->Create(CondId, condition_nodes, mpRefCondition[PropId]->pGetProperties());
+        p_condition = mpRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, mpRefCondition[PropId]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgProcess") << "Condition creation avoided" << std::endl;
     
@@ -1211,7 +1211,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
         condition_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
         condition_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
         
-        p_condition = mpRefCondition[PropId]->Create(CondId, condition_nodes, mpRefCondition[PropId]->pGetProperties());
+        p_condition = mpRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, mpRefCondition[PropId]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgProcess") << "Condition creation avoided" << std::endl;
     
@@ -1263,7 +1263,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition1(
         condition_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
         condition_nodes[3] = mrThisModelPart.pGetNode(vertex_3);
         
-        p_condition = mpRefCondition[PropId]->Create(CondId, condition_nodes, mpRefCondition[PropId]->pGetProperties());
+        p_condition = mpRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, mpRefCondition[PropId]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgProcess") << "Condition creation avoided" << std::endl;
     
@@ -1299,7 +1299,7 @@ ElementType::Pointer MmgProcess<2>::CreateElement0(
         element_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
         element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
         
-        p_element = mpRefElement[PropId]->Create(ElemId, element_nodes, mpRefElement[PropId]->pGetProperties());
+        p_element = mpRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, mpRefElement[PropId]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
     
@@ -1337,7 +1337,7 @@ ElementType::Pointer MmgProcess<3>::CreateElement0(
         element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
         element_nodes[3] = mrThisModelPart.pGetNode(vertex_3);
         
-        p_element = mpRefElement[PropId]->Create(ElemId, element_nodes, mpRefElement[PropId]->pGetProperties());
+        p_element = mpRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, mpRefElement[PropId]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
     
@@ -1393,7 +1393,7 @@ ElementType::Pointer MmgProcess<3>::CreateElement1(
         element_nodes[4] = mrThisModelPart.pGetNode(vertex_4);
         element_nodes[5] = mrThisModelPart.pGetNode(vertex_5);
     
-        p_element = mpRefElement[PropId]->Create(ElemId, element_nodes, mpRefElement[PropId]->pGetProperties());
+        p_element = mpRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, mpRefElement[PropId]->pGetProperties());
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
     

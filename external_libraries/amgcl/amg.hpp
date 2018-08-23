@@ -155,7 +155,7 @@ class amg {
 #endif
             {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, coarsening),
                   AMGCL_PARAMS_IMPORT_CHILD(p, relax),
@@ -289,6 +289,11 @@ class amg {
             return *system_matrix_ptr();
         }
 
+        size_t bytes() const {
+            size_t b = 0;
+            for(const auto &lvl : levels) b += lvl.bytes();
+            return b;
+        }
     private:
         struct level {
             size_t m_rows, m_nonzeros;
@@ -304,6 +309,23 @@ class amg {
             std::shared_ptr< typename Backend::direct_solver > solve;
 
             std::shared_ptr<relax_type> relax;
+
+            size_t bytes() const {
+                size_t b = 0;
+
+                if (f) b += backend::bytes(*f);
+                if (u) b += backend::bytes(*u);
+                if (t) b += backend::bytes(*t);
+
+                if (A) b += backend::bytes(*A);
+                if (P) b += backend::bytes(*P);
+                if (R) b += backend::bytes(*R);
+
+                if (solve) b += backend::bytes(*solve);
+                if (relax) b += backend::bytes(*relax);
+
+                return b;
+            }
 
             level() {}
 
@@ -538,10 +560,12 @@ std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
 
     size_t sum_dof = 0;
     size_t sum_nnz = 0;
+    size_t sum_mem = 0;
 
     for(const level &lvl : a.levels) {
         sum_dof += lvl.rows();
         sum_nnz += lvl.nonzeros();
+        sum_mem += lvl.bytes();
     }
 
     os << "Number of levels:    "   << a.levels.size()
@@ -549,15 +573,18 @@ std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
         << 1.0 * sum_nnz / a.levels.front().nonzeros()
         << "\nGrid complexity:     " << std::fixed << std::setprecision(2)
         << 1.0 * sum_dof / a.levels.front().rows()
-        << "\n\nlevel     unknowns       nonzeros\n"
-        << "---------------------------------\n";
+        << "\nMemory footprint:    " << human_readable_memory(sum_mem)
+        << "\n\n"
+           "level     unknowns       nonzeros      memory\n"
+           "---------------------------------------------\n";
 
     size_t depth = 0;
     for(const level &lvl : a.levels) {
         os << std::setw(5)  << depth++
             << std::setw(13) << lvl.rows()
-            << std::setw(15) << lvl.nonzeros() << " ("
-            << std::setw(5) << std::fixed << std::setprecision(2)
+            << std::setw(15) << lvl.nonzeros()
+            << std::setw(12) << human_readable_memory(lvl.bytes())
+            << " (" << std::setw(5) << std::fixed << std::setprecision(2)
             << 100.0 * lvl.nonzeros() / sum_nnz
             << "%)" << std::endl;
     }
@@ -566,6 +593,21 @@ std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
     os.precision(fp);
     return os;
 }
+
+namespace backend {
+
+template <
+    class B,
+    template <class> class C,
+    template <class> class R
+    >
+struct bytes_impl< amg<B, C, R> > {
+    static size_t get(const amg<B, C, R> &A) {
+        return A.bytes();
+    }
+};
+
+} // namespace backend
 
 } // namespace amgcl
 

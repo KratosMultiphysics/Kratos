@@ -147,7 +147,7 @@ namespace Kratos {
     // DEM-FEM INTERACTION //
     /////////////////////////
 
-    void DEM_D_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta)
+    void DEM_D_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta)
     {}
 
     void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& r_process_info,
@@ -160,7 +160,7 @@ namespace Kratos {
                                                          double ViscoDampingLocalContactForce[3],
                                                          double& cohesive_force,
                                                          SphericParticle* const element,
-                                                         DEMWall* const wall,
+                                                         Condition* const wall,
                                                          bool& sliding) {
 
         //InitializeContactWithFEM(element, wall, indentation);
@@ -195,7 +195,7 @@ namespace Kratos {
     void DEM_D_Bentonite_Colloid::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                                     double ViscoDampingLocalContactForce[3],
                                                                     SphericParticle* const element,
-                                                                    DEMWall* const wall) {
+                                                                    Condition* const wall) {
 
         const double my_mass    = element->GetMass();
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
@@ -219,7 +219,7 @@ namespace Kratos {
         return 0.0;
     }
 
-    double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
+    double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation){
         return 0.0;
     }
 

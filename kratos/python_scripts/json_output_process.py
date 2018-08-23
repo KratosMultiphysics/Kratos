@@ -35,6 +35,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "help"                          : "This process generates a json file containing the solution of a list of variables from a given submodelpart",
             "output_variables"              : [],
             "gauss_points_output_variables" : [],
             "output_file_name"              : "",
