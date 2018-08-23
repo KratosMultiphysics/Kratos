@@ -96,6 +96,13 @@ public:
         : Scheme<TSparseSpace,TDenseSpace>()
     {}
 
+    /** Copy Constructor.
+     */
+    explicit ResidualBasedIncrementalUpdateStaticScheme(ResidualBasedIncrementalUpdateStaticScheme& rOther)
+        :BaseType(rOther)
+    {
+    }
+
     /** Destructor.
     */
     ~ResidualBasedIncrementalUpdateStaticScheme() override {}

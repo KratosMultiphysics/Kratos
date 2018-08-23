@@ -117,7 +117,7 @@ public:
     /**
      * @brief Copy Constructor.
      */
-    ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
+    explicit ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
         :ImplicitBaseType(rOther)
         ,mAlpha(rOther.mAlpha)
         ,mNewmark(rOther.mNewmark)

@@ -89,7 +89,7 @@ public:
 
     /** Copy Constructor.
      */
-    ResidualBasedNewmarkDisplacementScheme(ResidualBasedNewmarkDisplacementScheme& rOther)
+    explicit ResidualBasedNewmarkDisplacementScheme(ResidualBasedNewmarkDisplacementScheme& rOther)
       :DerivedBaseType(rOther)
     {
     }

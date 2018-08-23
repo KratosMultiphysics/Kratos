@@ -107,7 +107,7 @@ public:
 
     /** Copy Constructor.
      */
-    ResidualBasedImplicitTimeScheme(ResidualBasedImplicitTimeScheme& rOther)
+    explicit ResidualBasedImplicitTimeScheme(ResidualBasedImplicitTimeScheme& rOther)
         :BaseType(rOther)
         ,mMatrix(rOther.mMatrix)
     {
