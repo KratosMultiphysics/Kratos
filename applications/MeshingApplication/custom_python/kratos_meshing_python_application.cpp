@@ -50,7 +50,7 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_GRADIENT)                                    // An auxiliar gradient needed to compute the metric
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_HESSIAN)                                     // An auxiliar hessian needed to compute the metric
     KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(m, METRIC_TENSOR_2D) // A 2D metric vector
-//     KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(m, METRIC_TENSOR_3D) // A 3D metric vector
+    KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(m, METRIC_TENSOR_3D) // A 3D metric vector
 
     //for ULF (surface_tension) application:
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TRIPLE_POINT)
