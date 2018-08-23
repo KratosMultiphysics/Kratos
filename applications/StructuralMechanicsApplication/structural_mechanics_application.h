@@ -81,7 +81,6 @@
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
 /* CONSTITUTIVE LAWS */
-// Elastic Constitutive laws
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
@@ -108,6 +107,7 @@
 #include "custom_constitutive/viscous_generalized_kelvin_3d.h"
 #include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/viscous_generalized_maxwell_3d.h"
+
 
 namespace Kratos
 {
