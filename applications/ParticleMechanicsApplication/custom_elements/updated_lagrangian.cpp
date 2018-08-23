@@ -1084,6 +1084,9 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
     double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
     this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
 
+    double AccumulatedPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
+    this->SetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
+
     MathUtils<double>::InvertMatrix( rVariables.j, mInverseJ, rVariables.detJ );
 
     this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
