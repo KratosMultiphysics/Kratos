@@ -65,6 +65,9 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
         for (IndexType i=0; i<local_coords.size(); ++i)
         {
             mShapeFunctionValues[i] = local_coords[i];
+            KRATOS_DEBUG_ERROR_IF_NOT((*p_geom)[i].Has(INTERFACE_EQUATION_ID))
+                << "Node #" << (*p_geom)[i].Id() << " does not have an Interface Id!\n" << (*p_geom)<< "\n"
+                <<  (*p_geom)[i] << std::endl;
             mNodeIds[i] = (*p_geom)[i].GetValue(INTERFACE_EQUATION_ID);
         }
     }
@@ -88,6 +91,7 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
             mClosestProjectionDistance = dist;
             if (mNodeIds.size() != 1) mNodeIds.resize(1);
             if (mShapeFunctionValues.size() != 1) mShapeFunctionValues.resize(1);
+            KRATOS_DEBUG_ERROR_IF_NOT(r_point.Has(INTERFACE_EQUATION_ID));
             mNodeIds[0] = r_point.GetValue(INTERFACE_EQUATION_ID);
             mShapeFunctionValues[0] = 1.0; // Approximation is nearest node
         }
@@ -101,43 +105,56 @@ void NearestElementLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeigh
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
-    // if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
-    // if (rOriginIds.size() != 1)      rOriginIds.resize(1);
-    // if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
+    if (mInterfaceInfos.size() > 0)
+    {
+        double distance;
+        double min_distance = std::numeric_limits<double>::max();
+        int found_idx = -1;
+        for (IndexType i=0; i<mInterfaceInfos.size(); ++i)
+        {
+            // the approximations will be processed in the next step if necessary
+            if (!mInterfaceInfos[i]->GetIsApproximation())
+            {
+                mInterfaceInfos[i]->GetValue(distance);
+                if (distance < min_distance)
+                {
+                    min_distance = distance;
+                    found_idx = static_cast<int>(i); // TODO explicit conversion needed?
+                    rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
+                }
+            }
+        }
 
-    // if (this->mInterfaceInfos.size() > 0)
-    // {
-    //     // IndexType nearest_neighbor_id = this->mInterfaceInfos[0]->GetInterfaceData().GetNearestNeighborId();
-    //     // double nearest_neighbor_distance = this->mInterfaceInfos[0]->GetInterfaceData().GetNearestNeighborDistance();
+        if (found_idx == -1) // this means that no valid projection exists for this LocalSystem
+        {
+            for (IndexType i=0; i<mInterfaceInfos.size(); ++i)
+            {
+                // now the approximations are being checked
+                if (mInterfaceInfos[i]->GetIsApproximation())
+                {
+                    mInterfaceInfos[i]->GetValue(distance);
+                    if (distance < min_distance)
+                    {
+                        min_distance = distance;
+                        found_idx = static_cast<int>(i); // TODO explicit conversion needed?
+                        rPairingStatus = MapperLocalSystem::PairingStatus::Approximation;
+                    }
+                }
+            }
+        }
 
-    //     // for (SizeType i=1; i<this->mInterfaceInfos.size(); ++i)
-    //     // {
-    //     //     TDataHolder data = this->mInterfaceInfos[i]->GetInterfaceData();
-    //     //     double distance = data.GetNearestNeighborDistance();
+        KRATOS_ERROR_IF(found_idx == -1) << "Not even an approximation is found, this should not happen!"
+            << std::endl;
 
-    //     //     if (distance < nearest_neighbor_distance)
-    //     //     {
-    //     //         nearest_neighbor_distance = distance;
-    //     //         nearest_neighbor_id = data.GetNearestNeighborId();
-    //     //     }
-    //     // }
+        mInterfaceInfos[found_idx]->GetValue(rMappingWeights);
+        mInterfaceInfos[found_idx]->GetValue(rOriginIds);
 
-    //     rMappingWeights[0] = 1.0;
-    //     // rOriginIds[0] = nearest_neighbor_id;
-    //     // rDestinationIds[0] = this->mrNode.GetValue(INTERFACE_EQUATION_ID); //TODO
-    // }
-    // else
-    // {
-    //     KRATOS_WARNING_IF("NearestNeighborMapper", this->mInterfaceInfos.size() == 0)
-    //         << "MapperLocalSystem No xxx" << "xxx" << " has not found a neighbor" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
-    //     // TODO is this ok? => I guess it would be better to do this in a mor general way in the baseclass...
-    //     // TODO resize to zero, then it wont be assembled! (might be a bit slower though...)
-    //     rMappingWeights[0] = 0.0;
-    //     rOriginIds[0]      = 0;
-    //     rDestinationIds[0] = 0;
-    // }
-
+        if (rDestinationIds.size() != rOriginIds.size()) rDestinationIds.resize(rOriginIds.size());
+        std::fill(rDestinationIds.begin(), rDestinationIds.end(), mpNode->GetValue(INTERFACE_EQUATION_ID));
+    }
+    else ResizeToZero(rMappingWeights, rOriginIds, rDestinationIds, rPairingStatus);
 }
 
 std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel, const int CommRank) const
