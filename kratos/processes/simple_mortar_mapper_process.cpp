@@ -651,8 +651,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         MortarUtilities::ResetAuxiliarValue<TVarType>(mOriginModelPart);
         MortarUtilities::ResetAuxiliarValue<TVarType>(mDestinationModelPart);
 
-        ConditionsArrayType& conditions_array = mDestinationModelPart.Conditions();
-        const int num_conditions = static_cast<int>(conditions_array.size());
+        ConditionsArrayType& r_conditions_array = mDestinationModelPart.Conditions();
+        const int num_conditions = static_cast<int>(r_conditions_array.size());
 
         // We map the values from one side to the other
         #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)

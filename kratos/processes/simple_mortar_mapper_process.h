@@ -616,7 +616,7 @@ private:
     template<class TClassType, bool TImplicit = false>
     void PerformMortarOperations(
         MatrixType& rA,
-        std::vector<VectorType>& b,
+        std::vector<VectorType>& rb,
         IntMap& rInverseConectivityDatabase,
         typename TClassType::Pointer pIndexesPairs,
         ConditionsArrayType::iterator itCond,
@@ -687,7 +687,7 @@ private:
                     if (TImplicit) {
                         /* We compute the residual and assemble */
                         const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
-                        AssembleRHSAndLHS(rA, b, variable_size, residual_matrix, slave_geometry, rInverseConectivityDatabase, rThisMortarOperators);
+                        AssembleRHSAndLHS(rA, rb, variable_size, residual_matrix, slave_geometry, rInverseConectivityDatabase, rThisMortarOperators);
                     } else {
                         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                             slave_geometry[i_node].GetValue(NODAL_AREA) += rThisMortarOperators.DOperator(i_node, i_node);
@@ -695,7 +695,7 @@ private:
                     }
                 } else if (TImplicit) {
                     const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
-                    AssembleRHS(b, variable_size, residual_matrix, slave_geometry, rInverseConectivityDatabase);
+                    AssembleRHS(rb, variable_size, residual_matrix, slave_geometry, rInverseConectivityDatabase);
                 }
             } else { // NOTE: The condition considered maybe is to tight
                 indexes_to_remove.push_back(master_id);
