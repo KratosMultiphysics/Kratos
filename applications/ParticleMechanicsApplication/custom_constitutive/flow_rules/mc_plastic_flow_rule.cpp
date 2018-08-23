@@ -752,9 +752,16 @@ Matrix MCPlasticFlowRule::GetElasticLeftCauchyGreen(RadialReturnVariables& rRetu
 
 bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
 {
-    double NormPlasticPrincipalStrain = sqrt((mPlasticPrincipalStrain(0) * mPlasticPrincipalStrain(0) + mPlasticPrincipalStrain(1) * mPlasticPrincipalStrain(1) +mPlasticPrincipalStrain(2) * mPlasticPrincipalStrain(2) ));
-
+    // Compute Delta Plastic Strain
+    double NormPlasticPrincipalStrain = sqrt(mPlasticPrincipalStrain(0) * mPlasticPrincipalStrain(0) + mPlasticPrincipalStrain(1) * mPlasticPrincipalStrain(1) + mPlasticPrincipalStrain(2) * mPlasticPrincipalStrain(2));
     mInternalVariables.DeltaPlasticStrain = NormPlasticPrincipalStrain;
+
+    // Compute Strain Components and its invariants
+    double VolumetricPlasticPrincipalStrain = (mPlasticPrincipalStrain(0) + mPlasticPrincipalStrain(1) + mPlasticPrincipalStrain(2));
+    Vector DeviatoricPlasticPrincipalStrain = mPlasticPrincipalStrain;
+    for (unsigned int i = 0; i<3; ++i)
+        DeviatoricPlasticPrincipalStrain(i) -= 1.0/3.0 * VolumetricPlasticPrincipalStrain;
+    double DeltaAccumulatedPlasticDeviatoricStrain = sqrt(2.0/3.0) *sqrt(DeviatoricPlasticPrincipalStrain(0) * DeviatoricPlasticPrincipalStrain(0) + DeviatoricPlasticPrincipalStrain(1) * DeviatoricPlasticPrincipalStrain(1) + DeviatoricPlasticPrincipalStrain(2) * DeviatoricPlasticPrincipalStrain(2));
 
     const double FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
     const double DilatancyAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
@@ -774,9 +781,13 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
         NormStateFunctionDerivative = sqrt(1 + DilatancyCoefficient * DilatancyCoefficient);
     }
 
-    // Compute Equivalent Plastic Strain
+    // Update Equivalent Plastic Strain
     double DeltaEquivalentPlasticStrain = mInternalVariables.DeltaPlasticStrain / NormStateFunctionDerivative;
     mInternalVariables.EquivalentPlasticStrain    += DeltaEquivalentPlasticStrain;
+
+    // Update Accumulated Plastic Deviatoric Strain
+    mInternalVariables.DeltaPlasticDeviatoricStrain = DeltaAccumulatedPlasticDeviatoricStrain;
+    mInternalVariables.AccumulatedPlasticDeviatoricStrain += DeltaAccumulatedPlasticDeviatoricStrain;
 
     return true;
 }
