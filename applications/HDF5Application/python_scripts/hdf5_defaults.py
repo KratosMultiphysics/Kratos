@@ -7,6 +7,7 @@ hdf5_default_settings = """
                 "model_part_output_settings" : {},
                 "nodal_results_settings" : {},
                 "element_results_settings" : {},
+                "nodal_non_solution_step_results_settings": {},
                 "output_time_settings" : {}
             }
             """
