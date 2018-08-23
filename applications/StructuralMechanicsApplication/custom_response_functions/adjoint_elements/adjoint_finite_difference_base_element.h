@@ -375,7 +375,7 @@ public:
      * Calculates the stress-displacement derivative of the given rStressVariable.
      * For the linear case this happens by calculating the stress using a unit-displacement for each dof.
      */
-    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+    virtual void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
      * Calculates the stress-design variable derivative of the given rStressVariable.

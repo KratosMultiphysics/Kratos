@@ -23,7 +23,6 @@
 #include "includes/serializer.h"
 #include "includes/constitutive_law.h"
 #include "shell_utilities.h"
-#include "properties_extensions.hpp"
 #include "containers/flags.h"
 
 namespace Kratos
@@ -1372,11 +1371,6 @@ private:
     }
 
     ///@}
-
-public:
-
-    DECLARE_ADD_THIS_TYPE_TO_PROPERTIES
-    DECLARE_GET_THIS_TYPE_FROM_PROPERTIES
 
 };
 
