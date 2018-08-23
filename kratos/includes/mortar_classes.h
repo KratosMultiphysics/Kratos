@@ -1521,16 +1521,17 @@ private:
 
 }; // Class MortarOperatorWithDerivatives
 
-/** 
- * @class DualLagrangeMultiplierOperators 
+/**
+ * @class DualLagrangeMultiplierOperators
  * @ingroup KratosCore
  * @brief  This is the definition dual lagrange multiplier operators according to the work of Alexander Popp: https://www.lnm.mw.tum.de/staff/alexander-popp/
  * @details In particular the thesis of contact mechanics based in mortar method available at: https://mediatum.ub.tum.de/?id=1109994
  * In order to compute the dual LM shape function the Ae operator must be computed, which depends of the Me and De operators. Phi = Ae * NSlave.  In a similar way to the mortar operators, the De corresponds with a diagonal operator and Me with a sparse operator respectively. Ae = De * inv(Me)
  * Popp thesis page 69 and following
  * @author Vicente Mataix Ferrandiz
+ * @tparam TNumNodes The number of nodes of the slave
  */
-template< const std::size_t TNumNodes>
+template< const SizeType TNumNodes>
 class DualLagrangeMultiplierOperators
 {
 public:
@@ -1577,7 +1578,7 @@ public:
     }
 
     /**
-     * @brief Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shape functions. 
+     * @brief Calculates the Ae components necessary to compute the Phi_LagrangeMultipliers shape functions.
      * @details For that it integrates De and Me. Popp thesis page 70 eq. 3.65
      * @param rKinematicVariables The kinematic variables
      * @param rIntegrationWeight The integration weight considered
@@ -1747,28 +1748,33 @@ private:
 
 }; // Class DualLagrangeMultiplierOperators
 
-/** 
- * @class DualLagrangeMultiplierOperatorsWithDerivatives 
+/**
+ * @class DualLagrangeMultiplierOperatorsWithDerivatives
  * @ingroup KratosCore
  * @brief  This is the definition dual lagrange multiplier operators including the derivatives.
  * @details It is based in the same work as the previous class. In this case it computes the derivatives in order to compute the directionald erivative of the dual shape functions. Popp thesis page 111 and following
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TFrictional If the problem is frictional or not
+ * @tparam TNormalVariation If the normal variation is considered
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const std::size_t TDim, const std::size_t TNumNodes, bool TFrictional, bool TNormalVariation>
-class DualLagrangeMultiplierOperatorsWithDerivatives 
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+class DualLagrangeMultiplierOperatorsWithDerivatives
     : public DualLagrangeMultiplierOperators<TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef DualLagrangeMultiplierOperators<TNumNodes>                                 BaseClassType;
+    typedef DualLagrangeMultiplierOperators<TNumNodes>                                                  BaseClassType;
 
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>          KinematicVariablesType;
+    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>          KinematicVariablesType;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataFrictionalType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation>        DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>        DerivativeFrictionalessDataType;
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
@@ -1776,11 +1782,13 @@ public:
     typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
     // Auxiliar sizes
-    static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
+    static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
 
-    static const std::size_t DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    static const SizeType DoFSizeMasterGeometry = (TNumNodesMaster * TDim);
 
-    static const std::size_t DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
+    static const SizeType DoFSizePairedGeometry = DoFSizeSlaveGeometry + DoFSizeMasterGeometry;
+
+    static const SizeType DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeSlaveGeometry : DoFSizePairedGeometry;
 
     /// Counted pointer of DualLagrangeMultiplierOperatorsWithDerivatives
     KRATOS_CLASS_POINTER_DEFINITION( DualLagrangeMultiplierOperatorsWithDerivatives );
@@ -1794,8 +1802,7 @@ public:
     ~DualLagrangeMultiplierOperatorsWithDerivatives() override{}
 
     // Derivatives matrices
-    array_1d<GeometryMatrixType, DoFSizeDerivativesDependence> DeltaMe;
-    array_1d<GeometryMatrixType, DoFSizeDerivativesDependence> DeltaDe;
+    array_1d<GeometryMatrixType, DoFSizeDerivativesDependence> DeltaMe, DeltaDe;
 
     ///@}
     ///@name Operators
@@ -1822,7 +1829,7 @@ public:
     }
 
     /**
-     * @brief Calculates the Ae components and its derivatives necessary to compute the Phi_LagrangeMultipliers shape functions. 
+     * @brief Calculates the Ae components and its derivatives necessary to compute the Phi_LagrangeMultipliers shape functions.
      * @details Popp thesis page 112 eq. 4.59
      * @param rKinematicVariables The kinematic variables
      * @param rDerivativeData The data containing the derivatives
@@ -1853,7 +1860,7 @@ public:
     }
 
     /**
-     * @brief Calculates the matrix DeltaAe. 
+     * @brief Calculates the matrix DeltaAe.
      * @details Popp thesis page 112 equation 4.58
      * @param rDerivativeData The data containing the derivatives
      */
@@ -1897,7 +1904,7 @@ public:
         BaseClassType::PrintInfo(rOStream);
 
         // Derivatives matrices
-        for (std::size_t i = 0; i < DoFSizeDerivativesDependence; ++i) {
+        for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
             rOStream << "DeltaMe_" << i << ": " << DeltaMe[i] << std::endl;
             rOStream << "DeltaDe_" << i << ": " << DeltaDe[i] << std::endl;
         }
@@ -1982,15 +1989,17 @@ private:
 
 }; // Class DualLagrangeMultiplierOperatorsWithDerivatives
 
-/** 
- * @class PointBelong 
+/**
+ * @class PointBelong
  * @ingroup KratosCore
  * @brief Custom Point container to be used by the mapper
  * @details This point which is a derived class of the standard point, contains the variable mBelongs. This variable is a "hash" that can be used to determine where in which intersections the point belongs
  * @author Vicente Mataix Ferrandiz
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template<std::size_t TNumNodes>
-class PointBelong 
+template<const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+class PointBelong
     : public Point
 {
 public:
@@ -1998,7 +2007,7 @@ public:
     ///@{
 
     /// The belonging type
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
+    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
 
     /// Counted pointer of PointBelong
     KRATOS_CLASS_POINTER_DEFINITION( PointBelong );
