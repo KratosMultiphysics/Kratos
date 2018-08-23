@@ -638,14 +638,18 @@ private:
 
 }; // Class MortarKinematicVariablesWithDerivatives
 
-/** 
- * @class DerivativeData 
+/**
+ * @class DerivativeData
  * @ingroup KratosCore
  * @brief This data will be used to compute the derivatives.
  * @details This class includes different information that is used in order to compute the directional derivatives in the mortar contact conditions
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation>
+template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativeData
 {
 public:
@@ -655,24 +659,30 @@ public:
     // Auxiliar types
     typedef BoundedMatrix<int, 1, 1> DummyBoundedMatrixType;
 
-    typedef array_1d<double, TNumNodes> GeometryArrayType;
+    typedef array_1d<double, TNumNodes> GeometryArraySlaveType;
 
-    typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixType;
+    typedef array_1d<double, TNumNodesMaster> GeometryArrayMasterType;
+
+    typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixSlaveType;
+
+    typedef BoundedMatrix<double, TNumNodesMaster, TDim> GeometryDoFMatrixMasterType;
 
     typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
     typedef typename std::conditional<TNumNodes == 2, DummyBoundedMatrixType, BoundedMatrix<double, 3, 3>>::type VertexDerivativesMatrixType;
 
     // Auxiliar sizes
-    static const std::size_t DummySize = 1;
+    static const SizeType DummySize = 1;
 
-    static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
+    static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
 
-    static const std::size_t DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    static const SizeType DoFSizeMasterGeometry = (TNumNodesMaster * TDim);
 
-    static const std::size_t DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeGeometry : DoFSizePairedGeometry;
+    static const SizeType DoFSizePairedGeometry = DoFSizeSlaveGeometry + DoFSizeMasterGeometry;
 
-    static const std::size_t DoFSizeDerivativesVertex = (TDim == 2) ? DummySize : DoFSizePairedGeometry;
+    static const SizeType DoFSizeDerivativesDependence = (TDim == 2) ? DoFSizeSlaveGeometry : DoFSizePairedGeometry;
+
+    static const SizeType DoFSizeDerivativesVertex = (TDim == 2) ? DummySize : DoFSizePairedGeometry;
 
     ///@}
     ///@name Life Cycle
@@ -688,19 +698,22 @@ public:
     double ScaleFactor;
 
     /// The normals of the nodes
-    GeometryDoFMatrixType NormalMaster, NormalSlave;
+    GeometryDoFMatrixSlaveType NormalSlave;
+    GeometryDoFMatrixMasterType NormalMaster;
 
     /// Displacements and original coordinates
-    GeometryDoFMatrixType X1, X2, u1, u2;
+    GeometryDoFMatrixSlaveType X1, u1;
+    GeometryDoFMatrixMasterType X2, u2;
 
     /// Jacobian derivatives
     array_1d<double, DoFSizeDerivativesDependence> DeltaDetjSlave;
     /// Dual shape function derivatives
-    array_1d<GeometryArrayType, DoFSizeDerivativesDependence> DeltaPhi;
+    array_1d<GeometryArraySlaveType, DoFSizeDerivativesDependence> DeltaPhi;
     /// Shape function derivatives
-    array_1d<GeometryArrayType, DoFSizeDerivativesDependence> DeltaN1, DeltaN2;
+    array_1d<GeometryArraySlaveType, DoFSizeDerivativesDependence> DeltaN1;
+    array_1d<GeometryArrayMasterType, DoFSizeDerivativesDependence> DeltaN2;
     /// Normal derivatives
-    array_1d<GeometryDoFMatrixType, DoFSizeGeometry> DeltaNormalSlave, DeltaNormalMaster;
+    array_1d<GeometryDoFMatrixSlaveType, DoFSizeSlaveGeometry> DeltaNormalSlave, DeltaNormalMaster;
     /// Integration cell vertex derivatives
     array_1d<VertexDerivativesMatrixType, DoFSizeDerivativesVertex> DeltaCellVertex;
 
@@ -729,7 +742,6 @@ public:
      * @param SlaveGeometry The geometry of the slave
      * @param rCurrentProcessInfo The process info from the system
      */
-
     virtual void Initialize(
         const GeometryType& SlaveGeometry,
         const ProcessInfo& rCurrentProcessInfo
@@ -747,21 +759,25 @@ public:
         noalias(X1) = MortarUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, step);
 
         // We get the ALM variables
-        for (std::size_t i = 0; i < TNumNodes; ++i)
+        for (IndexType i = 0; i < TNumNodes; ++i)
             PenaltyParameter[i] = SlaveGeometry[i].GetValue(INITIAL_PENALTY);
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
 
         // We initialize the derivatives
-        const array_1d<double, TNumNodes> zerovector(TNumNodes, 0.0); 
-        for (IndexType i = 0; i < TNumNodes * TDim; ++i) { 
+        const array_1d<double, TNumNodes> zerovector(TNumNodes, 0.0);
+        for (IndexType i = 0; i < DoFSizeSlaveGeometry; ++i) {
             DeltaDetjSlave[i] = 0.0;
-            if (TDim == 3) DeltaDetjSlave[i + TNumNodes * TDim] = 0.0;
-            noalias(DeltaPhi[i]) = zerovector; 
-            if (TDim == 3) noalias(DeltaPhi[i + TNumNodes * TDim]) = zerovector; 
-            noalias(DeltaN1[i]) = zerovector; 
-            if (TDim == 3) noalias(DeltaN1[i + TNumNodes * TDim]) = zerovector; 
-            noalias(DeltaN2[i]) = zerovector; 
-            if (TDim == 3) noalias(DeltaN2[i + TNumNodes * TDim]) = zerovector;
+            noalias(DeltaPhi[i]) = zerovector;
+            noalias(DeltaN1[i]) = zerovector;
+            noalias(DeltaN2[i]) = zerovector;
+        }
+        if (TDim == 3) {
+            for (IndexType i = 0; i < DoFSizeMasterGeometry; ++i) {
+                DeltaDetjSlave[i + DoFSizeSlaveGeometry] = 0.0;
+                noalias(DeltaPhi[i + DoFSizeSlaveGeometry]) = zerovector;
+                noalias(DeltaN1[i + DoFSizeSlaveGeometry]) = zerovector;
+                noalias(DeltaN2[i + DoFSizeSlaveGeometry]) = zerovector;
+            }
         }
     }
 
@@ -773,9 +789,11 @@ public:
     {
         // Derivatives
         if (TDim == 3) { // Derivative of the cell vertex
-            for (std::size_t i = 0; i < TNumNodes * TDim; ++i) {
-                noalias(DeltaCellVertex[i]) = ZeroMatrix(3, 3);
-                noalias(DeltaCellVertex[i + TNumNodes * TDim]) = ZeroMatrix(3, 3);
+            // Auxiliar zero matrix
+            const BoundedMatrix<double, 3, 3> aux_zero = ZeroMatrix(3, 3);
+            for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
+                noalias(DeltaCellVertex[i]) = aux_zero;
+                noalias(DeltaCellVertex[i + TNumNodes * TDim]) = aux_zero;
             }
         }
     }
@@ -783,15 +801,17 @@ public:
     /**
      * @brief Initialize the DeltaAe components
      */
-
     void InitializeDeltaAeComponents()
     {
+        // Auxiliar zero matrix
+        const GeometryMatrixType aux_zero = ZeroMatrix(TNumNodes, TNumNodes);
+
         // Ae
-        noalias(Ae) = ZeroMatrix(TNumNodes, TNumNodes);
+        noalias(Ae) = aux_zero;
 
         // Derivatives Ae
-        for (std::size_t i = 0; i < DoFSizeDerivativesDependence; ++i)
-            noalias(DeltaAe[i]) = ZeroMatrix(TNumNodes, TNumNodes);
+        for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i)
+            noalias(DeltaAe[i]) = aux_zero;
     }
 
     /**
@@ -799,21 +819,20 @@ public:
      * @param MasterGeometry The master geometry
      * @param rCurrentProcessInfo The process info from the system
      */
-
     virtual void UpdateMasterPair(
         const GeometryType& MasterGeometry,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL, 0);
+        NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry,  NORMAL, 0);
 
         // Displacements, coordinates and normals of the master
         const IndexType step = (rCurrentProcessInfo[STEP] == 1) ? 0 : 1;
         noalias(u2) = step == 0 ?
-                      MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0) :
-                      MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0)
-                    - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1);
-        noalias(X2) = MortarUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, step);
+                      MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 0) :
+                      MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 0)
+                    - MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 1);
+        noalias(X2) = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(MasterGeometry, false, step);
     }
 
     ///@}
@@ -895,32 +914,38 @@ private:
 
 };  // Class DerivativeData
 
-/** 
- * @class DerivativeDataFrictional 
+/**
+ * @class DerivativeDataFrictional
  * @ingroup KratosCore
  * @brief This class is a derived class of DerivativeData
  * @details Includes additionally the derivatives necessary to compute the directional derivatives for the frictional conditions
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNormalVariation If the normal variation is considered
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation>
-class DerivativeDataFrictional 
-    : public DerivativeData<TDim, TNumNodes, TNormalVariation>
+template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+class DerivativeDataFrictional
+    : public DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The base class type
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation> BaseClassType;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> BaseClassType;
 
     /// The bounded matrix employed class
-    typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixSlaveType;
+    typedef BoundedMatrix<double, TNumNodesMaster, TDim> GeometryDoFMatrixMasterType;
 
     // Size of DoFs of a not paired dependency
-    static const std::size_t DoFSizeGeometry = (TNumNodes * TDim);
+    static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
+    static const SizeType DoFSizeMasterGeometry = (TNumNodes * TDim);
 
     /// Size of DoFs of a paired dependency
-    static const std::size_t DoFSizePairedGeometry = 2 * (TNumNodes * TDim);
+    static const SizeType DoFSizePairedGeometry = DoFSizeSlaveGeometry + DoFSizeMasterGeometry;
 
     ///@}
     ///@name Life Cycle
@@ -934,7 +959,8 @@ public:
     double TangentFactor = 0.0;
 
     /// Displacements and velocities
-    GeometryDoFMatrixType u1old, u2old;
+    GeometryDoFMatrixSlaveType u1old;
+    GeometryDoFMatrixMasterType u2old;
 
     ///@}
     ///@name Operators
@@ -950,7 +976,6 @@ public:
      * @param SlaveGeometry The geometry of the slave
      * @param rCurrentProcessInfo The process info from the system
      */
-
     void Initialize(
         const GeometryType& SlaveGeometry,
         const ProcessInfo& rCurrentProcessInfo
@@ -968,7 +993,6 @@ public:
      * @param MasterGeometry The geometry of the master
      * @param rCurrentProcessInfo The process info from the system
      */
-
     void UpdateMasterPair(
         const GeometryType& MasterGeometry,
         const ProcessInfo& rCurrentProcessInfo
@@ -976,7 +1000,7 @@ public:
     {
         BaseClassType::UpdateMasterPair(MasterGeometry, rCurrentProcessInfo);
 
-        noalias(u2old) = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
+        noalias(u2old) = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 2);
     }
 
     ///@}
