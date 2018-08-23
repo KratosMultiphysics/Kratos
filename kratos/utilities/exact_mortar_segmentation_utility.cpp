@@ -497,10 +497,10 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
         if (is_inside) {// The slave node belongs to the master
             if (i_slave == 0) {  // First node
                 auxiliar_coordinates[0] = -1.0;
-                auxiliar_belong[0] = SlaveLine2D2N0;
+                auxiliar_belong[0] = PointBelongsLine2D2N::SlaveLine2D2N0;
             } else { // Second node
                 auxiliar_coordinates[1] = 1.0;
-                auxiliar_belong[1] = SlaveLine2D2N1;
+                auxiliar_belong[1] = PointBelongsLine2D2N::SlaveLine2D2N1;
             }
         }
     }
@@ -645,13 +645,13 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         return true;
     } else {
         // We add the internal nodes
-        PushBackPoints(point_list, all_inside, master_geometry, Master);
+        PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
         CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
 
         // We add the internal nodes
-        PushBackPoints(point_list, all_inside, slave_geometry, Slave);
+        PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
 
         return TriangleIntersections<GeometryNodeType>(ConditionsPointsSlave, point_list, OriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
@@ -719,18 +719,18 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     // All the master points are inside the slave geometry
     if (CheckAllInside(all_inside)) {
         // We add the internal nodes
-        PushBackPoints(point_list, all_inside, master_geometry, Master);
+        PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
         return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry,  master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center,  true);
     } else {
         // We add the internal nodes
-        PushBackPoints(point_list, all_inside, master_geometry, Master);
+        PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
         CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
 
         // We add the internal nodes
-        PushBackPoints(point_list, all_inside, slave_geometry, Slave);
+        PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
 
         return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }

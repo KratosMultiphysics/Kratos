@@ -42,6 +42,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// The definition of the size type
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -57,7 +60,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @author Gabriel Valdes Alonzo 
  */
-template< std::size_t TDim, std::size_t TNumNodes, bool TFrictional, bool TNormalVariation>
+template< SizeType TDim, SizeType TNumNodes, bool TFrictional, bool TNormalVariation>
 class DerivativesUtilities
 {
 public:
@@ -417,7 +420,7 @@ public:
 //     #endif
 
         for (IndexType i_triangle = 0; i_triangle < 3; ++i_triangle) {
-            if (TheseBelongs[i_triangle] >= 2 * TNumNodes) { // It belongs to an intersection
+            if (static_cast<IndexType>(TheseBelongs[i_triangle]) >= 2 * TNumNodes) { // It belongs to an intersection
                 // We compute the indexes
                 IndexType belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end;
                 ConvertAuxHashIndex(static_cast<IndexType>(TheseBelongs[i_triangle]), belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);

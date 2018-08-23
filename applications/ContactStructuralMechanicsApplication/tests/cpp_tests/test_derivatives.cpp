@@ -203,7 +203,7 @@ namespace Kratos
                                 points_array0(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                             }
 
-                            if (Check == LEVEL_DEBUG || Check == LEVEL_FULL_DEBUG) KRATOS_WATCH(belong_array);
+                            if (Check == LEVEL_DEBUG || Check == LEVEL_FULL_DEBUG) for (std::size_t i = 0; i < TDim; ++i) KRATOS_WATCH(static_cast<std::size_t>(belong_array[i]));
 
                             DecompositionType decomp_geom( points_array );
                             DecompositionType decomp_geom0( points_array0 );

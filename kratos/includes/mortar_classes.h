@@ -42,20 +42,20 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-/**
- * @bief This enum defines a "hash" used to identify in which combination of cuts the point is found when the mortar segmentation is performed
- */
-#if !defined(POINT_BELONGS)
-#define POINT_BELONGS
-
-    enum PointBelongs
+    /**
+    * @brief This enum defines a "hash" used to identify in which combination of cuts the point is found when the mortar segmentation is performed
+    */
+    enum class PointBelongs
     {
         Master       = 0,
         Slave        = 1,
         Intersection = 2
     };
 
-    enum PointBelongsLine2D2N
+    /**
+    * @brief Case for 2D line intersected with another 2D line
+    */
+    enum class PointBelongsLine2D2N
     {
         MasterLine2D2N0      = 0,
         MasterLine2D2N1      = 1,
@@ -64,7 +64,10 @@ namespace Kratos
         IntersectionLine2D2N = 4
     };
 
-    enum PointBelongsTriangle3D3N
+    /**
+    * @brief Case for 3D triangle intersected with another 3D triangle
+    */
+    enum class PointBelongsTriangle3D3N
     {
         MasterTriangle3D3N0          = 0,
         MasterTriangle3D3N1          = 1,
@@ -111,7 +114,10 @@ namespace Kratos
         IntersectionTriangle3D3N2020 = 2026
     };
 
-    enum PointBelongsQuadrilateral3D4N
+    /**
+    * @brief Case for 3D quadrilateral intersected with another 3D quadrilateral
+    */
+    enum class PointBelongsQuadrilateral3D4N
     {
         MasterQuadrilateral3D4N0          = 0,
         MasterQuadrilateral3D4N1          = 1,
@@ -187,8 +193,6 @@ namespace Kratos
         IntersectionQuadrilateral3D4N3003 = 30038,
         IntersectionQuadrilateral3D4N0303 = 30308
     };
-
-#endif
 
 ///@}
 ///@name  Functions

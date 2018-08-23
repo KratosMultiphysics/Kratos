@@ -559,7 +559,7 @@ protected:
 
                 if (add_point) { // TODO: Update enums
                     IndexType initial_index = 0;
-                    if (ThisBelongs == Master) {
+                    if (ThisBelongs == PointBelongs::Master) {
                         initial_index = TNumNodes;
                     }
                     PointList.push_back(PointBelong<TNumNodes>(ThisGeometry[i_node].Coordinates(), static_cast<BelongType>(initial_index + i_node)));
