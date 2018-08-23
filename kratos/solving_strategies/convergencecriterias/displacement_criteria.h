@@ -16,9 +16,7 @@
 
 /* System includes */
 
-
 /* External includes */
-
 
 /* Project includes */
 #include "includes/model_part.h"
@@ -97,7 +95,7 @@ public:
 
     /** Copy constructor.
     */
-    DisplacementCriteria( DisplacementCriteria const& rOther )
+    explicit DisplacementCriteria( DisplacementCriteria const& rOther )
       :BaseType(rOther)
       ,mRatioTolerance(rOther.mRatioTolerance)
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)

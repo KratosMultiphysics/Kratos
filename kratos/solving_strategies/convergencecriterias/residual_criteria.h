@@ -87,11 +87,9 @@ public:
 
     ///@}
     ///@name Life Cycle
-
     ///@{
 
     //* Constructor.
-
     explicit ResidualCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
@@ -103,8 +101,7 @@ public:
     }
 
     //* Copy constructor.
-
-    ResidualCriteria( ResidualCriteria const& rOther )
+    explicit ResidualCriteria( ResidualCriteria const& rOther )
       :BaseType(rOther)
       ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
       ,mRatioTolerance(rOther.mRatioTolerance)
@@ -116,9 +113,7 @@ public:
     }
 
     //* Destructor.
-
     ~ResidualCriteria() override {}
-
 
     ///@}
     ///@name Operators

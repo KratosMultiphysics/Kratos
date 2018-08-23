@@ -14,12 +14,9 @@
 #if !defined(KRATOS_OR_CRITERIA_H)
 #define  KRATOS_OR_CRITERIA_H
 
-
 /* System includes */
 
-
 /* External includes */
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -28,20 +25,16 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 
 ///@}
 ///@name Type Definitions
 ///@{
 
 ///@}
-
 ///@name  Enum's
 ///@{
-
 
 ///@}
 ///@name  Functions
@@ -106,7 +99,7 @@ public:
 
     /** Copy constructor.
     */
-    Or_Criteria(Or_Criteria const& rOther)
+    explicit Or_Criteria(Or_Criteria const& rOther)
         :BaseType(rOther),
          mpFirstCriterion(rOther.mpFirstCriterion),
          mpSecondCriterion(rOther.mpSecondCriterion)

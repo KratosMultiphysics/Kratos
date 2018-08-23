@@ -91,7 +91,7 @@ public:
 
     /** Copy constructor.
      */
-    ConvergenceCriteria( ConvergenceCriteria const& rOther)
+    explicit ConvergenceCriteria( ConvergenceCriteria const& rOther)
       :mActualizeRHSIsNeeded(rOther.mActualizeRHSIsNeeded)
       ,mConvergenceCriteriaIsInitialized(rOther.mConvergenceCriteriaIsInitialized)
       ,mEchoLevel(rOther.mEchoLevel)
