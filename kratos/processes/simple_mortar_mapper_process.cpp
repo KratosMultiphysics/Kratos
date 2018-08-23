@@ -657,7 +657,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         // We map the values from one side to the other
         #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
         for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = conditions_array.begin() + i;
+            auto it_cond = r_conditions_array.begin() + i;
 
             if (it_cond->Has( INDEX_MAP )) {
                 IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
@@ -790,8 +790,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         }
 
         // We remove the not used conditions
-        ModelPart& root_model_part = mOriginModelPart.GetRootModelPart();
-        root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
+        r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
 
         // Finally we solve the system
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) {

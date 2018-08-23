@@ -651,7 +651,7 @@ private:
             std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
             const bool is_inside = rIntegrationUtility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
 
-            if (is_inside == true) {
+            if (is_inside) {
                 // Initialize general variables for the current master element
                 rThisKineticVariables.Initialize();
 
