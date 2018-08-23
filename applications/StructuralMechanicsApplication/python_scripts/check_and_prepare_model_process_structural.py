@@ -22,8 +22,9 @@ class CheckAndPrepareModelProcess(KM.Process):
     from the domain sub model parts are added to the computing model part.
     Conditions are added from the processes sub model parts.
     """
-    def __init__(self, main_model_part, Parameters):
-        self.main_model_part = main_model_part
+    def __init__(self, Model, Parameters):
+        model_part_name = Parameters["model_part_name"].GetString()
+        self.main_model_part = Model[model_part_name]
 
         self.computing_model_part_name  = Parameters["computing_model_part_name"].GetString()
         self.structural_model_part_names = Parameters["problem_domain_sub_model_part_list"]
@@ -39,30 +40,13 @@ class CheckAndPrepareModelProcess(KM.Process):
         for i in range(self.processes_model_part_names.size()):
             processes_parts.append(self.main_model_part.GetSubModelPart(self.processes_model_part_names[i].GetString()))
 
-        #construct a model part which contains both the skin and the volume
+        # Construct a model part which contains both the skin and the volume
         if (self.main_model_part.HasSubModelPart(self.computing_model_part_name)):
             structural_computational_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
         else:
             structural_computational_model_part = self.main_model_part.CreateSubModelPart(self.computing_model_part_name)
         structural_computational_model_part.ProcessInfo = self.main_model_part.ProcessInfo
         structural_computational_model_part.Properties  = self.main_model_part.Properties
-
-        #node_ids = set()
-        #elem_ids = set()
-        #for part in structural_parts:
-            #for node in part.Nodes:
-                #node_ids.add(node.Id)
-            #for elem in part.Elements:
-                #elem_ids.add(elem.Id)
-
-        #structural_computational_model_part.AddNodes(list(node_ids))
-        #structural_computational_model_part.AddElements(list(elem_ids))
-
-        #cond_ids = set()
-        #for part in processes_parts:
-            #for cond in part.Conditions:
-                #cond_ids.add(cond.Id)
-        #structural_computational_model_part.AddConditions(list(cond_ids))
 
         for part in structural_parts:
             transfer_process = KM.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODESANDELEMENTS)
