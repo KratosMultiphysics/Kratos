@@ -1530,8 +1530,9 @@ private:
  * Popp thesis page 69 and following
  * @author Vicente Mataix Ferrandiz
  * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TNumNodes>
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class DualLagrangeMultiplierOperators
 {
 public:
@@ -1539,7 +1540,7 @@ public:
     ///@{
 
     /// The kinematic variables class
-    typedef MortarKinematicVariables<TNumNodes> KinematicVariables;
+    typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster> KinematicVariables;
 
     /// The bounded matrix employed class
     typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
@@ -1762,13 +1763,13 @@ private:
  */
 template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
 class DualLagrangeMultiplierOperatorsWithDerivatives
-    : public DualLagrangeMultiplierOperators<TNumNodes>
+    : public DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef DualLagrangeMultiplierOperators<TNumNodes>                                                  BaseClassType;
+    typedef DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>                                 BaseClassType;
 
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>          KinematicVariablesType;
 
