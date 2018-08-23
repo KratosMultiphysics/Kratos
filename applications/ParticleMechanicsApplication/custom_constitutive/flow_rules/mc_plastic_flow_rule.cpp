@@ -22,7 +22,6 @@
 
 #include "particle_mechanics_application.h"
 
-
 namespace Kratos
 {
 
@@ -86,6 +85,16 @@ void MCPlasticFlowRule::InitializeMaterial(YieldCriterionPointer& pYieldCriterio
     mRegion = 0;
 
     mEquivalentPlasticStrain = 0.0;
+
+    this->InitializeMaterialParameters(mMaterialParameters);
+}
+
+void MCPlasticFlowRule::InitializeMaterialParameters(MaterialParameters& MaterialParameters){
+    MaterialParameters.YoungModulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    MaterialParameters.PoissonRatio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    MaterialParameters.Cohesion      = mpYieldCriterion->GetHardeningLaw().GetProperties()[COHESION];
+    MaterialParameters.FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
+    MaterialParameters.DilatancyAngle= mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
 }
 
 bool MCPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
@@ -249,9 +258,9 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     // Refer to paper by Clausen for MC flow rule for the theoretical implementation
 
     // Material parameters
-    const double Cohesion = mpYieldCriterion->GetHardeningLaw().GetProperties()[COHESION];
-    const double FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
-    const double DilatancyAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
+    const double Cohesion       = mMaterialParameters.Cohesion;
+    const double FrictionAngle  = mMaterialParameters.FrictionAngle;
+    const double DilatancyAngle = mMaterialParameters.DilatancyAngle;
 
     // Necessary coefficients
     const double FrictionCoefficient  = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
@@ -369,8 +378,8 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
 void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix)
 {
 
-    const double YoungModulus        = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double PoissonCoefficient  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double YoungModulus        = mMaterialParameters.YoungModulus;
+    const double PoissonCoefficient  = mMaterialParameters.PoissonRatio;
 
     const double diagonal   = YoungModulus/(1.0+PoissonCoefficient)/(1.0-2.0*PoissonCoefficient) * (1.0-PoissonCoefficient);
     const double nodiagonal = YoungModulus/(1.0+PoissonCoefficient)/(1.0-2.0*PoissonCoefficient) * ( PoissonCoefficient);
@@ -393,8 +402,8 @@ void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rR
 
 void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rInverseElasticMatrix)
 {
-    const double YoungModulus        = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double PoissonCoefficient  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double YoungModulus        = mMaterialParameters.YoungModulus;
+    const double PoissonCoefficient  = mMaterialParameters.PoissonRatio;
 
     const double LameLambda         = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
     const double LameMu             =  YoungModulus/(2*(1+PoissonCoefficient));
@@ -420,14 +429,12 @@ void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariable
 
 void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix)
 {
-    const double Young      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double Nu         = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double Young      = mMaterialParameters.YoungModulus;
+    const double Nu         = mMaterialParameters.PoissonRatio;
     
     const double diagonal   = Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
     const double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);
     const double corte      = Young/(1.0+Nu)/2.0;
-
-
 
     for (unsigned int i = 0; i<3; ++i)
     {
@@ -624,13 +631,13 @@ void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVari
 
 void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, Vector& DiffPrincipalStress, Matrix& rDep)
 {
-
-    const double Young      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double Nu         = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    
+    const double Young      = mMaterialParameters.YoungModulus;
+    const double Nu         = mMaterialParameters.PoissonRatio;
     const double shear_contribution = Young/(1.0+Nu)/2.0;
 
-    const double FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
-    const double DilatancyAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
+    const double FrictionAngle  = mMaterialParameters.FrictionAngle; 
+    const double DilatancyAngle = mMaterialParameters.DilatancyAngle;
 
     const double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
     const double DilatancyCoefficient = (1 + std::sin(DilatancyAngle))/(1 - std::sin(DilatancyAngle));
@@ -763,8 +770,8 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
         DeviatoricPlasticPrincipalStrain(i) -= 1.0/3.0 * VolumetricPlasticPrincipalStrain;
     double DeltaAccumulatedPlasticDeviatoricStrain = sqrt(2.0/3.0) *sqrt(DeviatoricPlasticPrincipalStrain(0) * DeviatoricPlasticPrincipalStrain(0) + DeviatoricPlasticPrincipalStrain(1) * DeviatoricPlasticPrincipalStrain(1) + DeviatoricPlasticPrincipalStrain(2) * DeviatoricPlasticPrincipalStrain(2));
 
-    const double FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
-    const double DilatancyAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
+    const double FrictionAngle  = mMaterialParameters.FrictionAngle; 
+    const double DilatancyAngle = mMaterialParameters.DilatancyAngle;
 
     const double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
     const double DilatancyCoefficient = (1 + std::sin(DilatancyAngle))/(1 - std::sin(DilatancyAngle));

@@ -22,7 +22,6 @@
 #include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
 
 
-
 namespace Kratos
 {
 ///@addtogroup ApplicationNameApplication
@@ -76,6 +75,16 @@ public:
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
     KRATOS_CLASS_POINTER_DEFINITION( MCPlasticFlowRule );
+
+    struct MaterialParameters
+    {
+        double YoungModulus;
+        double PoissonRatio;
+        double Cohesion;
+        double FrictionAngle;
+        double DilatancyAngle;
+
+    };
 
     ///@}
     ///@name Life Cycle
@@ -158,6 +167,9 @@ protected:
     unsigned int mRegion;
     bool mLargeStrainBool;
     double mEquivalentPlasticStrain;
+
+    MaterialParameters mMaterialParameters;
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -177,6 +189,7 @@ protected:
     ///@{
     void InitializeMaterial(YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rProp) override;
 
+    void InitializeMaterialParameters(MaterialParameters& MaterialParameters);
 
     virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
 
