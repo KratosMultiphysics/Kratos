@@ -33,7 +33,7 @@ class HDF5SerialFileFactory(FileFactory):
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.settings.AddEmptyValue("file_name")
-    
+
     def Open(self, file_name):
         self.settings["file_name"].SetString(file_name)
         return KratosHDF5.HDF5FileSerial(self.settings)
@@ -52,7 +52,7 @@ class HDF5ParallelFileFactory(FileFactory):
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.settings.AddEmptyValue("file_name")
-    
+
     def Open(self, file_name):
         self.settings["file_name"].SetString(file_name)
         return KratosHDF5.HDF5FileParallel(self.settings)
@@ -93,6 +93,16 @@ class NodalResultsOutput(IOObject):
     def Execute(self, model_part, hdf5_file):
         KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
 
+class NodalNonSolutionStepResultsOutput(IOObject):
+    """Provides the interface for writing non solution step nodal results to a file."""
+
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
+    def Execute(self, model_part, hdf5_file):
+        KratosHDF5.HDF5NonHistoricalNodalValueIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes)
 
 class PrimalBossakOutput(IOObject):
     """Provides the interface for writing a transient primal solution to a file."""
@@ -165,7 +175,7 @@ class StaticOutputProcess(KratosMultiphysics.Process):
 
 class TemporalOutputProcess(KratosMultiphysics.Process):
     """A process for writing temporal simulation results.
-    
+
     Responsible for the output step control logic. Output objects to be executed
     at regular time intervals are attached using AddOutput().
     """

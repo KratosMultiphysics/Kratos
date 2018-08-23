@@ -18,9 +18,10 @@ class FactoryHelper:
         model_part_output = self.ModelPartOutput(settings["model_part_output_settings"])
         nodal_results_output = self.NodalResultsOutput(settings["nodal_results_settings"])
         element_results_output = self.ElementResultsOutput(settings["element_results_settings"])
+        nodal_non_solution_step_results_output = self.NodalNonSolutionStepResultsOutput(settings["nodal_non_solution_step_results_settings"])
         temporal_output_process = hdf5_io.TemporalOutputProcess(
-            model_part, hdf5_file_factory, settings["output_time_settings"], [model_part_output, nodal_results_output, element_results_output])
-        return (temporal_output_process, model_part_output, [nodal_results_output, element_results_output])
+            model_part, hdf5_file_factory, settings["output_time_settings"], [model_part_output, nodal_results_output, element_results_output, nodal_non_solution_step_results_output])
+        return (temporal_output_process, model_part_output, [nodal_results_output, element_results_output, nodal_non_solution_step_results_output])
 
 
 class SerialFactory:
@@ -48,6 +49,9 @@ class ResultsFactory:
 
     def ElementResultsOutput(self, element_results_settings):
         return hdf5_io.ElementResultsOutput(element_results_settings)
+
+    def NodalNonSolutionStepResultsOutput(self, nodal_non_solution_step_results_settings):
+        return hdf5_io.NodalNonSolutionStepResultsOutput(nodal_non_solution_step_results_settings)
 
 
 class PrimalResultsFactory:
