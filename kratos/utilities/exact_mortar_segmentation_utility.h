@@ -513,11 +513,25 @@ protected:
      * @param AllInside The nodes that are already known as inside the other geometry
      * @param ThisGeometry The geometry considered
      */
+    template<SizeType TSizeCheck = TNumNodes>
     inline void PushBackPoints(
         VectorPoints& PointList,
-        const array_1d<bool, TNumNodes>& AllInside,
+        const array_1d<bool, TSizeCheck>& AllInside,
         GeometryPointType& ThisGeometry
-        );
+        )
+    {
+        for (IndexType i_node = 0; i_node < TSizeCheck; ++i_node) {
+            if (AllInside[i_node]) {
+                // We check if the node already exists
+                bool add_point = true;
+                for (IndexType iter = 0; iter < PointList.size(); ++iter)
+                    if (CheckPoints(ThisGeometry[i_node], PointList[iter])) add_point = false;
+
+                if (add_point)
+                    PointList.push_back(ThisGeometry[i_node]);
+            }
+        }
+    }
 
     /**
      * @brief This function push backs the points that are inside
@@ -525,12 +539,34 @@ protected:
      * @param AllInside The nodes that are already known as inside the other geometry
      * @param ThisGeometry The geometry considered
      */
+    template<SizeType TSizeCheck = TNumNodes>
     inline void PushBackPoints(
         VectorPointsBelong& PointList,
-        const array_1d<bool, TNumNodes>& AllInside,
+        const array_1d<bool, TSizeCheck>& AllInside,
         GeometryPointType& ThisGeometry,
         const PointBelongs& ThisBelongs
-        );
+        )
+    {
+        for (IndexType i_node = 0; i_node < TSizeCheck; ++i_node) {
+            if (AllInside[i_node]) {
+                // We check if the node already exists
+                bool add_point = true;
+                for (IndexType iter = 0; iter < PointList.size(); ++iter) {
+                    if (CheckPoints(ThisGeometry[i_node], PointList[iter])) {
+                        add_point = false;
+                    }
+                }
+
+                if (add_point) { // TODO: Update enums
+                    IndexType initial_index = 0;
+                    if (ThisBelongs == Master) {
+                        initial_index = TNumNodes;
+                    }
+                    PointList.push_back(PointBelong<TNumNodes>(ThisGeometry[i_node].Coordinates(), static_cast<BelongType>(initial_index + i_node)));
+                }
+            }
+        }
+    }
 
     /**
      * @brief This function checks if the points of Geometry2 are inside Geometry1

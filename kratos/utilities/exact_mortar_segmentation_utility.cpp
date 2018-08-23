@@ -343,13 +343,18 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     PointListType point_list;
 
     // All the master points are inside the slave geometry
-    if (CheckAllInside(all_inside)) { // TODO: Divide in two triangles
-        ConditionsPointsSlave.resize(1);
+    if (CheckAllInside(all_inside)) { // We decompose in two triangles
+        ConditionsPointsSlave.resize(2);
 
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
             PointType point;
             OriginalSlaveGeometry.PointLocalCoordinates( point, OriginalMasterGeometry[i_node]);
             ConditionsPointsSlave[0][i_node] = point;
+        }
+        for (IndexType i_node = 1; i_node < 4; ++i_node) {
+            PointType point;
+            OriginalSlaveGeometry.PointLocalCoordinates( point, OriginalMasterGeometry[i_node]);
+            ConditionsPointsSlave[1][i_node] = point;
         }
 
         return true;
@@ -427,11 +432,14 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     PointListType point_list;
 
     // All the master points are inside the slave geometry
-    if (CheckAllInside(all_inside)) { // TODO: Create only one triangle
-        // We add the internal nodes
-        PushBackPoints(point_list, all_inside, master_geometry);
+    if (CheckAllInside(all_inside)) { // We generate only one triangle
+        ConditionsPointsSlave.resize(1);
 
-        return TriangleIntersections<GeometryPointType>(ConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center, true);
+        for (IndexType i_node = 0; i_node < 3; ++i_node) {
+            PointType point;
+            OriginalSlaveGeometry.PointLocalCoordinates( point, OriginalMasterGeometry[i_node]);
+            ConditionsPointsSlave[0][i_node] = point;
+        }
     } else { // TODO: Correct this
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, master_geometry);
@@ -1047,61 +1055,6 @@ GeometryNodeType::IntegrationPointsArrayType ExactMortarIntegrationUtility<TDim,
             return Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
         default:
             return Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
-inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::PushBackPoints(
-    VectorPoints& PointList,
-    const array_1d<bool, TNumNodes>& AllInside,
-    GeometryPointType& ThisGeometry
-    )
-{
-    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        if (AllInside[i_node]) {
-            // We check if the node already exists
-            bool add_point = true;
-            for (IndexType iter = 0; iter < PointList.size(); ++iter)
-                if (CheckPoints(ThisGeometry[i_node], PointList[iter])) add_point = false;
-
-            if (add_point)
-                PointList.push_back(ThisGeometry[i_node]);
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
-inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::PushBackPoints(
-    VectorPointsBelong& PointList,
-    const array_1d<bool, TNumNodes>& AllInside,
-    GeometryPointType& ThisGeometry,
-    const PointBelongs& ThisBelongs
-    )
-{
-    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        if (AllInside[i_node]) {
-            // We check if the node already exists
-            bool add_point = true;
-            for (IndexType iter = 0; iter < PointList.size(); ++iter) {
-                if (CheckPoints(ThisGeometry[i_node], PointList[iter])) {
-                    add_point = false;
-                }
-            }
-
-            if (add_point) {
-                IndexType initial_index = 0;
-                if (ThisBelongs == Master) {
-                    initial_index = TNumNodes;
-                }
-                PointList.push_back(PointBelong<TNumNodes>(ThisGeometry[i_node].Coordinates(), static_cast<BelongType>(initial_index + i_node)));
-            }
-        }
     }
 }
 
