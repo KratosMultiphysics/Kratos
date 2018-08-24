@@ -266,6 +266,8 @@ protected:
 
     virtual Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix );
 
+    virtual Matrix SetMatrixToAppropriateDimension(Matrix& rConstitutiveMatrix);
+
     virtual void CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables);
 
     virtual void CorrectKinematics(const PlasticMaterialResponseVariables& rPlasticVariables, Parameters & rValues, const MPMFlowRule::RadialReturnVariables rReturnMappingVariables, double& rDeterminantF, Matrix& rDeformationGradientF );

@@ -395,7 +395,7 @@ void HenckyElasticPlastic3DLaw::CalculateLeftStretchTensor(Matrix& rLeftStretchT
     for (int i = 0; i < 3; i++)
         SquaredEigenValuesMatrix(i,i) = std::sqrt(EigenValues(i));
 
-    rLeftStretchTensor = prod(SquaredEigenValuesMatrix,EigenVectors);
+    noalias(rLeftStretchTensor) = prod(SquaredEigenValuesMatrix,EigenVectors);
     rLeftStretchTensor = prod(trans(EigenVectors),rLeftStretchTensor);
 
 }
@@ -437,12 +437,17 @@ void HenckyElasticPlastic3DLaw::CorrectKinematics(const PlasticMaterialResponseV
     this->CalculateLeftStretchTensor(LeftStretchTensor, ElasticLeftCauchyGreen);
 
     // Update Deformation Gradient F
-    Matrix myDeformationGradientF = rDeformationGradientF;
-    myDeformationGradientF = Transform2DTo3D(myDeformationGradientF);
-    myDeformationGradientF = prod(rPlasticVariables.InverseTrialLeftStretchTensor, myDeformationGradientF);
-    myDeformationGradientF = prod(LeftStretchTensor, myDeformationGradientF);
-    myDeformationGradientF.resize( 2, 2, true);
-    rDeformationGradientF = myDeformationGradientF;
+    // Matrix myDeformationGradientF = rDeformationGradientF;
+    // myDeformationGradientF = Transform2DTo3D(myDeformationGradientF);
+    // myDeformationGradientF = prod(rPlasticVariables.InverseTrialLeftStretchTensor, myDeformationGradientF);
+    // myDeformationGradientF = prod(LeftStretchTensor, myDeformationGradientF);
+    // myDeformationGradientF.resize( 2, 2, true);
+    // rDeformationGradientF = myDeformationGradientF;
+
+    rDeformationGradientF = Transform2DTo3D(rDeformationGradientF);
+    rDeformationGradientF = prod(rPlasticVariables.InverseTrialLeftStretchTensor, rDeformationGradientF);
+    rDeformationGradientF = prod(LeftStretchTensor, rDeformationGradientF);
+    rDeformationGradientF = this->SetMatrixToAppropriateDimension(rDeformationGradientF);
 
     // Update Determinant of Deformation Gradient F
     rDeterminantF        = MathUtils<double>::Det(rDeformationGradientF);
@@ -451,9 +456,7 @@ void HenckyElasticPlastic3DLaw::CorrectKinematics(const PlasticMaterialResponseV
     rValues.SetDeformationGradientF(rDeformationGradientF);
     rValues.SetDeterminantF(rDeterminantF);
 
-    if (rDeterminantF <= 0){
-        KRATOS_ERROR << "CorrectKinematics:: DetF <= 0! " << rDeterminantF << std::endl;
-    }
+    KRATOS_ERROR_IF(rDeterminantF <= 0) << "HenckyElasticPlastic3DLaw::CorrectKinematics:: Updated DetF <= 0! " << rDeterminantF << std::endl;
 
 }
 //************************************************************************************
@@ -466,6 +469,18 @@ void HenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFl
 
 //************************************************************************************
 //************************************************************************************
+
+Matrix HenckyElasticPlastic3DLaw::SetMatrixToAppropriateDimension(Matrix& rMatrix){
+    if(rMatrix.size1() == 3){
+        return rMatrix;
+    }
+    else if (rMatrix.size1() == 2) { 
+        rMatrix = Transform2DTo3D(rMatrix); 
+        return rMatrix;
+    }
+    else KRATOS_ERROR << "Wrong size of input matrix:: Conversion is unknown!" << std::endl;
+}
+
 Vector HenckyElasticPlastic3DLaw::SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix )
 {
     rStressVector(0) = rStressMatrix(0,0);
