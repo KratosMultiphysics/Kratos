@@ -1122,7 +1122,7 @@ public:
 
     /// Mortar condition matrices - DOperator and MOperator
     GeometryMatrixSlaveType DOperator;
-    GeometryMatrixSlaveType MOperator;
+    GeometryMatrixMasterType MOperator;
 
     ///@}
     ///@name Operators
