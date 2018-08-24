@@ -5,7 +5,7 @@
 //   Date:                $Date:                  July 2016 $
 //   Revision:            $Revision:                    0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_RIGID_BODY_ELEMENT_CREATION_UTILITY_H_INCLUDED )
 #define  KRATOS_RIGID_BODY_ELEMENT_CREATION_UTILITY_H_INCLUDED
@@ -35,7 +35,7 @@ namespace Kratos
 ///@{
 
 /// Rigid body element build processes in Kratos.
-/** 
+/**
  * Builds and element defined by its center of mass, and the properties of weight and inertia tensor
  * The RigidBodyElement is defined from a mesh of RigidBodyGeometricalElements
  * The RigidBodyProperties given by the RigidBodyBoundingBox, calculated or passed as given data to it.
@@ -66,7 +66,7 @@ public:
 
 
     /// Destructor.
-    virtual ~RigidBodyElementCreationUtility() {}  
+    virtual ~RigidBodyElementCreationUtility() {}
 
 
     ///@}
@@ -83,7 +83,7 @@ private:
     {
 
       KRATOS_TRY
-	
+
       RigidBodyUtilities RigidBodyUtils;
 
       rMass             =  RigidBodyUtils.MassCalculation(rModelPart);
@@ -95,14 +95,14 @@ private:
       Matrix MainAxes    = ZeroMatrix(3,3);
       Matrix MainInertia = rInertiaTensor;
       RigidBodyUtils.InertiaTensorToMainAxes(MainInertia, MainAxes);
-      
-      // std::cout<<" Main Axes "<<MainAxes<<std::endl;    
+
+      // std::cout<<" Main Axes "<<MainAxes<<std::endl;
       // std::cout<<" Main Inertia "<<MainInertia<<std::endl;
       // std::cout<<" Inertia Tensor "<<InertiaTensor<<std::endl;
 
       rLocalAxesMatrix = IdentityMatrix(3);
 
-      // main axes given in rows    
+      // main axes given in rows
       for(unsigned int i=0; i<3; i++)
     	{
     	  Vector Axis = ZeroVector(3);
@@ -110,11 +110,11 @@ private:
     	    {
     	      Axis[j] = MainAxes(i,j);
     	    }
-	  
+
     	  double norm = norm_2(Axis);
     	  if( norm != 0)
     	    Axis/=norm;
-	  
+
     	  for(unsigned int j=0; j<3; j++)
     	    {
     	      rLocalAxesMatrix(j,i) = Axis[j]; //column disposition
@@ -122,7 +122,7 @@ private:
     	}
 
       rInertiaTensor = MainInertia;
-      
+
       // rVolumeAcceleration = RigidBodyUtils.GetVolumeAcceleration(rModelPart);
       // rElasticModulus     = RigidBodyUtils.GetElasticModulus(rModelPart);
 
@@ -142,26 +142,26 @@ private:
     {
       KRATOS_TRY
 
-      Node = rModelPart.CreateNewNode( nodeId, rPoint[0], rPoint[1], rPoint[2]);  
-	  
+      Node = rModelPart.CreateNewNode( nodeId, rPoint[0], rPoint[1], rPoint[2]);
+
       rModelPart.AddNode( Node );
 
       //generating the dofs
       NodeType::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
-      
-     
+
+
       for(NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
       	{
       	  NodeType::DofType& rDof = *iii;
       	  Node->pAddDof( rDof );
       	}
 
-      
+
       if( rBodyIsFixed ){
 
     	//fix dofs:
     	NodeType::DofsContainerType& new_dofs = Node->GetDofs();
-           
+
     	for(NodeType::DofsContainerType::iterator iii = new_dofs.begin(); iii != new_dofs.end(); iii++)
       	{
       	  NodeType::DofType& rDof = *iii;
@@ -173,7 +173,7 @@ private:
 
     	//free dofs:
     	NodeType::DofsContainerType& new_dofs = Node->GetDofs();
-           
+
     	for(NodeType::DofsContainerType::iterator iii = new_dofs.begin(); iii != new_dofs.end(); iii++)
       	{
       	  NodeType::DofType& rDof = *iii;
@@ -198,7 +198,7 @@ private:
       // 	}
 
       KRATOS_CATCH("")
-	
+
     }
 
 
@@ -208,16 +208,16 @@ private:
 
  public:
 
- 
+
     void CreateRigidBodyElement(ModelPart& rMainModelPart,
     			        SpatialBoundingBox::Pointer pRigidBodyBox,
-    				Parameters CustomParameters) 
+    				Parameters CustomParameters)
     {
 
-      KRATOS_TRY 
+      KRATOS_TRY
 
       Parameters DefaultParameters( R"(
-            { 
+            {
                 "rigid_body_element_type": "TranslatoryRigidElement3D1N",
                 "fixed_body": true,
                 "compute_body_parameters": false,
@@ -233,14 +233,14 @@ private:
 
       //validate against defaults -- this also ensures no type mismatch
       CustomParameters.ValidateAndAssignDefaults(DefaultParameters);
-      
+
       bool BodyIsFixed = CustomParameters["fixed_body"].GetBool();
 
       //create properties for the rigid body
       unsigned int NumberOfProperties = rMainModelPart.NumberOfProperties();
 
-      PropertiesType::Pointer pProperties = PropertiesType::Pointer(new PropertiesType(NumberOfProperties));
-     
+      PropertiesType::Pointer pProperties = Kratos::make_shared<PropertiesType>(NumberOfProperties);
+
       double Mass = 0;
       Vector CenterOfGravity   = ZeroVector(3);
       Matrix InertiaTensor     = ZeroMatrix(3);
@@ -250,28 +250,28 @@ private:
       ModelPart& rRigidBodyModelPart = rMainModelPart.GetSubModelPart(CustomParameters["rigid_body_model_part_name"].GetString());
 
       if( ComputeBodyParameters ){
-	
+
     	this->CalculateRigidBodyParameters( rRigidBodyModelPart, CenterOfGravity, InertiaTensor, LocalAxesMatrix, Mass );
       }
       else{
-	
+
     	Parameters RigidBodyProperties = CustomParameters["rigid_body_parameters"];
 
     	Mass = RigidBodyProperties["mass"].GetDouble();
-	
+
     	unsigned int size = RigidBodyProperties["main_inertias"].size();
 
     	for( unsigned int i=0; i<size; i++ )
     	  {
     	    Parameters LocalAxesRow = RigidBodyProperties["main_axes"][i];
-	  
+
     	    CenterOfGravity[i]     = RigidBodyProperties["center_of_gravity"][i].GetDouble();
     	    InertiaTensor(i,i)     = RigidBodyProperties["main_inertias"][i].GetDouble();
-	  
+
     	    LocalAxesMatrix(0,i)   = LocalAxesRow[0].GetDouble(); //column disposition
     	    LocalAxesMatrix(1,i)   = LocalAxesRow[1].GetDouble();
     	    LocalAxesMatrix(2,i)   = LocalAxesRow[2].GetDouble();
-    	  } 
+    	  }
 
 	std::cout<<"  [ Mass "<<Mass<<" ]"<<std::endl;
 	std::cout<<"  [ CenterOfGravity "<<CenterOfGravity<<" ]"<<std::endl;
@@ -285,7 +285,7 @@ private:
       pProperties->SetValue(LOCAL_AXES_MATRIX, LocalAxesMatrix);
 
       //add properties to model part
-      rMainModelPart.AddProperties(pProperties,NumberOfProperties);
+      rMainModelPart.AddProperties(pProperties);
 
       // create node for the rigid body center of gravity:
       unsigned int LastNodeId  = rMainModelPart.Nodes().back().Id() + 1;
@@ -298,7 +298,7 @@ private:
 
       for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin(); i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
-  
+
 	  if(i_mp->Is(BOUNDARY)){
 	    std::cout<<" boundary model part "<<i_mp->Name()<<std::endl;
 	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin(); i_node!= i_mp->NodesEnd(); i_node++)
@@ -315,14 +315,14 @@ private:
 
       // set node variables
       NodeCenterOfGravity->GetSolutionStepValue(VOLUME_ACCELERATION) = rRigidBodyModelPart.Nodes().back().GetSolutionStepValue(VOLUME_ACCELERATION);
-      
+
       // set node flags
       NodeCenterOfGravity->Set(MASTER);
       NodeCenterOfGravity->Set(RIGID);
 
       // set node to the spatial bounding box
       pRigidBodyBox->SetRigidBodyCenter(NodeCenterOfGravity);
-      
+
 
       // create rigid body element:
       unsigned int LastElementId = rMainModelPart.Elements().back().Id() + 1;
@@ -330,25 +330,25 @@ private:
       std::string ElementName = CustomParameters["rigid_body_element_type"].GetString();
 
       // always a 3D point
-      GeometryType::Pointer pGeometry = GeometryType::Pointer(new Point3DType( NodeCenterOfGravity ));
-      
+      GeometryType::Pointer pGeometry = Kratos::make_shared<Point3DType>(NodeCenterOfGravity);
+
       ModelPart::NodesContainerType::Pointer pNodes =  rRigidBodyModelPart.pNodes();
-     
+
       ElementType::Pointer pRigidBodyElement;
 
-      //Rigid Body Element: 
+      //Rigid Body Element:
       if( ElementName == "RigidBodyElement3D1N" || ElementName == "RigidBodyElement2D1N" ){
 	//std::cout<<" RigidBodyElement "<<std::endl;
-    	pRigidBodyElement = ElementType::Pointer(new RigidBodyElement(LastElementId, pGeometry, pProperties, pNodes) );
+    	pRigidBodyElement = Kratos::make_shared<RigidBodyElement>(LastElementId, pGeometry, pProperties, pNodes);
       }
-      else if( ElementName == "TranslatoryRigidBodyElement3D1N" || ElementName == "TranslatoryRigidBodyElement2D1N"){	
+      else if( ElementName == "TranslatoryRigidBodyElement3D1N" || ElementName == "TranslatoryRigidBodyElement2D1N"){
 	//std::cout<<" TranslatoryRigidBodyElement "<<std::endl;
 	//ElementType::Pointer pElem = KratosComponents<Element>::Get("TranslatoryRigidBodyElement")
-    	pRigidBodyElement = ElementType::Pointer(new TranslatoryRigidBodyElement(LastElementId, pGeometry, pProperties, pNodes) );
+    	pRigidBodyElement = Kratos::make_shared<TranslatoryRigidBodyElement>(LastElementId, pGeometry, pProperties, pNodes);
       }
       else if( ElementName == "RigidBodyEMCElement3D1N" || ElementName == "RigidBodyEMCElement2D1N" ){
 	//std::cout<<" RigidBodyEMCElement "<<std::endl;
-    	//pRigidBodyElement = ElementType::Pointer(new RigidBodyEMCElement(LastElementId, pGeometry, pProperties, pNodes) );
+    	//pRigidBodyElement = Kratos::make_shared<RigidBodyEMCElement>(LastElementId, pGeometry, pProperties, pNodes);
       }
 
       // once conventional constructor and registered
@@ -357,7 +357,7 @@ private:
       // ElementType const& rCloneElement = KratosComponents<ElementType>::Get(ElementName);
       // ElementType::Pointer pRigidBodyElement = rCloneElement.Create(LastElementId, ElementNodes, pProperties);
       // rRigidBodyModelPart.AddElement(pRigidBodyElement);
-      
+
       // other posibility
       // std::vector<int> NodeIds;
       // NodeIds.push_back(LastNodeId);
@@ -365,7 +365,7 @@ private:
 
       rRigidBodyModelPart.AddElement(pRigidBodyElement);
       rRigidBodyModelPart.AddNode(NodeCenterOfGravity);
-     
+
       //add rigid body element to computing model part:
       for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
@@ -375,13 +375,13 @@ private:
 	    rMainModelPart.GetSubModelPart(i_mp->Name()).AddNode(NodeCenterOfGravity);
 	  }
 	}
-      
+
       std::cout<<"  [ "<<ElementName<<" Created : [NodeId:"<<LastNodeId<<"] [ElementId:"<<LastElementId<<"] CG("<<NodeCenterOfGravity->X()<<","<<NodeCenterOfGravity->Y()<<","<<NodeCenterOfGravity->Z()<<") ]"<<std::endl;
 
 
       KRATOS_CATCH( "" )
 
-    } 
+    }
 
 
     ///@}
@@ -495,7 +495,7 @@ private:
     ///@}
     ///@name Unaccessible methods
     ///@{
-     
+
     ///@}
 
     ///@}
@@ -532,6 +532,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RIGID_BODY_ELEMENT_CREATION_UTILITY_H_INCLUDED  defined 
-
-
+#endif // KRATOS_RIGID_BODY_ELEMENT_CREATION_UTILITY_H_INCLUDED  defined

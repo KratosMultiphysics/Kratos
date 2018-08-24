@@ -205,7 +205,7 @@
     },
     "problem_process_list" : [{
         "help"            : "This process applies meshing to the problem domains",
-        "kratos_module"   : "KratosMultiphysics.PfemApplication",
+        "kratos_module"   : "KratosMultiphysics.DelaunayMeshingApplication",
         "python_module"   : "remesh_domains_process",
         "process_name"    : "RemeshDomainsProcess",
         "Parameters"      : {

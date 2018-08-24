@@ -13,7 +13,7 @@ from SmallTests import Pfem2PrimitiveVariables as TPfem2PrimitiveVariables
 
 ## VALIDATION TESTS
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:

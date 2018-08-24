@@ -11,7 +11,7 @@ import os
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
-import KratosMultiphysics.PfemApplication
+import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication
 
@@ -41,6 +41,11 @@ class Solution(object):
 
         #set echo level
         self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+
+        # Print solving time
+        self.report = False
+        if( self.echo_level > 0 ):
+            self.report = True
 
         print(" ")
 
@@ -221,6 +226,8 @@ class Solution(object):
 
     def InitializeSolutionStep(self):
 
+        self.clock_time = self.StartTimeMeasuring();
+
         # current time parameters
         # self.main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = self.delta_time
         self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
@@ -239,11 +246,13 @@ class Solution(object):
         self.GraphicalOutputExecuteInitializeSolutionStep()
 
         # solve time step
-        self.clock_time = self.StartTimeMeasuring();
-
         self.solver.InitializeSolutionStep()
 
+        self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report);
+
     def SolveSolutionStep(self):
+
+        self.clock_time = self.StartTimeMeasuring();
 
         self.solver.Predict()
 
@@ -251,9 +260,11 @@ class Solution(object):
 
         self.solver.FinalizeSolutionStep()
 
+        self.StopTimeMeasuring(self.clock_time,"Solve Step" , self.report);
+
     def FinalizeSolutionStep(self):
 
-        self.StopTimeMeasuring(self.clock_time,"Solving", False);
+        self.clock_time = self.StartTimeMeasuring();
 
         self.GraphicalOutputExecuteFinalizeSolutionStep()
 
@@ -270,6 +281,10 @@ class Solution(object):
         # processes to be executed after witting the output
         self.model_processes.ExecuteAfterOutputStep()
 
+        # Calculate Nodal_Area
+        self.CalculateNodalArea()
+        
+        self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
     def Finalize(self):
 
@@ -355,7 +370,10 @@ class Solution(object):
         time_fp = timer.clock()
         if( report ):
             used_time = time_fp - time_ip
-            print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+            print("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+
+    def CalculateNodalArea(self):
+        pass
 
     #### Main internal methods ####
 
@@ -367,4 +385,3 @@ class Solution(object):
 
 if __name__ == "__main__":
     Solution().Run()
-

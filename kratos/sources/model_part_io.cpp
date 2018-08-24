@@ -69,13 +69,13 @@ namespace Kratos
       : mNumberOfLines(1)
       , mOptions(Options)
     {
-        // nullptr test can be confusing with Kratos::shared_ptr. Commented until we move to std::shared_ptr
-        // if (Stream == nullptr)
-        //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
+        // Check if the pointer is valid
+        if (Stream == nullptr)
+           KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         // Check if the pointer was .reset() or never initialized and if its a NULL pointer)
-        // if (Stream == NULL || Stream == Kratos::shared_ptr<std::iostream>(NULL))
-        //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
+        if (Stream == nullptr || Stream == Kratos::shared_ptr<std::iostream>(NULL))
+           KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         mpStream = Stream;
     }
@@ -2995,7 +2995,7 @@ namespace Kratos
 
 		ReadWord(word); // Reading the name of the sub model part
 
-		ModelPart& r_sub_model_part = *rParentModelPart.CreateSubModelPart(word);
+		ModelPart& r_sub_model_part = rParentModelPart.CreateSubModelPart(word);
 
 		while (true)
 		{
@@ -3037,7 +3037,7 @@ namespace Kratos
 
 	void ModelPartIO::WriteSubModelPartBlock(
         ModelPart& rMainModelPart,
-        const std::string InitialTabulation) {
+        const std::string& InitialTabulation) {
 
 		KRATOS_TRY;
 

@@ -38,6 +38,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMappingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# enabling Cotire
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosMappingApplication)
+endif(USE_COTIRE MATCHES ON)
+
 # install the python files
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

@@ -21,9 +21,10 @@
 
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 #include "pfem_fluid_dynamics_application_variables.h"
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
@@ -53,7 +54,7 @@ namespace Kratos
 */
 
 class RemoveMeshNodesForFluidsProcess
-  : public Process
+  : public MesherProcess
 {
 public:
   ///@name Type Definitions
@@ -74,7 +75,7 @@ public:
 
     /// Default constructor.
     RemoveMeshNodesForFluidsProcess(ModelPart& rModelPart,
-			   ModelerUtilities::MeshingParameters& rRemeshingParameters,
+			   MesherUtilities::MeshingParameters& rRemeshingParameters,
 			   int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
@@ -128,13 +129,13 @@ public:
     int boundary_nodes_removed = 0;
 
     //if the remove_node switch is activated, we check if the nodes got too close
-    if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES))
+    if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES))
       {
 	if( mEchoLevel > 1 )
 	  std::cout<<" REMOVE_NODES is TRUE "<<std::endl;
 	bool any_node_removed_on_error = false;
 	////////////////////////////////////////////////////////////
-	if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_ERROR))
+	if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_ERROR))
 	  {
 	    if( mEchoLevel > 1 )
 	      std::cout<<" REMOVE_NODES_ON_ERROR is TRUE "<<std::endl;
@@ -148,7 +149,7 @@ public:
 
 	bool any_node_removed_on_distance = false;
 	////////////////////////////////////////////////////////////
-	if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE))
+	if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 	  {
 	    if( mEchoLevel > 1 )
 	      std::cout<<" REMOVE_NODES_ON_DISTANCE is TRUE "<<std::endl;
@@ -264,9 +265,9 @@ private:
   ///@{
   ModelPart& mrModelPart;
 
-  ModelerUtilities::MeshingParameters& mrRemesh;
+  MesherUtilities::MeshingParameters& mrRemesh;
 
-  ModelerUtilities mModelerUtilities;
+  MesherUtilities mMesherUtilities;
 
   int mEchoLevel;
 
@@ -342,9 +343,9 @@ private:
 	    double mean_node_radius = 0;
 	    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
 	      {
-		mean_node_radius+= mModelerUtilities.CalculateElementRadius(ne->GetGeometry()); //Triangle 2D, Tetrahedron 3D
-		//mean_node_radius+= mModelerUtilities.CalculateTriangleRadius(ne->GetGeometry());
-		//mean_node_radius+= mModelerUtilities.CalculateTetrahedronRadius(ne->GetGeometry());
+		mean_node_radius+= mMesherUtilities.CalculateElementRadius(ne->GetGeometry()); //Triangle 2D, Tetrahedron 3D
+		//mean_node_radius+= mMesherUtilities.CalculateTriangleRadius(ne->GetGeometry());
+		//mean_node_radius+= mMesherUtilities.CalculateTetrahedronRadius(ne->GetGeometry());
 	      }
 
 	    mean_node_radius /= double(neighb_elems.size());
@@ -485,7 +486,7 @@ private:
 
 		if (  in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) )
 		  {
-		    if( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE) ){
+		    if( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) ){
 
 		      // if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && (freeSurfaceNeighNodes==dimension || rigidNeighNodes==dimension)){
 		       if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && freeSurfaceNeighNodes==dimension){

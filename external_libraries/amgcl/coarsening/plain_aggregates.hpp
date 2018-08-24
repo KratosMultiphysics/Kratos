@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,6 @@ THE SOFTWARE.
 #include <vector>
 #include <numeric>
 
-#include <boost/foreach.hpp>
 #include <amgcl/util.hpp>
 #include <amgcl/backend/builtin.hpp>
 
@@ -75,15 +74,17 @@ struct plain_aggregates {
 
         params() : eps_strong(0.08f) {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, eps_strong)
         {
-            AMGCL_PARAMS_CHECK(p, (eps_strong)(block_size));
+            check_params(p, {"eps_strong", "block_size"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, eps_strong);
         }
+#endif
     };
 
     static const ptrdiff_t undefined = -1;
@@ -123,16 +124,16 @@ struct plain_aggregates {
         const size_t n = rows(A);
 
         /* 1. Get strong connections */
-        std::vector<value_type> dia = diagonal(A);
+        auto dia = diagonal(A);
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-            value_type eps_dia_i = eps_squared * dia[i];
+            value_type eps_dia_i = eps_squared * (*dia)[i];
 
             for(ptrdiff_t j = A.ptr[i], e = A.ptr[i+1]; j < e; ++j) {
                 ptrdiff_t c = A.col[j];
                 value_type v = A.val[j];
 
-                strong_connection[j] = (c != i) && (eps_dia_i * dia[c] < v * v);
+                strong_connection[j] = (c != i) && (eps_dia_i * (*dia)[c] < v * v);
             }
         }
 
@@ -179,7 +180,7 @@ struct plain_aggregates {
             // Temporarily mark undefined points adjacent to the new aggregate
             // as members of the aggregate.
             // If nobody claims them later, they will stay here.
-            BOOST_FOREACH(ptrdiff_t c, neib) {
+            for(ptrdiff_t c : neib) {
                 for(ptrdiff_t j = A.ptr[c], e = A.ptr[c+1]; j < e; ++j) {
                     ptrdiff_t cc = A.col[j];
                     if (strong_connection[j] && id[cc] == undefined)
@@ -193,7 +194,7 @@ struct plain_aggregates {
         // Some of the aggregates could potentially vanish during expansion
         // step (*) above. We need to exclude those and renumber the rest.
         std::vector<ptrdiff_t> cnt(count, 0);
-        BOOST_FOREACH(ptrdiff_t i, id)
+        for(ptrdiff_t i : id)
             if (i >= 0) cnt[i] = 1;
         std::partial_sum(cnt.begin(), cnt.end(), cnt.begin());
 
