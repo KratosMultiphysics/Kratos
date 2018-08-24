@@ -207,6 +207,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    // Elements
     const UpdatedLagrangian mUpdatedLagrangian2D3N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
     const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
@@ -217,24 +219,27 @@ private:
     //const TotalLagrangian mTotalLagrangian2D3N;
     //const TotalLagrangian mTotalLagrangian3D4N;
     
-    //conditions
+    // Conditions
     const MPMPointLoadCondition mMPMPointLoadCondition2D1N;
     const MPMPointLoadCondition mMPMPointLoadCondition3D1N;
     const MPMLineLoadCondition2D mMPMLineLoadCondition2D2N;
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D3N;
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
 
-    //constitutive laws
+    // Constitutive laws
+    // CL: Hyperelastic ViscoPlastic laws
     const HyperElasticViscoplastic3DLaw                     mHyperElasticViscoplastic3DLaw;
     const HyperElasticViscoplasticPlaneStrain2DLaw          mHyperElasticViscoplasticPlaneStrain2DLaw;
+    // CL: Mohr Coulomb
     const HenckyMCPlastic3DLaw                              mHenckyMCPlastic3DLaw;
     const HenckyMCPlasticPlaneStrain2DLaw                   mHenckyMCPlasticPlaneStrain2DLaw;
     const HenckyMCPlasticUP3DLaw                            mHenckyMCPlasticUP3DLaw;
     const HenckyMCPlasticPlaneStrainUP2DLaw                 mHenckyMCPlasticPlaneStrainUP2DLaw;
+    // CL: Mohr Coulomb Strain Softening
     const HenckyMCStrainSofteningPlastic3DLaw               mHenckyMCStrainSofteningPlastic3DLaw;
     const HenckyMCStrainSofteningPlasticPlaneStrain2DLaw    mHenckyMCStrainSofteningPlasticPlaneStrain2DLaw;
 
-    //Flow Rules
+    // Flow Rules
     const ViscoplasticFlowRule                      mViscoplasticFlowRule;
     const BinghamViscoplasticFlowRule               mBinghamViscoplasticFlowRule;
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
@@ -243,13 +248,13 @@ private:
     //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
     //const DruckerPragerFlowRule                   mDruckerPragerFlowRule;
 
-    //Yield Criteria
+    // Yield Criteria
     const MCYieldCriterion                          mMCYieldCriterion;
     //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
     //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
     //const DruckerPragerYieldCriterion             mDruckerPragerYieldCriterion;
 
-    //Hardening Laws
+    // Hardening Laws
     //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
     //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
     //const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
