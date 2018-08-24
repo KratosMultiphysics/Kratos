@@ -14,7 +14,7 @@ def CreateSolver(model, custom_settings):
     return ShallowWaterBaseSolver(model, custom_settings)
 
 class ShallowWaterBaseSolver(PythonSolver):
-    def __init__(self, model, custom_settings):  # Constructor of the class 
+    def __init__(self, model, custom_settings):  # Constructor of the class
         settings = self._ValidateSettings(custom_settings)
         
         super(ShallowWaterBaseSolver, self).__init__(model, settings)

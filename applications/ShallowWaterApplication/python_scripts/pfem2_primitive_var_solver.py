@@ -46,12 +46,11 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
-        if self._IsPrintingRank():
-            self.print_on_rank_zero("::[Pfem2PrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
+        self.print_on_rank_zero("::[Pfem2PrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def Initialize(self):
         super(Pfem2PrimitiveVarSolver, self).Initialize()
-        
+
         # Initializing the neighbour search
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         number_of_avg_elems = 10
@@ -79,7 +78,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
             self.moveparticles.ResetBoundaryConditions()
             # Initialize mesh solution step
             self.solver.InitializeSolutionStep()
-    
+
     def Predict(self):
         if self._TimeBufferIsInitialized():
             self.solver.Predict()
@@ -96,7 +95,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
             self.ShallowVariableUtils.CheckDryPrimitiveVariables()
 
             return is_converged
-    
+
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Finalize mesh solution step
@@ -107,4 +106,3 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
             # Reseed empty elements
             post_minimum_number_of_particles = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]*2
             self.moveparticles.PostReseed(post_minimum_number_of_particles)
-    

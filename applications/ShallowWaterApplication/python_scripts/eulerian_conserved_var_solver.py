@@ -30,8 +30,7 @@ class EulerianConservedVarSolver(ShallowWaterBaseSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(Shallow.HEIGHT, self.main_model_part)
 
-        if self._IsPrintingRank():
-            self.print_on_rank_zero("::[EulerianConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
+        self.print_on_rank_zero("::[EulerianConservedVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized:
