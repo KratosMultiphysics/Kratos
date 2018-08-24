@@ -432,11 +432,11 @@ void HenckyElasticPlastic3DLaw::CorrectKinematics(const PlasticMaterialResponseV
     // Update Elastic Left Cuachy Green B^e_(k+1) 
     Matrix ElasticLeftCauchyGreen = mpMPMFlowRule->GetElasticLeftCauchyGreen(rReturnMappingVariables);
 
-    // Compute trial left stretch tensor V
+    // Compute left stretch tensor V^e_(k+1) 
     Matrix LeftStretchTensor;
     this->CalculateLeftStretchTensor(LeftStretchTensor, ElasticLeftCauchyGreen);
 
-    // Update Deformation Gradient F
+    // Update Deformation Gradient F^e_(k+1) = V^e_(k+1) R^e_(k+1)
     rDeformationGradientF = Transform2DTo3D(rDeformationGradientF);
     rDeformationGradientF = prod(rPlasticVariables.InverseTrialLeftStretchTensor, rDeformationGradientF);
     rDeformationGradientF = prod(LeftStretchTensor, rDeformationGradientF);
