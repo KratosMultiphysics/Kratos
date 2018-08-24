@@ -165,7 +165,10 @@ public:
             ModelPart::NodeIterator nodes_end;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
             for (auto it = nodes_begin; it != nodes_end; ++it)
+            {
                 it->SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS,0.0);
+                noalias(it->FastGetSolutionStepValue(RELAXED_ACCELERATION)) = it->GetValue(RELAXED_ACCELERATION);
+            }
         }
 
 #pragma omp parallel
