@@ -118,7 +118,7 @@
     }],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_output_process",
+        "python_module" : "single_mesh_temporal_output_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -131,6 +131,9 @@
             },
             "nodal_results_settings" : {
                 "list_of_variables": ["VELOCITY", "PRESSURE"]
+            },
+            "historical_non_solution_step_nodal_results_settings" : {
+                "list_of_variables": ["RELAXED_ACCELERATION"]
             }
         }
     },{

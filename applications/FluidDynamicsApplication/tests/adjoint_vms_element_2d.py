@@ -12,6 +12,7 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
         self.model_part = ModelPart("test")
         self.model_part.AddNodalSolutionStepVariable(VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        self.model_part.AddNodalSolutionStepVariable(RELAXED_ACCELERATION)
         self.model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(PRESSURE)
         self.model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -44,6 +45,7 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
             node.SetSolutionStepValue(VELOCITY_Y,step,random.random())
             node.SetSolutionStepValue(ACCELERATION_X,step,random.random())
             node.SetSolutionStepValue(ACCELERATION_Y,step,random.random())
+            node.SetSolutionStepValue(RELAXED_ACCELERATION,step, Vector(node.GetSolutionStepValue(ACCELERATION)))
             node.SetSolutionStepValue(PRESSURE,step,random.random())
 
     def _AssignSolutionStepData2(self, step=0):
@@ -56,6 +58,7 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
             node.SetSolutionStepValue(VELOCITY_Y,step,random.random())
             node.SetSolutionStepValue(ACCELERATION_X,step,random.random())
             node.SetSolutionStepValue(ACCELERATION_Y,step,random.random())
+            node.SetSolutionStepValue(RELAXED_ACCELERATION,step, Vector(node.GetSolutionStepValue(ACCELERATION)))
             node.SetSolutionStepValue(PRESSURE,step,random.random())
 
     def _zeroVector(self,size):
@@ -91,8 +94,8 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
         # test for steady state.
         for node in self.model_part.Nodes:
             for step in range(2):
-                node.SetSolutionStepValue(ACCELERATION_X, step, 0.0)
-                node.SetSolutionStepValue(ACCELERATION_Y, step, 0.0)
+                node.SetSolutionStepValue(RELAXED_ACCELERATION_X, step, 0.0)
+                node.SetSolutionStepValue(RELAXED_ACCELERATION_Y, step, 0.0)
         # unperturbed residual
         LHS = Matrix(9,9)
         RHS = self._zeroVector(9)
