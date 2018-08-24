@@ -818,12 +818,12 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
             PointType point;
             rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
-            rConditionsPointsSlave[0][i_node] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3)); // TODO: Check belongs
+            rConditionsPointsSlave[0][i_node] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3));
         }
         for (IndexType i_node = 1; i_node < 4; ++i_node) {
             PointType point;
             rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
-            rConditionsPointsSlave[1][i_node] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3)); // TODO: Check belongs
+            rConditionsPointsSlave[1][i_node] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3));
         }
 
         return true;

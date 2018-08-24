@@ -64,10 +64,10 @@ namespace Kratos
     */
     enum class PointBelongsLine2D2N
     {
-        MasterLine2D2N0      = 0,
-        MasterLine2D2N1      = 1,
-        SlaveLine2D2N0       = 2,
-        SlaveLine2D2N1       = 3,
+        SlaveLine2D2N0       = 0,
+        SlaveLine2D2N1       = 1,
+        MasterLine2D2N0      = 2,
+        MasterLine2D2N1      = 3,
         IntersectionLine2D2N = 4
     };
 
@@ -76,12 +76,12 @@ namespace Kratos
     */
     enum class PointBelongsTriangle3D3N
     {
-        MasterTriangle3D3N0          = 0,
-        MasterTriangle3D3N1          = 1,
-        MasterTriangle3D3N2          = 2,
-        SlaveTriangle3D3N0           = 3,
-        SlaveTriangle3D3N1           = 4,
-        SlaveTriangle3D3N2           = 5,
+        SlaveTriangle3D3N0           = 0,
+        SlaveTriangle3D3N1           = 1,
+        SlaveTriangle3D3N2           = 2,
+        MasterTriangle3D3N0          = 3,
+        MasterTriangle3D3N1          = 4,
+        MasterTriangle3D3N2          = 5,
         IntersectionTriangle3D3N     = 6,
         IntersectionTriangle3D3N0101 = 10106,
         IntersectionTriangle3D3N1001 = 10016,
@@ -126,14 +126,14 @@ namespace Kratos
     */
     enum class PointBelongsQuadrilateral3D4N
     {
-        MasterQuadrilateral3D4N0          = 0,
-        MasterQuadrilateral3D4N1          = 1,
-        MasterQuadrilateral3D4N2          = 2,
-        MasterQuadrilateral3D4N3          = 3,
-        SlaveQuadrilateral3D4N0           = 4,
-        SlaveQuadrilateral3D4N1           = 5,
-        SlaveQuadrilateral3D4N2           = 6,
-        SlaveQuadrilateral3D4N3           = 7,
+        SlaveQuadrilateral3D4N0           = 0,
+        SlaveQuadrilateral3D4N1           = 1,
+        SlaveQuadrilateral3D4N2           = 2,
+        SlaveQuadrilateral3D4N3           = 3,
+        MasterQuadrilateral3D4N0          = 4,
+        MasterQuadrilateral3D4N1          = 5,
+        MasterQuadrilateral3D4N2          = 6,
+        MasterQuadrilateral3D4N3          = 7,
         IntersectionQuadrilateral3D4N     = 8,
         IntersectionQuadrilateral3D4N0101 = 10108,
         IntersectionQuadrilateral3D4N1001 = 10018,
@@ -206,13 +206,13 @@ namespace Kratos
     */
     enum class PointBelongsQuadrilateral3D4NTriangle3D3N
     {
-        MasterTriangle3D3N0                           = 0,
-        MasterTriangle3D3N1                           = 1,
-        MasterTriangle3D3N2                           = 2,
-        SlaveQuadrilateral3D4N0                       = 3,
-        SlaveQuadrilateral3D4N1                       = 4,
-        SlaveQuadrilateral3D4N2                       = 5,
-        SlaveQuadrilateral3D4N3                       = 6,
+        SlaveQuadrilateral3D4N0                       = 0,
+        SlaveQuadrilateral3D4N1                       = 1,
+        SlaveQuadrilateral3D4N2                       = 2,
+        SlaveQuadrilateral3D4N3                       = 3,
+        MasterTriangle3D3N0                           = 4,
+        MasterTriangle3D3N1                           = 5,
+        MasterTriangle3D3N2                           = 6,
         IntersectionQuadrilateral3D4NTriangle3D3N     = 7,
         IntersectionQuadrilateral3D4NTriangle3D3N0101 = 10107,
         IntersectionQuadrilateral3D4NTriangle3D3N1001 = 1107,
@@ -269,13 +269,13 @@ namespace Kratos
     */
     enum class PointBelongsTriangle3D3NQuadrilateral3D4N
     {
-        MasterQuadrilateral3D4N0                      = 0,
-        MasterQuadrilateral3D4N1                      = 1,
-        MasterQuadrilateral3D4N2                      = 2,
-        MasterQuadrilateral3D4N3                      = 3,
-        SlaveTriangle3D3N0                            = 4,
-        SlaveTriangle3D3N1                            = 5,
-        SlaveTriangle3D3N2                            = 6,
+        SlaveTriangle3D3N0                            = 0,
+        SlaveTriangle3D3N1                            = 1,
+        SlaveTriangle3D3N2                            = 2,
+        MasterQuadrilateral3D4N0                      = 3,
+        MasterQuadrilateral3D4N1                      = 4,
+        MasterQuadrilateral3D4N2                      = 5,
+        MasterQuadrilateral3D4N3                      = 6,
         IntersectionTriangle3D3NQuadrilateral3D4N     = 7,
         IntersectionTriangle3D3NQuadrilateral3D4N0101 = 10107,
         IntersectionTriangle3D3NQuadrilateral3D4N0110 = 1107,
