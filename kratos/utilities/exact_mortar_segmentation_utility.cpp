@@ -338,16 +338,16 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     Quadrilateral3D4<PointType> master_geometry(points_array_master);
 
     // No we project both nodes from the slave side and the master side
-    array_1d<bool, 4> all_inside;
+    array_1d<bool, 4> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<4>(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
 
     // All the master points are inside the slave geometry
-    if (CheckAllInside(all_inside)) { // We decompose in two triangles
+    if (CheckAllInside(all_inside_master)) { // We decompose in two triangles
         rConditionsPointsSlave.resize(2);
 
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
@@ -364,13 +364,14 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
         return true;
     } else {
         // We add the internal nodes
-        PushBackPoints<4>(point_list, all_inside, master_geometry);
+        PushBackPoints<4>(point_list, all_inside_master, master_geometry);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        array_1d<bool, 3> all_inside_slave;
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
 
         // We add the internal nodes
-        PushBackPoints(point_list, all_inside, slave_geometry);
+        PushBackPoints(point_list, all_inside_slave, slave_geometry);
 
         return TriangleIntersections<GeometryNodeType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
@@ -436,16 +437,16 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     Triangle3D3<PointType> master_geometry(points_array_master);
 
     // No we project both nodes from the slave side and the master side
-    array_1d<bool, 3> all_inside;
+    array_1d<bool, 3> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<3>(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
 
     // All the master points are inside the slave geometry
-    if (CheckAllInside(all_inside)) { // We generate only one triangle
+    if (CheckAllInside(all_inside_master)) { // We generate only one triangle
         rConditionsPointsSlave.resize(1);
 
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
@@ -455,13 +456,14 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
         }
     } else {
         // We add the internal nodes
-        PushBackPoints<3>(point_list, all_inside, master_geometry);
+        PushBackPoints<3>(point_list, all_inside_master, master_geometry);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        array_1d<bool, 4> all_inside_slave;
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
 
         // We add the internal nodes
-        PushBackPoints(point_list, all_inside, slave_geometry);
+        PushBackPoints(point_list, all_inside_slave, slave_geometry);
 
         return TriangleIntersections<GeometryPointType>(rConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
@@ -801,16 +803,16 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     Quadrilateral3D4<PointType> master_geometry(points_array_master);
 
     // No we project both nodes from the slave side and the master side
-    array_1d<bool, 4> all_inside;
+    array_1d<bool, 4> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<4>(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
 
     // All the master points are inside the slave geometry
-    if (CheckAllInside(all_inside)) { // We decompose in two triangles
+    if (CheckAllInside(all_inside_master)) { // We decompose in two triangles
         rConditionsPointsSlave.resize(2);
 
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
@@ -827,13 +829,14 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
         return true;
     } else {
         // We add the internal nodes
-        PushBackPoints<4>(point_list, all_inside, master_geometry, PointBelongs::Master);
+        PushBackPoints<4>(point_list, all_inside_master, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        array_1d<bool, 3> all_inside_slave;
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
 
         // We add the internal nodes
-        PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
+        PushBackPoints(point_list, all_inside_slave, slave_geometry, PointBelongs::Slave);
 
         return TriangleIntersections<GeometryNodeType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
@@ -900,16 +903,16 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
     Triangle3D3<PointType> master_geometry(points_array_master);
 
     // No we project both nodes from the slave side and the master side
-    array_1d<bool, 3> all_inside;
+    array_1d<bool, 3> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<3>(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
 
     // All the master points are inside the slave geometry
-    if (CheckAllInside(all_inside)) { // We generate only one triangle
+    if (CheckAllInside(all_inside_master)) { // We generate only one triangle
         rConditionsPointsSlave.resize(1);
 
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
@@ -919,18 +922,17 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
         }
     } else {
         // We add the internal nodes
-        PushBackPoints<3>(point_list, all_inside, master_geometry, PointBelongs::Master);
+        PushBackPoints<3>(point_list, all_inside_master, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        array_1d<bool, 4> all_inside_slave;
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
 
         // We add the internal nodes
-        PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
+        PushBackPoints(point_list, all_inside_slave, slave_geometry, PointBelongs::Slave);
 
         return TriangleIntersections<GeometryPointType>(rConditionsPointsSlave, point_list, slave_geometry_not_rotated, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
-
-    return false;
 
     return false;
 }
