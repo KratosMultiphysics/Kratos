@@ -77,48 +77,48 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( MeshTyingMortarCondition );
 
     /// Base class definitions
-    typedef PairedCondition                                                                 BaseType;
+    typedef PairedCondition                                                               BaseType;
 
     /// Vector type definition
-    typedef typename BaseType::VectorType                                                 VectorType;
+    typedef typename BaseType::VectorType                                               VectorType;
 
     /// Matrix type definition
-    typedef typename BaseType::MatrixType                                                 MatrixType;
+    typedef typename BaseType::MatrixType                                               MatrixType;
 
     /// Index type definition
-    typedef typename BaseType::IndexType                                                   IndexType;
+    typedef typename BaseType::IndexType                                                 IndexType;
 
     /// Geometry pointer definition
-    typedef typename BaseType::GeometryType::Pointer                             GeometryPointerType;
+    typedef typename BaseType::GeometryType::Pointer                           GeometryPointerType;
 
     /// Nodes array type definition
-    typedef typename BaseType::NodesArrayType                                         NodesArrayType;
+    typedef typename BaseType::NodesArrayType                                       NodesArrayType;
 
     /// Properties pointer definition
-    typedef typename BaseType::PropertiesType::Pointer                         PropertiesPointerType;
+    typedef typename BaseType::PropertiesType::Pointer                       PropertiesPointerType;
 
     /// Point definition
-    typedef Point                                                                          PointType;
+    typedef Point                                                                        PointType;
 
     /// Node type definition
-    typedef Node<3>                                                                         NodeType;
+    typedef Node<3>                                                                       NodeType;
 
     /// Geoemtry type definition
-    typedef Geometry<NodeType>                                                          GeometryType;
+    typedef Geometry<NodeType>                                                        GeometryType;
 
     // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType                           IntegrationPointsType;
+    typedef GeometryType::IntegrationPointsArrayType                         IntegrationPointsType;
 
     // Type definition of the components of an array_1d
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > Array1DComponentsType;
 
-    typedef typename std::vector<array_1d<PointType,TDim>>                    ConditionArrayListType;
+    typedef typename std::vector<array_1d<PointType,TDim>>                  ConditionArrayListType;
 
-    typedef Line2D2<Point>                                                                  LineType;
+    typedef Line2D2<Point>                                                                LineType;
 
-    typedef Triangle3D3<Point>                                                          TriangleType;
+    typedef Triangle3D3<Point>                                                        TriangleType;
 
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type    DecompositionType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
 
     static constexpr SizeType NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
 
@@ -126,13 +126,13 @@ public:
 
     static constexpr SizeType MatrixSize = TTensor * (2 * NumNodes + NumNodesMaster);
 
-    typedef MortarKinematicVariables<NumNodes, NumNodesMaster>                      GeneralVariables;
+    typedef MortarKinematicVariables<NumNodes, NumNodesMaster>                     GeneralVariables;
 
-    typedef DualLagrangeMultiplierOperators<NumNodes, NumNodesMaster>                         AeData;
+    typedef DualLagrangeMultiplierOperators<NumNodes, NumNodesMaster>                        AeData;
 
-    typedef MortarOperator<NumNodes, NumNodesMaster>                         MortarConditionMatrices;
+    typedef MortarOperator<NumNodes, NumNodesMaster>                        MortarConditionMatrices;
 
-    typedef ExactMortarIntegrationUtility<TDim, NumNodes, false, NumNodesMaster>  IntegrationUtility;
+    typedef ExactMortarIntegrationUtility<TDim, NumNodes, false, NumNodesMaster> IntegrationUtility;
 
     ///@}
     ///@name Life Cycle
@@ -397,59 +397,61 @@ protected:
     public:
 
         // Auxiliar types
-        typedef BoundedMatrix<double, NumNodes, TTensor>  Type1;
-        typedef BoundedMatrix<double, NumNodes, NumNodes> Type2;
+        typedef BoundedMatrix<double, NumNodes, TTensor>  MatrixUnknownSlave;
+        typedef BoundedMatrix<double, NumNodesMaster, TTensor>  MatrixUnknownMaster;
+        typedef BoundedMatrix<double, NumNodes, NumNodes> MatrixDualLM;
 
         // The DoF
-        Type1 LagrangeMultipliers, u1, u2;
+        MatrixUnknownSlave LagrangeMultipliers, u1;
+        MatrixUnknownMaster u2;
 
         // Ae
-        Type2 Ae;
+        MatrixDualLM Ae;
 
         // Default destructor
         ~DofData()= default;
 
         /**
          * Updating the Slave pair
-         * @param GeometryInput The pointer of the current master
+         * @param rGeometryInput The pointer of the current master
          */
-        void Initialize(const GeometryType& GeometryInput)
+        void Initialize(const GeometryType& rGeometryInput)
         {
             // The current Lagrange Multipliers
             u1 = ZeroMatrix(NumNodes, TTensor);
-            u2 = ZeroMatrix(NumNodes, TTensor);
+            u2 = ZeroMatrix(NumNodesMaster, TTensor);
             LagrangeMultipliers = ZeroMatrix(NumNodes, TTensor);
         }
 
-        // Initialize the Ae components
+        /**
+         * @brief Initialize the Ae components
+         */
         void InitializeAeComponents()
         {
             Ae = ZeroMatrix(NumNodes, NumNodes);
         }
 
         /**
-         * Updating the Master pair
-         * @param GeometryInput The pointer of the current master
+         * @brief Updating the Master pair
+         * @param rGeometryInput The pointer of the current master
+         * @param rDoubleVariables The list of double variables
+         * @param rArray1DVariables The list of components array1d
          */
-        void UpdateMasterPair(const GeometryType& GeometryInput)
+        void UpdateMasterPair(
+            const GeometryType& rGeometryInput,
+            std::vector<Variable<double>>& rDoubleVariables,
+            std::vector<Array1DComponentsType>& rArray1DVariables
+            )
         {
             /* DoF */
-            if (TTensor == 1)
-            {
-                for (IndexType i_node = 0; i_node < NumNodes; ++i_node)
-                {
-                    const double value = GeometryInput[i_node].FastGetSolutionStepValue(TEMPERATURE);
-                    u2(i_node, 0) = value;
+            if (TTensor == 1) {
+                for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+                    u2(i_node, 0) = rGeometryInput[i_node].FastGetSolutionStepValue(rDoubleVariables[0]);
                 }
-            }
-            else
-            {
-                for (IndexType i_node = 0; i_node < NumNodes; ++i_node)
-                {
-                    const array_1d<double, 3>& value = GeometryInput[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-                    for (IndexType i_dof = 0; i_dof < TTensor; ++i_dof)
-                    {
-                        u2(i_node, i_dof) = value[i_dof];
+            } else {
+                for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+                    for (IndexType i_dof = 0; i_dof < TTensor; ++i_dof) {
+                        u2(i_node, i_dof) =  rGeometryInput[i_node].FastGetSolutionStepValue(rArray1DVariables[i_dof]);
                     }
                 }
             }
@@ -461,11 +463,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Flags  mCalculationFlags;                              // Calculation flags
+    Flags  mCalculationFlags;                              /// Calculation flags
 
-    MortarConditionMatrices mrThisMortarConditionMatrices; // The mortar operators
+    MortarConditionMatrices mrThisMortarConditionMatrices; /// The mortar operators
 
-    IndexType mIntegrationOrder;                        // The integration order to consider
+    IndexType mIntegrationOrder;                           /// The integration order to consider
+
+    std::vector<Variable<double>> mDoubleVariables;        /// The list of double variables
+
+    std::vector<Array1DComponentsType> mArray1DVariables;  /// The list of components array1d
 
     ///@}
     ///@name Protected Operators
@@ -603,12 +609,12 @@ protected:
     {
         // Setting the auxiliar integration points
         switch (mIntegrationOrder) {
-        case 1: return GeometryData::GI_GAUSS_1;
-        case 2: return GeometryData::GI_GAUSS_2;
-        case 3: return GeometryData::GI_GAUSS_3;
-        case 4: return GeometryData::GI_GAUSS_4;
-        case 5: return GeometryData::GI_GAUSS_5;
-        default: return GeometryData::GI_GAUSS_2;
+            case 1: return GeometryData::GI_GAUSS_1;
+            case 2: return GeometryData::GI_GAUSS_2;
+            case 3: return GeometryData::GI_GAUSS_3;
+            case 4: return GeometryData::GI_GAUSS_4;
+            case 5: return GeometryData::GI_GAUSS_5;
+            default: return GeometryData::GI_GAUSS_2;
         }
     }
 
@@ -660,11 +666,15 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
+        rSerializer.save("CalculationFlags", mCalculationFlags);
+        rSerializer.save("IntegrationOrder", mIntegrationOrder);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
+        rSerializer.load("CalculationFlags", mCalculationFlags);
+        rSerializer.load("IntegrationOrder", mIntegrationOrder);
     }
 
     ///@}
