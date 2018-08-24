@@ -646,7 +646,7 @@ private:
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>

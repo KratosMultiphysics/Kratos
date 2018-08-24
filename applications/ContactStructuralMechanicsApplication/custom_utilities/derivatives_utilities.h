@@ -59,8 +59,12 @@ namespace Kratos
  * @details The derivatives take the same argument templates than the contact conditions
  * @author Vicente Mataix Ferrandiz
  * @author Gabriel Valdes Alonzo 
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNormalVariation If the normal variation is considered
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< SizeType TDim, SizeType TNumNodes, bool TFrictional, bool TNormalVariation>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativesUtilities
 {
 public:
@@ -68,58 +72,58 @@ public:
     ///@{
 
     /// The vector considered
-    typedef Vector                                                                                     VectorType;
+    typedef Vector                                                                                                      VectorType;
 
     /// The dense matrix considered
-    typedef Matrix                                                                                     MatrixType;
+    typedef Matrix                                                                                                      MatrixType;
 
     /// The index type
-    typedef std::size_t                                                                                 IndexType;
+    typedef std::size_t                                                                                                  IndexType;
 
     /// The geometry of nodes
-    typedef Geometry<NodeType>                                                                       GeometryType;
+    typedef Geometry<NodeType>                                                                                        GeometryType;
 
     /// The array of nodes contained in a geometry
-    typedef Geometry<NodeType>::PointsArrayType                                                    NodesArrayType;
+    typedef Geometry<NodeType>::PointsArrayType                                                                     NodesArrayType;
 
     /// The Properties type
-    typedef Properties                                                                             PropertiesType;
+    typedef Properties                                                                                              PropertiesType;
 
     /// The belong type (for derivatives definition)
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
+    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
 
     /// The points used for derivatives definition
-    typedef PointBelong<TNumNodes>                                                                PointBelongType;
+    typedef PointBelong<TNumNodes, TNumNodesMaster>                                                                PointBelongType;
 
     /// A geometry defined by the point belongs (the points used for derivatives definition)
-    typedef Geometry<PointBelongType>                                                     GeometryPointBelongType;
+    typedef Geometry<PointBelongType>                                                                      GeometryPointBelongType;
 
     /// An array of belong point to define the geometries of belong points
-    typedef array_1d<PointBelongType,TDim>                                                     ConditionArrayType;
+    typedef array_1d<PointBelongType,TDim>                                                                      ConditionArrayType;
 
     /// The definition of an array pf conditions
-    typedef typename std::vector<ConditionArrayType>                                       ConditionArrayListType;
+    typedef typename std::vector<ConditionArrayType>                                                        ConditionArrayListType;
 
     /// The line definition
-    typedef Line2D2<PointType>                                                                           LineType;
+    typedef Line2D2<PointType>                                                                                            LineType;
 
     /// The triangle definition
-    typedef Triangle3D3<PointType>                                                                   TriangleType;
+    typedef Triangle3D3<PointType>                                                                                    TriangleType;
 
     /// The geometry for decomposition (line in 2D and triangle for 3D)
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                 DecompositionType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                  DecompositionType;
 
     /// The derivative data type
-    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>, DerivativeData<TDim, TNumNodes, TNormalVariation> >::type DerivativeDataType;
+    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> >::type DerivativeDataType;
 
     /// The kinematic variables
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>                             GeneralVariables;
+    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>                             GeneralVariables;
 
     /// The dual LM operators
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation> AeData;
+    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster> AeData;
 
     /// The mortar operators
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation> MortarConditionMatrices;
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster> MortarConditionMatrices;
 
     /// Pointer definition of DerivativesUtilities
     KRATOS_CLASS_POINTER_DEFINITION( DerivativesUtilities );
