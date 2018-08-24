@@ -117,7 +117,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
 
-        # The following is used to create the solution database
+        ## The following is used to create the solution database
         #import json_output_process
 
         #out_parameters = KratosMultiphysics.Parameters("""
@@ -154,7 +154,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
 
     def test_mortar_mapping_quad_tri(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
-        #self._mapper_tests(input_filename, 3, 4)
+        self._mapper_tests(input_filename, 4, 3)
 
     def __post_process(self):
         from gid_output_process import GiDOutputProcess
@@ -166,7 +166,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
                                                 "gidpost_flags": {
                                                     "GiDPostMode": "GiD_PostBinary",
                                                     "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteElementsOnly",
+                                                    "WriteConditionsFlag": "WriteConditionsOnly",
                                                     "MultiFileFlag": "SingleFile"
                                                 },
                                                 "nodal_results"       : ["DISPLACEMENT","NORMAL","TEMPERATURE"],
