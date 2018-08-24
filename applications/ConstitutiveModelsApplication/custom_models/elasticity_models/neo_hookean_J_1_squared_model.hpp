@@ -72,13 +72,13 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return Kratos::make_shared<NeoHookeanJ_1SquaredModel>(*this);
     }
 
     /// Destructor.
-    virtual ~NeoHookeanJ_1SquaredModel() {}
+    ~NeoHookeanJ_1SquaredModel() override {}
 
 
     ///@}
@@ -106,7 +106,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NeoHookeanJ_1SquaredModel";
@@ -114,13 +114,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "NeoHookeanJ_1SquaredModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "NeoHookeanJ_1SquaredModel Data";
     }
@@ -152,7 +152,7 @@ namespace Kratos
 
     // specialized methods:
 
-    virtual void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
@@ -161,7 +161,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    virtual void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
@@ -174,7 +174,7 @@ namespace Kratos
 
     //option: g(J) = (lambda/2)*(J-1)² - (mu)*lnJ (neo_hookean_J_1_model)
 
-    virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override
+    void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override
     {
       KRATOS_TRY
 
@@ -191,7 +191,7 @@ namespace Kratos
     //************// dW
 
 
-    virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //dW/dI3
+    double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //dW/dI3
     {
       KRATOS_TRY
 
@@ -209,7 +209,7 @@ namespace Kratos
     }
 
 
-    virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddW/dI3dI3
+    double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddW/dI3dI3
     {
       KRATOS_TRY
 
@@ -274,12 +274,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NeoHookeanModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NeoHookeanModel )
     }

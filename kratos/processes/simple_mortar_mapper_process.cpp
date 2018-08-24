@@ -267,7 +267,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType>::AssemblyMortarOperato
             points_array[i_node] = Kratos::make_shared<PointType>( global_point );
         }
 
-        DecompType decomp_geom( points_array );
+        DecompType decomp_geom( PointerVector<PointType>{points_array} );
 
         const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
 
@@ -337,7 +337,7 @@ inline BoundedMatrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDi
             points_array[i_node] = Kratos::make_shared<PointType>( global_point );
         }
 
-        DecompType decomp_geom( points_array );
+        DecompType decomp_geom( PointerVector<PointType>{points_array} );
 
         const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
 

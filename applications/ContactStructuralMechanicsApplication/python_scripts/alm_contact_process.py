@@ -68,7 +68,7 @@ class ALMContactProcess(KM.Process):
             "interval"                    : [0.0,"End"],
             "normal_variation"            : "no_derivatives_computation",
             "frictional_law"              : "Coulomb",
-            "tangent_factor"              : 0.1,
+            "tangent_factor"              : 1.0e-1,
             "integration_order"           : 2,
             "clear_inactive_for_post"     : true,
             "search_parameters" : {
@@ -300,6 +300,9 @@ class ALMContactProcess(KM.Process):
                     KM.Logger.PrintWarning("TOTAL INTEGRATED AREA: ", "{:.2e}".format(total_area))
 
                     #exact_integration.TestGiDDebug(self.contact_model_part)
+
+            # Before computing we reset the flags of slip
+            KM.VariableUtils().SetFlag(KM.SLIP, False, self.contact_model_part.Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step

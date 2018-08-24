@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_HESSIAN_METRICS_PROCESS)
@@ -29,12 +29,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef ModelPart::NodesContainerType                                     NodesArrayType;
-    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
-    typedef Node <3>                                                                NodeType;
+    /// Component variable type
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >  ComponentType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -62,6 +59,14 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Node definition
+    typedef Node <3>                                                                NodeType;
+
+    /// Containers definitions
+    typedef ModelPart::NodesContainerType                                     NodesArrayType;
+    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
+
     /// Pointer definition of ComputeHessianSolMetricProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeHessianSolMetricProcess);
     

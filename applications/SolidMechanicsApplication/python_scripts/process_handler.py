@@ -249,11 +249,12 @@ class ProcessHandler(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-           "model_part_name" : "MODEL_PART",
-           "variable_name"   : "DISPLACEMENT",
-           "value"           : [0.0,0.0,0.0],
-           "constrained"     : true,
-           "interval"        : [0.0,"End"]
+           "model_part_name"     : "MODEL_PART",
+           "variable_name"       : "DISPLACEMENT",
+           "value"               : [0.0,0.0,0.0],
+           "compound_assignment" : "direct",
+           "constrained"         : true,
+           "interval"            : [0.0,"End"]
         }
         """)
 
@@ -287,12 +288,13 @@ class ProcessHandler(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-           "python_module"   : "assign_modulus_and_direction_to_conditions_process",
-           "model_part_name" : "MODEL_PART",
-           "variable_name"   : "DISPLACEMENT",
-           "modulus"         : 0.0,
-           "direction"       : [0.0,0.0,0.0],
-           "interval"        : [0.0,"End"]
+           "python_module"       : "assign_modulus_and_direction_to_conditions_process",
+           "model_part_name"     : "MODEL_PART",
+           "variable_name"       : "DISPLACEMENT",
+           "modulus"             : 0.0,
+           "direction"           : [0.0,0.0,0.0],
+           "compound_assignment" : "direct",
+           "interval"            : [0.0,"End"]
         }
         """)
 

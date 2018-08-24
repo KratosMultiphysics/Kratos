@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -14,7 +14,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        
+
         #create nodes
         mp.CreateNewNode(1,0.0,0.0,0.0)
         mp.CreateNewNode(2,0.0,0.0,1.0)
@@ -22,23 +22,23 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         mp.CreateNewNode(4,math.sqrt(2),math.sqrt(2.0),1.0)
         lenght = 2.0
         width = 1.0
-        
+
         #ensure that the property 1 is created
         mp.GetProperties()[1]
 
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-            
+
 
         cond = mp.CreateNewCondition("SurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
-        
+
         #cond.Check()
-        
+
         lhs = KratosMultiphysics.Matrix(0,0)
         rhs = KratosMultiphysics.Vector(0)
-        
-        #first we apply a constant SURFACE_LOAD to theh condition 
+
+        #first we apply a constant SURFACE_LOAD to theh condition
         load_on_cond = KratosMultiphysics.Vector(3)
         load_on_cond[0] = 1.0
         load_on_cond[1] = 2.0
@@ -48,17 +48,17 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         self.assertAlmostEqual(rhs[0],0.25*lenght); self.assertAlmostEqual(rhs[1],0.5*1.0*lenght); self.assertAlmostEqual(rhs[2],0.0)
         self.assertAlmostEqual(rhs[3],0.25*lenght); self.assertAlmostEqual(rhs[4],0.5*1.0*lenght); self.assertAlmostEqual(rhs[5],0.0)
         self.assertAlmostEqual(rhs[6],0.25*lenght); self.assertAlmostEqual(rhs[7],0.5*1.0*lenght); self.assertAlmostEqual(rhs[8],0.0)
-        self.assertAlmostEqual(rhs[9],0.25*lenght); self.assertAlmostEqual(rhs[10],0.5*1.0*lenght); self.assertAlmostEqual(rhs[11],0.0)        
-        
+        self.assertAlmostEqual(rhs[9],0.25*lenght); self.assertAlmostEqual(rhs[10],0.5*1.0*lenght); self.assertAlmostEqual(rhs[11],0.0)
+
         ##now the condition is something like
-        ##    2 
+        ##    2
         ##  +/
-        ##  /- 
+        ##  /-
         ## 1
         #with the + and - sides as indicated. (positive face is the one from which the normal to the face goes out)
         ##applying a NEGATIVE_FACE_PRESSURE implies applying a pressure on the - face, which hence goes in the direction of the normal (-1,1)
         ##applying a POSITIVE_FACE_PRESSURE implies applying a distributed force to the + face, which corresponds to a force going in the direciton of (1,-1), that is, the opposite to the normal
-        ##here 
+        ##here
         ##we add to it a NEGATIVE_FACE_PRESSURE of 10 corresponding to a a distributed force (10*cos(45),-10*sin(45))*width
         ##togheter with a POSITIVE_FACE_PRESSURE of 5 corresponding to a LINE_LOAD (-5*cos(45),5*cos(45))*width
         ##together with the previousy applied LINE_LOAD this gives an equivalent load of 0.5*(1+5*cos(45),2.0-5*sin(45))
@@ -72,7 +72,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
             self.assertAlmostEqual(rhs[base+0],fxnodal)
             self.assertAlmostEqual(rhs[base+1],fynodal)
             self.assertAlmostEqual(rhs[base+2],0.0)
-        
+
         ##finally we apply TO THE NODES, a linearly varying POSITIVE_FACE_PRESSURE ranging from -100.0 to -200.0
         mp.Nodes[1].SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,0,-100.0)
         mp.Nodes[2].SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,0,-100.0)
@@ -81,7 +81,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
         reference_res = [-44.872685126136794,46.372685126136815,0.0,-44.87268512613681,46.3726851261368,0.0,-56.657798145912594,58.1577981459126,0.0,-56.65779814591261,58.157798145912615,0.0]
         for i in range(len(rhs)):
-            self.assertAlmostEqual(rhs[i],reference_res[i])     
-        
+            self.assertAlmostEqual(rhs[i],reference_res[i])
+
 if __name__ == '__main__':
     KratosUnittest.main()

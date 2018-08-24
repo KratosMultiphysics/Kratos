@@ -660,11 +660,12 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
         const IndexType number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
-        // Getting the beginning iterator
 
+        // Getting the beginning iterator
         const GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveConstraints.begin();
-#pragma omp parallel for schedule(guided, 512)
-        for (unsigned int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+
+		#pragma omp parallel for schedule(guided, 512)
+        for (int i_constraints = 0; i_constraints < number_of_constraints; ++i_constraints)
         {
             //GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin;
