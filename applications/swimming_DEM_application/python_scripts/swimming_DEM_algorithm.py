@@ -263,6 +263,9 @@ class Algorithm(object):
 
         self.pp.fluid_fraction_fields.append(field1)
 
+        # Setting body_force_per_unit_mass_variable_name
+        Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
+
     def SetDoSolveDEMVariable(self):
         self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
@@ -394,6 +397,7 @@ class Algorithm(object):
                 self.pp,
                 flow_field=self.GetFieldUtility()
                 )
+
             self.projection_module.UpdateDatabase(self.h_min)
 
         # creating a custom functions calculator for the implementation of

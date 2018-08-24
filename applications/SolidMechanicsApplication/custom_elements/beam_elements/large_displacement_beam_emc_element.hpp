@@ -84,7 +84,7 @@ public:
     LargeDisplacementBeamEMCElement(LargeDisplacementBeamEMCElement const& rOther);
 
     /// Destructor.
-    virtual ~LargeDisplacementBeamEMCElement();
+    ~LargeDisplacementBeamEMCElement() override;
 
 
     ///@}
@@ -138,7 +138,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Large Displacement Beam EMC Element #" << Id();
@@ -146,13 +146,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Large Displacement Beam EMC Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -194,20 +194,20 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType & rVariables,
+    void InitializeElementData(ElementDataType & rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Transform Vector Variable form Material Frame to the Spatial Frame
      */
-    virtual void MapToSpatialFrame(const ElementDataType& rVariables, Matrix& rVariable) override;
+    void MapToSpatialFrame(const ElementDataType& rVariables, Matrix& rVariable) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataType& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
     /**
@@ -219,14 +219,14 @@ protected:
     /**
      * Calculate Element Frame
      */
-    virtual void CalculateFrameMapping(ElementDataType& rVariables,
+    void CalculateFrameMapping(ElementDataType& rVariables,
 				       const unsigned int& rPointNumber) override;
 
 
     /**
      * Update strain current member variables
      */
-    virtual void UpdateStrainVariables(ElementDataType& rVariables,
+    void UpdateStrainVariables(ElementDataType& rVariables,
 				       const unsigned int& rPointNumber) override;
 
 
@@ -257,7 +257,7 @@ protected:
     /**
      * Calculate Element Constitutive Matrix
      */
-    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
+    void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
     /**
      * Calculate Element Strain Resultants
@@ -273,13 +273,13 @@ protected:
     /**
      * Calculate Element Stress Resultants and Couples
      */
-    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
+    void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ElementDataType& rVariables,
 				     double& rIntegrationWeight) override;
 
@@ -287,7 +287,7 @@ protected:
     /**
      * Calculation of the Follower Load Stiffness Matrix. Kuuf
      */
-    virtual void CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
 				     ElementDataType& rVariables,
 				     double& rIntegrationWeight) override;
 
@@ -296,7 +296,7 @@ protected:
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    virtual void CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
+    void CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
 					       ElementDataType& rVariables,
 					       double& rIntegrationWeight) override;
 
@@ -304,7 +304,7 @@ protected:
     /**
       * Calculation of the Tangent Intertia Matrix
       */
-    virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
@@ -313,7 +313,7 @@ protected:
     /**
       * Calculation of the Inertial Forces Vector
       */
-    virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
+    void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
 					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
@@ -321,7 +321,7 @@ protected:
     /**
      * Calculation Complementary Method : Derivative Shape Function Matrix Operator
      */
-    virtual void CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
+    void CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
 					       ElementDataType& rVariables,
 					       const int& rNode,
 					       double alpha) override;
@@ -329,13 +329,13 @@ protected:
     /**
      * Calculation Complementary Method : Inertial Matrix Calculation Part 1
      */
-    virtual void CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor) override;
+    void CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor) override;
 
 
     /**
      * Get Element Strain/Stress for energy computation
      */
-    virtual void CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
+    void CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
 
     ///@}
     ///@name Protected  Access
@@ -374,9 +374,9 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

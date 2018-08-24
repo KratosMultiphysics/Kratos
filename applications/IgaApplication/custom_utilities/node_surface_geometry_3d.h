@@ -1,14 +1,12 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+/*
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
-//
-//  Main authors:    Thomas Oberbichler
-//
+//  Main authors:   Thomas Oberbichler
+*/
 
 #if !defined(KRATOS_NODE_SURFACE_GEOMETRY_3D_H_INCLUDED)
 #define KRATOS_NODE_SURFACE_GEOMETRY_3D_H_INCLUDED
@@ -16,12 +14,12 @@
 // System includes
 
 // External includes
-#include <ANurbs/Core>
 
 // Project includes
 #include "includes/define.h"
-#include "includes/Node.h"
+#include "includes/node.h"
 #include "includes/variables.h"
+#include "anurbs.h"
 
 namespace Kratos {
 
@@ -31,13 +29,14 @@ namespace Kratos {
  *  changes whenever the Nodes are moving.
  */
 class NodeSurfaceGeometry3D
-    : public ANurbs::SurfaceGeometryBase<double, Kratos::array_1d<double, 3>>
+    : public ANurbs::SurfaceGeometryBase<Kratos::array_1d<double, 3>>
 {
 protected:
     using NodePointer = typename Node<3>::Pointer;
 
 public:
-    using SurfaceGeometryBaseType = SurfaceGeometryBase<double,
+    using NodeType = Node<3>;
+    using SurfaceGeometryBaseType = SurfaceGeometryBase<
         Kratos::array_1d<double, 3>>;
     using typename SurfaceGeometryBaseType::KnotsType;
     using typename SurfaceGeometryBaseType::ScalarType;
@@ -49,10 +48,10 @@ protected:
 public:
     /** Creates a new NodeSurfaceGeometry3D.
      *
-     *  \param DegreeU Degree in u direction
-     *  \param DegreeV Degree in v direction
-     *  \param NumberOfNodesU Number of nodes in u direction
-     *  \param NumberOfNodesU Number of nodes in v direction
+     *  @param DegreeU Degree in u direction
+     *  @param DegreeV Degree in v direction
+     *  @param NumberOfNodesU Number of nodes in u direction
+     *  @param NumberOfNodesU Number of nodes in v direction
      */
     NodeSurfaceGeometry3D(
         const int DegreeU,
@@ -67,8 +66,8 @@ public:
 
     /** Gets the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
      * 
      * @return Kratos node at the given index.
      */
@@ -86,8 +85,8 @@ public:
 
     /** Sets the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
      */
     void SetNode(
         const int IndexU,
@@ -104,8 +103,8 @@ public:
 
     /** Gets the location of the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
      * 
      * @return Location of the Kratos node at the given index.
      */
@@ -113,32 +112,33 @@ public:
         const int IndexU,
         const int IndexV) const override
     {
-        const auto& node = *Node(IndexU, IndexV);
+        const NodeType& node = *Node(IndexU, IndexV);
 
         VectorType pole;
-        pole[0] = node[0];
-        pole[1] = node[1];
-        pole[2] = node[2];
+        for (std::size_t i = 0; i < 3; i++) {
+            pole[i] = node[i];
+        }
 
         return pole;
     }
 
     /** Sets the location of the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
-     * \param Value New location of the Kratos node
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
+     * @param Value New location of the Kratos node
      */
     void SetPole(
         const int IndexU,
         const int IndexV,
         const VectorType& Value) override
     {
-        auto& node = *Node(IndexU, IndexV);
+        NodeType& node = *Node(IndexU, IndexV);
 
-        node[0] = Value[0];
-        node[1] = Value[1];
-        node[2] = Value[2];
+        VectorType pole;
+        for (std::size_t i = 0; i < 3; i++) {
+            node[i] = Value[i];
+        }
     }
 
     /** Gets a value indicating whether or not the NURBS surface is rational.
@@ -152,8 +152,8 @@ public:
 
     /** Gets the weight of the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
      * 
      * @return Weight of the Kratos node at the given index.
      */
@@ -161,32 +161,36 @@ public:
         const int IndexU,
         const int IndexV) const override
     {
-        const auto& node = *Node(IndexU, IndexV);
+        const NodeType& node = *Node(IndexU, IndexV);
 
-        return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        if (node.Has(Kratos::NURBS_CONTROL_POINT_WEIGHT)) {
+            return node.GetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT);
+        } else {
+            return 1;
+        }
     }
 
     /** Sets the weight of the Kratos node at a given index.
      * 
-     * \param IndexU Index in u direction
-     * \param IndexV Index in v direction
-     * \param Value New weight of the Kratos node
+     * @param IndexU Index in u direction
+     * @param IndexV Index in v direction
+     * @param Value New weight of the Kratos node
      */
     void SetWeight(
         const int IndexU,
         const int IndexV,
         const ScalarType Value) override
     {
-        auto& node = *Node(IndexU, IndexV);
+        NodeType& node = *Node(IndexU, IndexV);
 
-        node.SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
+        node.SetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT, Value);
     }
 
     /** Gets the value of a nodal Kratos variable on a point at the surface.
      * 
-     * \param Variable Kratos variable
-     * \param U Surface parameter in u direction
-     * \param V Surface parameter in v direction
+     * @param Variable Kratos variable
+     * @param U Surface parameter in u direction
+     * @param V Surface parameter in v direction
      * 
      * @return The value of the variable at the given surface point.
      */
@@ -204,10 +208,10 @@ public:
     /** Gets the derivatives of a nodal Kratos variable on a point at the
      * surface.
      * 
-     * \param Variable Kratos variable
-     * \param U Surface parameter in u direction
-     * \param V Surface parameter in v direction
-     * \param Order Order of the highest derivative to compute
+     * @param Variable Kratos variable
+     * @param U Surface parameter in u direction
+     * @param V Surface parameter in v direction
+     * @param Order Order of the highest derivative to compute
      * 
      * @return The value and the derivatives of the variable at the given
      * surface point.

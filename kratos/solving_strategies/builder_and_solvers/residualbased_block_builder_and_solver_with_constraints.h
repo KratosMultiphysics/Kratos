@@ -446,8 +446,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
         ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
+        const ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        const ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -636,15 +636,16 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             }*/
             int master_count = 0;
-            if (mGlobalMasterSlaveConstraints.count(slave_equation_id) == 0 )
+            auto global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
+            if (global_constraint == mGlobalMasterSlaveConstraints.end())
             {
                 mGlobalMasterSlaveConstraints[slave_equation_id] = Kratos::make_unique<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id);
+                global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             }
 
-            auto& global_constraint = mGlobalMasterSlaveConstraints[slave_equation_id];
             for (auto master_equation_id : rMasterEquationIdVector)
             {
-                global_constraint->AddMaster(master_equation_id, rRelationMatrix(slave_count, master_count));
+                global_constraint->second->AddMaster(master_equation_id, rRelationMatrix(slave_count, master_count));
                 master_count++;
             }
             slave_count++;
@@ -659,12 +660,13 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void ResetConstraintRelations()
     {
         KRATOS_TRY
-        const IndexType number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
-        // Getting the beginning iterator
+        const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
 
+        // Getting the beginning iterator
         const GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveConstraints.begin();
-#pragma omp parallel for schedule(guided, 512)
-        for (unsigned int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+
+		#pragma omp parallel for schedule(guided, 512)
+        for (int i_constraints = 0; i_constraints < number_of_constraints; ++i_constraints)
         {
             //GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin;

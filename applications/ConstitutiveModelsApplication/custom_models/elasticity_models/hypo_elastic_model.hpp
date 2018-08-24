@@ -105,7 +105,7 @@ namespace Kratos
     HypoElasticModel& operator=(HypoElasticModel const& rOther);
 
     /// Destructor.
-    virtual ~HypoElasticModel();
+    ~HypoElasticModel() override;
 
 
     ///@}
