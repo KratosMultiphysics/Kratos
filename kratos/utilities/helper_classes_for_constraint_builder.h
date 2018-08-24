@@ -203,9 +203,8 @@ class AuxiliaryGlobalMasterSlaveConstraint : public IndexedObject
         /// of the DOF value (residual formulation), this does not necessarily guarantee the DOFs themselves follow the constraint equation.
         /// So, we calculate the LHS value and RHS value of the constraint equation (with DOF values) and if they are not
         /// satisfying the constraint, we use the residual as the constant.
-        double tmp = mRhsValue - mLhsValue
-        #pragma omp atomic
-            rConstant = tmp;
+        rConstant = mRhsValue - mLhsValue;
+
     }
 
     void PrintInfo() const

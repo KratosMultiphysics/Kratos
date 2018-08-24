@@ -642,10 +642,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 mGlobalMasterSlaveConstraints[slave_equation_id] = Kratos::make_unique<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id);
             }
 
-            auto& global_constraint = mGlobalMasterSlaveConstraints[slave_equation_id];
             for (auto master_equation_id : rMasterEquationIdVector)
             {
-                global_constraint->AddMaster(master_equation_id, rRelationMatrix(slave_count, master_count));
+                global_constraint->second->AddMaster(master_equation_id, rRelationMatrix(slave_count, master_count));
                 master_count++;
             }
             slave_count++;
@@ -660,7 +659,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void ResetConstraintRelations()
     {
         KRATOS_TRY
-        const IndexType number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
+        const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
 
         // Getting the beginning iterator
         const GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveConstraints.begin();
