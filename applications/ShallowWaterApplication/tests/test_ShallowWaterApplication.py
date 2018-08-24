@@ -47,5 +47,5 @@ def AssembleTestSuites():
 
 if __name__ == '__main__':
     run_cpp_unit_tests.run()
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
     
