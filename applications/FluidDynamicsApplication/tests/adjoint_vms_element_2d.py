@@ -94,6 +94,8 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
         # test for steady state.
         for node in self.model_part.Nodes:
             for step in range(2):
+                node.SetSolutionStepValue(ACCELERATION_X, step, 0.0)
+                node.SetSolutionStepValue(ACCELERATION_Y, step, 0.0)
                 node.SetSolutionStepValue(RELAXED_ACCELERATION_X, step, 0.0)
                 node.SetSolutionStepValue(RELAXED_ACCELERATION_Y, step, 0.0)
         # unperturbed residual
