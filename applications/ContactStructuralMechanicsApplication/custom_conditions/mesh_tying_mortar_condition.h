@@ -35,15 +35,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Point                                                PointType;
-    typedef Node<3>                                               NodeType;
-    typedef Geometry<NodeType>                                GeometryType;
-
-    // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
-
-    // Type definition of the components of an array_1d
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+    /// The definition of the size type
+    typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
@@ -67,9 +60,12 @@ namespace Kratos
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodesElem The number of nodes of the slave
+ * @tparam TTensor The type of element considered
+ * @tparam TNumNodesElemMaster The number of nodes of the master
  */
-
-template< const std::size_t TDim, const std::size_t TNumNodesElem, TensorValue TTensor>
+template< const SizeType TDim, const SizeType TNumNodesElem, TensorValue TTensor, const SizeType TNumNodesElemMaster = TNumNodesElem>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) MeshTyingMortarCondition
     : public PairedCondition
 {
@@ -79,39 +75,64 @@ public:
 
     /// Counted pointer of MeshTyingMortarCondition
     KRATOS_CLASS_POINTER_DEFINITION( MeshTyingMortarCondition );
-    typedef PairedCondition                                                              BaseType;
 
-    typedef typename BaseType::VectorType                                              VectorType;
+    /// Base class definitions
+    typedef PairedCondition                                                                 BaseType;
 
-    typedef typename BaseType::MatrixType                                              MatrixType;
+    /// Vector type definition
+    typedef typename BaseType::VectorType                                                 VectorType;
 
-    typedef typename BaseType::IndexType                                                IndexType;
+    /// Matrix type definition
+    typedef typename BaseType::MatrixType                                                 MatrixType;
 
-    typedef typename BaseType::GeometryType::Pointer                          GeometryPointerType;
+    /// Index type definition
+    typedef typename BaseType::IndexType                                                   IndexType;
 
-    typedef typename BaseType::NodesArrayType                                      NodesArrayType;
+    /// Geometry pointer definition
+    typedef typename BaseType::GeometryType::Pointer                             GeometryPointerType;
 
-    typedef typename BaseType::PropertiesType::Pointer                      PropertiesPointerType;
+    /// Nodes array type definition
+    typedef typename BaseType::NodesArrayType                                         NodesArrayType;
 
-    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
+    /// Properties pointer definition
+    typedef typename BaseType::PropertiesType::Pointer                         PropertiesPointerType;
 
-    typedef Line2D2<Point>                                                               LineType;
+    /// Point definition
+    typedef Point                                                                          PointType;
 
-    typedef Triangle3D3<Point>                                                       TriangleType;
+    /// Node type definition
+    typedef Node<3>                                                                         NodeType;
 
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    /// Geoemtry type definition
+    typedef Geometry<NodeType>                                                          GeometryType;
 
-    static constexpr IndexType NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
+    // Type definition for integration methods
+    typedef GeometryType::IntegrationPointsArrayType                           IntegrationPointsType;
 
-    static constexpr IndexType MatrixSize = TTensor * (3 * NumNodes);
+    // Type definition of the components of an array_1d
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
-    typedef MortarKinematicVariables<NumNodes>                                   GeneralVariables;
+    typedef typename std::vector<array_1d<PointType,TDim>>                    ConditionArrayListType;
 
-    typedef DualLagrangeMultiplierOperators<NumNodes>                                      AeData;
+    typedef Line2D2<Point>                                                                  LineType;
 
-    typedef MortarOperator<NumNodes>                                      MortarConditionMatrices;
+    typedef Triangle3D3<Point>                                                          TriangleType;
 
-    typedef ExactMortarIntegrationUtility<TDim, NumNodes, false>               IntegrationUtility;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type    DecompositionType;
+
+    static constexpr SizeType NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
+
+    static constexpr SizeType NumNodesMaster = (TNumNodesElemMaster == 3 || (TDim == 2 && TNumNodesElemMaster == 4)) ? 2 : TNumNodesElemMaster == 4 ? 3 : 4;
+
+    static constexpr SizeType MatrixSize = TTensor * (2 * NumNodes + NumNodesMaster);
+
+    typedef MortarKinematicVariables<NumNodes, NumNodesMaster>                      GeneralVariables;
+
+    typedef DualLagrangeMultiplierOperators<NumNodes, NumNodesMaster>                         AeData;
+
+    typedef MortarOperator<NumNodes, NumNodesMaster>                         MortarConditionMatrices;
+
+    typedef ExactMortarIntegrationUtility<TDim, NumNodes, false, NumNodesMaster>  IntegrationUtility;
 
     ///@}
     ///@name Life Cycle
