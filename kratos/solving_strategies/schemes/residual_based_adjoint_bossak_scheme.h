@@ -141,6 +141,13 @@ public:
 
         mInverseDt = 1.0 / mTimeStep;
 
+        const int num_nodes = rModelPart.NumberOfNodes();
+        #pragma omp parallel for
+        for (int i = 0; i < num_nodes; i++) {
+            auto it = (rModelPart.Nodes().begin()+i);
+            noalias(it->FastGetSolutionStepValue(RELAXED_ACCELERATION)) = it->GetValue(RELAXED_ACCELERATION);
+        }
+
         CalculateNodeNeighbourCount(rModelPart);
 
         KRATOS_CATCH("");
