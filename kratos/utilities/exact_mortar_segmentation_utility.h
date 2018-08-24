@@ -79,6 +79,10 @@ namespace Kratos {
  * @brief This utility calculates the exact integration necessary for the Mortar Conditions
  * @details The utility performs a mortar segmentation in order to obtain the exact integration of the geometry intersected
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TBelong If we consider belonging of nodes or not
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
 template <SizeType TDim, SizeType TNumNodes, bool TBelong = false, SizeType TNumNodesMaster = TNumNodes>
 class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility
