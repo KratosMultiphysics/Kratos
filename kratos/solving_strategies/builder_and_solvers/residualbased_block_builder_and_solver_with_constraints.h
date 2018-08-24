@@ -640,6 +640,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             if (global_constraint == mGlobalMasterSlaveConstraints.end())
             {
                 mGlobalMasterSlaveConstraints[slave_equation_id] = Kratos::make_unique<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id);
+                global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             }
 
             for (auto master_equation_id : rMasterEquationIdVector)
