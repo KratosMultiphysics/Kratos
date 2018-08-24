@@ -65,6 +65,9 @@ class PrimalResultsFactory:
     def ElementResultsOutput(self, element_results_settings):
         return hdf5_io.ElementResultsOutput(element_results_settings)
 
+    def HistoricalNonSolutionStepNodalResultsOutput(self, historical_non_solution_step_nodal_results_settings):
+        return hdf5_io.HistoricalNonSolutionStepNodalResultsOutput(historical_non_solution_step_nodal_results_settings)
+
 
 class TemporalOutputFactoryHelper(FactoryHelper, SerialFactory, ResultsFactory):
     pass
