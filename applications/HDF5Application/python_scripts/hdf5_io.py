@@ -140,7 +140,7 @@ class NodalResultsInput(IOObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
+        KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).ReadNodalResults(model_part.Nodes, model_part.GetCommunicator(), 0)
 
 class HistoricalNonSolutionStepNodalResultsInput(IOObject):
     """Provides the interface for reading a transient primal solution from a file."""
