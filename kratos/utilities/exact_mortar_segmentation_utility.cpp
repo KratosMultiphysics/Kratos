@@ -818,12 +818,12 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
             PointType point;
             rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
-            rConditionsPointsSlave[0][i_node] = point;
+            rConditionsPointsSlave[0][i_node] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3)); // TODO: Check belongs
         }
         for (IndexType i_node = 1; i_node < 4; ++i_node) {
             PointType point;
             rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
-            rConditionsPointsSlave[1][i_node] = point;
+            rConditionsPointsSlave[1][i_node] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3)); // TODO: Check belongs
         }
 
         return true;
@@ -1295,7 +1295,7 @@ inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
 
                 if (add_point) {
                     if (TBelong) { // NOTE: We do some kind of strange hash to know the intersected edges
-                        const unsigned int hash =  2 * TNumNodes + 10 * i_edge + 100 * ip_edge + 1000 * j_edge + 10000 * jp_edge;
+                        const std::size_t hash = (TNumNodesMaster + TNumNodes) + 10 * i_edge + 100 * ip_edge + 1000 * j_edge + 10000 * jp_edge;
                         rPointList.push_back(PointBelong<TNumNodes, TNumNodesMaster>(intersected_point.Coordinates(), static_cast<BelongType>(hash)));
                     } else
                         rPointList.push_back(intersected_point);
