@@ -56,6 +56,8 @@
 #include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
+#include "custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mc_strain_softening_3D_law.hpp"
 
 //flow rules
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
@@ -223,12 +225,14 @@ private:
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
 
     //constitutive laws
-    const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;
-    const HyperElasticViscoplasticPlaneStrain2DLaw     mHyperElasticViscoplasticPlaneStrain2DLaw;
-    const HenckyMCPlastic3DLaw                         mHenckyMCPlastic3DLaw;
-    const HenckyMCPlasticPlaneStrain2DLaw              mHenckyMCPlasticPlaneStrain2DLaw;
-    const HenckyMCPlasticUP3DLaw                       mHenckyMCPlasticUP3DLaw;
-    const HenckyMCPlasticPlaneStrainUP2DLaw            mHenckyMCPlasticPlaneStrainUP2DLaw;
+    const HyperElasticViscoplastic3DLaw                     mHyperElasticViscoplastic3DLaw;
+    const HyperElasticViscoplasticPlaneStrain2DLaw          mHyperElasticViscoplasticPlaneStrain2DLaw;
+    const HenckyMCPlastic3DLaw                              mHenckyMCPlastic3DLaw;
+    const HenckyMCPlasticPlaneStrain2DLaw                   mHenckyMCPlasticPlaneStrain2DLaw;
+    const HenckyMCPlasticUP3DLaw                            mHenckyMCPlasticUP3DLaw;
+    const HenckyMCPlasticPlaneStrainUP2DLaw                 mHenckyMCPlasticPlaneStrainUP2DLaw;
+    const HenckyMCStrainSofteningPlastic3DLaw               mHenckyMCStrainSofteningPlastic3DLaw;
+    const HenckyMCStrainSofteningPlasticPlaneStrain2DLaw    mHenckyMCStrainSofteningPlasticPlaneStrain2DLaw;
 
     //Flow Rules
     const ViscoplasticFlowRule                      mViscoplasticFlowRule;
