@@ -636,7 +636,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             }*/
             int master_count = 0;
-            if (mGlobalMasterSlaveConstraints.count(slave_equation_id) == 0 )
+            auto global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
+            if (global_constraint == mGlobalMasterSlaveConstraints.end())
             {
                 mGlobalMasterSlaveConstraints[slave_equation_id] = Kratos::make_unique<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id);
             }
