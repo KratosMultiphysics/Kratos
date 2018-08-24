@@ -12,6 +12,7 @@ def Factory(settings, Model):
                 "file_settings" : {},
                 "nodal_results_settings" : {},
                 "element_results_settings" : {},
+                "historical_non_solution_step_nodal_results_settings": {},
                 "time_tag_precision" : 4,
                 "file_name": "DEFAULT_NAME"
             }
