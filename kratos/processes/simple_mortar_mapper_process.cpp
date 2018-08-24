@@ -516,8 +516,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Comp
     else
         MortarUtilities::MatrixValue<TVarType, NonHistorical>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
 
-    const SizeType size_1 = var_origin_matrix.size1();
-    const SizeType size_2 = var_origin_matrix.size2();
+    const SizeType size_1 = var_destination_matrix.size1();
+    const SizeType size_2 = var_destination_matrix.size2();
     if (ResidualMatrix.size1() != size_1  || ResidualMatrix.size2() !=  size_2)
         ResidualMatrix.resize(size_1, size_2, false);
 
@@ -672,14 +672,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         ModelPart& root_model_part = mOriginModelPart.GetRootModelPart();
         root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
 
-        NodesArrayType& nodes_array = mDestinationModelPart.Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
+        NodesArrayType& r_nodes_array = mDestinationModelPart.Nodes();
+        const int num_nodes = static_cast<int>(r_nodes_array.size());
 
         // We compute the residual norm
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) residual_norm[i_size] = 0.0;
         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) {
-            auto it_node = nodes_array.begin() + i;
+            auto it_node = r_nodes_array.begin() + i;
             NodeType::Pointer pnode = *(it_node.base());
             if (mDestinationHistorical)
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, Historical>(pnode, mDestinationVariable, ref_area);
