@@ -70,7 +70,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
     def AddVariables(self):
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.RELAXED_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_FLUID_VECTOR_1)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_FLUID_VECTOR_2)
@@ -138,7 +138,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         (self.response_function).Initialize()
         (self.sensitivity_builder).Initialize()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
-    
+
     def _set_physical_properties(self):
         # Transfer density and (kinematic) viscostity to the nodes
         for el in self.main_model_part.Elements:
