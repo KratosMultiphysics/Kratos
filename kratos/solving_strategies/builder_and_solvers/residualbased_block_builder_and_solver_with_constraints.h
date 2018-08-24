@@ -659,7 +659,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     void ResetConstraintRelations()
     {
         KRATOS_TRY
-        const IndexType number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
+        const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveConstraints.size());
 
         // Getting the beginning iterator
         const GlobalMasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveConstraints.begin();
