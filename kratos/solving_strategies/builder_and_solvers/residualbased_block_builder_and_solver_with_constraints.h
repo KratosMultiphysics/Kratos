@@ -446,8 +446,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
         ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
+        const ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        const ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
