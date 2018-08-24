@@ -19,7 +19,7 @@
             "input_type"               : "mdpa",
             "input_filename"           : "element_tests/pfem2_primitive_variables"
         },
-        "echo_level"               : 1,
+        "echo_level"               : 0,
         "buffer_size"              : 2,
         "dynamic_tau"              : 0.0005,
         "relative_tolerance"       : 1.0E-6,
