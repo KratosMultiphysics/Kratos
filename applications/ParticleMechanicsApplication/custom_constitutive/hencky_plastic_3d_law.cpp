@@ -437,13 +437,6 @@ void HenckyElasticPlastic3DLaw::CorrectKinematics(const PlasticMaterialResponseV
     this->CalculateLeftStretchTensor(LeftStretchTensor, ElasticLeftCauchyGreen);
 
     // Update Deformation Gradient F
-    // Matrix myDeformationGradientF = rDeformationGradientF;
-    // myDeformationGradientF = Transform2DTo3D(myDeformationGradientF);
-    // myDeformationGradientF = prod(rPlasticVariables.InverseTrialLeftStretchTensor, myDeformationGradientF);
-    // myDeformationGradientF = prod(LeftStretchTensor, myDeformationGradientF);
-    // myDeformationGradientF.resize( 2, 2, true);
-    // rDeformationGradientF = myDeformationGradientF;
-
     rDeformationGradientF = Transform2DTo3D(rDeformationGradientF);
     rDeformationGradientF = prod(rPlasticVariables.InverseTrialLeftStretchTensor, rDeformationGradientF);
     rDeformationGradientF = prod(LeftStretchTensor, rDeformationGradientF);
