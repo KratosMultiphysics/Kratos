@@ -93,6 +93,21 @@ void LinearJ2Plasticity3D::SetValue(
 //************************************************************************************
 //************************************************************************************
 
+double& LinearJ2Plasticity3D::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
+    )
+{
+    if(rThisVariable == PLASTIC_STRAIN){
+        rValue = mAccumulatedPlasticStrain;
+    }
+
+    return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,

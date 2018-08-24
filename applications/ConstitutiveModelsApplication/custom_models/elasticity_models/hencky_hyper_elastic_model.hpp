@@ -72,14 +72,14 @@ namespace Kratos
          };
 
          /// Clone.
-         virtual ConstitutiveModel::Pointer Clone() const override
+         ConstitutiveModel::Pointer Clone() const override
          {
             return ( HenckyHyperElasticModel::Pointer( new HenckyHyperElasticModel(*this)) );
          };
 
 
          /// Destructor.
-         virtual ~HenckyHyperElasticModel() {};
+         ~HenckyHyperElasticModel() override {};
 
 
          ///@}
@@ -94,7 +94,7 @@ namespace Kratos
          /**
           * Initialize member data
           */
-         virtual void InitializeModel(ModelDataType& rValues) override
+         void InitializeModel(ModelDataType& rValues) override
          {
             KRATOS_TRY
 
@@ -128,7 +128,7 @@ namespace Kratos
          ///@{
 
          /// Turn back information as a string.
-         virtual std::string Info() const override
+         std::string Info() const override
          {
             std::stringstream buffer;
             buffer << "HenckyHyperElasticModel";
@@ -136,13 +136,13 @@ namespace Kratos
          }
 
          /// Print information about this object.
-         virtual void PrintInfo(std::ostream& rOStream) const override
+         void PrintInfo(std::ostream& rOStream) const override
          {
             rOStream << "HenckyHyperElasticModel";
          }
 
          /// Print object's data.
-         virtual void PrintData(std::ostream& rOStream) const override
+         void PrintData(std::ostream& rOStream) const override
          {
             rOStream << "HenckyHyperElasticModel Data";
          }
@@ -174,7 +174,7 @@ namespace Kratos
          ///@name Protected Operations
          ///@{
 
-         virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override
+         void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override
          {
             KRATOS_TRY
 
@@ -268,12 +268,12 @@ namespace Kratos
          friend class Serializer;
 
 
-         virtual void save(Serializer& rSerializer) const override
+         void save(Serializer& rSerializer) const override
          {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
          }
 
-         virtual void load(Serializer& rSerializer) override
+         void load(Serializer& rSerializer) override
          {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )
          }

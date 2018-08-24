@@ -149,7 +149,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
 
 
   /// Destructor.
-  virtual ~ThermalElement();
+  ~ThermalElement() override;
 
   ///@}
   ///@name Operators
@@ -170,7 +170,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * @param pProperties: the properties assigned to the new element
    * @return a Pointer to the new element
    */
-  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
   /**
    * clones the selected element variables, creating a new one
@@ -188,32 +188,32 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * Returns the currently selected integration method
    * @return current integration method selected
    */
-  IntegrationMethod GetIntegrationMethod() const;
+  IntegrationMethod GetIntegrationMethod() const override;
 
   /**
    * Sets on rElementalDofList the degrees of freedom of the considered element geometry
    */
-  void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+  void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Sets on rResult the ID's of the element degrees of freedom
    */
-  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Sets on rValues the nodal displacements
    */
-  void GetValuesVector(Vector& rValues, int Step = 0);
+  void GetValuesVector(Vector& rValues, int Step = 0) override;
 
   /**
    * Sets on rValues the nodal velocities
    */
-  void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+  void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
   /**
    * Sets on rValues the nodal accelerations
    */
-  void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+  void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
   //on integration points:
@@ -232,34 +232,34 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
   /**
    * Set a double  Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Set a Vector Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Set a Matrix Value on the Element Constitutive Law
    */
-  void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
   //GET:
   /**
    * Get on rVariable a double Value from the Element Constitutive Law
    */
-  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Get on rVariable a Vector Value from the Element Constitutive Law
    */
-  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Get on rVariable a Matrix Value from the Element Constitutive Law
    */
-  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
   //************* STARTING - ENDING  METHODS
@@ -268,19 +268,19 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * Called to initialize the element.
    * Must be called before any calculation is done
    */
-  void Initialize();
+  void Initialize() override;
 
 
   /**
    * Called at the beginning of each solution step
    */
-  void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+  void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 
   /**
    * Called at the end of each solution step
    */
-  void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+  void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -295,7 +295,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * @param rCurrentProcessInfo: the current process info instance
    */
 
-  void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+  void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this is called during the assembling process in order
@@ -303,7 +303,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * @param rRightHandSideVector: the elemental right hand side vector
    * @param rCurrentProcessInfo: the current process info instance
    */
-  void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+  void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this is called during the assembling process in order
@@ -311,7 +311,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * @param rLeftHandSideVector: the elemental left hand side vector
    * @param rCurrentProcessInfo: the current process info instance
    */
-  void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+  void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this is called during the assembling process in order
@@ -319,7 +319,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * @param rMassMatrix: the elemental mass matrix
    * @param rCurrentProcessInfo: the current process info instance
    */
-  void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+  void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * this is called during the assembling process in order
@@ -327,24 +327,24 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * @param rDampingMatrix: the elemental damping matrix
    * @param rCurrentProcessInfo: the current process info instance
    */
-  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 
   //on integration points:
   /**
    * Calculate a double Variable on the Element Constitutive Law
    */
-  void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+  void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Calculate a Vector Variable on the Element Constitutive Law
    */
-  void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+  void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * Calculate a Matrix Variable on the Element Constitutive Law
    */
-  void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
+  void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
   //************************************************************************************
@@ -356,7 +356,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int Check(const ProcessInfo& rCurrentProcessInfo);
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
   //std::string Info() const;
 
@@ -566,9 +566,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
   ///@{
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer) const;
+  void save(Serializer& rSerializer) const override;
 
-  virtual void load(Serializer& rSerializer);
+  void load(Serializer& rSerializer) override;
 
   ///@name Private Inquiry
   ///@{
