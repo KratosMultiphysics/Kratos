@@ -36,20 +36,25 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         {
             "contact_settings" :
             {
-                "mortar_type"                            : "",
-                "condn_convergence_criterion"            : false,
-                "fancy_convergence_criterion"            : true,
-                "print_convergence_criterion"            : false,
-                "ensure_contact"                         : false,
-                "gidio_debug"                            : false,
-                "adaptative_strategy"                    : false,
-                "split_factor"                           : 10.0,
-                "max_number_splits"                      : 3,
-                "contact_displacement_relative_tolerance": 1.0e-4,
-                "contact_displacement_absolute_tolerance": 1.0e-9,
-                "contact_residual_relative_tolerance"    : 1.0e-4,
-                "contact_residual_absolute_tolerance"    : 1.0e-9,
-                "use_mixed_ulm_solver"                   : true,
+                "mortar_type"                                       : "",
+                "condn_convergence_criterion"                       : false,
+                "fancy_convergence_criterion"                       : true,
+                "print_convergence_criterion"                       : false,
+                "ensure_contact"                                    : false,
+                "frictional_decomposed"                             : true,
+                "gidio_debug"                                       : false,
+                "adaptative_strategy"                               : false,
+                "split_factor"                                      : 10.0,
+                "max_number_splits"                                 : 3,
+                "contact_displacement_relative_tolerance"           : 1.0e-4,
+                "contact_displacement_absolute_tolerance"           : 1.0e-9,
+                "contact_residual_relative_tolerance"               : 1.0e-4,
+                "contact_residual_absolute_tolerance"               : 1.0e-9,
+                "frictional_contact_displacement_relative_tolerance": 1.0e-4,
+                "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
+                "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
+                "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
+                "use_mixed_ulm_solver"                              : true,
                 "mixed_ulm_solver_parameters" :
                 {
                     "solver_type"          : "mixed_ulm_linear_solver",
@@ -229,10 +234,15 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         conv_params.AddValue("contact_displacement_absolute_tolerance", self.contact_settings["contact_displacement_absolute_tolerance"])
         conv_params.AddValue("contact_residual_relative_tolerance", self.contact_settings["contact_residual_relative_tolerance"])
         conv_params.AddValue("contact_residual_absolute_tolerance", self.contact_settings["contact_residual_absolute_tolerance"])
+        conv_params.AddValue("frictional_contact_displacement_relative_tolerance", self.contact_settings["frictional_contact_displacement_relative_tolerance"])
+        conv_params.AddValue("frictional_contact_displacement_absolute_tolerance", self.contact_settings["frictional_contact_displacement_absolute_tolerance"])
+        conv_params.AddValue("frictional_contact_residual_relative_tolerance", self.contact_settings["frictional_contact_residual_relative_tolerance"])
+        conv_params.AddValue("frictional_contact_residual_absolute_tolerance", self.contact_settings["frictional_contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type", self.contact_settings["mortar_type"])
         conv_params.AddValue("condn_convergence_criterion", self.contact_settings["condn_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion", self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact", self.contact_settings["ensure_contact"])
+        conv_params.AddValue("frictional_decomposed", self.contact_settings["frictional_decomposed"])
         conv_params.AddValue("gidio_debug", self.contact_settings["gidio_debug"])
 
         return conv_params

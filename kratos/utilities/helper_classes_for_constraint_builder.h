@@ -124,11 +124,10 @@ class AuxiliaryGlobalMasterSlaveConstraint : public IndexedObject
      * @brief Constructor of the class
      * @param SlaveEquationId the slave equation id for which this class is being constructed.
      */
-    explicit AuxiliaryGlobalMasterSlaveConstraint(IndexType SlaveEquationId = 0) : IndexedObject(SlaveEquationId), mConstant(0.0)
+    explicit AuxiliaryGlobalMasterSlaveConstraint(IndexType SlaveEquationId = 0) : IndexedObject(SlaveEquationId),
+                                                                                    mLhsValue(0.0),
+                                                                                    mRhsValue(0.0)
     {
-        mLhsValue = 0.;
-        mRhsValue = 0.;
-        mConstant = 0.;
     }
 
     /**
@@ -204,24 +203,13 @@ class AuxiliaryGlobalMasterSlaveConstraint : public IndexedObject
         /// of the DOF value (residual formulation), this does not necessarily guarantee the DOFs themselves follow the constraint equation.
         /// So, we calculate the LHS value and RHS value of the constraint equation (with DOF values) and if they are not
         /// satisfying the constraint, we use the residual as the constant.
-        mLockObject.SetLock();
-            mConstant = mRhsValue - mLhsValue;
-        mLockObject.UnSetLock();
-        rConstant = mConstant;
+        rConstant = mRhsValue - mLhsValue;
+
     }
 
     void PrintInfo() const
     {
         KRATOS_INFO("GlobalMasterSlaveRelation")<<std::endl;
-        KRATOS_INFO("GlobalMasterSlaveRelation") << "------------------------------" << std::endl;
-        KRATOS_INFO("GlobalMasterSlaveRelation") << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
-        KRATOS_INFO("GlobalMasterSlaveRelation") << "Constant :: " << mConstant << std::endl;
-        KRATOS_INFO("GlobalMasterSlaveRelation") << "------------------------------ :: Masters = " << mMasterEquationIdVector.size()<< std::endl;
-        for (IndexType i = 0; i< mMasterEquationIdVector.size(); i++)
-        {
-            KRATOS_INFO("GlobalMasterSlaveRelation") << i << " Master  equation id :: " <<mMasterEquationIdVector[i] << ", weight :: " << mMasterWeightsVector[i] << std::endl;
-        }
-        KRATOS_INFO("GlobalMasterSlaveRelation") << "------------------------------" << std::endl;
     }
 
     void Clear()
@@ -288,23 +276,20 @@ class AuxiliaryGlobalMasterSlaveConstraint : public IndexedObject
     EquationIdVectorType mMasterEquationIdVector;
     std::vector<double> mMasterWeightsVector;
 
-    double mConstant;
     LockObject mLockObject;
 
 }; // End of ConstraintEquation class
 
 /**
- * @structure LocalIndices
+ * @struct LocalIndices
  * @ingroup KratosCore
  * @brief This class stores the stores three different vectors of local internal, slave, master indices
  *          which are used in constraint builder and solver.
  *
  * @author Aditya Ghantasala
  */
-class LocalIndices
+struct LocalIndices
 {
-    public:
-    KRATOS_CLASS_POINTER_DEFINITION(LocalIndices);
     typedef Internals::IndexType IndexType;
     typedef Internals::VectorIndexType VectorIndexType;
 
