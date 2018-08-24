@@ -281,17 +281,15 @@ class AuxiliaryGlobalMasterSlaveConstraint : public IndexedObject
 }; // End of ConstraintEquation class
 
 /**
- * @structure LocalIndices
+ * @struct LocalIndices
  * @ingroup KratosCore
  * @brief This class stores the stores three different vectors of local internal, slave, master indices
  *          which are used in constraint builder and solver.
  *
  * @author Aditya Ghantasala
  */
-class LocalIndices
+struct LocalIndices
 {
-    public:
-    KRATOS_CLASS_POINTER_DEFINITION(LocalIndices);
     typedef Internals::IndexType IndexType;
     typedef Internals::VectorIndexType VectorIndexType;
 
