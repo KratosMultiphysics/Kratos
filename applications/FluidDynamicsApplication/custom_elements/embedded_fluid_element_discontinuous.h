@@ -279,16 +279,46 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    void InitializeGeometryData(EmbeddedDiscontinuousElementData& rData) const;
 
-    void DefineStandardGeometryData(EmbeddedDiscontinuousElementData& rData) const;
-
-    void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const;
-
-    void NormalizeInterfaceNormals(typename EmbeddedDiscontinuousElementData::InterfaceNormalsType& rNormals, double Tolerance) const;
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
     /**
-    * This functions adds the no-penetration condition penalty level set contribution.
+     * @brief Current element data structure initialization
+     * This method checks if the element is intersected and calls the elemental data filling methods accordingly.
+     * @param rData reference to the element data structure
+     */
+    void InitializeGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief Non-intersected element geometry data fill 
+     * This method sets the data structure geometry fields (shape functions, gradients, ...) for a non-intersected element.
+     * @param rData reference to the element data structure
+     */
+    void DefineStandardGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief Intersected element geometry data fill
+     * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an 
+     * intersected element. To do that, the modified shape functions utility is firstly created and then called to perform
+     * all operations in both the positive and negative sides of the element.
+     * @param rData reference to the element data structure
+     */
+    void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief For an intersected element, normalize the interface normals
+     * This method normalizes the interface normals for an intersected element.
+     * @param rNormals interface normals container
+     * @param Tolerance tolerance to avoid division by 0 when normalizing
+     */
+    void NormalizeInterfaceNormals(
+        typename EmbeddedDiscontinuousElementData::InterfaceNormalsType& rNormals,
+        double Tolerance) const;
+
+    /**
+    * This method adds the no-penetration condition penalty level set contribution.
     * @param rLHS reference to the LHS matrix
     * @param rRHS reference to the RHS vector
     * @param rData reference to element data structure
@@ -299,7 +329,7 @@ protected:
         const EmbeddedDiscontinuousElementData& rData) const;
 
     /**
-    * This functions adds the no-penetration condition adjoint term level set contribution.
+    * This method adds the no-penetration condition adjoint term level set contribution.
     * @param rLHS reference to the LHS matrix
     * @param rRHS reference to the RHS vector
     * @param rData reference to element data structure
@@ -310,7 +340,7 @@ protected:
         const EmbeddedDiscontinuousElementData& rData) const;
 
     /**
-    * This functions adds the tangential stress condition penalty level set contribution.
+    * This method adds the tangential stress condition penalty level set contribution.
     * @param rLHS reference to the LHS matrix
     * @param rRHS reference to the RHS vector
     * @param rData reference to element data structure
@@ -321,7 +351,7 @@ protected:
         const EmbeddedDiscontinuousElementData& rData) const;
 
     /**
-    * This functions adds the tangential stress condition adjoint term level set contribution.
+    * This method adds the tangential stress condition adjoint term level set contribution.
     * @param rLHS reference to the LHS matrix
     * @param rRHS reference to the RHS vector
     * @param rData reference to element data structure
@@ -332,28 +362,24 @@ protected:
         const EmbeddedDiscontinuousElementData& rData) const;
 
     /**
-     * This function computes the penalty coefficient for the Nitsche normal imposition
+     * This method computes the penalty coefficient for the Nitsche normal imposition
      * @param rData reference to element data structure
      */
     double ComputeNormalPenaltyCoefficient(const EmbeddedDiscontinuousElementData& rData) const;
 
     /**
-     * This function computes the Nitsche coefficients for the Nitsche normal imposition
+     * This method computes the Nitsche coefficients for the Nitsche normal imposition
      * @param rData reference to element data structure
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeTangentialPenaltyCoefficients(const EmbeddedDiscontinuousElementData& rData) const;
 
     /**
-     * This function computes the Nitsche coefficients for the Nitsche tangential imposition
+     * This method computes the Nitsche coefficients for the Nitsche tangential imposition
      * @param rData reference to element data structure
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeTangentialNitscheCoefficients(const EmbeddedDiscontinuousElementData& rData) const;
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
 
     ///@}
