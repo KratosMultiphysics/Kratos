@@ -81,8 +81,6 @@ class SearchBaseProcess(KM.Process):
 
         self.dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
 
-        self.condition_name = ""
-
         self.database_step = 0
 
         # Detect "End" as a tag and replace it by a large number
@@ -141,8 +139,7 @@ class SearchBaseProcess(KM.Process):
             self.settings["search_parameters"]["active_check_factor"].SetDouble(active_check_factor)
 
         # We call the process info
-        process_info = self.main_model_part.ProcessInfo
-        process_info[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
+        self._initialize_process_info()
 
         #If the conditions doesn't exist we create them
         if (self.preprocess is False):
@@ -156,12 +153,19 @@ class SearchBaseProcess(KM.Process):
         # We initialize the contact values
         self._initialize_search_values()
 
+        # We initialize some other process values
+        self._initialize_problem_parameters()
+
         # Creating the search
         self.search_search = {}
         for key in self.settings["search_model_part"].keys():
             if (self.settings["search_model_part"][key].size() > 0):
                 self._create_main_search(key)
 
+        # We initialize conditions
+        self._initialize_search_conditions()
+
+        # We perform search initializations
         for key in self.settings["search_model_part"].keys():
             if (self.settings["search_model_part"][key].size() > 0):
                 # We initialize the search utility
@@ -205,7 +209,7 @@ class SearchBaseProcess(KM.Process):
 
                 # Debug
                 if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
-                    self._debug_output(global_step, "")
+                    self._debug_output(global_step, "", self._get_problem_name())
                     # We compute the total integrated area, for debugging
                     self.__get_integration_area()
             else:
@@ -252,6 +256,24 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         pass
+
+    def _get_condition_name(self):
+        """ This method returns the condition name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        return "Condition"
+
+    def _get_problem_name(self):
+        """ This method returns the problem name to be solved
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        return ""
 
     def _assign_master_flags(self, partial_model_part):
         """ This method initializes assigment of the master nodes and conditions
@@ -300,15 +322,25 @@ class SearchBaseProcess(KM.Process):
         self.interface_preprocess = CSMA.InterfacePreprocessCondition(self.computing_model_part)
 
         # It should create the conditions automatically
-        interface_parameters = KM.Parameters("""{"simplify_geometry": false, "search_property_id": 0}""")
-        interface_parameters["search_property_id"].SetInt(self.settings["search_property_ids"][key].GetInt())
+        interface_parameters = KM.Parameters("""{"simplify_geometry": false, "contact_property_id": 0}""")
+        interface_parameters["contact_property_id"].SetInt(self.settings["search_property_ids"][key].GetInt())
         if (self.dimension == 2):
             self.interface_preprocess.GenerateInterfacePart2D(partial_model_part, interface_parameters)
         else:
             self.interface_preprocess.GenerateInterfacePart3D(partial_model_part, interface_parameters)
 
+    def _initialize_process_info(self):
+        """ This method initializes some values from the process info
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        # We call the process info
+        process_info = self.main_model_part.ProcessInfo
+        process_info[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
+
     def _initialize_search_values(self):
-        """ This method initializes some values and variables used during contact computations
+        """ This method initializes some values and variables used during search computations
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -325,6 +357,22 @@ class SearchBaseProcess(KM.Process):
             prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
             prop[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
 
+    def _initialize_problem_parameters(self):
+        """ This method initializes some values and variables used during problem computations
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        pass
+
+    def _initialize_search_conditions(self):
+        """ This method initializes some conditions values
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        pass
+
     def _create_main_search(self, key = "0"):
         """ This method creates the search process that will be use during contact search
 
@@ -340,7 +388,7 @@ class SearchBaseProcess(KM.Process):
         search_parameters.AddValue("bucket_size", self.settings["search_parameters"]["bucket_size"])
         search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
-        search_parameters["condition_name"].SetString(self.condition_name)
+        search_parameters["condition_name"].SetString(self._get_condition_name())
         self.__assume_master_slave(key)
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
         search_parameters["id_name"].SetString(key)
@@ -357,7 +405,7 @@ class SearchBaseProcess(KM.Process):
             else:
                 self.search_search[key] = CSMA.TreeContactSearch3D4N(self.computing_model_part, search_parameters)
 
-    def __get_enum_flag(self, param, label, dictionary):
+    def _get_enum_flag(self, param, label, dictionary):
         """ Parse enums settings using an auxiliary dictionary of acceptable values.
 
         Keyword arguments:
@@ -376,7 +424,7 @@ class SearchBaseProcess(KM.Process):
 
         return value
 
-    def _debug_output(self, label, name, debug_type = ""):
+    def _debug_output(self, label, name, problem_name = ""):
         """ This method is used for debugging pourposes, it creates a postprocess file when called, in sucha  way that it can.
 
         Keyword arguments:
@@ -412,7 +460,7 @@ class SearchBaseProcess(KM.Process):
         gid_io.WriteNodalResultsNonHistorical(CSMA.AUXILIAR_COORDINATES, self.main_model_part.Nodes, label)
         gid_io.WriteNodalResultsNonHistorical(CSMA.DELTA_COORDINATES, self.main_model_part.Nodes, label)
 
-        if (debug_type == "Contact"):
+        if (problem_name == "Contact"):
             gid_io.WriteNodalResultsNonHistorical(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes, label)
             if (self.is_frictional is True):
                 gid_io.WriteNodalFlags(KM.SLIP, "SLIP", self.main_model_part.Nodes, label)
