@@ -55,7 +55,7 @@ for dim, nnodeselement, nnodeselement_master, tensor in zip(dim_combinations, nn
 
     # Define test functions
     w1 = DefineMatrix('w1',nnodes,tensor)
-    w2 = DefineMatrix('w2',nnodes,tensor)
+    w2 = DefineMatrix('w2',nnodes_master,tensor)
     wlm = DefineMatrix('wlm',nnodes, tensor)
 
     DOperator = DefineMatrix('DOperator',nnodes,nnodes)
