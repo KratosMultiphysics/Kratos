@@ -72,6 +72,14 @@ MCStrainSofteningPlasticFlowRule::~MCStrainSofteningPlasticFlowRule()
 {
 }
 
+bool MCStrainSofteningPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
+{
+    MCPlasticFlowRule::UpdateInternalVariables( rReturnMappingVariables );
+
+    return true;
+}
+
+
 
 void MCStrainSofteningPlasticFlowRule::save( Serializer& rSerializer) const
 {

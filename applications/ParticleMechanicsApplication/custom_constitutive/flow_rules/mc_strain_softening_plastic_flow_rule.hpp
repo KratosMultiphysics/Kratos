@@ -34,19 +34,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-//struct MCStressInvariants {
-
-//double MeanStress;
-//double J2InvSQ;
-//double LodeAngle;
-
-//};
-
-//struct MCSmoothingConstants {
-
-//double A;
-//double B;
-
 //};
 ///@}
 ///@name  Enum's
@@ -98,13 +85,8 @@ public:
     /// Destructor.
     ~MCStrainSofteningPlasticFlowRule() override;
 
-    // bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
 
-    // bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
-
-    // Matrix GetElasticLeftCauchyGreen(RadialReturnVariables& rReturnMappingVariables) override;
-
-    // void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
     ///@}
     ///@name Operators
     ///@{
