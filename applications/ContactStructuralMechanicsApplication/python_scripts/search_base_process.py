@@ -404,21 +404,7 @@ class SearchBaseProcess(KM.Process):
         search_parameters["id_name"].SetString(key)
 
         # We compute the number of nodes of the geometry
-        if (self.predefined_master_slave is True and self.dimension == 3):
-            slave_defined = False
-            master_defined = False
-            for cond in self.computing_model_part.Conditions:
-                if (cond.Is(KM.SLAVE)):
-                    number_nodes = len(cond.GetNodes())
-                    slave_defined = True
-                if (cond.Is(KM.MASTER)):
-                    number_nodes_master = len(cond.GetNodes())
-                    master_defined = True
-                if (slave_defined and master_defined):
-                    break
-        else:
-            number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
-            number_nodes_master = number_nodes
+        number_nodes, number_nodes_master = self._compute_number_nodes()
 
         # We create the search process
         if (self.dimension == 2):
@@ -526,6 +512,26 @@ class SearchBaseProcess(KM.Process):
             return True
         else:
             return False
+
+    def _compute_number_nodes(self):
+        # We compute the number of nodes of the geometry
+        if (self.predefined_master_slave is True and self.dimension == 3):
+            slave_defined = False
+            master_defined = False
+            for cond in self.computing_model_part.Conditions:
+                if (cond.Is(KM.SLAVE)):
+                    number_nodes = len(cond.GetNodes())
+                    slave_defined = True
+                if (cond.Is(KM.MASTER)):
+                    number_nodes_master = len(cond.GetNodes())
+                    master_defined = True
+                if (slave_defined and master_defined):
+                    break
+        else:
+            number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
+            number_nodes_master = number_nodes
+
+        return number_nodes, number_nodes_master
 
     def __get_integration_area(self):
         """ Computes auxiliarly the current integration area

@@ -195,8 +195,10 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+        # We compute the number of nodes of the geometry
+        number_nodes, number_nodes_master = super(MeshTyingProcess, self)._compute_number_nodes()
 
-        return self.geometry_element
+        return str(number_nodes_master) + "N" + self.geometry_element
 
     def _initialize_search_conditions(self):
         """ This method initializes some conditions values
