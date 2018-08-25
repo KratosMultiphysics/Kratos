@@ -126,6 +126,8 @@ public:
 
     static constexpr SizeType MatrixSize = TTensor * (2 * NumNodes + NumNodesMaster);
 
+    typedef BoundedMatrix<double, NumNodes, NumNodes>                                  MatrixDualLM;
+
     typedef MortarKinematicVariables<NumNodes, NumNodesMaster>                     GeneralVariables;
 
     typedef DualLagrangeMultiplierOperators<NumNodes, NumNodesMaster>                        AeData;
@@ -399,14 +401,10 @@ protected:
         // Auxiliar types
         typedef BoundedMatrix<double, NumNodes, TTensor>  MatrixUnknownSlave;
         typedef BoundedMatrix<double, NumNodesMaster, TTensor>  MatrixUnknownMaster;
-        typedef BoundedMatrix<double, NumNodes, NumNodes> MatrixDualLM;
 
         // The DoF
         MatrixUnknownSlave LagrangeMultipliers, u1;
         MatrixUnknownMaster u2;
-
-        // Ae
-        MatrixDualLM Ae;
 
         // Default destructor
         ~DofData()= default;
@@ -421,14 +419,6 @@ protected:
             u1 = ZeroMatrix(NumNodes, TTensor);
             u2 = ZeroMatrix(NumNodesMaster, TTensor);
             LagrangeMultipliers = ZeroMatrix(NumNodes, TTensor);
-        }
-
-        /**
-         * @brief Initialize the Ae components
-         */
-        void InitializeAeComponents()
-        {
-            Ae = ZeroMatrix(NumNodes, NumNodes);
         }
 
         /**
@@ -540,7 +530,7 @@ protected:
      */
     bool CalculateAe(
         const array_1d<double, 3>& NormalMaster,
-        DofData& rDofData,
+        MatrixDualLM& rAe,
         GeneralVariables& rVariables,
         ConditionArrayListType& ConditionsPointsSlave,
         IntegrationMethod ThisIntegrationMethod
@@ -551,7 +541,7 @@ protected:
      */
     void CalculateKinematics(
         GeneralVariables& rVariables,
-        const DofData& rDofData,
+        const MatrixDualLM& rAe,
         const array_1d<double, 3>& NormalMaster,
         const PointType& LocalPointDecomp,
         const PointType& LocalPointParent,
