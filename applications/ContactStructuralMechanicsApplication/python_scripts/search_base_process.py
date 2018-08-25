@@ -44,7 +44,7 @@ class SearchBaseProcess(KM.Process):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
-            "help"                        : "his class is a base class used to perform the search for contact and mesh tying. This class constructs the model parts containing the conditions. The class creates search utilities to be used to create the pairs",
+            "help"                        : "This class is a base class used to perform the search for contact and mesh tying. This class constructs the model parts containing the conditions. The class creates search utilities to be used to create the pairs",
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
