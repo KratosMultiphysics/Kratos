@@ -10,7 +10,6 @@
 //
 
 // System includes
-#include <algorithm>
 
 // External includes
 
