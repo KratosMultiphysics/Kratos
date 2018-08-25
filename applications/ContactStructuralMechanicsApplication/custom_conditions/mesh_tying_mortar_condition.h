@@ -42,7 +42,7 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector2DPScalarValue = 3, Vector3DValue = 3, Vector3DPScalarValue = 4 };
+    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector3DValue = 3};
 
 ///@}
 ///@name  Functions
@@ -123,8 +123,6 @@ public:
     static constexpr SizeType NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
 
     static constexpr SizeType NumNodesMaster = (TNumNodesElemMaster == 3 || (TDim == 2 && TNumNodesElemMaster == 4)) ? 2 : TNumNodesElemMaster == 4 ? 3 : 4;
-
-    static constexpr SizeType MatrixSize = TTensor * (2 * NumNodes + NumNodesMaster);
 
     typedef BoundedMatrix<double, NumNodes, NumNodes>                                  MatrixDualLM;
 

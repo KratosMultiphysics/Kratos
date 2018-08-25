@@ -250,13 +250,17 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::
     mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::COMPUTE_LHS_MATRIX, true );
     mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::COMPUTE_RHS_VECTOR, true );
 
+    // Compute the matrix size
+    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+
     // Resizing as needed the LHS
-    if ( rLeftHandSideMatrix.size1() != MatrixSize || rLeftHandSideMatrix.size2() != MatrixSize )
-            rLeftHandSideMatrix.resize( MatrixSize, MatrixSize, false );
+    if ( rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size )
+            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
 
     // Resizing as needed the RHS
-    if ( rRightHandSideVector.size() != MatrixSize )
-        rRightHandSideVector.resize( MatrixSize, false );
+    if ( rRightHandSideVector.size() != matrix_size )
+        rRightHandSideVector.resize( matrix_size, false );
 
     // Calculate condition system
     CalculateConditionSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo );
@@ -277,9 +281,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::
     mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::COMPUTE_LHS_MATRIX, true );
     mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::COMPUTE_RHS_VECTOR, false);
 
+    // Compute the matrix size
+    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+
     // Resizing as needed the LHS
-    if ( rLeftHandSideMatrix.size1() != MatrixSize || rLeftHandSideMatrix.size2() != MatrixSize )
-        rLeftHandSideMatrix.resize( MatrixSize, MatrixSize, false );
+    if ( rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size )
+        rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
 
     // Creating an auxiliar vector
     VectorType aux_right_hand_side_vector = Vector();
@@ -304,9 +312,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::
     // Creating an auxiliar matrix
     MatrixType aux_left_hand_side_matrix = Matrix();
 
+    // Compute the matrix size
+    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+
     // Resizing as needed the RHS
-    if ( rRightHandSideVector.size() != MatrixSize )
-        rRightHandSideVector.resize( MatrixSize, false );
+    if ( rRightHandSideVector.size() != matrix_size )
+        rRightHandSideVector.resize( matrix_size, false );
 
     // Calculate condition system
     CalculateConditionSystem(aux_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo );
@@ -3662,8 +3674,12 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::
 {
     KRATOS_TRY;
 
-    if (rResult.size() != MatrixSize) {
-        rResult.resize( MatrixSize, false );
+    // Compute the matrix size
+    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+
+    if (rResult.size() != matrix_size) {
+        rResult.resize( matrix_size, false );
     }
 
     IndexType index = 0;
@@ -3672,7 +3688,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::
     // Master Nodes DoF Equation IDs
     GeometryType& r_current_master = this->GetPairedGeometry();
 
-    if (TTensor == ScalarValue) {
+    if (tensor_value == ScalarValue) {
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
             rResult[index++] = r_current_master[i_master].GetDof( mDoubleVariables[0] ).EquationId( );
         }
@@ -3685,7 +3701,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::
     }
 
     // Slave Nodes DoF Equation IDs
-    if (TTensor == ScalarValue) {
+    if (tensor_value == ScalarValue) {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
             rResult[index++] = this->GetGeometry()[i_slave].GetDof( mDoubleVariables[0] ).EquationId( );
         }
@@ -3698,7 +3714,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor, TNumNodesElemMaster>::
     }
 
     // Slave Nodes LM Equation IDs
-    if (TTensor == ScalarValue) {
+    if (tensor_value == ScalarValue) {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave )  {
             NodeType& slave_node = this->GetGeometry()[i_slave];
             rResult[index++] = slave_node.GetDof( SCALAR_LAGRANGE_MULTIPLIER ).EquationId( );
@@ -3726,8 +3742,11 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor, TNumNodesElemMaster>
 {
     KRATOS_TRY;
 
-    if (rConditionalDofList.size() != MatrixSize) {
-        rConditionalDofList.resize( MatrixSize );
+    const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+
+    if (rConditionalDofList.size() != matrix_size) {
+        rConditionalDofList.resize( matrix_size );
     }
 
     IndexType index = 0;
@@ -3736,7 +3755,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor, TNumNodesElemMaster>
     // Master Nodes DoF Equation IDs
     GeometryType& current_master = this->GetPairedGeometry();
 
-    if (TTensor == ScalarValue) {
+    if (tensor_value == ScalarValue) {
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master )  {
             rConditionalDofList[index++] = current_master[i_master].pGetDof( mDoubleVariables[0] );
         }
@@ -3749,7 +3768,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor, TNumNodesElemMaster>
     }
 
     // Slave Nodes DoF Equation IDs
-    if (TTensor == ScalarValue) {
+    if (tensor_value == ScalarValue) {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
             rConditionalDofList[index++] = this->GetGeometry()[i_slave].pGetDof( mDoubleVariables[0] );
         }
@@ -3762,7 +3781,7 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TTensor, TNumNodesElemMaster>
     }
 
     // Slave Nodes LM Equation IDs
-    if (TTensor == ScalarValue) {
+    if (tensor_value == ScalarValue) {
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
             NodeType& slave_node = this->GetGeometry()[i_slave];
             rConditionalDofList[index++] = slave_node.pGetDof( SCALAR_LAGRANGE_MULTIPLIER );
