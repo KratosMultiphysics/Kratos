@@ -42,8 +42,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector3DValue = 3};
-
 ///@}
 ///@name  Functions
 ///@{
@@ -65,7 +63,7 @@ namespace Kratos
  * @tparam TTensor The type of element considered
  * @tparam TNumNodesElemMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodesElem, TensorValue TTensor, const SizeType TNumNodesElemMaster = TNumNodesElem>
+template< const SizeType TDim, const SizeType TNumNodesElem, const SizeType TNumNodesElemMaster = TNumNodesElem>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) MeshTyingMortarCondition
     : public PairedCondition
 {
@@ -133,6 +131,12 @@ public:
     typedef MortarOperator<NumNodes, NumNodesMaster>                        MortarConditionMatrices;
 
     typedef ExactMortarIntegrationUtility<TDim, NumNodes, false, NumNodesMaster> IntegrationUtility;
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector3DValue = 3};
 
     ///@}
     ///@name Life Cycle
@@ -392,6 +396,7 @@ protected:
     /**
      * This data will be used to compute teh derivatives
      */
+    template< const TensorValue TTensor >
     struct DofData
     {
     public:
@@ -521,7 +526,29 @@ protected:
     /**
      * Initialize Contact data
      */
-    void InitializeDofData(DofData& rDofData);
+    template< const TensorValue TTensor >
+    void InitializeDofData(DofData<TTensor>& rDofData)
+    {
+        // Slave element info
+        rDofData.Initialize(GetGeometry());
+
+        if (TTensor == ScalarValue) {
+            for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
+                const double value = GetGeometry()[i_node].FastGetSolutionStepValue(mDoubleVariables[0]);
+                const double lm = GetGeometry()[i_node].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER);
+                rDofData.u1(i_node, 0) = value;
+                rDofData.LagrangeMultipliers(i_node, 0) = lm;
+            }
+        } else {
+            for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
+                const array_1d<double, 3>& lm = GetGeometry()[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                for (IndexType i_dof = 0; i_dof < mArray1DVariables.size(); i_dof++) {
+                    rDofData.u1(i_node, i_dof) = GetGeometry()[i_node].FastGetSolutionStepValue(mArray1DVariables[i_dof]);
+                    rDofData.LagrangeMultipliers(i_node, i_dof) = lm[i_dof];
+                }
+            }
+        }
+    }
 
     /**
      * Calculate Ae matrix
@@ -557,19 +584,21 @@ protected:
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDofData The class containing all the information needed in order to compute the jacobian
      */
+    template< const TensorValue TTensor >
     void CalculateLocalLHS(
         Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const DofData& rDofData
+        const DofData<TTensor>& rDofData
         );
 
     /*
      * Calculates the local contibution of the LHS
      */
+    template< const TensorValue TTensor >
     void CalculateLocalRHS(
         Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const DofData& rDofData
+        const DofData<TTensor>& rDofData
         );
 
     /***********************************************************************************/

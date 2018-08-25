@@ -196,7 +196,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
 
-        return self.geometry_element + self.type_variable
+        return self.geometry_element
 
     def _initialize_search_conditions(self):
         """ This method initializes some conditions values

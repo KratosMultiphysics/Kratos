@@ -46,7 +46,7 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -187,18 +187,14 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     /* CONDITIONS*/
-    // Mesh tying mortar condition    
-    const MeshTyingMortarCondition<2, 3, ScalarValue> mMeshTyingMortarCondition2D2NTriangleScalar;            // 2DLine/Triangle for scalar variables
-    const MeshTyingMortarCondition<2, 4, ScalarValue> mMeshTyingMortarCondition2D2NQuadrilateralScalar;       // 2DLine/Quadrilateral for scalar variables
-    const MeshTyingMortarCondition<2, 3, Vector2DValue> mMeshTyingMortarCondition2D2NTriangleComponents;      // 2DLine/Triangle for components variables
-    const MeshTyingMortarCondition<2, 4, Vector2DValue> mMeshTyingMortarCondition2D2NQuadrilateralComponents; // 2DLine/Quadrilateral for scalar variables
-    const MeshTyingMortarCondition<3, 4, ScalarValue> mMeshTyingMortarCondition3D3NTetrahedronScalar;         // 3D Triangle/Tetrahedron for scalar variables
-    const MeshTyingMortarCondition<3, 8, ScalarValue> mMeshTyingMortarCondition3D4NHexahedronScalar;          // 3D Quadrilateral/Hexahedra for scalar variables
-    const MeshTyingMortarCondition<3, 4, Vector3DValue> mMeshTyingMortarCondition3D3NTetrahedronComponents;   // 3D Triangle/Tetrahedron for components variables
-    const MeshTyingMortarCondition<3, 8, Vector3DValue> mMeshTyingMortarCondition3D4NHexahedronComponents;    // 3D Quadrilateral/Hexahedra for components variables
-    
+    // Mesh tying mortar condition
+    const MeshTyingMortarCondition<2, 3> mMeshTyingMortarCondition2D2NTriangle;      // 2DLine/Triangle for scalar variables
+    const MeshTyingMortarCondition<2, 4> mMeshTyingMortarCondition2D2NQuadrilateral; // 2DLine/Quadrilateral for scalar variables
+    const MeshTyingMortarCondition<3, 4> mMeshTyingMortarCondition3D3NTetrahedron;   // 3D Triangle/Tetrahedron for scalar variables
+    const MeshTyingMortarCondition<3, 8> mMeshTyingMortarCondition3D4NHexahedron;    // 3D Quadrilateral/Hexahedra for scalar variables
+
     // ALM Mortar contact conditions
     // Frictionless cases
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false> mALMFrictionlessMortarContactCondition2D2N;
@@ -225,7 +221,7 @@ private:
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, true> mALMNVFrictionalMortarContactCondition3D3N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, false> mALMFrictionalMortarContactCondition3D4N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, true> mALMNVFrictionalMortarContactCondition3D4N;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -276,6 +272,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined
 
 
