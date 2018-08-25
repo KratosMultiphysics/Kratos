@@ -405,22 +405,16 @@ class SearchBaseProcess(KM.Process):
 
         # We compute the number of nodes of the geometry
         if (self.predefined_master_slave is True and self.dimension == 3):
-            model_part_slave_name = self.settings["assume_master_slave"][key][0].GetString()
-            model_part_slave = self.main_model_part.GetSubModelPart(model_part_slave_name)
-            number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
-            for cond in model_part_slave.Conditions:
-                number_nodes = len(cond.GetNodes())
-                break
-            number_nodes_master = number_nodes
-            model_parts = self.settings["search_model_part"][key]
-            for i in range(0, model_parts.size()):
-                model_part_name = model_parts[i].GetString()
-                partial_model_part = self.main_model_part.GetSubModelPart(model_part_name)
-                for cond in partial_model_part.Conditions:
-                    if (len(cond.GetNodes()) != number_nodes_master):
-                        number_nodes_master = len(cond.GetNodes())
-                        break
-                if (number_nodes != number_nodes_master):
+            slave_defined = False
+            master_defined = False
+            for cond in self.computing_model_part.Conditions:
+                if (cond.Is(KM.SLAVE)):
+                    number_nodes = len(cond.GetNodes())
+                    slave_defined = True
+                if (cond.Is(KM.MASTER)):
+                    number_nodes_master = len(cond.GetNodes())
+                    master_defined = True
+                if (slave_defined and master_defined):
                     break
         else:
             number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
