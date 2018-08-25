@@ -541,9 +541,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::MasterSh
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template< >
 template< >
-void MeshTyingMortarCondition<2,3>::CalculateLocalLHS<MeshTyingMortarCondition<2,3>::ScalarValue>(
+void MeshTyingMortarCondition<2,3,3>::CalculateLocalLHS<MeshTyingMortarCondition<2,3,3>::ScalarValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -594,6 +598,7 @@ void MeshTyingMortarCondition<2,3>::CalculateLocalLHS<MeshTyingMortarCondition<2
     rLocalLHS(5,3)=DOperator(1,1);
     rLocalLHS(5,4)=0;
     rLocalLHS(5,5)=0;
+
 }
 
 /***********************************************************************************/
@@ -601,7 +606,7 @@ void MeshTyingMortarCondition<2,3>::CalculateLocalLHS<MeshTyingMortarCondition<2
 
 template< >
 template< >
-void MeshTyingMortarCondition<2,3>::CalculateLocalLHS<MeshTyingMortarCondition<2,3>::Vector2DValue>(
+void MeshTyingMortarCondition<2,3,3>::CalculateLocalLHS<MeshTyingMortarCondition<2,3,3>::Vector2DValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector2DValue>& rDofData
@@ -760,6 +765,7 @@ void MeshTyingMortarCondition<2,3>::CalculateLocalLHS<MeshTyingMortarCondition<2
     rLocalLHS(11,9)=0;
     rLocalLHS(11,10)=0;
     rLocalLHS(11,11)=0;
+
 }
 
 /***********************************************************************************/
@@ -767,7 +773,7 @@ void MeshTyingMortarCondition<2,3>::CalculateLocalLHS<MeshTyingMortarCondition<2
 
 template< >
 template< >
-void MeshTyingMortarCondition<2,4>::CalculateLocalLHS<MeshTyingMortarCondition<2,4>::ScalarValue>(
+void MeshTyingMortarCondition<2,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<2,4,4>::ScalarValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -818,6 +824,7 @@ void MeshTyingMortarCondition<2,4>::CalculateLocalLHS<MeshTyingMortarCondition<2
     rLocalLHS(5,3)=DOperator(1,1);
     rLocalLHS(5,4)=0;
     rLocalLHS(5,5)=0;
+
 }
 
 /***********************************************************************************/
@@ -825,7 +832,7 @@ void MeshTyingMortarCondition<2,4>::CalculateLocalLHS<MeshTyingMortarCondition<2
 
 template< >
 template< >
-void MeshTyingMortarCondition<2,4>::CalculateLocalLHS<MeshTyingMortarCondition<2,4>::Vector2DValue>(
+void MeshTyingMortarCondition<2,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<2,4,4>::Vector2DValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector2DValue>& rDofData
@@ -984,6 +991,7 @@ void MeshTyingMortarCondition<2,4>::CalculateLocalLHS<MeshTyingMortarCondition<2
     rLocalLHS(11,9)=0;
     rLocalLHS(11,10)=0;
     rLocalLHS(11,11)=0;
+
 }
 
 /***********************************************************************************/
@@ -991,7 +999,7 @@ void MeshTyingMortarCondition<2,4>::CalculateLocalLHS<MeshTyingMortarCondition<2
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,4>::ScalarValue>(
+void MeshTyingMortarCondition<3,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,4>::ScalarValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -1092,6 +1100,7 @@ void MeshTyingMortarCondition<3,4>::CalculateLocalLHS<MeshTyingMortarCondition<3
     rLocalLHS(8,6)=0;
     rLocalLHS(8,7)=0;
     rLocalLHS(8,8)=0;
+
 }
 
 /***********************************************************************************/
@@ -1099,7 +1108,7 @@ void MeshTyingMortarCondition<3,4>::CalculateLocalLHS<MeshTyingMortarCondition<3
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,4>::Vector3DValue>(
+void MeshTyingMortarCondition<3,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,4>::Vector3DValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -1848,6 +1857,7 @@ void MeshTyingMortarCondition<3,4>::CalculateLocalLHS<MeshTyingMortarCondition<3
     rLocalLHS(26,24)=0;
     rLocalLHS(26,25)=0;
     rLocalLHS(26,26)=0;
+
 }
 
 /***********************************************************************************/
@@ -1855,7 +1865,7 @@ void MeshTyingMortarCondition<3,4>::CalculateLocalLHS<MeshTyingMortarCondition<3
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,8>::CalculateLocalLHS<MeshTyingMortarCondition<3,8>::ScalarValue>(
+void MeshTyingMortarCondition<3,8,8>::CalculateLocalLHS<MeshTyingMortarCondition<3,8,8>::ScalarValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -2026,6 +2036,7 @@ void MeshTyingMortarCondition<3,8>::CalculateLocalLHS<MeshTyingMortarCondition<3
     rLocalLHS(11,9)=0;
     rLocalLHS(11,10)=0;
     rLocalLHS(11,11)=0;
+
 }
 
 /***********************************************************************************/
@@ -2033,7 +2044,7 @@ void MeshTyingMortarCondition<3,8>::CalculateLocalLHS<MeshTyingMortarCondition<3
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,8>::CalculateLocalLHS<MeshTyingMortarCondition<3,8>::Vector3DValue>(
+void MeshTyingMortarCondition<3,8,8>::CalculateLocalLHS<MeshTyingMortarCondition<3,8,8>::Vector3DValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -3356,6 +3367,7 @@ void MeshTyingMortarCondition<3,8>::CalculateLocalLHS<MeshTyingMortarCondition<3
     rLocalLHS(35,33)=0;
     rLocalLHS(35,34)=0;
     rLocalLHS(35,35)=0;
+
 }
 
 
@@ -3365,19 +3377,23 @@ void MeshTyingMortarCondition<3,8>::CalculateLocalLHS<MeshTyingMortarCondition<3
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 template<>
-void MeshTyingMortarCondition<2,3>::CalculateLocalRHS<MeshTyingMortarCondition<2,3>::ScalarValue>(
+void MeshTyingMortarCondition<2,3, 3>::CalculateLocalRHS<MeshTyingMortarCondition<2,3,3>::ScalarValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
     )
 {
     // Initialize values
-    const BoundedMatrix<double, 2, ScalarValue>& u1 = rDofData.u1;
-    const BoundedMatrix<double, 2, ScalarValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 2, ScalarValue> u1 = rDofData.u1;
+    const BoundedMatrix<double, 2, ScalarValue> u2 = rDofData.u2;
 
-    const BoundedMatrix<double, 2, ScalarValue>& lm = rDofData.LagrangeMultipliers;
+    const BoundedMatrix<double, 2, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
@@ -3390,6 +3406,7 @@ void MeshTyingMortarCondition<2,3>::CalculateLocalRHS<MeshTyingMortarCondition<2
     rLocalRHS[3]=-(DOperator(0,1)*lm(0,0) + DOperator(1,1)*lm(1,0));
     rLocalRHS[4]=-DOperator(0,0)*u1(0,0) - DOperator(0,1)*u1(1,0) + MOperator(0,0)*u2(0,0) + MOperator(0,1)*u2(1,0);
     rLocalRHS[5]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0);
+
 }
 
 /***********************************************************************************/
@@ -3397,17 +3414,17 @@ void MeshTyingMortarCondition<2,3>::CalculateLocalRHS<MeshTyingMortarCondition<2
 
 template<>
 template<>
-void MeshTyingMortarCondition<2,3>::CalculateLocalRHS<MeshTyingMortarCondition<2,3>::Vector2DValue>(
+void MeshTyingMortarCondition<2,3, 3>::CalculateLocalRHS<MeshTyingMortarCondition<2,3,3>::Vector2DValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector2DValue>& rDofData
     )
 {
     // Initialize values
-    const BoundedMatrix<double, 2, Vector2DValue>& u1 = rDofData.u1;
-    const BoundedMatrix<double, 2, Vector2DValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 2, Vector2DValue> u1 = rDofData.u1;
+    const BoundedMatrix<double, 2, Vector2DValue> u2 = rDofData.u2;
 
-    const BoundedMatrix<double, 2, Vector2DValue>& lm = rDofData.LagrangeMultipliers;
+    const BoundedMatrix<double, 2, Vector2DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
@@ -3426,6 +3443,7 @@ void MeshTyingMortarCondition<2,3>::CalculateLocalRHS<MeshTyingMortarCondition<2
     rLocalRHS[9]=-DOperator(0,0)*u1(0,1) - DOperator(0,1)*u1(1,1) + MOperator(0,0)*u2(0,1) + MOperator(0,1)*u2(1,1);
     rLocalRHS[10]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0);
     rLocalRHS[11]=-DOperator(1,0)*u1(0,1) - DOperator(1,1)*u1(1,1) + MOperator(1,0)*u2(0,1) + MOperator(1,1)*u2(1,1);
+
 }
 
 /***********************************************************************************/
@@ -3433,17 +3451,17 @@ void MeshTyingMortarCondition<2,3>::CalculateLocalRHS<MeshTyingMortarCondition<2
 
 template<>
 template<>
-void MeshTyingMortarCondition<2,4>::CalculateLocalRHS<MeshTyingMortarCondition<2,4>::ScalarValue>(
+void MeshTyingMortarCondition<2,4, 4>::CalculateLocalRHS<MeshTyingMortarCondition<2,4,4>::ScalarValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
     )
 {
     // Initialize values
-    const BoundedMatrix<double, 2, ScalarValue>& u1 = rDofData.u1;
-    const BoundedMatrix<double, 2, ScalarValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 2, ScalarValue> u1 = rDofData.u1;
+    const BoundedMatrix<double, 2, ScalarValue> u2 = rDofData.u2;
 
-    const BoundedMatrix<double, 2, ScalarValue>& lm = rDofData.LagrangeMultipliers;
+    const BoundedMatrix<double, 2, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
@@ -3456,6 +3474,7 @@ void MeshTyingMortarCondition<2,4>::CalculateLocalRHS<MeshTyingMortarCondition<2
     rLocalRHS[3]=-(DOperator(0,1)*lm(0,0) + DOperator(1,1)*lm(1,0));
     rLocalRHS[4]=-DOperator(0,0)*u1(0,0) - DOperator(0,1)*u1(1,0) + MOperator(0,0)*u2(0,0) + MOperator(0,1)*u2(1,0);
     rLocalRHS[5]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0);
+
 }
 
 /***********************************************************************************/
@@ -3463,17 +3482,17 @@ void MeshTyingMortarCondition<2,4>::CalculateLocalRHS<MeshTyingMortarCondition<2
 
 template<>
 template<>
-void MeshTyingMortarCondition<2,4>::CalculateLocalRHS<MeshTyingMortarCondition<2,4>::Vector2DValue>(
+void MeshTyingMortarCondition<2,4, 4>::CalculateLocalRHS<MeshTyingMortarCondition<2,4,4>::Vector2DValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector2DValue>& rDofData
     )
 {
     // Initialize values
-    const BoundedMatrix<double, 2, Vector2DValue>& u1 = rDofData.u1;
-    const BoundedMatrix<double, 2, Vector2DValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 2, Vector2DValue> u1 = rDofData.u1;
+    const BoundedMatrix<double, 2, Vector2DValue> u2 = rDofData.u2;
 
-    const BoundedMatrix<double, 2, Vector2DValue>& lm = rDofData.LagrangeMultipliers;
+    const BoundedMatrix<double, 2, Vector2DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
@@ -3492,6 +3511,7 @@ void MeshTyingMortarCondition<2,4>::CalculateLocalRHS<MeshTyingMortarCondition<2
     rLocalRHS[9]=-DOperator(0,0)*u1(0,1) - DOperator(0,1)*u1(1,1) + MOperator(0,0)*u2(0,1) + MOperator(0,1)*u2(1,1);
     rLocalRHS[10]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0);
     rLocalRHS[11]=-DOperator(1,0)*u1(0,1) - DOperator(1,1)*u1(1,1) + MOperator(1,0)*u2(0,1) + MOperator(1,1)*u2(1,1);
+
 }
 
 /***********************************************************************************/
@@ -3499,17 +3519,17 @@ void MeshTyingMortarCondition<2,4>::CalculateLocalRHS<MeshTyingMortarCondition<2
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,4>::CalculateLocalRHS<MeshTyingMortarCondition<3,4>::ScalarValue>(
+void MeshTyingMortarCondition<3,4, 4>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,4>::ScalarValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
     )
 {
     // Initialize values
-    const BoundedMatrix<double, 3, ScalarValue>& u1 = rDofData.u1;
-    const BoundedMatrix<double, 3, ScalarValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 3, ScalarValue> u1 = rDofData.u1;
+    const BoundedMatrix<double, 3, ScalarValue> u2 = rDofData.u2;
 
-    const BoundedMatrix<double, 3, ScalarValue>& lm = rDofData.LagrangeMultipliers;
+    const BoundedMatrix<double, 3, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
@@ -3525,6 +3545,7 @@ void MeshTyingMortarCondition<3,4>::CalculateLocalRHS<MeshTyingMortarCondition<3
     rLocalRHS[6]=-DOperator(0,0)*u1(0,0) - DOperator(0,1)*u1(1,0) - DOperator(0,2)*u1(2,0) + MOperator(0,0)*u2(0,0) + MOperator(0,1)*u2(1,0) + MOperator(0,2)*u2(2,0);
     rLocalRHS[7]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) - DOperator(1,2)*u1(2,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0) + MOperator(1,2)*u2(2,0);
     rLocalRHS[8]=-DOperator(2,0)*u1(0,0) - DOperator(2,1)*u1(1,0) - DOperator(2,2)*u1(2,0) + MOperator(2,0)*u2(0,0) + MOperator(2,1)*u2(1,0) + MOperator(2,2)*u2(2,0);
+
 }
 
 /***********************************************************************************/
@@ -3532,17 +3553,17 @@ void MeshTyingMortarCondition<3,4>::CalculateLocalRHS<MeshTyingMortarCondition<3
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,4>::CalculateLocalRHS<MeshTyingMortarCondition<3,4>::Vector3DValue>(
+void MeshTyingMortarCondition<3,4, 4>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,4>::Vector3DValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
     )
 {
     // Initialize values
-    const BoundedMatrix<double, 3, Vector3DValue>& u1 = rDofData.u1;
-    const BoundedMatrix<double, 3, Vector3DValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 3, Vector3DValue> u1 = rDofData.u1;
+    const BoundedMatrix<double, 3, Vector3DValue> u2 = rDofData.u2;
 
-    const BoundedMatrix<double, 3, Vector3DValue>& lm = rDofData.LagrangeMultipliers;
+    const BoundedMatrix<double, 3, Vector3DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
@@ -3576,6 +3597,7 @@ void MeshTyingMortarCondition<3,4>::CalculateLocalRHS<MeshTyingMortarCondition<3
     rLocalRHS[24]=-DOperator(2,0)*u1(0,0) - DOperator(2,1)*u1(1,0) - DOperator(2,2)*u1(2,0) + MOperator(2,0)*u2(0,0) + MOperator(2,1)*u2(1,0) + MOperator(2,2)*u2(2,0);
     rLocalRHS[25]=-DOperator(2,0)*u1(0,1) - DOperator(2,1)*u1(1,1) - DOperator(2,2)*u1(2,1) + MOperator(2,0)*u2(0,1) + MOperator(2,1)*u2(1,1) + MOperator(2,2)*u2(2,1);
     rLocalRHS[26]=-DOperator(2,0)*u1(0,2) - DOperator(2,1)*u1(1,2) - DOperator(2,2)*u1(2,2) + MOperator(2,0)*u2(0,2) + MOperator(2,1)*u2(1,2) + MOperator(2,2)*u2(2,2);
+
 }
 
 /***********************************************************************************/
@@ -3583,17 +3605,17 @@ void MeshTyingMortarCondition<3,4>::CalculateLocalRHS<MeshTyingMortarCondition<3
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,8>::CalculateLocalRHS<MeshTyingMortarCondition<3,8>::ScalarValue>(
+void MeshTyingMortarCondition<3,8, 8>::CalculateLocalRHS<MeshTyingMortarCondition<3,8,8>::ScalarValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
     )
 {
     // Initialize values
-    const BoundedMatrix<double, 4, ScalarValue>& u1 = rDofData.u1;
-    const BoundedMatrix<double, 4, ScalarValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 4, ScalarValue> u1 = rDofData.u1;
+    const BoundedMatrix<double, 4, ScalarValue> u2 = rDofData.u2;
 
-    const BoundedMatrix<double, 4, ScalarValue>& lm = rDofData.LagrangeMultipliers;
+    const BoundedMatrix<double, 4, ScalarValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
@@ -3612,6 +3634,7 @@ void MeshTyingMortarCondition<3,8>::CalculateLocalRHS<MeshTyingMortarCondition<3
     rLocalRHS[9]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) - DOperator(1,2)*u1(2,0) - DOperator(1,3)*u1(3,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0) + MOperator(1,2)*u2(2,0) + MOperator(1,3)*u2(3,0);
     rLocalRHS[10]=-DOperator(2,0)*u1(0,0) - DOperator(2,1)*u1(1,0) - DOperator(2,2)*u1(2,0) - DOperator(2,3)*u1(3,0) + MOperator(2,0)*u2(0,0) + MOperator(2,1)*u2(1,0) + MOperator(2,2)*u2(2,0) + MOperator(2,3)*u2(3,0);
     rLocalRHS[11]=-DOperator(3,0)*u1(0,0) - DOperator(3,1)*u1(1,0) - DOperator(3,2)*u1(2,0) - DOperator(3,3)*u1(3,0) + MOperator(3,0)*u2(0,0) + MOperator(3,1)*u2(1,0) + MOperator(3,2)*u2(2,0) + MOperator(3,3)*u2(3,0);
+
 }
 
 /***********************************************************************************/
@@ -3619,17 +3642,17 @@ void MeshTyingMortarCondition<3,8>::CalculateLocalRHS<MeshTyingMortarCondition<3
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,8>::CalculateLocalRHS<MeshTyingMortarCondition<3,8>::Vector3DValue>(
+void MeshTyingMortarCondition<3,8, 8>::CalculateLocalRHS<MeshTyingMortarCondition<3,8,8>::Vector3DValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
     )
 {
     // Initialize values
-    const BoundedMatrix<double, 4, Vector3DValue>& u1 = rDofData.u1;
-    const BoundedMatrix<double, 4, Vector3DValue>& u2 = rDofData.u2;
+    const BoundedMatrix<double, 4, Vector3DValue> u1 = rDofData.u1;
+    const BoundedMatrix<double, 4, Vector3DValue> u2 = rDofData.u2;
 
-    const BoundedMatrix<double, 4, Vector3DValue>& lm = rDofData.LagrangeMultipliers;
+    const BoundedMatrix<double, 4, Vector3DValue> lm = rDofData.LagrangeMultipliers; 
 
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
@@ -3672,6 +3695,7 @@ void MeshTyingMortarCondition<3,8>::CalculateLocalRHS<MeshTyingMortarCondition<3
     rLocalRHS[33]=-DOperator(3,0)*u1(0,0) - DOperator(3,1)*u1(1,0) - DOperator(3,2)*u1(2,0) - DOperator(3,3)*u1(3,0) + MOperator(3,0)*u2(0,0) + MOperator(3,1)*u2(1,0) + MOperator(3,2)*u2(2,0) + MOperator(3,3)*u2(3,0);
     rLocalRHS[34]=-DOperator(3,0)*u1(0,1) - DOperator(3,1)*u1(1,1) - DOperator(3,2)*u1(2,1) - DOperator(3,3)*u1(3,1) + MOperator(3,0)*u2(0,1) + MOperator(3,1)*u2(1,1) + MOperator(3,2)*u2(2,1) + MOperator(3,3)*u2(3,1);
     rLocalRHS[35]=-DOperator(3,0)*u1(0,2) - DOperator(3,1)*u1(1,2) - DOperator(3,2)*u1(2,2) - DOperator(3,3)*u1(3,2) + MOperator(3,0)*u2(0,2) + MOperator(3,1)*u2(1,2) + MOperator(3,2)*u2(2,2) + MOperator(3,3)*u2(3,2);
+
 }
 
 
@@ -3947,9 +3971,9 @@ int MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Check( co
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MeshTyingMortarCondition<2, 3>; // 2DLine/Triangle
-template class MeshTyingMortarCondition<2, 4>; // 2DLine/Quadrilateral
-template class MeshTyingMortarCondition<3, 4>; // 3D Triangle/Tetrahedron
-template class MeshTyingMortarCondition<3, 8>; // 3D Quadrilateral/Hexahedra
+template class MeshTyingMortarCondition<2, 3, 3>; // 2DLine/Triangle
+template class MeshTyingMortarCondition<2, 4, 4>; // 2DLine/Quadrilateral
+template class MeshTyingMortarCondition<3, 4, 4>; // 3D Triangle/Tetrahedron
+template class MeshTyingMortarCondition<3, 8, 8>; // 3D Quadrilateral/Hexahedra
 
 } // Namespace Kratos
