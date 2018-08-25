@@ -10,7 +10,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit):
+    def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         self.main_model_part = KratosMultiphysics.ModelPart("Structure")
         self.main_model_part.SetBufferSize(2)
@@ -32,8 +32,12 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, self.main_model_part)
 
-        self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
-        self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
+        if (inverted is True):
+            self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
+            self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
+        else:
+            self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
+            self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
 
         for node in self.model_part_master.Nodes:
             x = node.X
@@ -89,9 +93,9 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
                     self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4N3NDouble(self.model_part_master, self.model_part_slave, KratosMultiphysics.TEMPERATURE, map_parameters)
                     self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4N3NVector(self.model_part_master, self.model_part_slave, KratosMultiphysics.DISPLACEMENT, map_parameters)
 
-    def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False):
+    def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False, inverted = False):
 
-        self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit)
+        self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit, inverted)
 
         self.mortar_mapping_double.Execute()
         self.mortar_mapping_vector.Execute()
@@ -155,6 +159,10 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
     def test_mortar_mapping_quad_tri(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
         self._mapper_tests(input_filename, 4, 3)
+
+    def test_mortar_mapping_tri_quad(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
+        #self._mapper_tests(input_filename, 3, 4, False, True)
 
     def __post_process(self):
         from gid_output_process import GiDOutputProcess
