@@ -70,6 +70,9 @@
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 //#include "custom_constitutive/yield_criteria/drucker_prager_yield_criterion.hpp"
 
+//hardening laws
+#include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
+
 namespace Kratos
 {
 
@@ -257,6 +260,7 @@ private:
     //const DruckerPragerYieldCriterion             mDruckerPragerYieldCriterion;
 
     // Hardening Laws
+    const ExponentialStrainSofteningLaw             mExponentialStrainSofteningLaw;
     //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
     //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
     //const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;

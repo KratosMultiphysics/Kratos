@@ -30,7 +30,7 @@ namespace Kratos
 HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::HenckyMCStrainSofteningPlasticPlaneStrain2DLaw()
     : HenckyElasticPlasticPlaneStrain2DLaw()
 {
-    mpHardeningLaw   = HardeningLaw::Pointer( new HardeningLaw() );
+    mpHardeningLaw   = HardeningLaw::Pointer( new ExponentialStrainSofteningLaw() );
     mpYieldCriterion = YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule       = MPMFlowRule::Pointer( new MCStrainSofteningPlasticFlowRule(mpYieldCriterion) );
 }

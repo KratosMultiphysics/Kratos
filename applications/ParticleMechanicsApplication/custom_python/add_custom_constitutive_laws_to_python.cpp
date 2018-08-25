@@ -31,6 +31,8 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 //yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
+//hardening laws
+#include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
 //flow rules
 #include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
