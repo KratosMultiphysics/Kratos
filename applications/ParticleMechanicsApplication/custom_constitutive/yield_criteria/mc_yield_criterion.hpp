@@ -129,6 +129,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void CalculateAndAddHardeningToMaterialParameter(const Variable<double>& rThisVariable, double& rMatParam, const double& rAlpha);
+
     double GetSmoothingLodeAngle();
 
     double GetPI();
