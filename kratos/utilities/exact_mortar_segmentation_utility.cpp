@@ -358,7 +358,7 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
         for (IndexType i_node = 1; i_node < 4; ++i_node) {
             PointType point;
             rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
-            rConditionsPointsSlave[1][i_node] = point;
+            rConditionsPointsSlave[1][i_node - 1] = point;
         }
 
         return true;
