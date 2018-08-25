@@ -264,7 +264,7 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
 
-        return "Condition"
+        return ""
 
     def _get_final_string(self):
         """ This method returns the final string of the condition name
