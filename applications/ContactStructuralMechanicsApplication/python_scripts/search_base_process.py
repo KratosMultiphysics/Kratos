@@ -404,16 +404,45 @@ class SearchBaseProcess(KM.Process):
         search_parameters["id_name"].SetString(key)
 
         # We compute the number of nodes of the geometry
-        number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
+        if (self.predefined_master_slave is True and self.dimension == 3):
+            model_part_slave_name = self.settings["assume_master_slave"][key][0].GetString()
+            model_part_slave = self.main_model_part.GetSubModelPart(model_part_slave_name)
+            number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
+            for cond in model_part_slave.Conditions:
+                number_nodes = len(cond.GetNodes())
+                break
+            number_nodes_master = number_nodes
+            model_parts = self.settings["search_model_part"][key]
+            for i in range(0, model_parts.size()):
+                model_part_name = model_parts[i].GetString()
+                partial_model_part = self.main_model_part.GetSubModelPart(model_part_name)
+                for cond in partial_model_part.Conditions:
+                    if (len(cond.GetNodes()) != number_nodes_master):
+                        number_nodes_master = len(cond.GetNodes())
+                        break
+                if (number_nodes != number_nodes_master):
+                    break
+        else:
+            number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
+            number_nodes_master = number_nodes
 
         # We create the search process
         if (self.dimension == 2):
             self.search_search[key] = CSMA.TreeContactSearch2D2N(self.computing_model_part, search_parameters)
         else:
             if (number_nodes == 3):
-                self.search_search[key] = CSMA.TreeContactSearch3D3N(self.computing_model_part, search_parameters)
+                if (number_nodes_master == 3):
+                    self.search_search[key] = CSMA.TreeContactSearch3D3N(self.computing_model_part, search_parameters)
+                else:
+                    self.search_search[key] = CSMA.TreeContactSearch3D3N4N(self.computing_model_part, search_parameters)
+
+            elif (number_nodes == 4):
+                if (number_nodes_master == 3):
+                    self.search_search[key] = CSMA.TreeContactSearch3D4N3N(self.computing_model_part, search_parameters)
+                else:
+                    self.search_search[key] = CSMA.TreeContactSearch3D4N(self.computing_model_part, search_parameters)
             else:
-                self.search_search[key] = CSMA.TreeContactSearch3D4N(self.computing_model_part, search_parameters)
+                raise Exception("Geometries not compatible. Check all the geometries are linear")
 
     def _get_enum_flag(self, param, label, dictionary):
         """ Parse enums settings using an auxiliary dictionary of acceptable values.
