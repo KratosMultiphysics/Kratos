@@ -39,6 +39,7 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_error_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/integration_values_extrapolation_to_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
@@ -57,6 +58,7 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_error_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/integration_values_extrapolation_to_nodes_process.cpp
 )

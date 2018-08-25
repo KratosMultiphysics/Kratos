@@ -147,6 +147,9 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferencingBaseElement(),
       mAdjointFiniteDifferencingShellElement(),
       mAdjointFiniteDifferenceCrBeamElement(),
+      mAdjointFiniteDifferenceTrussElement(),
+      mAdjointFiniteDifferenceTrussLinearElement(),
+    
       /* CONDITIONS */
       // Adding point load conditions
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
@@ -350,7 +353,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Response function variables
     KRATOS_REGISTER_VARIABLE(RESPONSE_VALUE)
-        // Adjoint variables
+    // Adjoint variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_DISPLACEMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ADJOINT_ROTATION)
     KRATOS_REGISTER_VARIABLE(PERTURBATION_SIZE)
@@ -481,6 +484,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferencingBaseElement", mAdjointFiniteDifferencingBaseElement )
     KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferencingShellElement", mAdjointFiniteDifferencingShellElement )
     KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferenceCrBeamElement", mAdjointFiniteDifferenceCrBeamElement )
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussElement", mAdjointFiniteDifferenceTrussElement)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussLinearElement", mAdjointFiniteDifferenceTrussLinearElement)
 
     // Register the conditions
     // Point loads
