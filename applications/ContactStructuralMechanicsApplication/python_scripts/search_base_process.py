@@ -266,13 +266,14 @@ class SearchBaseProcess(KM.Process):
 
         return ""
 
-    def _get_final_string(self):
+    def _get_final_string(self, key = "0"):
         """ This method returns the final string of the condition name
 
         Keyword arguments:
         self -- It signifies an instance of a class.
+        key -- The key to identify the current pair
         """
-
+        self.__assume_master_slave(key)
         return ""
 
     def _get_problem_name(self):
@@ -634,7 +635,7 @@ class SearchBaseProcess(KM.Process):
         detect_skin.Execute()
         self.settings["search_model_part"][key].Append(sub_search_model_part_name)
         # Assigning master and slave sides
-        self.__assume_master_slave()
+        self.__assume_master_slave(key)
         self._assign_master_flags(self._get_process_model_part())
         self._assign_slave_flags(key)
 
