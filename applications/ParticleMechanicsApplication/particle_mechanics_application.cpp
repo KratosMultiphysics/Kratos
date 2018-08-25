@@ -199,6 +199,7 @@ namespace Kratos
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
+        Serializer::Register("MCStrainSofteningPlasticFlowRule", mMCStrainSofteningPlasticFlowRule);
 
         //Register Yield Criterion
         Serializer::Register("MCYieldCriterion", mMCYieldCriterion);

@@ -45,6 +45,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
         ###flow rules
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/MPM_flow_rule.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_plastic_flow_rule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/viscoplastic_flow_rule.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.cpp
 
