@@ -12,10 +12,10 @@ mode = "c" #to output to a c++ file
 
 impose_partion_of_unity = False
 
-dim_combinations = [2,2,2,2,3,3,3,3]
-nnodeselement_combinations = [3,3,4,4,4,4,8,8]
-nnodeselement_master_combinations = [3,3,4,4,4,4,8,8]
-tensor_combinations = [1,2,1,2,1,3,1,3]
+dim_combinations = [2,2,2,2,3,3,3,3,3,3,3,3]
+nnodeselement_combinations = [3,3,4,4,4,4,8,8,4,4,8,8]
+nnodeselement_master_combinations = [3,3,4,4,4,4,8,8,8,8,4,4]
+tensor_combinations = [1,2,1,2,1,3,1,3,1,3,1,3]
 
 lhs_string = ""
 lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate< >\ntemplate< >\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::CalculateLocalLHS<MeshTyingMortarCondition<TDim,TNumNodesElem,TNumNodesElemMaster>::TTensor>(\n    Matrix& rLocalLHS,\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    const DofData<TTensor>& rDofData\n    )\n{\n    // We get the mortar operators\n    const BoundedMatrix<double, NumNodes, NumNodes>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"

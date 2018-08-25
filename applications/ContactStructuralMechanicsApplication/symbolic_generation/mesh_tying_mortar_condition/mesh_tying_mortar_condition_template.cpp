@@ -827,5 +827,7 @@ template class MeshTyingMortarCondition<2, 3, 3>; // 2DLine/Triangle
 template class MeshTyingMortarCondition<2, 4, 4>; // 2DLine/Quadrilateral
 template class MeshTyingMortarCondition<3, 4, 4>; // 3D Triangle/Tetrahedron
 template class MeshTyingMortarCondition<3, 8, 8>; // 3D Quadrilateral/Hexahedra
+template class MeshTyingMortarCondition<3, 4, 8>; // 3D Triangle/Tetrahedron
+template class MeshTyingMortarCondition<3, 8, 4>; // 3D Quadrilateral/Hexahedra
 
 } // Namespace Kratos

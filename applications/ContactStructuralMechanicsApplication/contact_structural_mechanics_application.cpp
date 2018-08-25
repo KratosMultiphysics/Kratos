@@ -41,6 +41,8 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     // 3D
     mMeshTyingMortarCondition3D3NTetrahedron( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mMeshTyingMortarCondition3D4NHexahedron( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mMeshTyingMortarCondition3D3NTetrahedron4NHexahedron( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mMeshTyingMortarCondition3D4NHexahedron3NTetrahedron( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
 
     // ALM Contact mortar conditions
     // Frictionless
@@ -118,6 +120,8 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NQuadrilateral", mMeshTyingMortarCondition2D2NQuadrilateral );
     KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D3NTetrahedron", mMeshTyingMortarCondition3D3NTetrahedron );
     KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4NHexahedron", mMeshTyingMortarCondition3D4NHexahedron );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D3NTetrahedron4NHexahedron", mMeshTyingMortarCondition3D3NTetrahedron4NHexahedron );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4NHexahedron3NTetrahedron", mMeshTyingMortarCondition3D4NHexahedron3NTetrahedron );
 
     // Mortar contact condition
     // Frictionless cases

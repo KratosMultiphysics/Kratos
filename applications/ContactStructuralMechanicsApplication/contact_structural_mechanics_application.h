@@ -190,10 +190,12 @@ private:
 
     /* CONDITIONS*/
     // Mesh tying mortar condition
-    const MeshTyingMortarCondition<2, 3> mMeshTyingMortarCondition2D2NTriangle;      // 2DLine/Triangle for scalar variables
-    const MeshTyingMortarCondition<2, 4> mMeshTyingMortarCondition2D2NQuadrilateral; // 2DLine/Quadrilateral for scalar variables
-    const MeshTyingMortarCondition<3, 4> mMeshTyingMortarCondition3D3NTetrahedron;   // 3D Triangle/Tetrahedron for scalar variables
-    const MeshTyingMortarCondition<3, 8> mMeshTyingMortarCondition3D4NHexahedron;    // 3D Quadrilateral/Hexahedra for scalar variables
+    const MeshTyingMortarCondition<2, 3> mMeshTyingMortarCondition2D2NTriangle;                   // 2DLine/Triangle
+    const MeshTyingMortarCondition<2, 4> mMeshTyingMortarCondition2D2NQuadrilateral;              // 2DLine/Quadrilateral
+    const MeshTyingMortarCondition<3, 4> mMeshTyingMortarCondition3D3NTetrahedron;                // 3D Triangle/Tetrahedron
+    const MeshTyingMortarCondition<3, 8> mMeshTyingMortarCondition3D4NHexahedron;                 // 3D Quadrilateral/Hexahedra
+    const MeshTyingMortarCondition<3, 4, 8> mMeshTyingMortarCondition3D3NTetrahedron4NHexahedron; // 3D Triangle/Tetrahedron-Quadrilateral/Hexahedra
+    const MeshTyingMortarCondition<3, 8, 4> mMeshTyingMortarCondition3D4NHexahedron3NTetrahedron; // 3D Quadrilateral/Hexahedra-Triangle/Tetrahedron
 
     // ALM Mortar contact conditions
     // Frictionless cases
