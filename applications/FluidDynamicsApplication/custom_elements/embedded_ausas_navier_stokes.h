@@ -1005,7 +1005,7 @@ protected:
     void AddRHSNormalVelocityPenaltyContribution(
         VectorType &rRightHandSideVector,
         const EmbeddedAusasElementDataStruct &rData,
-        const ProcessInfo rCurrentProcessInfo) {
+        const ProcessInfo &rCurrentProcessInfo) {
 
         constexpr unsigned int BlockSize = TDim + 1;
         constexpr unsigned int MatrixSize = TNumNodes * BlockSize;
