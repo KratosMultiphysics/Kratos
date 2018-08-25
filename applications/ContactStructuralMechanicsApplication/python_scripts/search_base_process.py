@@ -212,10 +212,10 @@ class SearchBaseProcess(KM.Process):
                     self._debug_output(global_step, "", self._get_problem_name())
                     # We compute the total integrated area, for debugging
                     self.__get_integration_area()
-            else:
-                # We deactivate the conditions and nodes
-                KM.VariableUtils().SetFlag(KM.ACTIVE, False, self._get_process_model_part().Nodes)
-                KM.VariableUtils().SetFlag(KM.ACTIVE, False, self._get_process_model_part().Conditions)
+        else:
+            # We deactivate the conditions and nodes
+            KM.VariableUtils().SetFlag(KM.ACTIVE, False, self._get_process_model_part().Nodes)
+            KM.VariableUtils().SetFlag(KM.ACTIVE, False, self._get_process_model_part().Conditions)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -265,6 +265,15 @@ class SearchBaseProcess(KM.Process):
         """
 
         return "Condition"
+
+    def _get_final_string(self):
+        """ This method returns the final string of the condition name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        return ""
 
     def _get_problem_name(self):
         """ This method returns the problem name to be solved
@@ -389,6 +398,7 @@ class SearchBaseProcess(KM.Process):
         search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
         search_parameters["condition_name"].SetString(self._get_condition_name())
+        search_parameters["final_string"].SetString(self._get_final_string())
         self.__assume_master_slave(key)
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
         search_parameters["id_name"].SetString(key)
