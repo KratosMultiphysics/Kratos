@@ -421,10 +421,10 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::Calcula
 
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateAe(
-    const array_1d<double, 3>& NormalMaster,
+    const array_1d<double, 3>& rNormalMaster,
     MatrixDualLM& rAe,
     GeneralVariables& rVariables,
-    ConditionArrayListType& ConditionsPointsSlave,
+    ConditionArrayListType& rConditionsPointsSlave,
     IntegrationMethod ThisIntegrationMethod
     )
 {
@@ -441,11 +441,11 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     rVariables.Initialize();
 
     // Calculating the proportion between the integrated area and segment area
-    for (IndexType i_geom = 0; i_geom < ConditionsPointsSlave.size(); ++i_geom) {
+    for (IndexType i_geom = 0; i_geom < rConditionsPointsSlave.size(); ++i_geom) {
         PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
         for (IndexType i_node = 0; i_node < TDim; ++i_node) {
             PointType global_point;
-            r_slave_geometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
+            r_slave_geometry.GlobalCoordinates(global_point, rConditionsPointsSlave[i_geom][i_node]);
             points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
         }
 
@@ -470,7 +470,7 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
                 decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
                 r_slave_geometry.PointLocalCoordinates(local_point_parent, gp_global);
 
-                this->CalculateKinematics( rVariables, rAe, NormalMaster, local_point_decomp, local_point_parent, decomp_geom, false);
+                this->CalculateKinematics( rVariables, rAe, rNormalMaster, local_point_decomp, local_point_parent, decomp_geom, false);
 
                 // Integrate
                 const double integration_weight = integration_points_slave[point_number].Weight();
@@ -490,25 +490,25 @@ template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateKinematics(
     GeneralVariables& rVariables,
     const MatrixDualLM& rAe,
-    const array_1d<double, 3>& NormalMaster,
-    const PointType& LocalPointDecomp,
-    const PointType& LocalPointParent,
-    GeometryPointType& GeometryDecomp,
+    const array_1d<double, 3>& rNormalMaster,
+    const PointType& rLocalPointDecomp,
+    const PointType& rLocalPointParent,
+    GeometryPointType& rGeometryDecomp,
     const bool DualLM
     )
 {
     /// SLAVE CONDITION ///
     /* SHAPE FUNCTIONS */
-    GetGeometry().ShapeFunctionsValues( rVariables.NSlave, LocalPointParent.Coordinates() );
+    GetGeometry().ShapeFunctionsValues( rVariables.NSlave, rLocalPointParent.Coordinates() );
     rVariables.PhiLagrangeMultipliers = (DualLM == true) ? prod(rAe, rVariables.NSlave) : rVariables.NSlave;
 
     /* CALCULATE JACOBIAN AND JACOBIAN DETERMINANT */
-    rVariables.DetjSlave = GeometryDecomp.DeterminantOfJacobian( LocalPointDecomp );
+    rVariables.DetjSlave = rGeometryDecomp.DeterminantOfJacobian( rLocalPointDecomp );
 
     KRATOS_ERROR_IF(rVariables.DetjSlave < 0.0) << "WARNING:: CONDITION ID: " << this->Id() << " INVERTED. DETJ: " << rVariables.DetjSlave << std::endl;
 
     /// MASTER CONDITION ///
-    this->MasterShapeFunctionValue( rVariables, NormalMaster, LocalPointParent);
+    this->MasterShapeFunctionValue( rVariables, rNormalMaster, rLocalPointParent);
 }
 
 /***********************************************************************************/
@@ -518,25 +518,25 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::MasterShapeFunctionValue(
     GeneralVariables& rVariables,
-    const array_1d<double, 3>& NormalMaster,
-    const PointType& LocalPoint
+    const array_1d<double, 3>& rNormalMaster,
+    const PointType& rLocalPoint
     )
 {
-    GeometryType& master_geometry = this->GetPairedGeometry();
+    GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     PointType projected_gp_global;
     const array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, GetGeometry());
 
     GeometryType::CoordinatesArrayType slave_gp_global;
-    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
-    GeometricalProjectionUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, NormalMaster, -gp_normal ); // The opposite direction
+    this->GetGeometry( ).GlobalCoordinates( slave_gp_global, rLocalPoint );
+    GeometricalProjectionUtilities::FastProjectDirection( r_master_geometry, slave_gp_global, projected_gp_global, rNormalMaster, -gp_normal ); // The opposite direction
 
     GeometryType::CoordinatesArrayType projected_gp_local;
 
-    master_geometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
+    r_master_geometry.PointLocalCoordinates(projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
     // SHAPE FUNCTIONS
-    master_geometry.ShapeFunctionsValues( rVariables.NMaster, projected_gp_local );
+    r_master_geometry.ShapeFunctionsValues( rVariables.NMaster, projected_gp_local );
 }
 
 /***************************** BEGIN AD REPLACEMENT ********************************/
@@ -3682,7 +3682,7 @@ void MeshTyingMortarCondition<3,8>::CalculateLocalRHS<MeshTyingMortarCondition<3
 template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& CurrentProcessInfo
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;

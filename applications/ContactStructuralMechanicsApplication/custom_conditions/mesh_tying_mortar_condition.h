@@ -520,7 +520,7 @@ protected:
     void CalculateConditionSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& CurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     /**
@@ -554,10 +554,10 @@ protected:
      * Calculate Ae matrix
      */
     bool CalculateAe(
-        const array_1d<double, 3>& NormalMaster,
+        const array_1d<double, 3>& rNormalMaster,
         MatrixDualLM& rAe,
         GeneralVariables& rVariables,
-        ConditionArrayListType& ConditionsPointsSlave,
+        ConditionArrayListType& rConditionsPointsSlave,
         IntegrationMethod ThisIntegrationMethod
         );
 
@@ -567,10 +567,10 @@ protected:
     void CalculateKinematics(
         GeneralVariables& rVariables,
         const MatrixDualLM& rAe,
-        const array_1d<double, 3>& NormalMaster,
-        const PointType& LocalPointDecomp,
-        const PointType& LocalPointParent,
-        GeometryPointType& GeometryDecomp,
+        const array_1d<double, 3>& rNormalMaster,
+        const PointType& rLocalPointDecomp,
+        const PointType& rLocalPointParent,
+        GeometryPointType& rGeometryDecomp,
         const bool DualLM = false
         );
 
@@ -579,7 +579,7 @@ protected:
     /********************************************************************************/
 
     /**
-     * Calculates the local contibution of the LHS
+     * @brief Calculates the local contibution of the LHS
      * @param rLocalLHS The local LHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDofData The class containing all the information needed in order to compute the jacobian
@@ -591,8 +591,11 @@ protected:
         const DofData<TTensor>& rDofData
         );
 
-    /*
-     * Calculates the local contibution of the LHS
+    /**
+     * @brief Calculates the local contibution of the LHS
+     * @param rLocalRHS The local RHS to compute
+     * @param rMortarConditionMatrices The mortar operators to be considered
+     * @param rDofData The class containing all the information needed in order to compute the jacobian
      */
     template< const TensorValue TTensor >
     void CalculateLocalRHS(
@@ -610,8 +613,8 @@ protected:
      */
     void MasterShapeFunctionValue(
         GeneralVariables& rVariables,
-        const array_1d<double, 3>& NormalMaster,
-        const PointType& LocalPoint
+        const array_1d<double, 3>& rNormalMaster,
+        const PointType& rLocalPoint
         );
 
     /******************************************************************/
