@@ -70,51 +70,51 @@ public:
 
     typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster> BaseType;
 
-    typedef typename BaseType::MortarConditionMatrices                                                        MortarConditionMatrices;
+    typedef typename BaseType::MortarConditionMatrices                    MortarConditionMatrices;
 
-    typedef Condition                                                                                               ConditionBaseType;
+    typedef Condition                                                           ConditionBaseType;
 
-    typedef PairedCondition                                                                                   PairedConditionBaseType;
+    typedef PairedCondition                                               PairedConditionBaseType;
 
-    typedef typename ConditionBaseType::VectorType                                                                         VectorType;
+    typedef typename ConditionBaseType::VectorType                                     VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                                                         MatrixType;
+    typedef typename ConditionBaseType::MatrixType                                     MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                                                           IndexType;
+    typedef typename ConditionBaseType::IndexType                                       IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                                                     GeometryPointerType;
+    typedef typename ConditionBaseType::GeometryType::Pointer                 GeometryPointerType;
 
-    typedef typename ConditionBaseType::NodesArrayType                                                                 NodesArrayType;
+    typedef typename ConditionBaseType::NodesArrayType                             NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType                                                                 PropertiesType;
+    typedef typename ConditionBaseType::PropertiesType                             PropertiesType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer                                                 PropertiesPointerType;
+    typedef typename ConditionBaseType::PropertiesType::Pointer             PropertiesPointerType;
 
-    typedef typename ConditionBaseType::EquationIdVectorType                                                     EquationIdVectorType;
+    typedef typename ConditionBaseType::EquationIdVectorType                 EquationIdVectorType;
 
-    typedef typename ConditionBaseType::DofsVectorType                                                                 DofsVectorType;
+    typedef typename ConditionBaseType::DofsVectorType                             DofsVectorType;
 
     /// Point definition
-    typedef Point                                                                                                           PointType;
+    typedef Point                                                                       PointType;
 
     /// Node type definition
-    typedef Node<3>                                                                                                          NodeType;
+    typedef Node<3>                                                                      NodeType;
 
     /// Geoemtry type definition
-    typedef Geometry<NodeType>                                                                                           GeometryType;
+    typedef Geometry<NodeType>                                                       GeometryType;
 
     // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType                                                            IntegrationPointsType;
+    typedef GeometryType::IntegrationPointsArrayType                        IntegrationPointsType;
 
-    typedef typename std::vector<array_1d<PointType,TDim>>                                                     ConditionArrayListType;
+    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
 
-    typedef Line2D2<Point>                                                                                                   LineType;
+    typedef Line2D2<Point>                                                               LineType;
 
-    typedef Triangle3D3<Point>                                                                                           TriangleType;
+    typedef Triangle3D3<Point>                                                       TriangleType;
 
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                     DecompositionType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>                                     DerivativeDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataType;
 
     static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster) + TNumNodes;
 
