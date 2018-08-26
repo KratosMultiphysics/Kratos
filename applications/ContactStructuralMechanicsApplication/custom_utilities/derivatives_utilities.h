@@ -53,12 +53,12 @@ namespace Kratos
 ///@name  Functions
 ///@{
 /**
- * @class DerivativesUtilities 
+ * @class DerivativesUtilities
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This utilities are used in order to compute the directional derivatives during mortar contact
  * @details The derivatives take the same argument templates than the contact conditions
  * @author Vicente Mataix Ferrandiz
- * @author Gabriel Valdes Alonzo 
+ * @author Gabriel Valdes Alonzo
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TNormalVariation If the normal variation is considered
@@ -130,7 +130,7 @@ public:
 
     /// Pointer definition of DerivativesUtilities
     KRATOS_CLASS_POINTER_DEFINITION( DerivativesUtilities );
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -246,7 +246,7 @@ public:
                 delta_j1 = zero_array;
 
                 delta_j0[i_dim] += rDNDe(i_node, 0);
-                if (TDim == 3) 
+                if (TDim == 3)
                     delta_j1[i_dim] += rDNDe(i_node, 1);
 
                 array_1d<double, 3> aux_delta_normal0, aux_delta_normal1;
@@ -311,11 +311,79 @@ public:
     }
 
     /**
+     * @brief Calculates the increment of the normal and in the slave condition
+     * @param rDeltaNormal The derivative of the normal
+     * @param rThisGeometry The geometry of the salve side
+     */
+    static inline void CalculateDeltaNormalSlave(
+        array_1d<BoundedMatrix<double, TNumNodes, TDim>, TNumNodes * TDim>& rDeltaNormal,
+        GeometryType& rThisGeometry
+        )
+    {
+        BoundedMatrix<double, TNumNodes, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(rThisGeometry,  NORMAL, 1);
+        BoundedMatrix<double, TNumNodes, TDim> aux_delta_normal_geometry = ZeroMatrix(TNumNodes, TDim);
+
+        for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
+            // We compute the gradient and jacobian
+            GeometryType::CoordinatesArrayType point_local;
+            rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
+            Matrix jacobian;
+            jacobian = rThisGeometry.Jacobian( jacobian, point_local);
+            Matrix gradient;
+            rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
+
+            // We compute the delta normal of the node
+            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+                const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
+                for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
+                    const array_1d<double, TDim>& aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
+                    row(aux_delta_normal_geometry, i_geometry) += delta_disp[i_dof] * aux_delta_normal;
+                }
+            }
+        }
+
+        BoundedMatrix<double, TNumNodes, TDim> calculated_normal_geometry = aux_delta_normal_geometry + aux_normal_geometry;
+        for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry )
+            row(calculated_normal_geometry, i_geometry) /= norm_2(row(calculated_normal_geometry, i_geometry));
+
+        // We compute the diff matrix to compute the auxiliar matrix later
+        const BoundedMatrix<double, TNumNodes, TDim> diff_matrix = calculated_normal_geometry - aux_normal_geometry;
+
+        // We iterate over the nodes of the geometry
+        for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
+            // Computing auxiliar matrix
+            const BoundedMatrix<double, TDim, TDim> renormalizer_matrix = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
+
+            // We compute the gradient and jacobian
+            GeometryType::CoordinatesArrayType point_local;
+            rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
+            Matrix jacobian;
+            jacobian = rThisGeometry.Jacobian( jacobian, point_local);
+            Matrix gradient;
+            rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
+
+            // Auxilary terms
+            array_1d<double, TDim> aux_delta_normal;
+
+            // We compute the delta normal of the node
+            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+                for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
+                    array_1d<double, TDim> aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
+                    row(rDeltaNormal[i_node * TDim + i_dof], i_geometry) = prod(renormalizer_matrix, aux_delta_normal);
+                }
+            }
+        }
+    }
+
+    /**
      * @brief Calculates the increment of the normal and in the master condition
      * @param rDeltaNormal The derivative of the normal
      * @param rThisGeometry The geometry of the master side
+     * @note Hardcopied for performance
      */
-    static inline void CalculateDeltaNormal(
+    static inline void CalculateDeltaNormalMaster(
         array_1d<BoundedMatrix<double, TNumNodesMaster, TDim>, TNumNodesMaster * TDim>& rDeltaNormal,
         GeometryType& rThisGeometry
         )
@@ -365,7 +433,7 @@ public:
 
             // Auxilary terms
             array_1d<double, TDim> aux_delta_normal;
-            
+
             // We compute the delta normal of the node
             const array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node = GPDeltaNormal(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
@@ -516,7 +584,7 @@ public:
                     // We get the delta normal
                     if ((ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) && belong_index < TNumNodes)
                         delta_normal = all_delta_normal[belong_index * TDim + i_dof] * (1.0/aux_nodes_coeff);
-                    else 
+                    else
                         delta_normal = zero_array;
 
                     auto& local_delta_vertex = rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof];
@@ -583,7 +651,7 @@ public:
 
                     // Local contribution
                     const array_1d<double, 3> aux_delta_node = LocalDeltaVertex( rSlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry );
-                    if (i_node < TNumNodes) 
+                    if (i_node < TNumNodes)
                         noalias(aux_RHS1) -= r_N1[i_node] * aux_delta_node;
 
                     // We compute the delta coordinates
@@ -717,9 +785,9 @@ public:
 
                     // Local contribution
                     const array_1d<double, 3> aux_delta_node = LocalDeltaVertex( rSlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry );
-                    if (i_node < TNumNodes) 
+                    if (i_node < TNumNodes)
                         noalias(aux_RHS1) -= r_N1[i_node] * aux_delta_node;
-                    else 
+                    else
                         noalias(aux_RHS2) -= r_N2[i_node - TNumNodes] * aux_delta_node;
 
                     // We compute the delta coordinates
@@ -1266,7 +1334,7 @@ private:
 //         rResult[0] = aux[0];
 //         rResult[1] = aux[1];
 //         #ifdef KRATOS_DEBUG
-//             if (std::abs(det_L) < tolerance) 
+//             if (std::abs(det_L) < tolerance)
 //                 KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
 //         #endif
     }
