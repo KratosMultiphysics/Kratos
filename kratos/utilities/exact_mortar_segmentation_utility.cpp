@@ -454,6 +454,8 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
             rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
             rConditionsPointsSlave[0][i_node] = point;
         }
+
+        return true;
     } else {
         // We add the internal nodes
         PushBackPoints<3>(point_list, all_inside_master, master_geometry);
@@ -920,6 +922,8 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
             rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
             rConditionsPointsSlave[0][i_node] = point;
         }
+
+        return true;
     } else {
         // We add the internal nodes
         PushBackPoints<3>(point_list, all_inside_master, master_geometry, PointBelongs::Master);
