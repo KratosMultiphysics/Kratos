@@ -192,13 +192,13 @@ class GiDOutputProcess(Process):
             else:
                 label = self.printed_step_count
 
-            self.__remove_post_results_files(label)
+            self._remove_post_results_files(label)
 
             # Restart .post.lst files
-            self.__restart_list_files(additional_list_files)
+            self._restart_list_files(additional_list_files)
         else:
             # Create .post.lst files
-            self.__initialize_list_files(additional_list_files)
+            self._initialize_list_files(additional_list_files)
 
         # Process point recording data
         if self.point_output_process is not None:
@@ -378,7 +378,7 @@ class GiDOutputProcess(Process):
 
             self.__define_output_plane(cut_data)
 
-    def __initialize_list_files(self,additional_frequencies):
+    def _initialize_list_files(self,additional_frequencies):
         '''Set up .post.lst files for global and cut results.
         If we have only one tipe of output (volume or cut), the
         list file is called <gid_model_name>.post.lst. When we have
@@ -605,11 +605,11 @@ class GiDOutputProcess(Process):
                     f.flush()
 
     #
-    def __restart_list_files(self,additional_frequencies):
+    def _restart_list_files(self,additional_frequencies):
 
         self.__remove_list_files()
 
-        self.__initialize_list_files(additional_frequencies)
+        self._initialize_list_files(additional_frequencies)
 
         if self.post_mode == GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
@@ -683,7 +683,7 @@ class GiDOutputProcess(Process):
                         pass
 
     #
-    def __remove_post_results_files(self, step_label):
+    def _remove_post_results_files(self, step_label):
 
         path = os.getcwd()
 
