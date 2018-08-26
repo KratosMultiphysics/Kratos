@@ -94,8 +94,11 @@ public:
     /// The type of points belongfs to be considered
     typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
 
+    /// The definition of the point with belonging
+    typedef PointBelong<TNumNodes, TNumNodesMaster> PointBelongType;
+
     /// An array of points belong
-    typedef std::vector<array_1d<PointBelong<TNumNodes>, TDim>> VectorArrayPointsBelong;
+    typedef std::vector<array_1d<PointBelongType, TDim>> VectorArrayPointsBelong;
 
     /// A vector of points
     typedef std::vector<array_1d<PointType, TDim>> VectorArrayPoints;
@@ -104,7 +107,7 @@ public:
     typedef typename std::conditional<TBelong, VectorArrayPointsBelong,VectorArrayPoints>::type ConditionArrayListType;
 
     /// A vector of points for derivatives
-    typedef std::vector<PointBelong<TNumNodes>> VectorPointsBelong;
+    typedef std::vector<PointBelongType> VectorPointsBelong;
 
     /// A vector of normal points
     typedef std::vector<PointType> VectorPoints;
@@ -113,7 +116,7 @@ public:
     typedef typename std::conditional<TBelong, VectorPointsBelong, VectorPoints>::type PointListType;
 
     /// An array of points belong
-    typedef array_1d<PointBelong<TNumNodes>, 3> ArrayPointsBelong;
+    typedef array_1d<PointBelongType, 3> ArrayPointsBelong;
 
     /// An array of normal points
     typedef array_1d<PointType, 3> ArrayPoints;

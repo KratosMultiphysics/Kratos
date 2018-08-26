@@ -713,7 +713,8 @@ public:
     array_1d<GeometryArraySlaveType, DoFSizeDerivativesDependence> DeltaN1;
     array_1d<GeometryArrayMasterType, DoFSizeDerivativesDependence> DeltaN2;
     /// Normal derivatives
-    array_1d<GeometryDoFMatrixSlaveType, DoFSizeSlaveGeometry> DeltaNormalSlave, DeltaNormalMaster;
+    array_1d<GeometryDoFMatrixSlaveType, DoFSizeSlaveGeometry> DeltaNormalSlave;
+    array_1d<GeometryDoFMatrixMasterType, DoFSizeMasterGeometry> DeltaNormalMaster;
     /// Integration cell vertex derivatives
     array_1d<VertexDerivativesMatrixType, DoFSizeDerivativesVertex> DeltaCellVertex;
 
