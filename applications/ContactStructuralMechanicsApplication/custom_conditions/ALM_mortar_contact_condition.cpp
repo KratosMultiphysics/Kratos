@@ -407,7 +407,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION]);
 
     // We compute the normal derivatives
-    if (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalSlave, GetGeometry());
+    if (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormalSlave(rDerivativeData.DeltaNormalSlave, GetGeometry());
 
     // Create the mortar operators
     MortarConditionMatrices rThisMortarConditionMatrices;
@@ -440,7 +440,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         // Initialize the mortar operators
         rThisMortarConditionMatrices.Initialize();
 
-        if (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalMaster, master_geometry);
+        if (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormalMaster(rDerivativeData.DeltaNormalMaster, master_geometry);
 
         const bool dual_LM =  DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry, normal_slave, master_geometry, rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method, GetAxisymmetricCoefficient(rVariables));
 
@@ -1449,11 +1449,15 @@ void AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFriction
 
 // Frictionless cases
 template class AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICTIONLESS, false>;
-template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS, false>;
-template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS, false>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS, false, 3>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS, false, 4>;
+// template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS, false, 4>;
+// template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS, false, 3>;
 template class AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICTIONLESS, true>;
-template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS, true>;
-template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS, true>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS, true, 3>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS, true, 4>;
+// template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS, true, 4>;
+// template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS, true, 3>;
 
 // Frictionless components cases
 template class AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICTIONLESS_COMPONENTS, false>;
