@@ -114,7 +114,10 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         }
         """)
 
-        check_parameters["input_file_name"].SetString(input_filename+".json")
+        if (inverted is True):
+            check_parameters["input_file_name"].SetString(input_filename+"_inverted.json")
+        else:
+            check_parameters["input_file_name"].SetString(input_filename+".json")
 
         check = from_json_check_result_process.FromJsonCheckResultProcess(self.model, check_parameters)
         check.ExecuteInitialize()
@@ -133,7 +136,10 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #}
         #""")
 
-        #out_parameters["output_file_name"].SetString(input_filename+".json")
+        #if (inverted is True):
+            #out_parameters["output_file_name"].SetString(input_filename+"_inverted.json")
+        #else:
+            #out_parameters["output_file_name"].SetString(input_filename+".json")
 
         #out = json_output_process.JsonOutputProcess(self.model, out_parameters)
         #out.ExecuteInitialize()
@@ -162,7 +168,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
 
     def test_mortar_mapping_tri_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
-        #self._mapper_tests(input_filename, 3, 4, False, True)
+        self._mapper_tests(input_filename, 3, 4, False, True)
 
     def __post_process(self):
         from gid_output_process import GiDOutputProcess
