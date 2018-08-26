@@ -9,9 +9,15 @@ class SimpleSlopePatchTestTwoDMeshTying(TestFactory):
 class SimplestPatchTestThreeDMeshTying(TestFactory):
     file_name = "mesh_tying_test/3D_contact_simplest_patch_matching_test"
 
+class SimplestPatchTestThreeDTriQuadMeshTying(TestFactory):
+    file_name = "mesh_tying_test/3D_contact_simplest_patch_matching_triquad_test"
+
+class SimplestPatchTestThreeDQuadTriMeshTying(TestFactory):
+    file_name = "mesh_tying_test/3D_contact_simplest_patch_matching_quadtri_test"
+
 class SimplePatchTestThreeDMeshTying(TestFactory):
     file_name = "mesh_tying_test/simple_patch_test_3D"
-    
+
 class ALMHyperSimplePatchTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
 
@@ -61,7 +67,7 @@ class ComponentsALMHyperSimpleTrianglePatchTestContact(TestFactory):
 class ComponentsALMHyperSimplePatchTestContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
-    
+
 class ComponentsALMHyperSimpleSlopePatchTestContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"
