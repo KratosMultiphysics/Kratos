@@ -60,7 +60,6 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodesElem The number of nodes of the slave
- * @tparam TTensor The type of element considered
  * @tparam TNumNodesElemMaster The number of nodes of the master
  */
 template< const SizeType TDim, const SizeType TNumNodesElem, const SizeType TNumNodesElemMaster = TNumNodesElem>
