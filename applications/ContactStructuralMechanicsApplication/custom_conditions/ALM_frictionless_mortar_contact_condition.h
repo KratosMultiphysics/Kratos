@@ -29,12 +29,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Point                                     PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod   IntegrationMethod;
+    /// The definition of the size type
+    typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
@@ -56,10 +52,14 @@ namespace Kratos
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNormalVariation If we are consider normal variation
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
+template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes >
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodFrictionlessMortarContactCondition
-    : public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation>
+    : public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
@@ -68,7 +68,7 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation> BaseType;
+    typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster> BaseType;
 
     typedef typename BaseType::MortarConditionMatrices                                                        MortarConditionMatrices;
 
@@ -94,6 +94,18 @@ public:
 
     typedef typename ConditionBaseType::DofsVectorType                                                                 DofsVectorType;
 
+    /// Point definition
+    typedef Point                                                                                                           PointType;
+
+    /// Node type definition
+    typedef Node<3>                                                                                                          NodeType;
+
+    /// Geoemtry type definition
+    typedef Geometry<NodeType>                                                                                           GeometryType;
+
+    // Type definition for integration methods
+    typedef GeometryType::IntegrationPointsArrayType                                                            IntegrationPointsType;
+
     typedef typename std::vector<array_1d<PointType,TDim>>                                                     ConditionArrayListType;
 
     typedef Line2D2<Point>                                                                                                   LineType;
@@ -102,9 +114,9 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                     DecompositionType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation>                                                      DerivativeDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>                                     DerivativeDataType;
 
-    static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
+    static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster) + TNumNodes;
 
     ///@}
     ///@name Life Cycle
