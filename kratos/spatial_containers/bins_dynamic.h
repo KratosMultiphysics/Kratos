@@ -86,7 +86,7 @@ public:
     typedef LocalContainerType                          PointVector;
     typedef LocalIterator                               PointIterator;
     typedef TreeNodeType                                LeafType;
-    
+
 public:
 
     //************************************************************************
@@ -191,7 +191,7 @@ public:
 
      /**
      * @brief Get the Cell Container object
-     * 
+     *
      * @return CellContainerType& The Cell Container object
      */
     CellContainerType& GetCellContainer() {
@@ -200,7 +200,7 @@ public:
 
     /**
      * @brief Get the Divisions object
-     * 
+     *
      * @return SizeArray& Array containing the number of Cells in each dimension
      */
     SizeArray& GetDivisions() {
@@ -209,7 +209,7 @@ public:
 
     /**
      * @brief Get the Cell Size object
-     * 
+     *
      * @return CoordinateArray& Array containing the size of the Cell in each dimension
      */
     CoordinateArray& GetCellSize() {
@@ -218,7 +218,7 @@ public:
 
     /**
      * @brief Get the Min Point object
-     * 
+     *
      * @return PointType& Min point of the bins
      */
     PointType& GetMinPoint() {
@@ -227,7 +227,7 @@ public:
 
     /**
      * @brief Get the Max Point object
-     * 
+     *
      * @return PointType& Max point of the bins
      */
     PointType& GetMaxPoint() {
@@ -253,20 +253,20 @@ public:
 
     //************************************************************************
 
-    /** 
+    /**
      * @brief Calculates the cell size of the bins.
-     * 
+     *
      * Calculates the cell size of the bins using an average aproximation of the objects in the bins.
-     * 
+     *
      * @param ApproximatedSize Aproximate number of objects that will be stored in the bins
      */
-    void CalculateCellSize(std::size_t ApproximatedSize) 
+    void CalculateCellSize(std::size_t ApproximatedSize)
     {
         std::size_t average_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(ApproximatedSize), 1.00 / Dimension));
-        
+
         std::array<double, 3> lengths;
         double average_length = 0.00;
-        
+
         for (int i = 0; i < Dimension; i++) {
             lengths[i] = mMaxPoint[i] - mMinPoint[i];
             average_length += lengths[i];
@@ -282,7 +282,7 @@ public:
 
         for (int i = 0; i < Dimension; i++) {
              mN[i] = static_cast<std::size_t>(lengths[i] / average_length * (double)average_number_of_cells) + 1;
-            
+
             if (mN[i] > 1) {
                 mCellSize[i] = lengths[i] / mN[i];
             } else {
@@ -445,7 +445,7 @@ public:
 
     //************************************************************************
 
-    void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance )
+    void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance ) override
     {
         SearchStructureType Box;
         Box.Set( CalculateCell(ThisPoint), mN );
@@ -454,16 +454,16 @@ public:
 
     //************************************************************************
 
-    void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Box )
+    void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Box ) override
     {
         // This case is when BinStatic is a LeafType in Other Spacial Structure
         // Then, it is possible a better Result before this search
         Box.Set( CalculateCell(ThisPoint), mN );
         SearchNearestPointLocal( ThisPoint, rResult, rResultDistance, Box );
     }
-    
+
     //************************************************************************
-        
+
     void SearchNearestPoint( PointType* const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
     {
         #pragma omp parallel for
@@ -522,7 +522,7 @@ public:
     //************************************************************************
 
     void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                         DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
+                         DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults ) override
     {
         SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
         SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
@@ -531,12 +531,12 @@ public:
     //************************************************************************
 
     void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                         DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
+                         DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box ) override
     {
         Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
         SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
     }
-    
+
     //************************************************************************
 
     void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateVectorType const& Radius, IteratorVectorType Results,
@@ -605,7 +605,7 @@ public:
     //************************************************************************
 
     void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                         SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
+                         SizeType& NumberOfResults, SizeType const& MaxNumberOfResults ) override
     {
         SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
         SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Box );
@@ -614,7 +614,7 @@ public:
     //************************************************************************
 
     void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                         SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
+                         SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box ) override
     {
         Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
         SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Box );
@@ -702,7 +702,7 @@ public:
     //************************************************************************
 
     void SearchInBox(PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& Results, SizeType& NumberOfResults,
-                     SizeType const& MaxNumberOfResults )
+                     SizeType const& MaxNumberOfResults ) override
     {
         NumberOfResults = 0;
         SearchStructureType Box( CalculateCell(SearchMinPoint), CalculateCell(SearchMaxPoint), mN );
@@ -756,7 +756,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
+    void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
     {
         rOStream << Perfix << "Bin[" << SearchUtils::PointerDistance(mPointBegin, mPointEnd) << "] : " << std::endl;
         for(typename CellContainerType::const_iterator i_cell = mCells.begin() ; i_cell != mCells.end() ; i_cell++)
