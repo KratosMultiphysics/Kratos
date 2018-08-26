@@ -545,14 +545,17 @@ class SearchBaseProcess(KM.Process):
         if (self.dimension == 2):
             exact_integration = KM.ExactMortarIntegrationUtility2D2N(3)
         else:
-            #num_nodes = len(self._get_process_model_part().Conditions[1].GetNodes())
-            for cond in self._get_process_model_part().Conditions:
-                num_nodes = len(cond.GetNodes())
-                break
-            if (num_nodes == 3):
-                exact_integration = KM.ExactMortarIntegrationUtility3D3N(3)
+            number_nodes, number_nodes_master = self._compute_number_nodes()
+            if (number_nodes == 3):
+                if (number_nodes_master == 3):
+                    exact_integration = KM.ExactMortarIntegrationUtility3D3N(3)
+                else:
+                    exact_integration = KM.ExactMortarIntegrationUtility3D3N4N(3)
             else:
-                exact_integration = KM.ExactMortarIntegrationUtility3D4N(3)
+                if (number_nodes_master == 3):
+                    exact_integration = KM.ExactMortarIntegrationUtility3D4N3N(3)
+                else:
+                    exact_integration = KM.ExactMortarIntegrationUtility3D4N(3)
 
         # We iterate over the conditions
         for cond in self._get_process_model_part().Conditions:
