@@ -1369,7 +1369,7 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
             auxiliar_slave_center_local_coords[1] = 1.0/3.0 * (points_locals_slave[0].Y() + points_locals_slave[1].Y() + points_locals_slave[2].Y());
             auxiliar_master_center_local_coords[0] = 1.0/3.0 * (points_locals_master[0].X() + points_locals_master[1].X() + points_locals_master[2].X());
             auxiliar_master_center_local_coords[1] = 1.0/3.0 * (points_locals_master[0].Y() + points_locals_master[1].Y() + points_locals_master[2].Y());
-            const bool center_is_inside = CheckCenterIsInside(auxiliar_slave_center_local_coords) && CheckCenterIsInside(auxiliar_master_center_local_coords);
+            const bool center_is_inside = CheckCenterIsInside(auxiliar_slave_center_local_coords) && CheckCenterIsInside(auxiliar_master_center_local_coords, TNumNodesMaster);
             if (!center_is_inside) {
                 rConditionsPointsSlave.erase(rConditionsPointsSlave.begin() + aux_elem_index);
                 KRATOS_WARNING_IF("ExactMortarIntegrationUtility", mEchoLevel > 0) << "The generated intersection is probably a concave polygon. Check it out: \n" << rSlaveGeometry << "\n" << rMasterGeometry << std::endl;
@@ -1400,9 +1400,12 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
-inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::CheckCenterIsInside(const array_1d<double, 2>& rAuxiliarCenterLocalCoordinates)
+inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::CheckCenterIsInside(
+    const array_1d<double, 2>& rAuxiliarCenterLocalCoordinates,
+    const SizeType NumNodes
+    )
 {
-    if (TNumNodes == 3) {
+    if (NumNodes == 3) {
         if ( (rAuxiliarCenterLocalCoordinates[0] >= (0.0-ZeroTolerance)) && (rAuxiliarCenterLocalCoordinates[0] <= (1.0+ZeroTolerance)) ) {
             if ( (rAuxiliarCenterLocalCoordinates[1] >= (0.0-ZeroTolerance)) && (rAuxiliarCenterLocalCoordinates[1] <= (1.0+ZeroTolerance)) ) {
                 if ( (rAuxiliarCenterLocalCoordinates[0] + rAuxiliarCenterLocalCoordinates[1]) <= (1.0+ZeroTolerance) ) {
@@ -1410,7 +1413,7 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
                 }
             }
         }
-    } if (TNumNodes == 4) {
+    } if (NumNodes == 4) {
         if ( std::abs(rAuxiliarCenterLocalCoordinates[0]) <= (1.0+ZeroTolerance) ) {
             if ( std::abs(rAuxiliarCenterLocalCoordinates[1]) <= (1.0+ZeroTolerance) ) {
                 return true;
