@@ -3378,7 +3378,7 @@ void MeshTyingMortarCondition<3,4,8>::CalculateLocalLHS<MeshTyingMortarCondition
     )
 {
     // We get the mortar operators
-    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
@@ -3509,7 +3509,7 @@ void MeshTyingMortarCondition<3,4,8>::CalculateLocalLHS<MeshTyingMortarCondition
     )
 {
     // We get the mortar operators
-    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
@@ -4440,7 +4440,7 @@ void MeshTyingMortarCondition<3,8,4>::CalculateLocalLHS<MeshTyingMortarCondition
     )
 {
     // We get the mortar operators
-    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
@@ -4592,7 +4592,7 @@ void MeshTyingMortarCondition<3,8,4>::CalculateLocalLHS<MeshTyingMortarCondition
     )
 {
     // We get the mortar operators
-    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
     const double clhs0 =     -MOperator(0,0);
@@ -6037,12 +6037,12 @@ void MeshTyingMortarCondition<3,4, 8>::CalculateLocalRHS<MeshTyingMortarConditio
 {
     // Initialize values
     const BoundedMatrix<double, 3, ScalarValue> u1 = rDofData.u1;
-    const BoundedMatrix<double, 3, ScalarValue> u2 = rDofData.u2;
+    const BoundedMatrix<double, 4, ScalarValue> u2 = rDofData.u2;
 
     const BoundedMatrix<double, 3, ScalarValue> lm = rDofData.LagrangeMultipliers;
 
     // Mortar operators
-    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
 
@@ -6072,12 +6072,12 @@ void MeshTyingMortarCondition<3,4, 8>::CalculateLocalRHS<MeshTyingMortarConditio
 {
     // Initialize values
     const BoundedMatrix<double, 3, Vector3DValue> u1 = rDofData.u1;
-    const BoundedMatrix<double, 3, Vector3DValue> u2 = rDofData.u2;
+    const BoundedMatrix<double, 4, Vector3DValue> u2 = rDofData.u2;
 
     const BoundedMatrix<double, 3, Vector3DValue> lm = rDofData.LagrangeMultipliers;
 
     // Mortar operators
-    const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
 
@@ -6127,12 +6127,12 @@ void MeshTyingMortarCondition<3,8, 4>::CalculateLocalRHS<MeshTyingMortarConditio
 {
     // Initialize values
     const BoundedMatrix<double, 4, ScalarValue> u1 = rDofData.u1;
-    const BoundedMatrix<double, 4, ScalarValue> u2 = rDofData.u2;
+    const BoundedMatrix<double, 3, ScalarValue> u2 = rDofData.u2;
 
     const BoundedMatrix<double, 4, ScalarValue> lm = rDofData.LagrangeMultipliers;
 
     // Mortar operators
-    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
 
@@ -6163,12 +6163,12 @@ void MeshTyingMortarCondition<3,8, 4>::CalculateLocalRHS<MeshTyingMortarConditio
 {
     // Initialize values
     const BoundedMatrix<double, 4, Vector3DValue> u1 = rDofData.u1;
-    const BoundedMatrix<double, 4, Vector3DValue> u2 = rDofData.u2;
+    const BoundedMatrix<double, 3, Vector3DValue> u2 = rDofData.u2;
 
     const BoundedMatrix<double, 4, Vector3DValue> lm = rDofData.LagrangeMultipliers;
 
     // Mortar operators
-    const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
+    const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
 
@@ -6396,13 +6396,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints();
 
-    if ( rOutput.size() != integration_points.size() ) {
-        rOutput.resize( integration_points.size() );
+    if ( rOutput.size() != r_integration_points.size() ) {
+        rOutput.resize( r_integration_points.size() );
     }
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         rOutput[point_number] = 0.0;
     }
 
@@ -6421,13 +6421,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints();
 
-    if ( rOutput.size() != integration_points.size() ) {
-        rOutput.resize( integration_points.size() );
+    if ( rOutput.size() != r_integration_points.size() ) {
+        rOutput.resize( r_integration_points.size() );
     }
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         rOutput[point_number] = ZeroVector(3);
     }
 
@@ -6446,13 +6446,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints();
 
-    if ( rOutput.size() != integration_points.size() ) {
-        rOutput.resize( integration_points.size() );
+    if ( rOutput.size() != r_integration_points.size() ) {
+        rOutput.resize( r_integration_points.size() );
     }
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         rOutput[point_number] = ZeroVector(3);
     }
 

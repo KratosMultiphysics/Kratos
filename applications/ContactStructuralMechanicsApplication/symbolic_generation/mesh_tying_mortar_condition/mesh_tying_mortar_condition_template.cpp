@@ -738,13 +738,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints();
 
-    if ( rOutput.size() != integration_points.size() ) {
-        rOutput.resize( integration_points.size() );
+    if ( rOutput.size() != r_integration_points.size() ) {
+        rOutput.resize( r_integration_points.size() );
     }
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         rOutput[point_number] = 0.0;
     }
 
@@ -763,13 +763,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints();
 
-    if ( rOutput.size() != integration_points.size() ) {
-        rOutput.resize( integration_points.size() );
+    if ( rOutput.size() != r_integration_points.size() ) {
+        rOutput.resize( r_integration_points.size() );
     }
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         rOutput[point_number] = ZeroVector(3);
     }
 
@@ -788,13 +788,13 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints();
 
-    if ( rOutput.size() != integration_points.size() ) {
-        rOutput.resize( integration_points.size() );
+    if ( rOutput.size() != r_integration_points.size() ) {
+        rOutput.resize( r_integration_points.size() );
     }
 
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         rOutput[point_number] = ZeroVector(3);
     }
 

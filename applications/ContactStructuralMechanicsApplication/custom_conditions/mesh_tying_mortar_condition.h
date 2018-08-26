@@ -438,11 +438,11 @@ protected:
         {
             /* DoF */
             if (TTensor == 1) {
-                for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+                for (IndexType i_node = 0; i_node < NumNodesMaster; ++i_node) {
                     u2(i_node, 0) = rGeometryInput[i_node].FastGetSolutionStepValue(rDoubleVariables[0]);
                 }
             } else {
-                for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+                for (IndexType i_node = 0; i_node < NumNodesMaster; ++i_node) {
                     for (IndexType i_dof = 0; i_dof < TTensor; ++i_dof) {
                         u2(i_node, i_dof) =  rGeometryInput[i_node].FastGetSolutionStepValue(rArray1DVariables[i_dof]);
                     }
