@@ -139,7 +139,7 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
 
-    typedef typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNormalVariation> >::type DerivativeDataType;
+    typedef typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> >::type DerivativeDataType;
 
     static constexpr IndexType MatrixSize = (TFrictional == FrictionalCase::FRICTIONLESS) ? TDim * (TNumNodesMaster + TNumNodes) + TNumNodes : TDim * (TNumNodesMaster + TNumNodes + TNumNodes);
 
