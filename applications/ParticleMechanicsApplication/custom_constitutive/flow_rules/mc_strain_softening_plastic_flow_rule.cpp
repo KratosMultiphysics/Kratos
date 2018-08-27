@@ -76,7 +76,13 @@ bool MCStrainSofteningPlasticFlowRule::UpdateInternalVariables( RadialReturnVari
 {
     MCPlasticFlowRule::UpdateInternalVariables( rReturnMappingVariables );
 
+    this->UpdateMaterialParameters();
+
     return true;
+}
+
+void MCStrainSofteningPlasticFlowRule::UpdateMaterialParameters()
+{
 }
 
 

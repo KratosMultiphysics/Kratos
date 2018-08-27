@@ -117,12 +117,15 @@ public:
 
 
     ///@}
-   
+
+protected:
+
     //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     ///@}
     ///@name Protected  Access
     ///@{
 
+    void UpdateMaterialParameters();
 
     ///@}
     ///@name Protected Inquiry

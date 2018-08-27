@@ -81,10 +81,6 @@ double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
     double Cohesion = this->GetHardeningLaw().GetProperties()[COHESION];
     double FrictionAngle = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
 
-    // Hardening/softening in Cohesion and FrictionAngle
-    this->CalculateAndAddHardeningToMaterialParameter(COHESION, Cohesion, rAlpha);
-    this->CalculateAndAddHardeningToMaterialParameter(INTERNAL_FRICTION_ANGLE, FrictionAngle, rAlpha);
-
     const double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
     const double CohesionCoefficient = 2 * Cohesion * sqrt(FrictionCoefficient);
 
@@ -94,12 +90,6 @@ double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
     return rStateFunction;
 }
 
-void MCYieldCriterion::CalculateAndAddHardeningToMaterialParameter(const Variable<double>& rThisVariable, double& rMatParam, const double& rAlpha)
-{
-    double Hardening = 0.0;
-    Hardening = this->GetHardeningLaw().CalculateHardening(Hardening, rAlpha, rThisVariable);
-    rMatParam += Hardening;
-}
 
 double MCYieldCriterion::GetSmoothingLodeAngle()
 {
