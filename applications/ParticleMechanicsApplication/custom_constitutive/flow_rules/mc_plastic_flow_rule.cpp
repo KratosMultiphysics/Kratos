@@ -792,6 +792,11 @@ double MCPlasticFlowRule::GetPI()
     return std::atan(1.0)*4.0;
 }
 
+unsigned int MCPlasticFlowRule::GetPlasticRegion()
+{
+    return mRegion;
+}
+
 
 void MCPlasticFlowRule::ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH)
 {
