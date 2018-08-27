@@ -68,14 +68,14 @@ void ExponentialStrainSofteningLaw::InitializeMaterial (const Properties& rMater
 {
     HardeningLaw::InitializeMaterial(rMaterialProperties);
 
-    this->InitializeHardeningParameters(mHardeningParameters);
+    this->InitializeHardeningParameters();
 
 }
 
-void ExponentialStrainSofteningLaw::InitializeHardeningParameters(HardeningParameters& rHardeningParameters){
-    rHardeningParameters.DeltaCohesion        = 0.0;
-    rHardeningParameters.DeltaFrictionAngle   = 0.0;
-    rHardeningParameters.DeltaDilatancyAngle  = 0.0;
+void ExponentialStrainSofteningLaw::InitializeHardeningParameters(){
+    mHardeningParameters.DeltaCohesion        = 0.0;
+    mHardeningParameters.DeltaFrictionAngle   = 0.0;
+    mHardeningParameters.DeltaDilatancyAngle  = 0.0;
 }
 
 //*******************************CALCULATE TOTAL HARDENING****************************

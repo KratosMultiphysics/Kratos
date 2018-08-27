@@ -144,7 +144,7 @@ protected:
 
     HardeningParameters mHardeningParameters;
 
-    void InitializeHardeningParameters(HardeningParameters& rHardeningParameters);
+    void InitializeHardeningParameters();
 
     ///@}
     ///@name Protected member Variables
