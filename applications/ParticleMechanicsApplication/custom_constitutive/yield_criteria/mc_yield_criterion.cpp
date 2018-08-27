@@ -76,10 +76,10 @@ MCYieldCriterion::~MCYieldCriterion()
 //************************* CALCULATE YIELD FUNCTION  ******************
 //**********************************************************************
 
-double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha)
+double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rBeta)
 {
-    double Cohesion = this->GetHardeningLaw().GetProperties()[COHESION];
-    double FrictionAngle = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
+    double Cohesion      = rAlpha;
+    double FrictionAngle = rBeta;
 
     const double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
     const double CohesionCoefficient = 2 * Cohesion * sqrt(FrictionCoefficient);
