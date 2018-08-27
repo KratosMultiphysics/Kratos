@@ -84,6 +84,16 @@ public:
         double FrictionAngle;
         double DilatancyAngle;
 
+    public:
+        void PrintInfo()
+        {
+            std::cout << "YoungModulus   = " << YoungModulus   << std::endl;
+            std::cout << "PoissonRatio   = " << PoissonRatio   << std::endl;
+            std::cout << "Cohesion       = " << Cohesion       << std::endl;
+            std::cout << "FrictionAngle  = " << FrictionAngle  << std::endl;
+            std::cout << "DilatancyAngle = " << DilatancyAngle << std::endl;
+        }
+
     };
 
     ///@}
