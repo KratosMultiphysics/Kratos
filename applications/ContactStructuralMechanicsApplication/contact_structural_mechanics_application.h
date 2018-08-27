@@ -207,10 +207,10 @@ private:
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true,  3> mALMNVFrictionlessMortarContactCondition3D3N;
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4> mALMFrictionlessMortarContactCondition3D4N;
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true,  4> mALMNVFrictionlessMortarContactCondition3D4N;
-//     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4> mALMFrictionlessMortarContactCondition3D3N4N;
-//     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true,  4> mALMNVFrictionlessMortarContactCondition3D3N4N;
-//     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3> mALMFrictionlessMortarContactCondition3D4N3N;
-//     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true,  3> mALMNVFrictionlessMortarContactCondition3D4N3N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4> mALMFrictionlessMortarContactCondition3D3N4N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true,  4> mALMNVFrictionlessMortarContactCondition3D3N4N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3> mALMFrictionlessMortarContactCondition3D4N3N;
+    const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true,  3> mALMNVFrictionlessMortarContactCondition3D4N3N;
     // Frictionless components cases
     const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, false> mALMFrictionlessComponentsMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, true> mALMNVFrictionlessComponentsMortarContactCondition2D2N;
