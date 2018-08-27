@@ -11,23 +11,18 @@
 //
 //
 
-#if !defined(KRATOS_NEW_CONVERGENCE_CRITERIA )
-#define  KRATOS_NEW_CONVERGENCE_CRITERIA
-
+#if !defined(KRATOS_BASE_CONVERGENCE_CRITERIA_H )
+#define  KRATOS_BASE_CONVERGENCE_CRITERIA_H
 
 /* System includes */
 
-
 /* External includes */
 
-
 /* Project includes */
-#include "includes/define.h"
 #include "includes/model_part.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -36,7 +31,6 @@ namespace Kratos
 ///@{
 
 ///@}
-
 ///@name  Enum's
 ///@{
 
@@ -48,25 +42,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** Short class definition.
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
+/**
+ * @class ConvergenceCriteria
+ * @ingroup KratosCore
+ * @brief This is the base class to define the  different convergence criterion considered
+ * @tparam TSparseSpace The sparse space considered
+ * @tparam TDenseSpace The dense space considered
+ * @author Riccardo Rossi
 */
 template<class TSparseSpace,
          class TDenseSpace //= DenseSpace<double>
@@ -77,25 +59,30 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef typename TSparseSpace::DataType TDataType;
-    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
-    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    /// Pointer definition of ConvergenceCriteria
+    KRATOS_CLASS_POINTER_DEFINITION(ConvergenceCriteria);
 
+    /// Data type definition
+    typedef typename TSparseSpace::DataType TDataType;
+    /// Matrix type definition
+    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+    /// Vector type definition
+    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    /// Local system matrix type definition
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
+    /// Local system vector type definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    //typedef Dof<double> TDofType;
+    /// DoF array type definition
     typedef ModelPart::DofsArrayType DofsArrayType;
 
-    /** Counted pointer of ConvergenceCriteria */
-    KRATOS_CLASS_POINTER_DEFINITION(ConvergenceCriteria);
     ///@}
     ///@name Life Cycle
     ///@{
 
     /** Constructor.
      */
-    ConvergenceCriteria()
+    explicit ConvergenceCriteria()
     {
         mActualizeRHSIsNeeded = false;
         mConvergenceCriteriaIsInitialized = false;
@@ -104,7 +91,7 @@ public:
 
     /** Copy constructor.
      */
-    ConvergenceCriteria( ConvergenceCriteria const& rOther)
+    explicit ConvergenceCriteria( ConvergenceCriteria const& rOther)
       :mActualizeRHSIsNeeded(rOther.mActualizeRHSIsNeeded)
       ,mConvergenceCriteriaIsInitialized(rOther.mConvergenceCriteriaIsInitialized)
       ,mEchoLevel(rOther.mEchoLevel)
@@ -121,154 +108,239 @@ public:
     ///@name Member Variables
     ///@{
 
-
-
     ///@}
     ///@name Operators
     ///@{
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     /**
-     * Get component wise element components
+     * @brief Get component wise element components
+     * @warning Must be defined on the derived classes
+     * @return The RHS element components
      */
     virtual std::vector<TSystemVectorType>&  GetRHS_Element_Components()
     {
-      KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
+        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
     }
 
     /**
-     * Get component wise element variables
+     * @brief Get component wise element variables
+     * @warning Must be defined on the derived classes
+     * @return The RHS element variables
      */
     virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Element_Variables()
     {
-      KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
+        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
     }
 
     /**
-     * Get component wise condition components
+     * @brief Get component wise condition components
+     * @warning Must be defined on the derived classes
+     * @return The RHS condition components
      */
     virtual std::vector<TSystemVectorType>&  GetRHS_Condition_Components()
     {
-      KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
+        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
     }
 
     /**
-     * Get component wise condition variables
+     * @brief Get component wise condition variables
+     * @warning Must be defined on the derived classes
+     * @return The RHS condition variables
      */
     virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Condition_Variables()
     {
-      KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
+        KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
     }
 
-    //*********************************************************************************
-
-    /**level of echo for the convergence criterion
-    0 -> mute... no echo at all
-    1 -> print basic informations
-    2 -> print extra informations
+    /**
+     * @brief It sets the level of echo for the solving strategy
+     * @param Level The level to set
+     * @details The different levels of echo are:
+     * - 0: Mute... no echo at all
+     * - 1: Printing time and basic informations
+     * - 2: Printing linear solver data
+     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
      */
     virtual void SetEchoLevel(int Level)
     {
         mEchoLevel = Level;
     }
 
+    /**
+     * @brief This returns the level of echo for the solving strategy
+     * @details The different levels of echo are:
+     * - 0: Mute... no echo at all
+     * - 1: Printing time and basic informations
+     * - 2: Printing linear solver data
+     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * @return Level of echo for the solving strategy
+     */
     int GetEchoLevel()
     {
         return mEchoLevel;
     }
 
-
-    void SetActualizeRHSFlag(bool flag)
+    /**
+     * @brief This method sets the flag mActualizeRHSIsNeeded
+     * @param ActualizeRHSIsNeeded The flag that tells if actualize RHS is needed
+     */
+    void SetActualizeRHSFlag(bool ActualizeRHSIsNeeded)
     {
-        mActualizeRHSIsNeeded = flag;
+        mActualizeRHSIsNeeded = ActualizeRHSIsNeeded;
     }
 
+    /**
+     * @brief This method gets the flag mActualizeRHSIsNeeded
+     * @return mActualizeRHSIsNeeded: The flag that tells if actualize RHS is needed
+     */
     bool GetActualizeRHSflag()
     {
         return mActualizeRHSIsNeeded;
     }
 
-    /*Criterias that need to be called before getting the solution */
+    /**
+     * @brief Criterias that need to be called before getting the solution
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
     virtual bool PreCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    )
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        )
     {
         return true;
     }
 
-    /*Criterias that need to be called after getting the solution */
+    /**
+     * @brief Criterias that need to be called after getting the solution
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
+     * @return true if convergence is achieved, false otherwise
+     */
     virtual bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    )
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        )
     {
         return true;
     }
 
-    virtual void Initialize(
-        ModelPart& rModelPart
-        )
+    /**
+     * @brief This function initialize the convergence criteria
+     * @param rModelPart Reference to the ModelPart containing the problem. (unused)
+     */
+    virtual void Initialize(ModelPart& rModelPart)
     {
         mConvergenceCriteriaIsInitialized = true;
     }
 
+    /**
+     * @brief This function returns if the convergence criteria is initialized
+     * @return mConvergenceCriteriaIsInitialized, true if initialized, false otherwise
+     */
     virtual bool IsInitialized()
-    {return mConvergenceCriteriaIsInitialized;}
+    {
+        return mConvergenceCriteriaIsInitialized;
+    }
 
-
-
+    /**
+     * @brief This function initializes the solution step
+     * @warning Must be defined on the derived classes
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
+     */
     virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    )
-    {
-    }
-
-    virtual void InitializeNonLinearIteration(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    )
-    {
-    }
-
-    virtual void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    )
-    {
-    }
-
-    virtual void FinalizeNonLinearIteration(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    )
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        )
     {
     }
 
     /**
-     * This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rModelPart
-     * @return 0 all ok
+     * @brief This function initializes the non-linear iteration
+     * @warning Must be defined on the derived classes
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
+     */
+    virtual void InitializeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        )
+    {
+    }
+
+    /**
+     * @brief This function finalizes the solution step
+     * @warning Must be defined on the derived classes
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
+     */
+    virtual void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        )
+    {
+    }
+
+    /**
+     * @brief This function finalizes the non-linear iteration
+     * @warning Must be defined on the derived classes
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual + reactions)
+     */
+    virtual void FinalizeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        )
+    {
+    }
+
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed on the input provided. Checks can be "expensive" as the function is designed to catch user's errors.
+     * @warning Must be defined on the derived classes
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @return 0 all OK, 1 otherwise
      */
     virtual int Check(ModelPart& rModelPart)
     {
@@ -277,10 +349,6 @@ public:
         return 0;
         KRATOS_CATCH("");
     }
-
-    ///@}
-    ///@name Operations
-    ///@{
 
     ///@}
     ///@name Access
@@ -303,9 +371,11 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    bool mActualizeRHSIsNeeded = false;
-    bool mConvergenceCriteriaIsInitialized = false  ;
-    int  mEchoLevel;
+
+    bool mActualizeRHSIsNeeded = false;             /// This "flag" is set in order to know if it is necessary to actualize the RHS
+    bool mConvergenceCriteriaIsInitialized = false; /// This "flag" is set in order to know if it is convergence criteria is initialized
+
+    int mEchoLevel; /// The echo level
 
     ///@}
     ///@name Protected Operators
@@ -360,15 +430,7 @@ private:
     ///@}
 
 }; /* Class ConvergenceCriteria */
-
-///@}
-
-///@name Type Definitions */
-///@{
-
-///@}
-
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_CONVERGENCE_CRITERIA  defined */
+#endif /* KRATOS_BASE_CONVERGENCE_CRITERIA_H  defined */
 
