@@ -1688,4 +1688,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_MATH_UTILS  defined */
-
