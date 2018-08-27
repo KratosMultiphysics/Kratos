@@ -70,7 +70,7 @@ class ModelPartOutput(IOObject):
     def Execute(self, model_part, hdf5_file):
         KratosHDF5.HDF5ModelPartIO(hdf5_file, self.settings["prefix"].GetString()).WriteModelPart(model_part)
 
-class ElementResultsOutput(IOObject):
+class ElementDataValueOutput(IOObject):
     """Provides the interface for writing element results to a file."""
 
     def __init__(self, settings):
@@ -79,7 +79,7 @@ class ElementResultsOutput(IOObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5ElementSolutionStepDataIO(self.settings, hdf5_file).WriteElementResults(model_part.Elements)
+        KratosHDF5.HDF5ElementDataValueIO(self.settings, hdf5_file).WriteElementResults(model_part.Elements)
 
 
 class NodalSolutionStepDataOutput(IOObject):
@@ -93,7 +93,7 @@ class NodalSolutionStepDataOutput(IOObject):
     def Execute(self, model_part, hdf5_file):
         KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
 
-class HistoricalNonSolutionStepNodalResultsOutput(IOObject):
+class NodalDataValueOutput(IOObject):
     """Provides the interface for writing non solution step nodal results to a file."""
 
     def __init__(self, settings):
@@ -102,7 +102,7 @@ class HistoricalNonSolutionStepNodalResultsOutput(IOObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5NonHistoricalNodalValueIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes)
+        KratosHDF5.HDF5NodalDataValueIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes)
 
 class PrimalBossakOutput(IOObject):
     """Provides the interface for writing a transient primal solution to a file."""
@@ -142,7 +142,7 @@ class NodalSolutionStepDataInput(IOObject):
     def Execute(self, model_part, hdf5_file):
         KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).ReadNodalResults(model_part.Nodes, model_part.GetCommunicator(), 0)
 
-class HistoricalNonSolutionStepNodalResultsInput(IOObject):
+class NodalDataValueInput(IOObject):
     """Provides the interface for reading a transient primal solution from a file."""
 
     def __init__(self, settings):
@@ -151,10 +151,10 @@ class HistoricalNonSolutionStepNodalResultsInput(IOObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        primal_io = KratosHDF5.HDF5NonHistoricalNodalValueIO(self.settings, hdf5_file)
+        primal_io = KratosHDF5.HDF5NodalDataValueIO(self.settings, hdf5_file)
         primal_io.ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
 
-class ElementResultsInput(IOObject):
+class ElementDataValueInput(IOObject):
     """Provides the interface for reading element results from a file."""
 
     def __init__(self, settings):
@@ -163,7 +163,7 @@ class ElementResultsInput(IOObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5ElementSolutionStepDataIO(self.settings, hdf5_file).ReadElementResults(model_part.Elements)
+        KratosHDF5.HDF5ElementDataValueIO(self.settings, hdf5_file).ReadElementResults(model_part.Elements)
 
 class PartitionedModelPartOutput(IOObject):
     """Provides the interface for writing a partitioned model part to a file."""
