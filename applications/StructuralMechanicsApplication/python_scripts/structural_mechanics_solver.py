@@ -49,7 +49,7 @@ class MechanicalSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "",
-            "add_model_part_to_model" : true,
+            "add_model_part_to_model_before_reading" : false,
             "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
@@ -124,7 +124,7 @@ class MechanicalSolver(PythonSolver):
             self.solver_imports_model_part = False
         else:
             self.main_model_part = KratosMultiphysics.ModelPart(model_part_name) # Model.CreateodelPart()
-            if not self.settings["add_model_part_to_model"].GetBool(): # this will automatically be done once the Model is finished
+            if self.settings["add_model_part_to_model_before_reading"].GetBool(): # this will be the default behavior once the Model is finished
                 self.model.AddModelPart(self.main_model_part)
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
@@ -213,8 +213,8 @@ class MechanicalSolver(PythonSolver):
             self._execute_after_reading()
             self._set_and_fill_buffer()
 
-        # This will be removed once the Model is fully supported! => It wont be necessary anymore
-        if not self.model.HasModelPart(self.main_model_part.Name) and self.settings["add_model_part_to_model"].GetBool():
+        # This will be removed once the Model is fully supported! => It wont e necessary anymore
+        if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
@@ -346,9 +346,9 @@ class MechanicalSolver(PythonSolver):
         import check_and_prepare_model_process_structural
         check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
-        # This will be removed once the Model is fully supported! => It wont be necessary anymore
+        # This will be removed once the Model is fully supported! => It wont e necessary anymore
         # NOTE: We do this here in case the model is empty, so the properties can be assigned
-        if not self.model.HasModelPart(self.main_model_part.Name) and self.settings["add_model_part_to_model"].GetBool():
+        if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
 
         # Import constitutive laws.
