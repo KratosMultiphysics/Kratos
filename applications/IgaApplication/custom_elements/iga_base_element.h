@@ -48,32 +48,6 @@ public:
         return NumberOfNodes() * DofsPerNode();
     }
 
-    template <typename TVariable>
-    void inline SetDof(
-        DofsVectorType& rElementalDofList,
-        const std::size_t NodeIndex,
-        const std::size_t DofIndex,
-        const TVariable& variable)
-    {
-        Node<3>& node = GetGeometry()[NodeIndex];
-
-        rElementalDofList[NodeIndex * DofsPerNode() + DofIndex] =
-            node.pGetDof(variable);
-    }
-
-    template <typename TVariable>
-    void inline SetEquationId(
-        EquationIdVectorType& rResult,
-        const std::size_t NodeIndex,
-        const std::size_t DofIndex,
-        const TVariable& variable)
-    {
-        Node<3>& node = GetGeometry()[NodeIndex];
-
-        rResult[NodeIndex * DofsPerNode() + DofIndex] =
-            node.GetDof(variable).EquationId();
-    }
-
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -147,6 +121,33 @@ public:
     }
 
 protected:
+
+    template <typename TVariable>
+    void inline SetDof(
+        DofsVectorType& rElementalDofList,
+        const std::size_t NodeIndex,
+        const std::size_t DofIndex,
+        const TVariable& variable)
+    {
+        Node<3>& node = GetGeometry()[NodeIndex];
+
+        rElementalDofList[NodeIndex * DofsPerNode() + DofIndex] =
+            node.pGetDof(variable);
+    }
+
+    template <typename TVariable>
+    void inline SetEquationId(
+        EquationIdVectorType& rResult,
+        const std::size_t NodeIndex,
+        const std::size_t DofIndex,
+        const TVariable& variable)
+    {
+        Node<3>& node = GetGeometry()[NodeIndex];
+
+        rResult[NodeIndex * DofsPerNode() + DofIndex] =
+            node.GetDof(variable).EquationId();
+    }
+
     static inline std::size_t GetDofType(
         std::size_t DofIndex)
     {
