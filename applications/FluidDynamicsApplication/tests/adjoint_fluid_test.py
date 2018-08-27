@@ -72,7 +72,7 @@ class AdjointFluidTest(UnitTest.TestCase):
                 "model_part_output_settings" : {
                     "prefix" : "/ModelData"
                 },
-                "nodal_results_settings" : {
+                "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "PRESSURE"]
                 },
                 "historical_non_solution_step_nodal_results_settings" : {

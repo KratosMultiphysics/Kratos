@@ -10,7 +10,7 @@ def Factory(settings, Model):
             {
                 "model_part_name" : "MainModelPart",
                 "file_settings" : {},
-                "nodal_results_settings" : {},
+                "nodal_solution_step_data_settings" : {},
                 "element_results_settings" : {},
                 "time_tag_precision" : 4,
                 "file_name": "DEFAULT_NAME"
@@ -20,7 +20,7 @@ def Factory(settings, Model):
     settings.ValidateAndAssignDefaults(default_settings)
     model_part = Model[settings["model_part_name"].GetString()]
     hdf5_file_factory = hdf5_io.HDF5SerialFileFactory(settings["file_settings"])
-    nodal_results_input = hdf5_io.PrimalBossakInput(settings["nodal_results_settings"])
+    nodal_results_input = hdf5_io.PrimalBossakInput(settings["nodal_solution_step_data_settings"])
     element_results_input = hdf5_io.ElementResultsInput(settings["element_results_settings"])
     input_time_settings = KratosMultiphysics.Parameters("""{}""")
     input_time_settings.AddEmptyValue("time_tag_precision")

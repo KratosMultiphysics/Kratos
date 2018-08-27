@@ -82,7 +82,7 @@ class ElementResultsOutput(IOObject):
         KratosHDF5.HDF5ElementSolutionStepDataIO(self.settings, hdf5_file).WriteElementResults(model_part.Elements)
 
 
-class NodalResultsOutput(IOObject):
+class NodalSolutionStepDataOutput(IOObject):
     """Provides the interface for writing nodal results to a file."""
 
     def __init__(self, settings):
@@ -131,7 +131,7 @@ class PrimalBossakInput(IOObject):
         primal_io = KratosHDF5.HDF5NodalSolutionStepBossakIO(self.settings, hdf5_file)
         primal_io.ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
 
-class NodalResultsInput(IOObject):
+class NodalSolutionStepDataInput(IOObject):
     """Provides the interface for reading a transient primal solution from a file."""
 
     def __init__(self, settings):
