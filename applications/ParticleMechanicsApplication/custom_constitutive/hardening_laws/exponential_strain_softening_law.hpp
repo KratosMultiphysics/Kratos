@@ -53,6 +53,21 @@ class ExponentialStrainSofteningLaw
         : public HardeningLaw 
 {
 public:
+
+    struct HardeningParameters
+    {
+        double DeltaCohesion;
+        double DeltaFrictionAngle;
+        double DeltaDilatancyAngle;
+
+    public:
+        void PrintInfo(){
+            std::cout << "DeltaCohesion = " << DeltaCohesion << std::endl;
+            std::cout << "DeltaFrictionAngle = " << DeltaFrictionAngle << std::endl;
+            std::cout << "DeltaDilatancyAngle = " << DeltaDilatancyAngle << std::endl;
+        };
+    };
+
     ///@name Type Definitions
     ///@{
 
@@ -84,6 +99,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void InitializeMaterial (const Properties& rMaterialProperties);
 
     double& CalculateHardening(double &rHardening, const double &rAlpha, const Variable<double>& rThisVariable) override;
 	
@@ -122,6 +139,12 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    double mDeltaPlasticDeviatoricStrain;
+    double mAccumulatedPlasticDeviatoricStrain;
+
+    HardeningParameters mHardeningParameters;
+
+    void InitializeHardeningParameters(HardeningParameters& rHardeningParameters);
 
     ///@}
     ///@name Protected member Variables
