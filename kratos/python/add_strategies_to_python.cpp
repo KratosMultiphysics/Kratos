@@ -149,9 +149,9 @@ namespace Kratos
         void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes)
         {
             int numNodes = static_cast<int>(rNodes.size());
-            
+
             #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)  
+            for(int i = 0; i < numNodes; i++)
             {
                 auto itNode = rNodes.begin() + i;
 
@@ -187,16 +187,16 @@ namespace Kratos
 //             .def(init<Kratos::shared_ptr<CompressedMatrix> >())
 //                     .def("GetReference", GetMatRef, return_value_policy::reference_internal)
 //                     ;
-// 
+//
 //             class_< Kratos::shared_ptr<Vector> >(m,"VectorPointer")
 //             .def(init< Kratos::shared_ptr<Vector> >())
 //                     .def("GetReference", GetVecRef, return_value_policy::reference_internal)
 //                     ;
 
             typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-            
-            
-            
+
+
+
 
 
             //********************************************************************
@@ -235,19 +235,19 @@ namespace Kratos
                     (m, "ResidualBasedIncrementalUpdateStaticScheme")
                     .def(init< >()
                     );
-                    
-            
+
+
             typedef typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::RotationToolPointerType RotationToolPointerType;
-            
-            
-                   
+
+
+
             class_< ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>,
                     typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::Pointer,
                     ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >
                     (m,"ResidualBasedIncrementalUpdateStaticSchemeSlip")
                     .def(init<unsigned int, unsigned int>())
-                    .def(init<RotationToolPointerType>());                   
- 
+                    .def(init<RotationToolPointerType>());
+
 
 	         // Residual Based Bossak Scheme Type
 	         class_< ResidualBasedBossakDisplacementSchemeType,
@@ -269,14 +269,15 @@ namespace Kratos
                    typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
                    BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
                    .def(init< >() )
+                   .def(init< const std::string >() )
                    ;
-            
+
             // Residual Based BDF displacement Scheme Type
             class_< ResidualBasedBDFDisplacementSchemeType,typename ResidualBasedBDFDisplacementSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFDisplacementScheme")
                 .def(init<  >() )
                 .def(init <const std::size_t>())
             ;
-            
+
             // Residual Based BDF custom Scheme Type
             class_< ResidualBasedBDFCustomSchemeType, typename ResidualBasedBDFCustomSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFCustomScheme")
                 .def(init<  >() )
@@ -292,7 +293,7 @@ namespace Kratos
             //********************************************************************
             typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
             typedef typename ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointerType;
-            
+
             // Convergence criteria base class
             class_< ConvergenceCriteriaType,
                     ConvergenceCriteriaPointerType >(m,"ConvergenceCriteria")
@@ -350,8 +351,8 @@ namespace Kratos
             //********************************************************************
             //Builder and Solver
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-            
-            
+
+
             class_< BuilderAndSolverType::DofsArrayType, BuilderAndSolverType::DofsArrayType::Pointer>(m,"DofsArrayType")
             .def(init<>());
 
@@ -421,7 +422,7 @@ namespace Kratos
                     .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
                     .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
                     ;
-                    
+
             //********************************************************************
             //********************************************************************
             //********************************************************************
@@ -430,7 +431,7 @@ namespace Kratos
             //********************************************************************
             //strategy base class
             typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-            
+
             class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy")
             .def(init < ModelPart&, bool >())
                     .def("Predict", &BaseSolvingStrategyType::Predict)
@@ -453,7 +454,7 @@ namespace Kratos
                     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
                     ;
 
-            
+
             typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
 
             class_< ResidualBasedLinearStrategyType, typename ResidualBasedLinearStrategyType::Pointer,BaseSolvingStrategyType >
@@ -492,7 +493,7 @@ namespace Kratos
                     >())
                     ;
 
-            class_< LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, 
+            class_< LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                     typename LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                     ResidualBasedNewtonRaphsonStrategyType  >
                     (m,"LineSearchStrategy")

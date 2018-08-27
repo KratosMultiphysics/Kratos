@@ -83,15 +83,17 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    explicit ResidualBasedPseudoStaticDisplacementScheme()
-      :DerivedBaseType(0.0)
+    explicit ResidualBasedPseudoStaticDisplacementScheme(const std::string RayleighBetaVariableName = "RAYLEIGH_BETA")
+      :DerivedBaseType(0.0),
+       mRayleighBeta(KratosComponents<Variable<double>>::Get(RayleighBetaVariableName))
     {
     }
 
     /** Copy Constructor.
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(ResidualBasedPseudoStaticDisplacementScheme& rOther)
-      :DerivedBaseType(rOther)
+      :DerivedBaseType(rOther),
+       mRayleighBeta(rOther.mRayleighBeta)
     {
     }
 
@@ -230,8 +232,8 @@ protected:
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) // if D matrix declared
             noalias(rLHSContribution) += rD * DerivedBaseType::mNewmark.c1;
         else if (rM.size1() != 0) {
-            const double beta = rCurrentProcessInfo[NEWMARK_BETA];
-            noalias(rLHSContribution) += rM * DerivedBaseType::mNewmark.c1;
+            const double beta = rCurrentProcessInfo[mRayleighBeta];
+            noalias(rLHSContribution) += rM * beta * DerivedBaseType::mNewmark.c1;
         }
     }
 
@@ -256,13 +258,10 @@ protected:
         // Adding damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) {
             pElement->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
-            const double beta = rCurrentProcessInfo[NEWMARK_BETA];
-
+            const double beta = rCurrentProcessInfo[mRayleighBeta];
             pElement->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-
             noalias(rRHSContribution) -= prod(rM * beta, DerivedBaseType::mVector.v[this_thread]);
         }
     }
@@ -289,13 +288,10 @@ protected:
         // Damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) {
             pCondition->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-
             noalias(rRHSContribution) -= prod(rD, DerivedBaseType::mVector.v[this_thread]);
         } else if (rM.size1() != 0) {
-            const double beta = rCurrentProcessInfo[NEWMARK_BETA];
-
+            const double beta = rCurrentProcessInfo[mRayleighBeta];
             pCondition->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-
             noalias(rRHSContribution) -= prod(rM * beta, DerivedBaseType::mVector.v[this_thread]);
         }
     }
@@ -318,6 +314,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    const Variable<double> mRayleighBeta; /// The Rayleigh Beta variable
 
     ///@}
     ///@name Private Operators
