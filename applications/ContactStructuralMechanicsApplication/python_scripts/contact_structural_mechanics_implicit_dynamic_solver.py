@@ -138,7 +138,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, CSMA.WEIGHTED_VECTOR_RESIDUAL_X, self.main_model_part)
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, self.main_model_part)
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, self.main_model_part)
-
+            
         self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
@@ -196,7 +196,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                             "scaling"                        : false,
                             "block_size"                     : 3,
                             "use_block_matrices_if_possible" : true,
-                            "coarse_enough"                  : 1000
+                            "coarse_enough"                  : 10000
                         }
                         """)
                         amgcl_param["block_size"].SetInt(self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
