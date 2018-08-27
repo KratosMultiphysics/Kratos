@@ -145,6 +145,19 @@ public:
     {
         pGetGeometry()->PrintData(rOStream);
     }
+
+protected:
+    static inline std::size_t GetDofType(
+        std::size_t DofIndex)
+    {
+        return DofIndex % DofsPerNode();
+    }
+
+    static inline std::size_t GetShapeIndex(
+        std::size_t DofIndex)
+    {
+        return DofIndex / DofsPerNode();
+    }
 };
 
 } // namespace Kratos
