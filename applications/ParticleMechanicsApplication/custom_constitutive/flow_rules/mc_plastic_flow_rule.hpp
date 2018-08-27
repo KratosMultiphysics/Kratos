@@ -124,6 +124,7 @@ public:
 
     Matrix GetElasticLeftCauchyGreen(RadialReturnVariables& rReturnMappingVariables) override;
 
+    unsigned int GetPlasticRegion() override;
 
     //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
