@@ -11,11 +11,10 @@
 
 // System includes
 
-
 // External includes
 
-
 // Project includes
+#include "includes/checks.h"
 #include "custom_conditions/base_load_condition.h"
 
 namespace Kratos
@@ -280,25 +279,21 @@ namespace Kratos
 
     int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( DISPLACEMENT.Key() == 0 )
-        {
-            KRATOS_ERROR <<  "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
-        }
+        // Base check
+        Condition::Check(rCurrentProcessInfo);
+            
+        // Verify variable exists
+        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
-        //verify that the dofs exist
-        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-        {
-            if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            {
-                KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
-            }
+        // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
+        const std::size_t number_of_nodes = this->GetGeometry().size();
+        for ( std::size_t i = 0; i < number_of_nodes; i++ ) {
+            NodeType &rnode = this->GetGeometry()[i];
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
 
-            if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false ||
-                 this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            {
-                KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
-            }
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
         }
 
         return 0;
