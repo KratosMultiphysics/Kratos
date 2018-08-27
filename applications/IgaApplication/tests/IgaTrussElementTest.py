@@ -10,7 +10,7 @@ def GetFilePath(fileName):
     return os.path.dirname(__file__) + "/" + fileName
 
 
-class TrussDiscreteElementTest(KratosUnittest.TestCase):
+class IgaTrussElementTest(KratosUnittest.TestCase):
 
     def solve(self, create_geometry):
         model_part = ModelPart('Model')
