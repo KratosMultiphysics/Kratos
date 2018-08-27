@@ -43,7 +43,7 @@ void NodalSolutionStepBossakIO::WriteNodalResults(NodesContainerType const& rNod
                                            mAlphaBossak, info);
 
     // Write block partition.
-    WritePartitionTable(GetFile(), prefix + "/NodalResults", info);
+    WritePartitionTable(GetFile(), prefix + "/NodalSolutionStepData", info);
 
     KRATOS_CATCH("");
 }
