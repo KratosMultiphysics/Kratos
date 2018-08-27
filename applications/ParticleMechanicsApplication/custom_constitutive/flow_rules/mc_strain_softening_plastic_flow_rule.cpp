@@ -83,6 +83,20 @@ bool MCStrainSofteningPlasticFlowRule::UpdateInternalVariables( RadialReturnVari
 
 void MCStrainSofteningPlasticFlowRule::UpdateMaterialParameters()
 {
+    // Calculate hardening for each parameters: cohesion, frictionangle, and dilatancyangle
+    double Hardening = 0.0;
+
+    Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening, mInternalVariables.AccumulatedPlasticDeviatoricStrain, COHESION);
+    Hardening = Hardening * mInternalVariables.DeltaPlasticDeviatoricStrain;
+    mMaterialParameters.Cohesion += Hardening;
+
+    Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening, mInternalVariables.AccumulatedPlasticDeviatoricStrain, INTERNAL_FRICTION_ANGLE);
+    Hardening = Hardening * mInternalVariables.DeltaPlasticDeviatoricStrain;
+    mMaterialParameters.FrictionAngle += Hardening;
+
+    Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening, mInternalVariables.AccumulatedPlasticDeviatoricStrain, INTERNAL_DILATANCY_ANGLE);
+    Hardening = Hardening * mInternalVariables.DeltaPlasticDeviatoricStrain;
+    mMaterialParameters.DilatancyAngle += Hardening;
 }
 
 
