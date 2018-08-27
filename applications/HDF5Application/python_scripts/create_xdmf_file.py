@@ -32,7 +32,7 @@ def GetSpatialGrid(h5py_file):
 
 
 def GetNodalResults(h5py_file):
-    nodal_results_path = "/ResultsData/NodalResults"
+    nodal_results_path = "/ResultsData/NodalSolutionStepData"
     results = []
     results_group = h5py_file.get(nodal_results_path)
     for variable_name in results_group.keys():
