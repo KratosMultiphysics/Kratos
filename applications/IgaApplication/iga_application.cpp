@@ -20,8 +20,6 @@ namespace Kratos {
 
 KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
-    , mBeamDiscreteElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mIgaTrussElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
 {
