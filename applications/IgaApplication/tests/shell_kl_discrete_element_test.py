@@ -113,8 +113,8 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
 
         prop = model_part.GetProperties()[2]
 
-        node_n0 = surface.Node(surface.NbPolesU - 1, 0)
-        node_nm = surface.Node(surface.NbPolesU - 1, surface.NbPolesV - 1)
+        node_n0 = surface.Node(surface.NumberOfPolesU - 1, 0)
+        node_nm = surface.Node(surface.NumberOfPolesU - 1, surface.NumberOfPolesV - 1)
 
         model_part.CreateNewCondition('PointLoadCondition3D1N', 1, [node_n0.Id],
             prop)
@@ -209,8 +209,8 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
 
         surface = ShellKLDiscreteElementTest.solve_cantilever(create_geometry)
 
-        for i in range(surface.NbPolesU):
-            for j in range(surface.NbPolesV):
+        for i in range(surface.NumberOfPolesU):
+            for j in range(surface.NumberOfPolesV):
                 node = surface.Node(i, j)
                 self.assertAlmostEqual(node.GetValue(DISPLACEMENT_X), 0)
                 self.assertAlmostEqual(node.GetValue(DISPLACEMENT_Y), 0)
@@ -273,8 +273,8 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
 
         surface = ShellKLDiscreteElementTest.solve_cantilever(create_geometry)
 
-        for i in range(surface.NbPolesU):
-            for j in range(surface.NbPolesV):
+        for i in range(surface.NumberOfPolesU):
+            for j in range(surface.NumberOfPolesV):
                 node = surface.Node(i, j)
                 self.assertAlmostEqual(node.GetValue(DISPLACEMENT_X), 0)
                 self.assertAlmostEqual(node.GetValue(DISPLACEMENT_Y), 0)

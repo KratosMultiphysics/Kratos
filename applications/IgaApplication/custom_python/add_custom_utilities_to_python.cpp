@@ -281,10 +281,10 @@ void RegisterSurfaceGeometryBase(
         .def_property_readonly("DegreeV", &Type::DegreeV)
         .def_property_readonly("DomainU", &Type::DomainU)
         .def_property_readonly("DomainV", &Type::DomainV)
-        .def_property_readonly("NbKnotsU", &Type::NbKnotsU)
-        .def_property_readonly("NbKnotsV", &Type::NbKnotsV)
-        .def_property_readonly("NbPolesU", &Type::NbPolesU)
-        .def_property_readonly("NbPolesV", &Type::NbPolesV)
+        .def_property_readonly("NumberOfKnotsU", &Type::NbKnotsU)
+        .def_property_readonly("NumberOfKnotsV", &Type::NbKnotsV)
+        .def_property_readonly("NumberOfPolesU", &Type::NbPolesU)
+        .def_property_readonly("NumberOfPolesV", &Type::NbPolesV)
         .def("KnotsU", &Type::KnotsU)
         .def("KnotsV", &Type::KnotsV)
         .def("SpansU", &Type::SpansU)
@@ -699,7 +699,7 @@ void RegisterCurveTessellation(
         .def("Compute", &Type::Compute,
             "Curve"_a,
             "Tolerance"_a)
-        .def_property_readonly("NbPoints", &Type::NbPoints)
+        .def_property_readonly("NumberOfPoints", &Type::NbPoints)
         .def("Parameter", &Type::Parameter,
             "index"_a)
         .def("Point", &Type::Point,
