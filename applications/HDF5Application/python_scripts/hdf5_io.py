@@ -131,7 +131,7 @@ class PrimalBossakInput(IOObject):
         primal_io = KratosHDF5.HDF5NodalSolutionStepBossakIO(self.settings, hdf5_file)
         primal_io.ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
 
-class NodalResultsInput(IOObject):
+class NodalSolutionStepDataInput(IOObject):
     """Provides the interface for reading a transient primal solution from a file."""
 
     def __init__(self, settings):
