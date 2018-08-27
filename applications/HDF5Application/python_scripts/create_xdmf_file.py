@@ -32,17 +32,20 @@ def GetSpatialGrid(h5py_file):
 
 
 def GetNodalResults(h5py_file):
-    nodal_results_path = "/ResultsData/NodalResults"
+    nodal_results_paths = ["/ResultsData/NodalSolutionStepData", "/ResultsData/NodalDataValues"]
     results = []
-    results_group = h5py_file.get(nodal_results_path)
-    for variable_name in results_group.keys():
-        if isinstance(results_group[variable_name], h5py.Dataset):
-            data = xdmf.HDF5UniformDataItem(results_group.get(variable_name))
-            results.append(xdmf.NodalSolutionStepData(variable_name, data))
+    for nodal_results_path in nodal_results_paths:
+        if not nodal_results_path in h5py_file:
+            continue
+        results_group = h5py_file.get(nodal_results_path)
+        for variable_name in results_group.keys():
+            if isinstance(results_group[variable_name], h5py.Dataset):
+                data = xdmf.HDF5UniformDataItem(results_group.get(variable_name))
+                results.append(xdmf.NodalSolutionStepData(variable_name, data))
     return results
 
 def GetElementResults(h5py_file):
-    element_results_path = "/ResultsData/ElementResults"
+    element_results_path = "/ResultsData/ElementDataValues"
     results = []
     if not element_results_path in h5py_file:
         return results

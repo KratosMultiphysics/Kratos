@@ -3,7 +3,7 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 import hdf5_io
 
 def Factory(settings, Model):
-    """Return a process for writing a transient primal solution from HDF5 to data containers."""
+    """Return a process for writing a transient primal solution form HDF5 to data containers."""
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     default_settings = KratosMultiphysics.Parameters("""
@@ -12,7 +12,7 @@ def Factory(settings, Model):
                 "file_settings" : {},
                 "nodal_solution_step_data_settings" : {},
                 "element_data_value_settings" : {},
-                "nodal_data_value_settings" : {},
+                "nodal_data_value_settings": {},
                 "time_tag_precision" : 4,
                 "file_name": "DEFAULT_NAME"
             }
@@ -21,7 +21,7 @@ def Factory(settings, Model):
     settings.ValidateAndAssignDefaults(default_settings)
     model_part = Model[settings["model_part_name"].GetString()]
     hdf5_file_factory = hdf5_io.HDF5SerialFileFactory(settings["file_settings"])
-    nodal_solution_step_input = hdf5_io.PrimalBossakInput(settings["nodal_solution_step_data_settings"])
+    nodal_solution_step_input = hdf5_io.NodalSolutionStepDataInput(settings["nodal_solution_step_data_settings"])
     element_data_value_input = hdf5_io.ElementDataValueInput(settings["element_data_value_settings"])
     nodal_data_value_input = hdf5_io.NodalDataValueInput(settings["nodal_data_value_settings"])
     input_time_settings = KratosMultiphysics.Parameters("""{}""")
