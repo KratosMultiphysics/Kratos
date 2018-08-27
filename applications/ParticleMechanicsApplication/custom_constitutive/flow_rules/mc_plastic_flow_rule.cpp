@@ -89,12 +89,12 @@ void MCPlasticFlowRule::InitializeMaterial(YieldCriterionPointer& pYieldCriterio
     this->InitializeMaterialParameters(mMaterialParameters);
 }
 
-void MCPlasticFlowRule::InitializeMaterialParameters(MaterialParameters& MaterialParameters){
-    MaterialParameters.YoungModulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    MaterialParameters.PoissonRatio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
-    MaterialParameters.Cohesion      = mpYieldCriterion->GetHardeningLaw().GetProperties()[COHESION];
-    MaterialParameters.FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
-    MaterialParameters.DilatancyAngle= mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
+void MCPlasticFlowRule::InitializeMaterialParameters(MaterialParameters& rMaterialParameters){
+    rMaterialParameters.YoungModulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    rMaterialParameters.PoissonRatio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    rMaterialParameters.Cohesion      = mpYieldCriterion->GetHardeningLaw().GetProperties()[COHESION];
+    rMaterialParameters.FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
+    rMaterialParameters.DilatancyAngle= mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
 }
 
 bool MCPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
