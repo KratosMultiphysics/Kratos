@@ -36,6 +36,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_pseudo_static_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 
@@ -203,6 +204,7 @@ namespace Kratos
             typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
             typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
             typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+            typedef ResidualBasedPseudoStaticDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedPseudoStaticDisplacementSchemeType;
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFDisplacementSchemeType;
             typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFCustomSchemeType;
 
@@ -253,7 +255,6 @@ namespace Kratos
                     BaseSchemeType  >
                     (m,"ResidualBasedBossakDisplacementScheme")
                     .def(init< double >() )
-                    .def("Initialize", &ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
                     ;
 
 	         // Residual Based Newmark Scheme Type
@@ -261,7 +262,13 @@ namespace Kratos
                    typename ResidualBasedNewmarkDisplacementSchemeType::Pointer,
                    BaseSchemeType >(m,"ResidualBasedNewmarkDisplacementScheme")
                    .def(init< >() )
-                   .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+                   ;
+
+	         // Residual Based Pseudo-Static Scheme Type
+	         class_< ResidualBasedPseudoStaticDisplacementSchemeType,
+                   typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
+                   BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
+                   .def(init< >() )
                    ;
             
             // Residual Based BDF displacement Scheme Type
