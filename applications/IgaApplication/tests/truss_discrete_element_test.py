@@ -35,7 +35,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
         # create elements for each integration point
 
         integration_points = [integration_point for span in curve.Spans()
-            for integration_point in IntegrationPoints.Points1(curve.Degree + 1,
+            for integration_point in IntegrationPoints.Points1D(curve.Degree + 1,
             span)]
 
         shapes = CurveShapeEvaluator(Degree=curve.Degree, Order=1)

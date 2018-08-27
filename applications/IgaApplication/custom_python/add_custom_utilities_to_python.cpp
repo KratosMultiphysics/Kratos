@@ -756,17 +756,17 @@ void RegisterIntegrationPoints(
     using Type = ANurbs::IntegrationPoints<double>;
 
     pybind11::class_<Type>(m, name.c_str())
-        .def_static("Points1", &Type::Points1,
+        .def_static("Points1D", &Type::Points1,
             "Degree"_a,
             "Domain"_a)
-        .def_static("Points2", (std::vector<ANurbs::IntegrationPoint2<double>>
+        .def_static("Points2D", (std::vector<ANurbs::IntegrationPoint2<double>>
             (*)(const size_t, const size_t, const ANurbs::Interval<double>&,
             const ANurbs::Interval<double>&)) &Type::Points2,
             "DegreeU"_a,
             "DegreeV"_a,
             "DomainU"_a,
             "DomainV"_a)
-        .def_static("Points2", (std::vector<ANurbs::IntegrationPoint2<double>>
+        .def_static("Points2D", (std::vector<ANurbs::IntegrationPoint2<double>>
             (*)(const size_t, const size_t,
             const std::vector<ANurbs::Interval<double>>&,
             const std::vector<ANurbs::Interval<double>>&)) &Type::Points2,
