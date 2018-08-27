@@ -11,8 +11,8 @@
 //                  Suneth Warnakulasuriya, https://github.com/sunethwarna
 //
 
-#if !defined(KRATOS_HDF5_ELEMENT_SOLUTION_STEP_DATA_IO_H_INCLUDED)
-#define KRATOS_HDF5_ELEMENT_SOLUTION_STEP_DATA_IO_H_INCLUDED
+#if !defined(KRATOS_HDF5_ELEMENT_DATA_VALUE_IO_H_INCLUDED)
+#define KRATOS_HDF5_ELEMENT_DATA_VALUE_IO_H_INCLUDED
 
 // System includes
 #include <string>
@@ -40,22 +40,22 @@ namespace HDF5
 ///@name Kratos Classes
 ///@{
 
-/// A class for IO of element solution step data in HDF5.
-class ElementSolutionStepDataIO
+/// A class for IO of element data in HDF5.
+class ElementDataValueIO
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(ElementSolutionStepDataIO);
+    KRATOS_CLASS_POINTER_DEFINITION(ElementDataValueIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    ElementSolutionStepDataIO(Parameters Settings, File::Pointer pFile);
+    ElementDataValueIO(Parameters Settings, File::Pointer pFile);
 
     ///@}
     ///@name Operations
@@ -64,7 +64,7 @@ public:
     void WriteElementResults(ElementsContainerType const& rElements);
 
     void ReadElementResults(ElementsContainerType& rElements);
-    
+
     ///@}
 
 protected:
@@ -84,11 +84,11 @@ private:
 
     ///@}
 
-}; // class ElementSolutionStepDataIO.
+}; // class ElementDataValueIO.
 
 ///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
 
-#endif // KRATOS_HDF5_ELEMENT_SOLUTION_STEP_DATA_IO_H_INCLUDED defined
+#endif // KRATOS_HDF5_ELEMENT_DATA_VALUE_IO_H_INCLUDED defined
