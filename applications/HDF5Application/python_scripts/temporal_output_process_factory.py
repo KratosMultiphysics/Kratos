@@ -45,7 +45,7 @@ class ParallelFactory:
 class ResultsFactory:
 
     def NodalResultsOutput(self, nodal_results_settings):
-        return hdf5_io.NodalResultsOutput(nodal_results_settings)
+        return hdf5_io.NodalSolutionStepDataOutput(nodal_results_settings)
 
     def ElementResultsOutput(self, element_results_settings):
         return hdf5_io.ElementResultsOutput(element_results_settings)
