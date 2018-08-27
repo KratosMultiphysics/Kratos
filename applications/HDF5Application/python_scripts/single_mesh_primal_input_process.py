@@ -11,7 +11,8 @@ def Factory(settings, Model):
                 "model_part_name" : "MainModelPart",
                 "file_settings" : {},
                 "nodal_solution_step_data_settings" : {},
-                "element_results_settings" : {},
+                "element_data_value_settings" : {},
+                "nodal_data_value_settings" : {},
                 "time_tag_precision" : 4,
                 "file_name": "DEFAULT_NAME"
             }
@@ -20,8 +21,9 @@ def Factory(settings, Model):
     settings.ValidateAndAssignDefaults(default_settings)
     model_part = Model[settings["model_part_name"].GetString()]
     hdf5_file_factory = hdf5_io.HDF5SerialFileFactory(settings["file_settings"])
-    nodal_results_input = hdf5_io.PrimalBossakInput(settings["nodal_solution_step_data_settings"])
-    element_results_input = hdf5_io.ElementResultsInput(settings["element_results_settings"])
+    nodal_solution_step_input = hdf5_io.PrimalBossakInput(settings["nodal_solution_step_data_settings"])
+    element_data_value_input = hdf5_io.ElementDataValueInput(settings["element_data_value_settings"])
+    nodal_data_value_input = hdf5_io.NodalDataValueInput(settings["nodal_data_value_settings"])
     input_time_settings = KratosMultiphysics.Parameters("""{}""")
     input_time_settings.AddEmptyValue("time_tag_precision")
     input_time_settings.AddEmptyValue("file_name")
@@ -32,6 +34,7 @@ def Factory(settings, Model):
     input_time_settings["time_tag_precision"].SetInt(settings["time_tag_precision"].GetInt())
     temporal_input_process = hdf5_io.TemporalInputProcess(
         model_part, hdf5_file_factory, input_time_settings)
-    temporal_input_process.AddInput(nodal_results_input)
-    temporal_input_process.AddInput(element_results_input)
+    temporal_input_process.AddInput(nodal_solution_step_input)
+    temporal_input_process.AddInput(element_data_value_input)
+    temporal_input_process.AddInput(nodal_data_value_input)
     return temporal_input_process
