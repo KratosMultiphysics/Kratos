@@ -138,7 +138,7 @@
             "historical_non_solution_step_nodal_results_settings" : {
                 "list_of_variables": ["RELAXED_ACCELERATION"]
             },
-            "element_results_settings" : {
+            "element_data_value_settings" : {
                 "list_of_variables": []
             },
             "file_name" : "primal"
