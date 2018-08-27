@@ -82,7 +82,7 @@ class ElementResultsOutput(IOObject):
         KratosHDF5.HDF5ElementSolutionStepDataIO(self.settings, hdf5_file).WriteElementResults(model_part.Elements)
 
 
-class NodalResultsOutput(IOObject):
+class NodalSolutionStepDataOutput(IOObject):
     """Provides the interface for writing nodal results to a file."""
 
     def __init__(self, settings):

@@ -16,7 +16,7 @@ class FactoryHelper:
         model_part = Model[settings["model_part_name"].GetString()]
         hdf5_file_factory = self.FileFactory(settings["file_settings"])
         model_part_output = self.ModelPartOutput(settings["model_part_output_settings"])
-        nodal_results_output = self.NodalResultsOutput(settings["nodal_results_settings"])
+        nodal_results_output = self.NodalResultsOutput(settings["nodal_solution_step_data_settings"])
         element_results_output = self.ElementResultsOutput(settings["element_results_settings"])
         historical_non_solution_step_nodal_results_output = self.HistoricalNonSolutionStepNodalResultsOutput(settings["historical_non_solution_step_nodal_results_settings"])
         temporal_output_process = hdf5_io.TemporalOutputProcess(

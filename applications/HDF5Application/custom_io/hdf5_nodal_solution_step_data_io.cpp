@@ -38,7 +38,7 @@ public:
     {
         Vector<typename TVariable::Type> data;
         SetDataBuffer(rVariable, rNodes, data, Step);
-        rFile.WriteDataSet(rPrefix + "/NodalResults/" + rVariable.Name(), data, rInfo);
+        rFile.WriteDataSet(rPrefix + "/NodalSolutionStepData/" + rVariable.Name(), data, rInfo);
     }
 };
 
@@ -55,7 +55,7 @@ public:
                     unsigned BlockSize)
     {
         Vector<typename TVariable::Type> data;
-        rFile.ReadDataSet(rPrefix + "/NodalResults/" + rVariable.Name(), data,
+        rFile.ReadDataSet(rPrefix + "/NodalSolutionStepData/" + rVariable.Name(), data,
                           StartIndex, BlockSize);
         SetNodalSolutionStepData(rVariable, data, rNodes, Step);
     }
