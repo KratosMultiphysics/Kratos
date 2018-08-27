@@ -49,6 +49,7 @@ class MechanicalSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "",
+            "add_model_part_to_model" : true,
             "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
@@ -210,8 +211,8 @@ class MechanicalSolver(PythonSolver):
             self._execute_after_reading()
             self._set_and_fill_buffer()
 
-        # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        if not self.model.HasModelPart(self.main_model_part.Name):
+        # This will be removed once the Model is fully supported! => It wont be necessary anymore
+        if not self.model.HasModelPart(self.main_model_part.Name) and self.settings["add_model_part_to_model"].GetBool():
             self.model.AddModelPart(self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
@@ -343,9 +344,9 @@ class MechanicalSolver(PythonSolver):
         import check_and_prepare_model_process_structural
         check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
-        # This will be removed once the Model is fully supported! => It wont e necessary anymore
+        # This will be removed once the Model is fully supported! => It wont be necessary anymore
         # NOTE: We do this here in case the model is empty, so the properties can be assigned
-        if not self.model.HasModelPart(self.main_model_part.Name):
+        if not self.model.HasModelPart(self.main_model_part.Name) and self.settings["add_model_part_to_model"].GetBool():
             self.model.AddModelPart(self.main_model_part)
 
         # Import constitutive laws.
