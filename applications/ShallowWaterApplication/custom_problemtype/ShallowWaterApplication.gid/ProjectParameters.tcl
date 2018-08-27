@@ -11,35 +11,36 @@ proc WriteProjectParameters { basename dir problemtypedir } {
 
 
     # problem_data
-    puts $FileVar "    \"problem_data\"         : \{"
-    puts $FileVar "        \"problem_name\"         : \"$basename\","
-    puts $FileVar "        \"model_part_name\"      : \"main_model_part\","
-    puts $FileVar "        \"domain_size\"          : 2,"
-    puts $FileVar "        \"start_time\"           : [GiD_AccessValue get gendata Start_Time],"
-    puts $FileVar "        \"end_time\"             : [GiD_AccessValue get gendata End_Time],"
-    puts $FileVar "        \"parallel_type\"        : \"[GiD_AccessValue get gendata Parallel_Configuration]\","
-    puts $FileVar "        \"number_of_threads\"    : [GiD_AccessValue get gendata Number_of_threads],"
-    puts $FileVar "        \"gravity\"              : [GiD_AccessValue get gendata Gravity],"
-    puts $FileVar "        \"time_scale\"           : \"seconds\","
-    puts $FileVar "        \"water_height_scale\"   : \"meters\""
+    puts $FileVar "    \"problem_data\"             : \{"
+    puts $FileVar "        \"problem_name\"             : \"$basename\","
+    puts $FileVar "        \"domain_size\"              : 2,"
+    puts $FileVar "        \"start_time\"               : [GiD_AccessValue get gendata Start_Time],"
+    puts $FileVar "        \"end_time\"                 : [GiD_AccessValue get gendata End_Time],"
+    puts $FileVar "        \"parallel_type\"            : \"[GiD_AccessValue get gendata Parallel_Configuration]\","
+    puts $FileVar "        \"number_of_threads\"        : [GiD_AccessValue get gendata Number_of_threads]"
     puts $FileVar "    \},"
 
 
     # solver_settings
-    puts $FileVar "    \"solver_settings\"      : \{"
+    puts $FileVar "    \"solver_settings\"          : \{"
     if {[GiD_AccessValue get gendata Framework] eq "Pfem2"} {
     if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
-        puts $FileVar "        \"solver_type\"              : \"pfem2_primitive_var_solver\","
+    puts $FileVar "        \"solver_type\"              : \"pfem2_primitive_var_solver\","
     } else {
-        puts $FileVar "        \"solver_type\"              : \"pfem2_conserved_var_solver\","
+    puts $FileVar "        \"solver_type\"              : \"pfem2_conserved_var_solver\","
     }
     } else {
     if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
-        puts $FileVar "        \"solver_type\"              : \"eulerian_primitive_var_solver\","
+    puts $FileVar "        \"solver_type\"              : \"eulerian_primitive_var_solver\","
     } else {
-        puts $FileVar "        \"solver_type\"              : \"eulerian_conserved_var_solver\","
+    puts $FileVar "        \"solver_type\"              : \"eulerian_conserved_var_solver\","
     }
     }
+    puts $FileVar "        \"model_part_name\"          : \"main_model_part\","
+    puts $FileVar "        \"domain_size\"              : 2,"
+    puts $FileVar "        \"gravity\"                  : [GiD_AccessValue get gendata Gravity],"
+    puts $FileVar "        \"time_scale\"               : \"seconds\","
+    puts $FileVar "        \"water_height_scale\"       : \"meters\","
     puts $FileVar "        \"model_import_settings\"    : \{"
     puts $FileVar "            \"input_type\"               : \"mdpa\","
     puts $FileVar "            \"input_filename\"           : \"$basename\""
@@ -99,18 +100,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "        \"time_stepping\"            : \{"
     puts $FileVar "            \"automatic_time_step\"      : false,"
     puts $FileVar "            \"time_step\"                : [GiD_AccessValue get gendata Delta_Time]"
-    puts $FileVar "        \},"
-    if {[GiD_AccessValue get gendata FrameWork] eq "Pfem2"} {
-    puts $FileVar "        \"pfem2_settings\"           : \{"
-    puts $FileVar "            \"convection_scalar_variable\"   : \"HEIGHT\","
-    if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
-        puts $FileVar "            \"convection_vector_variable\"   : \"VELOCITY\","
-    } else {
-        puts $FileVar "            \"convection_vector_variable\"   : \"MOMENTUM\","
-    }
-    puts $FileVar "            \"maximum_number_of_particles\"  : [GiD_AccessValue get gendata Maximum_number_of_particles]"
     puts $FileVar "        \}"
-    }
     puts $FileVar "    \},"
 
 
@@ -144,6 +134,9 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "    \},"
 
 
+    # processes
+    puts $FileVar "    \"processes\"    : \{"
+
     # initial conditions
     set Groups [GiD_Info conditions Initial_water_level groups]
     set NumGroups [llength $Groups]
@@ -170,13 +163,15 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     set Groups [GiD_Info conditions Imposed_flux groups]
     WriteConstantVectorConditionProcess FileVar iGroup $Groups lines $NumGroups
 
-
     # bathymetry
     set Groups [GiD_Info conditions Body_Part groups]
     set NumGroups [llength $Groups]
     set iGroup 0
     puts $FileVar "    \"bathymetry_process_list\"     : \[\{"
     WriteBathymetryProcess FileVar iGroup $Groups surfaces $NumGroups
+
+    # end of processes
+    puts $FileVar "    \}"
 
 
     # Finish ProjectParameters.json file
