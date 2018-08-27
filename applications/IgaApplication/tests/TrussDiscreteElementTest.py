@@ -47,7 +47,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
             node_indices = [curve.Node(j).Id for j in
                 range(shapes.FirstNonzeroPole, shapes.LastNonzeroPole + 1)]
 
-            element = model_part.CreateNewElement('TrussDiscreteElement', i + 1,
+            element = model_part.CreateNewElement('IgaTrussElement', i + 1,
                 node_indices, truss_properties)
 
             n_0 = Vector(shapes.NumberOfNonzeroPoles)

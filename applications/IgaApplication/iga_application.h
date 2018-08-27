@@ -22,8 +22,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
-#include "custom_elements/beam_discrete_element.h"
-#include "custom_elements/truss_discrete_element.h"
+#include "custom_elements/iga_truss_element.h"
 
 namespace Kratos {
 
@@ -160,8 +159,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const BeamDiscreteElement mBeamDiscreteElement;
-    const TrussDiscreteElement mTrussDiscreteElement;
+    const IgaTrussElement mIgaTrussElement;
 
     ///@}
     ///@name Private Operators
