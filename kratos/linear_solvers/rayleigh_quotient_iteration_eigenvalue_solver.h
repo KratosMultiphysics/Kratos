@@ -156,7 +156,7 @@ public:
     ///@{
 
     static void Initialize(
-        DenseVectorType& R,
+        VectorType& R,
         SparseMatrixType& M
     )
     {
@@ -212,8 +212,8 @@ public:
         SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         double tolerance = BaseType::GetTolerance();
 
-        VectorType x = ZeroVector(size);
-        VectorType y = ZeroVector(size);
+        VectorType x = boost::numeric::ublas::zero_vector<double>(size);
+        VectorType y = boost::numeric::ublas::zero_vector<double>(size);
 
         Initialize(y,M);
 
