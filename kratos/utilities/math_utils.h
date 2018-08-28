@@ -246,10 +246,13 @@ public:
             if (k != j)
                 ia2(j_sub++) = k;
 
-        boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
-        const TDataType first_minor = DetMat(sub_mat);
-
-        return ((i + j) % 2) ? -first_minor : first_minor;
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+		PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+#else
+		boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+#endif // KRATOS_USE_AMATRIX
+		const TDataType first_minor = DetMat(sub_mat);
+		return ((i + j) % 2) ? -first_minor : first_minor;
     }
 
     template<class TMatrixType>
@@ -1582,7 +1585,7 @@ public:
         BoundedMatrix<TDataType, TDim, TDim> TempMat = A;
         BoundedMatrix<TDataType, TDim, TDim> AuxA;
 
-        const BoundedMatrix<TDataType, TDim, TDim> Indentity = IdentityMatrix(TDim, TDim);
+        const BoundedMatrix<TDataType, TDim, TDim> Indentity = IdentityMatrix(TDim);
         BoundedMatrix<TDataType, TDim, TDim> V = Indentity;
         BoundedMatrix<TDataType, TDim, TDim> Vaux;
         BoundedMatrix<TDataType, TDim, TDim> Rotation;
