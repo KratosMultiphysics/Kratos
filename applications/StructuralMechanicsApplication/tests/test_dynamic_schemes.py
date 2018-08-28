@@ -300,7 +300,7 @@ def create_solver(mp, scheme_name):
     if (scheme_name == "newmark"):
         scheme = KratosMultiphysics.ResidualBasedNewmarkDisplacementScheme()
     elif (scheme_name == "pseudo_static"):
-        scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme()
+        scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
     elif (scheme_name == "backward_euler"):
         scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
     elif (scheme_name == "bdf2"):

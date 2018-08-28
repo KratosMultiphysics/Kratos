@@ -268,8 +268,7 @@ namespace Kratos
 	         class_< ResidualBasedPseudoStaticDisplacementSchemeType,
                    typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
                    BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
-                   .def(init< >() )
-                   .def(init< const std::string >() )
+                   .def(init< const Variable<double> >() )
                    ;
 
             // Residual Based BDF displacement Scheme Type
@@ -316,7 +315,6 @@ namespace Kratos
                     ConvergenceCriteriaType >
                     (m,"DisplacementCriteria")
                     .def(init< double, double>())
-//                     .def("SetEchoLevel", &DisplacementCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
@@ -324,7 +322,6 @@ namespace Kratos
                     ConvergenceCriteriaType >
                     (m,"ResidualCriteria")
                     .def(init< double, double>())
-//                     .def("SetEchoLevel", &ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             class_<And_Criteria<SparseSpaceType, LocalSpaceType >,
@@ -332,7 +329,6 @@ namespace Kratos
                     ConvergenceCriteriaType >
                     (m,"AndCriteria")
                     .def(init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
-                    .def("SetEchoLevel",&And_Criteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             class_<Or_Criteria<SparseSpaceType, LocalSpaceType >,
@@ -340,7 +336,6 @@ namespace Kratos
                     ConvergenceCriteriaType >
                     (m,"OrCriteria")
                     .def(init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
-                    .def("SetEchoLevel",&Or_Criteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             //********************************************************************
@@ -448,9 +443,9 @@ namespace Kratos
                     .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
                     .def("Clear", &BaseSolvingStrategyType::Clear)
                     .def("Check", &BaseSolvingStrategyType::Check)
-					.def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
-					.def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
-					.def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
+                    .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
+                    .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
+                    .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
                     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
                     ;
 

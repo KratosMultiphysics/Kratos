@@ -74,7 +74,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
         elif(scheme_type == "pseudo_static"):
-            mechanical_scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme("RAYLEIGH_BETA")
+            mechanical_scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
         elif(scheme_type.startswith("bdf") or scheme_type == "backward_euler"):
             order = self._bdf_integration_order()
             # In case of rotation dof we declare the dynamic variables

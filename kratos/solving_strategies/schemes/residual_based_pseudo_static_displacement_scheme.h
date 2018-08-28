@@ -83,9 +83,9 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    explicit ResidualBasedPseudoStaticDisplacementScheme(const std::string RayleighBetaVariableName = "RAYLEIGH_BETA")
+    explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double> RayleighBetaVariable)
       :DerivedBaseType(0.0),
-       mRayleighBeta(KratosComponents<Variable<double>>::Get(RayleighBetaVariableName))
+       mRayleighBeta(RayleighBetaVariable)
     {
     }
 
@@ -262,7 +262,7 @@ protected:
         } else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[mRayleighBeta];
             pElement->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-            noalias(rRHSContribution) -= prod(rM * beta, DerivedBaseType::mVector.v[this_thread]);
+            noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
     }
 
@@ -292,7 +292,7 @@ protected:
         } else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[mRayleighBeta];
             pCondition->GetFirstDerivativesVector(DerivedBaseType::mVector.v[this_thread], 0);
-            noalias(rRHSContribution) -= prod(rM * beta, DerivedBaseType::mVector.v[this_thread]);
+            noalias(rRHSContribution) -= beta * prod(rM, DerivedBaseType::mVector.v[this_thread]);
         }
     }
 
