@@ -69,17 +69,12 @@ class ApplyPeriodicConditionProcess : public Process
                                             "center":[0,0,0],
                                             "axis_of_rotation":[0.0,0.0,0.0],
                                             "angle":0.0,
-                                            "flip":false,
                                             "dir_of_translation":[0.0,0.0,0.0],
                                             "magnitude":0.0
                                             }  )");
 
         // Initializing
         mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-        // Use the salve model part and newly created model part to form MPC constraints
-        mSlaveSubModelPartName = mParameters["slave_sub_model_part_name"].GetString();
-        mMasterSubModelPartName = mParameters["master_sub_model_part_name"].GetString();
 
         mCenterOfRotation.push_back(mParameters["center"][0].GetDouble());
         mCenterOfRotation.push_back(mParameters["center"][1].GetDouble());
@@ -93,11 +88,6 @@ class ApplyPeriodicConditionProcess : public Process
         mDirOfTranslation.push_back(mParameters["dir_of_translation"][0].GetDouble());
         mDirOfTranslation.push_back(mParameters["dir_of_translation"][1].GetDouble());
         mDirOfTranslation.push_back(mParameters["dir_of_translation"][2].GetDouble());
-
-        if (mParameters["flip"].GetBool())
-            mSign = -1;
-        else
-            mSign = 1;
 
         mTheta = mParameters["angle"].GetDouble() * 2 * 3.1416 / 360.0;
 
@@ -124,20 +114,20 @@ class ApplyPeriodicConditionProcess : public Process
         {
             ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
             ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
-            int probDim = info->GetValue(DOMAIN_SIZE);
+            int prob_dim = info->GetValue(DOMAIN_SIZE);
             // Rotate the master so it goes to the slave
-            if (probDim == 2){
-                GetRotatedMaster<2>(r_master_model_part);
+            if (prob_dim == 2){
+                TransformMasterModelPart<2>(r_master_model_part);
                 ApplyConstraintsForPeriodicConditions<2>();
             }
-            else if (probDim == 3){
-                GetRotatedMaster<3>(r_master_model_part);
+            else if (prob_dim == 3){
+                TransformMasterModelPart<3>(r_master_model_part);
                 ApplyConstraintsForPeriodicConditions<3>();
             }
             mIsInitialized = true;
         }
         std::cout<<"Initialization of Periodic conditions finished .. !"<<std::endl;
-        // Once master and slave nodes are on the same surface we interpolate and appply constraints
+
         KRATOS_CATCH("");
     }
 
@@ -151,13 +141,10 @@ class ApplyPeriodicConditionProcess : public Process
     ModelPart &mrMainModelPart;       // the MainModelPart to which the master-slave constraints are added.
     Parameters mParameters;          // parameters
     ModelPart mpRotatedMasterModelPart; // This is new modelpart
-    std::string mSlaveSubModelPartName;
-    std::string mMasterSubModelPartName;
     double mTheta;
     bool mIsInitialized;
     std::vector<double> mCenterOfRotation;
     std::vector<double> mAxisOfRotationVector;
-    int mSign;
     std::string mType;
     double mModulus;
     std::vector<double> mDirOfTranslation;
@@ -169,8 +156,8 @@ class ApplyPeriodicConditionProcess : public Process
     template <int TDim>
     void ApplyConstraintsForPeriodicConditions()
     {
-        ModelPart &slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
-        int num_vars = mParameters["variable_names"].size();
+        ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
+        const int num_vars = mParameters["variable_names"].size();
         BinBasedFastPointLocatorOnConditions<TDim> bin_based_point_locator(mpRotatedMasterModelPart);
         bin_based_point_locator.UpdateSearchDatabase();
 
@@ -180,20 +167,17 @@ class ApplyPeriodicConditionProcess : public Process
 		typename BinBasedFastPointLocatorOnConditions<TDim>::ResultContainerType results(max_results);
         typename BinBasedFastPointLocatorOnConditions<TDim>::ResultIteratorType result_begin = results.begin();
 
-        // Record start time
-        auto start_time_loop = std::chrono::high_resolution_clock::now();
+        const int num_slave_nodes = r_slave_model_part.NumberOfNodes();
+        const ModelPart::NodeIterator it_slave_node_begin = r_slave_model_part.NodesBegin();
 
-        const int num_slave_nodes = slave_model_part.NumberOfNodes();
-        ModelPart::NodeIterator it_node_begin = slave_model_part.NodesBegin();
-        int num_slaves_found = 0;
         for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
         {
             Condition::Pointer p_host_elem;
-            ModelPart::NodeIterator it_node = it_node_begin;
-            std::advance(it_node, i_node);
+            ModelPart::NodeIterator it_slave_node = it_slave_node_begin;
+            std::advance(it_slave_node, i_node);
 
             // Finding the host element for this node
-            bool is_found = bin_based_point_locator.FindPointOnMesh(it_node->Coordinates(), shape_function_values, p_host_elem, result_begin, max_results);
+            bool is_found = bin_based_point_locator.FindPointOnMesh(it_slave_node->Coordinates(), shape_function_values, p_host_elem, result_begin, max_results);
             if(is_found)
             {
                 ++num_slaves_found;
@@ -202,16 +186,11 @@ class ApplyPeriodicConditionProcess : public Process
                     const std::string var_name = mParameters["variable_names"][j].GetString();
                     if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
                     {       // Checking if the variable is a vector variable
-                        ConstraintSlaveNodeWithElement<TDim>(*it_node, p_host_elem->GetGeometry() , shape_function_values, var_name);
+                        ConstraintSlaveNodeWithElement<TDim>(*it_slave_node, p_host_elem->GetGeometry() , shape_function_values, var_name);
                     }
                 }
             }
         }
-        std::cout<<"Found :: "<<num_slaves_found<<" out of "<< num_slave_nodes<<std::endl;
-        // Record end time
-        auto finish_time_loop = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed_time_loop = finish_time_loop - start_time_loop;
-        std::cout << "Time taken for the loop is : " << elapsed_time_loop.count() << " s\n";
     }
 
     template <int TDim>
@@ -227,14 +206,13 @@ class ApplyPeriodicConditionProcess : public Process
                 int current_num_constraint = mrMainModelPart.NumberOfMasterSlaveConstraints();
                 auto& actual_master_node = mrMainModelPart.GetNode(master_node.Id());
 
-                double master_weight = mSign * rWeights(master_index);
+                double master_weight = rWeights(master_index);
                 double constant_x(0.0), constant_y(0.0), constant_z(0.0);
 
                 constant_x = master_weight * mTransformationMatrix(0,3);
                 constant_y = master_weight * mTransformationMatrix(1,3);
                 constant_z = master_weight * mTransformationMatrix(2,3);
-                // Record start time
-                auto start_time_con = std::chrono::high_resolution_clock::now();
+
                 mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_x, master_weight * mTransformationMatrix(0,0), constant_x);
                 mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_x, master_weight * mTransformationMatrix(0,1), constant_x);
                 mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_x, master_weight * mTransformationMatrix(0,2), constant_x);
@@ -361,10 +339,11 @@ class ApplyPeriodicConditionProcess : public Process
         rRotatedCoordinates(0) = rotatedNode[0]; rRotatedCoordinates(1) = rotatedNode[1]; rRotatedCoordinates(2) = rotatedNode[2];
     }
 
-
-    // Functions which use two variable components
+    /*
+     * @brief Function transforms the given master modelpart with the above calculated transformation matrix.
+     */
     template <int TDim>
-    void GetRotatedMaster(ModelPart &rMasterModelPart)
+    void TransformMasterModelPart(ModelPart &rMasterModelPart)
     {
         // iterating over slave nodes to find thecorresponding masters
         long int n_master_nodes = rMasterModelPart.Nodes().size();
