@@ -192,6 +192,8 @@ public:
     {
         double EquivalentPlasticStrain;
         double DeltaPlasticStrain;
+        double AccumulatedPlasticDeviatoricStrain;
+        double DeltaPlasticDeviatoricStrain;
         Matrix  Normal;
 
         double LameMu_bar;
@@ -207,7 +209,9 @@ public:
         void clear()
         {
             EquivalentPlasticStrain = 0;
+            AccumulatedPlasticDeviatoricStrain = 0; 
             DeltaPlasticStrain = 0;
+            DeltaPlasticDeviatoricStrain = 0;
             Normal.clear();
             LameMu_bar  = 0;
             Friction    = 0;
@@ -222,6 +226,8 @@ public:
             std::cout<<" Internal Variables "<<std::endl;
             std::cout<<" EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
             std::cout<<" DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
+            std::cout<<" AccumulatedPlasticDeviatoricStrain: "<<AccumulatedPlasticDeviatoricStrain<<std::endl;
+            std::cout<<" DeltaPlasticDeviatoricStrain: "<<DeltaPlasticDeviatoricStrain<<std::endl;
             std::cout<<" EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
         }
 
@@ -235,6 +241,8 @@ public:
         {
             rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
             rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.save("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
+            rSerializer.save("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);
             rSerializer.save("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
         };
 
@@ -242,6 +250,8 @@ public:
         {
             rSerializer.load("EquivalentPlasticStrain",EquivalentPlasticStrain);
             rSerializer.load("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.load("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
+            rSerializer.load("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);           
             rSerializer.load("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
         };
     };
