@@ -243,19 +243,16 @@ class CustomCalculateSignedDistanceProcess
 			// Implemented in the custom_processes
 			p2DSignedDistanceCalculator = CalculateSignedDistanceTo2DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo2DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
 			p2DSignedDistanceCalculator->Execute();
-
-			std::cout << "2d Signed distance calculation completed    " << std::endl;
 		}
 
 		if (TDim == 3)
 		{
 			// From Core ?? Improve performance and algorithm based on CalculateSignedDistanceToSkinProcess
-			std::cout << "Inside the distance function " << std::endl;
 			p3DSignedDistanceCalculator = CalculateSignedDistanceTo3DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo3DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
 
-			std::cout << "Distance calculation initialised" << std::endl;
+
 			p3DSignedDistanceCalculator->Execute();
-			std::cout << "Distance calculations finished" << std::endl;
+
 		}
 
 		std::size_t max_level = 100;

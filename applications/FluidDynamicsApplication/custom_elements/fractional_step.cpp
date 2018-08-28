@@ -606,7 +606,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
                                                         VectorType& rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
-    //std::cout<<"::CalculateLocalPressureSystem::"<<std::endl;
+    //Rishith : to solve chimera fractional step
 
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();

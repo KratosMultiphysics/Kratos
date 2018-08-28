@@ -29,7 +29,7 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
             },
-            "implementation"		  : "MPC",
+            "implementation"    : "MPC",
             "predictor_corrector": false,
             "maximum_velocity_iterations": 3,
             "maximum_pressure_iterations": 3,
@@ -41,7 +41,7 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
-            "reform_dofs_at_each_step": false,
+            "reform_dofs_at_each_step": true,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "AMGCL",
                 "max_iteration"                  : 200,
@@ -133,6 +133,10 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CORRECTION_X)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CORRECTION_Y)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CORRECTION_Z)
 
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)

@@ -101,7 +101,6 @@
         "periodic": "periodic",
         "move_mesh_flag": false,
         "turbulence_model": "None",
-        "reorder": false,
         "time_scheme": "bossak",
         "velocity_relaxation": 0.9,
         "pressure_relaxation": 0.9,

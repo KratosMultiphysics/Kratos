@@ -1086,9 +1086,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
 
     void CalculateConservativeCorrections(ModelPart &r_model_part)
     {
-
         // Calculation of flux
-
         ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
 
@@ -1096,7 +1094,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         {
 
             if (mpcData->IsActive())
-
             {
                 if (mpcData->mType == "conservative")
                 {

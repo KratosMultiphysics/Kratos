@@ -32,7 +32,8 @@
             "solver_type": "monolithic",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "test_chimera_monolithic_simple_Input"
+                "input_filename": "test_chimera_monolithic_simple_Input",
+                "reorder": false
             },
             "implementation"		  : "MPC",
             "maximum_iterations": 20,
@@ -76,8 +77,7 @@
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "move_mesh_flag": false,
-            "turbulence_model": "None",
-            "reorder": false
+            "turbulence_model": "None"
                     },
     "initial_conditions_process_list"  : [{
         "python_module" : "assign_vector_variable_process",

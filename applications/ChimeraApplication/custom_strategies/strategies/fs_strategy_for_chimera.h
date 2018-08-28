@@ -286,7 +286,6 @@ public:
 
     double Solve() override
     {
-
         std::cout<<"Inside FS Strategy for chimera solve"<<std::endl;
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
@@ -332,6 +331,18 @@ public:
         return NormDp;
     }
 
+    bool SolveSolutionStep() override
+    {
+        std::cout<<" solve solution step inside fs strategy"<<std::endl;
+        double norm_dp = this->Solve();
+        /* If not doing predictor corrector iterations, norm_dp will
+         * typically be "large" since we are not iterating on pressure.
+         * It makes no sense to report that the iteration didn't converge
+         * based on this.
+         */
+        return mPredictorCorrector ? this->CheckPressureConvergence(norm_dp) : true;
+    }
+
 
     virtual void CalculateReactions()
     {
@@ -372,7 +383,7 @@ public:
                 if ((itElem)->IsDefined(ACTIVE))
                     element_is_active = (itElem)->Is(ACTIVE);
 
-                if(element_is_active)
+                if(true) //if(element_is_active)
                 {
 
                     //itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
@@ -541,6 +552,8 @@ protected:
         bool Converged = false;
         int Rank = rModelPart.GetCommunicator().MyPID();
 
+
+        // making MPC of velocity active for Chimera
         ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
 
@@ -549,14 +562,16 @@ protected:
             if(mpcData->GetVelocityOrPressure() == "Velocity")
             {
                 mpcData->SetActive(true);
-                std::cout<<"made one patch active for Velocity "<<std::endl;
+                std::cout<<"made one MPC active for Velocity "<<std::endl;
             }
             else
             {
                 mpcData->SetActive(false);
-                std::cout<<"made one patch inactive for Velocity "<<std::endl;
+                std::cout<<"made one MPC inactive for Velocity "<<std::endl;
             }
         }
+
+        std::cout << "before Momentum iteration " <<std::endl;
 
         for(std::size_t it = 0; it < mMaxVelocityIter; ++it)
         {
@@ -590,33 +605,64 @@ protected:
         if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Fractional velocity iterations did not converge." << std::endl;
 
-        std::cout<<"Printing Fract velocity values of Slaves and its masters to check continuity"<<std::endl;
+//Rishith
+        // std::cout<<"Finding and printing flux across boundary "<<std::endl;
 
-        for (auto mpcData : (*mpcDataVector))
-        {
-            for (auto slaveMasterDofMap : mpcData->mDofConstraints)
-            {
-                SlavePairType slaveDofMap = slaveMasterDofMap.first;
-                MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
-                std::size_t slaveNodeId = slaveDofMap.first;
-                NodeType &node = rModelPart.Nodes()[slaveNodeId];
-                std::cout<<" Slave Fract velocity"<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
-                array_1d<double,3> Fract_Vel_interpolated = array_1d<double,3>(3,0.0);
-                std::cout<<"variable before interpolation"<<Fract_Vel_interpolated<<std::endl;
-                for (auto masterDofMapElem : masterDofMap)
-                {
-                    std::size_t masterNodeId;
-                    double constant;
-                    std::size_t masterDofKey;
-                    std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
-                    double weight = masterDofMapElem.second;
-                    NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
-                    Fract_Vel_interpolated +=(masterNode.FastGetSolutionStepValue(FRACT_VEL))*weight;
-                }
-                std::cout<<" Fract velocity interpolated from its masters "<<Fract_Vel_interpolated<<std::endl;
-                //node.FastGetSolutionStepValue(FRACT_VEL) = Fract_Vel_interpolated;
-            }
-        }
+        // for (auto mpcData : (*mpcDataVector))
+        // {
+        //     if (mpcData->IsActive())
+        //     {
+        //         if (mpcData->mType == "nearest_element")
+        //         {
+        //             double NodalNormalComponent;
+        //             double flux = 0;
+        //             for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+        //             {
+        //                 SlavePairType slaveDofMap = slaveMasterDofMap.first;
+        //                 //MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
+        //                 std::size_t slaveNodeId = slaveDofMap.first;
+        //                 NodeType &node = rModelPart.Nodes()[slaveNodeId];
+        //                 //std::cout<<" Slave Fract velocity"<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
+        //                 //array_1d<double,3> Fract_Vel_interpolated = array_1d<double,3>(3,0.0);
+        //                 //std::cout<<"variable before interpolation"<<Fract_Vel_interpolated<<std::endl;
+        //                 /*
+
+        //                 for (auto masterDofMapElem : masterDofMap)
+        //                 {
+        //                     std::size_t masterNodeId;
+        //                     double constant;
+        //                     std::size_t masterDofKey;
+        //                     std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
+        //                     double weight = masterDofMapElem.second;
+        //                     NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
+        //                     Fract_Vel_interpolated +=(masterNode.FastGetSolutionStepValue(FRACT_VEL))*weight;
+        //                 }
+        //                 std::cout<<" Fract velocity interpolated from its masters "<<Fract_Vel_interpolated<<std::endl;
+        //                  */
+        //                 //node.FastGetSolutionStepValue(FRACT_VEL) = Fract_Vel_interpolated;
+        //                 NodalNormalComponent = mpcData->mSlaveDofToNodalNormalMap[slaveDofMap];
+
+        //                 // std::cout<<"Nodal normal"<<node.GetValue(NORMAL)<<std::endl;
+        //                 // std::cout<<"Nodal normal"<<node.FastGetSolutionStepValue(NORMAL)<<std::endl;
+        //                 // std::cout<<"Fract velocity"<<node.FastGetSolutionStepValue(VELOCITY)<<std::endl;
+        //                 // std::cout<<"Fract velocity"<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
+        //                 flux = flux+ MathUtils<double>::Dot(node.FastGetSolutionStepValue(VELOCITY),node.FastGetSolutionStepValue(NORMAL));
+
+        //             }
+
+        //             std::cout<<" total flux across "<<mpcData->GetName()<<"::"<<flux<<std::endl;
+
+        //             std::fstream myfile;
+        //             myfile.open ("example.txt",std::ios_base::app);
+        //             myfile << "Writing this to a file.\n";
+        //             myfile<<"total flux across "<<mpcData->GetName()<<"::"<<flux<<std::endl;
+        //             myfile.close();
+        //         }
+        //     }
+        // }
+
+        //Rishith
+       // CalculateConservativeCorrections();
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
@@ -624,7 +670,6 @@ protected:
 
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
-
 
     #pragma omp parallel
         {
@@ -638,7 +683,7 @@ protected:
                 if ((itNode)->IsDefined(SLAVE))
                     is_slave = (itNode)->Is(SLAVE);
 
-                if (! is_slave )
+                if(true) //if(!is_slave)//rishith
                 {
                     const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
                     itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
@@ -651,17 +696,18 @@ protected:
             if(mpcData->GetVelocityOrPressure() == "Pressure")
             {
                 mpcData->SetActive(true);
-                std::cout<<"made one patch active for pressure "<<std::endl;
+                std::cout<<"made one MPC active for pressure "<<std::endl;
             }
             else
             {
                 mpcData->SetActive(false);
-                std::cout<<"made one patch inactive for pressure "<<std::endl;
+                std::cout<<"made one MPC inactive for pressure "<<std::endl;
             }
         }
 
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Calculating Pressure." << std::endl;
+        //double NormDp = 0;
         double NormDp = mpPressureStrategy->Solve();
 
      /*
@@ -836,13 +882,12 @@ protected:
 
             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
             {
-
                 bool element_is_active = true;
                 if ((itElem)->IsDefined(ACTIVE))
                     element_is_active = (itElem)->Is(ACTIVE);
 
-                if(element_is_active)
-                    itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo());
+                //if(element_is_active)
+                itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo());
             }
         }
 
@@ -852,9 +897,8 @@ protected:
         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
         // If there are periodic conditions, add contributions from both sides to the periodic nodes
-        this->PeriodicConditionProjectionCorrection(rModelPart);
+        //this->PeriodicConditionProjectionCorrection(rModelPart);
         this->ChimeraProjectionCorrection(rModelPart);
-
 #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -864,11 +908,46 @@ protected:
             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
             {
                 const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if( NodalArea > 1E-8 )
+                if(true) //if( NodalArea > 1E-8 )//rishith
                 {
                     itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(DIVPROJ) /= NodalArea;
+                }
+            }
+        }
+
+        //Rishith : for correcting projections for chimera
+
+        ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+        MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
+        for (auto mpcData : (*mpcDataVector))
+        {
+            if (mpcData->GetVelocityOrPressure()=="Velocity")
+            {
+                for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+                {
+                    SlavePairType slaveDofMap = slaveMasterDofMap.first;
+                    MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
+                    std::size_t slaveNodeId = slaveDofMap.first;
+                    NodeType &node = rModelPart.Nodes()[slaveNodeId];
+                    for (auto masterDofMapElem : masterDofMap)
+                    {
+                        std::size_t masterNodeId;
+                        double constant;
+                        std::size_t masterDofKey;
+                        std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
+                        double weight = masterDofMapElem.second;
+                        NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
+                        auto& conv_proj = node.FastGetSolutionStepValue(CONV_PROJ);
+                        auto& pres_proj = node.FastGetSolutionStepValue(PRESS_PROJ);
+                        auto& dive_proj = node.FastGetSolutionStepValue(DIVPROJ);
+                        auto& noda_area = node.FastGetSolutionStepValue(NODAL_AREA);
+                        conv_proj += (masterNode.FastGetSolutionStepValue(CONV_PROJ))*weight;
+                        pres_proj += (masterNode.FastGetSolutionStepValue(PRESS_PROJ))*weight;
+                        dive_proj += (masterNode.FastGetSolutionStepValue(DIVPROJ))*weight;
+                        noda_area += (masterNode.FastGetSolutionStepValue(NODAL_AREA))*weight;
+                    }
                 }
             }
         }
@@ -901,20 +980,18 @@ protected:
 
             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
             {
-
-
-             bool element_is_active = true;
+                bool element_is_active = true;
                 if ((itElem)->IsDefined(ACTIVE))
                     element_is_active = (itElem)->Is(ACTIVE);
 
-                if(element_is_active)
-                    itElem->Calculate(VELOCITY,Out,rModelPart.GetProcessInfo());
+                //if(element_is_active)
+                itElem->Calculate(VELOCITY,Out,rModelPart.GetProcessInfo());
             }
         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(FRACT_VEL);
-        this->PeriodicConditionVelocityCorrection(rModelPart);
-        this->ChimeraVelocityCorrection(rModelPart);
+        //this->PeriodicConditionVelocityCorrection(rModelPart);
+        //this->ChimeraVelocityCorrection(rModelPart);
 
         // Force the end of step velocity to verify slip conditions in the model
         if (mUseSlipConditions)
@@ -952,7 +1029,7 @@ protected:
                 {
                     const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
 
-                    if(NodalArea >1E-8)
+                    if(true) //if(NodalArea >1E-8) //rishith
                     {
                         if ( ! itNode->IsFixed(VELOCITY_X) )
                             itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
@@ -964,7 +1041,7 @@ protected:
 
             //std::cout<<"Interpolating end step velocity to slave nodes from their Masters"<<std::endl;
 
-         /*    ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+            ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
             MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
             for (auto mpcData : (*mpcDataVector))
             {
@@ -976,8 +1053,8 @@ protected:
                         MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
                         std::size_t slaveNodeId = slaveDofMap.first;
                         NodeType &node = rModelPart.Nodes()[slaveNodeId];
-                        std::cout<<"interpolating for node id "<<node.Id()<<std::endl;
-                        std::cout<<"It has a velocity of Vx "<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
+                        //std::cout<<"interpolating for node id "<<node.Id()<<std::endl;
+                        //std::cout<<"It has a velocity of Vx "<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
                         node.FastGetSolutionStepValue(VELOCITY_X)=0;
                         node.FastGetSolutionStepValue(VELOCITY_Y)=0;
                         for (auto masterDofMapElem : masterDofMap)
@@ -993,11 +1070,11 @@ protected:
                             node.FastGetSolutionStepValue(VELOCITY_X) +=(masterNode.FastGetSolutionStepValue(VELOCITY_X))*weight;
                             node.FastGetSolutionStepValue(VELOCITY_Y) +=(masterNode.FastGetSolutionStepValue(VELOCITY_Y))*weight;
                         }
-                        std::cout<<"interpolated value Velocity X for node id "<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
+                        //std::cout<<"interpolated value Velocity X for node id "<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
                         //std::cout<<"interpolated value Velocity Y for node id "<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_Y)<<std::endl;
                     }
                 }
-            } */
+            }
 
         }
     }
@@ -1283,6 +1360,123 @@ protected:
             }
         }
     }
+
+    void CalculateConservativeCorrections()
+    {
+        // Calculation of flux
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
+        MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
+
+        for (auto mpcData : (*mpcDataVector))
+        {
+            if (mpcData->IsActive())
+            {
+                if (mpcData->mType == "conservative")
+                {
+                    double nodalMass;
+                    std::size_t slaveNodeId;
+                    //std::size_t slaveNodeIdOther;
+                    std::size_t slaveDofKey;
+                    //std::size_t slaveDofKeyOther;
+                    double slaveDofValueOther;
+                    SlavePairType slaveDofMap;
+                    SlavePairType slaveDofMapOther;
+                    double RtMinvR = mpcData->RtMinvR;
+                    double NodalNormalComponent;
+                    double NodalNormalComponentOther;
+                    //std::cout << " RtMinvR " << RtMinvR << std::endl;
+                    std::vector<double> VectorOfconstants;
+                    std::size_t slaveIndex = 0;
+                    double norm = 0;
+
+                    for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+                    {
+                        slaveDofMap = slaveMasterDofMap.first;
+                        slaveNodeId = slaveDofMap.first;
+                        slaveDofKey = slaveDofMap.second;
+
+                        std::cout<<" slave node id"<<slaveNodeId<<std::endl;
+                        std::cout<<" slave dof key"<<slaveDofKey<<std::endl;
+
+                        Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
+                        Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
+                        nodalMass = slaveNode.FastGetSolutionStepValue(NODAL_MASS);
+                        NodalNormalComponent = mpcData->mSlaveDofToNodalNormalMap[slaveDofMap];
+
+                        VectorOfconstants.push_back(0.0);
+                        for (auto slaveMasterDofMapOther : mpcData->mDofConstraints)
+                        {
+
+                            slaveDofMapOther = slaveMasterDofMapOther.first;
+                            //#####
+                            MasterDofWeightMapType &masterDofMap = slaveMasterDofMapOther.second;
+                            //#####
+                            //slaveNodeIdOther = slaveDofMapOther.first;
+                            //slaveDofKeyOther = slaveDofMapOther.second;
+                            //Node<3> &slaveNodeOther = r_model_part.Nodes()[slaveNodeIdOther];
+                            //Node<3>::DofsContainerType::iterator idofOther = slaveNodeOther.GetDofs().find(slaveDofKeyOther);
+                            //slaveDofValueOther = idofOther->GetSolutionStepValue();
+
+                            //################
+                            slaveDofValueOther = 0.0;
+
+                            for (auto masterDofMapElem : masterDofMap)
+                            {
+                                std::size_t masterNodeId;
+                                double constant;
+                                std::size_t masterDofKey;
+                                double weight = masterDofMapElem.second;
+                                std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
+                                NodeType &masterNode = r_model_part.Nodes()[masterNodeId];
+                                Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
+
+                                slaveDofValueOther += itMaster->GetSolutionStepValue() * weight;
+                            }
+
+                            //#######################
+                            NodalNormalComponentOther = mpcData->mSlaveDofToNodalNormalMap[slaveDofMapOther];
+                            VectorOfconstants[slaveIndex] -= ((NodalNormalComponent * NodalNormalComponentOther) / (nodalMass * RtMinvR)) * slaveDofValueOther; // correction for zero flux
+
+                        } // slaveMasterDofMapOher loop
+
+                        norm += VectorOfconstants[slaveIndex] * VectorOfconstants[slaveIndex];
+                        slaveIndex++;
+
+                    } // slaveMasterDofMap loop
+
+                    slaveIndex = 0;
+
+                    //Applying correction in the slaveDofValue
+                    for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+                    {
+
+                        slaveDofMap = slaveMasterDofMap.first;
+                        slaveNodeId = slaveDofMap.first;
+                        slaveDofKey = slaveDofMap.second;
+                        Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
+                        Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
+                        std::size_t slaveEquationId = idof->EquationId();
+                        mpcData->mSlaveEquationIdConstantsMap[slaveEquationId] = VectorOfconstants[slaveIndex];
+
+                        //slaveEquationId.FastGetSolutionStepValue(CORRECTION_X) = 0;
+
+                        //slaveEquationId.FastGetSolutionStepValue(CORRECTION_Y) = 0;
+
+                        slaveIndex++;
+
+                    } // slaveMasterDofMap loop
+
+                    //std::cout << "Conservative Correction norm  of " << mpcData->mName << " : " << sqrt(norm) << std::endl;
+                    std::cout << "Conservative Correction of " << mpcData->mName << " is calculated " << std::endl;
+                } // if type == "Conservative"
+
+            } // mpcData->IsActive()
+
+        } // mpcData vector
+    }
+
+
 
 
     ///@}
