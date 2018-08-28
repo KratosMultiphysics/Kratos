@@ -62,7 +62,7 @@ void AddUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
     
@@ -90,7 +90,6 @@ void AddUtilitiesToPython(pybind11::module& m)
     ;
 
     // This is required to recognize the different overloads of ConditionNumberUtility::GetConditionNumber
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef double (ConditionNumberUtility::*InputGetConditionNumber)(SparseSpaceType::MatrixType&, LinearSolverType::Pointer, LinearSolverType::Pointer);
     typedef double (ConditionNumberUtility::*DirectGetConditionNumber)(SparseSpaceType::MatrixType&);
 
