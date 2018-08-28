@@ -61,17 +61,17 @@ void NodalDataValueIO::WriteNodalResults(NodesContainerType const& rNodes)
 
 namespace {
 template <typename TDataType>
-void SetNodalValueDataBuffer(Variable<TDataType> const&,
-                                std::vector<NodeType*> const&,
-                                Vector<TDataType>&);
+void SetNodalDataValueBuffer(Variable<TDataType> const&,
+                             std::vector<NodeType*> const&,
+                             Vector<TDataType>&);
 
-void SetNodalValueDataBuffer(Variable<Vector<double>> const&,
-                                std::vector<NodeType*> const&,
-                                Matrix<double>&);
+void SetNodalDataValueBuffer(Variable<Vector<double>> const&,
+                             std::vector<NodeType*> const&,
+                             Matrix<double>&);
 
-void SetNodalValueDataBuffer(Variable<Matrix<double>> const&,
-                                std::vector<NodeType*> const&,
-                                Matrix<double>&);
+void SetNodalDataValueBuffer(Variable<Matrix<double>> const&,
+                             std::vector<NodeType*> const&,
+                             Matrix<double>&);
 
 template <typename TVariable>
 class WriteNonHistoricalVariableFunctor
@@ -84,7 +84,7 @@ public:
                     WriteInfo& rInfo)
     {
         Vector<typename TVariable::Type> data;
-        SetNodalValueDataBuffer(rVariable, rNodes, data);
+        SetNodalDataValueBuffer(rVariable, rNodes, data);
         rFile.WriteDataSet(rPrefix + "/NodalDataValues/" + rVariable.Name(), data, rInfo);
     }
 };
@@ -100,7 +100,7 @@ public:
                     WriteInfo& rInfo)
     {
         Matrix<double> data;
-        SetNodalValueDataBuffer(rVariable, rNodes, data);
+        SetNodalDataValueBuffer(rVariable, rNodes, data);
         rFile.WriteDataSet(rPrefix + "/NodalDataValues/" + rVariable.Name(), data, rInfo);
     }
 };
@@ -116,7 +116,7 @@ public:
                     WriteInfo& rInfo)
     {
         Matrix<double> data;
-        SetNodalValueDataBuffer(rVariable, rNodes, data);
+        SetNodalDataValueBuffer(rVariable, rNodes, data);
         rFile.WriteDataSet(rPrefix + "/NodalDataValues/" + rVariable.Name(), data, rInfo);
         const int size1 = rNodes.front()->GetValue(rVariable).size1();
         const int size2 = rNodes.front()->GetValue(rVariable).size2();
@@ -128,9 +128,9 @@ public:
 };
 
 template <typename TDataType>
-void SetNodalValueDataBuffer(Variable<TDataType> const& rVariable,
-                                std::vector<NodeType*> const& rNodes,
-                                Vector<TDataType>& rData)
+void SetNodalDataValueBuffer(Variable<TDataType> const& rVariable,
+                             std::vector<NodeType*> const& rNodes,
+                             Vector<TDataType>& rData)
 {
     KRATOS_TRY;
 
@@ -145,9 +145,9 @@ void SetNodalValueDataBuffer(Variable<TDataType> const& rVariable,
     KRATOS_CATCH("");
 }
 
-void SetNodalValueDataBuffer(Variable<Vector<double>> const& rVariable,
-                                std::vector<NodeType*> const& rNodes,
-                                Matrix<double>& rData)
+void SetNodalDataValueBuffer(Variable<Vector<double>> const& rVariable,
+                             std::vector<NodeType*> const& rNodes,
+                             Matrix<double>& rData)
 {
     KRATOS_TRY;
 
@@ -166,9 +166,9 @@ void SetNodalValueDataBuffer(Variable<Vector<double>> const& rVariable,
     KRATOS_CATCH("");
 }
 
-void SetNodalValueDataBuffer(Variable<Matrix<double>> const& rVariable,
-                                std::vector<NodeType*> const& rNodes,
-                                Matrix<double>& rData)
+void SetNodalDataValueBuffer(Variable<Matrix<double>> const& rVariable,
+                             std::vector<NodeType*> const& rNodes,
+                             Matrix<double>& rData)
 {
     KRATOS_TRY;
 
@@ -216,22 +216,22 @@ void NodalDataValueIO::ReadNodalResults(NodesContainerType& rNodes, Communicator
 
 namespace {
 template <typename TDataType>
-void SetNonHistoricalData(Variable<TDataType> const&,
-                          std::vector<NodeType*>&,
-                          Vector<TDataType> const&);
+void SetNodalDataValue(Variable<TDataType> const&,
+                       std::vector<NodeType*>&,
+                       Vector<TDataType> const&);
 
-void SetNonHistoricalData(Variable<Vector<double>> const&,
-                          std::vector<NodeType*>&,
-                          Matrix<double> const&);
+void SetNodalDataValue(Variable<Vector<double>> const&,
+                       std::vector<NodeType*>&,
+                       Matrix<double> const&);
 
-void SetNonHistoricalData(Variable<Matrix<double>> const&,
-                          std::vector<NodeType*>&,
-                          Matrix<double> const&,
-                          int,
-                          int);
+void SetNodalDataValue(Variable<Matrix<double>> const&,
+                       std::vector<NodeType*>&,
+                       Matrix<double> const&,
+                       int,
+                       int);
 
 template <typename TDataType>
-void ZeroNonHistoricalData(Variable<TDataType> const&, std::vector<NodeType*>&);
+void ZeroNodalDataValue(Variable<TDataType> const&, std::vector<NodeType*>&);
 
 template <typename TVariable>
 class ReadNonHistoricalVariableFunctor
@@ -249,8 +249,8 @@ public:
         Vector<typename TVariable::Type> data;
         rFile.ReadDataSet(rPrefix + "/NodalDataValues/" + rVariable.Name(), data,
                           StartIndex, BlockSize);
-        SetNonHistoricalData(rVariable, rLocalNodes, data);
-        ZeroNonHistoricalData(rVariable, rGhostNodes);
+        SetNodalDataValue(rVariable, rLocalNodes, data);
+        ZeroNodalDataValue(rVariable, rGhostNodes);
         rComm.AssembleNonHistoricalData(rVariable);
     }
 };
@@ -271,8 +271,8 @@ public:
         Matrix<double> data;
         rFile.ReadDataSet(rPrefix + "/NodalDataValues/" + rVariable.Name(), data,
                           StartIndex, BlockSize);
-        SetNonHistoricalData(rVariable, rLocalNodes, data);
-        ZeroNonHistoricalData(rVariable, rGhostNodes);
+        SetNodalDataValue(rVariable, rLocalNodes, data);
+        ZeroNodalDataValue(rVariable, rGhostNodes);
         rComm.AssembleNonHistoricalData(rVariable);
     }
 };
@@ -298,16 +298,16 @@ public:
             rPrefix + "/NodalDataValues/" + rVariable.Name(), "Size1", size1);
         rFile.ReadAttribute(
             rPrefix + "/NodalDataValues/" + rVariable.Name(), "Size2", size2);
-        SetNonHistoricalData(rVariable, rLocalNodes, data, size1, size2);
-        ZeroNonHistoricalData(rVariable, rGhostNodes);
+        SetNodalDataValue(rVariable, rLocalNodes, data, size1, size2);
+        ZeroNodalDataValue(rVariable, rGhostNodes);
         rComm.AssembleNonHistoricalData(rVariable);
     }
 };
 
 template <typename TDataType>
-void SetNonHistoricalData(Variable<TDataType> const& rVariable,
-                          std::vector<NodeType*>& rNodes,
-                          Vector<TDataType> const& rData)
+void SetNodalDataValue(Variable<TDataType> const& rVariable,
+                       std::vector<NodeType*>& rNodes,
+                       Vector<TDataType> const& rData)
 {
     KRATOS_TRY;
 
@@ -319,9 +319,9 @@ void SetNonHistoricalData(Variable<TDataType> const& rVariable,
     KRATOS_CATCH("");
 }
 
-void SetNonHistoricalData(Variable<Vector<double>> const& rVariable,
-                          std::vector<NodeType*>& rNodes,
-                          Matrix<double> const& rData)
+void SetNodalDataValue(Variable<Vector<double>> const& rVariable,
+                       std::vector<NodeType*>& rNodes,
+                       Matrix<double> const& rData)
 {
     KRATOS_TRY;
 
@@ -338,11 +338,11 @@ void SetNonHistoricalData(Variable<Vector<double>> const& rVariable,
     KRATOS_CATCH("");
 }
 
-void SetNonHistoricalData(Variable<Matrix<double>> const& rVariable,
-                          std::vector<NodeType*>& rNodes,
-                          Matrix<double> const& rData,
-                          int size1,
-                          int size2)
+void SetNodalDataValue(Variable<Matrix<double>> const& rVariable,
+                       std::vector<NodeType*>& rNodes,
+                       Matrix<double> const& rData,
+                       int size1,
+                       int size2)
 {
     KRATOS_TRY;
 
@@ -361,8 +361,8 @@ void SetNonHistoricalData(Variable<Matrix<double>> const& rVariable,
 }
 
 template <typename TDataType>
-void ZeroNonHistoricalData(Variable<TDataType> const& rVariable,
-                           std::vector<NodeType*>& rNodes)
+void ZeroNodalDataValue(Variable<TDataType> const& rVariable,
+                        std::vector<NodeType*>& rNodes)
 {
     for (auto& p_node : rNodes)
         p_node->GetValue(rVariable) = rVariable.Zero();
