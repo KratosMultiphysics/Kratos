@@ -86,7 +86,7 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
 
 	template <typename TExpressionType, std::size_t TCategory>
 	Matrix& operator=(
-		MatrixExpression<TExpressionType, TCategory> const& Other) {
+		AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
 		base_type::operator=(Other.expression());
 		return *this;
 	}
@@ -142,7 +142,7 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
         AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
-                at(i, j) -= Other(i, j);
+                at(i, j) -= Other.expression()(i, j);
 
         return *this;
     }
@@ -254,39 +254,39 @@ bool operator!=(Matrix<TDataType, TSize1, TSize2> const& First,
 /// output stream function
 ///  format for a vector : [size](value1, value2, ...., valueN)
 ///  format for a matrix : [size1, size2](()()...()) 
-template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
+template <typename TExpressionType, std::size_t TCategory = unordered_access>
 inline std::ostream& operator<<(std::ostream& rOStream,
-	Matrix<TDataType, TSize1, TSize2> const& TheMatrix) {
-
-	if ((TSize1 == 1) || (TSize2 == 1)) { // writing in vector format
-		const std::size_t size = TheMatrix.size();
+	AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheMatrix) {
+	TExpressionType const& the_expression = TheMatrix.expression();
+	if ((the_expression.size1() == 1) || (the_expression.size2() == 1)) { // writing in vector format
+		const std::size_t size = the_expression.size();
 		rOStream << "[" << size << "](";
 		if (size > 0)
-			rOStream << TheMatrix[0];
+			rOStream << the_expression[0];
 		for (std::size_t i = 1; i < size; i++) {
-			rOStream << "," << TheMatrix[i];
+			rOStream << "," << the_expression[i];
 		}
 		rOStream << ")";
 	}
 	else // writing in matrix format
 	{
-		const std::size_t size2 = TheMatrix.size2();
-		rOStream << "[" << TheMatrix.size1() << "," << TheMatrix.size2() << "](";
-		if (TheMatrix.size1() > 0) {
+		const std::size_t size2 = the_expression.size2();
+		rOStream << "[" << the_expression.size1() << "," << the_expression.size2() << "](";
+		if (the_expression.size1() > 0) {
 			rOStream << "(";
 			if (size2 > 0)
-				rOStream << TheMatrix(0, 0);
+				rOStream << the_expression(0, 0);
 			for (std::size_t j = 1; j < size2; j++) {
-				rOStream << "," << TheMatrix(0, j);
+				rOStream << "," << the_expression(0, j);
 			}
 			rOStream << ")";
 		}
-		for (std::size_t i = 1; i < TheMatrix.size1(); i++) {
+		for (std::size_t i = 1; i < the_expression.size1(); i++) {
 			rOStream << ",(";
 			if (size2 > 0)
-				rOStream << TheMatrix(i, 0);
+				rOStream << the_expression(i, 0);
 			for (std::size_t j = 1; j < size2; j++) {
-				rOStream << "," << TheMatrix(i, j);
+				rOStream << "," << the_expression(i, j);
 			}
 			rOStream << ")";
 		}
@@ -412,9 +412,9 @@ template <typename TDataType, std::size_t TSize> using BoundedVector=Internals::
 
 template <typename T> T& noalias(T& TheMatrix){return TheMatrix.noalias();}
 
-template <typename T> AMatrix::TransposeMatrix<const T> trans(const T& TheMatrix){return TheMatrix.transpose();}
+template <typename T> AMatrix::TransposeMatrix<const T> trans(const T& TheMatrix){ return AMatrix::TransposeMatrix<const T>(TheMatrix);}
 
-template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){return TheMatrix.transpose();}
+template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){ return AMatrix::TransposeMatrix<T>(TheMatrix); }
 
 template <typename TExpressionType> using vector_expression = AMatrix::MatrixExpression<TExpressionType,AMatrix::row_major_access>;
 
@@ -471,28 +471,40 @@ template <typename TExpressionType, std::size_t TCategory>
     return std::sqrt(result);
 }
 
+	template <typename TExpressionType, std::size_t TCategory>
+	AMatrix::SubMatrix<const TExpressionType> column(
+		AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t ColumnIndex) {
+		return AMatrix::SubMatrix<const TExpressionType>(TheExpression.expression(),0,  ColumnIndex, TheExpression.expression().size1(), 1);
+	}
+
+	template <typename TExpressionType, std::size_t TCategory>
+	AMatrix::SubMatrix<TExpressionType> column(
+		AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t ColumnIndex) {
+		return AMatrix::SubMatrix<TExpressionType>(TheExpression.expression(), 0, ColumnIndex, TheExpression.expression().size1(), 1);
+	}
+
 template <typename TExpressionType, std::size_t TCategory> 
-    AMatrix::SubVector<const TExpressionType> row(
+    AMatrix::SubVector<const TExpressionType, TCategory> row(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t RowIndex) {
-    return AMatrix::SubVector<const TExpressionType>(TheExpression.expression(), RowIndex * TheExpression.expression().size2() , (RowIndex + 1) * TheExpression.expression().size2());
+    return AMatrix::SubVector<const TExpressionType, TCategory>(TheExpression.expression(), RowIndex , TheExpression.expression().size2());
 }
 
 template <typename TExpressionType, std::size_t TCategory> 
-    AMatrix::SubVector<TExpressionType> row(
+    AMatrix::SubVector<TExpressionType, TCategory> row(
     AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t RowIndex) {
-    return AMatrix::SubVector<TExpressionType>(TheExpression.expression(), RowIndex * TheExpression.expression().size2() , (RowIndex + 1) * TheExpression.expression().size2());
+    return AMatrix::SubVector<TExpressionType, TCategory>(TheExpression.expression(), RowIndex , TheExpression.expression().size2());
 }
 
 template <typename TExpressionType, std::size_t TCategory> 
-    AMatrix::SubVector<const TExpressionType> subrange(
+    AMatrix::SubVector<const TExpressionType, TCategory> subrange(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t From, std::size_t To) {
-    return AMatrix::SubVector<const TExpressionType>(TheExpression.expression(), From,To - From);
+    return AMatrix::SubVector<const TExpressionType, TCategory>(TheExpression.expression(), From,To - From);
 }
 
 template <typename TExpressionType, std::size_t TCategory> 
-    AMatrix::SubVector<TExpressionType> subrange(
+    AMatrix::SubVector<TExpressionType, TCategory> subrange(
     AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t From, std::size_t To) {
-    return AMatrix::SubVector<TExpressionType>(TheExpression.expression(), From,To - From);
+    return AMatrix::SubVector<TExpressionType, TCategory>(TheExpression.expression(), From,To - From);
 }
 
 template <typename TExpressionType, std::size_t TCategory> 
@@ -533,6 +545,44 @@ template <typename TExpressionType, std::size_t TCategory>
 	};
 
 	using ScalarMatrix = scalar_matrix<double>;
+
+
+	template <typename TExpressionType, typename TIndicesVectorType>
+	class PermutationMatrix : public AMatrix::MatrixExpression<PermutationMatrix<TExpressionType, TIndicesVectorType>, AMatrix::unordered_access> {
+		TExpressionType& _original_expression;
+		TIndicesVectorType const& _permutation_indices_i;
+		TIndicesVectorType const& _permutation_indices_j;
+	public:
+		using data_type = typename TExpressionType::data_type;
+		using value_type = typename TExpressionType::data_type;
+		PermutationMatrix() = delete;
+
+		PermutationMatrix(TExpressionType& Original, TIndicesVectorType const& PermutaionIndices)
+			: _original_expression(Original),
+			_permutation_indices_i(PermutaionIndices),
+			_permutation_indices_j(PermutaionIndices) {}
+
+		PermutationMatrix(TExpressionType& Original, TIndicesVectorType const& PermutaionIndicesI, TIndicesVectorType const& PermutaionIndicesJ)
+			: _original_expression(Original),
+			_permutation_indices_i(PermutaionIndicesI),
+			_permutation_indices_j(PermutaionIndicesJ) {}
+
+		inline data_type const& operator()(std::size_t i, std::size_t j) const {
+			return _original_expression(_permutation_indices_i[i], _permutation_indices_j[j]);
+		}
+
+		inline data_type& operator()(std::size_t i, std::size_t j) {
+			return _original_expression(_permutation_indices_i[i], _permutation_indices_j[j]);
+		}
+
+		inline std::size_t size() const { return size1() * size2(); }
+		inline std::size_t size1() const { return _permutation_indices_i.size(); }
+		inline std::size_t size2() const { return _permutation_indices_j.size(); }
+
+	};
+
+
+
 
 ///@}
 ///@name  Enum's
