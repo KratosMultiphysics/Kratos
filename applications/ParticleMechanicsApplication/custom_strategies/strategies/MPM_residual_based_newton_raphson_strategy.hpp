@@ -394,8 +394,7 @@ public:
         if (mInitializeWasPerformed == false)
         {
             KRATOS_INFO("MPM_Strategy") << "Initializing solving strategy" << std::endl;
-            if(mInitializeWasPerformed == true)
-                KRATOS_THROW_ERROR( std::logic_error, " Initialization was already performed ", mInitializeWasPerformed );
+            KRATOS_ERROR_IF(mInitializeWasPerformed == true) << "Initialization was already performed " << mInitializeWasPerformed << std::endl;
 
             //pointers needed in the solution
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
@@ -415,7 +414,6 @@ public:
             //initialisation of the convergence criteria
             if (mpConvergenceCriteria->IsInitialized() == false)
                 mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
-
 
             mInitializeWasPerformed = true;
         }
