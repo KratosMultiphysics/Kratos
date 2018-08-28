@@ -294,7 +294,7 @@ public:
                     shift_value = ro;
                 }
 
-                noalias(shifted_k) = K - shift_value*M;
+                boost::numeric::ublas::noalias(shifted_k) = K - shift_value*M;
 
                 // Copy myMatrix into skyline format
                 my_factorization.copyFromCSRMatrix(shifted_k);
@@ -320,7 +320,7 @@ public:
                 while((smaller_eigenvalue_numbers > 1) && (max_shift_value-min_shift_value > epsilon) && (iteration_number++ < max_shift_number))
                 {
                     shift_value = (max_shift_value + min_shift_value) / 2.00;
-                    noalias(shifted_k) = K - shift_value*M;
+					boost::numeric::ublas::noalias(shifted_k) = K - shift_value*M;
 
                     // Copy myMatrix into skyline format
                     my_factorization.copyFromCSRMatrix(shifted_k);
