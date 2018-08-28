@@ -56,6 +56,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                 "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
                 "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
                 "simplified_semi_smooth_newton"                     : false,
+                "rescale_linear_solver"                             : false,
                 "use_mixed_ulm_solver"                              : true,
                 "mixed_ulm_solver_parameters" :
                 {
@@ -232,6 +233,8 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
     def _create_linear_solver(self):
         linear_solver = super(ContactStaticMechanicalSolver, self)._create_linear_solver()
+        if (self.contact_settings["rescale_linear_solver"].GetBool() is True):
+            linear_solver = KM.ScalingSolver(linear_solver, False)
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
             if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
