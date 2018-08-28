@@ -201,21 +201,15 @@ class TestCase(KratosUnittest.TestCase):
             read_model_part = ModelPart("read")
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator(), 0)
+
+            assert_variables_list = [DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z,
+                                     VELOCITY_X, VELOCITY_Y, VELOCITY_Z,
+                                     ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z,
+                                     PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
             # Check data.
             for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
-                self.assertEqual(read_node.GetSolutionStepValue(DISPLACEMENT_X), write_node.GetSolutionStepValue(DISPLACEMENT_X))
-                self.assertEqual(read_node.GetSolutionStepValue(DISPLACEMENT_Y), write_node.GetSolutionStepValue(DISPLACEMENT_Y))
-                self.assertEqual(read_node.GetSolutionStepValue(DISPLACEMENT_Z), write_node.GetSolutionStepValue(DISPLACEMENT_Z))
-                self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_X), write_node.GetSolutionStepValue(VELOCITY_X))
-                self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Y), write_node.GetSolutionStepValue(VELOCITY_Y))
-                self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Z), write_node.GetSolutionStepValue(VELOCITY_Z))
-                self.assertEqual(read_node.GetSolutionStepValue(ACCELERATION_X), write_node.GetSolutionStepValue(ACCELERATION_X))
-                self.assertEqual(read_node.GetSolutionStepValue(ACCELERATION_Y), write_node.GetSolutionStepValue(ACCELERATION_Y))
-                self.assertEqual(read_node.GetSolutionStepValue(ACCELERATION_Z), write_node.GetSolutionStepValue(ACCELERATION_Z))
-                self.assertEqual(read_node.GetSolutionStepValue(PRESSURE), write_node.GetSolutionStepValue(PRESSURE))
-                self.assertEqual(read_node.GetSolutionStepValue(VISCOSITY), write_node.GetSolutionStepValue(VISCOSITY))
-                self.assertEqual(read_node.GetSolutionStepValue(DENSITY), write_node.GetSolutionStepValue(DENSITY))
-                self.assertEqual(read_node.GetSolutionStepValue(ACTIVATION_LEVEL), write_node.GetSolutionStepValue(ACTIVATION_LEVEL))
+                for var in assert_variables_list:
+                    self.assertEqual(read_node.GetSolutionStepValue(var), write_node.GetSolutionStepValue(var))
 
     def test_HDF5ElementDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -229,12 +223,12 @@ class TestCase(KratosUnittest.TestCase):
             read_model_part = ModelPart("read")
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_element_data_value_io.ReadElementResults(read_model_part.Elements)
+
+            assert_variables_list = [PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
             # Check data.
             for read_element, write_element in zip(read_model_part.Elements, write_model_part.Elements):
-                self.assertEqual(read_element.GetValue(PRESSURE), write_element.GetValue(PRESSURE))
-                self.assertEqual(read_element.GetValue(VISCOSITY), write_element.GetValue(VISCOSITY))
-                self.assertEqual(read_element.GetValue(DENSITY), write_element.GetValue(DENSITY))
-                self.assertEqual(read_element.GetValue(ACTIVATION_LEVEL), write_element.GetValue(ACTIVATION_LEVEL))
+                for var in assert_variables_list:
+                    self.assertEqual(read_element.GetValue(var), write_element.GetValue(var))
 
     def test_HDF5NodalDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -248,21 +242,15 @@ class TestCase(KratosUnittest.TestCase):
             read_model_part = ModelPart("read")
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_nodal_data_value_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator())
+
+            assert_variables_list = [DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z,
+                                     VELOCITY_X, VELOCITY_Y, VELOCITY_Z,
+                                     ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z,
+                                     PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
             # Check data.
             for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
-                self.assertEqual(read_node.GetValue(DISPLACEMENT_X), write_node.GetValue(DISPLACEMENT_X))
-                self.assertEqual(read_node.GetValue(DISPLACEMENT_Y), write_node.GetValue(DISPLACEMENT_Y))
-                self.assertEqual(read_node.GetValue(DISPLACEMENT_Z), write_node.GetValue(DISPLACEMENT_Z))
-                self.assertEqual(read_node.GetValue(VELOCITY_X), write_node.GetValue(VELOCITY_X))
-                self.assertEqual(read_node.GetValue(VELOCITY_Y), write_node.GetValue(VELOCITY_Y))
-                self.assertEqual(read_node.GetValue(VELOCITY_Z), write_node.GetValue(VELOCITY_Z))
-                self.assertEqual(read_node.GetValue(ACCELERATION_X), write_node.GetValue(ACCELERATION_X))
-                self.assertEqual(read_node.GetValue(ACCELERATION_Y), write_node.GetValue(ACCELERATION_Y))
-                self.assertEqual(read_node.GetValue(ACCELERATION_Z), write_node.GetValue(ACCELERATION_Z))
-                self.assertEqual(read_node.GetValue(PRESSURE), write_node.GetValue(PRESSURE))
-                self.assertEqual(read_node.GetValue(VISCOSITY), write_node.GetValue(VISCOSITY))
-                self.assertEqual(read_node.GetValue(DENSITY), write_node.GetValue(DENSITY))
-                self.assertEqual(read_node.GetValue(ACTIVATION_LEVEL), write_node.GetValue(ACTIVATION_LEVEL))
+                for var in assert_variables_list:
+                    self.assertEqual(read_node.GetValue(var), write_node.GetValue(var))
 
     def tearDown(self):
         pass
