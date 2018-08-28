@@ -41,7 +41,7 @@ def GetNodalResults(h5py_file):
         for variable_name in results_group.keys():
             if isinstance(results_group[variable_name], h5py.Dataset):
                 data = xdmf.HDF5UniformDataItem(results_group.get(variable_name))
-                results.append(xdmf.NodalSolutionStepData(variable_name, data))
+                results.append(xdmf.NodalData(variable_name, data))
     return results
 
 def GetElementResults(h5py_file):
