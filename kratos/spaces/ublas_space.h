@@ -191,20 +191,24 @@ public:
     }
 
     /// rXi = rMij
+	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+	template<typename TColumnType>
+	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	{
+		for (std::size_t i = 0; i < rM.size(); i++) {
+			rX[i] = rM(i, j);
+		}
+	}
 
-    static void GetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
-    {
-        rX = column(rM, j);
-    }
+	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+	template<typename TColumnType>
+	static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	{
+		for (std::size_t i = 0; i < rM.size(); i++) {
+			rM(i,j) = rX[i];
+		}
+	}
 
-
-    ///////////////////////////////// TODO: Take a close look to this method!!!!!!!!!!!!!!!!!!!!!!!!!
-    /// rMij = rXi
-
-    static void SetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
-    {
-        rX = row(rM, j);
-    }
 
     /// rY = rX
 
@@ -334,7 +338,7 @@ public:
 
     static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
     {
-        axpy_prod(rX, rA, rY, true);
+		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& A)
