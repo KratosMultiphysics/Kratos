@@ -134,6 +134,8 @@ public:
     /// A vector of types
     typedef DenseVector<BlockType> BlockTypeVectorType;
 
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -674,7 +676,7 @@ protected:
         const SizeType slave_active_size = mSlaveActiveIndices.size();
         const SizeType lm_active_size = mLMActiveIndices.size();
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
-        const double tolerance = std::numeric_limits<double>::epsilon();
+        const double tolerance = ZeroTolerance;
 
         if (NeedAllocation)
             AllocateBlocks();
@@ -1282,7 +1284,7 @@ private:
         const int CurrentRow,
         const IndexType InitialIndex,
         IndexType* Ptr,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = ZeroTolerance
         )
     {
         const IndexType row_begin = Index1[CurrentRow];
@@ -1328,7 +1330,7 @@ private:
         const int CurrentRow,
         const IndexType InitialIndex,
         IndexType* Ptr,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = ZeroTolerance
         )
     {
         const IndexType row_begin = Index1[CurrentRow];
@@ -1374,7 +1376,7 @@ private:
         IndexType* Ptr,
         SignedIndexType* AuxIndex2,
         double* AuxVals,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = ZeroTolerance
         )
     {
         // Auxiliar sizes
@@ -1451,7 +1453,7 @@ private:
         IndexType* Ptr,
         SignedIndexType* AuxIndex2,
         double* AuxVals,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = ZeroTolerance
         )
     {
         // Auxiliar sizes
@@ -1510,7 +1512,7 @@ private:
         const SparseMatrixType& AuxK,
         const int CurrentRow,
         IndexType& KDispModifiedColsAux2,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = ZeroTolerance
         )
     {
         // Get access to aux_K data
@@ -1544,7 +1546,7 @@ private:
         const int CurrentRow,
         IndexType& RowEnd,
         const SizeType InitialIndexColumn,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = ZeroTolerance
         )
     {
         // Get access to aux_K data
@@ -1898,7 +1900,7 @@ private:
     void ComputeDiagonalByLumping (
         const SparseMatrixType& rA,
         SparseMatrixType& rdiagA,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
+        const double Tolerance = ZeroTolerance
         )
     {
         // Aux values
