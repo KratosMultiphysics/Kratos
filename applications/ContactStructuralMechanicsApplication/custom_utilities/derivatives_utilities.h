@@ -656,7 +656,7 @@ public:
 
                     // We compute the delta coordinates
                     array_1d<double, 2> aux_delta_coords1;
-                    DeltaPointLocalCoordinates(aux_delta_coords1, aux_RHS1, rVariables.DNDeSlave, rSlaveGeometry, rSlaveNormal);
+                    DeltaPointLocalCoordinatesSlave(aux_delta_coords1, aux_RHS1, rVariables.DNDeSlave, rSlaveGeometry, rSlaveNormal);
 
                     // Now we can compute the delta shape functions
                     auto& r_delta_n1 = rDerivativeData.DeltaN1[i_node * TDim + i_dof];
@@ -792,8 +792,8 @@ public:
 
                     // We compute the delta coordinates
                     array_1d<double, 2> aux_delta_coords1, aux_delta_coords2;
-                    DeltaPointLocalCoordinates(aux_delta_coords1, aux_RHS1, rVariables.DNDeSlave, rSlaveGeometry, rSlaveNormal);
-                    DeltaPointLocalCoordinates(aux_delta_coords2, aux_RHS2, rVariables.DNDeMaster, rMasterGeometry, rSlaveNormal);
+                    DeltaPointLocalCoordinatesSlave(aux_delta_coords1, aux_RHS1, rVariables.DNDeSlave, rSlaveGeometry, rSlaveNormal);
+                    DeltaPointLocalCoordinatesMaster(aux_delta_coords2, aux_RHS2, rVariables.DNDeMaster, rMasterGeometry, rSlaveNormal);
 
                     // Now we can compute the delta shape functions
                     auto& delta_n1 = rDerivativeData.DeltaN1[i_node * TDim + i_dof];
@@ -1291,8 +1291,9 @@ private:
      * @param rDeltaPoint The increment of position in the points
      * @param rThisGeometry The geometry considered
      * @param rThisNormal The normal of the geometry
+     * @note Hardcopied for performance
      */
-    static inline void DeltaPointLocalCoordinates(
+    static inline void DeltaPointLocalCoordinatesSlave(
         array_1d<double, 2>& rResult,
         const array_1d<double, 3>& rDeltaPoint,
         const MatrixType& rDNDe,
@@ -1337,6 +1338,44 @@ private:
 //             if (std::abs(det_L) < tolerance)
 //                 KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
 //         #endif
+    }
+
+    /**
+     * @brief This method computes the increment of local coordinates
+     * @param rResult The solution obtained
+     * @param rDeltaPoint The increment of position in the points
+     * @param rThisGeometry The geometry considered (master)
+     * @param rThisNormal The normal of the geometry
+     * @note Hardcopied for performance
+     */
+    static inline void DeltaPointLocalCoordinatesMaster(
+        array_1d<double, 2>& rResult,
+        const array_1d<double, 3>& rDeltaPoint,
+        const MatrixType& rDNDe,
+        const GeometryType& rThisGeometry,
+        const array_1d<double, 3>& rThisNormal
+        )
+    {
+        BoundedMatrix<double, 3, TNumNodesMaster> X;
+        for(IndexType i = 0; i < TNumNodesMaster; ++i) {
+            X(0, i) = rThisGeometry[i].X();
+            X(1, i) = rThisGeometry[i].Y();
+            X(2, i) = rThisGeometry[i].Z();
+        }
+
+        const BoundedMatrix<double, 3, 2> DN = prod(X, rDNDe);
+
+        const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
+        double det_j = MathUtils<double>::DetMat<BoundedMatrix<double, 2, 2>>(J);
+        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < ZeroTolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
+
+    #ifdef KRATOS_DEBUG
+        if (std::abs(det_j) < ZeroTolerance)
+            KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
+    #endif
+
+        const array_1d<double, 2> res = prod(trans(DN), rDeltaPoint);
+        noalias(rResult) = prod(invJ, res);
     }
 
     /**
