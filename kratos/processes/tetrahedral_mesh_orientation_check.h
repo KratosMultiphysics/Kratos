@@ -35,7 +35,7 @@ namespace Kratos
 
 struct KeyComparor
 {
-    bool operator()(const vector<int>& lhs, const vector<int>& rhs) const
+    bool operator()(const DenseVector<int>& lhs, const DenseVector<int>& rhs) const
     {
         if(lhs.size() != rhs.size())
             return false;
@@ -51,7 +51,7 @@ struct KeyComparor
 
 struct KeyHasher
 {
-    std::size_t operator()(const vector<int>& k) const
+    std::size_t operator()(const DenseVector<int>& k) const
     {
         return boost::hash_range(k.begin(), k.end());
     }
@@ -201,7 +201,7 @@ public:
 
         //to do so begin by putting all of the conditions in a map
 
-        typedef boost::unordered_map<vector<int>, Condition::Pointer, KeyHasher, KeyComparor > hashmap;
+        typedef boost::unordered_map<DenseVector<int>, Condition::Pointer, KeyHasher, KeyComparor > hashmap;
         hashmap faces_map;
 
         for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
@@ -209,7 +209,7 @@ public:
             itCond->Set(VISITED,false); //mark
 
             Geometry< Node<3> >& geom = itCond->GetGeometry();
-            vector<int> ids(geom.size());
+			DenseVector<int> ids(geom.size());
 
             for(unsigned int i=0; i<ids.size(); i++)
             {
@@ -221,7 +221,7 @@ public:
             std::sort(ids.begin(), ids.end());
 
             //insert a pointer to the condition identified by the hash value ids
-            //faces_map.insert( std::make_pair<vector<int>, Condition::Pointer >(ids, *itCond.base()) );
+            //faces_map.insert( std::make_pair<DenseVector<int>, Condition::Pointer >(ids, *itCond.base()) );
             faces_map.insert( hashmap::value_type(ids, *itCond.base()) );
             //faces_map[ids] = *itCond.base();
         }
@@ -237,7 +237,7 @@ public:
             if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3)
             {
                 //allocate a work array long enough to contain the Ids of a face
-                vector<int> aux( rGeom.size() - 1);
+				DenseVector<int> aux( rGeom.size() - 1);
 
                 //loop over the faces
                 for(unsigned int outer_node_index=0; outer_node_index< rGeom.size(); outer_node_index++)

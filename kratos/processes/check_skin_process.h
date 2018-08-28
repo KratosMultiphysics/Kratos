@@ -58,7 +58,7 @@ public:
 
     struct KeyComparor
     {
-        bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
+        bool operator()(const DenseVector<unsigned int>& lhs, const DenseVector<unsigned int>& rhs) const
         {
             if(lhs.size() != rhs.size())
                 return false;
@@ -74,7 +74,7 @@ public:
 
     struct KeyHasher
     {
-        std::size_t operator()(const vector<int>& k) const
+        std::size_t operator()(const DenseVector<int>& k) const
         {
             return boost::hash_range(k.begin(), k.end());
         }
@@ -139,10 +139,10 @@ public:
         if(mrModelPart.Conditions().size() == 0 && mrModelPart.Elements().size() != 0)
             KRATOS_THROW_ERROR(std::invalid_argument, "the number of conditions is zero and the number of elements is not, hence the skin can not envelope the domain","")
 
-        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef boost::unordered_map<DenseVector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
         hashmap edge_map;
 
-        vector<unsigned int> ids(2);
+        DenseVector<unsigned int> ids(2);
 
         //add 1 to the counter for every edge find in the model part
         for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
