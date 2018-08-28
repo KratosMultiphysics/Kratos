@@ -152,7 +152,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "ALMNVFrictionlessComponentsMortarContactCondition3D3N", mALMNVFrictionlessComponentsMortarContactCondition3D3N );
     KRATOS_REGISTER_CONDITION( "ALMFrictionlessComponentsMortarContactCondition3D4N", mALMFrictionlessComponentsMortarContactCondition3D4N );
     KRATOS_REGISTER_CONDITION( "ALMNVFrictionlessComponentsMortarContactCondition3D4N", mALMNVFrictionlessComponentsMortarContactCondition3D4N );
-    KRATOS_REGISTER_CONDITION( "ALMFrictionlessComponentsMortarContactCondition3D34N", mALMFrictionlessComponentsMortarContactCondition3D3N4N );
+    KRATOS_REGISTER_CONDITION( "ALMFrictionlessComponentsMortarContactCondition3D3N4N", mALMFrictionlessComponentsMortarContactCondition3D3N4N );
     KRATOS_REGISTER_CONDITION( "ALMNVFrictionlessComponentsMortarContactCondition3D3N4N", mALMNVFrictionlessComponentsMortarContactCondition3D3N4N );
     KRATOS_REGISTER_CONDITION( "ALMFrictionlessComponentsMortarContactCondition3D4N3N", mALMFrictionlessComponentsMortarContactCondition3D4N3N );
     KRATOS_REGISTER_CONDITION( "ALMNVFrictionlessComponentsMortarContactCondition3D4N3N", mALMNVFrictionlessComponentsMortarContactCondition3D4N3N );
