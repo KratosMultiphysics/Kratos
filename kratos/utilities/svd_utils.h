@@ -155,19 +155,19 @@ public:
         {
             UMatrix.resize(m, m, false);
         }
-        noalias(UMatrix) = IdentityMatrix(m, m);
+        noalias(UMatrix) = IdentityMatrix(m);
         
         if(VMatrix.size1() != n || VMatrix.size2() != n)
         {
             VMatrix.resize(n, n, false);
         }
-        noalias(VMatrix) = IdentityMatrix(n, n);
+        noalias(VMatrix) = IdentityMatrix(n);
         
         const TDataType relative_tolerance = Tolerance * SparseSpaceType::TwoNorm(InputMatrix);
         
         std::size_t iter = 0;
         
-        while (SparseSpaceType::JacobiNorm(SMatrix) > relative_tolerance)
+        while (LocalSpaceType::JacobiNorm(SMatrix) > relative_tolerance)
         {
             for (SizeType i = 0; i < n; i++)
             {
@@ -267,7 +267,7 @@ public:
         if (InputMatrix(1, 0) == 0.0) // Already symmetric
         {
             noalias(SMatrix) = InputMatrix;
-            noalias(UMatrix) = IdentityMatrix(2,2);
+            noalias(UMatrix) = IdentityMatrix(2);
             noalias(VMatrix) = UMatrix;
         }
         else
@@ -343,13 +343,13 @@ public:
         
         SingularValueDecomposition2x2(b_matrix, u_matrix, s_matrix, v_matrix);
         
-        noalias(J1) = IdentityMatrix(Size1, Size1);
+        noalias(J1) = IdentityMatrix(Size1);
         J1(Index1, Index1) = u_matrix(0, 0);
         J1(Index1, Index2) = u_matrix(1, 0);
         J1(Index2, Index1) = u_matrix(0, 1);
         J1(Index2, Index2) = u_matrix(1, 1);
         
-        noalias(J2) = IdentityMatrix(Size2, Size2);    
+        noalias(J2) = IdentityMatrix(Size2);    
         J2(Index1, Index1) = v_matrix(0, 0);
         J2(Index1, Index2) = v_matrix(1, 0);
         J2(Index2, Index1) = v_matrix(0, 1);
@@ -383,7 +383,7 @@ public:
         
         SingularValueDecomposition2x2(b_matrix, u_matrix, s_matrix, v_matrix);
         
-        noalias(J1) = IdentityMatrix(Size1, Size1);
+        noalias(J1) = IdentityMatrix(Size1);
         J1(Index1, Index1) = u_matrix(0, 0);
         J1(Index1, Index2) = u_matrix(1, 0);
         J1(Index2, Index1) = u_matrix(0, 1);
