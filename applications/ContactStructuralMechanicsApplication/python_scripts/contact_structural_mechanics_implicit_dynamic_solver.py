@@ -54,6 +54,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
                 "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
                 "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
+                "simplified_semi_smooth_newton"                     : false,
                 "use_mixed_ulm_solver"                              : true,
                 "mixed_ulm_solver_parameters" :
                 {
@@ -149,6 +150,13 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     def Initialize(self):
         super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
 
+        # We set the flag INTERACTION
+        computing_model_part = self.GetComputingModelPart()
+        if self.contact_settings["simplified_semi_smooth_newton"].GetBool() is True:
+            computing_model_part.Set(KM.INTERACTION, False)
+        else:
+            computing_model_part.Set(KM.INTERACTION, True)
+
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -189,22 +197,23 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                     if (linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver"):
                         amgcl_param = KM.Parameters("""
                         {
-                            "solver_type" : "AMGCL",
-                            "smoother_type":"ilu0",
-                            "krylov_type": "lgmres",
-                            "coarsening_type": "aggregation",
-                            "max_iteration": 100,
-                            "provide_coordinates": false,
-                            "gmres_krylov_space_dimension": 100,
-                            "verbosity" : 1,
-                            "tolerance": 1e-6,
-                            "scaling": false,
-                            "block_size": 3,
+                            "solver_type"                    : "AMGCL",
+                            "smoother_type"                  :"ilu0",
+                            "krylov_type"                    : "lgmres",
+                            "coarsening_type"                : "aggregation",
+                            "max_iteration"                  : 100,
+                            "provide_coordinates"            : false,
+                            "gmres_krylov_space_dimension"   : 100,
+                            "verbosity"                      : 1,
+                            "tolerance"                      : 1e-6,
+                            "scaling"                        : false,
+                            "block_size"                     : 3,
                             "use_block_matrices_if_possible" : true,
-                            "coarse_enough" : 500
+                            "coarse_enough"                  : 500
                         }
                         """)
                         amgcl_param["block_size"].SetInt(self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
+                        amgcl_param = self.settings["linear_solver_settings"].RecursivelyValidateAndAssignDefaults(amgcl_param)
                         linear_solver = KM.AMGCLSolver(amgcl_param)
                     mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, self.contact_settings["mixed_ulm_solver_parameters"])
                     return mixed_ulm_solver
