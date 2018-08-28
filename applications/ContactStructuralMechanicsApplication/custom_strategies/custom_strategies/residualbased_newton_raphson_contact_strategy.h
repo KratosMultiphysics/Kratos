@@ -403,6 +403,9 @@ public:
 
             int inner_iteration = 0;
             while (!is_converged || inner_iteration < mThisParameters["inner_loop_iterations"].GetInt()) {
+                ++inner_iteration;
+                KRATOS_INFO("ResidualBasedNewtonRaphsonContactStrategy") << "Inner iteration: " << inner_iteration << std::endl << std::endl;
+
                 // We solve one loop
                 r_process_info[NL_ITERATION_NUMBER] = 1;
                 is_converged = BaseSolveSolutionStep();
@@ -412,7 +415,8 @@ public:
                 is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, BaseType::GetBuilderAndSolver()->GetDofSet(), A, Dx, b);
                 BaseType::mpConvergenceCriteria->SetEchoLevel(mConvergenceCriteriaEchoLevel);
 
-                ++inner_iteration;
+                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonContactStrategy", is_converged) << "Inner iteration converged" << std::endl;
+                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonContactStrategy", !is_converged) << "Inner iteration not converged" << std::endl;
             }
         } else {
             is_converged = BaseSolveSolutionStep();
