@@ -72,6 +72,12 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         self.validate_and_transfer_matching_settings(self.settings, contact_settings)
         self.contact_settings = contact_settings["contact_settings"]
 
+        # Linear solver settings
+        if (self.settings.Has("linear_solver_settings")):
+            self.linear_solver_settings = self.settings["linear_solver_settings"]
+        else:
+            self.linear_solver_settings = KM.Parameters("""{}""")
+
         # Construct the base solver.
         super(ContactImplicitMechanicalSolver, self).__init__(self.main_model_part, self.settings)
 
@@ -190,7 +196,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
             if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
-                self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
+                self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
                 name_mixed_solver = self.contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
                 if (name_mixed_solver == "mixed_ulm_linear_solver"):
                     linear_solver_name = self.settings["linear_solver_settings"]["solver_type"].GetString()
@@ -198,7 +204,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                         amgcl_param = KM.Parameters("""
                         {
                             "solver_type"                    : "AMGCL",
-                            "smoother_type"                  :"ilu0",
+                            "smoother_type"                  : "ilu0",
                             "krylov_type"                    : "lgmres",
                             "coarsening_type"                : "aggregation",
                             "max_iteration"                  : 100,
@@ -213,12 +219,12 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                         }
                         """)
                         amgcl_param["block_size"].SetInt(self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
-                        amgcl_param = self.settings["linear_solver_settings"].RecursivelyValidateAndAssignDefaults(amgcl_param)
-                        linear_solver = KM.AMGCLSolver(amgcl_param)
+                        self.linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
+                        linear_solver = KM.AMGCLSolver(self.linear_solver_settings)
                     mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, self.contact_settings["mixed_ulm_solver_parameters"])
                     return mixed_ulm_solver
                 else:
-                    self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Mixed solver not available: "+name_mixed_solver+". Using not mixed linear solver")
+                    self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
                     return linear_solver
             else:
                 return linear_solver

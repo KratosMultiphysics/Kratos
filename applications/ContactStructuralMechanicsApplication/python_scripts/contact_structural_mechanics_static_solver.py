@@ -73,6 +73,12 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         self.validate_and_transfer_matching_settings(self.settings, contact_settings)
         self.contact_settings = contact_settings["contact_settings"]
 
+        # Linear solver settings
+        if (self.settings.Has("linear_solver_settings")):
+            self.linear_solver_settings = self.settings["linear_solver_settings"]
+        else:
+            self.linear_solver_settings = KM.Parameters("""{}""")
+
         # Construct the base solver.
         super(ContactStaticMechanicalSolver, self).__init__(self.main_model_part, self.settings)
 
@@ -237,7 +243,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                         amgcl_param = KM.Parameters("""
                         {
                             "solver_type"                    : "AMGCL",
-                            "smoother_type"                  :"ilu0",
+                            "smoother_type"                  : "ilu0",
                             "krylov_type"                    : "lgmres",
                             "coarsening_type"                : "aggregation",
                             "max_iteration"                  : 100,
@@ -252,8 +258,8 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                         }
                         """)
                         amgcl_param["block_size"].SetInt(self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
-                        amgcl_param = self.settings["linear_solver_settings"].RecursivelyValidateAndAssignDefaults(amgcl_param)
-                        linear_solver = KM.AMGCLSolver(amgcl_param)
+                        self.linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
+                        linear_solver = KM.AMGCLSolver(self.linear_solver_settings)
                     mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, self.contact_settings["mixed_ulm_solver_parameters"])
                     return mixed_ulm_solver
                 else:
