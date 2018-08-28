@@ -75,7 +75,7 @@ public:
     ///@{
 
     /// Default constructor.
-    KratosContactStructuralMechanicsApplication();
+    void KratosContactStructuralMechanicsApplication();
 
     /// Destructor.
     ~KratosContactStructuralMechanicsApplication() override = default;
@@ -214,10 +214,14 @@ private:
     // Frictionless components cases
     const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, false> mALMFrictionlessComponentsMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, true> mALMNVFrictionlessComponentsMortarContactCondition2D2N;
-    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, false> mALMFrictionlessComponentsMortarContactCondition3D3N;
-    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, true> mALMNVFrictionlessComponentsMortarContactCondition3D3N;
-    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, false> mALMFrictionlessComponentsMortarContactCondition3D4N;
-    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, true> mALMNVFrictionlessComponentsMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, false, 3> mALMFrictionlessComponentsMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, true,  3> mALMNVFrictionlessComponentsMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, false, 4> mALMFrictionlessComponentsMortarContactCondition3D3N4N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, true,  4> mALMNVFrictionlessComponentsMortarContactCondition3D3N4N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, false, 4> mALMFrictionlessComponentsMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, true,  4> mALMNVFrictionlessComponentsMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, false, 3> mALMFrictionlessComponentsMortarContactCondition3D4N3N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, true,  3> mALMNVFrictionlessComponentsMortarContactCondition3D4N3N;
     // Frictional cases
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, false> mALMFrictionalMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, true> mALMNVFrictionalMortarContactCondition2D2N;

@@ -781,7 +781,7 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTIONLESS_COMPONENTS, false>::CalculateLocalLHS(
+void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 3>::CalculateLocalLHS(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -796,7 +796,37 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTIONLESS_COMPONENTS, false>::CalculateLocalLHS(
+void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 4>::CalculateLocalLHS(
+    Matrix& rLocalLHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 4>::CalculateLocalLHS(
+    Matrix& rLocalLHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 3>::CalculateLocalLHS(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -946,7 +976,7 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTIONLESS_COMPONENTS, true>::CalculateLocalLHS(
+void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 3>::CalculateLocalLHS(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -961,7 +991,37 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTIONLESS_COMPONENTS, true>::CalculateLocalLHS(
+void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 4>::CalculateLocalLHS(
+    Matrix& rLocalLHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 4>::CalculateLocalLHS(
+    Matrix& rLocalLHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 3>::CalculateLocalLHS(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -1111,7 +1171,7 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, false>::CalculateLocalRHS(
+void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 3>::CalculateLocalRHS(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -1126,7 +1186,37 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, false>::CalculateLocalRHS(
+void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 4>::CalculateLocalRHS(
+    Vector& rLocalRHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 4>::CalculateLocalRHS(
+    Vector& rLocalRHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 3>::CalculateLocalRHS(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -1306,7 +1396,7 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, true>::CalculateLocalRHS(
+void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 3>::CalculateLocalRHS(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -1321,7 +1411,37 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
 /***********************************************************************************/
 
 template<>
-void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, true>::CalculateLocalRHS(
+void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 4>::CalculateLocalRHS(
+    Vector& rLocalRHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 4>::CalculateLocalRHS(
+    Vector& rLocalRHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 3>::CalculateLocalRHS(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
@@ -1611,11 +1731,15 @@ template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalC
 
 // Frictionless components cases
 template class AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICTIONLESS_COMPONENTS, false>;
-template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, false>;
-template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, false>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 3>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 4>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 4>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, false, 3>;
 template class AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICTIONLESS_COMPONENTS, true>;
-template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, true>;
-template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, true>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 3>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 4>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 4>;
+template class AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_COMPONENTS, true, 3>;
 
 // Frictional cases
 template class AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICTIONAL, false>;

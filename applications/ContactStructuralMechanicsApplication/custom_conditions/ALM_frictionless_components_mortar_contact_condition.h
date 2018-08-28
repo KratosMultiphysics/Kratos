@@ -59,7 +59,7 @@ namespace Kratos
  */
 template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes >
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition
-    : public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_COMPONENTS, TNormalVariation>
+    : public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_COMPONENTS, TNormalVariation, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
