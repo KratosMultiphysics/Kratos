@@ -208,8 +208,7 @@ bool MCPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMa
         Vector PrincipalStressUpdated = ZeroVector(3);
 
         bool converged = this->CalculateConsistencyCondition(rReturnMappingVariables, PrincipalStress, mElasticPrincipalStrain, Region, PrincipalStressUpdated);
-        if (!converged)
-            std::cout<<" Warning:: Constitutive Law does not converge! "<<std::endl;
+        KRATOS_ERROR_IF(!converged) << "Warning:: Constitutive Law does not converge! "<<std::endl;
 
         mRegion = Region;
         mPrincipalStressUpdated = PrincipalStressUpdated;
