@@ -472,39 +472,40 @@ template <typename TExpressionType, std::size_t TCategory>
 }
 
 	template <typename TExpressionType, std::size_t TCategory>
-	AMatrix::SubMatrix<const TExpressionType> column(
+	AMatrix::MatrixColumn<const TExpressionType> column(
 		AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t ColumnIndex) {
-		return AMatrix::SubMatrix<const TExpressionType>(TheExpression.expression(),0,  ColumnIndex, TheExpression.expression().size1(), 1);
+		return AMatrix::MatrixColumn<const TExpressionType>(TheExpression.expression(), ColumnIndex);
 	}
 
 	template <typename TExpressionType, std::size_t TCategory>
-	AMatrix::SubMatrix<TExpressionType> column(
+	AMatrix::MatrixColumn<TExpressionType> column(
 		AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t ColumnIndex) {
-		return AMatrix::SubMatrix<TExpressionType>(TheExpression.expression(), 0, ColumnIndex, TheExpression.expression().size1(), 1);
+		return AMatrix::MatrixColumn<TExpressionType>(TheExpression.expression(), ColumnIndex);
 	}
 
 template <typename TExpressionType, std::size_t TCategory> 
-    AMatrix::SubVector<const TExpressionType, TCategory> row(
+    AMatrix::MatrixRow<const TExpressionType> row(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t RowIndex) {
-    return AMatrix::SubVector<const TExpressionType, TCategory>(TheExpression.expression(), RowIndex , TheExpression.expression().size2());
+    return AMatrix::MatrixRow<const TExpressionType>(TheExpression.expression(), RowIndex);
 }
 
-template <typename TExpressionType, std::size_t TCategory> 
-    AMatrix::SubVector<TExpressionType, TCategory> row(
-    AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t RowIndex) {
-    return AMatrix::SubVector<TExpressionType, TCategory>(TheExpression.expression(), RowIndex , TheExpression.expression().size2());
-}
+
+	template <typename TExpressionType, std::size_t TCategory>
+	AMatrix::MatrixRow<TExpressionType> row(
+		AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t RowIndex) {
+		return AMatrix::MatrixRow<TExpressionType>(TheExpression.expression(), RowIndex);
+	}
 
 template <typename TExpressionType, std::size_t TCategory> 
-    AMatrix::SubVector<const TExpressionType, TCategory> subrange(
+    AMatrix::SubVector<const TExpressionType> subrange(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t From, std::size_t To) {
-    return AMatrix::SubVector<const TExpressionType, TCategory>(TheExpression.expression(), From,To - From);
+    return AMatrix::SubVector<const TExpressionType>(TheExpression.expression(), From,To - From);
 }
 
 template <typename TExpressionType, std::size_t TCategory> 
-    AMatrix::SubVector<TExpressionType, TCategory> subrange(
+    AMatrix::SubVector<TExpressionType> subrange(
     AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t From, std::size_t To) {
-    return AMatrix::SubVector<TExpressionType, TCategory>(TheExpression.expression(), From,To - From);
+    return AMatrix::SubVector<TExpressionType>(TheExpression.expression(), From,To - From);
 }
 
 template <typename TExpressionType, std::size_t TCategory> 
