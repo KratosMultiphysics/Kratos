@@ -558,7 +558,7 @@ public:
         for (int i = 0; i < static_cast<int>(size_system_2); ++i)
             aux_indexes[i] = 0;
 
-        #pragma omp parallel for
+//         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
             std::size_t row_begin = index1[i];
             std::size_t row_end   = index1[i+1];
@@ -567,10 +567,11 @@ public:
                 const std::size_t current_row = index2[j];
                 const std::size_t initial_position = new_a_ptr[current_row];
 
-                aux_index2_new_a[initial_position + aux_indexes[current_row]] = i;
-                aux_val_new_a[initial_position + aux_indexes[current_row]] = Factor * data[j];
+                const std::size_t current_index = initial_position + aux_indexes[current_row];
+                aux_index2_new_a[current_index] = i;
+                aux_val_new_a[current_index] = Factor * data[j];
 
-                #pragma omp atomic
+//                 #pragma omp atomic
                 aux_indexes[current_row] += 1;
             }
 
