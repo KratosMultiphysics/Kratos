@@ -514,7 +514,8 @@ public:
     template <class AMatrix, class BMatrix>
     static void TransposeMatrix(
         AMatrix& rA,
-        const BMatrix& rB
+        const BMatrix& rB,
+        const double Factor = 1.0
         )
     {
         // Get access to B data
@@ -567,7 +568,7 @@ public:
                 const std::size_t initial_position = new_a_ptr[current_row];
 
                 aux_index2_new_a[initial_position + aux_indexes[current_row]] = i;
-                aux_val_new_a[initial_position + aux_indexes[current_row]] = data[j];
+                aux_val_new_a[initial_position + aux_indexes[current_row]] = Factor * data[j];
 
                 #pragma omp atomic
                 aux_indexes[current_row] += 1;
