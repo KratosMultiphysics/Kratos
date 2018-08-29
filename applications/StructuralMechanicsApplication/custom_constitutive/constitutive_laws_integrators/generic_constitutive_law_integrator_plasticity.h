@@ -318,7 +318,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rMaterialProperties The material properties
      * @param CharacteristicLength The equivalent length of the FE
      */
-    static void CalculatePlasticDissipation(
+    virtual static void CalculatePlasticDissipation(
         const Vector& StressVector,
         const double r0,
         const double r1,
@@ -371,7 +371,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEquivalentStressThreshold(
+    virtual static void CalculateEquivalentStressThreshold(
         const double PlasticDissipation,
         const double r0,
         const double r1,
@@ -433,7 +433,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve1(
+    virtual static void CalculateEqStressThresholdHardCurve1(
         const double PlasticDissipation,
         const double r0,
         const double r1,
@@ -459,7 +459,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve2(
+    virtual static void CalculateEqStressThresholdHardCurve2(
         const double PlasticDissipation,
         const double r0,
         const double r1,
@@ -484,7 +484,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve3(
+    virtual static void CalculateEqStressThresholdHardCurve3(
         const double PlasticDissipation,
         const double r0,
         const double r1,
@@ -522,7 +522,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve4(
+    virtual static void CalculateEqStressThresholdHardCurve4(
         const double PlasticDissipation,
         const double r0,
         const double r1,
