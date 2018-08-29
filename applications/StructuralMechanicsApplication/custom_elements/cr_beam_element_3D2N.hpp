@@ -279,17 +279,6 @@ namespace Kratos
             std::vector< array_1d<double, 3 > >& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateOnIntegrationPoints(
-            const Variable<Vector >& rVariable,
-            std::vector< Vector >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-
         IntegrationMethod GetIntegrationMethod() const override;
 
 
@@ -323,6 +312,12 @@ namespace Kratos
          * @param VectorDifference The vector differences of the quaternions
          */
         void CalculateLocalNodalForces(const Vector& Bisectrix,const Vector& VectorDifference);
+
+        /**
+         * @brief This function returns the respective local axis for plotting
+         * @param direction 1,2 or 3 to specify the local direction x,y,z
+         */
+        const inline array_1d<double, 3> PlotLocalAxis(const unsigned int& direction);
 
     private:
 
