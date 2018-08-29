@@ -507,6 +507,88 @@ public:
     }
 
     /**
+     * @brief This method computes of the transpose matrix of a given matrix
+     * @param rA The resulting matrix
+     * @param rB The second matrix to transpose
+     */
+    template <class AMatrix, class BMatrix>
+    static void TransposeMatrix(
+        AMatrix& rA,
+        const BMatrix& rB
+        )
+    {
+        // Get access to B data
+        const std::size_t* index1 = rB.index1_data().begin();
+        const std::size_t* index2 = rB.index2_data().begin();
+        const double* data = rB.value_data().begin();
+        const std::size_t transpose_nonzero_values = rB.value_data().end() - rB.value_data().begin();
+
+        const std::size_t size_system_1 = rB.size1();
+        const std::size_t size_system_2 = rB.size2();
+
+        if (rA.size1() != size_system_2 || rA.size2() != size_system_1 ) {
+            rA.resize(size_system_2, size_system_1);
+        }
+
+        std::size_t* new_a_ptr = new std::size_t[size_system_2 + 1];
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(size_system_2 + 1); ++i)
+            new_a_ptr[i] = 0;
+
+        std::ptrdiff_t* aux_index2_new_a = new std::ptrdiff_t[transpose_nonzero_values];
+        double* aux_val_new_a = new double[transpose_nonzero_values];
+
+        #pragma omp parallel for
+        for (int i=0; i<static_cast<int>(size_system_1); ++i) {
+            std::size_t row_begin = index1[i];
+            std::size_t row_end   = index1[i+1];
+
+            for (std::size_t j=row_begin; j<row_end; j++) {
+                #pragma omp atomic
+                new_a_ptr[index2[j] + 1] += 1;
+            }
+        }
+
+        // We initialize the blocks sparse matrix
+        std::partial_sum(new_a_ptr, new_a_ptr + size_system_2 + 1, new_a_ptr);
+
+        std::size_t* aux_indexes = new std::size_t[size_system_2];
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(size_system_2); ++i)
+            aux_indexes[i] = 0;
+
+        #pragma omp parallel for
+        for (int i=0; i<static_cast<int>(size_system_1); ++i) {
+            std::size_t row_begin = index1[i];
+            std::size_t row_end   = index1[i+1];
+
+            for (std::size_t j=row_begin; j<row_end; j++) {
+                const std::size_t current_row = index2[j];
+                const std::size_t initial_position = new_a_ptr[current_row];
+
+                aux_index2_new_a[initial_position + aux_indexes[current_row]] = i;
+                aux_val_new_a[initial_position + aux_indexes[current_row]] = data[j];
+
+                #pragma omp atomic
+                aux_indexes[current_row] += 1;
+            }
+
+        }
+
+        // We reorder the rows
+        SparseMatrixMultiplicationUtility::SortRows(new_a_ptr, size_system_2, size_system_1, aux_index2_new_a, aux_val_new_a);
+
+        // We fill the matrix
+        CreateSolutionMatrix(rA, size_system_2, size_system_1, new_a_ptr, aux_index2_new_a, aux_val_new_a);
+
+        // Release memory
+        delete[] aux_indexes;
+        delete[] new_a_ptr;
+        delete[] aux_index2_new_a;
+        delete[] aux_val_new_a;
+    }
+
+    /**
      * @brief This method is designed to create the final solution sparse matrix from the auxiliar values
      * @param C The matrix solution
      * @param NRows The number of rows of the matrix
