@@ -1247,7 +1247,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
 }
 
 const inline array_1d<double, 3>
-  CrBeamElement3D2N::PlotLocalAxis(const unsigned int& direction)
+  CrBeamElement3D2N::PlotLocalAxis(const std::size_t int Direction)
 {
   KRATOS_TRY;
   BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix;
@@ -1257,7 +1257,7 @@ const inline array_1d<double, 3>
     this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,
                                   transformation_matrix);
 
-  return (column (transformation_matrix,direction));
+  return (column (transformation_matrix, Direction));
   KRATOS_CATCH("")
 }
 
