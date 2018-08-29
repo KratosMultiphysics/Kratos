@@ -795,6 +795,8 @@ public:
             const BoundedMatrix<double, 3, 3> aux_zero = ZeroMatrix(3, 3);
             for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
                 noalias(DeltaCellVertex[i]) = aux_zero;
+            }
+            for (IndexType i = 0; i < TNumNodesMaster * TDim; ++i) {
                 noalias(DeltaCellVertex[i + TNumNodes * TDim]) = aux_zero;
             }
         }
