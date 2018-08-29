@@ -19,7 +19,6 @@
 #include <cstddef>
 
 // External includes
-#include <boost/numeric/ublas/vector.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -189,9 +188,37 @@ public:
 
 
     /// Copy constructor.
-    MixedULMLinearSolver (const MixedULMLinearSolver& Other)
+    MixedULMLinearSolver (const MixedULMLinearSolver& rOther)
+        : BaseType(rOther),
+          mpSolverDispBlock(rOther.mpSolverDispBlock),
+          mBlocksAreAllocated(rOther.mBlocksAreAllocated),
+          mIsInitialized(rOther.mIsInitialized),
+          mMasterIndices(rOther.mMasterIndices),
+          mSlaveInactiveIndices(rOther.mSlaveInactiveIndices),
+          mSlaveActiveIndices(rOther.mSlaveActiveIndices),
+          mLMInactiveIndices(rOther.mLMInactiveIndices),
+          mLMActiveIndices(rOther.mLMActiveIndices),
+          mOtherIndices(rOther.mOtherIndices),
+          mGlobalToLocalIndexing(rOther.mGlobalToLocalIndexing),
+          mWhichBlockType(rOther.mWhichBlockType),
+          mKDispModified(rOther.mKDispModified),
+          mKLMAModified(rOther.mKLMAModified),
+          mKLMIModified(rOther.mKLMIModified),
+          mKSAN(rOther.mKSAN),
+          mKSAM(rOther.mKSAM),
+          mKSASI(rOther.mKSASI),
+          mKSASA(rOther.mKSASA),
+          mPOperator(rOther.mPOperator),
+          mCOperator(rOther.mCOperator),
+          mResidualLMActive(rOther.mResidualLMActive),
+          mResidualLMInactive(rOther.mResidualLMInactive),
+          mResidualDisp(rOther.mResidualDisp),
+          mLMActive(rOther.mLMActive),
+          mLMInactive(rOther.mLMInactive),
+          mDisp(rOther.mDisp),
+          mEchoLevel(rOther.mEchoLevel),
+          mFileCreated(rOther.mFileCreated)
     {
-        KRATOS_ERROR << "Copy constructor not correctly implemented" << std::endl;
     }
 
     /// Destructor.
@@ -399,7 +426,7 @@ public:
             KRATOS_INFO("LHS") << "SystemMatrix = " << mKDispModified << std::endl;
             KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
             KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
-        } else if (mEchoLevel == 4) { //print to matrix market file
+        } else if (mEchoLevel >= 4) { //print to matrix market file
             std::stringstream matrix_market_name;
             matrix_market_name << "A_" << mFileCreated << ".mm";
             TSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mKDispModified, false);
@@ -1060,6 +1087,12 @@ protected:
 
         // Create the first auxiliar matrix
         CreateMatrix(mKDispModified, nrows, ncols, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+
+        if (mEchoLevel > 4) { //print to matrix market file
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_before_cond_" << mFileCreated << ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mKDispModified, false);
+        }
 
         // Now we create the second matrix block to sum
         IndexType* K_disp_modified_ptr_aux2 = new IndexType[nrows + 1];
