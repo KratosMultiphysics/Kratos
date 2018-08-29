@@ -89,7 +89,7 @@ class ApplyPeriodicConditionProcess : public Process
         mDirOfTranslation.push_back(mParameters["dir_of_translation"][1].GetDouble());
         mDirOfTranslation.push_back(mParameters["dir_of_translation"][2].GetDouble());
 
-        mTheta = -1*mParameters["angle"].GetDouble() * 2 * 3.1416 / 360.0;
+        mTheta = 1*mParameters["angle"].GetDouble() * 2 * 3.1416 / 360.0;
 
         mTransformationMatrix.resize(4,4);
 
@@ -112,16 +112,16 @@ class ApplyPeriodicConditionProcess : public Process
         KRATOS_TRY;
         if (!mIsInitialized)
         {
-            //ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+            ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
             ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
             int prob_dim = info->GetValue(DOMAIN_SIZE);
             // Rotate the master so it goes to the slave
             if (prob_dim == 2){
-                //TransformMasterModelPart<2>(r_master_model_part);
+                TransformMasterModelPart<2>(r_master_model_part);
                 ApplyConstraintsForPeriodicConditions<2>();
             }
             else if (prob_dim == 3){
-                //TransformMasterModelPart<3>(r_master_model_part);
+                TransformMasterModelPart<3>(r_master_model_part);
                 ApplyConstraintsForPeriodicConditions<3>();
             }
             mIsInitialized = true;
@@ -159,7 +159,7 @@ class ApplyPeriodicConditionProcess : public Process
         ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
         const int num_vars = mParameters["variable_names"].size();
         ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
-        BinBasedFastPointLocatorOnConditions<TDim> bin_based_point_locator(r_master_model_part);
+        BinBasedFastPointLocatorOnConditions<TDim> bin_based_point_locator(mpRotatedMasterModelPart);
         bin_based_point_locator.UpdateSearchDatabase();
 
         // for bin based point locator
@@ -177,11 +177,11 @@ class ApplyPeriodicConditionProcess : public Process
             Condition::Pointer p_host_elem;
             ModelPart::NodeIterator it_slave_node = it_slave_node_begin;
             std::advance(it_slave_node, i_node);
-            array_1d<double, 3 > rotated_slave_coordinates;
-            TransformNode(it_slave_node->Coordinates(), rotated_slave_coordinates);
+            //array_1d<double, 3 > rotated_slave_coordinates;
+            //TransformNode(it_slave_node->Coordinates(), rotated_slave_coordinates);
 
             // Finding the host element for this node
-            bool is_found = bin_based_point_locator.FindPointOnMesh(rotated_slave_coordinates, shape_function_values, p_host_elem, result_begin, max_results);
+            bool is_found = bin_based_point_locator.FindPointOnMesh(it_slave_node->Coordinates(), shape_function_values, p_host_elem, result_begin, max_results);
             if(is_found)
             {
                 ++num_slaves_found;
