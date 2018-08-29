@@ -79,12 +79,12 @@ namespace Python
             }
         });
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-		binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> AMatrix::SubVector<TVectorType, TVectorType::category> {
+		binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> AMatrix::SubVector<TVectorType> {
 			size_t start, stop, step, slicelength;
 			if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
 				throw pybind11::error_already_set();
 			KRATOS_ERROR_IF(step != 1) << "The AMatrix only supports continuous slices with step == 1" << std::endl;
-			AMatrix::SubVector<TVectorType, TVectorType::category> sliced_self(self, start, slicelength);
+			AMatrix::SubVector<TVectorType> sliced_self(self, start, slicelength);
 			return sliced_self;
 		});
 #else
@@ -107,7 +107,7 @@ namespace Python
     void  AddVectorToPython(pybind11::module& m)
     {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-		using VectorSlice = AMatrix::SubVector<Vector, AMatrix::row_major_access>;
+		using VectorSlice = AMatrix::SubVector<Vector>;
 #else
 		typedef boost::numeric::ublas::vector_slice<Vector> VectorSlice;
 #endif // KRATOS_USE_AMATRIX
