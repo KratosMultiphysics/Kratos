@@ -1,4 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
@@ -69,7 +69,7 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
 
             # Solve
             solver = KratosMultiphysics.SparseMatrixMultiplicationUtility
-            solver.TransposeMatrix(B, A)
+            solver.TransposeMatrix(B, A, 1.0)
 
             for i, j in np.nditer(B_python.nonzero()):
                 self.assertAlmostEqual(B[int(i), int(j)], A[int(j), int(i)])
