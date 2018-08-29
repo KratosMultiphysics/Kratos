@@ -7,20 +7,21 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Bodhinanda Chandra
 //
 
-#if !defined (KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED)
-#define       KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_HENCKY_MC_STRAIN_SOFTENING_PLASTIC_3D_LAW_H_INCLUDED)
+#define       KRATOS_HENCKY_MC_STRAIN_SOFTENING_PLASTIC_3D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/hencky_plastic_UP_3d_law.hpp"
-#include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
+#include "custom_constitutive/hencky_plastic_3d_law.hpp"
+#include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
+#include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
 
 
 namespace Kratos
@@ -35,8 +36,8 @@ namespace Kratos
 
 
 
-class HenckyMCPlasticUP3DLaw
-    : public HenckyElasticPlasticUP3DLaw
+class HenckyMCStrainSofteningPlastic3DLaw
+    : public HenckyElasticPlastic3DLaw
 
 {
 public:
@@ -47,7 +48,7 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
+    typedef MPMFlowRule::Pointer                FlowRulePointer;
     typedef YieldCriterion::Pointer    YieldCriterionPointer;
     typedef HardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
@@ -56,7 +57,7 @@ public:
      * Counted pointer of HyperElasticPlasticJ2PlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( HenckyMCPlasticUP3DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( HenckyMCStrainSofteningPlastic3DLaw );
 
     /**
      * Life Cycle
@@ -65,15 +66,15 @@ public:
     /**
      * Default constructor.
      */
-    HenckyMCPlasticUP3DLaw();
+    HenckyMCStrainSofteningPlastic3DLaw();
 
 
-    HenckyMCPlasticUP3DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
+    HenckyMCStrainSofteningPlastic3DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
      */
-    HenckyMCPlasticUP3DLaw (const HenckyMCPlasticUP3DLaw& rOther);
+    HenckyMCStrainSofteningPlastic3DLaw (const HenckyMCStrainSofteningPlastic3DLaw& rOther);
 
 
     /**
@@ -91,7 +92,7 @@ public:
     /**
      * Destructor.
      */
-    ~HenckyMCPlasticUP3DLaw() override;
+    ~HenckyMCStrainSofteningPlastic3DLaw() override;
 
     /**
      * Operators
@@ -182,16 +183,16 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlasticUP3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlasticUP3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
 
 
 }; // Class HyperElasticPlasticMohrCoulombPlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HENCKY_MATSUOKA_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined
+#endif // KRATOS_HENCKY_MC_STRAIN_SOFTENING_PLASTIC_3D_LAW_H_INCLUDED defined

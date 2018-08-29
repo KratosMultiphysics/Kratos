@@ -7,20 +7,20 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
+//  Main authors:    Bodhinanda Chandra
 //
-
-#if !defined(KRATOS_MC_YIELD_CRITERION_H_INCLUDED)
-#define      KRATOS_MC_YIELD_CRITERION_H_INCLUDED
-
+#if !defined(KRATOS_MC_STRAIN_SOFTENING_PLASTIC_FLOW_RULE_H_INCLUDED )
+#define      KRATOS_MC_STRAIN_SOFTENING_PLASTIC_FLOW_RULE_H_INCLUDED
 
 
 // System includes
 
 // External includes
 
+#include<cmath>
 // Project includes
-#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+#include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
+
 
 namespace Kratos
 {
@@ -32,7 +32,9 @@ namespace Kratos
 
 ///@}
 ///@name Type Definitions
+///@{
 
+//};
 ///@}
 ///@name  Enum's
 ///@{
@@ -47,37 +49,43 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-*/
-class MCYieldCriterion
-    : public YieldCriterion
+ */
+class MCStrainSofteningPlasticFlowRule
+    :public MCPlasticFlowRule
 {
+
+
+
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MisesHuberYieldCriterion
-    KRATOS_CLASS_POINTER_DEFINITION( MCYieldCriterion );
+    /// Pointer definition of NonLinearAssociativePlasticFlowRule
+    KRATOS_CLASS_POINTER_DEFINITION( MCStrainSofteningPlasticFlowRule );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MCYieldCriterion();
+    MCStrainSofteningPlasticFlowRule();
 
     /// Initialization constructor.
-    MCYieldCriterion(HardeningLawPointer pHardeningLaw);
+    MCStrainSofteningPlasticFlowRule(YieldCriterionPointer pYieldCriterion);
 
     /// Copy constructor.
-    MCYieldCriterion(MCYieldCriterion const& rOther);
+    MCStrainSofteningPlasticFlowRule(MCStrainSofteningPlasticFlowRule const& rOther);
 
     /// Assignment operator.
-    MCYieldCriterion& operator=(MCYieldCriterion const& rOther);
+    MCStrainSofteningPlasticFlowRule& operator=(MCStrainSofteningPlasticFlowRule const& rOther);
 
+    // CLONE
+    MPMFlowRule::Pointer Clone() const override;
 
     /// Destructor.
-    ~MCYieldCriterion() override;
+    ~MCStrainSofteningPlasticFlowRule() override;
 
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
 
     ///@}
     ///@name Operators
@@ -88,8 +96,8 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rBeta) override;
 
+    ///@}
     ///@name Access
     ///@{
 
@@ -111,33 +119,13 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
 
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    double GetSmoothingLodeAngle();
-
-    double GetPI();
-
-    double GetSmoothingHiperbolic();
-    
+    //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     ///@}
     ///@name Protected  Access
     ///@{
+
+    void UpdateMaterialParameters();
 
     ///@}
     ///@name Protected Inquiry
@@ -147,6 +135,7 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
+
 
     ///@}
 
@@ -168,6 +157,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
 
     ///@}
     ///@name Private  Access
@@ -196,7 +186,7 @@ private:
 
     ///@}
 
-}; 
+}; // Class NonLinearAssociativePlasticFlowRule
 
 ///@}
 
@@ -209,26 +199,34 @@ private:
 ///@{
 
 
-// /// input stream function
+/// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   MisesHuberYieldCriterion& rThis);
+// 				    NonLinearAssociativePlasticFlowRule& rThis);
 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const MisesHuberYieldCriterion& rThis)
+// 				    const NonLinearAssociativePlasticFlowRule& rThis)
 // {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
+//   rThis.PrintInfo(rOStream);
+//   rOStream << std::endl;
+//   rThis.PrintData(rOStream);
 
-//     return rOStream;
+//   return rOStream;
 // }
 ///@}
 
 ///@} addtogroup block
 
+
+
+///@}
+///@ Template Operations
+///@{
+
+
+///@}
+
+
 }  // namespace Kratos.
 
-#endif // KRATOS_TRESCA_YIELD_CRITERION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MC_STRAIN_SOFTENING_PLASTIC_FLOW_RULE_H_INCLUDED  defined 

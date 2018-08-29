@@ -98,6 +98,18 @@ double& HenckyElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariab
         rValue=InternalVariables.EquivalentPlasticStrain;
     }
 
+    if (rThisVariable==DELTA_PLASTIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticStrain;
+    }
+
+    if (rThisVariable==MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.AccumulatedPlasticDeviatoricStrain;
+    }
+
     if (rThisVariable==MIU)
     {
         rValue=mPlasticRegion;
