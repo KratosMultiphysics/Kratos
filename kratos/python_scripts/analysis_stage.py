@@ -79,6 +79,8 @@ class AnalysisStage(object):
 
         self._GetSolver().Initialize()
 
+        self.ModifyAfterSolverInitialize()
+
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
 
@@ -165,6 +167,10 @@ class AnalysisStage(object):
 
     def ModifyInitialGeometry(self):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
+        pass
+
+    def ModifyAfterSolverInitialize(self):
+        """this is the place to eventually do any modification that requires the solver to be initialized """
         pass
 
     def ApplyBoundaryConditions(self):

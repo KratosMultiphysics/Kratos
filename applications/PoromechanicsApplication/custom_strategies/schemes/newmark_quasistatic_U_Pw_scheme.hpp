@@ -1,9 +1,15 @@
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ignasi de Pouplana
+
 
 #if !defined(KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME )
 #define  KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME
