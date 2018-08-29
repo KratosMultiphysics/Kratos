@@ -765,19 +765,20 @@ public:
         ScaleFactor = rCurrentProcessInfo[SCALE_FACTOR];
 
         // We initialize the derivatives
-        const array_1d<double, TNumNodes> zerovector(TNumNodes, 0.0);
+        const array_1d<double, TNumNodes> zero_vector_slave(TNumNodes, 0.0);
+        const array_1d<double, TNumNodesMaster> zero_vector_master(TNumNodesMaster, 0.0);
         for (IndexType i = 0; i < DoFSizeSlaveGeometry; ++i) {
             DeltaDetjSlave[i] = 0.0;
-            noalias(DeltaPhi[i]) = zerovector;
-            noalias(DeltaN1[i]) = zerovector;
-            noalias(DeltaN2[i]) = zerovector;
+            noalias(DeltaPhi[i]) = zero_vector_slave;
+            noalias(DeltaN1[i]) = zero_vector_slave;
+            noalias(DeltaN2[i]) = zero_vector_master;
         }
         if (TDim == 3) {
             for (IndexType i = 0; i < DoFSizeMasterGeometry; ++i) {
                 DeltaDetjSlave[i + DoFSizeSlaveGeometry] = 0.0;
-                noalias(DeltaPhi[i + DoFSizeSlaveGeometry]) = zerovector;
-                noalias(DeltaN1[i + DoFSizeSlaveGeometry]) = zerovector;
-                noalias(DeltaN2[i + DoFSizeSlaveGeometry]) = zerovector;
+                noalias(DeltaPhi[i + DoFSizeSlaveGeometry]) = zero_vector_slave;
+                noalias(DeltaN1[i + DoFSizeSlaveGeometry]) = zero_vector_slave;
+                noalias(DeltaN2[i + DoFSizeSlaveGeometry]) = zero_vector_master;
             }
         }
     }
