@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class ThermalNonlocalDamage3DLaw : public NonlocalDamage3DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalNonlocalDamage3DLaw : public NonlocalDamage3DLaw
 {
 
 public:
@@ -63,7 +63,9 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    virtual void CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables);
+    double& CalculateNodalReferenceTemperature ( const MaterialResponseVariables & rElasticVariables, double & rNodalReferenceTemperature);
+    
+    virtual void CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables, double & rNodalReferenceTemperature);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

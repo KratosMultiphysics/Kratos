@@ -6,26 +6,29 @@ def import_solver(SolverSettings):
     return obj
 
 def DeleteFileIfExisting(file_name):
-    import os
+    """This function tries to delete a file
+    It uses try/except to also work in MPI
+    """
+    from os import remove
     try:
-        import KratosMultiphysics.mpi as KratosMPI
-        my_rank = KratosMPI.mpi.rank
-    except ImportError:
-        my_rank = 0
-
-    if my_rank == 0:
-        if os.path.isfile(file_name):
-            os.remove(file_name)
+        remove(file_name)
+    except:
+        pass
 
 def DeleteDirectoryIfExisting(directory_name):
-    import shutil
-    import os
+    """This function tries to delete a folder
+    It uses try/except to also work in MPI
+    """
+    from shutil import rmtree
     try:
-        import KratosMultiphysics.mpi as KratosMPI
-        my_rank = KratosMPI.mpi.rank
-    except ImportError:
-        my_rank = 0
+        rmtree(directory_name)
+    except:
+        pass
 
-    if my_rank == 0:
-        if os.path.isdir(directory_name):
-            shutil.rmtree(directory_name)
+def DeleteTimeFiles(directory_name):
+    """This function deletes all *.time files in a directory
+    """
+    import os
+    for file_name in os.listdir(directory_name):
+        if file_name.endswith(".time"):
+            DeleteFileIfExisting(os.path.join(directory_name, file_name))

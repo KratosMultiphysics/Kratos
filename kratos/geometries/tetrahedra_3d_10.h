@@ -29,9 +29,26 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Tetrahedra3D10
+ * @ingroup KratosCore
+ * @brief A ten node tetrahedra geometry with quadratic shape functions
+ * @details The node ordering corresponds with:       
+ *                     3                              
+ *                   ,/|`\                          
+ *                 ,/  |  `\       
+ *               ,7    '.   `9     
+ *             ,/       8     `\   
+ *          ,/          |       `\ 
+ *         0--------6--'.--------2
+ *          `\.         |      ,/ 
+ *             `\.      |    ,5   
+ *                `4.   '. ,/     
+ *                   `\. |/       
+ *                      `1         
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Tetrahedra3D10 : public Geometry<TPointType>
 {
 public:
@@ -524,6 +541,42 @@ public:
         return faces;
     }
 
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    {
+        if(rResult.size1()!= 10 || rResult.size2()!= 3)
+            rResult.resize(10, 3, false);
+        rResult(0,0)=0.0;
+        rResult(0,1)=0.0;
+        rResult(0,2)=0.0;
+        rResult(1,0)=1.0;
+        rResult(1,1)=0.0;
+        rResult(1,2)=0.0;
+        rResult(2,0)=0.0;
+        rResult(2,1)=1.0;
+        rResult(2,2)=0.0;
+        rResult(3,0)=0.0;
+        rResult(3,1)=0.0;
+        rResult(3,2)=1.0;
+        rResult(4,0)=0.5;
+        rResult(4,1)=0.0;
+        rResult(4,2)=0.0;
+        rResult(5,0)=0.5;
+        rResult(5,1)=0.5;
+        rResult(5,2)=0.0;
+        rResult(6,0)=0.0;
+        rResult(6,1)=0.5;
+        rResult(6,2)=0.0;
+        rResult(7,0)=0.0;
+        rResult(7,1)=0.0;
+        rResult(7,2)=0.5;
+        rResult(8,0)=0.5;
+        rResult(8,1)=0.0;
+        rResult(8,2)=0.5;
+        rResult(9,0)=0.0;
+        rResult(9,1)=0.5;
+        rResult(9,2)=0.5;
+        return rResult;
+    }
 
 
     /**

@@ -5,6 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import restart_utility
+import save_restart_process as save_rest_proc
 
 import os
 import sys
@@ -12,14 +13,23 @@ import sys
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def ReadModelPart(file_path):
+def CreateModelPart(file_path):
     model_part_name = "MainRestart"
     model_part = KratosMultiphysics.ModelPart(model_part_name)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
     model_part_io = KratosMultiphysics.ModelPartIO(file_path)
     model_part_io.ReadModelPart(model_part)
+
+    # Manually adding a constraint to check the serialization of constraints in the ModelPart
+    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+    c1 = KratosMultiphysics.MasterSlaveConstraint(10)
+    model_part.AddMasterSlaveConstraint(c1)
+
     return model_part
+
+def IsRestartFile(file_name):
+    return os.path.isfile(file_name) and file_name.endswith('.rest')
 
 class TestRestart(KratosUnittest.TestCase):
 
@@ -29,7 +39,8 @@ class TestRestart(KratosUnittest.TestCase):
 
     def tearDown(self):
         kratos_utils.DeleteFileIfExisting("test_restart_file.rest")
-        kratos_utils.DeleteFileIfExisting("test_restart_file_5.3.rest")
+        kratos_utils.DeleteFileIfExisting("test_restart_file_15.0.rest")
+        kratos_utils.DeleteDirectoryIfExisting("MainRestart__restart_files")
 
     def _check_modelpart(self, model_part):
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
@@ -135,8 +146,10 @@ class TestRestart(KratosUnittest.TestCase):
         self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
         self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
 
+        self.assertTrue( 10 in model_part.MasterSlaveConstraints )
+
     def __execute_restart_save(self, file_name, serializer_flag):
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"))
+        model_part = CreateModelPart(GetFilePath("test_model_part_io_read"))
 
         serializer_save = KratosMultiphysics.Serializer(file_name, serializer_flag)
         serializer_save.Save(model_part.Name, model_part)
@@ -159,30 +172,37 @@ class TestRestart(KratosUnittest.TestCase):
         self._check_modelpart(model_part)
 
     def __execute_restart_utility_save(self, model_part_name, restart_time):
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"))
+        model_part = CreateModelPart(GetFilePath("test_model_part_io_read"))
 
-        model_part.ProcessInfo[KratosMultiphysics.TIME] = restart_time # saving is only done if time > 0.0
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0 # saving is only done if time > 0.0
 
         restart_parameters = KratosMultiphysics.Parameters("""
         {
-            "input_filename"                    : "test_restart_file",
-            "restart_save_frequency"            : 0.0,
-            "save_restart_files_in_folder"      : false
+            "input_filename"               : "test_restart_file",
+            "restart_save_frequency"       : 10.0,
+            "save_restart_files_in_folder" : false
         }
         """)
 
         rest_utility = restart_utility.RestartUtility(model_part, restart_parameters)
 
-        rest_utility.SaveRestart()
+        self.assertFalse(rest_utility.IsRestartOutputStep())
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = restart_time
+
+        self.assertTrue(rest_utility.IsRestartOutputStep())
+
+        if rest_utility.IsRestartOutputStep():
+            rest_utility.SaveRestart()
 
     def __execute_restart_utility_load(self, model_part_name, restart_time):
         loaded_model_part = KratosMultiphysics.ModelPart(model_part_name)
 
         restart_parameters = KratosMultiphysics.Parameters("""
         {
-            "input_filename"                    : "test_restart_file",
-            "restart_load_file_label"           : "",
-            "load_restart_files_from_folder"    : false
+            "input_filename"                 : "test_restart_file",
+            "restart_load_file_label"        : "",
+            "load_restart_files_from_folder" : false
         }
         """)
 
@@ -193,6 +213,7 @@ class TestRestart(KratosUnittest.TestCase):
         rest_utility.LoadRestart()
 
         return loaded_model_part
+
 
 
     def test_restart_NOTRACE(self):
@@ -207,9 +228,58 @@ class TestRestart(KratosUnittest.TestCase):
     def test_restart_utility(self):
         # Here we only test SERIALIZER_NO_TRACE since the others are tested in the simple tests
         model_part_name = "MainRestart"
-        restart_time = 5.3
+        restart_time = 15.0
         self.__execute_restart_utility_save(model_part_name, restart_time)
         loaded_model_part = self.__execute_restart_utility_load(model_part_name, restart_time)
+
+        self._check_modelpart(loaded_model_part)
+
+    def test_save_restart_process(self):
+        model_part = CreateModelPart(GetFilePath("test_model_part_io_read"))
+        model = KratosMultiphysics.Model()
+        model.AddModelPart(model_part)
+
+        # Here "step" is used as control type, since "time" (=> default) is covered in the tests above
+        save_restart_process_params = KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "model_part_name"        : "MainRestart",
+                "restart_save_frequency" : 2,
+                "restart_control_type"   : "step"
+            }
+        }""")
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
+        model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
+
+        delta_time = 0.35
+        end_time = 17.1
+
+        save_restart_process = save_rest_proc.Factory(save_restart_process_params, model)
+        save_restart_process.ExecuteInitialize()
+        save_restart_process.ExecuteBeforeSolutionLoop()
+        while model_part.ProcessInfo[KratosMultiphysics.TIME] < end_time:
+            model_part.ProcessInfo[KratosMultiphysics.TIME] += delta_time
+            model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+            save_restart_process.ExecuteInitializeSolutionStep()
+            if save_restart_process.IsOutputStep():
+                save_restart_process.PrintOutput()
+            save_restart_process.ExecuteFinalizeSolutionStep()
+        save_restart_process.ExecuteFinalize()
+
+        # Checking if the files exist
+        base_path = "MainRestart__restart_files"
+        base_file_name = os.path.join(base_path, "MainRestart_")
+        for i in range(2,50,2):
+            self.assertTrue(os.path.isfile(base_file_name + str(i) + ".rest"))
+
+        # Check number of restart-files
+        expected_num_files = 24
+        num_files = len([name for name in os.listdir(base_path) if IsRestartFile(os.path.join(base_path, name))])
+        self.assertEqual(expected_num_files, num_files)
+
+        # Loading one of the files and checking if the loaded model_part is ok
+        file_name = base_file_name + "16"
+        loaded_model_part = self.__execute_restart_load(file_name, KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE)
 
         self._check_modelpart(loaded_model_part)
 

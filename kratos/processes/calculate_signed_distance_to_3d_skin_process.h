@@ -358,7 +358,7 @@ public:
     void MappingPressureToStructure(BinBasedFastPointLocator<3>& node_locator)
     {
         //loop over nodes and find the tetra in which it falls, than do interpolation
-        array_1d<double, 4 > N;
+        Vector N;
         const int max_results = 10000;
         BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
         const int n_structure_nodes = mrSkinModelPart.Nodes().size();
@@ -694,7 +694,7 @@ public:
                                Node<3>& node)
     {
         //loop over nodes and find the tetra in which it falls, than do interpolation
-        array_1d<double, 4 > N;
+        Vector N;
         const int max_results = 10000;
         BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
         BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();

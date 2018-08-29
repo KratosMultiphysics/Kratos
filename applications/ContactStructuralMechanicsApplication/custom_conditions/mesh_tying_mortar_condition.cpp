@@ -10,15 +10,14 @@
 //
 
 // System includes
+#include <algorithm>
 
 // External includes
 
 // Project includes
+#include "utilities/geometrical_projection_utilities.h"
 /* Mortar includes */
 #include "custom_conditions/mesh_tying_mortar_condition.h"
-
-/* Additional includes */
-#include <algorithm>
 
 namespace Kratos 
 {
@@ -129,11 +128,11 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::Initialize( )
         const bool dual_LM = CalculateAe(normal_master, rDofData, rVariables, conditions_points_slave, this_integration_method);
             
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
-            std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+            PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
             for (IndexType i_node = 0; i_node < TDim; ++i_node) {
                 PointType global_point;
                 slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                points_array[i_node] = PointType::Pointer( new PointType(global_point) );
+                points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
             }
             
             DecompositionType decomp_geom( points_array );
@@ -392,11 +391,11 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateAe(
         
     // Calculating the proportion between the integrated area and segment area
     for (IndexType i_geom = 0; i_geom < ConditionsPointsSlave.size(); ++i_geom) {
-        std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+        PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
         for (IndexType i_node = 0; i_node < TDim; ++i_node) {
             PointType global_point;
             slave_geometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
-            points_array[i_node] = PointType::Pointer( new PointType(global_point) );
+            points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
         }
         
         DecompositionType decomp_geom( points_array );
@@ -507,7 +506,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::MasterShapeFunctionVa
     
     GeometryType::CoordinatesArrayType slave_gp_global;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
-    MortarUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, NormalMaster, -gp_normal ); // The opposite direction
+    GeometricalProjectionUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, NormalMaster, -gp_normal ); // The opposite direction
     
     GeometryType::CoordinatesArrayType projected_gp_local;
     

@@ -22,18 +22,12 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "spatial_containers/spatial_containers.h"
-#include "utilities/timer.h"
-#include "processes/node_erase_process.h"
-#include "utilities/binbased_fast_point_locator.h"
-#include "utilities/normal_calculation_utils.h"
+#include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
+#include "mapper_base.h"
 #include "filter_function.h"
 
 // ==============================================================================
@@ -64,14 +58,13 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MapperVertexMorphing
+class MapperVertexMorphing : public Mapper
 {
 public:
     ///@name Type Definitions
     ///@{
 
     // Type definitions for better reading later
-    typedef array_1d<double,3> array_3d;
     typedef Node < 3 > NodeType;
     typedef Node < 3 > ::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;
@@ -104,10 +97,6 @@ public:
           mMaxNumberOfNeighbors( mapper_settings["max_nodes_in_filter_radius"].GetInt() ),
           mConsistentBackwardMapping (mapper_settings["consistent_mapping_to_geometry_space"].GetBool() )
     {
-        CreateListOfNodesOfDesignSurface();
-        CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
     }
 
     /// Destructor.
@@ -125,12 +114,21 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
-    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+    void InitializeMapping() override
     {
-        boost::timer mapping_time;
+        CreateListOfNodesOfDesignSurface();
+        CreateFilterFunction();
+        InitializeMappingVariables();
+        AssignMappingIds();
+    }
+
+    // --------------------------------------------------------------------------
+    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace ) override
+    {
+        BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
 
-        RecomputeMappingMatrixIfGeometryHasChanged();
+        ComputeMappingMatrixIfNecessary();
         PrepareVectorsForMappingToDesignSpace( rNodalVariable );
         if (mConsistentBackwardMapping)
             MultiplyVectorsWithConsistentBackwardMappingMatrix();
@@ -138,21 +136,21 @@ public:
             MultiplyVectorsWithTransposeMappingMatrix();
         AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
 
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace ) override
     {
-        boost::timer mapping_time;
+        BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
 
-        RecomputeMappingMatrixIfGeometryHasChanged();
+        ComputeMappingMatrixIfNecessary();
         PrepareVectorsForMappingToGeometrySpace( rNodalVariable );
         MultiplyVectorsWithMappingMatrix();
         AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
 
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
     }
     // --------------------------------------------------------------------------
 
@@ -265,7 +263,8 @@ private:
     SparseMatrixType mMappingMatrix;
     Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;
     Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
-    double mControlSum = 0.0;
+    double mControlSum = -1.0;
+    bool is_initial_computation_of_mapping_matrix = true;
 
     ///@}
     ///@name Private Operators
@@ -320,13 +319,13 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
-        boost::timer timer;
+        BuiltinTimer timer;
         std::cout << "> Computing mapping matrix to perform mapping..." << std::endl;
 
         CreateSearchTreeWithAllNodesOnDesignSurface();
         ComputeEntriesOfMappingMatrix();
 
-        std::cout << "> Mapping matrix computed in: " << timer.elapsed() << " s" << std::endl;
+        std::cout << "> Mapping matrix computed in: " << timer.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -400,10 +399,12 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void RecomputeMappingMatrixIfGeometryHasChanged()
+    void ComputeMappingMatrixIfNecessary()
     {
-        if(HasGeometryChanged())
+        if(is_initial_computation_of_mapping_matrix || HasGeometryChanged())
         {
+            is_initial_computation_of_mapping_matrix = false;
+
             InitializeComputationOfMappingMatrix();
             ComputeMappingMatrix();
         }
@@ -514,7 +515,7 @@ private:
             sumOfAllCoordinates += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
         }
 
-        if (mControlSum == sumOfAllCoordinates)
+        if(mControlSum == sumOfAllCoordinates)
             return false;
         else
         {

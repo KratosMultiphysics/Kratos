@@ -15,7 +15,7 @@
 namespace Kratos
 {
 
-class ThermalLinearElastic2DPlaneStressNodal : public ThermalLinearElastic2DPlaneStrainNodal
+class KRATOS_API(DAM_APPLICATION) ThermalLinearElastic2DPlaneStressNodal : public ThermalLinearElastic2DPlaneStrainNodal
 {
 
 public:
@@ -49,7 +49,7 @@ protected:
 
     void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, const double &rYoungModulus, const double &rPoissonCoefficient ) override;
 
-    void CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables & rElasticVariables, double & rTemperature) override;
+    void CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables & rElasticVariables, double & rTemperature, double & rNodalReferenceTemperature) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

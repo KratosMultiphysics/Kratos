@@ -67,7 +67,7 @@ void CalculatePressureGradient(ModelPart& r_model_part)
     array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
     array_1d <double, TDim + 1 > elemental_pressures;
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives
@@ -354,8 +354,8 @@ double determinant(boost::numeric::ublas::matrix_expression<matrix_T> const& mat
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-const boost::numeric::ublas::matrix<double> Inverse(
-  const boost::numeric::ublas::matrix<double>& m)
+const DenseMatrix<double> Inverse(
+  const DenseMatrix<double>& m)
 {
   assert(m.size1() == m.size2() && "Can only calculate the inverse of square matrices");
 
@@ -367,7 +367,7 @@ const boost::numeric::ublas::matrix<double> Inverse(
       const double determinant = CalcDeterminant(m);
       assert(determinant != 0.0);
       assert(m(0,0) != 0.0 && "Cannot take the inverse of matrix [0]");
-      boost::numeric::ublas::matrix<double> n(1,1);
+      DenseMatrix<double> n(1,1);
       n(0,0) =  1.0 / determinant;
       return n;
     }
@@ -380,7 +380,7 @@ const boost::numeric::ublas::matrix<double> Inverse(
       const double b = m(0,1);
       const double c = m(1,0);
       const double d = m(1,1);
-      boost::numeric::ublas::matrix<double> n(2,2);
+      DenseMatrix<double> n(2,2);
       n(0,0) =  d / determinant;
       n(0,1) = -b / determinant;
       n(1,0) = -c / determinant;
@@ -401,7 +401,7 @@ const boost::numeric::ublas::matrix<double> Inverse(
       const double g = m(2,0);
       const double h = m(2,1);
       const double k = m(2,2);
-      boost::numeric::ublas::matrix<double> n(3,3);
+      DenseMatrix<double> n(3,3);
       const double new_a =  ((e*k)-(f*h)) / determinant;
       const double new_b = -((d*k)-(f*g)) / determinant;
       const double new_c =  ((d*h)-(e*g)) / determinant;
@@ -428,55 +428,55 @@ const boost::numeric::ublas::matrix<double> Inverse(
       //Matrix::Chop returns a std::vector
       //[ A at [0]   B at [1] ]
       //[ C at [2]   D at [4] ]
-      const std::vector<boost::numeric::ublas::matrix<double> > v = Chop(m);
-      const boost::numeric::ublas::matrix<double>& a = v[0];
+      const std::vector<DenseMatrix<double> > v = Chop(m);
+      const DenseMatrix<double>& a = v[0];
       assert(a.size1() == a.size2());
-      const boost::numeric::ublas::matrix<double>  a_inv = Inverse(a);
-      const boost::numeric::ublas::matrix<double>& b = v[1];
-      const boost::numeric::ublas::matrix<double>& c = v[2];
-      const boost::numeric::ublas::matrix<double>& d = v[3];
-      const boost::numeric::ublas::matrix<double> term
+      const DenseMatrix<double>  a_inv = Inverse(a);
+      const DenseMatrix<double>& b = v[1];
+      const DenseMatrix<double>& c = v[2];
+      const DenseMatrix<double>& d = v[3];
+      const DenseMatrix<double> term
         = d
         - prod(
-            boost::numeric::ublas::matrix<double>(prod(c,a_inv)),
+            DenseMatrix<double>(prod(c,a_inv)),
             b
           );
-      const boost::numeric::ublas::matrix<double> term_inv = Inverse(term);
-      const boost::numeric::ublas::matrix<double> new_a
+      const DenseMatrix<double> term_inv = Inverse(term);
+      const DenseMatrix<double> new_a
         = a_inv
-        + boost::numeric::ublas::matrix<double>(prod(
-            boost::numeric::ublas::matrix<double>(prod(
-              boost::numeric::ublas::matrix<double>(prod(
-                boost::numeric::ublas::matrix<double>(prod(
+        + DenseMatrix<double>(prod(
+            DenseMatrix<double>(prod(
+              DenseMatrix<double>(prod(
+                DenseMatrix<double>(prod(
                   a_inv,
                   b)),
                 term_inv)),
              c)),
             a_inv));
 
-      const boost::numeric::ublas::matrix<double> new_b
+      const DenseMatrix<double> new_b
         =
-        - boost::numeric::ublas::matrix<double>(prod(
-            boost::numeric::ublas::matrix<double>(prod(
+        - DenseMatrix<double>(prod(
+            DenseMatrix<double>(prod(
               a_inv,
               b)),
             term_inv));
 
-      const boost::numeric::ublas::matrix<double> new_c
+      const DenseMatrix<double> new_c
         =
-        - boost::numeric::ublas::matrix<double>(prod(
-            boost::numeric::ublas::matrix<double>(prod(
+        - DenseMatrix<double>(prod(
+            DenseMatrix<double>(prod(
               term_inv,
               c)),
             a_inv));
 
-      const boost::numeric::ublas::matrix<double> new_d = term_inv;
-      std::vector<boost::numeric::ublas::matrix<double> > w;
+      const DenseMatrix<double> new_d = term_inv;
+      std::vector<DenseMatrix<double> > w;
       w.push_back(new_a);
       w.push_back(new_b);
       w.push_back(new_c);
       w.push_back(new_d);
-      const boost::numeric::ublas::matrix<double> result = Unchop(w);
+      const DenseMatrix<double> result = Unchop(w);
       return result;
     }
   }
@@ -561,7 +561,7 @@ double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalDomainVolume;
 std::vector<double> mPressures;
-std::vector<vector<double> > mFirstRowsOfB;
+std::vector<DenseVector<double> > mFirstRowsOfB;
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -887,7 +887,7 @@ double CalculateTheMinumumEdgeLength(ModelPart& r_model_part)
 // Richel BilderBeek's website (http://www.richelbilderbeek.nl/CppUblasMatrixExample6.htm), and it is
 // transcribed here with a very minor modification
 
-double CalcDeterminant(const boost::numeric::ublas::matrix<double>& m)
+double CalcDeterminant(const DenseMatrix<double>& m)
 {
   assert(m.size1() == m.size2() && "Can only calculate the determinant of square matrices");
   switch(m.size1())
@@ -932,11 +932,10 @@ double CalcDeterminant(const boost::numeric::ublas::matrix<double>& m)
 ///Chop returns a std::vector of sub-matrices
 //[ A at [0]   B at [1] ]
 //[ C at [2]   D at [4] ]
-const std::vector<boost::numeric::ublas::matrix<double> > Chop(
-  const boost::numeric::ublas::matrix<double>& m)
+const std::vector<DenseMatrix<double> > Chop(
+  const DenseMatrix<double>& m)
 {
   using boost::numeric::ublas::range;
-  using boost::numeric::ublas::matrix;
   using boost::numeric::ublas::matrix_range;
   std::vector<matrix<double> > v;
   v.reserve(4);
@@ -954,24 +953,23 @@ const std::vector<boost::numeric::ublas::matrix<double> > Chop(
 }
 
 ///Unchop merges the 4 std::vector of sub-matrices produced by Chop
-const boost::numeric::ublas::matrix<double> Unchop(
-  const std::vector<boost::numeric::ublas::matrix<double> >& v)
+const DenseMatrix<double> Unchop(
+  const std::vector<DenseMatrix<double> >& v)
 {
   //Chop returns a std::vector of sub-matrices
   //[ A at [0]   B at [1] ]
   //[ C at [2]   D at [4] ]
   using boost::numeric::ublas::range;
-  using boost::numeric::ublas::matrix;
   using boost::numeric::ublas::matrix_range;
   assert(v.size() == 4);
   assert(v[0].size1() == v[1].size1());
   assert(v[2].size1() == v[3].size1());
   assert(v[0].size2() == v[2].size2());
   assert(v[1].size2() == v[3].size2());
-  boost::numeric::ublas::matrix<double> m(v[0].size1() + v[2].size1(),v[0].size2() + v[1].size2());
+  DenseMatrix<double> m(v[0].size1() + v[2].size1(),v[0].size2() + v[1].size2());
   for (int quadrant=0; quadrant!=4; ++quadrant)
   {
-    const boost::numeric::ublas::matrix<double>& w = v[quadrant];
+    const DenseMatrix<double>& w = v[quadrant];
     const std::size_t n_rows = v[quadrant].size1();
     const std::size_t n_cols = v[quadrant].size2();
     const int offset_x = quadrant % 2 ? v[0].size2() : 0;
@@ -999,7 +997,7 @@ const boost::numeric::ublas::matrix<double> Unchop(
 ///@}
 ///@name Member r_variables
 ///@{
-vector<unsigned int> mElementsPartition;
+DenseVector<unsigned int> mElementsPartition;
 
 ///@}
 ///@name Un accessible methods
@@ -1018,7 +1016,7 @@ double GetRangeWithinVector(const std::vector<double>& vector)
     return (max - min);
 }
 
-vector<unsigned int>& GetElementPartition()
+DenseVector<unsigned int>& GetElementPartition()
 {
     return mElementsPartition;
 }

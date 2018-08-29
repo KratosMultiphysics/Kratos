@@ -39,7 +39,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   PointMomentCondition::PointMomentCondition( PointMomentCondition const& rOther )
-    : MomentCondition(rOther)     
+    : MomentCondition(rOther)
   {
   }
 
@@ -50,7 +50,7 @@ namespace Kratos
 						  NodesArrayType const& ThisNodes,
 						  PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new PointMomentCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<PointMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -64,8 +64,8 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new PointMomentCondition(NewCondition) );
+    //-----------//
+    return Kratos::make_shared<PointMomentCondition>(NewCondition);
   }
 
 
@@ -82,13 +82,13 @@ namespace Kratos
   void PointMomentCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-      
-    const unsigned int number_of_nodes = GetGeometry().size();
+
+    const SizeType number_of_nodes = GetGeometry().size();
     const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVariables.Initialize(dimension, local_dimension, number_of_nodes);
-   
+
     //Only one node:
     rVariables.N[0] = 1.0;
 
@@ -104,41 +104,41 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
     noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
-   
+
     //MOMENT CONDITION:
 
     if( dimension == 2 ){
-    
+
       //defined on condition
-      if( this->Has( PLANE_POINT_MOMENT ) ){
-	double& PointMoment = this->GetValue( PLANE_POINT_MOMENT );
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      if( this->Has( PLANE_MOMENT_LOAD ) ){
+	double& PointMoment = this->GetValue( PLANE_MOMENT_LOAD );
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	      rVariables.ExternalScalarValue += rVariables.N[i] * PointMoment;
 	  }
       }
-    
+
       //defined on condition nodes
-      if( this->Has( PLANE_POINT_MOMENT_VECTOR ) ){
-	Vector& PointMoments = this->GetValue( PLANE_POINT_MOMENT_VECTOR );
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      if( this->Has( PLANE_MOMENT_LOAD_VECTOR ) ){
+	Vector& PointMoments = this->GetValue( PLANE_MOMENT_LOAD_VECTOR );
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
-	    rVariables.ExternalScalarValue += rVariables.N[i] * PointMoments[i];	  
+	    rVariables.ExternalScalarValue += rVariables.N[i] * PointMoments[i];
 	  }
       }
-    
-      //defined on condition nodes      
-      for (unsigned int i = 0; i < number_of_nodes; i++)
+
+      //defined on condition nodes
+      for (SizeType i = 0; i < number_of_nodes; i++)
 	{
-	  if( GetGeometry()[i].SolutionStepsDataHas( PLANE_POINT_MOMENT ) ){
-	    double& PointMoment = GetGeometry()[i].FastGetSolutionStepValue( PLANE_POINT_MOMENT );
+	  if( GetGeometry()[i].SolutionStepsDataHas( PLANE_MOMENT_LOAD ) ){
+	    double& PointMoment = GetGeometry()[i].FastGetSolutionStepValue( PLANE_MOMENT_LOAD );
 	    rVariables.ExternalScalarValue += rVariables.N[i] * PointMoment;
  	  }
 	}
@@ -147,43 +147,43 @@ namespace Kratos
     else{
 
       //defined on condition
-      if( this->Has( POINT_MOMENT ) ){
-	array_1d<double, 3 > & PointMoment = this->GetValue( POINT_MOMENT );
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      if( this->Has( MOMENT_LOAD ) ){
+	array_1d<double, 3 > & PointMoment = this->GetValue( MOMENT_LOAD );
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
-	    for( unsigned int k = 0; k < dimension; k++ )
+	    for( SizeType k = 0; k < dimension; k++ )
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointMoment[k];
 	  }
       }
-    
+
       //defined on condition nodes
-      if( this->Has( POINT_MOMENT_VECTOR ) ){
-	Vector& PointMoments = this->GetValue( POINT_MOMENT_VECTOR );
+      if( this->Has( MOMENT_LOAD_VECTOR ) ){
+	Vector& PointMoments = this->GetValue( MOMENT_LOAD_VECTOR );
 	unsigned int counter = 0;
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    counter = i*3;
-	    for( unsigned int k = 0; k < dimension; k++ )
+	    for( SizeType k = 0; k < dimension; k++ )
 	      {
 		rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointMoments[counter+k];
 	      }
-	  
+
 	  }
       }
-    
-      //defined on condition nodes      
-      for (unsigned int i = 0; i < number_of_nodes; i++)
+
+      //defined on condition nodes
+      for (SizeType i = 0; i < number_of_nodes; i++)
 	{
-	  if( GetGeometry()[i].SolutionStepsDataHas( POINT_MOMENT ) ){
-	    array_1d<double, 3 > & PointMoment = GetGeometry()[i].FastGetSolutionStepValue( POINT_MOMENT );
-	    for( unsigned int k = 0; k < dimension; k++ )
+	  if( GetGeometry()[i].SolutionStepsDataHas( MOMENT_LOAD ) ){
+	    array_1d<double, 3 > & PointMoment = GetGeometry()[i].FastGetSolutionStepValue( MOMENT_LOAD );
+	    for( SizeType k = 0; k < dimension; k++ )
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointMoment[k];
- 
+
 	  }
 	}
 
     }
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -221,23 +221,23 @@ namespace Kratos
 
     //compute element kinematics B, F, DN_DX ...
     this->CalculateKinematics(Variables,PointNumber);
-    
+
     //calculating weights for integration on the "reference configuration"
     double IntegrationWeight = 1;
-    
+
     if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
 	//contributions to stiffness matrix calculated on the reference config
 	this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
       }
-    
+
     if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
       {
-	
+
 	this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
       }
-    
-  
+
+
     KRATOS_CATCH( "" )
   }
 
@@ -253,15 +253,15 @@ namespace Kratos
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
-    
+
     // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(POINT_MOMENT);
-    KRATOS_CHECK_VARIABLE_KEY(POINT_MOMENT_VECTOR);
-    KRATOS_CHECK_VARIABLE_KEY(PLANE_POINT_MOMENT);
-    KRATOS_CHECK_VARIABLE_KEY(PLANE_POINT_MOMENT_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(PLANE_MOMENT_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(PLANE_MOMENT_LOAD_VECTOR);
 
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

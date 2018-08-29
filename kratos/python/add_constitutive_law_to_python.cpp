@@ -36,8 +36,6 @@ namespace Python
 using namespace pybind11;
 
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
-typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
-
 template<class TVariableType> bool ConstitutiveLawHas(ConstitutiveLaw& rThisConstitutiveLaw, TVariableType const& rThisVariable) { return rThisConstitutiveLaw.Has(rThisVariable); }
 
 //dirty trick. give back a copy instead of a reference
@@ -149,6 +147,7 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     
     class_< ConstitutiveLaw, ConstitutiveLaw::Pointer , Flags >(m,"ConstitutiveLaw")
     .def(init<>() )
+    .def("Create",&ConstitutiveLaw::Create)
     .def("Clone",&ConstitutiveLaw::Clone)
     .def("WorkingSpaceDimension",&ConstitutiveLaw::WorkingSpaceDimension)
     .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)

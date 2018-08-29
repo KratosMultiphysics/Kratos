@@ -373,8 +373,8 @@ namespace Kratos
          const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
          //create and initialize element variables:
-         ElementVariables Variables;
-         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+         ElementDataType Variables;
+         this->InitializeElementData(Variables, rCurrentProcessInfo);
 
          //create constitutive law parameters:
          ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -393,12 +393,12 @@ namespace Kratos
             this->CalculateKinematics(Variables,PointNumber);
 
             //to take in account previous step writing
-            if( mFinalizedStep ){
+            if( this->Is(SolidElement::FINALIZED_STEP) ){
                this->GetHistoricalVariables(Variables,PointNumber);
             }		
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
             double NodalPressure = 0;
             for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -480,9 +480,9 @@ namespace Kratos
    //************* STARTING - ENDING  METHODS
    //************************************************************************************
    //************************************************************************************
-   void UpdatedLagrangianUJPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUJPElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianUJElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+      UpdatedLagrangianUJElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
       rVariables.StressVector.resize(6);
 
@@ -536,7 +536,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUJPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
 
@@ -548,8 +548,8 @@ namespace Kratos
       MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
       // operation performed: add Km to the rLefsHandSideMatrix
-      UJPElementVariables  ElementVariables; 
-      CalculateThisElementVariables( ElementVariables, rVariables);
+      UJPElementData  ElementVariables; 
+      CalculateThisElementData( ElementVariables, rVariables);
 
       //respect to the current configuration n+1
       CalculateAndAddKuumElemUJP( rLeftHandSideMatrix, rVariables, ElementVariables,  rIntegrationWeight );
@@ -592,7 +592,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUJPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       if (this->Id() == 0 ) {
          std::cout << " FT " << rVariables.detH << std::endl;
@@ -609,8 +609,8 @@ namespace Kratos
       //contribution of the internal and external forces
       VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
 
-      UJPElementVariables  ElementVariables; 
-      CalculateThisElementVariables( ElementVariables, rVariables);
+      UJPElementData  ElementVariables; 
+      CalculateThisElementData( ElementVariables, rVariables);
 
 
       // operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
@@ -643,8 +643,8 @@ namespace Kratos
    //************************************** Idem but with Total Stress ***********
 
    void UpdatedLagrangianUJPElement::CalculateAndAddInternalForcesElemUJP(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
-         UJPElementVariables& rElementVariables, 
+         ElementDataType & rVariables,
+         UJPElementData& rElementVariables, 
          double& rIntegrationWeight
          )
    {
@@ -676,8 +676,8 @@ namespace Kratos
    //******************************** PRESSURE FORCES  **********************************
    //************************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddJacobianForcesElemUJP( VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
-         UJPElementVariables& rElementVariables, 
+         ElementDataType & rVariables,
+         UJPElementData& rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -720,8 +720,8 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
-         UJPElementVariables& rElementVariables, 
+         ElementDataType & rVariables,
+         UJPElementData& rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -762,8 +762,8 @@ namespace Kratos
    //****************** STABILIZATION *********************************************************
    //************************* defined in the Stab element ************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddStabilizedJacobianElemUJP(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType & rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -818,8 +818,8 @@ namespace Kratos
    // **************************** ADD STABILIZED PRESSURE *************************
    // ********************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType & rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -870,8 +870,8 @@ namespace Kratos
    //***************** It includes the pw geometric stiffness ************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKuumElemUJP(MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables &  rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData &  rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1103,8 +1103,8 @@ namespace Kratos
    //*********************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKuugElemUJP(MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1243,8 +1243,8 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1304,8 +1304,8 @@ namespace Kratos
    // *********************** KuJ TERMS ***********************************************
    // *********************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKuJElemUJP (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1432,8 +1432,8 @@ namespace Kratos
    // ******************** KJu term *******************************************************
    // *************************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKJuElemUJP (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1471,8 +1471,8 @@ namespace Kratos
    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^KJJ term ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    void UpdatedLagrangianUJPElement::CalculateAndAddKJJElemUJP (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables&  rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData&  rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1511,8 +1511,8 @@ namespace Kratos
    // ****************************** KJp TERM ( is zero ) ********************************
    // ************************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKJp (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1529,8 +1529,8 @@ namespace Kratos
    // ******************************** TERM KpJ ****************************************
    // **********************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKpJ (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1588,8 +1588,8 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
 
    {
@@ -1726,8 +1726,8 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType& rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1764,8 +1764,8 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
    void UpdatedLagrangianUJPElement::CalculateAndAddKJJStabElemUJP (MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType & rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
    {
 
@@ -1822,8 +1822,8 @@ namespace Kratos
    }
 
    void UpdatedLagrangianUJPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
-         UJPElementVariables & rElementVariables, 
+         ElementDataType & rVariables,
+         UJPElementData & rElementVariables, 
          double& rIntegrationWeight)
    {
 
@@ -1880,7 +1880,7 @@ namespace Kratos
 
    // ^****************** CalculateThisElementVariables ******************************************
    // *********** Compute only once some terms **********************************************************
-   void UpdatedLagrangianUJPElement::CalculateThisElementVariables( UJPElementVariables& rElementVariables, const ElementVariables & rVariables)
+   void UpdatedLagrangianUJPElement::CalculateThisElementData( UJPElementData& rElementVariables, const ElementDataType & rVariables)
    {
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();

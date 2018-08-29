@@ -283,7 +283,7 @@ protected:
                               double &TauP);
 
 
-    virtual void ASGSMomentumResidual(const ShapeFunctionsType &rN,
+    virtual void DASGSMomentumResidual(const ShapeFunctionsType &rN,
                                       const ShapeFunctionDerivativesType &rDN_DX,
                                       const array_1d<double,3> &rConvVel,
                                       array_1d<double,3>& rMomentumRes);
@@ -295,7 +295,7 @@ protected:
                           double& rMomentumRes) override;
 
 
-    virtual void OSSMomentumResidual(const ShapeFunctionsType &rN,
+    virtual void DOSSMomentumResidual(const ShapeFunctionsType &rN,
                                      const ShapeFunctionDerivativesType &rDN_DX,
                                      const array_1d<double,3> &rConvVel,
                                      array_1d<double,3>& rMomentumRes);
@@ -306,7 +306,7 @@ protected:
                          double& rMassRes) override;
 
 
-    virtual void MomentumProjTerm(const ShapeFunctionsType &rN,
+    virtual void DynamicMomentumProjTerm(const ShapeFunctionsType &rN,
                                   const ShapeFunctionDerivativesType &rDN_DX,
                                   const array_1d<double,3> &rConvVel,
                                   array_1d<double,3>& rMomentumRHS);

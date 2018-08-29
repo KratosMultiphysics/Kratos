@@ -50,7 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	ConvDiffConstitutiveLaw3D::ConvDiffConstitutiveLaw3D() 
+	ConvDiffConstitutiveLaw3D::ConvDiffConstitutiveLaw3D()
 		: ConstitutiveLaw()
 		, m_initialized(false)
 		, m_init_gradT()

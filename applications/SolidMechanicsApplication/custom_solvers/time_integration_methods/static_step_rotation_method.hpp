@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_STATIC_STEP_ROTATION_METHOD )
-#define  KRATOS_STATIC_STEP_ROTATION_METHOD
+#if !defined(KRATOS_STATIC_STEP_ROTATION_METHOD_H_INCLUDED)
+#define  KRATOS_STATIC_STEP_ROTATION_METHOD_H_INCLUDED
 
 // System includes
 
@@ -21,36 +21,36 @@ namespace Kratos
 {
   ///@addtogroup SolidMechanicsApplication
   ///@{
-  
+
   ///@name Kratos Globals
   ///@{
-  
+
   ///@}
   ///@name Type Definitions
   ///@{
-  
+
   ///@}
   ///@name  Enum's
   ///@{
-  
+
   ///@}
   ///@name  Functions
   ///@{
-  
+
   ///@}
   ///@name Kratos Classes
   ///@{
 
- 
+
   /// Short class definition.
-  /** Detail class definition.     
-   * This class performs predict and update of dofs variables, their time derivatives and time integrals      
+  /** Detail class definition.
+   * This class performs predict and update of dofs variables, their time derivatives and time integrals
    */
   template<class TVariableType, class TValueType>
   class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod : public StaticStepMethod<TVariableType,TValueType>
-  {   
+  {
   public:
- 
+
     ///@name Type Definitions
     ///@{
 
@@ -59,11 +59,11 @@ namespace Kratos
 
     /// BasePointerType
     typedef typename BaseType::Pointer                BasePointerType;
-    
+
     /// NodeType
     typedef typename BaseType::NodeType                      NodeType;
-    
-    /// KratosVariable or KratosVariableComponent    
+
+    /// KratosVariable or KratosVariableComponent
     typedef typename BaseType::VariablePointer        VariablePointer;
 
     /// DerivedType
@@ -76,9 +76,19 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    
+
     /// Default Constructor.
     StaticStepRotationMethod() : DerivedType() {}
+
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+
+
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
 
     /// Copy Constructor.
     StaticStepRotationMethod(StaticStepRotationMethod& rOther) : DerivedType(rOther) {}
@@ -90,7 +100,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~StaticStepRotationMethod(){}
+    ~StaticStepRotationMethod() override{}
 
     ///@}
     ///@name Operators
@@ -101,8 +111,8 @@ namespace Kratos
     ///@{
 
     // update
-    virtual void Update(NodeType& rNode) override;
-     
+    void Update(NodeType& rNode) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -117,7 +127,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "StaticStepRotationMethod";
@@ -125,25 +135,25 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "StaticStepRotationMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "StaticStepRotationMethod Data";     
+      rOStream << "StaticStepRotationMethod Data";
     }
 
-    
+
     ///@}
     ///@name Friends
     ///@{
 
 
     ///@}
-    
+
   protected:
 
     ///@name Protected static Member Variables
@@ -152,7 +162,7 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-   
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -161,22 +171,22 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void PredictStepVariable(NodeType& rNode) override
+    void PredictStepVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
       // predict step variable from previous and current values
       TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
-	
+
       const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-      
+
       CurrentStepVariable = CurrentVariable-PreviousVariable;
-	
+
       KRATOS_CATCH( "" )
     }
-    
-    
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -188,45 +198,45 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-  
+
     ///@}
 
   private:
 
     ///@name Static Member Variables
     ///@{
-  
+
     ///@}
     ///@name Member Variables
     ///@{
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     ///@}
     ///@name Private Operations
     ///@{
-  
+
     ///@}
     ///@name Private  Access
     ///@{
-  
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
     };
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
     };
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -234,23 +244,23 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
-  
+
     ///@}
-  
+
   }; // Class StaticStepRotationMethod
-  
+
   ///@}
 
   ///@name Type Definitions
   ///@{
-  
+
   template<>
   void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
-  
+
   ///@}
   ///@name Input and output
   ///@{
-  
+
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, StaticStepRotationMethod<TVariableType,TValueType>& rThis)
   {
@@ -262,11 +272,11 @@ namespace Kratos
   {
     return rOStream << rThis.Info();
   }
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_STATIC_STEP_ROTATION_METHOD defined
+#endif // KRATOS_STATIC_STEP_ROTATION_METHOD_H_INCLUDED defined

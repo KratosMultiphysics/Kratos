@@ -55,11 +55,11 @@ namespace Kratos
     typedef ConstitutiveModelData::VectorType                          VectorType;
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
     typedef ConstitutiveModelData::MaterialData                  MaterialDataType;
-    
+
     typedef YieldSurface<THardeningRule>                                 BaseType;
     typedef typename BaseType::Pointer                            BaseTypePointer;
     typedef typename BaseType::PlasticDataType                    PlasticDataType;
-    
+
     /// Pointer definition of ModifiedMisesYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( ModifiedMisesYieldSurface );
 
@@ -69,7 +69,7 @@ namespace Kratos
 
     /// Default constructor.
     ModifiedMisesYieldSurface() : BaseType() {}
-    
+
     /// Copy constructor.
     ModifiedMisesYieldSurface(ModifiedMisesYieldSurface const& rOther) : BaseType(rOther) {}
 
@@ -79,15 +79,15 @@ namespace Kratos
       BaseType::operator=(rOther);
       return *this;
     }
-    
+
     /// Clone.
-    virtual BaseTypePointer Clone() const override
+    BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new ModifiedMisesYieldSurface(*this));
+      return Kratos::make_shared<ModifiedMisesYieldSurface>(*this);
     }
 
     /// Destructor.
-    virtual ~ModifiedMisesYieldSurface() {}
+    ~ModifiedMisesYieldSurface() override {}
 
 
     ///@}
@@ -112,40 +112,40 @@ namespace Kratos
       // Compute I1
       const MatrixType& rStrainMatrix = rVariables.GetStrainMatrix();
       double I1 = 0.0;
-    
+
       for(unsigned int i=0; i<3; i++)
 	{
 	  I1 += rStrainMatrix(i,i);
 	}
-    
+
       // Compute J2
       MatrixType DeviatoricStrain;
       noalias(DeviatoricStrain) = rStrainMatrix;
-    
+
       for(unsigned int i=0; i<3; i++)
 	{
 	  DeviatoricStrain(i,i) -= I1/3.0;
 	}
-    
+
       MatrixType Auxiliar;
       noalias(Auxiliar) = prod(DeviatoricStrain,DeviatoricStrain);
       double J2 = 0.0;
-    
+
       for(unsigned int i=0; i<3; i++)
 	{
 	  J2 += Auxiliar(i,i);
 	}
-    
+
       J2 *= 0.5;
-    
+
       // Compute Equivalent Strain (rYieldCondition)
       const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
       const double& StrengthRatio = rMaterialProperties[STRENGTH_RATIO];
       const double& PoissonRatio  = rMaterialProperties[POISSON_RATIO];
-        
+
       rYieldCondition  =  I1*(StrengthRatio-1.0)/(2.0*StrengthRatio*(1.0-2.0*PoissonRatio));
       rYieldCondition +=  sqrt( I1*I1*(StrengthRatio-1.0)*(StrengthRatio-1.0)/((1.0-2.0*PoissonRatio)*(1.0-2.0*PoissonRatio)) + J2*12.0*StrengthRatio/((1.0+PoissonRatio)*(1.0+PoissonRatio)) )/(2.0*StrengthRatio);
-    
+
       return rYieldCondition;
 
       KRATOS_CATCH(" ")
@@ -156,16 +156,16 @@ namespace Kratos
      */
 
     double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
-    {    
+    {
       KRATOS_TRY
-      
+
       rStateFunction = this->mHardeningRule.CalculateHardening(rVariables,rStateFunction);
-    
+
       return rStateFunction;
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Calculate State Function derivative
      */
@@ -173,18 +173,18 @@ namespace Kratos
     double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
     {
       KRATOS_TRY
-          
+
       rDeltaStateFunction = this->mHardeningRule.CalculateDeltaHardening(rVariables,rDeltaStateFunction);
-      
+
       return rDeltaStateFunction;
-      
+
       KRATOS_CATCH(" ")
     }
- 
+
     ///@}
     ///@name Access
     ///@{
-        
+
 
     ///@}
     ///@name Inquiry
@@ -196,7 +196,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "ModifiedMissesYieldSurface" ;
@@ -204,17 +204,17 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "ModifiedMissesYieldSurface";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "ModifiedMissesYieldSurface Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
@@ -230,8 +230,8 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -240,7 +240,7 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-        
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -282,23 +282,23 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -325,7 +325,7 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_MODIFIED_MISES_YIELD_SURFACE_H_INCLUDED  defined 
+#endif // KRATOS_MODIFIED_MISES_YIELD_SURFACE_H_INCLUDED  defined

@@ -1,6 +1,11 @@
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError as e:
+    have_external_solvers = False
+
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -17,13 +22,14 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedCouetteImposedTest(UnitTest.TestCase):
 
     # Embedded element tests
     def testEmbeddedCouetteImposed2D(self):
         self.distance = 1.65
         self.embedded_velocity = 2.56
-        self.work_folder = "EmbeddedCouetteImposed2DTest"   
+        self.work_folder = "EmbeddedCouetteImposed2DTest"
         self.reference_file = "reference_couette_imposed_2D"
         self.settings = "EmbeddedCouetteImposed2DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -31,7 +37,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
     def testEmbeddedCouetteImposed3D(self):
         self.distance = 1.65
         self.embedded_velocity = 2.56
-        self.work_folder = "EmbeddedCouetteImposed3DTest"   
+        self.work_folder = "EmbeddedCouetteImposed3DTest"
         self.reference_file = "reference_couette_imposed_3D"
         self.settings = "EmbeddedCouetteImposed3DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
@@ -64,19 +70,17 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
             with open(self.settings, 'r') as parameter_file:
                 self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-            self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-            Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
+            self.model = KratosMultiphysics.Model()
 
             ## Solver construction
             import python_solvers_wrapper_fluid
-            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
+            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
             self.solver.AddVariables()
 
             ## Read the model - note that SetBufferSize is done here
             self.solver.ImportModelPart()
+            self.solver.PrepareModelPart()
 
             ## Add AddDofs
             self.solver.AddDofs()
@@ -84,33 +88,25 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
             ## Solver initialization
             self.solver.Initialize()
 
-            ## Get the list of the skin submodel parts in the object Model
-            for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
-                skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-                Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
-
-            ## Get the gravity submodel part in the object Model
-            for i in range(self.ProjectParameters["gravity"].size()):
-                gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-                Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
-
             ## Processes construction
             import process_factory
-            self.list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
 
             ## Processes initialization
             for process in self.list_of_processes:
                 process.ExecuteInitialize()
 
+            self.main_model_part = self.model.GetModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+
     def setUpDistanceField(self):
         # Set the distance function
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if (domain_size == 2): 
+        if (domain_size == 2):
             for node in self.main_model_part.Nodes:
                 distance = self.distance - node.Y
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
-        elif (domain_size == 3): 
+        elif (domain_size == 3):
             for node in self.main_model_part.Nodes:
                 distance = self.distance - node.Z
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
@@ -132,7 +128,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
     def setUpNoSlipBoundaryConditions(self):
         # Set the inlet function
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if (domain_size == 2): 
+        if (domain_size == 2):
             for node in self.main_model_part.GetSubModelPart("Inlet").Nodes:
                 dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 if (dist > 0.0):
@@ -145,7 +141,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                 node.Fix(KratosMultiphysics.VELOCITY_X)
                 node.Fix(KratosMultiphysics.VELOCITY_Y)
                 node.Fix(KratosMultiphysics.VELOCITY_Z)
-        else: 
+        else:
             for node in self.main_model_part.GetSubModelPart("Inlet").Nodes:
                 dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 if (dist > 0.0):
@@ -161,7 +157,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
 
     def setUpNoSlipInitialCondition(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if (domain_size == 2): 
+        if (domain_size == 2):
             for node in self.main_model_part.Nodes:
                 dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 if (dist > 0.0):
@@ -201,17 +197,16 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
 
             while(time <= end_time):
 
-                Dt = self.solver.ComputeDeltaTime()
-                step += 1
-                time += Dt
-                self.main_model_part.CloneTimeStep(time)
-                self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+                time = self.solver.AdvanceInTime(time)
 
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()
 
-                
-                self.solver.Solve()
+
+                self.solver.InitializeSolutionStep()
+                self.solver.Predict()
+                self.solver.SolveSolutionStep()
+                self.solver.FinalizeSolutionStep()
 
                 for process in self.list_of_processes:
                     process.ExecuteFinalizeSolutionStep()
@@ -236,7 +231,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
     def checkResults(self):
         with WorkFolderScope(self.work_folder):
             ## 2D results check
-            if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): 
+            if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 if self.print_reference_values:
                     with open(self.reference_file+'.csv','w') as ref_file:
                         ref_file.write("#ID, VELOCITY_X, VELOCITY_Y\n")
@@ -262,7 +257,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                         if line != '': # If we did not reach the end of the reference file
                             self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
             ## 3D results check
-            elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+            elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
                 if self.print_reference_values:
                     with open(self.reference_file+'.csv','w') as ref_file:
                         ref_file.write("#ID, VELOCITY_X, VELOCITY_Y, VELOCITY_Z\n")
@@ -298,7 +293,7 @@ if __name__ == '__main__':
     test.print_output = False
     test.print_reference_values = False
     test.work_folder = "EmbeddedCouetteImposed2DTest"
-    test.reference_file = "reference_couette_imposed_2D"   
+    test.reference_file = "reference_couette_imposed_2D"
     test.settings = "EmbeddedCouetteImposed2DTestParameters.json"
     test.setUpProblem()
     test.setUpDistanceField()
@@ -307,4 +302,3 @@ if __name__ == '__main__':
     test.runTest()
     test.tearDown()
     test.checkResults()
-    

@@ -44,7 +44,7 @@ namespace Kratos
 ///@{
 
 
-class ContactDomainCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ContactDomainCondition
     : public Condition
 {
 public:
@@ -65,9 +65,9 @@ public:
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
-	
 
-    ///Tensor order 1 definition   
+
+    ///Tensor order 1 definition
     typedef ContactDomainUtilities::PointType             PointType;
     ///SurfaceVector
     typedef ContactDomainUtilities::SurfaceVector     SurfaceVector;
@@ -81,7 +81,7 @@ public:
     typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
 
 protected:
- 
+
     /**
      * Parameters to be used in the Condition as they are. Direct interface to Parameters Struct
      */
@@ -90,43 +90,43 @@ protected:
     {
       //Geometrical surface tangent gaps:
       ScalarBaseType   CurrentGap;     //tangential gap
-     
+
       //Contact constraint parameters
-      double   Multiplier;            //Lagrange Multipliyer tangent     
+      double   Multiplier;            //Lagrange Multipliyer tangent
       double   Penalty;               //Penalty Parameter tangent
-      
+
       //Variables of the contact domain elements
       Vector          dN_dt;      //Discrete variacion of the shape function  in the current tangent direction
-      std::vector<Vector >       Tsigma;          
+      std::vector<Vector >       Tsigma;
 
       ScalarBaseType   CurrentTensil;
       double           GapSign;
-      
+
     } ContactSurfaceParameters;
 
 
-  
+
     typedef struct
-    {      
+    {
       ContactSurfaceParameters A;
       ContactSurfaceParameters B;
-      
+
       SurfaceBase    CovariantBase;
       SurfaceBase    ContravariantBase;
-      
+
       //geometrical variables
       double ReferenceArea;
       double CurrentArea;
 
       double FactorArea;
-      
+
       double EquivalentHeigh;
-      
+
       double ElementSize;
-                  
+
     } ContactTangentParameters;
 
-  
+
     typedef struct
     {
         Flags           Options;               //calculation options
@@ -154,15 +154,15 @@ protected:
         std::vector<Vector >       Tsigma;
 
         //Geometric variables
-        SurfaceVector        CurrentSurface;    
+        SurfaceVector        CurrentSurface;
 
         std::vector<BaseLengths>   CurrentBase;    //Current Base Lengths variables
         std::vector<BaseLengths>   ReferenceBase;  //Reference Base Lengths variables
-      
+
         //Resultant mechanical tractions
         SurfaceScalar              CurrentTensil;  //Tangential and Normal modulus of the traction vector components
 
-      
+
         //Tangent parameters used in 3D
         ContactTangentParameters Tangent;
 
@@ -175,13 +175,13 @@ protected:
     {
       ScalarBaseType   PreviousGapA;
       ScalarBaseType   PreviousGapB;
-      
+
       SurfaceBase    CovariantBase;
       SurfaceBase    ContravariantBase;
-                  
+
     } ContactTangentVariables;
-    
-  
+
+
     typedef struct
     {
         double  detF;
@@ -194,7 +194,7 @@ protected:
         Matrix  ConstitutiveMatrix;
 
 	ContactParameters Contact;
-	    
+
         //Axisymmetric
         double  CurrentRadius;
         double  ReferenceRadius;
@@ -206,7 +206,7 @@ protected:
         GeometryType::JacobiansType J;
         GeometryType::JacobiansType j;
         Matrix  DeltaPosition;
- 
+
         /**
          * sets the value of a specified pointer variable
 	 */
@@ -221,7 +221,7 @@ protected:
             pNcontainer=&rNcontainer;
         };
 
-	    
+
 	/**
          * returns the value of a specified pointer variable
          */
@@ -234,7 +234,7 @@ protected:
         const Matrix& GetShapeFunctions()
         {
             return *pNcontainer;
-        };   
+        };
 
     } ConditionVariables;
 
@@ -248,17 +248,17 @@ protected:
         //The stabilization parameter and penalty parameter
         double          StabilizationFactor;
 	double          PenaltyFactor;
-      
+
         //Geometrical gaps:
         SurfaceScalar        PreviousGap;     //effective normal and tangential gap in previous time step configuration
 
 	//Geometric variables
-        SurfaceVector        PreStepSurface;    
+        SurfaceVector        PreStepSurface;
         SurfaceVector        ReferenceSurface;
 
         //Tangent variables in 3D
         ContactTangentVariables  Tangent;
-      
+
         //Contact condition conectivities
         std::vector<unsigned int> nodes;
 	std::vector<unsigned int> order;
@@ -277,19 +277,19 @@ protected:
          * sets the value of a specified pointer variable
 	 */
 
-	void SetMasterGeometry  (GeometryType& rGeometry){ mpMasterGeometry = &rGeometry; } 
-        void SetMasterElement   (ElementType& rElement){ mpMasterElement = &rElement; } 
-        void SetMasterCondition (ConditionType& rCondition){ mpMasterCondition = &rCondition; } 
-        void SetMasterNode      (NodeType& rNode){ mpMasterNode = &rNode; } 
+	void SetMasterGeometry  (GeometryType& rGeometry){ mpMasterGeometry = &rGeometry; }
+        void SetMasterElement   (ElementType& rElement){ mpMasterElement = &rElement; }
+        void SetMasterCondition (ConditionType& rCondition){ mpMasterCondition = &rCondition; }
+        void SetMasterNode      (NodeType& rNode){ mpMasterNode = &rNode; }
 
 	/**
          * returns the value of a specified pointer variable
          */
 
-        GeometryType& GetMasterGeometry()   { return (*mpMasterGeometry); } 
-	ElementType& GetMasterElement()     { return (*mpMasterElement); } 
-	ConditionType& GetMasterCondition() { return (*mpMasterCondition); } 
-	NodeType& GetMasterNode()           { return (*mpMasterNode); } 
+        GeometryType& GetMasterGeometry()   { return (*mpMasterGeometry); }
+	ElementType& GetMasterElement()     { return (*mpMasterElement); }
+	ConditionType& GetMasterCondition() { return (*mpMasterCondition); }
+	NodeType& GetMasterNode()           { return (*mpMasterNode); }
 
 
     } ContactVariables;
@@ -307,22 +307,22 @@ protected:
     struct LocalSystemComponents
     {
     private:
-      
-      //for calculation local system with compacted LHS and RHS 
+
+      //for calculation local system with compacted LHS and RHS
       MatrixType *mpLeftHandSideMatrix;
       VectorType *mpRightHandSideVector;
 
-      //for calculation local system with LHS and RHS components 
+      //for calculation local system with LHS and RHS components
       std::vector<MatrixType> *mpLeftHandSideMatrices;
       std::vector<VectorType> *mpRightHandSideVectors;
 
-      //LHS variable components 
+      //LHS variable components
       const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
 
-      //RHS variable components 
+      //RHS variable components
       const std::vector< Variable< VectorType > > *mpRightHandSideVariables;
 
-    
+
     public:
 
       //calculation flags
@@ -333,23 +333,23 @@ protected:
        */
       void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
       void SetLeftHandSideMatrices( std::vector<MatrixType>& rLeftHandSideMatrices ) { mpLeftHandSideMatrices = &rLeftHandSideMatrices; };
-      void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; }; 
+      void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; };
 
       void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
       void SetRightHandSideVectors( std::vector<VectorType>& rRightHandSideVectors ) { mpRightHandSideVectors = &rRightHandSideVectors; };
-      void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; }; 
+      void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; };
 
- 
+
       /**
        * returns the value of a specified pointer variable
        */
       MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
       std::vector<MatrixType>& GetLeftHandSideMatrices() { return *mpLeftHandSideMatrices; };
-      const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; }; 
+      const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; };
 
       VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
       std::vector<VectorType>& GetRightHandSideVectors() { return *mpRightHandSideVectors; };
-      const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; }; 
+      const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; };
 
     };
 
@@ -369,7 +369,7 @@ public:
     ContactDomainCondition() : Condition() {};
 
     ContactDomainCondition(IndexType NewId, GeometryType::Pointer pGeometry);
- 
+
     ContactDomainCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
@@ -398,7 +398,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected condition variables, creating a new one
@@ -407,8 +407,8 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
-			     NodesArrayType const& ThisNodes) const;
+    Condition::Pointer Clone(IndexType NewId,
+			     NodesArrayType const& ThisNodes) const override;
 
     //************* GETTING METHODS
 
@@ -416,32 +416,32 @@ public:
      * Returns the currently selected integration method
      * @return current integration method selected
      */
-    IntegrationMethod GetIntegrationMethod();
+    IntegrationMethod GetIntegrationMethod() override;
 
     /**
      * Sets on rConditionalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
 
@@ -461,32 +461,32 @@ public:
     /**
      * Set a double Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
     /**
      * Set a Vector Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set a Matrix Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     //GET:
     /**
      * Set on rVariable a double Value from the Condition Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set on rVariable a Vector Value from the Condition Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set on rVariable a Matrix Value from the Condition Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -496,30 +496,30 @@ public:
      * Called to initialize the element.
      * Must be called before any calculation is done
      */
-    void Initialize();
+    void Initialize() override;
 
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
 
     /**
      * this is called for non-linear analysis at the end of the iteration process
      */
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-  
+
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
 
 
@@ -534,7 +534,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this function provides a more general interface to the condition.
@@ -549,7 +549,7 @@ public:
 			      const std::vector< Variable< MatrixType > >& rLHSVariables,
 			      std::vector< VectorType >& rRightHandSideVectors,
 			      const std::vector< Variable< VectorType > >& rRHSVariables,
-			      ProcessInfo& rCurrentProcessInfo);
+			      ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -557,7 +557,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
 
    /**
@@ -569,7 +569,7 @@ public:
      */
     void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
 				const std::vector< Variable< VectorType > >& rRHSVariables,
-				ProcessInfo& rCurrentProcessInfo);
+				ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -577,7 +577,7 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -586,30 +586,30 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */      
+     */
     virtual void AddExplicitContribution(const VectorType& rRHSVector,
-					 const Variable<VectorType>& rRHSVariable, 
-					 Variable<array_1d<double,3> >& rDestinationVariable, 
-					 const ProcessInfo& rCurrentProcessInfo);
+					 const Variable<VectorType>& rRHSVariable,
+					 Variable<array_1d<double,3> >& rDestinationVariable,
+					 const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //on integration points:
     /**
      * Calculate a double Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Vector Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Matrix Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************************************************************************************
@@ -621,7 +621,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
 
@@ -672,7 +672,7 @@ protected:
     ContactVariables      mContactVariables;
 
     /**
-     * Contact Domain Utilities 
+     * Contact Domain Utilities
      */
     ContactDomainUtilities  mContactUtilities;
 
@@ -712,14 +712,14 @@ protected:
     /**
      * Initialize Variables
      */
-    virtual void InitializeConditionVariables (ConditionVariables& rVariables, 
+    virtual void InitializeConditionVariables (ConditionVariables& rVariables,
 					     const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculates the condition contributions
      */
     virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-					  ProcessInfo& rCurrentProcessInfo);	
+					  ProcessInfo& rCurrentProcessInfo);
     /**
      * Clear Nodal Forces
      */
@@ -731,7 +731,7 @@ protected:
      */
     void CalculateNodalForces (ProcessInfo& CurrentProcessInfo);
 
-  
+
     /**
      * Clear Nodal Forces on Master Element
      */
@@ -741,15 +741,15 @@ protected:
     /**
      * Set Master element information on integration points to Contact element information
      */
-    void SetContactIntegrationVariable (Vector & rContactVariable, 
-					std::vector<Vector> & rMasterVariables, 
+    void SetContactIntegrationVariable (Vector & rContactVariable,
+					std::vector<Vector> & rMasterVariables,
 					const unsigned int& rPointNumber);
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables, 
-				     ProcessInfo& rCurrentProcessInfo, 
+    virtual void CalculateKinematics(ConditionVariables& rVariables,
+				     ProcessInfo& rCurrentProcessInfo,
 				     const unsigned int& rPointNumber);
 
     /**
@@ -825,21 +825,21 @@ protected:
     /**
      * Calculation of the tangent via perturbation of the dofs variables : testing purposes
      */
-    void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix, 
+    void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix,
 					 ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate LHS
      */
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-				    ConditionVariables& rVariables, 
+				    ConditionVariables& rVariables,
 				    double& rIntegrationWeight);
 
     /**
      * Calculate RHS
      */
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-				    ConditionVariables& rVariables, 
+				    ConditionVariables& rVariables,
 				    double& rIntegrationWeight);
 
 
@@ -849,7 +849,7 @@ protected:
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight);
-	    
+
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
@@ -910,9 +910,9 @@ protected:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Protected Inquiry
@@ -974,4 +974,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_CONTACT_DOMAIN_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_CONTACT_DOMAIN_CONDITION_H_INCLUDED  defined

@@ -14,8 +14,9 @@
 	"solver_type" : "solid_mechanics_static_solver",
 	"Parameters"  : {
             "time_integration_settings" : {
-                "solution_type"      : "Static",
-                "integration_method" : "Non-Linear"
+   		"solution_type"      : "Quasi-static",
+                "analysis_type"      : "Non-linear",
+		"integration_method" : "Static"
             },
             "linear_solver_settings"    : {
 		"solver_type" : "SuperLUSolver",
@@ -32,22 +33,22 @@
     ],
     "loads_process_list"       : [{
         "model_part_name" : "LineLoad2D_Load_on_lines_Auto2",
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [1.0,0.0,0.0]
     },{
         "model_part_name" : "LineLoad2D_Load_on_lines_Auto3",
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [-1.0,0.0,0.0]
     },{
         "model_part_name" : "LineLoad2D_Load_on_lines_Auto4",
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [0.0,1.0,0.0]
     },{
 	"model_part_name" : "LineLoad2D_Load_on_lines_Auto5",
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : 1.0,
         "direction"       : [0.0,-1.0,0.0]
     }],

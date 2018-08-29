@@ -37,7 +37,7 @@ namespace Kratos
 ///@{
 
 
-class ContactDomainPenalty2DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ContactDomainPenalty2DCondition
     : public ContactDomainLM2DCondition
 {
 public:
@@ -58,7 +58,7 @@ public:
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
-	
+
 
     ///Tensor order 1 definition
     typedef ContactDomainUtilities::PointType               PointType;
@@ -111,14 +111,16 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    //************* GETTING METHODS
-
-
-    //************* COMPUTING  METHODS
-
-
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************************************************************************************
     //************************************************************************************
@@ -145,13 +147,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    //      String Info() const override;
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    //      void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    //      void PrintData(std::ostream& rOStream) const override;
     ///@}
     ///@name Friends
     ///@{
@@ -172,14 +174,14 @@ protected:
     /**
      * Calculate Tau stabilization or Penalty factor
      */
-    void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo);
-	
+    void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
     void CalculateExplicitFactors(ConditionVariables& rVariables,
-				  ProcessInfo& rCurrentProcessInfo);
+				  ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -187,25 +189,25 @@ protected:
      */
     void CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,
 				    unsigned int& ndi,unsigned int& ndj,
-				    unsigned int& idir,unsigned int& jdir);
+				    unsigned int& idir,unsigned int& jdir) override;
 
 
     /**
      * Normal Force construction by components
      */
     void CalculateNormalForce       (double &F,ConditionVariables& rVariables,
-				     unsigned int& ndi,unsigned int& idir);
+				     unsigned int& ndi,unsigned int& idir) override;
 
     /**
      * Tangent Stick Force construction by components
      */
     void CalculateTangentStickForce (double &F,ConditionVariables& rVariables,
-				     unsigned int& ndi,unsigned int& idir);
+				     unsigned int& ndi,unsigned int& idir) override;
     /**
      * Tangent Slip Force construction by components
      */
     void CalculateTangentSlipForce  (double &F,ConditionVariables& rVariables,
-				     unsigned int& ndi,unsigned int& idir);
+				     unsigned int& ndi,unsigned int& idir) override;
 
     ///@}
     ///@name Protected Operations
@@ -218,9 +220,9 @@ protected:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Protected Inquiry
@@ -282,4 +284,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_CONTACT_DOMAIN_PENALTY_2D_CONDITION_H_INCLUDED  defined

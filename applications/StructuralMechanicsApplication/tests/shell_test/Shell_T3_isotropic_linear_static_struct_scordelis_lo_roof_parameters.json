@@ -128,7 +128,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","TORQUE"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","REACTION_MOMENT"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []

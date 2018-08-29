@@ -1,7 +1,8 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.ConvectionDiffusionApplication import *
+from __future__ import print_function, absolute_import, division
+import KratosMultiphysics
+import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 try:
-    from KratosMultiphysics.FSIApplication import *
+    import KratosMultiphysics.FSIApplication as FSIApplication
     import NonConformant_OneSideMap as ncosm
     have_fsi = True
 except ImportError as e:
@@ -9,7 +10,7 @@ except ImportError as e:
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-from os import remove
+import os
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -58,7 +59,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
     def deleteOutFile(self,filename):
         with WorkFolderScope("ThermalCouplingTest"):
             try:
-                remove(filename)
+                os.remove(filename)
             except FileNotFoundError as e:
                 pass
 
@@ -82,30 +83,30 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
             self.runTest()
 
-            self.checkResults(self.mapper.str_interface.Nodes,TEMPERATURE)
+            self.checkResults(self.mapper.str_interface.Nodes,KratosMultiphysics.TEMPERATURE)
             if self.print_output:
                 self.FinalizeOutput()
 
 
     def setUpModel(self):
 
-        self.left_model_part = ModelPart("LeftSide")
-        self.right_model_part = ModelPart("RightSide")
+        self.left_model_part = KratosMultiphysics.ModelPart("LeftSide")
+        self.right_model_part = KratosMultiphysics.ModelPart("RightSide")
 
-        thermal_settings = ConvectionDiffusionSettings()
-        thermal_settings.SetUnknownVariable(TEMPERATURE)
-        thermal_settings.SetDensityVariable(DENSITY)
-        thermal_settings.SetSpecificHeatVariable(SPECIFIC_HEAT)
-        thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
-        thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
-        thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
-        thermal_settings.SetVelocityVariable(VELOCITY)
-        thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
-        #thermal_settings.SetProjectionVariable(PROJECTED_SCALAR1)
-        thermal_settings.SetReactionVariable(REACTION_FLUX)
+        thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
+        thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
+        thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
+        thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
+        thermal_settings.SetDiffusionVariable(KratosMultiphysics.CONDUCTIVITY)
+        thermal_settings.SetVolumeSourceVariable(KratosMultiphysics.HEAT_FLUX)
+        thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        thermal_settings.SetVelocityVariable(KratosMultiphysics.VELOCITY)
+        thermal_settings.SetMeshVelocityVariable(KratosMultiphysics.MESH_VELOCITY)
+        #thermal_settings.SetProjectionVariable(KratosMultiphysics.PROJECTED_SCALAR1)
+        thermal_settings.SetReactionVariable(KratosMultiphysics.REACTION_FLUX)
 
-        self.left_model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
-        self.right_model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
+        self.left_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
+        self.right_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
 
     def setUpSolvers(self):
 
@@ -115,14 +116,14 @@ class ThermalCouplingTest(UnitTest.TestCase):
         # Also add mapper variables
         ncosm.AddVariables(self.left_model_part,self.right_model_part)
         # auxiliary container for reaction->distributed flux conversion
-        self.right_model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
+        self.right_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
         # Temporary container for un-relaxed temperature
-        self.left_model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
+        self.left_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
 
-        model_part_io_left = ModelPartIO(self.left_input_file)
+        model_part_io_left = KratosMultiphysics.ModelPartIO(self.left_input_file)
         model_part_io_left.ReadModelPart(self.left_model_part)
 
-        model_part_io_right = ModelPartIO(self.right_input_file)
+        model_part_io_right = KratosMultiphysics.ModelPartIO(self.right_input_file)
         model_part_io_right.ReadModelPart(self.right_model_part)
 
         self.left_model_part.SetBufferSize(2)
@@ -144,40 +145,40 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
     def setUpOuterBoundaryCondition(self,model_part,boundary_x,boundary_value):
 
-        velocity = Array3()
+        velocity = KratosMultiphysics.Array3()
         velocity[0] = self.ux
         velocity[1] = 0.0
         velocity[2] = 0.0
 
         ## Set initial and boundary conditions
         for node in model_part.Nodes:
-            node.SetSolutionStepValue(DENSITY,self.rho)
-            node.SetSolutionStepValue(CONDUCTIVITY,self.k)
-            node.SetSolutionStepValue(SPECIFIC_HEAT,self.c)
-            node.SetSolutionStepValue(HEAT_FLUX,self.source)
-            node.SetSolutionStepValue(VELOCITY,velocity)
-            node.SetSolutionStepValue(TEMPERATURE,boundary_value)
+            node.SetSolutionStepValue(KratosMultiphysics.DENSITY,self.rho)
+            node.SetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY,self.k)
+            node.SetSolutionStepValue(KratosMultiphysics.SPECIFIC_HEAT,self.c)
+            node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,self.source)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,velocity)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,boundary_value)
 
             if node.X == boundary_x:
-                node.Fix(TEMPERATURE)
-    
+                node.Fix(KratosMultiphysics.TEMPERATURE)
+
     def setUpDirichletCouplingBoundary(self,model_part):
         for cond in model_part.Conditions:
             for node in cond.GetNodes():
-                node.Fix(TEMPERATURE)
+                node.Fix(KratosMultiphysics.TEMPERATURE)
 
     def setUpMapper(self):
         for cond in self.left_model_part.Conditions:
             for node in cond.GetNodes():
-                node.Set(INTERFACE,True)
+                node.Set(KratosMultiphysics.INTERFACE,True)
 
         for cond in self.right_model_part.Conditions:
             for node in cond.GetNodes():
-                node.Set(INTERFACE,True)
+                node.Set(KratosMultiphysics.INTERFACE,True)
 
         self.mapper = ncosm.NonConformant_OneSideMap(self.left_model_part,self.right_model_part,
                  search_radius_factor=2.0, it_max=50, tol=1e-5)
-        
+
     def runTest(self):
         time = 0.0
 
@@ -193,22 +194,22 @@ class ThermalCouplingTest(UnitTest.TestCase):
                 self.right_solver.Solve()
 
                 # Map reactions
-                VariableRedistributionUtility.DistributePointValues(
-                    self.mapper.str_interface, REACTION_FLUX, NODAL_PAUX, 1e-5, 50)
-                self.mapper.StructureToFluid_ScalarMap(NODAL_PAUX,FACE_HEAT_FLUX,False)
+                KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
+                    self.mapper.str_interface, KratosMultiphysics.REACTION_FLUX, KratosMultiphysics.NODAL_PAUX, 1e-5, 50)
+                self.mapper.StructureToFluid_ScalarMap(KratosMultiphysics.NODAL_PAUX,KratosMultiphysics.FACE_HEAT_FLUX,False)
 
                 # Solve Neumann side
                 self.left_solver.Solve()
 
                 # Get updated temperature
-                self.mapper.FluidToStructure_ScalarMap(TEMPERATURE,NODAL_PAUX,True)
+                self.mapper.FluidToStructure_ScalarMap(KratosMultiphysics.TEMPERATURE,KratosMultiphysics.NODAL_PAUX,True)
                 temperature_difference = 0.0
                 for node in self.mapper.str_interface.Nodes:
-                    old_temperature = node.GetSolutionStepValue(TEMPERATURE)
-                    new_temperature = node.GetSolutionStepValue(NODAL_PAUX)
+                    old_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                    new_temperature = node.GetSolutionStepValue(KratosMultiphysics.NODAL_PAUX)
                     interpolated_temperature = (1.0-self.temperature_relaxation_factor)*old_temperature + self.temperature_relaxation_factor*new_temperature
                     temperature_difference += (old_temperature-new_temperature)**2
-                    node.SetSolutionStepValue(TEMPERATURE, interpolated_temperature )
+                    node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, interpolated_temperature )
 
                 iter += 1
                 if (temperature_difference**0.5)/len(self.mapper.str_interface.Nodes) <= self.coupling_relative_tolerance:
@@ -246,12 +247,12 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
 
     def InitializeOutput(self):
-        gid_mode = GiDPostMode.GiD_PostBinary
-        multifile = MultiFileFlag.SingleFile
-        deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-        write_conditions = WriteConditionsFlag.WriteElementsOnly
-        self.left_gid_io = GidIO(self.left_input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
-        self.right_gid_io = GidIO(self.right_input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+        gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostBinary
+        multifile = KratosMultiphysics.MultiFileFlag.SingleFile
+        deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
+        write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
+        self.left_gid_io = KratosMultiphysics.GidIO(self.left_input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+        self.right_gid_io = KratosMultiphysics.GidIO(self.right_input_file,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
         mesh_name = 0.0
         self.left_gid_io.InitializeMesh( mesh_name)
@@ -259,7 +260,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
         self.left_gid_io.FinalizeMesh()
         self.left_gid_io.InitializeResults(mesh_name,(self.left_model_part).GetMesh())
 
-        
+
         self.right_gid_io.InitializeMesh( mesh_name)
         self.right_gid_io.WriteMesh( self.right_model_part.GetMesh() )
         self.right_gid_io.FinalizeMesh()
@@ -271,20 +272,23 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
     def PrintOutput(self):
         for model_part,gid_io in [[self.left_model_part,self.left_gid_io],[self.right_model_part,self.right_gid_io]]:
-            label = model_part.ProcessInfo[TIME]
-            gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,label,0)
-            gid_io.WriteNodalResults(TEMPERATURE,model_part.Nodes,label,0)
-            gid_io.WriteNodalResults(DENSITY,model_part.Nodes,label,0)
-            gid_io.WriteNodalResults(CONDUCTIVITY,model_part.Nodes,label,0)
-            gid_io.WriteNodalResults(SPECIFIC_HEAT,model_part.Nodes,label,0)
-            gid_io.WriteNodalResults(HEAT_FLUX,model_part.Nodes,label,0)
-            gid_io.WriteNodalResults(FACE_HEAT_FLUX,model_part.Nodes,label,0)
-            gid_io.WriteNodalResults(REACTION_FLUX,model_part.Nodes,label,0)
+            label = model_part.ProcessInfo[KratosMultiphysics.TIME]
+            gid_io.WriteNodalResults(KratosMultiphysics.VELOCITY,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.TEMPERATURE,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.DENSITY,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.CONDUCTIVITY,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.SPECIFIC_HEAT,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.HEAT_FLUX,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.FACE_HEAT_FLUX,model_part.Nodes,label,0)
+            gid_io.WriteNodalResults(KratosMultiphysics.REACTION_FLUX,model_part.Nodes,label,0)
 
 if __name__ == '__main__':
-    test = ThermalCouplingTest()
-    test.setUp()
-    #test.print_reference_values = True
-    test.print_output = True
-    test.testDirichletNeumann()
-    test.tearDown()
+    if have_fsi:
+        test = ThermalCouplingTest()
+        test.setUp()
+        #test.print_reference_values = True
+        test.print_output = True
+        test.testDirichletNeumann()
+        test.tearDown()
+    else:
+        UnitTest.skip("Missing required application: FSIApplication")

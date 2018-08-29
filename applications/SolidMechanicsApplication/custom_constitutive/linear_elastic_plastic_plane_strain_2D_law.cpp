@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/linear_elastic_plastic_plane_strain_2D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -55,8 +52,7 @@ LinearElasticPlasticPlaneStrain2DLaw::LinearElasticPlasticPlaneStrain2DLaw(const
 
 ConstitutiveLaw::Pointer LinearElasticPlasticPlaneStrain2DLaw::Clone() const
 {
-    LinearElasticPlasticPlaneStrain2DLaw::Pointer p_clone(new LinearElasticPlasticPlaneStrain2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearElasticPlasticPlaneStrain2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -115,7 +111,7 @@ void LinearElasticPlasticPlaneStrain2DLaw::CalculateLinearElasticMatrix( Matrix&
         const double& PoissonCoefficient )
 {
     rLinearElasticMatrix.clear();
-    
+
     // Plane strain constitutive matrix
     rLinearElasticMatrix ( 0 , 0 ) = (YoungModulus*(1.0-PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient)));
     rLinearElasticMatrix ( 1 , 1 ) = rLinearElasticMatrix ( 0 , 0 );

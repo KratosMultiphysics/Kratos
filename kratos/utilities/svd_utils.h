@@ -107,7 +107,7 @@ public:
         MatrixType& UMatrix,
         MatrixType& SMatrix,
         MatrixType& VMatrix,
-        const std::string TypeSVD = "Jacobi",
+        const std::string& TypeSVD = "Jacobi",
         const TDataType Tolerance = std::numeric_limits<double>::epsilon()
         )
     {
@@ -399,7 +399,7 @@ public:
      */
     static inline TDataType SVDConditionNumber(
         const MatrixType& InputMatrix,
-        const std::string TypeSVD = "Jacobi",
+        const std::string& TypeSVD = "Jacobi",
         const TDataType Tolerance = std::numeric_limits<double>::epsilon()
         )
     {        

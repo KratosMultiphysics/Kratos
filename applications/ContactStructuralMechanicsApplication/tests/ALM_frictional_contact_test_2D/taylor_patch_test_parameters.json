@@ -30,6 +30,7 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
+        "buffer_size"                        : 3,
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         },
@@ -96,14 +97,14 @@
     }],
     "contact_process_list" :[{
         "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module"   : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "contact_model_part"          : "Contact_Part",
+            "contact_model_part"          : { "0" : ["Contact_Part"]},
             "contact_type"                : "Frictional",
-            "assume_master_slave"         : "Parts_punch"
+            "assume_master_slave"         : { "0" : ["Parts_punch"]}
         }
     }
     ],

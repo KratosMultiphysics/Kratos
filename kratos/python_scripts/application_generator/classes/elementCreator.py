@@ -1,5 +1,6 @@
-from classes.classCreator import ClassCreator
+from __future__ import print_function, absolute_import, division
 
+from classes.classCreator import ClassCreator
 from utils.constants import ctab
 
 
@@ -76,7 +77,7 @@ class ElementCreator(ClassCreator):
         '''
 
         localFlagsValue = ''
-        localFlagDefinition = ctab + 'KRATOS_DEFINE_LOCAL_FLAG({})\n'
+        localFlagDefinition = ctab + 'KRATOS_DEFINE_LOCAL_FLAG({});\n'
 
         for flagName in flagList:
             upperName = flagName.upper()
@@ -129,7 +130,7 @@ class ElementCreator(ClassCreator):
             '\n'
         ]
 
-        # Assamble the code
+        # Assemble the code
         for dofName in dofList:
             upperName = dofName.upper()
             if upperName != dofName:

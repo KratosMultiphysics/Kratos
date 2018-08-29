@@ -31,26 +31,20 @@ class ModelPartController:
 
         mesh_motion_settings = self.optimization_settings["design_variables"]["mesh_motion"]
 
-        if mesh_motion_settings["apply_ale_mesh_solver"].GetBool():
-            from mesh_controller_ale_solver import MeshControllerUsingALESolver
-            self.mesh_controller = MeshControllerUsingALESolver(mesh_motion_settings, optimization_mdpa)
+        if mesh_motion_settings["apply_mesh_solver"].GetBool():
+            from mesh_controller_with_solver import MeshControllerWithSolver
+            self.mesh_controller = MeshControllerWithSolver(mesh_motion_settings, optimization_mdpa)
         else:
             from mesh_controller_basic_updating import MeshControllerBasicUpdating
             self.mesh_controller = MeshControllerBasicUpdating(optimization_mdpa)
 
     # --------------------------------------------------------------------------
-    def IsOptimizationModelPartAlreadyImported(self):
-        if self.optimization_mdpa.NumberOfNodes()>0:
-            self.__CheckIfDomainSizeIsSet()
-            return True
-        else:
-            return False
-
-    # --------------------------------------------------------------------------
     def ImportOptimizationModelPart(self):
-        model_part_io = ModelPartIO(self.optimization_settings["design_variables"]["optimization_model_part_name"].GetString())
-        model_part_io.ReadModelPart(self.optimization_mdpa)
-        self.__CheckIfDomainSizeIsSet()
+        if self.__IsOptimizationModelPartAlreadyImported():
+            print("> Skipping import of optimization model part as already done by another application. ")
+        else:
+            model_part_io = ModelPartIO(self.optimization_settings["design_variables"]["optimization_model_part_name"].GetString())
+            model_part_io.ReadModelPart(self.optimization_mdpa)
 
     # --------------------------------------------------------------------------
     def InitializeMeshController(self):
@@ -87,6 +81,14 @@ class ModelPartController:
         if self.damping_regions is None:
             self.__IdentifyDampingRegions()
         return self.damping_regions
+
+    # --------------------------------------------------------------------------
+    def __IsOptimizationModelPartAlreadyImported(self):
+        if self.optimization_mdpa.NumberOfNodes()>0:
+            self.__CheckIfDomainSizeIsSet()
+            return True
+        else:
+            return False
 
     # --------------------------------------------------------------------------
     def __CheckIfDomainSizeIsSet(self):

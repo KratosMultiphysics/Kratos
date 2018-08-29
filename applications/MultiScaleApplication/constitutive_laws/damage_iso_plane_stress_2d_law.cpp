@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	DamageIsoPlaneStress2DLaw::DamageIsoPlaneStress2DLaw() 
+	DamageIsoPlaneStress2DLaw::DamageIsoPlaneStress2DLaw()
 		: ConstitutiveLaw()
 		, m_initialized(false)
 		, m_r(0.0)
@@ -130,7 +130,7 @@ namespace Kratos
 	}
 
 	double& DamageIsoPlaneStress2DLaw::GetValue(
-		const Variable<double>& rThisVariable, 
+		const Variable<double>& rThisVariable,
 		double& rValue)
 	{
 		rValue = 0.0;
@@ -144,7 +144,7 @@ namespace Kratos
 	}
 
 	Vector& DamageIsoPlaneStress2DLaw::GetValue(
-		const Variable<Vector>& rThisVariable, 
+		const Variable<Vector>& rThisVariable,
 		Vector& rValue)
 	{
 		if(rThisVariable == INITIAL_STRAIN) {
@@ -156,21 +156,21 @@ namespace Kratos
 	}
 
 	Matrix& DamageIsoPlaneStress2DLaw::GetValue(
-		const Variable<Matrix>& rThisVariable, 
+		const Variable<Matrix>& rThisVariable,
 		Matrix& rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 3 > & DamageIsoPlaneStress2DLaw::GetValue(
-		const Variable<array_1d<double, 3 > >& rVariable, 
+		const Variable<array_1d<double, 3 > >& rVariable,
 		array_1d<double, 3 > & rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 6 > & DamageIsoPlaneStress2DLaw::GetValue(
-		const Variable<array_1d<double, 6 > >& rVariable, 
+		const Variable<array_1d<double, 6 > >& rVariable,
 		array_1d<double, 6 > & rValue)
 	{
 		return rValue;
@@ -189,7 +189,7 @@ namespace Kratos
 
 	void DamageIsoPlaneStress2DLaw::SetValue(
 		const Variable<Vector >& rVariable,
-		const Vector& rValue, 
+		const Vector& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rVariable == INITIAL_STRAIN) {
@@ -200,7 +200,7 @@ namespace Kratos
 
 	void DamageIsoPlaneStress2DLaw::SetValue(
 		const Variable<Matrix >& rVariable,
-		const Matrix& rValue, 
+		const Matrix& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
@@ -381,7 +381,7 @@ namespace Kratos
 #endif // DAM_ISO_2D_IMPLEX
 
 		if (m_error_code != 0.0) return;
-		
+
 		if(rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR))
 		{
 			size_t n = GetStrainSize();
@@ -393,7 +393,7 @@ namespace Kratos
 
 			if(props.Has(DAMAGE_SECANT_MATRIX))
 			{
-				if(props[DAMAGE_SECANT_MATRIX] > 0.0) 
+				if(props[DAMAGE_SECANT_MATRIX] > 0.0)
 				{
 					noalias(constitutive_matrix) = (1.0-m_damage)*data.C0;
 					return;
@@ -545,7 +545,7 @@ namespace Kratos
 		this->CalculateMaterialResponseCauchy(parameters);
 	}
 
-	void DamageIsoPlaneStress2DLaw::InitializeCalculationData(const Properties& props, 
+	void DamageIsoPlaneStress2DLaw::InitializeCalculationData(const Properties& props,
 															 const GeometryType& geom,
 															 const Vector& N,
 															 const ProcessInfo& pinfo,
@@ -657,7 +657,7 @@ namespace Kratos
 		double t = (-B+std::sqrt(D))/(2.0*A);
 		return (y0-2.0*y1+y2)*t*t+2.0*(y1-y0)*t+y0;
 	}
-	
+
 	inline double b3_eval_area(double x1,double x2,double x3,double y1,double y2,double y3)
 	{
 		return x2*y1/3.0 + x3*y1/6.0 - x2*y3/3.0 + x3*y2/3.0 + x3*y3/2.0
@@ -699,17 +699,17 @@ namespace Kratos
 			double r0  = ft;
 			double lt  = 2.0*E*G/ft/ft;
 
-			if(lch >= lt) 
+			if(lch >= lt)
 			{
 				std::stringstream ss;
-				ss << "FRACTURE_ENERGY_T is to low:  2*E*Gt/(ft*ft) = " << lt 
+				ss << "FRACTURE_ENERGY_T is to low:  2*E*Gt/(ft*ft) = " << lt
 					<< ",   Characteristic Length = " << lch << std::endl;
 				std::cout << ss.str();
 				exit(-1);
 			}
 
 			double Hs  = lch/(lt-lch);
-			double A   = 2.0*Hs; 
+			double A   = 2.0*Hs;
 			d          = 1.0-r0/r*std::exp(A*(1.0-r/r0));
 		}
 
@@ -748,7 +748,7 @@ namespace Kratos
 			double G_bar   = b3_calc_G( sp,sk,sr,ep,ej,ek,er,eu );
 			double G1      = sp*ep/2.0;
 			double stretch = (G-G1)/(G_bar-G1)-1.0;
-			if(stretch <= -1.0) 
+			if(stretch <= -1.0)
 			{
 				std::stringstream ss;
 				ss << "Damage Iso Error: fracture energy is too low" << std::endl;
@@ -853,7 +853,7 @@ namespace Kratos
 			m_error_code = -1.0;
 			m_suggested_time_step = std::sqrt( tolerance*dtime_n*dtime_n*1.0/std::abs(2.0*(m_r_converged-m_r_converged_old)) );
 		}
-	
+
 #else
 
 		if(r_trial > m_r)
@@ -866,7 +866,7 @@ namespace Kratos
 
 		noalias(stress_vector)  = (1.0 - m_damage)*data.S;
 	}
-	
+
 	double &  DamageIsoPlaneStress2DLaw::CalculateDomainTemperature(Parameters& rValues,
 		double& rDeltaTemperature)
 	{

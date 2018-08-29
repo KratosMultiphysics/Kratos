@@ -302,7 +302,7 @@ void VMSAdjointElement<3>::AddViscousTerm(
 
 template<>
 void VMSAdjointElement<2>::AddViscousTermDerivative(
-    boost::numeric::ublas::bounded_matrix< double, 9, 9 >& rResult,
+    BoundedMatrix< double, 9, 9 >& rResult,
     const VMSAdjointElement<2>::ShapeFunctionDerivativesType& rDN_DX,
     const VMSAdjointElement<2>::ShapeFunctionDerivativesType& rDN_DX_Deriv,
     const double Weight,
@@ -361,7 +361,7 @@ void VMSAdjointElement<2>::AddViscousTermDerivative(
 
 template<>
 void VMSAdjointElement<3>::AddViscousTermDerivative(
-    boost::numeric::ublas::bounded_matrix< double, 16, 16 >& rResult,
+    BoundedMatrix< double, 16, 16 >& rResult,
     const VMSAdjointElement<3>::ShapeFunctionDerivativesType& rDN_DX,
     const VMSAdjointElement<3>::ShapeFunctionDerivativesType& rDN_DX_Deriv,
     const double Weight,

@@ -11,7 +11,7 @@
 
 namespace Kratos {
 
-    void DEM_ExponentialHC::Initialize() {        
+    void DEM_ExponentialHC::Initialize() {
         KRATOS_TRY
         mHistoryMaxInd              = 0.0; //maximum indentation achieved
         mHistoryMaxForce            = 0.0; //maximum force achieved
@@ -22,8 +22,8 @@ namespace Kratos {
         mGamma2                     = 0.0;
         mGamma3                     = 0.0;
         mMaxDef                     = 0.0;
-        
-        KRATOS_CATCH("")  
+
+        KRATOS_CATCH("")
     }
 
     DEMContinuumConstitutiveLaw::Pointer DEM_ExponentialHC::Clone() const {
@@ -32,7 +32,7 @@ namespace Kratos {
     }
 
     void DEM_ExponentialHC::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning DEM_ExponentialHC to Properties " << pProp->Id() << std::endl;
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_ExponentialHC to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
@@ -63,7 +63,7 @@ namespace Kratos {
 
         else{
 
-           
+
             mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
             mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
         }

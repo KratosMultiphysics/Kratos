@@ -68,13 +68,12 @@ void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateMaterialResponsePK1 (
 //************************************************************************************
 
 void  HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) {
-
+    KRATOS_TRY;
     // Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
     const Properties& material_properties  = rValues.GetMaterialProperties();
     Vector& strain_vector                  = rValues.GetStrainVector();
-    Vector& stress_vector                  = rValues.GetStressVector();
 
     // The material properties
     const double& young_modulus = material_properties[YOUNG_MODULUS];
@@ -91,10 +90,7 @@ void  HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateMaterialResponsePK2(
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        if (rValues.IsSetDeformationGradientF() == true) {
-            CalculateGreenLagrangianStrain(rValues, strain_vector);
-        }
-
+        Vector& stress_vector = rValues.GetStressVector();
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
             noalias(stress_vector) = prod(constitutive_matrix, strain_vector);
@@ -102,13 +98,14 @@ void  HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateMaterialResponsePK2(
             CalculatePK2Stress( strain_vector, stress_vector, young_modulus, poisson_coefficient );
         }
     }
+    KRATOS_CATCH("");
 }
 
 //************************************************************************************
 //************************************************************************************
 
 void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) {
-    
+
     // Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
@@ -376,7 +373,7 @@ void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateGreenLagrangianStrain
 void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateAlmansiStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector) {
-        
+
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 

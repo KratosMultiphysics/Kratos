@@ -50,9 +50,9 @@ class ShellT3_CoordinateTransformation;
  *
  * This element represents a 3-node Shell element
  * based on the Assumed Natural DEviatoric Strain (ANDES) by Felippa.
- * This element is formulated for small strains, 
+ * This element is formulated for small strains,
  * but can be used in Geometrically nonlinear problems
- * involving large displacements and rotations 
+ * involving large displacements and rotations
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
@@ -62,9 +62,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
 
   ///@name Type Definitions
   ///@{
-    
+
   KRATOS_CLASS_POINTER_DEFINITION(ShellThinElement3D3N);
-    
+
   typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
   typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
@@ -81,87 +81,87 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   ///@{
 
   // TODO: Add Calulation Data
-	
+
   ///@}
 
   ///@name Life Cycle
   ///@{
 
-  ShellThinElement3D3N(IndexType NewId, 
-                       GeometryType::Pointer pGeometry, 
-                       bool NLGeom = false);
-    
-  ShellThinElement3D3N(IndexType NewId, 
-                       GeometryType::Pointer pGeometry, 
-                       PropertiesType::Pointer pProperties, 
+  ShellThinElement3D3N(IndexType NewId,
+                       GeometryType::Pointer pGeometry,
                        bool NLGeom = false);
 
-  ShellThinElement3D3N(IndexType NewId, 
-                       GeometryType::Pointer pGeometry, 
-                       PropertiesType::Pointer pProperties, 
+  ShellThinElement3D3N(IndexType NewId,
+                       GeometryType::Pointer pGeometry,
+                       PropertiesType::Pointer pProperties,
+                       bool NLGeom = false);
+
+  ShellThinElement3D3N(IndexType NewId,
+                       GeometryType::Pointer pGeometry,
+                       PropertiesType::Pointer pProperties,
                        CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-  virtual ~ShellThinElement3D3N();
+  ~ShellThinElement3D3N() override;
 
   ///@}
-    
+
   ///@name Operations
   ///@{
 
   // Basic
 
-  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-  IntegrationMethod GetIntegrationMethod() const;
-    
-  void Initialize();
+  IntegrationMethod GetIntegrationMethod() const override;
 
-  void ResetConstitutiveLaw();
+  void Initialize() override;
 
-  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+  void ResetConstitutiveLaw() override;
 
-  void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-  int Check(const ProcessInfo& rCurrentProcessInfo);
+  void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-  void CleanMemory();
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValuesVector(Vector& values, int Step = 0);
+  void CleanMemory() override;
 
-  void GetFirstDerivativesVector(Vector& values, int Step = 0);
-    
-  void GetSecondDerivativesVector(Vector& values, int Step = 0);
+  void GetValuesVector(Vector& values, int Step = 0) override;
 
-  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+  void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
 
-  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+  void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
-  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-  void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+
+  void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
   void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                             VectorType& rRightHandSideVector,
-                            ProcessInfo& rCurrentProcessInfo);
+                            ProcessInfo& rCurrentProcessInfo) override;
 
   void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+                              ProcessInfo& rCurrentProcessInfo) override;
 
   // Results calculation on integration points
 
-  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   ///@}
 
@@ -173,17 +173,17 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   ///@}
 
  protected:
-    
+
   ///@name Protected Lyfe Cycle
   ///@{
-    
+
   /**
    * Protected empty constructor
    */
   ShellThinElement3D3N() : Element()
   {
   }
-    
+
   ///@}
 
  private:
@@ -309,11 +309,11 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
                     const bool RHSrequired);
 
   bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
-                                                          std::vector<array_1d<double,3> >& rValues, 
+                                                          std::vector<array_1d<double,3> >& rValues,
                                                           const ProcessInfo& rCurrentProcessInfo);
 
   bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
-                                                                   std::vector<Matrix>& rValues, 
+                                                                   std::vector<Matrix>& rValues,
                                                                    const ProcessInfo& rCurrentProcessInfo);
 
   ///@}
@@ -321,42 +321,42 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
   ///@name Static Member Variables
   ///@{
   ///@}
-    
+
   ///@name Member Variables
   ///@{
-    
+
   CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
   CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
   IntegrationMethod mThisIntegrationMethod; /*!< Currently selected integration method */
-    
+
   ///@}
-    
+
   ///@name Serialization
   ///@{
 
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer) const;
+  void save(Serializer& rSerializer) const override;
 
-  virtual void load(Serializer& rSerializer);
-    
+  void load(Serializer& rSerializer) override;
+
   ///@}
-    
+
   ///@name Private  Access
   ///@{
   ///@}
-    
+
   ///@name Private Inquiry
   ///@{
   ///@}
-    
+
   ///@name Un accessible methods
   ///@{
   ///@}
-    
+
 };
 
-} 
+}
 #endif // SHELL_THIN_ELEMENT_3D3N_H_INCLUDED

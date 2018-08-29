@@ -4,15 +4,14 @@
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.0,
+        "time_step"       : 1.1,
         "start_time"      : 0.0,
-        "end_time"        : 10.0,
+        "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "Static",
+        "solver_type"                        : "formfinding",
         "echo_level"                         : 0,
-        "analysis_type"                      : "formfinding",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "formfinding_test/Fofi_4Point_Tent_noCable"
@@ -21,9 +20,9 @@
             "materials_filename": "formfinding_test/Fofi_4Point_Tent_noCable_test_materials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "residual_criterion",
-        "residual_relative_tolerance"        : 0.00000001,
-        "max_iteration"                      : 1,
+        "convergence_criterion"              : "displacement_criterion",
+        "displacement_relative_tolerance"    : 1e-7,
+        "max_iteration"                      : 10,
 		"move_mesh_flag"					 : true,
         "linear_solver_settings"             : {
             "solver_type" : "Super_LU",
@@ -32,7 +31,8 @@
         },
         "problem_domain_sub_model_part_list" : ["Parts_membrane"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichlet"],
-        "rotation_dofs"                      : true
+        "rotation_dofs"                      : false,
+        "print_formfinding_iterations": false
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
@@ -72,7 +72,7 @@
         }
     }
     ],
-    "print_output_process" : [
+    "_json_output_process" : [
     {
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
@@ -85,5 +85,37 @@
             "time_frequency"   : 0.90
         }
     }
-    ]    
+    ],
+    "_formfinding_IO_process" :[
+        {
+            "python_module"   : "formfinding_IO_process",
+            "kratos_module"   : "StructuralMechanicsApplication",
+            "help"                  : "This process writes the mesh resulting from the formfinding in a .mdpa-file",
+            "process_name"          : "FormfindingIOProcess",
+            "Parameters"            : {
+                "model_part_name"   : "Structure",
+                "print_mdpa"        : false,
+                "print_prestress"   : false,
+                "read_prestress"    : false
+            }
+        }
+        ],
+    "_output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT"]
+        },
+        "point_data_configuration"  : []
+    }
 }

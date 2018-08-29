@@ -103,7 +103,7 @@ namespace Kratos {
         double mNormalizedMaxIndentationForRelease;
         double mNormalizedMaxIndentationForNewParticleCreation;
         std::vector<PropertiesProxy> mFastProperties;
-        boost::numeric::ublas::vector<bool> mLayerRemoved;
+        DenseVector<bool> mLayerRemoved;
         //std::vector<int> mTotalNumberOfDetachedParticles;
         ModelPart& mInletModelPart; //The model part used to insert elements
 
@@ -115,3 +115,4 @@ namespace Kratos {
 }// namespace Kratos.
 
 #endif // DEM_INLET_H defined
+

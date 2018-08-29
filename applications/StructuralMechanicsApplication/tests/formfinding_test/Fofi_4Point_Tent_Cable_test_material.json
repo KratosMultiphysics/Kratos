@@ -5,13 +5,14 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                            "name": "LinearElasticPlaneStress2DLaw"
                     },
                     "Variables": {
-                            "KratosMultiphysics.YOUNG_MODULUS": 0.0 ,
-                            "KratosMultiphysics.POISSON_RATIO": 0.0,
-                            "KratosMultiphysics.THICKNESS": 1.00000E-1,
-                            "KratosMultiphysics.StructuralMechanicsApplication.MEMBRANE_PRESTRESS": [[100.0,100.0,0.0]]
+                            "YOUNG_MODULUS": 0.0 ,
+                            "POISSON_RATIO": 0.0,
+                            "DENSITY"      : 7850.0,
+                            "THICKNESS": 1.00000E-1,
+                            "PRESTRESS_VECTOR": [100.0,100.0,0.0]
                     },
                     "Tables": {}
             }
@@ -22,12 +23,13 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                            "name": "TrussConstitutiveLaw"
                     },
                     "Variables": {
-                            "KratosMultiphysics.YOUNG_MODULUS": 0.0000001,
-                            "KratosMultiphysics.StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2": 2.0e3,
-                            "KratosMultiphysics.StructuralMechanicsApplication.CROSS_AREA": 0.07
+                            "YOUNG_MODULUS": 0.0000001,
+                            "DENSITY"      : 7850.0,
+                            "TRUSS_PRESTRESS_PK2": 2.0e3,
+                            "CROSS_AREA": 0.07
                     },
                     "Tables": {}
             }

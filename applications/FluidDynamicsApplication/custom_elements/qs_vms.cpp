@@ -17,6 +17,7 @@
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
+#include "custom_utilities/fluid_element_time_integration_detail.h"
 
 namespace Kratos
 {
@@ -326,8 +327,8 @@ void QSVMS<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
 
     // Call specialized implementation (it is on a helper class to avoid partial template specialization problems)
-    Internals::SpecializedAddTimeIntegratedSystem<TElementData,
-        TElementData::ElementManagesTimeIntegration>::AddSystem(this, rData,
+    Internals::FluidElementTimeIntegrationDetail<TElementData,
+        TElementData::ElementManagesTimeIntegration>::AddTimeIntegratedSystem(this, rData,
         rLHS, rRHS);
 }
 
@@ -533,18 +534,18 @@ template <class TElementData>
 void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    BoundedMatrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
     const auto& constitutive_matrix = rData.C;
 
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+    BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = prod(constitutive_matrix,strain_matrix);
 
-    boost::numeric::ublas::bounded_matrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
+    BoundedMatrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
     FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
 
     // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
-    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,shear_stress_matrix);
+    BoundedMatrix<double,Dim,LocalSize> normal_stress_operator = prod(normal_projection,shear_stress_matrix);
 
     // Contribution to boundary stress from p*n
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -556,7 +557,7 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     }
 
     // RHS: stress computed using current solution
-    array_1d<double,Dim> shear_stress = boost::numeric::ublas::prod(normal_projection,rData.ShearStress);
+    array_1d<double,Dim> shear_stress = prod(normal_projection,rData.ShearStress);
     const double p_gauss = this->GetAtCoordinate(rData.Pressure,rData.N);
 
     // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
@@ -575,20 +576,20 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
 template <class TElementData>
 void QSVMS<TElementData>::AddViscousTerm(
     const TElementData& rData,
-    boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+    BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
     VectorType& rRHS) {
 
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    BoundedMatrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
     const auto& constitutive_matrix = rData.C;
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+    BoundedMatrix<double,StrainSize,LocalSize> shear_stress_matrix = prod(constitutive_matrix,strain_matrix);
 
     // Multiply times integration point weight (I do this here to avoid a temporal in LHS += weight * Bt * C * B)
     strain_matrix *= rData.Weight;
 
-    noalias(rLHS) += boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),shear_stress_matrix);
-    noalias(rRHS) -= boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),rData.ShearStress);
+    noalias(rLHS) += prod(trans(strain_matrix),shear_stress_matrix);
+    noalias(rRHS) -= prod(trans(strain_matrix),rData.ShearStress);
 }
 
 
@@ -779,66 +780,6 @@ void QSVMS<TElementData>::load(Serializer& rSerializer)
     typedef FluidElement<TElementData> BaseElement;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Internals
-///////////////////////////////////////////////////////////////////////////////////////////////////
-namespace Internals {
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Standard data: Time integration is not available
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <class TElementData>
-void SpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
-    QSVMS<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
-    Vector& rRHS) {
-    KRATOS_TRY;
-    KRATOS_ERROR << "Trying to use time-integrated element functions with a "
-                    "data type that does not know previous time step data"
-                 << std::endl;
-    KRATOS_CATCH("");
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Specialized time integration
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <class TElementData>
-void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
-    QSVMS<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
-    Vector& rRHS) {
-        Matrix mass_matrix = ZeroMatrix(rLHS.size1(),rLHS.size2());
-        Matrix velocity_lhs = ZeroMatrix(rLHS.size1(),rLHS.size2());
-
-        pElement->AddVelocitySystem(rData,velocity_lhs,rRHS);
-        pElement->AddMassLHS(rData,mass_matrix);
-
-        noalias(rLHS) += rData.bdf0*mass_matrix + velocity_lhs;
-
-        Vector acceleration = ZeroVector(rRHS.size());
-
-        int LocalIndex = 0;
-        const auto& r_velocities = rData.Velocity;
-        const auto& r_velocities_step1 = rData.Velocity_OldStep1;
-        const auto& r_velocities_step2 = rData.Velocity_OldStep2;
-
-        for (unsigned int i = 0; i < TElementData::NumNodes; ++i) {
-            for (unsigned int d = 0; d < TElementData::Dim; ++d)  {
-                // Velocity Dofs
-                acceleration[LocalIndex] = rData.bdf0*r_velocities(i,d);
-                acceleration[LocalIndex] += rData.bdf1*r_velocities_step1(i,d);
-                acceleration[LocalIndex] += rData.bdf2*r_velocities_step2(i,d);
-                ++LocalIndex;
-            }
-            ++LocalIndex;
-        }
-
-        noalias(rRHS) -= prod(mass_matrix,acceleration);
-}
-
-} // namespace Internals
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation

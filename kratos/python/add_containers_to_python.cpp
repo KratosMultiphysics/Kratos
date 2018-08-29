@@ -36,7 +36,7 @@
 #include "python/add_deprecated_variables_to_python.h"
 #include "python/add_c2c_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_cfd_variables_to_python.h" //TODO: to be removed eventually
-#include "python/add_ale_variables_to_python.h" //TODO: to be removed eventually
+#include "python/add_mesh_moving_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_mapping_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_dem_variables_to_python.h" //TODO: to be removed eventually
 #include "python/add_fsi_variables_to_python.h" //TODO: to be removed eventually
@@ -58,6 +58,13 @@ using namespace pybind11;
 
 Flags FlagsOr(const Flags& Left, const Flags& Right )
 {
+    return (Left|Right);
+}
+
+Flags FlagsAnd(const Flags& Left, const Flags& Right )
+{
+    KRATOS_WARNING("Kratos::Flags Python interface") << "Using deprecated flag & operation, which internally perfms a union (bitwise or)." << std::endl
+                 << "Please use | instead, since this behaviour will be soon deprecated." << std::endl;
     return (Left|Right);
 }
 
@@ -92,9 +99,9 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
         binder.def("Has", [](const TContainerType& container, const TVariableType& rV){return container.Has(rV);} );
         binder.def("SetValue",  [](TContainerType& container, const TVariableType& rV, const typename TVariableType::Type rValue){container.SetValue(rV, rValue);} );
         binder.def("GetValue", [](TContainerType& container, const TVariableType& rV){return container.GetValue(rV);} );
-        
+
     }
-    
+
 // template< typename TVariableType > void RegisterInPythonVariables(pybind11::module& m)
 //     {
 //         KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
@@ -105,14 +112,14 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 //             m.attr(item.first.c_str()) = item.second;
 //         }
 //     }
-// 
+//
 //     void RegisterInPython3DVariablesWithComponents(pybind11::module& m)
 //     {
 //         for(const auto& item : KratosComponents<Variable<array_1d<double,3>>>::GetComponents())
 //         {
 //             std::string name = item.first;
 //             m.attr(name.c_str()) = item.second;
-//             
+//
 //             std::string xcomponent = name + "_X";
 //             std::string ycomponent = name + "_Y";
 //             std::string zcomponent = name + "_Z";
@@ -191,17 +198,19 @@ void  AddContainersToPython(pybind11::module& m)
     .def( "__repr__", &Variable<RadiationSettings::Pointer >::Info )
     ;
     class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<Vector> >::Info )
+    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<Vector > >::Info )
+    // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::Info )
+    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::GetSourceVariable )
     ;
 
     class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
     .def( "__repr__", &Variable<Quaternion<double> >::Info )
     ;
-    
+
     //***********************************************************************
     //AUTOMATIC REGISTRATION OF VARIABLES_IN_PYTHON
 //     RegisterInPythonVariables< Variable<bool> >(m);
@@ -275,7 +284,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Flip", &Flags::Flip)
     .def("Clear", &Flags::Clear)
     .def("__or__", FlagsOr)
-    .def("__and__", FlagsOr) // this is not an error, the and and or are considered both as add. Pooyan.
+    .def("__and__", FlagsAnd)
     .def("__repr__", &Flags::Info )
     ;
 
@@ -385,7 +394,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPLACEMENT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ROTATION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DELTA_ROTATION )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TORQUE )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, REACTION_MOMENT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, REACTION )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BODY_FORCE )
 
@@ -399,7 +408,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EXTERNAL_FORCES_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTERNAL_FORCES_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_FORCES_VECTOR )
-      
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LINEAR_MOMENTUM )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ANGULAR_MOMENTUM )
 
@@ -409,6 +418,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_XI )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_ETA )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, FORCE )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TORQUE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MOMENT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, FORCE_CM )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MOMENTUM_CM )
@@ -502,10 +512,15 @@ void  AddContainersToPython(pybind11::module& m)
     // For MeshingApplication
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_ERROR )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NODAL_ERROR_COMPONENTS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_ERROR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_H )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RECOVERED_STRESS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ERROR_INTEGRATION_POINT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_PRESSURE )
 
     // For explicit time integration
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RESIDUAL_VECTOR )
-    
+
     //for PFEM application TO BE REMOVED
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_AREA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_H )
@@ -586,11 +601,11 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DIRECTION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NODAL_SWITCH)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,Y)
-    
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LOCAL_AXIS_1 )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LOCAL_AXIS_2 )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LOCAL_AXIS_3 ) 
-      
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LOCAL_AXIS_3 )
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SWITCH_TEMPERATURE )
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,EMBEDDED_VELOCITY)
@@ -620,7 +635,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NEWMARK_BETA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NEWMARK_GAMMA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BOSSAK_ALPHA )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EQUILIBRIUM_POINT )      
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EQUILIBRIUM_POINT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AIR_SOUND_VELOCITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WATER_SOUND_VELOCITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVATION_LEVEL )

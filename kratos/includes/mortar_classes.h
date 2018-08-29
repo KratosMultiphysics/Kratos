@@ -246,9 +246,9 @@ public:
     void Initialize()
     {
         // Shape functions
-        NMaster                = ZeroVector(TNumNodes);
-        NSlave                 = ZeroVector(TNumNodes);
-        PhiLagrangeMultipliers = ZeroVector(TNumNodes);
+        noalias(NMaster)                = ZeroVector(TNumNodes);
+        noalias(NSlave)                 = ZeroVector(TNumNodes);
+        noalias(PhiLagrangeMultipliers) = ZeroVector(TNumNodes);
 
         // Jacobian of slave
         DetjSlave = 0.0;
@@ -401,12 +401,12 @@ public:
         BaseClassType::Initialize();
 
         // Shape functions local derivatives
-        DNDeMaster = ZeroMatrix(TNumNodes, TDim - 1);
-        DNDeSlave  = ZeroMatrix(TNumNodes, TDim - 1);
+        noalias(DNDeMaster) = ZeroMatrix(TNumNodes, TDim - 1);
+        noalias(DNDeSlave)  = ZeroMatrix(TNumNodes, TDim - 1);
 
         // Jacobians on all integration points
-        jSlave  = ZeroMatrix(TDim, TDim - 1);
-        jMaster = ZeroMatrix(TDim, TDim - 1);
+        noalias(jSlave)  = ZeroMatrix(TDim, TDim - 1);
+        noalias(jMaster) = ZeroMatrix(TDim, TDim - 1);
     }
 
     /**
@@ -594,11 +594,15 @@ public:
         )
     {
         // The normals of the nodes
-        NormalSlave = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL, 0);
+        noalias(NormalSlave) = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry,  NORMAL, 0);
 
         // Displacements and velocities of the slave
-        u1 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
-        X1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, 1);
+        const IndexType step = (rCurrentProcessInfo[STEP] == 1) ? 0 : 1;
+        noalias(u1) = step == 0 ?
+                      MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0) :
+                      MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 0)
+                    - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1);
+        noalias(X1) = MortarUtilities::GetCoordinates<TDim,TNumNodes>(SlaveGeometry, false, step);
 
         // We get the ALM variables
         for (std::size_t i = 0; i < TNumNodes; ++i)
@@ -628,8 +632,8 @@ public:
         // Derivatives
         if (TDim == 3) { // Derivative of the cell vertex
             for (std::size_t i = 0; i < TNumNodes * TDim; ++i) {
-                DeltaCellVertex[i] = ZeroMatrix(3, 3);
-                DeltaCellVertex[i + TNumNodes * TDim] = ZeroMatrix(3, 3);
+                noalias(DeltaCellVertex[i]) = ZeroMatrix(3, 3);
+                noalias(DeltaCellVertex[i + TNumNodes * TDim]) = ZeroMatrix(3, 3);
             }
         }
     }
@@ -641,26 +645,33 @@ public:
     void InitializeDeltaAeComponents()
     {
         // Ae
-        Ae = ZeroMatrix(TNumNodes, TNumNodes);
+        noalias(Ae) = ZeroMatrix(TNumNodes, TNumNodes);
 
         // Derivatives Ae
         for (std::size_t i = 0; i < DoFSizeDerivativesDependence; ++i)
-            DeltaAe[i] = ZeroMatrix(TNumNodes, TNumNodes);
+            noalias(DeltaAe[i]) = ZeroMatrix(TNumNodes, TNumNodes);
     }
 
     /**
      * @brief Updating the Master pair
      * @param MasterGeometry The master geometry
+     * @param rCurrentProcessInfo The process info from the system
      */
 
-    virtual void UpdateMasterPair(const GeometryType& MasterGeometry)
+    virtual void UpdateMasterPair(
+        const GeometryType& MasterGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
         NormalMaster = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry,  NORMAL, 0);
 
         // Displacements, coordinates and normals of the master
-        u2 = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0)
-           - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1);
-        X2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, 1);
+        const IndexType step = (rCurrentProcessInfo[STEP] == 1) ? 0 : 1;
+        noalias(u2) = step == 0 ?
+                      MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0) :
+                      MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 0)
+                    - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1);
+        noalias(X2) = MortarUtilities::GetCoordinates<TDim,TNumNodes>(MasterGeometry, false, step);
     }
 
     ///@}
@@ -807,19 +818,23 @@ public:
 
         TangentFactor = rCurrentProcessInfo[TANGENT_FACTOR];
 
-        u1old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
+        noalias(u1old) = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(SlaveGeometry, DISPLACEMENT, 2);
     }
 
     /**
      * @brief Updating the Master pair
      * @param MasterGeometry The geometry of the master
+     * @param rCurrentProcessInfo The process info from the system
      */
 
-    void UpdateMasterPair(const GeometryType& MasterGeometry) override
+    void UpdateMasterPair(
+        const GeometryType& MasterGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
     {
-        BaseClassType::UpdateMasterPair(MasterGeometry);
+        BaseClassType::UpdateMasterPair(MasterGeometry, rCurrentProcessInfo);
 
-        u2old = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
+        noalias(u2old) = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(MasterGeometry, DISPLACEMENT, 2);
     }
 
     ///@}
@@ -954,8 +969,8 @@ public:
     void Initialize()
     {
         // We initialize the D and M operators
-        DOperator = ZeroMatrix(TNumNodes, TNumNodes);
-        MOperator = ZeroMatrix(TNumNodes, TNumNodes);
+        noalias(DOperator) = ZeroMatrix(TNumNodes, TNumNodes);
+        noalias(MOperator) = ZeroMatrix(TNumNodes, TNumNodes);
     }
 
     /**
@@ -1155,10 +1170,10 @@ public:
 
         // We initialize the D and M derivatives operators
         for (std::size_t i = 0; i < TNumNodes * TDim; ++i) {
-            DeltaDOperator[i] = ZeroMatrix(TNumNodes, TNumNodes);
-            DeltaDOperator[i + TNumNodes * TDim] = ZeroMatrix(TNumNodes, TNumNodes);
-            DeltaMOperator[i] = ZeroMatrix(TNumNodes, TNumNodes);
-            DeltaMOperator[i + TNumNodes * TDim] = ZeroMatrix(TNumNodes, TNumNodes);
+            noalias(DeltaDOperator[i]) = ZeroMatrix(TNumNodes, TNumNodes);
+            noalias(DeltaDOperator[i + TNumNodes * TDim]) = ZeroMatrix(TNumNodes, TNumNodes);
+            noalias(DeltaMOperator[i]) = ZeroMatrix(TNumNodes, TNumNodes);
+            noalias(DeltaMOperator[i + TNumNodes * TDim]) = ZeroMatrix(TNumNodes, TNumNodes);
         }
     }
 
@@ -1363,8 +1378,8 @@ public:
     void Initialize()
     {
         // We initialize the De and Me operators
-        Me = ZeroMatrix(TNumNodes, TNumNodes);
-        De = ZeroMatrix(TNumNodes, TNumNodes);
+        noalias(Me) = ZeroMatrix(TNumNodes, TNumNodes);
+        noalias(De) = ZeroMatrix(TNumNodes, TNumNodes);
     }
 
     /**
@@ -1382,8 +1397,8 @@ public:
         const Vector& n1 = rKinematicVariables.NSlave;
         const double det_j = rKinematicVariables.DetjSlave;
 
-        De += rIntegrationWeight * (ComputeDe(n1, det_j));
-        Me += rIntegrationWeight * det_j * outer_prod(n1, n1);
+        noalias(De) += rIntegrationWeight * (ComputeDe(n1, det_j));
+        noalias(Me) += rIntegrationWeight * det_j * outer_prod(n1, n1);
     }
 
     /**
@@ -1399,20 +1414,28 @@ public:
         const double norm_me = norm_frobenius(Me);
 
         // Now we normalize the matrix
-        const GeometryMatrixType normalized_Me = Me/norm_me;
+        if (norm_me >= tolerance) {
+            const GeometryMatrixType normalized_Me = Me/norm_me;
 
-        // We compute the normalized inverse
-        double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
-        if (std::abs(aux_det) >= tolerance) {
-            const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
+            // We compute the normalized inverse
+            double aux_det = MathUtils<double>::DetMat<GeometryMatrixType>(normalized_Me);
+            if (std::abs(aux_det) >= tolerance) {
+                const GeometryMatrixType normalized_inv_Me = MathUtils<double>::InvertMatrix<TNumNodes>(normalized_Me, aux_det, tolerance);
 
-            noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
-            return true;
+                noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
+                return true;
+            }
+        #ifdef KRATOS_DEBUG
+            else {
+                KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Determinant: " << aux_det << std::endl;
+                KRATOS_WATCH(normalized_Me);
+            }
+        #endif
         }
     #ifdef KRATOS_DEBUG
         else {
-            KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not bee inverted. Determinant: " << aux_det << std::endl;
-            KRATOS_WATCH(normalized_Me);
+            KRATOS_WARNING("Matrix cannot be inverted") << "WARNING:: Me matrix can not be inverted. Norm: " << norm_me << std::endl;
+            KRATOS_WATCH(Me);
         }
     #endif
 
@@ -1627,11 +1650,11 @@ public:
             const double delta_det_j = rDerivativeData.DeltaDetjSlave[i];
             const array_1d<double, TNumNodes>& delta_n1 = rDerivativeData.DeltaN1[i];
 
-            DeltaDe[i] += rIntegrationWeight * this->ComputeDe( n1, delta_det_j )
-                       +  rIntegrationWeight * this->ComputeDe( delta_n1, det_j_slave );
+            noalias(DeltaDe[i]) += rIntegrationWeight * this->ComputeDe( n1, delta_det_j )
+                                +  rIntegrationWeight * this->ComputeDe( delta_n1, det_j_slave );
 
-            DeltaMe[i] += rIntegrationWeight * delta_det_j * outer_prod(n1, n1)
-                       +  rIntegrationWeight * det_j_slave * (outer_prod(delta_n1, n1) + outer_prod(n1, delta_n1));
+            noalias(DeltaMe[i]) += rIntegrationWeight * delta_det_j * outer_prod(n1, n1)
+                                +  rIntegrationWeight * det_j_slave * (outer_prod(delta_n1, n1) + outer_prod(n1, delta_n1));
         }
     }
 

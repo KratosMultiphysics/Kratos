@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_solvers/solution_builders_and_solvers/solution_builder_and_solver.hpp"
-
+#include "includes/key_hash.h"
 
 #ifdef USE_GOOGLE_HASH
 #include "sparsehash/dense_hash_set" //included in external libraries
@@ -63,11 +63,11 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
    /// Pointer definition of BlockBuilderAndSolver
   KRATOS_CLASS_POINTER_DEFINITION(BlockBuilderAndSolver);
-  
+
   typedef SolutionBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>      BaseType;
 
   typedef typename BaseType::Pointer                                       BasePointerType;
-  
+
   typedef typename BaseType::LocalFlagType                                   LocalFlagType;
   typedef typename BaseType::DofsArrayType                                   DofsArrayType;
 
@@ -90,8 +90,8 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     size_t operator()(const Node<3>::DofType::Pointer& it) const
     {
       std::size_t seed = 0;
-      boost::hash_combine(seed, it->Id());
-      boost::hash_combine(seed, (it->GetVariable()).Key());
+      HashCombine(seed, it->Id());
+      HashCombine(seed, (it->GetVariable()).Key());
       return seed;
     }
   };
@@ -119,7 +119,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
   ~BlockBuilderAndSolver() override
   {
   }
-  
+
   ///@}
   ///@name Operators
   ///@{
@@ -245,7 +245,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
       {
         ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-        //detect if the element is active or not. If the user did not make any choice the element
+        //detect if the condition is active or not. If the user did not make any choice the condition
         //is active by default
         bool condition_is_active = true;
         if ((it)->IsDefined(ACTIVE))
@@ -312,7 +312,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
     KRATOS_CATCH("")
   }
-    
+
   /**
    * @brief Function to perform the building and solving phase at the same time.
    * @details It is ideally the fastest and safer function to use when it is possible to solve just after building
@@ -326,7 +326,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     KRATOS_TRY
 
     double begin_time = OpenMPUtils::GetCurrentTime();
-    Build(pScheme, rModelPart, rA, rb);    
+    Build(pScheme, rModelPart, rA, rb);
     double end_time = OpenMPUtils::GetCurrentTime();
 
     if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -335,7 +335,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
     if (this->mEchoLevel == 3)
-    {     
+    {
       KRATOS_INFO("LHS before solve") << "Matrix = " << rA << std::endl;
       KRATOS_INFO("Dx before solve")  << "Solution = " << rDx << std::endl;
       KRATOS_INFO("RHS before solve") << "Vector = " << rb << std::endl;
@@ -345,7 +345,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
     end_time = OpenMPUtils::GetCurrentTime();
 
-    
+
     if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
       KRATOS_INFO("system_solve_time") << end_time - begin_time << std::endl;
 
@@ -497,7 +497,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     {
       KRATOS_INFO("setting_dofs") << "Number of threads:" << nthreads << std::endl;
     }
-    
+
     for (int i = 0; i < static_cast<int>(nthreads); i++)
     {
 #ifdef USE_GOOGLE_HASH
@@ -506,12 +506,12 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
       dofs_aux_list[i].reserve(nelements);
 #endif
     }
-    
+
     if( this->mEchoLevel > 2)
     {
       KRATOS_INFO("setting_dofs") << "initialize_elements" << std::endl;
     }
-    
+
 #pragma omp parallel firstprivate(nelements, ElementalDofList)
     {
 #pragma omp for schedule(guided, 512) nowait
@@ -525,12 +525,12 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
         dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
       }
-      
+
       if( this->mEchoLevel > 2)
       {
         KRATOS_INFO("setting_dofs") << "initialize_conditions" << std::endl;
       }
-      
+
       ConditionsContainerType& rConditions = rModelPart.Conditions();
       const int nconditions = static_cast<int>(rConditions.size());
 #pragma omp for  schedule(guided, 512)
@@ -550,7 +550,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     {
       KRATOS_INFO("setting_dofs") << "initialize tree reduction" << std::endl;
     }
-    
+
     // Here we do a reduction in a tree so to have everything on thread 0
     unsigned int old_max = nthreads;
     unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
@@ -636,20 +636,20 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
       omp_init_lock(&mlock_array[i]);
     }
 #endif
-    
+
     if( this->mEchoLevel > 2)
     {
       KRATOS_INFO("setting_dofs") << "End of setupdofset" << std::endl;
     }
 
     this->Set(LocalFlagType::DOFS_INITIALIZED, true);
-    
+
     KRATOS_CATCH("")
   }
 
   /**
    * @brief organises the dofset in order to speed up the building phase
-   */  
+   */
   void SetUpSystem() override
   {
 
@@ -679,17 +679,17 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
     if (pA == nullptr) //if the pointer is not initialized initialize it to an empty matrix
     {
-      SystemMatrixPointerType pNewA = SystemMatrixPointerType(new SystemMatrixType(0, 0));
+      SystemMatrixPointerType pNewA = Kratos::make_shared<SystemMatrixType>(0, 0);
       pA.swap(pNewA);
     }
     if (pDx == nullptr) //if the pointer is not initialized initialize it to an empty matrix
     {
-      SystemVectorPointerType pNewDx = SystemVectorPointerType(new SystemVectorType(0));
+      SystemVectorPointerType pNewDx = Kratos::make_shared<SystemVectorType>(0);
       pDx.swap(pNewDx);
     }
     if (pb == nullptr) //if the pointer is not initialized initialize it to an empty matrix
     {
-      SystemVectorPointerType pNewb = SystemVectorPointerType(new SystemVectorType(0));
+      SystemVectorPointerType pNewb = Kratos::make_shared<SystemVectorType>(0);
       pb.swap(pNewb);
     }
 
@@ -735,13 +735,13 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     KRATOS_TRY
 
     BaseType::InitializeSolutionStep(pScheme, rModelPart, pA, pDx, pb);
-        
-    // // Initialize 
+
+    // // Initialize
     // pScheme->InitializeSolutionStep(rModelPart);
-        
+
     // // Set up the system dofs and shape
-    // if(this->mOptions.Is(LocalFlagType::REFORM_DOFS)) 
-    //   this->SetSystemDofs(pScheme, rModelPart); 
+    // if(this->mOptions.Is(LocalFlagType::REFORM_DOFS))
+    //   this->SetSystemDofs(pScheme, rModelPart);
 
     // // Set up system matrices and vectors
     // double begin_time = OpenMPUtils::GetCurrentTime();
@@ -750,7 +750,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
     // if (this->mEchoLevel >= 2)
     //   KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
-        
+
     KRATOS_CATCH("")
   }
 
@@ -767,12 +767,12 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     KRATOS_TRY
 
     BaseType::FinalizeSolutionStep(pScheme, rModelPart, pA, pDx, pb);
-        
+
     KRATOS_CATCH("")
   }
 
   /**
-   * @brief Calculates system reactions 
+   * @brief Calculates system reactions
    * @details A flag controls if reactions must be calculated
    * @details An internal variable to store the reactions vector is needed
    */
@@ -797,17 +797,17 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
       const int i = (dof_iterator)->EquationId();
       (dof_iterator)->GetSolutionStepReactionValue() = -rb[i];
-			
+
     }
 
   }
-  
+
   /**
    * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
    */
   void Clear() override
   {
-    
+
     BaseType::Clear();
 
 #ifdef _OPENMP
@@ -830,7 +830,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     KRATOS_TRY
 
     return 0;
-    
+
     KRATOS_CATCH("");
   }
 
@@ -851,7 +851,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
  protected:
   ///@name Protected static Member Variables
   ///@{
-  
+
   ///@}
   ///@name Protected member Variables
   ///@{
@@ -863,15 +863,15 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
   ///@}
   ///@name Protected Operators
   ///@{
-  
+
   ///@}
   ///@name Protected Operations
   ///@{
-  
+
   void SystemSolveWithPhysics(SystemMatrixType& rA,
                               SystemVectorType& rDx,
                               SystemVectorType& rb,
-                              ModelPart& rModelPart)                             
+                              ModelPart& rModelPart)
   {
     KRATOS_TRY
 
@@ -914,7 +914,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
   {
     //filling with zero the matrix (creating the structure)
     double begin_time = OpenMPUtils::GetCurrentTime();
-    
+
     const std::size_t equation_size = this->mEquationSystemSize;
 
 #ifdef USE_GOOGLE_HASH
@@ -1017,7 +1017,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     double end_time = OpenMPUtils::GetCurrentTime();
     if (this->mEchoLevel >= 2)
       KRATOS_INFO("BlockBuilderAndSolver") << "construct matrix structure time:" << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
-    
+
   }
 
 
@@ -1040,7 +1040,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     }
 
   }
-  
+
   void AssembleRHS(SystemVectorType& rb,
                    LocalSystemVectorType& rRHS_Contribution,
                    Element::EquationIdVectorType& rEquationId)
@@ -1059,7 +1059,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
       b_value += rhs_value;
     }
   }
-  
+
   void Assemble(SystemMatrixType& rA,
                 SystemVectorType& rb,
                 const LocalSystemMatrixType& rLHS_Contribution,
@@ -1106,24 +1106,24 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
   ///@}
   ///@name Protected LifeCycle
   ///@{
-    
+
   ///@}
 
  private:
   ///@name Static Member Variables
   ///@{
-  
+
   ///@}
   ///@name Member Variables
   ///@{
-  
+
   ///@}
   ///@name Private Operators
   ///@{
-  
+
   ///@}
   ///@name Private Operations
-  ///@{ 
+  ///@{
 
   inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
   {
@@ -1207,7 +1207,6 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
         if(condition_is_active)
         {
-
           //calculate elemental contribution
           pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, rCurrentProcessInfo);
 
@@ -1304,11 +1303,11 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
   ///@}
   ///@name Private  Access
   ///@{
-  
+
   ///@}
   ///@name Serialization
   ///@{
-  
+
   ///@}
   ///@name Private Inquiry
   ///@{
@@ -1316,9 +1315,9 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
   ///@}
   ///@name Un accessible methods
   ///@{
-  
+
   ///@}
-  
+
 }; // Class BlockBuilderAndSolver
 ///@}
 
@@ -1329,7 +1328,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 ///@name Input and output
 ///@{
 
-  
+
 ///@}
 
 ///@} addtogroup block

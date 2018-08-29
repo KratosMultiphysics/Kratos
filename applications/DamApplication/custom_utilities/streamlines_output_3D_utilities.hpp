@@ -118,7 +118,7 @@ class StreamlinesOutput3DUtilities
         array_1d<double, 3> vap2;
         array_1d<double, 3> vap3;
         array_1d<double, 3> Result;
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> AutovectorMatrix;
+        BoundedMatrix<double, 3, 3> AutovectorMatrix;
 
         // Tangential Components
         const double &Sxy = Tangential_components[0];

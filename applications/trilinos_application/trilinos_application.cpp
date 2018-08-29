@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:             BSD License 
+//  License:             BSD License
 //                                       Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//        
+//
 
 // System includes
 
@@ -21,8 +21,6 @@
 #include "Epetra_DataAccess.h"
 #include "mpi.h"
 // #include "Epetra_MpiComm.h"
-
-//#include "trilinos_solver.h"
 
 namespace Kratos
 {
@@ -43,7 +41,7 @@ void KratosTrilinosApplication::Register()
     int mpi_is_initialized = 0;
     int rank = -1;
     MPI_Initialized(&mpi_is_initialized);
-    
+
     if (mpi_is_initialized)
     {
         MPI_Comm_rank(MPI_COMM_WORLD,&rank);

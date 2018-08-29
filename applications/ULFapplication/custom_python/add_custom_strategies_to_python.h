@@ -57,11 +57,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
+#include <pybind11/pybind11.h>
 
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 
 
 namespace Kratos
@@ -70,7 +71,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomStrategiesToPython();
+void AddCustomStrategiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

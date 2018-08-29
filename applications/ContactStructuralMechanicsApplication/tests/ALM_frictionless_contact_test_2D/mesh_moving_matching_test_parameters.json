@@ -141,13 +141,13 @@
     }],
     "contact_process_list" :[{
         "python_module" : "alm_contact_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "help"          : "This process computes the contact between different surfaces",
         "process_name"  : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto1",
-            "contact_model_part"          : "CONTACT_Contact_Auto1",
+            "assume_master_slave"         : { "0" : ["Parts_Parts_Auto1"]},
+            "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
             "contact_type"                : "Frictionless"
         }
     }],
@@ -182,6 +182,7 @@
             "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
             "input_file_name"     : "ALM_frictionless_contact_test_2D/mesh_moving_matching_test_results.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
+            "tolerance"            : 3e-3,
             "time_frequency"       : 1.0
         }
     }

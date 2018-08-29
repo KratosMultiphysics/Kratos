@@ -1,23 +1,15 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Kazem Kamran
+//                   Riccardo Rossi
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // System includes
 
@@ -92,7 +84,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    BoundedMatrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -101,7 +93,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     array_1d<double, 3 > ms_vel_gauss;
 
     //4 Gauss points coordinates
-    bounded_matrix<double, 4, 4 > GaussCrd = ZeroMatrix(4, 4);
+    BoundedMatrix<double, 4, 4 > GaussCrd = ZeroMatrix(4, 4);
     GaussCrd(0,0) = 0.58541020; GaussCrd(0,1) = 0.13819660; GaussCrd(0,2) = 0.13819660; GaussCrd(0,3) = 0.13819660;
     GaussCrd(1,0) = 0.13819660; GaussCrd(1,1) = 0.58541020; GaussCrd(1,2) = 0.13819660; GaussCrd(1,3) = 0.13819660;
     GaussCrd(2,0) = 0.13819660; GaussCrd(2,1) = 0.13819660; GaussCrd(2,2) = 0.58541020; GaussCrd(2,3) = 0.13819660;
@@ -121,8 +113,8 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
 
     //compute common matrix terms ( Laplacian, mass)
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 1.0 / 4.0 * IdentityMatrix(4, 4);
+    BoundedMatrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
+    BoundedMatrix<double, 4, 4 > msMassFactors = 1.0 / 4.0 * IdentityMatrix(4, 4);
     //Take N_value terms
     array_1d<double, 4 > step_unknown;
     for (unsigned int iii = 0; iii < nodes_number; iii++)
@@ -133,7 +125,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	double solid_T = rCurrentProcessInfo[SOLID_TEMPERATURE];
     double fluid_T = rCurrentProcessInfo[FLUID_TEMPERATURE];
 	array_1d<double, 4 > phase_change_vec = ZeroVector(4);
-	boost::numeric::ublas::bounded_matrix<double, 4, 4 > tan_phase_change =ZeroMatrix(matsize, matsize);
+	BoundedMatrix<double, 4, 4 > tan_phase_change =ZeroMatrix(matsize, matsize);
 	double mid_T = 0.5*(solid_T + fluid_T);
 
     //4GP integration rule
@@ -223,7 +215,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	//Advective term
 	array_1d<double, 4 > a_dot_grad;
 	noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
-	boost::numeric::ublas::bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
+	BoundedMatrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
 	noalias(rLeftHandSideMatrix) += (1.0-cr_nk) * density * specific_heat * Advective_Matrix;
 
 	//stabilization terms
@@ -245,7 +237,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     // 	noalias(rRightHandSideVector) -= cr_nk * conductivity * prod(Laplacian_Matrix, step_unknown);
 
 	//Add all n_step terms
-	boost::numeric::ublas::bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv * density * specific_heat * msMassFactors ;
+	BoundedMatrix<double, 4, 4 > old_step_matrix = dt_inv * density * specific_heat * msMassFactors ;
 	old_step_matrix -= ( cr_nk * density * specific_heat * Advective_Matrix + cr_nk * conductivity * Laplacian_Matrix);
 	noalias(rRightHandSideVector) += prod(old_step_matrix, step_unknown);
 
@@ -396,7 +388,7 @@ void SUPGConvDiff3D::CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,
 //*************************************************************************************
 //*************************************************************************************
 void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
-						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX,
+						      BoundedMatrix<double, 4, 3 > DN_DX,
 						      array_1d<double, 3 > ms_vel_gauss,
 						      const Variable<double>& temperature,
 						      const double volume,
@@ -494,7 +486,7 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 //{
 //
 //    /*        double delta_t = rCurrentProcessInfo[DELTA_TIME];*/
-//    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+//    BoundedMatrix<double, 4, 3 > DN_DX;
 //    array_1d<double, 4 > N;
 //    //getting data for the given geometry
 //    double volume;

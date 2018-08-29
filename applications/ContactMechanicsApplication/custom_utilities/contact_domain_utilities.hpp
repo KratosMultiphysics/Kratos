@@ -41,10 +41,10 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class ContactDomainUtilities
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ContactDomainUtilities
 {
 public:
-  
+
     ///@name Type Definitions
     ///@{
 
@@ -64,9 +64,9 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_FRICTION_STIFFNESS );
 
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_NODAL_CONTACT_FORCES );
-  
+
     ///Tensor order 1 definition
-    //typedef bounded_vector<double, 3>            PointType;
+    //typedef BoundedVector<double, 3>            PointType;
     typedef array_1d<double, 3>                    PointType;
 
 
@@ -83,23 +83,23 @@ public:
     {
         PointType Normal;        //normal direction
         PointType Tangent;       //tangent direction
-	   
+
     } SurfaceVector;
 
 
     typedef struct
     {
-        double Normal;        //normal component 
+        double Normal;        //normal component
         double Tangent;       //tangent component
-        	   
+
     } SurfaceScalar;
 
 
     typedef struct
     {
-      double Covariant;       //covariant component 
+      double Covariant;       //covariant component
       double Contravariant;   //contravariant component
-        	   
+
     } ScalarBaseType;
 
 
@@ -108,10 +108,10 @@ public:
       Matrix    Metric;      //metric of the base
       PointType DirectionA;  //reference base direction a
       PointType DirectionB;  //reference base direction b
-              	   
+
     } SurfaceBase;
 
-  
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -131,7 +131,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-	   
+
     inline double CalculateVolume(const double x0, const double y0,
 				  const double x1, const double y1,
 				  const double x2, const double y2)
@@ -151,7 +151,7 @@ public:
 		double area = CalculateVolume(x0,y0,x1,y1,x2,y2);
 
 		//std::cout<<" Area "<<area<<std::endl;
-	    
+
 		if(area < 1e-15)
 		{
 			//KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" )
@@ -186,7 +186,7 @@ public:
 		double side1 = sqrt( (x0-xc)*(x0-xc) + (y0-yc)*(y0-yc) );
 		double side2 = sqrt( (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1) );
 
-		double cos_angle = 0; 
+		double cos_angle = 0;
 		double aux       = (2*side1*side0);
 		if(aux!=0)
 			cos_angle = ((side1*side1) + (side0*side0) - (side2*side2)) / aux;
@@ -203,7 +203,7 @@ public:
 
 		return false;
 	}
- 
+
 
      void CalculateBaseArea (double& area,
 			     double& a,
@@ -216,49 +216,49 @@ public:
 				     const PointType& V1,
 				     const PointType& V2);
 
-  
-    void  CalculateEdgeDistances (std::vector<BaseLengths>& BaseVector, 
-				  const PointType& P1, 
-				  const PointType& P2, 
+
+    void  CalculateEdgeDistances (std::vector<BaseLengths>& BaseVector,
+				  const PointType& P1,
+				  const PointType& P2,
 				  const PointType& PS1,
-				  const PointType& PS2, 
+				  const PointType& PS2,
 				  const PointType& Normal);
-  
-    void  CalculateBaseDistances (std::vector<BaseLengths>& BaseVector, 
-				  const PointType& P1, 
-				  const PointType& P2, 
+
+    void  CalculateBaseDistances (std::vector<BaseLengths>& BaseVector,
+				  const PointType& P1,
+				  const PointType& P2,
 				  const PointType& P3,
-				  const PointType& PS, 
+				  const PointType& PS,
 				  const PointType& Normal);
 
 
-    void  CalculateBaseDistances (BaseLengths& Base, 
-				  const PointType& P1, 
-				  const PointType& P2, 
-				  const PointType& PS, 
+    void  CalculateBaseDistances (BaseLengths& Base,
+				  const PointType& P1,
+				  const PointType& P2,
+				  const PointType& PS,
 				  const PointType& Normal);
 
     PointType & CalculateSurfaceNormal(PointType& Normal,
-				       const PointType& P1, 
+				       const PointType& P1,
 				       const PointType& P2);
 
 
     PointType & CalculateFaceNormal(PointType& Normal,
-				    const PointType& P1, 
+				    const PointType& P1,
 				    const PointType& P2);
 
-	
+
     PointType & CalculateFaceTangent(PointType& Tangent,
-				     const PointType& P1, 
+				     const PointType& P1,
 				     const PointType& P2);
 
-   
 
-    PointType & CalculateFaceTangent(PointType& Tangent, 
+
+    PointType & CalculateFaceTangent(PointType& Tangent,
 				     PointType& Normal);
 
 
-    void GetOppositeEdge(unsigned int& i, unsigned int& j, unsigned int& k, unsigned int& l); 
+    void GetOppositeEdge(unsigned int& i, unsigned int& j, unsigned int& k, unsigned int& l);
 
 
     void BuildEdgeVector(std::vector<std::vector<std::vector<unsigned int> > >& rEdges);
@@ -368,7 +368,7 @@ private:
     ///@}
     ///@name Unaccessible methods
     ///@{
-     
+
     ///@}
 
 }; // Class ContactDomainUtilities
@@ -403,5 +403,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONTACT_DOMAIN_UTILITIES_H_INCLUDED  defined 
-
+#endif // KRATOS_CONTACT_DOMAIN_UTILITIES_H_INCLUDED  defined
