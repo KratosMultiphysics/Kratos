@@ -22,6 +22,9 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
+#include "custom_elements/truss_discrete_element.h"
+#include "custom_elements/shell_kl_discrete_element.h"
+
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -156,6 +159,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    const TrussDiscreteElement mTrussDiscreteElement;
+    const ShellKLDiscreteElement mShellKLDiscreteElement;
 
     ///@}
     ///@name Private Operators

@@ -1235,7 +1235,7 @@ public:
      */
     std::string Info() const override
     {
-        return "3 dimensional quadrilateral with four nodes in 3D space";
+        return "2 dimensional quadrilateral with four nodes in 3D space";
     }
 
     /**
@@ -1246,7 +1246,7 @@ public:
      */
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "3 dimensional quadrilateral with four nodes in 3D space";
+        rOStream << Info();
     }
 
     /**

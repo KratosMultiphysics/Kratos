@@ -375,7 +375,7 @@ public:
      * Calculates the stress-displacement derivative of the given rStressVariable.
      * For the linear case this happens by calculating the stress using a unit-displacement for each dof.
      */
-    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+    virtual void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
      * Calculates the stress-design variable derivative of the given rStressVariable.
@@ -437,12 +437,12 @@ private:
     /**
      * Get the perturbation size for a scalar variable
      */
-    const double GetPerturbationSize(const Variable<double>& rDesignVariable);
+    double GetPerturbationSize(const Variable<double>& rDesignVariable);
 
     /**
      * Get the perturbation size for a vector variable
      */
-    const double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
+    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
 
     /**
      * Get the perturbation size modification factor for a scalar variable.

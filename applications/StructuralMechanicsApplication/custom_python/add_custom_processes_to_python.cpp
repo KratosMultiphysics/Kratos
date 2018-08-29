@@ -25,7 +25,7 @@
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
-
+#include "custom_processes/spr_error_process.h"
 
 namespace Kratos
 {
@@ -62,6 +62,17 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
         ;
+
+    //SPR_ERROR
+    class_<SPRErrorProcess<2>, SPRErrorProcess<2>::Pointer, Process >(m, "SPRErrorProcess2D")
+    .def(init<ModelPart&>())
+    .def(init<ModelPart&, Parameters>())
+    ;
+
+    class_<SPRErrorProcess<3>, SPRErrorProcess<3>::Pointer, Process >(m, "SPRErrorProcess3D")
+    .def(init<ModelPart&>())
+    .def(init<ModelPart&, Parameters>())
+    ;
 }
 
 }  // namespace Python.

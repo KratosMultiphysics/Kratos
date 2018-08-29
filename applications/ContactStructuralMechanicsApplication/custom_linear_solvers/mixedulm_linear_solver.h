@@ -259,25 +259,6 @@ public:
             this->Initialize(rA,rX,rB);
 
         mpSolverDispBlock->InitializeSolutionStep(mKDispModified, mDisp, mResidualDisp);
-
-        // We print the resulting system (if needed)
-        if (mEchoLevel == 2) { //if it is needed to print the debug info
-            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
-        } else if (mEchoLevel == 3) { //if it is needed to print the debug info
-            KRATOS_INFO("LHS") << "SystemMatrix = " << mKDispModified << std::endl;
-            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
-            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
-        } else if (mEchoLevel == 4) { //print to matrix market file
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << mFileCreated << ".mm";
-            TSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mKDispModified, false);
-
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << mFileCreated << ".mm.rhs";
-            TSparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mResidualDisp);
-            mFileCreated++;
-        }
     }
 
     /**
@@ -407,6 +388,25 @@ public:
         this->PerformSolutionStep (rA,rX,rB);
 
         this->FinalizeSolutionStep (rA,rX,rB);
+
+        // We print the resulting system (if needed)
+        if (mEchoLevel == 2) { //if it is needed to print the debug info
+            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
+        } else if (mEchoLevel == 3) { //if it is needed to print the debug info
+            KRATOS_INFO("LHS") << "SystemMatrix = " << mKDispModified << std::endl;
+            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
+        } else if (mEchoLevel == 4) { //print to matrix market file
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << mFileCreated << ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mKDispModified, false);
+
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << mFileCreated << ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mResidualDisp);
+            mFileCreated++;
+        }
 
         return false;
     }

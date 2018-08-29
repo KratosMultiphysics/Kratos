@@ -51,7 +51,7 @@ public:
      *  @param DegreeU Degree in u direction
      *  @param DegreeV Degree in v direction
      *  @param NumberOfNodesU Number of nodes in u direction
-     *  @param NumberOfNodesU Number of nodes in v direction
+     *  @param NumberOfNodesV Number of nodes in v direction
      */
     NodeSurfaceGeometry3D(
         const int DegreeU,
@@ -163,8 +163,8 @@ public:
     {
         const NodeType& node = *Node(IndexU, IndexV);
 
-        if (node.Has(Kratos::NURBS_CONTROLPOINT_WEIGHT)) {
-            return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        if (node.Has(Kratos::NURBS_CONTROL_POINT_WEIGHT)) {
+            return node.GetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT);
         } else {
             return 1;
         }
@@ -183,7 +183,7 @@ public:
     {
         NodeType& node = *Node(IndexU, IndexV);
 
-        node.SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
+        node.SetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT, Value);
     }
 
     /** Gets the value of a nodal Kratos variable on a point at the surface.

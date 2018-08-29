@@ -71,6 +71,7 @@ UpdatedLagrangian::UpdatedLagrangian( UpdatedLagrangian const& rOther)
     :Element(rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
+    ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
     ,mInverseJ0(rOther.mInverseJ0)
     ,mInverseJ(rOther.mInverseJ)
     ,mDeterminantJ0(rOther.mDeterminantJ0)
@@ -88,6 +89,8 @@ UpdatedLagrangian&  UpdatedLagrangian::operator=(UpdatedLagrangian const& rOther
 
     mDeformationGradientF0.clear();
     mDeformationGradientF0 = rOther.mDeformationGradientF0;
+    mInverseDeformationGradientF0.clear();
+    mInverseDeformationGradientF0 = rOther.mInverseDeformationGradientF0;
 
     mInverseJ0.clear();
     mInverseJ0 = rOther.mInverseJ0;
@@ -119,6 +122,7 @@ Element::Pointer UpdatedLagrangian::Clone( IndexType NewId, NodesArrayType const
     NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
 
     NewElement.mDeformationGradientF0 = mDeformationGradientF0;
+    NewElement.mInverseDeformationGradientF0 = mInverseDeformationGradientF0;
 
     NewElement.mInverseJ0 = mInverseJ0;
     NewElement.mInverseJ = mInverseJ;
@@ -150,6 +154,7 @@ void UpdatedLagrangian::Initialize()
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
     mDeformationGradientF0 = identity_matrix<double> (dim);
+    mInverseDeformationGradientF0 = identity_matrix<double> (dim);
 
     // Compute initial jacobian matrix and inverses
     Matrix J0 = ZeroMatrix(dim, dim);
@@ -195,6 +200,8 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
     rVariables.F.resize( dimension, dimension );
 
     rVariables.F0.resize( dimension, dimension );
+
+    rVariables.F0Inverse.resize( dimension, dimension );
     
     rVariables.FT.resize( dimension, dimension );
 
@@ -280,6 +287,22 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
 }
 
 //************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangian::UpdateGeneralVariables(GeneralVariables& rVariables,
+        ConstitutiveLaw::Parameters& rValues)
+{
+    // The following updates are performed specifically for non-isochoric return mapping
+    // Update total deformation gradient after return mapping
+    rVariables.FT = rValues.GetDeformationGradientF();
+    rVariables.F  = prod( rVariables.FT, rVariables.F0Inverse );
+
+    // Update the total determinant of deformation gradient after return mapping
+    rVariables.detFT = rValues.GetDeterminantF();
+    rVariables.detF  = rVariables.detFT / rVariables.detF0;
+}
+
+//************************************************************************************
 //*****************check size of LHS and RHS matrices*********************************
 
 void UpdatedLagrangian::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
@@ -346,9 +369,8 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
     call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
     mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
-    // Update the total determinant of deformation gradient after return mapping
-    // This is necessary for non-isochoric return mapping
-    Variables.detFT = Values.GetDeterminantF();
+    // Update general variables after material response is calculated - this will update necessary information
+    this->UpdateGeneralVariables(Variables,Values);
 
     /* NOTE:
     The material points will have constant mass as defined at the beginning.
@@ -422,6 +444,7 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
+    rVariables.F0Inverse = mInverseDeformationGradientF0;
 
     // Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
@@ -970,8 +993,8 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     const double MP_Mass = this->GetValue(MP_MASS);
     array_1d<double,3> MP_Momentum;
     array_1d<double,3> MP_Inertia;
-    array_1d<double,3> NodalMomentum;
-    array_1d<double,3> NodalInertia;
+    array_1d<double,3> NodalMomentum = ZeroVector(3);
+    array_1d<double,3> NodalInertia  = ZeroVector(3);
 
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
@@ -1077,12 +1100,16 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
     // Update internal (historical) variables
     mDeterminantF0         = rVariables.detF* rVariables.detF0;
     mDeformationGradientF0 = prod(rVariables.F, rVariables.F0);
+    MathUtils<double>::InvertMatrix( mDeformationGradientF0, mInverseDeformationGradientF0, mDeterminantF0 );
 
     this->SetValue(MP_CAUCHY_STRESS_VECTOR, rVariables.StressVector);
     this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
 
     double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
     this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
+
+    double AccumulatedPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
+    this->SetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
 
     MathUtils<double>::InvertMatrix( rVariables.j, mInverseJ, rVariables.detJ );
 
@@ -1787,7 +1814,7 @@ void UpdatedLagrangian::GetHistoricalVariables( GeneralVariables& rVariables )
 
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
-
+    rVariables.F0Inverse = mInverseDeformationGradientF0;
 }
 
 
@@ -1901,6 +1928,7 @@ void UpdatedLagrangian::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
+    rSerializer.save("InverseDeformationGradientF0",mInverseDeformationGradientF0);
     rSerializer.save("InverseJ0",mInverseJ0);
     rSerializer.save("DeterminantJ0",mDeterminantJ0);
 
@@ -1912,6 +1940,7 @@ void UpdatedLagrangian::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
+    rSerializer.load("InverseDeformationGradientF0",mInverseDeformationGradientF0);
     rSerializer.load("InverseJ0",mInverseJ0);
     rSerializer.load("DeterminantJ0",mDeterminantJ0);
 }

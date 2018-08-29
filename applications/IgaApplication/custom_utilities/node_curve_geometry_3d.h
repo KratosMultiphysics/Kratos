@@ -145,8 +145,8 @@ public:
     {
         const NodeType& node = *Node(Index);
  
-        if (node.Has(Kratos::NURBS_CONTROLPOINT_WEIGHT)) {
-            return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        if (node.Has(Kratos::NURBS_CONTROL_POINT_WEIGHT)) {
+            return node.GetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT);
         } else {
             return 1;
         }
@@ -163,7 +163,7 @@ public:
     {
         NodeType& node = *Node(Index);
 
-        node.SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
+        node.SetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT, Value);
     }
 
     /** Gets the value of a nodal Kratos variable on a point at the curve.
