@@ -93,7 +93,7 @@ class ModifiedCamClayYieldCriterion
 
         void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha) override;
 
-        void CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative);
+        void CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative) override;
 
         ///@}
         ///@name Access
