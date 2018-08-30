@@ -120,7 +120,7 @@
     }],
     "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "partitioned_single_mesh_primal_input_process",
+        "python_module" : "partitioned_single_mesh_temporal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
