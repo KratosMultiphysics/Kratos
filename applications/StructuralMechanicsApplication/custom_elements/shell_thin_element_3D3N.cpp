@@ -451,14 +451,14 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<Matrix>& 
 		}
 	}
 
-    if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
+    if(TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
 void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
+    if(TryCalculateOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
 void ShellThinElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
@@ -1503,7 +1503,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     AddBodyForces(data, rRightHandSideVector);
 }
 
-bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
+bool ShellThinElement3D3N::TryCalculateOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1564,7 +1564,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
     return true;
 }
 
-bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+bool ShellThinElement3D3N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {

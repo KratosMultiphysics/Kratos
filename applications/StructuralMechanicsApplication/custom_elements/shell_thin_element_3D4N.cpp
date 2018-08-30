@@ -472,7 +472,7 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
             else
             {
                 KRATOS_ERROR <<
-                    "Error: ELEMENT ShellThinElement3D4N, METHOD GetValueOnIntegrationPoints(double)"
+                    "Error: ELEMENT ShellThinElement3D4N, METHOD CalculateOnIntegrationPoints(double)"
                     << std::endl;
             }
 
@@ -685,7 +685,7 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(
+    if (TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(
         rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
@@ -694,7 +694,7 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
     std::vector<array_1d<double, 3> >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable,
+    if (TryCalculateOnIntegrationPoints_MaterialOrientation(rVariable,
         rValues, rCurrentProcessInfo)) return;
 }
 
@@ -2128,7 +2128,7 @@ void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     AddBodyForces(data, rRightHandSideVector);
 }
 
-bool ShellThinElement3D4N::TryGetValueOnIntegrationPoints_MaterialOrientation
+bool ShellThinElement3D4N::TryCalculateOnIntegrationPoints_MaterialOrientation
 (const Variable<array_1d<double, 3> >& rVariable,
     std::vector<array_1d<double, 3> >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -2194,7 +2194,7 @@ bool ShellThinElement3D4N::TryGetValueOnIntegrationPoints_MaterialOrientation
 }
 
 bool ShellThinElement3D4N::
-    TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses
+    TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses
     (const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)

@@ -400,11 +400,11 @@ private:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag) override;
 
-    bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double, 3> >& rVariable,
+    bool TryCalculateOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double, 3> >& rVariable,
         std::vector<array_1d<double, 3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo);
 
-    bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+    bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo);
 
