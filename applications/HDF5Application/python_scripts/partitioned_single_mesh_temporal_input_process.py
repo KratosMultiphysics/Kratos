@@ -3,7 +3,7 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 import hdf5_io
 
 def Factory(settings, Model):
-    """Return a process for writing a transient primal solution from HDF5 to data containers."""
+    """Return a process to read a transient solution from HDF5."""
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     default_settings = KratosMultiphysics.Parameters("""

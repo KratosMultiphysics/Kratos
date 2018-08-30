@@ -83,7 +83,7 @@ class ElementDataValueOutput(IOObject):
 
 
 class NodalSolutionStepDataOutput(IOObject):
-    """Provides the interface for writing nodal results to a file."""
+    """Provides the interface for writing nodal solution step results to a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
@@ -94,7 +94,7 @@ class NodalSolutionStepDataOutput(IOObject):
         KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
 
 class NodalDataValueOutput(IOObject):
-    """Provides the interface for writing non solution step nodal results to a file."""
+    """Provides the interface for writing nodal data values to a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
@@ -132,7 +132,7 @@ class PrimalBossakInput(IOObject):
         primal_io.ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
 
 class NodalSolutionStepDataInput(IOObject):
-    """Provides the interface for reading a transient primal solution from a file."""
+    """Provides the interface for reading a transient nodal solution step data from a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
@@ -143,7 +143,7 @@ class NodalSolutionStepDataInput(IOObject):
         KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).ReadNodalResults(model_part.Nodes, model_part.GetCommunicator(), 0)
 
 class NodalDataValueInput(IOObject):
-    """Provides the interface for reading a transient primal solution from a file."""
+    """Provides the interface for reading a nodal data values from a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
@@ -155,7 +155,7 @@ class NodalDataValueInput(IOObject):
         primal_io.ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
 
 class ElementDataValueInput(IOObject):
-    """Provides the interface for reading element results from a file."""
+    """Provides the interface for reading element data values from a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
