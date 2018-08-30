@@ -416,14 +416,20 @@ public:
         )
     {
         const SizeType size1 = A.size1();
-
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+		AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+		double determinant = lu_factorization.determinant();
+		KRATOS_ERROR_IF(std::abs(determinant) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << A << std::endl;
+		rX = lu_factorization.solve(rB);
+#else
         rX = rB;
         typedef permutation_matrix<SizeType> pmatrix;
         pmatrix pm(size1);
         int singular = lu_factorize(A,pm);
         KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
-    }
+#endif // ifdef KRATOS_USE_AMATRIX
+	}
 
     /**
      * It inverts matrices of order 2, 3 and 4
@@ -462,9 +468,9 @@ public:
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
             Matrix temp(InputMatrix);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
-            InputMatrixDet = lu_factorization.Determinant();
+            InputMatrixDet = lu_factorization.determinant();
             KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
-            lu_factorization.Invert(InvertedMatrix);
+			InvertedMatrix = lu_factorization.inverse();
 #else
 
             typedef permutation_matrix<SizeType> pmatrix;
@@ -645,7 +651,7 @@ public:
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
             Matrix temp(A);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
-            Det = lu_factorization.Determinant();
+            Det = lu_factorization.determinant();
 #else
             using namespace boost::numeric::ublas;
             typedef permutation_matrix<SizeType> pmatrix;
