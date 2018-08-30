@@ -49,7 +49,7 @@ namespace Kratos
 /**
  * @class BaseSolidElement
  * @ingroup StructuralMechanicsApplication
- * @brief This is base clase used to define the solid elements
+ * @brief This is base class used to define the solid elements
  * @details The elements derived from this class are the small displacement element, the total lagrangian element and the updated lagrangian element
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
@@ -76,8 +76,8 @@ protected:
         /**
          * The default constructor
          * @param StrainSize The size of the strain vector in Voigt notation
-         * @param Dimension The size of the strain vector in Voigt notation
-         * @param NumberOfNodes The size of the strain vector in Voigt notation
+         * @param Dimension The problem dimension: 2D or 3D
+         * @param NumberOfNodes The number of nodes in the element
          */
         KinematicVariables(
             const unsigned int& StrainSize,
@@ -689,7 +689,7 @@ protected:
      * @brief This functions updates the kinematics variables
      * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
+     * @param rIntegrationMethod The integration method considered
      */
     virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
@@ -759,8 +759,9 @@ protected:
     /**
      * @brief This function computes the body force
      * @param IntegrationPoints The array containing the integration points
-     * @param PointNumber The id of the integration point considered
-     */
+	 * @param PointNumber The id of the integration point considered
+	 * @return The vector of body forces
+	 */
     Vector GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
@@ -840,7 +841,12 @@ protected:
         const double detJ
         );
 
-    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv);
+	/**
+	* @brief This function computes the shape gradient of mass matrix
+	* @param rMassMatrix The mass matrix
+	* @param Deriv The shape parameter
+	*/
+	void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv);
 
     ///@}
     ///@name Protected  Access
