@@ -152,8 +152,12 @@ namespace Python
                 self[start] = value[i]; start += step;
             }
         })
-        .def("__iter__", [](VectorSlice& self){ return make_iterator(self.data(), self.data() + self.size(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
-        .def("__repr__", [](const VectorSlice& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; })
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+		.def("__iter__", [](VectorSlice& self){ return make_iterator(self.data(), self.data() + self.size(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
+#else
+		.def("__iter__", [](VectorSlice& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
+#endif // ifdef KRATOS_USE_AMATRIX
+		.def("__repr__", [](const VectorSlice& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; })
         ;
 
         auto vector_binder = CreateVectorInterface<Vector>(m, "Vector");

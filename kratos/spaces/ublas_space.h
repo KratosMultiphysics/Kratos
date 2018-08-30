@@ -198,7 +198,10 @@ public:
 	template<typename TColumnType>
 	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
 	{
-		for (std::size_t i = 0; i < rM.size(); i++) {
+		if (rX.size() != rM.size1())
+			rX.resize(rM.size1(), false);
+
+		for (std::size_t i = 0; i < rM.size1(); i++) {
 			rX[i] = rM(i, j);
 		}
 	}
@@ -207,7 +210,7 @@ public:
 	template<typename TColumnType>
 	static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
 	{
-		for (std::size_t i = 0; i < rM.size(); i++) {
+		for (std::size_t i = 0; i < rM.size1(); i++) {
 			rM(i,j) = rX[i];
 		}
 	}
