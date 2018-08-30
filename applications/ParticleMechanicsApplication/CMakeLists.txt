@@ -46,6 +46,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 
 	###yield criteria
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hardening_laws/exponential_strain_softening_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hardening_laws/cam_clay_hardening_law.cpp
         
         ###flow rules
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/MPM_flow_rule.cpp

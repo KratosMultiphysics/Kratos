@@ -74,6 +74,7 @@
 
 //hardening laws
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
+#include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -266,6 +267,7 @@ private:
 
     // Hardening Laws
     const ExponentialStrainSofteningLaw             mExponentialStrainSofteningLaw;
+    const CamClayHardeningLaw                       mCamClayHardeningLaw;
     //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
     //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
     //const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
