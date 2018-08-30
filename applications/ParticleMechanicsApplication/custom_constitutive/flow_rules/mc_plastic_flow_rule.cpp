@@ -455,6 +455,49 @@ void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rRet
 
 }
 
+void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+{
+    Vector MainStrain      = ZeroVector(3);
+
+    for (unsigned int i = 0; i<3; ++i)
+    {
+        MainStrain[i] = rNewElasticLeftCauchyGreen(i,i);
+    }
+
+    // Calculate the elastic matrix
+    Matrix ElasticMatrix = ZeroMatrix(3,3);
+    const double& Young     = mMaterialParameters.YoungModulus;
+    const double& Nu        = mMaterialParameters.PoissonRatio;
+    const double diagonal   = Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
+    const double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);
+
+    for (unsigned int i = 0; i<3; ++i)
+    {
+        for (unsigned int j = 0; j<3; ++j)
+        {
+            if (i == j)
+            {
+                ElasticMatrix(i,i) = diagonal;
+            }
+            else
+            {
+                ElasticMatrix(i,j) = nodiagonal;
+            }
+        }
+    }
+
+    Vector PrincipalStress = ZeroVector(3);
+
+    // Evalute the Kirchhoff principal stress
+    PrincipalStress = prod(ElasticMatrix, MainStrain);
+
+    for(unsigned int i=0; i<3; i++)
+    {
+        rStressMatrix(i,i) = PrincipalStress(i);
+    }
+}
+    
+
 void MCPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix)
 {
     rStressMatrix = ZeroMatrix(3,3); 

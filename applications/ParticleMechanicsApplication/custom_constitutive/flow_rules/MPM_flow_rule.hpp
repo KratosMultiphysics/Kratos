@@ -401,6 +401,11 @@ public:
         KRATOS_ERROR << "Calling the base class function (GetPlasticRegion) in MPM FlowRule:: illegal operation!" << std::endl;
     };
 
+    virtual void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+    {
+        KRATOS_ERROR << "Calling the base class function (CalculatePrincipalStressTrial) in MPM FlowRule:: illegal operation!" << std::endl;
+    };
+
 
     ///@}
     ///@name Access
