@@ -615,6 +615,9 @@ double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeModificationFact
 {
     KRATOS_TRY;
 
+    // For shape derivatives the size of the element (length, area, ...) is used as default perturbation size modification factor.
+    // Later on this value is multiplied with an user defined factor. This product is then used as final perturbation size for computing
+    // derivatives with finite differences.
     if(rDesignVariable == SHAPE)
     {
         const double domain_size = mpPrimalElement->GetGeometry().DomainSize();
