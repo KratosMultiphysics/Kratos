@@ -1238,26 +1238,11 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     rOutput[1][2] = -1.0 * stress[2] * 0.50 + stress[8] * 0.50;
     rOutput[2][2] = -1.0 * stress[2] * 0.25 + stress[8] * 0.75;
   }
-  else if (rVariable == LOCAL_AXIS_1) rOutput[1] = this->PlotLocalAxis(0);
-  else if (rVariable == LOCAL_AXIS_2) rOutput[1] = this->PlotLocalAxis(1);
-  else if (rVariable == LOCAL_AXIS_3) rOutput[1] = this->PlotLocalAxis(2);
+  else if (rVariable == LOCAL_AXIS_1) rOutput[1] = column (transformation_matrix, 0);
+  else if (rVariable == LOCAL_AXIS_2) rOutput[1] = column (transformation_matrix, 1);
+  else if (rVariable == LOCAL_AXIS_3) rOutput[1] = column (transformation_matrix, 2);
 
 
-  KRATOS_CATCH("")
-}
-
-const inline array_1d<double, 3>
-  CrBeamElement3D2N::PlotLocalAxis(const std::size_t int Direction)
-{
-  KRATOS_TRY;
-  BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix;
-  if (this->mIterationCount == 1)
-    transformation_matrix = this->CalculateInitialLocalCS();
-  else
-    this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,
-                                  transformation_matrix);
-
-  return (column (transformation_matrix, Direction));
   KRATOS_CATCH("")
 }
 

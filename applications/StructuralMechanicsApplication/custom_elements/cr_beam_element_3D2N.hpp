@@ -313,12 +313,6 @@ namespace Kratos
          */
         void CalculateLocalNodalForces(const Vector& Bisectrix,const Vector& VectorDifference);
 
-        /**
-         * @brief This function returns the respective local axis for plotting
-         * @param direction 1,2 or 3 to specify the local direction x,y,z
-         */
-        const inline array_1d<double, 3> PlotLocalAxis(const std::size_t int Direction);
-
     private:
 
         int mIterationCount = 0;
