@@ -554,11 +554,7 @@ public:
         // We initialize the blocks sparse matrix
         std::partial_sum(new_a_ptr, new_a_ptr + size_system_2 + 1, new_a_ptr);
 
-        std::size_t* aux_indexes = new std::size_t[size_system_2];
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_system_2); ++i) {
-            aux_indexes[i] = 0;
-        }
+        IndexVectorType aux_indexes(size_system_2, 0);
 
 //         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
@@ -586,7 +582,6 @@ public:
         CreateSolutionMatrix(rA, size_system_2, size_system_1, new_a_ptr, aux_index2_new_a, aux_val_new_a);
 
         // Release memory
-        delete[] aux_indexes;
         delete[] new_a_ptr;
         delete[] aux_index2_new_a;
         delete[] aux_val_new_a;
