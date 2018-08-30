@@ -533,8 +533,9 @@ public:
 
         std::size_t* new_a_ptr = new std::size_t[size_system_2 + 1];
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_system_2 + 1); ++i)
+        for (int i = 0; i < static_cast<int>(size_system_2 + 1); ++i) {
             new_a_ptr[i] = 0;
+        }
 
         std::ptrdiff_t* aux_index2_new_a = new std::ptrdiff_t[transpose_nonzero_values];
         double* aux_val_new_a = new double[transpose_nonzero_values];
@@ -555,8 +556,9 @@ public:
 
         std::size_t* aux_indexes = new std::size_t[size_system_2];
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_system_2); ++i)
+        for (int i = 0; i < static_cast<int>(size_system_2); ++i) {
             aux_indexes[i] = 0;
+        }
 
 //         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
