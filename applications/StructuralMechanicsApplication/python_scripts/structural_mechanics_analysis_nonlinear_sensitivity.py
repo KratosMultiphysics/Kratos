@@ -11,43 +11,30 @@ class StructuralMechanicsAnalysisNLSensitivity(StructuralMechanicsAnalysis):
     """
     This class is the special-script of the StructuralMechanicsApplication put in a class
 
-    It is used to specifiy the non-linear (over- resp. under-linear ) behaviour of state results (e.g. displacements, stresses).
+    It is used to specifiy the non-linear (over- resp. under-linear ) behaviour of state results (e.g. displacements or stresses).
     """
     def __init__(self, model, project_parameters):
         #solver_settings = project_parameters["solver_settings"]
-        self.time_array = [0.15,0.2,0.25]
 
         super(StructuralMechanicsAnalysisNLSensitivity, self).__init__(model, project_parameters)
 
-    def RunSolutionLoop(self):
-        while self.time < self.end_time:
-            self.time = self._GetSolver().AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
+    def Initialize(self):
+        ##here we initialize user-provided processes
+        for process in self._GetListOfProcesses():
+            process.ExecuteInitialize()
 
-if __name__ == "__main__":
-    from sys import argv
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeSolutionLoop()
 
-    if len(argv) > 2:
-        err_msg =  'Too many input arguments!\n'
-        err_msg += 'Use this script in the following way:\n'
-        err_msg += '- With default ProjectParameters (read from "ProjectParameters.json"):\n'
-        err_msg += '    "python3 structural_mechanics_analysis.py"\n'
-        err_msg += '- With custom ProjectParameters:\n'
-        err_msg += '    "python3 structural_mechanics_analysis.py CustomProjectParameters.json"\n'
-        raise Exception(err_msg)
+        ## Stepping and time settings
+        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-    if len(argv) == 2: # ProjectParameters is being passed from outside
-        project_parameters_file_name = argv[1]
-    else: # using default name
-        project_parameters_file_name = "ProjectParameters.json"
+        if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self.time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+        else:
+            self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 
-    with open(project_parameters_file_name,'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        if self.is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
-    model = KratosMultiphysics.Model()
-    simulation = StructuralMechanicsAnalysis(model, parameters)
-    simulation.Run()
+
