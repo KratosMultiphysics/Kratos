@@ -115,7 +115,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesYieldSurface
      * @param rThreshold The uniaxial stress threshold
      * @param rMaterialProperties The material properties
      */
-    virtual static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
+    virtual void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
     {
         rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_TENSION]);
     }
@@ -126,7 +126,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesYieldSurface
      * @param rMaterialProperties The material properties
      * @param CharacteristicLength The equivalent length of the FE
      */
-    virtual static void CalculateDamageParameter(
+    virtual void CalculateDamageParameter(
         const Properties &rMaterialProperties,
         double &AParameter,
         const double CharacteristicLength)
