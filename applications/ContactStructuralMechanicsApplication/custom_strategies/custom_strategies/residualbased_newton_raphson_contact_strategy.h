@@ -402,9 +402,12 @@ public:
             ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
             int inner_iteration = 0;
-            while (!is_converged || inner_iteration < mThisParameters["inner_loop_iterations"].GetInt()) {
+            while (!is_converged && inner_iteration < mThisParameters["inner_loop_iterations"].GetInt()) {
                 ++inner_iteration;
-                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonContactStrategy", mConvergenceCriteriaEchoLevel > 0) << "Inner iteration: " << inner_iteration << std::endl << std::endl;
+
+                if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
+                    std::cout << std::endl << BOLDFONT("Simplified semi-smooth strategy. INNER ITERATION: ") << inner_iteration;;
+                }
 
                 // We solve one loop
                 r_process_info[NL_ITERATION_NUMBER] = 1;
@@ -415,8 +418,10 @@ public:
                 is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, BaseType::GetBuilderAndSolver()->GetDofSet(), A, Dx, b);
                 BaseType::mpConvergenceCriteria->SetEchoLevel(mConvergenceCriteriaEchoLevel);
 
-                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonContactStrategy", mConvergenceCriteriaEchoLevel > 0 && is_converged) << "Inner iteration converged" << std::endl;
-                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonContactStrategy", mConvergenceCriteriaEchoLevel > 0 && !is_converged) << "Inner iteration not converged" << std::endl;
+                if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
+                    if (is_converged) std::cout << BOLDFONT("Simplified semi-smooth strategy. INNER ITERATION: ") << BOLDFONT(FGRN("CONVERGED")) << std::endl;
+                    else std::cout << BOLDFONT("Simplified semi-smooth strategy. INNER ITERATION: ") << BOLDFONT(FRED("NOT CONVERGED")) << std::endl;
+                }
             }
         } else {
             is_converged = BaseSolveSolutionStep();
