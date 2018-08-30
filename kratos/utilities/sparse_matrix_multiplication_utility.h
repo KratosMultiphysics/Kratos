@@ -65,6 +65,9 @@ public:
     /// Pointer definition of TreeContactSearch
     KRATOS_CLASS_POINTER_DEFINITION( SparseMatrixMultiplicationUtility );
 
+    /// The size type
+    typedef std::size_t SizeType;
+
     /// The index type
     typedef std::size_t IndexType;
 
@@ -234,7 +237,7 @@ public:
         }
 
         // We reorder the rows
-        SparseMatrixMultiplicationUtility::SortRows(c_ptr, nrows, ncols, aux_index2_c, aux_val_c);
+        SortRows(c_ptr, nrows, ncols, aux_index2_c, aux_val_c);
 
         // We fill the matrix
         CreateSolutionMatrix(C, nrows, ncols, c_ptr, aux_index2_c, aux_val_c);
@@ -495,7 +498,7 @@ public:
         }
 
         // We reorder the rows
-        SparseMatrixMultiplicationUtility::SortRows(new_a_ptr, nrows, ncols, aux_index2_new_a, aux_val_new_a);
+        SortRows(new_a_ptr, nrows, ncols, aux_index2_new_a, aux_val_new_a);
 
         // We fill the matrix
         CreateSolutionMatrix(A, nrows, ncols, new_a_ptr, aux_index2_new_a, aux_val_new_a);
@@ -518,32 +521,29 @@ public:
         const double Factor = 1.0
         )
     {
-        // Get access to B data
-        const std::size_t* index1 = rB.index1_data().begin();
-        const std::size_t* index2 = rB.index2_data().begin();
-        const double* data = rB.value_data().begin();
-        const std::size_t transpose_nonzero_values = rB.value_data().end() - rB.value_data().begin();
+        typedef typename value_type<AMatrix>::type Val;
 
-        const std::size_t size_system_1 = rB.size1();
-        const std::size_t size_system_2 = rB.size2();
+        // Get access to B data
+        const IndexType* index1 = rB.index1_data().begin();
+        const IndexType* index2 = rB.index2_data().begin();
+        const Val* data = rB.value_data().begin();
+        const SizeType transpose_nonzero_values = rB.value_data().end() - rB.value_data().begin();
+
+        const SizeType size_system_1 = rB.size1();
+        const SizeType size_system_2 = rB.size2();
 
         if (rA.size1() != size_system_2 || rA.size2() != size_system_1 ) {
             rA.resize(size_system_2, size_system_1);
         }
 
-        std::size_t* new_a_ptr = new std::size_t[size_system_2 + 1];
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_system_2 + 1); ++i) {
-            new_a_ptr[i] = 0;
-        }
-
-        std::ptrdiff_t* aux_index2_new_a = new std::ptrdiff_t[transpose_nonzero_values];
-        double* aux_val_new_a = new double[transpose_nonzero_values];
+        IndexVectorType new_a_ptr(size_system_2 + 1, 0);
+        SignedIndexVectorType aux_index2_new_a(transpose_nonzero_values);
+        DenseVector<Val> aux_val_new_a(transpose_nonzero_values);
 
         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
-            std::size_t row_begin = index1[i];
-            std::size_t row_end   = index1[i+1];
+            IndexType row_begin = index1[i];
+            IndexType row_end   = index1[i+1];
 
             for (std::size_t j=row_begin; j<row_end; j++) {
                 #pragma omp atomic
@@ -552,20 +552,20 @@ public:
         }
 
         // We initialize the blocks sparse matrix
-        std::partial_sum(new_a_ptr, new_a_ptr + size_system_2 + 1, new_a_ptr);
+        std::partial_sum(new_a_ptr.begin(), new_a_ptr.end(), &new_a_ptr[0]);
 
         IndexVectorType aux_indexes(size_system_2, 0);
 
 //         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
-            std::size_t row_begin = index1[i];
-            std::size_t row_end   = index1[i+1];
+            IndexType row_begin = index1[i];
+            IndexType row_end   = index1[i+1];
 
-            for (std::size_t j=row_begin; j<row_end; j++) {
-                const std::size_t current_row = index2[j];
-                const std::size_t initial_position = new_a_ptr[current_row];
+            for (IndexType j=row_begin; j<row_end; j++) {
+                const IndexType current_row = index2[j];
+                const IndexType initial_position = new_a_ptr[current_row];
 
-                const std::size_t current_index = initial_position + aux_indexes[current_row];
+                const IndexType current_index = initial_position + aux_indexes[current_row];
                 aux_index2_new_a[current_index] = i;
                 aux_val_new_a[current_index] = Factor * data[j];
 
@@ -576,15 +576,10 @@ public:
         }
 
         // We reorder the rows
-        SparseMatrixMultiplicationUtility::SortRows(new_a_ptr, size_system_2, size_system_1, aux_index2_new_a, aux_val_new_a);
+        SortRows(&new_a_ptr[0], size_system_2, size_system_1, &aux_index2_new_a[0], &aux_val_new_a[0]);
 
         // We fill the matrix
-        CreateSolutionMatrix(rA, size_system_2, size_system_1, new_a_ptr, aux_index2_new_a, aux_val_new_a);
-
-        // Release memory
-        delete[] new_a_ptr;
-        delete[] aux_index2_new_a;
-        delete[] aux_val_new_a;
+        CreateSolutionMatrix(rA, size_system_2, size_system_1, &new_a_ptr[0], &aux_index2_new_a[0], &aux_val_new_a[0]);
     }
 
     /**
