@@ -46,6 +46,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 "adaptative_strategy"                               : false,
                 "split_factor"                                      : 10.0,
                 "max_number_splits"                                 : 3,
+                "inner_loop_iterations"                             : 5,
                 "contact_displacement_relative_tolerance"           : 1.0e-4,
                 "contact_displacement_absolute_tolerance"           : 1.0e-9,
                 "contact_residual_relative_tolerance"               : 1.0e-4,
@@ -327,6 +328,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         newton_parameters.AddValue("adaptative_strategy", self.contact_settings["adaptative_strategy"])
         newton_parameters.AddValue("split_factor", self.contact_settings["split_factor"])
         newton_parameters.AddValue("max_number_splits", self.contact_settings["max_number_splits"])
+        newton_parameters.AddValue("inner_loop_iterations", self.contact_settings["inner_loop_iterations"])
         return CSMA.ResidualBasedNewtonRaphsonContactStrategy(computing_model_part,
                                                                 self.mechanical_scheme,
                                                                 self.linear_solver,
