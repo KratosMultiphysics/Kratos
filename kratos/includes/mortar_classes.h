@@ -381,8 +381,8 @@ public:
     * Only those two variables contain info on all GP
     * other variables contain info only on the currently-calculated GP
     */
-    Matrix jSlave = Matrix(TDim, TDim - 1, 0.0);
-    Matrix jMaster = Matrix(TDim, TDim - 1, 0.0);
+    Matrix jSlave = ScalarMatrix(TDim, TDim - 1, 0.0);
+    Matrix jMaster = ScalarMatrix(TDim, TDim - 1, 0.0);
 
     ///@}
     ///@name Operators
