@@ -4,9 +4,9 @@
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.0,
-        "start_time"      : 0.0,
-        "end_time"        : 0.99,
+        "time_step"       : 0.175,
+        "start_time"      : 1.00,
+        "end_time"        : 1.35,
         "echo_level"      : 1
     },
     "solver_settings"          : {
@@ -14,7 +14,7 @@
         "echo_level"                         : 1,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
+            "input_type"     : "rest",
             "input_filename" : "Nonlinear_Truss"
         },
         "material_import_settings"           : {
@@ -45,15 +45,13 @@
         }
     },
     {
-        "python_module" : "assign_vector_variable_process",
+        "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "model_part_name" : "DISPLACEMENT_BC_DIRICHLET_Z",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,false,true],
-            "value"           : [0.0,0.0,0.0],
+            "variable_name"   : "DISPLACEMENT_Z",
             "interval"        : [0.0,"End"]
         }
     }],
@@ -90,7 +88,7 @@
             }
         }
     }],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostAscii",

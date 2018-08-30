@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 import structural_mechanics_analysis
+import structural_mechanics_analysis_nonlinear_sensitivity
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -43,15 +44,18 @@ def compute_first_and_second_order_nl_sensitivity_factors(model_part, load_facto
     delta_10 = lambda_1 - lambda_0
     delta_20 = lambda_2 - lambda_0
     for node in model_part.Nodes:
-        disp_1_x = node.GetSolutionStepValue(DISPLACEMENT_X, 3)
-        disp_2_x = node.GetSolutionStepValue(DISPLACEMENT_X, 2)
-        disp_3_x = node.GetSolutionStepValue(DISPLACEMENT_X, 1)
-        disp_1_y = node.GetSolutionStepValue(DISPLACEMENT_Y, 3)
-        disp_2_y = node.GetSolutionStepValue(DISPLACEMENT_Y, 2)
-        disp_3_y = node.GetSolutionStepValue(DISPLACEMENT_Y, 1)
-        disp_1_z = node.GetSolutionStepValue(DISPLACEMENT_Z, 3)
-        disp_2_z = node.GetSolutionStepValue(DISPLACEMENT_Z, 2)
-        disp_3_z = node.GetSolutionStepValue(DISPLACEMENT_Z, 1)
+        disp_1_x = node.GetSolutionStepValue(DISPLACEMENT_X, 2)
+        disp_2_x = node.GetSolutionStepValue(DISPLACEMENT_X, 1)
+        disp_3_x = node.GetSolutionStepValue(DISPLACEMENT_X, 0)
+        disp_1_y = node.GetSolutionStepValue(DISPLACEMENT_Y, 2)
+        disp_2_y = node.GetSolutionStepValue(DISPLACEMENT_Y, 1)
+        disp_3_y = node.GetSolutionStepValue(DISPLACEMENT_Y, 0)
+        disp_1_z = node.GetSolutionStepValue(DISPLACEMENT_Z, 2)
+        disp_2_z = node.GetSolutionStepValue(DISPLACEMENT_Z, 1)
+        disp_3_z = node.GetSolutionStepValue(DISPLACEMENT_Z, 0)
+        print("Displacement = ", disp_1_x)
+        print("Displacement = ", disp_2_x)
+        print("Displacement = ", disp_3_x)
 
         if abs(disp_1_x) > 1e-8:
             sensitivity_first_order_1_x = disp_2_x / ( disp_1_x * f_1 )
@@ -92,6 +96,8 @@ def compute_first_and_second_order_nl_sensitivity_factors(model_part, load_facto
             node.SetValue(NL_SENSITIVITY_FIRST_ORDER_Z, 0.0)
             node.SetValue(NL_SENSITIVITY_SECOND_ORDER_Z, 0.0)
 
+# begin first analysis ****************************************************************************************************
+
 with open("PrimalParameters.json",'r') as parameter_file:
     ProjectParametersPrimal = Parameters( parameter_file.read())
 
@@ -102,19 +108,53 @@ primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(mode
 
 primal_analysis.Initialize()
 
-model_part = model_truss_primal.GetModelPart(model_part_name_primal)
-model_part.SetBufferSize(5)
-
 primal_analysis.RunSolutionLoop()
-
-# compute sensitivity measures
-load_factors = np.array([0.8, 0.9, 1.0])
-compute_EF_disp_curvature(model_part, load_factors)
-compute_first_and_second_order_nl_sensitivity_factors(model_part, load_factors)
 
 primal_analysis.Finalize()
 
+# end first analysis ****************************************************************************************************
+
 print("")
+
+# begin second analysis ****************************************************************************************************
+model_part = model_truss_primal.GetModelPart(model_part_name_primal)
+#time = model_part.ProcessInfo[TIME]
+#print("time after primal analysis = ", time , " ****************************************************")
+
+with open("PrimalParameters_curvature.json",'r') as parameter_file:
+    ProjectParametersPrimal = Parameters( parameter_file.read())
+
+model_part_name_primal = ProjectParametersPrimal["problem_data"]["model_part_name"].GetString()
+
+#model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
+
+curvature_analysis = structural_mechanics_analysis_nonlinear_sensitivity.StructuralMechanicsAnalysisNLSensitivity(model_truss_primal, ProjectParametersPrimal)
+
+for node in model_part.Nodes:
+    disp_3_x = node.GetSolutionStepValue(DISPLACEMENT_X, 0)
+    print("Displacement = ", disp_3_x, " ***************************************************************************************")
+
+curvature_analysis.Initialize()
+
+for node in model_part.Nodes:
+    disp_3_x = node.GetSolutionStepValue(DISPLACEMENT_X, 2)
+    print("Displacement = ", disp_3_x, " ***************************************************************************************")
+
+model_part.SetBufferSize(5)
+
+curvature_analysis.RunSolutionLoop()
+
+# compute sensitivity measures
+load_factors = np.array([1.0, 1.175, 1.35])
+compute_EF_disp_curvature(model_part, load_factors)
+compute_first_and_second_order_nl_sensitivity_factors(model_part, load_factors)
+
+curvature_analysis.Finalize()
+model_part = model_truss_primal.GetModelPart(model_part_name_primal)
+#time_2 = model_part.ProcessInfo[TIME]
+#print("time after 3-step analysis = ", time_2 , " ****************************************************")
+
+# end second analysis ****************************************************************************************************
 
 for node in model_part.Nodes:
     print("curvature x = ", node.GetValue(DISPLACEMENT_NL_SENSITIVITY_X))
