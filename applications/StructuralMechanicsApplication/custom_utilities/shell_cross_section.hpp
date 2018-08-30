@@ -475,6 +475,12 @@ public:
             return my_location;
         }
 
+        /**
+        * Returns the orientation angle (in degrees) of this Ply
+        * with respect to the parent element.
+        * @return the orientation angle in degrees
+        * @note this is different from what the ShellCrossSection returns
+        */
         inline double GetOrientationAngle(const Properties& rProps) const
         {
             return ShellUtilities::GetOrientationAngle(rProps, mPlyIndex);
@@ -1194,6 +1200,7 @@ public:
     * Returns the orientation angle (in radians) of this cross section
     * with respect to the parent element.
     * @return the orientation angle in radians
+    * @note this is different from what the Ply returns
     */
     inline double GetOrientationAngle() const
     {
