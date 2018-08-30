@@ -496,7 +496,7 @@ void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 //
 // =====================================================================================
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -796,7 +796,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 	}
 }
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -882,7 +882,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 	}
 }
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -909,37 +909,11 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Matrix>& 
     if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
     if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
-}
-
-void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo & rCurrentProcessInfo)
-{
-	GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-	std::vector<Vector>& rOutput,
-	const ProcessInfo& rCurrentProcessInfo)
-{
-	GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-}
-
-void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-	std::vector<Matrix>& rValues,
-	const ProcessInfo& rCurrentProcessInfo)
-{
-	GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable,
-	std::vector<array_1d<double, 3> >& rValues,
-	const ProcessInfo& rCurrentProcessInfo)
-{
-	GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 void ShellThickElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
