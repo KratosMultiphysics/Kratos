@@ -148,7 +148,7 @@ void TrussConstitutiveLaw::CalculateMaterialResponse(
 //************************************************************************************
 //************************************************************************************
 
-const double TrussConstitutiveLaw::CalculateStressElastic(
+double TrussConstitutiveLaw::CalculateStressElastic(
     ConstitutiveLaw::Parameters& rParameterValues) const
 {
     Vector current_strain = ZeroVector(1);
