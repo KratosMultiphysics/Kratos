@@ -58,6 +58,8 @@
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_strain_softening_3D_law.hpp"
+#include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
 
 //flow rules
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
@@ -242,6 +244,9 @@ private:
     // CL: Mohr Coulomb Strain Softening
     const HenckyMCStrainSofteningPlastic3DLaw               mHenckyMCStrainSofteningPlastic3DLaw;
     const HenckyMCStrainSofteningPlasticPlaneStrain2DLaw    mHenckyMCStrainSofteningPlasticPlaneStrain2DLaw;
+    // CL: Borja Cam Clay
+    const HenckyBorjaCamClayPlastic3DLaw                    mHenckyBorjaCamClayPlastic3DLaw;
+    const HenckyBorjaCamClayPlasticPlaneStrain2DLaw         mHenckyBorjaCamClayPlasticPlaneStrain2DLaw;
 
     // Flow Rules
     const ViscoplasticFlowRule                      mViscoplasticFlowRule;

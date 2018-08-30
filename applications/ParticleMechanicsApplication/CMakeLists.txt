@@ -38,6 +38,8 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_UP_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_strain_softening_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_borja_cam_clay_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.cpp
 	
 	###yield criteria
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/yield_criteria/mc_yield_criterion.cpp

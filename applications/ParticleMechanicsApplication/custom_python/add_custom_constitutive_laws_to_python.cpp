@@ -52,6 +52,9 @@
 #include "custom_constitutive/hencky_mc_strain_softening_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.hpp"
 
+#include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
+#include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
+
 namespace Kratos
 {
 
@@ -128,6 +131,19 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     class_< HenckyMCStrainSofteningPlastic3DLaw, typename HenckyMCStrainSofteningPlastic3DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCStrainSofteningPlastic3DLaw")
+    .def(init<>() )
+    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+
+    // Hencky Borja Cam Clay
+    class_< HenckyBorjaCamClayPlasticPlaneStrain2DLaw, typename HenckyBorjaCamClayPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "HenckyBorjaCamClayPlasticPlaneStrain2DLaw")
+    .def(init<>() )
+    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+
+    class_< HenckyBorjaCamClayPlastic3DLaw, typename HenckyBorjaCamClayPlastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HenckyBorjaCamClayPlastic3DLaw")
     .def(init<>() )
     .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
