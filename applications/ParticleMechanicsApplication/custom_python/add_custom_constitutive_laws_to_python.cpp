@@ -31,6 +31,7 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 //yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
 //hardening laws
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"

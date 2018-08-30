@@ -70,6 +70,7 @@
 
 //yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
 //#include "custom_constitutive/yield_criteria/drucker_prager_yield_criterion.hpp"
 
 //hardening laws
@@ -261,6 +262,7 @@ private:
 
     // Yield Criteria
     const MCYieldCriterion                          mMCYieldCriterion;
+    const ModifiedCamClayYieldCriterion             mModifiedCamClayYieldCriterion;
     //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
     //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
     //const DruckerPragerYieldCriterion             mDruckerPragerYieldCriterion;

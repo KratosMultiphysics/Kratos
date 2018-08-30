@@ -203,9 +203,11 @@ namespace Kratos
 
         //Register Yield Criterion
         Serializer::Register("MCYieldCriterion", mMCYieldCriterion);
+        Serializer::Register("ModifiedCamClayYieldCriterion", mModifiedCamClayYieldCriterion);
 
         //Register Hardening Laws
         Serializer::Register("ExponentialStrainSofteningLaw", mExponentialStrainSofteningLaw);
+        Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
     }
 
