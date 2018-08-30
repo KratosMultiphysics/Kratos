@@ -254,7 +254,7 @@ bool operator!=(Matrix<TDataType, TSize1, TSize2> const& First,
 /// output stream function
 ///  format for a vector : [size](value1, value2, ...., valueN)
 ///  format for a matrix : [size1, size2](()()...()) 
-template <typename TExpressionType, std::size_t TCategory = unordered_access>
+template <typename TExpressionType, std::size_t TCategory = AMatrix::unordered_access>
 inline std::ostream& operator<<(std::ostream& rOStream,
 	AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheMatrix) {
 	TExpressionType const& the_expression = TheMatrix.expression();
