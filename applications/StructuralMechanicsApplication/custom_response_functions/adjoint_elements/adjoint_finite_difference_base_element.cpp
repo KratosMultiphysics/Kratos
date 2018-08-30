@@ -222,6 +222,8 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
+    int return_value = Element::Check(rCurrentProcessInfo);
+
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     GeometryType& r_geom = GetGeometry();
@@ -264,7 +266,7 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
         }
     }
 
-    return 0;
+    return return_value;
 
     KRATOS_CATCH("")
 }
@@ -615,7 +617,10 @@ double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeModificationFact
 
     if(rDesignVariable == SHAPE)
     {
-        KRATOS_ERROR << "GetPerturbationSizeModificationFactor NOT_IMPLEMENTED" << std::endl;
+        const double domain_size = mpPrimalElement->GetGeometry().DomainSize();
+        KRATOS_DEBUG_ERROR_IF(domain_size <= std::numeric_limits<double>::epsilon())
+            << "Pertubation size for shape derivatives of element" << this->Id() << "~ 0" << std::endl;
+        return domain_size;
     }
     else
         return 1.0;
