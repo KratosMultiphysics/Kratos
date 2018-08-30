@@ -1233,7 +1233,7 @@ public:
         constexpr std::size_t dimension = 3;
         noalias( rResult ) = ZeroVector( 3 );
         if (DeltaPosition.size2() != 3)
-            DeltaPosition.resize(DeltaPosition.size1(), dimension);
+            DeltaPosition.resize(DeltaPosition.size1(), dimension,false);
 
         Vector N( this->size() );
         ShapeFunctionsValues( N, LocalCoordinates );
