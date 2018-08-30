@@ -69,8 +69,8 @@ class TestCase(KratosUnittest.TestCase):
             prop = model_part.GetProperties()[prop_id]
             model_part.CreateNewCondition("SurfaceCondition3D4N", cond_id, node_ids, prop)
         model_part.SetBufferSize(2)
-        # Write some data to the nodal solution steps variables.
         for node in model_part.Nodes:
+            # Write some data to the nodal solution steps variables.
             node.SetSolutionStepValue(DISPLACEMENT_X, random.random())
             node.SetSolutionStepValue(DISPLACEMENT_Y, random.random())
             node.SetSolutionStepValue(DISPLACEMENT_Z, random.random())
@@ -84,6 +84,20 @@ class TestCase(KratosUnittest.TestCase):
             node.SetSolutionStepValue(VISCOSITY, random.random())
             node.SetSolutionStepValue(DENSITY, random.random())
             node.SetSolutionStepValue(ACTIVATION_LEVEL, random.randint(-100, 100))
+            # Write some data to the nodal data container variables.
+            node.SetValue(DISPLACEMENT_X, random.random())
+            node.SetValue(DISPLACEMENT_Y, random.random())
+            node.SetValue(DISPLACEMENT_Z, random.random())
+            node.SetValue(VELOCITY_X, random.random())
+            node.SetValue(VELOCITY_Y, random.random())
+            node.SetValue(VELOCITY_Z, random.random())
+            node.SetValue(ACCELERATION_X, random.random())
+            node.SetValue(ACCELERATION_Y, random.random())
+            node.SetValue(ACCELERATION_Z, random.random())
+            node.SetValue(PRESSURE, random.random())
+            node.SetValue(VISCOSITY, random.random())
+            node.SetValue(DENSITY, random.random())
+            node.SetValue(ACTIVATION_LEVEL, random.randint(-100, 100))
 
         for element in model_part.Elements:
             element.SetValue(PRESSURE, random.random())
