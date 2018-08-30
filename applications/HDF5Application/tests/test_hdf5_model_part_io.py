@@ -100,6 +100,7 @@ class TestCase(KratosUnittest.TestCase):
             node.SetValue(ACTIVATION_LEVEL, random.randint(-100, 100))
 
         for element in model_part.Elements:
+            element.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
             element.SetValue(PRESSURE, random.random())
             element.SetValue(VISCOSITY, random.random())
             element.SetValue(DENSITY, random.random())
