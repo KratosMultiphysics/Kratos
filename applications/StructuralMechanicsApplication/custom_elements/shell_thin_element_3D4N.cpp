@@ -698,13 +698,6 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
         rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThinElement3D4N::GetValueOnIntegrationPoints
-(const Variable<array_1d<double, 6> >& rVariable,
-    std::vector<array_1d<double, 6> >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
 void ShellThinElement3D4N::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo & rCurrentProcessInfo)
 {
     GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
@@ -726,13 +719,6 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>& 
 
 void ShellThinElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable,
     std::vector<array_1d<double, 3> >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable,
-    std::vector<array_1d<double, 6> >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);

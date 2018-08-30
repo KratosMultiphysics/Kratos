@@ -225,10 +225,6 @@ public:
         3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,
-        6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     // More results calculation on integration points to interface with python
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
@@ -241,10 +237,6 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,
         3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-        6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     // Calculate functions
