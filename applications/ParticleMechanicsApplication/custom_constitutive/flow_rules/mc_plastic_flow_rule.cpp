@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 // System includes
 #include <iostream>
@@ -21,6 +21,7 @@
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 #include "particle_mechanics_application.h"
+#include "custom_utilities/mpm_stress_principal_invariants_utility.h"
 
 namespace Kratos
 {
@@ -114,75 +115,8 @@ bool MCPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMa
         PrincipalStress(i) = rStressMatrix(i,i);
     }
 
-    // Sorting Eigenvalues and Eigenvectors - "0" is the largest one and "2" is the lowest one
-    Matrix PrincipalDirection1 = ZeroMatrix(3,1);
-    Matrix PrincipalDirection2 = ZeroMatrix(3,1);
-    Matrix PrincipalDirection3 = ZeroMatrix(3,1);
-
-    for(unsigned int i=0; i<3; i++)
-    {
-        PrincipalDirection1(i,0) = rReturnMappingVariables.MainDirections(0,i);
-    }
-    for(unsigned int i=0; i<3; i++)
-    {
-        PrincipalDirection2(i,0) = rReturnMappingVariables.MainDirections(1,i);
-    }
-    for(unsigned int i=0; i<3; i++)
-    {
-        PrincipalDirection3(i,0) = rReturnMappingVariables.MainDirections(2,i);
-    }
-
-    if(PrincipalStress(0)<PrincipalStress(1))
-    {
-        std::swap(PrincipalStress(0),PrincipalStress(1));
-
-        std::swap(MainStrain(0),MainStrain(1));
-
-        Matrix TempMatrix = PrincipalDirection1;
-
-        PrincipalDirection1 = PrincipalDirection2;
-
-        PrincipalDirection2 = TempMatrix;
-    }
-
-    if(PrincipalStress(1)<PrincipalStress(2))
-    {
-        std::swap(PrincipalStress(1),PrincipalStress(2));
-
-        std::swap(MainStrain(1),MainStrain(2));
-
-        Matrix TempMatrix = PrincipalDirection2;
-
-        PrincipalDirection2 = PrincipalDirection3;
-
-        PrincipalDirection3 = TempMatrix;
-    }
-
-    if(PrincipalStress(0)<PrincipalStress(1))
-    {
-        std::swap(PrincipalStress(0),PrincipalStress(1));
-
-        std::swap(MainStrain(0),MainStrain(1));
-
-        Matrix TempMatrix = PrincipalDirection1;
-
-        PrincipalDirection1 = PrincipalDirection2;
-
-        PrincipalDirection2 = TempMatrix;
-    }
-
-    for(unsigned int i=0; i<3; i++)
-    {
-        rReturnMappingVariables.MainDirections(i,0) = PrincipalDirection1(i,0);
-    }
-    for(unsigned int i=0; i<3; i++)
-    {
-        rReturnMappingVariables.MainDirections(i,1) = PrincipalDirection2(i,0);
-    }
-    for(unsigned int i=0; i<3; i++)
-    {
-        rReturnMappingVariables.MainDirections(i,2) = PrincipalDirection3(i,0);
-    }
+    // Sorting Principal Stress and Strain - "0" is the largest one and "2" is the lowest one
+    MPMStressPrincipalInvariantsUtility::SortPrincipalStress(PrincipalStress, MainStrain, rReturnMappingVariables.MainDirections);
 
     mPrincipalStressTrial = PrincipalStress;
     mElasticPrincipalStrain = MainStrain;

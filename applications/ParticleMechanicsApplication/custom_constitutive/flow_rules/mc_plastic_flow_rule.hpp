@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 #if !defined(KRATOS_MC_PLASTIC_FLOW_RULE_H_INCLUDED )
 #define      KRATOS_MC_PLASTIC_FLOW_RULE_H_INCLUDED
