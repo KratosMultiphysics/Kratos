@@ -484,14 +484,14 @@ void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d
     const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == LOCAL_AXIS_1 ||
-                     LOCAL_AXIS_2 ||
-                     LOCAL_AXIS_3)
+        rVariable == LOCAL_AXIS_2 ||
+        rVariable == LOCAL_AXIS_3)
     {
         BaseShellElement::ComputeLocalAxis(rVariable, rOutput, mpCoordinateTransformation);
     }
     else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
-                          LOCAL_MATERIAL_AXIS_2 ||
-                          LOCAL_MATERIAL_AXIS_3)
+             rVariable == LOCAL_MATERIAL_AXIS_2 ||
+             rVariable == LOCAL_MATERIAL_AXIS_3)
     {
         BaseShellElement::ComputeLocalMaterialAxis(rVariable, rOutput, mpCoordinateTransformation);
     }
