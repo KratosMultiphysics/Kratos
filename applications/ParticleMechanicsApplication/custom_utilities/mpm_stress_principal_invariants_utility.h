@@ -118,8 +118,11 @@ namespace Kratos
                   for (unsigned int i = 0; i < 3; i++)
                         J2 += pow( rStress(i) - I1, 2.0);
 
-                  for (unsigned int i = 3; i < 6; i++)
-                        J2 += 2.0 * pow( rStress(i), 2.0);
+                  if ( rStress.size() == 6 )
+                  {
+                        for (unsigned int i = 3; i < 6; i++)
+                              J2 += 2.0 * pow( rStress(i), 2.0);
+                  }
 
                   J2 = pow( J2 /2.0, 1.0/2.0);
             }
