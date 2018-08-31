@@ -44,6 +44,8 @@ from SmallTests import ALMSimpleSlopePatchTestContact                      as TA
 from SmallTests import ALMSimplePatchNotMatchingATestContact               as TALMSimplePatchNotMatchingATestContact
 from SmallTests import ALMSimplePatchNotMatchingBTestContact               as TALMSimplePatchNotMatchingBTestContact
 from SmallTests import ALMThreeDSimplestPatchMatchingTestContact           as TALMThreeDSimplestPatchMatchingTestContact
+from SmallTests import ALMThreeDSimplestPatchTestTriQuadContact            as TALMThreeDSimplestPatchTestTriQuadContact
+from SmallTests import ALMThreeDSimplestPatchTestQuadTriContact            as TALMThreeDSimplestPatchTestQuadTriContact
 from SmallTests import ALMThreeDSimplestPatchMatchingAdaptativeTestContact as TALMThreeDSimplestPatchMatchingAdaptativeTestContact
 from SmallTests import ALMThreeDSimplestPatchMatchingSlopeTestContact      as TALMThreeDSimplestPatchMatchingSlopeTestContact
 from SmallTests import ALMThreeDPatchComplexGeomTestContact                as TALMThreeDPatchComplexGeomTestContact
@@ -149,6 +151,8 @@ def AssembleTestSuites():
     smallSuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
     smallSuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
+    smallSuite.addTest(TALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
+    smallSuite.addTest(TALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     smallSuite.addTest(TALMThreeDPatchComplexGeomTestContact('test_execution'))
@@ -266,6 +270,8 @@ def AssembleTestSuites():
             TALMSimplePatchNotMatchingATestContact,
             TALMSimplePatchNotMatchingBTestContact,
             TALMThreeDSimplestPatchMatchingTestContact,
+            TALMThreeDSimplestPatchTestTriQuadContact,
+            TALMThreeDSimplestPatchTestQuadTriContact,
             TALMThreeDSimplestPatchMatchingAdaptativeTestContact,
             TALMThreeDSimplestPatchMatchingSlopeTestContact,
             TALMThreeDPatchComplexGeomTestContact,

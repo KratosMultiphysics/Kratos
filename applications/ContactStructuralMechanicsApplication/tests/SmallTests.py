@@ -45,6 +45,12 @@ class ALMSimplePatchNotMatchingBTestContact(TestFactory):
 class ALMThreeDSimplestPatchMatchingTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
 
+class ALMThreeDSimplestPatchTestTriQuadContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_triquad_test"
+
+class ALMThreeDSimplestPatchTestQuadTriContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_quadtri_test"
+
 class ALMThreeDSimplestPatchMatchingAdaptativeTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_adaptative_test"
 
