@@ -651,7 +651,8 @@ class RemoveFluidNodesMesherProcess
     {
       ModelPart::NodesContainerType::iterator it_begin = LayerNodes.begin();
 
-      #pragma omp parallel for reduction(+:inside_nodes_removed,erased_nodes)
+	  unsigned int inside_nodes_removed_accum = 0;
+      #pragma omp parallel for reduction(+:inside_nodes_removed_accum,erased_nodes)
       for (int i = 0; i < nnodes; ++i)
       {
         ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -750,7 +751,7 @@ class RemoveFluidNodesMesherProcess
         if( MinimumDistance < 0.25 * mrRemesh.Refine->CriticalRadius ){
           it->Set(TO_ERASE);
           ++erased_nodes;
-          ++inside_nodes_removed;
+          ++inside_nodes_removed_accum;
         }
         else if( MinimumDistance < 1.5 * mrRemesh.Refine->CriticalRadius ){
           distance = (1.5 * mrRemesh.Refine->CriticalRadius - MinimumDistance);
@@ -758,6 +759,8 @@ class RemoveFluidNodesMesherProcess
         }
 
       }
+
+	  inside_nodes_removed += inside_nodes_removed_accum;
 
     }
     if(erased_nodes>0){

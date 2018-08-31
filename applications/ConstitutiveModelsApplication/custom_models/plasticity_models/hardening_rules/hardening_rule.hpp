@@ -51,7 +51,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HardeningRule
+  class HardeningRule
   {
   protected:
 

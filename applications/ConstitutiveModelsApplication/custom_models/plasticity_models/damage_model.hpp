@@ -46,7 +46,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class TElasticityModel, class TYieldSurface>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) DamageModel : public PlasticityModel<TElasticityModel,TYieldSurface>
+  class DamageModel : public PlasticityModel<TElasticityModel,TYieldSurface>
   {
   public:
 

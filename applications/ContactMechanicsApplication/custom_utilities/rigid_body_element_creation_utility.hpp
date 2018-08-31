@@ -40,7 +40,7 @@ namespace Kratos
  * The RigidBodyElement is defined from a mesh of RigidBodyGeometricalElements
  * The RigidBodyProperties given by the RigidBodyBoundingBox, calculated or passed as given data to it.
  */
-class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyElementCreationUtility
+class RigidBodyElementCreationUtility
 {
 public:
 
