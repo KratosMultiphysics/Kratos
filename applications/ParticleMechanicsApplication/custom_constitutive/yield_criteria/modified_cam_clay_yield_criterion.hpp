@@ -89,9 +89,9 @@ class ModifiedCamClayYieldCriterion
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha) override;
+        double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rOldPreconsolidationPressure) override;
 
-        void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha) override;
+        void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha, const double& rOldPreconsolidationPressure) override;
 
         void CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative) override;
 
