@@ -76,10 +76,9 @@ public:
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
     KRATOS_CLASS_POINTER_DEFINITION( MCPlasticFlowRule );
 
+    // Variable material parameters which can change due to hardening
     struct MaterialParameters
     {
-        double YoungModulus;
-        double PoissonRatio;
         double Cohesion;
         double FrictionAngle;
         double DilatancyAngle;
@@ -87,8 +86,6 @@ public:
     public:
         void PrintInfo()
         {
-            std::cout << "YoungModulus   = " << YoungModulus   << std::endl;
-            std::cout << "PoissonRatio   = " << PoissonRatio   << std::endl;
             std::cout << "Cohesion       = " << Cohesion       << std::endl;
             std::cout << "FrictionAngle  = " << FrictionAngle  << std::endl;
             std::cout << "DilatancyAngle = " << DilatancyAngle << std::endl;

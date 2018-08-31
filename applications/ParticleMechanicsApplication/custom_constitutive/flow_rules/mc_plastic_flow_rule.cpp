@@ -90,9 +90,8 @@ void MCPlasticFlowRule::InitializeMaterial(YieldCriterionPointer& pYieldCriterio
     this->InitializeMaterialParameters();
 }
 
+// Initialize material parameters which are able to change
 void MCPlasticFlowRule::InitializeMaterialParameters(){
-    mMaterialParameters.YoungModulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    mMaterialParameters.PoissonRatio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     mMaterialParameters.Cohesion      = mpYieldCriterion->GetHardeningLaw().GetProperties()[COHESION];
     mMaterialParameters.FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
     mMaterialParameters.DilatancyAngle= mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
@@ -311,8 +310,8 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
 void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix)
 {
 
-    const double YoungModulus        = mMaterialParameters.YoungModulus;
-    const double PoissonCoefficient  = mMaterialParameters.PoissonRatio;
+    const double YoungModulus        = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double PoissonCoefficient  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
     const double diagonal   = YoungModulus/(1.0+PoissonCoefficient)/(1.0-2.0*PoissonCoefficient) * (1.0-PoissonCoefficient);
     const double nodiagonal = YoungModulus/(1.0+PoissonCoefficient)/(1.0-2.0*PoissonCoefficient) * ( PoissonCoefficient);
@@ -335,8 +334,8 @@ void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rR
 
 void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rInverseElasticMatrix)
 {
-    const double YoungModulus        = mMaterialParameters.YoungModulus;
-    const double PoissonCoefficient  = mMaterialParameters.PoissonRatio;
+    const double YoungModulus        = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double PoissonCoefficient  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
     const double LameLambda         = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
     const double LameMu             =  YoungModulus/(2*(1+PoissonCoefficient));
@@ -362,8 +361,8 @@ void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariable
 
 void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix)
 {
-    const double Young      = mMaterialParameters.YoungModulus;
-    const double Nu         = mMaterialParameters.PoissonRatio;
+    const double Young      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double Nu         = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     
     const double diagonal   = Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
     const double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);
@@ -400,8 +399,8 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
 
     // Calculate the elastic matrix
     Matrix ElasticMatrix = ZeroMatrix(3,3);
-    const double& Young     = mMaterialParameters.YoungModulus;
-    const double& Nu        = mMaterialParameters.PoissonRatio;
+    const double& Young     = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double& Nu        = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     const double diagonal   = Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
     const double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);
 
@@ -608,8 +607,8 @@ void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVari
 void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, Vector& DiffPrincipalStress, Matrix& rDep)
 {
     
-    const double Young      = mMaterialParameters.YoungModulus;
-    const double Nu         = mMaterialParameters.PoissonRatio;
+    const double Young      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double Nu         = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     const double shear_contribution = Young/(1.0+Nu)/2.0;
 
     const double FrictionAngle  = mMaterialParameters.FrictionAngle; 
