@@ -149,6 +149,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -170,6 +171,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -205,6 +207,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -226,6 +229,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -261,6 +265,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -284,6 +289,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -319,6 +325,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -343,6 +350,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -382,6 +390,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -408,6 +417,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -447,6 +457,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -503,6 +514,7 @@ public:
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          rModelPart.GetProcessInfo() );
+                        #endif
 
 					    if (ValuesOnIntPoint[0].size1() == 0 && ValuesOnIntPoint[0].size2() == 0)
 					    {
