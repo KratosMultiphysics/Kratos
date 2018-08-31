@@ -785,7 +785,7 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     PointerVector<PointType> points_array_master(4);
 
     for (IndexType i_node = 0; i_node < 3; ++i_node) {
-        aux_point.Coordinates() = rOriginalSlaveGeometry[i_node].Coordinates();  // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
+        aux_point.Coordinates() = rOriginalSlaveGeometry[i_node].Coordinates();  // NOTE: We are in a linear triangle, ali_nodel the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave(i_node) = Kratos::make_shared<PointType>(aux_point);
     }
@@ -920,7 +920,7 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
             PointType point;
             rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
-            rConditionsPointsSlave[0][i_node] = point;
+            rConditionsPointsSlave[0][i_node] = PointBelong<4, 3>(point.Coordinates(), static_cast<PointBelongsQuadrilateral3D4NTriangle3D3N>(i_node + 4));;
         }
 
         return true;
