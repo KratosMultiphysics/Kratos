@@ -11,6 +11,8 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(test_hdf5_model_part_io.TestCase('test_HDF5ModelPartIO'))
     smallSuite.addTest(test_hdf5_model_part_io.TestCase('test_HDF5NodalSolutionStepDataIO'))
+    smallSuite.addTest(test_hdf5_model_part_io.TestCase('test_HDF5NodalDataValueIO'))
+    smallSuite.addTest(test_hdf5_model_part_io.TestCase('test_HDF5ElementDataValueIO'))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
