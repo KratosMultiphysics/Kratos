@@ -160,9 +160,6 @@ namespace Kratos
         void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-            std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
         void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -341,10 +338,6 @@ namespace Kratos
             ProcessInfo& rCurrentProcessInfo,
             const bool CalculateStiffnessMatrixFlag,
             const bool CalculateResidualVectorFlag) override;
-
-        bool TryCalculateOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double, 3> >& rVariable,
-            std::vector<array_1d<double, 3> >& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
 
         bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
