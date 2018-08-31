@@ -16,7 +16,7 @@
 // System includes
 #ifdef _OPENMP
 #include <omp.h>
-#else
+#endif
 
 // External includes
 
