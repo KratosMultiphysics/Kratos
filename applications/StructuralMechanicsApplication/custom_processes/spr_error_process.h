@@ -14,6 +14,9 @@
 #define KRATOS_SPR_ERROR_PROCESS
 
 // System includes
+#ifdef _OPENMP
+#include <omp.h>
+#else
 
 // External includes
 
