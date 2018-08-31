@@ -32,7 +32,7 @@ HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::HenckyMCStrainSofteningPlasticPl
 {
     mpHardeningLaw   = HardeningLaw::Pointer( new ExponentialStrainSofteningLaw() );
     mpYieldCriterion = YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule       = MPMFlowRule::Pointer( new MCStrainSofteningPlasticFlowRule(mpYieldCriterion) );
+    mpMPMFlowRule    = MPMFlowRule::Pointer( new MCStrainSofteningPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -43,7 +43,7 @@ HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::HenckyMCStrainSofteningPlasticPl
 {
     mpHardeningLaw    =  pHardeningLaw;
     mpYieldCriterion  =  YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule        =  pMPMFlowRule;
+    mpMPMFlowRule     =  pMPMFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

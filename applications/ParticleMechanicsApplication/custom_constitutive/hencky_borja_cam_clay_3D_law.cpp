@@ -31,7 +31,7 @@ HenckyBorjaCamClayPlastic3DLaw::HenckyBorjaCamClayPlastic3DLaw()
 {
     mpHardeningLaw   = HardeningLaw::Pointer( new CamClayHardeningLaw() );
     mpYieldCriterion = YieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule    = MPMFlowRule::Pointer( new MCPlasticFlowRule(mpYieldCriterion) );
+    mpMPMFlowRule    = MPMFlowRule::Pointer( new BorjaCamClayPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -42,7 +42,7 @@ HenckyBorjaCamClayPlastic3DLaw::HenckyBorjaCamClayPlastic3DLaw(FlowRulePointer p
 {
     mpHardeningLaw    =  pHardeningLaw;
     mpYieldCriterion  =  YieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule        =  pMPMFlowRule;
+    mpMPMFlowRule     =  pMPMFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

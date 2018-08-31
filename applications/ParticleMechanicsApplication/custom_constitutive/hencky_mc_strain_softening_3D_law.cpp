@@ -42,7 +42,7 @@ HenckyMCStrainSofteningPlastic3DLaw::HenckyMCStrainSofteningPlastic3DLaw(FlowRul
 {
     mpHardeningLaw    =  pHardeningLaw;
     mpYieldCriterion  =  YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule        =  pMPMFlowRule;
+    mpMPMFlowRule     =  pMPMFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

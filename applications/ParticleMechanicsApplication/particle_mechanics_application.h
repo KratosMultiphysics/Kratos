@@ -66,6 +66,7 @@
 #include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
 //#include "custom_constitutive/flow_rules/drucker_prager_flow_rule.hpp"
 
 //yield criteria
@@ -255,6 +256,7 @@ private:
     const BinghamViscoplasticFlowRule               mBinghamViscoplasticFlowRule;
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
     const MCStrainSofteningPlasticFlowRule          mMCStrainSofteningPlasticFlowRule;
+    const BorjaCamClayPlasticFlowRule               mBorjaCamClayPlasticFlowRule;
     //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
     //const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
     //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
