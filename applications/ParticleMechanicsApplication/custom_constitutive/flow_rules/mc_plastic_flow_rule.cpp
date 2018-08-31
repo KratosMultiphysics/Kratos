@@ -735,15 +735,15 @@ Matrix MCPlasticFlowRule::GetElasticLeftCauchyGreen(RadialReturnVariables& rRetu
 bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
 {
     // Compute Delta Plastic Strain
-    double NormPlasticPrincipalStrain = sqrt(mPlasticPrincipalStrain(0) * mPlasticPrincipalStrain(0) + mPlasticPrincipalStrain(1) * mPlasticPrincipalStrain(1) + mPlasticPrincipalStrain(2) * mPlasticPrincipalStrain(2));
+    double NormPlasticPrincipalStrain = norm_2(mPlasticPrincipalStrain);
     mInternalVariables.DeltaPlasticStrain = NormPlasticPrincipalStrain;
 
     // Compute Strain Components and its invariants
-    double VolumetricPlasticPrincipalStrain = (mPlasticPrincipalStrain(0) + mPlasticPrincipalStrain(1) + mPlasticPrincipalStrain(2));
+    double VolumetricPlasticPrincipalStrain = norm_1(mPlasticPrincipalStrain);
     Vector DeviatoricPlasticPrincipalStrain = mPlasticPrincipalStrain;
     for (unsigned int i = 0; i<3; ++i)
         DeviatoricPlasticPrincipalStrain(i) -= 1.0/3.0 * VolumetricPlasticPrincipalStrain;
-    double DeltaAccumulatedPlasticDeviatoricStrain = sqrt(2.0/3.0) *sqrt(DeviatoricPlasticPrincipalStrain(0) * DeviatoricPlasticPrincipalStrain(0) + DeviatoricPlasticPrincipalStrain(1) * DeviatoricPlasticPrincipalStrain(1) + DeviatoricPlasticPrincipalStrain(2) * DeviatoricPlasticPrincipalStrain(2));
+    double DeltaAccumulatedPlasticDeviatoricStrain = sqrt(2.0/3.0) * norm_2(DeviatoricPlasticPrincipalStrain);
 
     const double FrictionAngle  = mMaterialParameters.FrictionAngle; 
     const double DilatancyAngle = mMaterialParameters.DilatancyAngle;
