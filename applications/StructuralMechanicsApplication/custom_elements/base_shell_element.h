@@ -506,7 +506,7 @@ protected:
         std::vector<array_1d<double, 3> >& rOutput,
         const T& rpCoordinateTransformation)
     {
-        const double mat_angle = this->Has(MATERIAL_ORIENTATION_ANGLE) ? GetValue(MATERIAL_ORIENTATION_ANGLE) : 0.0;
+        const double mat_angle = Has(MATERIAL_ORIENTATION_ANGLE) ? GetValue(MATERIAL_ORIENTATION_ANGLE) : 0.0;
 
         const SizeType num_gps = GetNumberOfGPs();
         if (rOutput.size() != num_gps) rOutput.resize(num_gps);
