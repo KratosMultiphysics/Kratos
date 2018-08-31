@@ -563,7 +563,7 @@ protected:
                 }
 
                 if (add_point) {
-                    const IndexType initial_index = (rThisBelongs == PointBelongs::Master) ? TNumNodesMaster : 0;
+                    const IndexType initial_index = (rThisBelongs == PointBelongs::Master) ? TNumNodes : 0;
                     rPointList.push_back(PointBelong<TNumNodes, TNumNodesMaster>(rThisGeometry[i_node].Coordinates(), static_cast<BelongType>(initial_index + i_node)));
                 }
             }
