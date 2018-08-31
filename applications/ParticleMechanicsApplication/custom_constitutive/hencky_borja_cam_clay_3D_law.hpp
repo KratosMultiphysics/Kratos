@@ -20,20 +20,21 @@
 // Project includes
 #include "custom_constitutive/hencky_plastic_3d_law.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
-#include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 
 
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D
- * With stress split in an isochoric and volumetric parts
+ * Defines a critical-state constitutive law for associative two-invariant Modified Cam Clay model formulated by (Borja, 1998)
+ * With stress split in an volumetric and deviatoric parts
  * This material law is defined by the parameters needed by the yield criterion:
-
- * The functionality is limited to large displacements
- */
-
+ * CRITICAL_STATE_LINE, PRE_CONSOLIDATION_STRESS, OVER_CONSOLIDATION_RATIO, INITIAL_SHEAR_MODULUS, NORMAL_COMPRESSION_SLOPE, 
+ * SWELLING_SLOPE, ALPHA_SHEAR
+ * The functionality is designed for large displacements and considering linear ln(v) - ln(p_c) Cam Clay hardening
+ * For reference, please refer to: (Borja, 1998)
+*/
 
 
 class HenckyBorjaCamClayPlastic3DLaw
