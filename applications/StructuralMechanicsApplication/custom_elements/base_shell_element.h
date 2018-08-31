@@ -484,7 +484,7 @@ protected:
         else if (rVariable == LOCAL_AXIS_3)
             rOutput[0] = localCoordinateSystem.Vz();
         else
-            KRATOS_ERROR << "Wrong variable!" << std::endl;
+            KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
     }
 
     template <typename T>
@@ -516,7 +516,7 @@ protected:
         else if (rVariable == LOCAL_MATERIAL_AXIS_3)
             rOutput[0] = eZ;
         else
-            KRATOS_ERROR << "Wrong variable!" << std::endl;
+            KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
     }
 
 
