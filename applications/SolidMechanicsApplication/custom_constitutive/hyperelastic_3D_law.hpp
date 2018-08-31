@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/properties.h"
 #include "includes/constitutive_law.h"
 
 
@@ -24,7 +25,7 @@ namespace Kratos
  * Defines a hyperelastic isotropic constitutive law in 3D Neohookean Model
  * This material law is defined by the parameters:
  * 1) YOUNG MODULUS
- * 2) POISSON RATIO 
+ * 2) POISSON RATIO
  * As there are no further parameters the functionality is limited
  * to large displacements elasticity.
  */
@@ -39,7 +40,7 @@ protected:
         //general material properties
         double LameMu;
         double LameLambda;
-      
+
         //general thermal properties
         double ThermalExpansionCoefficient;
         double ReferenceTemperature;
@@ -56,12 +57,12 @@ protected:
         const Vector*        mpShapeFunctionsValues;
         const GeometryType*  mpElementGeometry;
 
-    public: 
+    public:
       void SetShapeFunctionsValues (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetElementGeometry      (const GeometryType& rElementGeometry)     {mpElementGeometry =&rElementGeometry;};
       const Vector& GetShapeFunctionsValues      () const {return *mpShapeFunctionsValues;};
       const GeometryType& GetElementGeometry     () const {return *mpElementGeometry;};
-      
+
 
     };
 
@@ -111,7 +112,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElastic3DLaw();
+    ~HyperElastic3DLaw() override;
 
     /**
      * Operators
@@ -143,7 +144,7 @@ public:
     bool Has( const Variable<Matrix>& rThisVariable ) override;
 
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
@@ -365,7 +366,7 @@ protected:
                                    const unsigned int& a, const unsigned int& b,
                                    const unsigned int& c, const unsigned int& d);
 
-							      
+
     /**
      * Calculates the isochoric constitutive matrix
      * @param rElasticVariables
@@ -524,4 +525,4 @@ private:
 
 }; // Class HyperElastic3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPERELASTIC_3D_LAW_H_INCLUDED  defined

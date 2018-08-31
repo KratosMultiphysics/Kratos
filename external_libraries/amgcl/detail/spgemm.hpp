@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -89,8 +89,7 @@ void spgemm_saad(const AMatrix &A, const BMatrix &B, CMatrix &C, bool sort = tru
         }
     }
 
-    std::partial_sum(C.ptr, C.ptr + A.nrows + 1, C.ptr);
-    C.set_nonzeros(C.ptr[A.nrows]);
+    C.set_nonzeros(C.scan_row_sizes());
 
 #pragma omp parallel
     {
@@ -474,8 +473,7 @@ void spgemm_rmerge(const AMatrix &A, const BMatrix &B, CMatrix &C) {
         }
     }
 
-    std::partial_sum(C.ptr, C.ptr + A.nrows + 1, C.ptr);
-    C.set_nonzeros(C.ptr[A.nrows]);
+    C.set_nonzeros(C.scan_row_sizes());
 
 #pragma omp parallel
     {

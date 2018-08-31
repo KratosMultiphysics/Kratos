@@ -17,18 +17,19 @@ def Factory(settings, Model):
 
 class FormfindingIO(KratosMultiphysics.Process):
     """
-    This class is responsible for the input and output of prestress and modelpart data for formfinding/ membrane analysis. 
+    This class is responsible for the input and output of prestress and modelpart data for formfinding/ membrane analysis.
     """
     def __init__(self, Model, settings):
 
         default_settings = KratosMultiphysics.Parameters(
             """
             {
+                "help"              : "This class is responsible for the input and output of prestress and modelpart data for formfinding/ membrane analysis.",
                 "model_part_name"   : "Structure",
                 "print_mdpa"        : false,
                 "print_prestress"   : false,
                 "read_prestress"    : false
-                
+
             }
             """
         );
@@ -40,32 +41,32 @@ class FormfindingIO(KratosMultiphysics.Process):
         self.print_prestress = self.settings["print_prestress"].GetBool()
         self.read_prestress = self.settings["read_prestress"].GetBool()
         self.formfinding_io = StructuralMechanicsApplication.FormfindingIOUtility(model, settings)
-                                                                              
+
     def ExecuteInitialize(self):
         if (self.read_prestress):
             self.formfinding_io.ReadPrestressData()
-            print (" read prestress")
-    
+            KratosMultiphysics.Logger.PrintInfo("FormfindingIO", "Read prestress")
+
     def ExecuteBeforeSolutionLoop(self):
         pass
-    
+
     def ExecuteInitializeSolutionStep(self):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
         pass
-              
+
     def ExecuteBeforeOutputStep(self):
         pass
 
     def ExecuteAfterOutputStep(self):
         pass
-            
+
 
     def ExecuteFinalize(self):
         if (self.print_mdpa):
             self.formfinding_io.PrintModelPart()
-            print (" print mdpa")
+            KratosMultiphysics.Logger.PrintInfo("FormfindingIO", "Print mdpa")
         if (self.print_prestress):
             self.formfinding_io.PrintPrestressData()
-            print ("print prestress")
+            KratosMultiphysics.Logger.PrintInfo("FormfindingIO", "Print prestress")

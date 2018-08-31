@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division
+
 import difflib
 import re
 import os
@@ -173,7 +175,7 @@ class ClassCreator(TemplateRule):
         for root, subfolder, files in os.walk(where):
             for f in self._GenerateCandidateFiles(files, name):
                 src = os.path.join(root, f)
-                with open(src, 'r', encoding='latin1') as _file:
+                with open(src, 'r') as _file:
                     for l in _file:
                         [found, m1, m2] = self._IsClassDefinition(l)
                         if found:

@@ -240,15 +240,15 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     // We copy the new model part to the original one
     geometry_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
     geometry_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
-    
+
     // We copy the external layers
     if (create_submodelparts_external_layers) {
         const std::string name_upper = "Upper_"+model_part_name;
-        ModelPart::Pointer p_upper_model_part = append_submodelparts_external_layers ? geometry_model_part.CreateSubModelPart(name_upper) : mrThisModelPart.CreateSubModelPart(name_upper);
+        ModelPart* p_upper_model_part = append_submodelparts_external_layers ? &geometry_model_part.CreateSubModelPart(name_upper) : &mrThisModelPart.CreateSubModelPart(name_upper);
         p_upper_model_part->AddNodes( auxiliar_model_part_upper.NodesBegin(), auxiliar_model_part_upper.NodesEnd() );
         p_upper_model_part->AddConditions( auxiliar_model_part_upper.ConditionsBegin(), auxiliar_model_part_upper.ConditionsEnd() );
         const std::string name_lower = "Lower_"+model_part_name;
-        ModelPart::Pointer p_lower_model_part = append_submodelparts_external_layers ? geometry_model_part.CreateSubModelPart(name_lower) : mrThisModelPart.CreateSubModelPart(name_lower);
+        ModelPart* p_lower_model_part = append_submodelparts_external_layers ? &geometry_model_part.CreateSubModelPart(name_lower) : &mrThisModelPart.CreateSubModelPart(name_lower);
         p_lower_model_part->AddNodes( auxiliar_model_part_lower.NodesBegin(), auxiliar_model_part_lower.NodesEnd() );
         p_lower_model_part->AddConditions( auxiliar_model_part_lower.ConditionsBegin(), auxiliar_model_part_lower.ConditionsEnd() );
     }

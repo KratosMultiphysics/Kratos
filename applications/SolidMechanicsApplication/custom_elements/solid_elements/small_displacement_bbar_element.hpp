@@ -45,7 +45,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementBbarElement
   : public SmallDisplacementElement
 {
 public:
-  
+
     ///@name Type Definitions
     ///@{
     /// Reference type definition for constitutive laws
@@ -56,6 +56,11 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     /// Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef SmallDisplacementElement::ElementDataType ElementDataType;
+
     /// Counted pointer of SmallDisplacementBbarElement
     KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementBbarElement);
     ///@}
@@ -75,7 +80,7 @@ public:
     SmallDisplacementBbarElement(SmallDisplacementBbarElement const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementBbarElement();
+    ~SmallDisplacementBbarElement() override;
 
     ///@}
     ///@name Operators
@@ -139,19 +144,19 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementVariables& rVariables, const double& rPointNumber) override;
+    void CalculateKinematics(ElementDataType& rVariables, const double& rPointNumber) override;
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementVariables(ElementVariables& rVariables,
+    void InitializeElementData(ElementDataType& rVariables,
                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Calculation of the Volumetric Deformation Matrix  H
      */
-    void CalculateVolumetricDeformationMatrix(ElementVariables& rVariables);
+    void CalculateVolumetricDeformationMatrix(ElementDataType& rVariables);
 
     /**
      * Calculation of the Deformation Matrix B_bar B
@@ -198,9 +203,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

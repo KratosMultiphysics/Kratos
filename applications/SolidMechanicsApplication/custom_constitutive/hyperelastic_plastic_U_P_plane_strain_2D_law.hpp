@@ -21,11 +21,11 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law in plane strain 2D 
+ * Defines a hyperelastic-plastic isotropic constitutive law in plane strain 2D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
 class KRATOS_API(SOLID_MECHANICS_APPLICATION) HyperElasticPlasticUPPlaneStrain2DLaw : public HyperElasticPlasticUP3DLaw
@@ -59,7 +59,7 @@ public:
     HyperElasticPlasticUPPlaneStrain2DLaw();
 
 
-    HyperElasticPlasticUPPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HyperElasticPlasticUPPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -82,7 +82,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlasticUPPlaneStrain2DLaw();
+    ~HyperElasticPlasticUPPlaneStrain2DLaw() override;
 
     /**
      * Operators
@@ -175,7 +175,7 @@ protected:
     void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
                                          Vector& rStrainVector ) override;
 
-							      
+
     /**
      * Calculates the isochoric constitutive matrix
      * @param rElasticVariables
@@ -188,7 +188,7 @@ protected:
             Matrix& rConstitutiveMatrix) override;
 
 
- 
+
     /**
      * Calculates the volumetric constitutive matrix
      * @param rElasticVariables
@@ -207,7 +207,7 @@ protected:
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
     void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						     FlowRule::RadialReturnVariables & rReturnMappingVariables,			     
+						     FlowRule::RadialReturnVariables & rReturnMappingVariables,
 						     Matrix& rConstitutiveMatrix) override;
 
 

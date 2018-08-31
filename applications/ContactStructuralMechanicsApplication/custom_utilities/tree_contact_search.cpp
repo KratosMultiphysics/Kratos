@@ -62,7 +62,7 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
     // Check if the computing contact submodelpart
     const std::string sub_computing_model_part_name = "ComputingContactSub" + id_name;
     if (!(mrMainModelPart.HasSubModelPart("ComputingContact"))) {// We check if the submodelpart where the actual conditions used to compute contact are going to be computed
-        ModelPart::Pointer p_computing_model_part = mrMainModelPart.CreateSubModelPart("ComputingContact");
+        ModelPart* p_computing_model_part = &mrMainModelPart.CreateSubModelPart("ComputingContact");
         p_computing_model_part->CreateSubModelPart(sub_computing_model_part_name);
     } else {
         ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
@@ -729,57 +729,6 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeLinearRegressionGapPressu
 /***********************************************************************************/
 
 template<std::size_t TDim, std::size_t TNumNodes>
-inline double TreeContactSearch<TDim, TNumNodes>::GetMaxNodalH()
-{
-    // We iterate over the nodes
-    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
-
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<double> max_vector(num_threads, 0.0);
-    double nodal_h;
-    #pragma omp parallel for private(nodal_h)
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-        nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-
-        const int id = OpenMPUtils::ThisThread();
-
-        if (nodal_h > max_vector[id])
-            max_vector[id] = nodal_h;
-    }
-
-    return *std::max_element(max_vector.begin(), max_vector.end());
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<std::size_t TDim, std::size_t TNumNodes>
-inline double TreeContactSearch<TDim, TNumNodes>::GetMeanNodalH()
-{
-    // We iterate over the nodes
-    NodesArrayType& nodes_array = mrMainModelPart.Nodes();
-
-    double nodal_h;
-    double sum_nodal_h = 0.0;
-
-    #pragma omp parallel for  private(nodal_h) reduction(+:sum_nodal_h)
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-        nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-        sum_nodal_h += nodal_h;
-    }
-
-    return sum_nodal_h/static_cast<double>(nodes_array.size());
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<std::size_t TDim, std::size_t TNumNodes>
 inline typename TreeContactSearch<TDim, TNumNodes>::CheckResult TreeContactSearch<TDim, TNumNodes>::CheckCondition(
     IndexMap::Pointer pIndexesPairs,
     const Condition::Pointer pCond1,
@@ -1018,10 +967,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
     )
 {
     // We compute the maximal nodal h and some auxiliar values  // TODO: Think about this criteria
-//     const double distance_threshold = 2.0/3.0 * GetMeanNodalH();
-    const double distance_threshold = GetMeanNodalH();
-//     const double distance_threshold = GetMaxNodalH();
-//     const double distance_threshold = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR] * GetMaxNodalH();
+//     const double distance_threshold = 2.0/3.0 * ContactUtilities::CalculateMeanNodalH(mrMainModelPart);
+    const double distance_threshold = ContactUtilities::CalculateMeanNodalH(mrMainModelPart);
+//     const double distance_threshold = ContactUtilities::CalculateMaxNodalH(mrMainModelPart)();
+//     const double distance_threshold = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR] * ContactUtilities::CalculateMaxNodalH(mrMainModelPart)();
 
     // Updating the distance distance threshold
     mrMainModelPart.GetProcessInfo().SetValue(DISTANCE_THRESHOLD, distance_threshold);

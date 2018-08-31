@@ -5,15 +5,9 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Properties 5
-    DENSITY   7.85000E+03 
-    YOUNG_MODULUS   2.00000E+03 
-    POISSON_RATIO   0.200000000 
 End Properties
 
 Begin Properties 6
-    DENSITY   7.85000E+03 
-    YOUNG_MODULUS   2.00000E+09
-    POISSON_RATIO   0.000000000 
 End Properties
 
 Begin Nodes

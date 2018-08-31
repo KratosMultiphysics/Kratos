@@ -53,7 +53,7 @@ public:
     IsotropicDamageModifiedMises3DLaw();
 
 
-    IsotropicDamageModifiedMises3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    IsotropicDamageModifiedMises3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -76,7 +76,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~IsotropicDamageModifiedMises3DLaw();
+    ~IsotropicDamageModifiedMises3DLaw() override;
 
     /**
      * Operators

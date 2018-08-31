@@ -93,11 +93,42 @@ public:
     }
 
 
-//            virtual void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
-//                                        double SolutionTag, unsigned int value_index )
+//            virtual void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& rModelPart,
+//                                        double SolutionTag, unsigned int ValueIndex )
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintFlagsResults(
+        GiD_FILE ResultFile,
+        Kratos::Flags rFlag,
+        std::string rFlagName,
+        ModelPart& rModelPart,
+        double SolutionTag
+        )
+    {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
+            //WriteGaussPoints(ResultFile);
+            GiD_fBeginResult(ResultFile,  (char *)(rFlagName).c_str(), (char *)("Kratos"), SolutionTag, GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
+                    const double double_flag = static_cast<double>(it->Is(rFlag));
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                        GiD_fWriteScalar( ResultFile, it->Id(), double_flag);
+                    }
+                }
+            }
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    const double double_flag = static_cast<double>(it->Is(rFlag));
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                        GiD_fWriteScalar( ResultFile, it->Id(), double_flag );
+                    }
+                }
+            }
+            GiD_fEndResult(ResultFile);
+        }
+    }
+
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -114,11 +145,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -136,11 +166,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -153,8 +182,8 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -172,11 +201,10 @@ public:
 
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -194,11 +222,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -212,8 +239,8 @@ public:
     }
 
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,3> > rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -230,11 +257,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -254,11 +280,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -272,8 +297,8 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,6> > rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,6> > rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -290,11 +315,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -315,11 +339,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -336,8 +359,8 @@ public:
     }
 
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -355,11 +378,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -382,11 +404,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -404,8 +425,8 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& rModelPart,
+                               double SolutionTag, int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -422,11 +443,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -479,11 +499,10 @@ public:
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
                         it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
-                        #endif
+                                                         rModelPart.GetProcessInfo() );
 
 					    if (ValuesOnIntPoint[0].size1() == 0 && ValuesOnIntPoint[0].size2() == 0)
 					    {

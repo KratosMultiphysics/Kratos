@@ -50,7 +50,7 @@ public:
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
-    
+
     /**
      * Counted pointer of HyperElasticIsotropicKirchhoffPlaneStrain2D
      */
