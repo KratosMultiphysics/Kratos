@@ -403,30 +403,6 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
   }
 }
 
-void TrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<double> &rVariable, std::vector<double> &rValues,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY
-  this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-  KRATOS_CATCH("")
-}
-void TrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<Vector> &rVariable, std::vector<Vector> &rValues,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY
-  this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-  KRATOS_CATCH("")
-}
-
-void TrussElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>> &rVariable,
-    std::vector<array_1d<double, 3>> &rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-  this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-  KRATOS_CATCH("")
-}
-
 int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
   const double numerical_limit = std::numeric_limits<double>::epsilon();
