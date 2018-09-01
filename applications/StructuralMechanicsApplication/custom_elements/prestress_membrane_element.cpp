@@ -734,14 +734,6 @@ void PrestressMembraneElement::CalculateAll(
     KRATOS_CATCH("")
 }
 
-
-//************************************************************************************
-//************************************************************************************
-void PrestressMembraneElement::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
 //***********************************************************************************
 //***********************************************************************************
 void PrestressMembraneElement::CalculateMetricDeformed(const unsigned int& rPointNumber, Matrix DN_De,
