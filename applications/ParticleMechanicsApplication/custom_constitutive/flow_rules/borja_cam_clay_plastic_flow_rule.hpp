@@ -78,20 +78,16 @@ public:
 
     struct MaterialParameters
     {
-        double YoungModulus;
-        double PoissonRatio;
-        double Cohesion;
-        double FrictionAngle;
-        double DilatancyAngle;
+        double PreconsolidationPressure;
+        double PlasticHardeningModulus;
+        double ConsistencyParameter;
 
     public:
         void PrintInfo()
         {
-            std::cout << "YoungModulus   = " << YoungModulus   << std::endl;
-            std::cout << "PoissonRatio   = " << PoissonRatio   << std::endl;
-            std::cout << "Cohesion       = " << Cohesion       << std::endl;
-            std::cout << "FrictionAngle  = " << FrictionAngle  << std::endl;
-            std::cout << "DilatancyAngle = " << DilatancyAngle << std::endl;
+            std::cout << "PreconsolidationPressure   = " <<  PreconsolidationPressure  << std::endl;
+            std::cout << "PlasticHardeningModulus   = " <<  PlasticHardeningModulus  << std::endl;
+            std::cout << "ConsistencyParameter   = " <<  ConsistencyParameter  << std::endl;
         }
 
     };
@@ -174,15 +170,20 @@ public:
 protected:
     Vector mElasticPrincipalStrain;
     Vector mPlasticPrincipalStrain;
-    Vector mElasticPreviousPrincipalStrain;
-    Vector mPrincipalStressTrial;
+
     Vector mPrincipalStressUpdated;
+
     unsigned int mRegion;
     bool mLargeStrainBool;
-    double mEquivalentPlasticStrain;
 
     MaterialParameters mMaterialParameters;
 
+    double mInitialVolumetricStrain;
+
+    double mStateFunction;
+    Vector mStateFunctionFirstDerivative ;
+    Vector mStateFunctionSecondDerivative;
+    
     ///@name Protected static Member Variables
     ///@{
 
@@ -204,27 +205,30 @@ protected:
 
     void InitializeMaterialParameters();
 
-    virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
+    void CalculatePrincipalStressVector(Vector& rPrincipalStrain, Vector& rPrincipalStress);
 
+    void CalculateMeanStress(const double& rVolumetricStrain, const double& rDeviatoricStrain, double& rMeanStress);
+
+    void CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, Vector& rDeviatoricStress);
+    
+    void CalculatePrincipalStrainFromStrainInvariants(Vector& rPrincipalStrain, const double& rVolumetricStrain, const double& rDeviatoricStrain, const Vector& rDirectionVector);
+
+    void CalculateStrainInvariantsFromPrincipalStrain(const Vector& rPrincipalStrain, double& rVolumetricStrain, double& rDeviatoricStrain, Vector& rDeviatoricStrainVector);
+    
     bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStress, Vector& rPrincipalStrain, unsigned int& region, Vector& rPrincipalStressUpdated);
  
-    void ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
+    void CalculateLHSMatrix(Matrix& rLHSMatrix, const Vector& rPrincipalStressVector, const Vector& rUnknownVector, const double& rK_p);
 
-    void CalculateDepSurface(Matrix& rElasticMatrix, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
+    void CalculateHessianMatrix_2x2(Matrix& rHessianMatrix);
 
-    void CalculateDepLine(Matrix& rInvD, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
+    void ComputeElasticMatrix_2X2(const Vector& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, Matrix& rElasticMatrix);
 
-    void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, Vector& DiffPrincipalStress, Matrix& rDep);
+    void ComputePlasticMatrix_2X2(const Vector& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, const Matrix& rElasticMatrix, Matrix& rPlasticMatrix);
 
     void ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix);
 
-
-    void CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rInverseElasticMatrix);
-    void CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
-    void CalculateModificationMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rAuxT, Matrix& rInvAuxT);
-
     void CalculateTransformationMatrix(const Matrix& rMainDirection, Matrix& rA);
-    
+
     double GetSmoothingLodeAngle();
 
     double GetPI();
