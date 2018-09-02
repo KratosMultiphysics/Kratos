@@ -1,13 +1,13 @@
 //-------------------------------------------------------------
-//         ___  __           ___ _      _    _ 
+//         ___  __           ___ _      _    _
 //  KRATOS| _ \/ _|___ _ __ | __| |_  _(_)__| |
 //        |  _/  _/ -_) '  \| _|| | || | / _` |
 //        |_| |_| \___|_|_|_|_| |_|\_,_|_\__,_|DYNAMICS
-//                                            
+//
 //  License:(BSD)    PfemFluidMechanicsApplication/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
-//                   Alessandro Franci 
+//                   Alessandro Franci
 //                   Miquel Angel Celigueta
 //-------------------------------------------------------------
 //
@@ -31,7 +31,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-
+#include "includes/cfd_variables.h"
 #include "delaunay_meshing_application_variables.h"
 
 namespace Kratos

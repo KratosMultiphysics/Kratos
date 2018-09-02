@@ -51,7 +51,7 @@ public:
      *  @param DegreeU Degree in u direction
      *  @param DegreeV Degree in v direction
      *  @param NumberOfNodesU Number of nodes in u direction
-     *  @param NumberOfNodesU Number of nodes in v direction
+     *  @param NumberOfNodesV Number of nodes in v direction
      */
     NodeSurfaceGeometry3D(
         const int DegreeU,
