@@ -35,54 +35,14 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
     """
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
-        adaptative_remesh_parameters = KM.Parameters("""
-        {
-            "compute_error_settings" : {
-                "error_mesh_tolerance" : 5.0e-3,
-                "error_mesh_constant"  : 5.0e-3,
-                "compute_error_extra_parameters":
-                {
-                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
-                    "penalty_normal"                      : 1.0e4,
-                    "penalty_tangential"                  : 1.0e4,
-                    "echo_level"                          : 0
-                }
-            },
-            "metric_error_parameters" :
-            {
-                "minimal_size"                        : 0.01,
-                "maximal_size"                        : 1.0,
-                "error_strategy_parameters":
-                {
-                    "target_error"                        : 0.01,
-                    "set_target_number_of_elements"       : false,
-                    "target_number_of_elements"           : 1000,
-                    "perform_nodal_h_averaging"           : false
-                },
-                "echo_level"                          : 0
-            },
-            "remeshing_parameters":
-            {
-                "filename"                             : "out",
-                "framework"                            : "Lagrangian",
-                "internal_variables_parameters"        :
-                {
-                    "allocation_size"                      : 1000,
-                    "bucket_size"                          : 4,
-                    "search_factor"                        : 2,
-                    "interpolation_type"                   : "LST",
-                    "internal_variable_interpolation_list" :[]
-                },
-                "save_external_files"              : false,
-                "max_number_of_searchs"            : 1000,
-                "echo_level"                       : 0
-            }
-        }
-        """)
+        import adaptative_remeshing_contact_structural_mechanics_utilities
+        self.adaptative_remeshing_utilities = adaptative_remeshing_contact_structural_mechanics_utilities.AdaptativeRemeshingContactMechanicalUtilities()
+        adaptative_remesh_parameters = self.adaptative_remeshing_utilities.GetDefaultParameters()
 
         # Validate the remaining settings in the base class.
         self.validate_and_transfer_matching_settings(custom_settings, adaptative_remesh_parameters)
         self.adaptative_remesh_parameters = adaptative_remesh_parameters
+        self.adaptative_remeshing_utilities.SetDefaultParameters(self.adaptative_remesh_parameters)
 
         # Construct the base solver.
         super(AdaptativeRemeshingContactStaticMechanicalSolver, self).__init__(model, custom_settings)
@@ -125,30 +85,6 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
-        if ("_with_adaptative_remesh" in error_criteria):
-            conv_settings["convergence_criterion"].SetString(error_criteria.replace("_with_adaptative_remesh", ""))
-        import contact_convergence_criteria_factory
-        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(conv_settings)
-
-        # If we just use the adaptative convergence criteria
-        if (missing_meshing_dependencies is True):
-            if ("adaptative_remesh" in error_criteria):
-                raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
-        else:
-            if (error_criteria == "adaptative_remesh_criteria"):
-                adaptative_error_criteria = CSMA.ContactErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
-                convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.GetMortarCriteria(False), adaptative_error_criteria)
-            elif ("with_adaptative_remesh" in error_criteria): # If we combine the regular convergence criteria with adaptative
-                adaptative_error_criteria = CSMA.ContactErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
-                convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
-
-        return convergence_criterion.mechanical_convergence_criterion
-
-        # If we combine the regular convergence criteria with adaptative
-        if (missing_meshing_dependencies is False):
-            if ("with_adaptative_remesh" in error_criteria):
-                adaptative_error_criteria = CSMA.ContactErrorMeshCriteria(self.adaptative_remesh_parameters["compute_error_settings"])
-                convergence_criterion.mechanical_convergence_criterion = KM.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
-        return convergence_criterion.mechanical_convergence_criterion
+        return self.adaptative_remeshing_utilities.GetConvergenceCriteria(error_criteria, conv_settings)
 
 
