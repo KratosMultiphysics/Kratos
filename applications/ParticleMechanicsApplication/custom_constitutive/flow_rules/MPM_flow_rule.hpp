@@ -192,6 +192,8 @@ public:
     {
         double EquivalentPlasticStrain;
         double DeltaPlasticStrain;
+        double AccumulatedPlasticDeviatoricStrain;
+        double DeltaPlasticDeviatoricStrain;
         Matrix  Normal;
 
         double LameMu_bar;
@@ -207,7 +209,9 @@ public:
         void clear()
         {
             EquivalentPlasticStrain = 0;
+            AccumulatedPlasticDeviatoricStrain = 0; 
             DeltaPlasticStrain = 0;
+            DeltaPlasticDeviatoricStrain = 0;
             Normal.clear();
             LameMu_bar  = 0;
             Friction    = 0;
@@ -222,6 +226,8 @@ public:
             std::cout<<" Internal Variables "<<std::endl;
             std::cout<<" EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
             std::cout<<" DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
+            std::cout<<" AccumulatedPlasticDeviatoricStrain: "<<AccumulatedPlasticDeviatoricStrain<<std::endl;
+            std::cout<<" DeltaPlasticDeviatoricStrain: "<<DeltaPlasticDeviatoricStrain<<std::endl;
             std::cout<<" EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
         }
 
@@ -235,6 +241,8 @@ public:
         {
             rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
             rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.save("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
+            rSerializer.save("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);
             rSerializer.save("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
         };
 
@@ -242,6 +250,8 @@ public:
         {
             rSerializer.load("EquivalentPlasticStrain",EquivalentPlasticStrain);
             rSerializer.load("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.load("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
+            rSerializer.load("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);           
             rSerializer.load("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
         };
     };
@@ -257,7 +267,7 @@ public:
     /// Default constructor.
     MPMFlowRule()
     {
-        //KRATOS_THROW_ERROR( std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!", "" )
+        //KRATOS_ERROR << std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!", "" )
     };
 
     /// Initialization constructor.
@@ -354,38 +364,41 @@ public:
 
     virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
     {
-        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+        KRATOS_ERROR << "Calling the base class function (CalculateReturnMapping) in MPM FlowRule:: illegal operation!" << std::endl;
         return 0;
     };
 
     virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
-
+        KRATOS_ERROR << "Calling the base class function (CalculateReturnMapping) in MPM FlowRule:: illegal operation!" << std::endl;
+        return 0;
     };
 
     virtual void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticMatrix)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
-
+        KRATOS_ERROR << "Calling the base class function (ComputeElastoPlasticTangentMatrix) in MPM FlowRule:: illegal operation!" << std::endl;
     };
 
     virtual void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
     {
-        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+        KRATOS_ERROR << "Calling the base class function (CalculateScalingFactors) in MPM FlowRule:: illegal operation!" << std::endl;
     };
-
 
     virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
     {
-        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
+        KRATOS_ERROR << "Calling the base class function (UpdateInternalVariables) in MPM FlowRule:: illegal operation!" << std::endl;
 
         return 0;
     };
 
     virtual Matrix GetElasticLeftCauchyGreen( RadialReturnVariables& rReturnMappingVariables )
     {
-        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation for calling GetElasticLeftCauchyGreen!!", "" )
+        KRATOS_ERROR << "Calling the base class function (GetElasticLeftCauchyGreen) in MPM FlowRule:: illegal operation!" << std::endl;
+    };
+
+    virtual unsigned int GetPlasticRegion()
+    {
+        KRATOS_ERROR << "Calling the base class function (GetPlasticRegion) in MPM FlowRule:: illegal operation!" << std::endl;
     };
 
 
@@ -448,8 +461,8 @@ protected:
 
     virtual double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm )
     {
-        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" )
-
+        KRATOS_ERROR << "Calling the base class function (CalculateStressNorm) in MPM FlowRule:: illegal operation!" << std::endl;
+    
         return rStressNorm;
     };
 

@@ -259,6 +259,12 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 
         };
 
+        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha, const double& rBeta)
+	{
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+
+        };
+
         ///@}
         ///@name Access
         ///@{

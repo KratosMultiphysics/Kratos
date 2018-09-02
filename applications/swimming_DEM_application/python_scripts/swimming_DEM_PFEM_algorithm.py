@@ -75,6 +75,11 @@ class Algorithm(BaseAlgorithm):
                 node.SetSolutionStepValue(VOLUME_ACCELERATION_Y, 0, self.pp.CFD_DEM["GravityY"].GetDouble())
                 node.SetSolutionStepValue(VOLUME_ACCELERATION_Z, 0, self.pp.CFD_DEM["GravityZ"].GetDouble())
 
+    def AssignKinematicViscosityFromDynamicViscosity(self):
+        for node in self.fluid_model_part.Nodes:
+            kinematic_viscosity = node.GetSolutionStepValue(DYNAMIC_VISCOSITY,0) / node.GetSolutionStepValue(DENSITY,0)
+            node.SetSolutionStepValue(VISCOSITY, 0, kinematic_viscosity)
+
     def FluidInitialize(self):
 
         self.fluid_solution.vars_man=vars_man
