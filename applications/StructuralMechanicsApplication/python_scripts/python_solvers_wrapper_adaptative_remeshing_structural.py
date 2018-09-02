@@ -17,9 +17,9 @@ def CreateSolver(model, custom_settings):
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "static" or solver_type == "Static"):
-            solver_module_name = "adaptative_structural_mechanics_static_solver"
+            solver_module_name = "adaptative_remeshing_structural_mechanics_static_solver"
         elif (solver_type == "dynamic" or solver_type == "Dynamic"):
-            solver_module_name = "adaptative_structural_mechanics_implicit_dynamic_solver"
+            solver_module_name = "adaptative_remeshing_structural_mechanics_implicit_dynamic_solver"
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"static\", \"dynamic\""

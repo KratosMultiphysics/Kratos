@@ -27,7 +27,7 @@ import sys
 # Import the base structural analysis
 from structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
-class AdaptativeStructuralMechanicsAnalysis(BaseClass):
+class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     """
     This class is the main-script of the StructuralMechanicsApplication when using adaptative remeshing put in a class
 
@@ -55,11 +55,11 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
             self.process_remesh = True
         else:
             self.process_remesh = False
-        super(AdaptativeStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+        super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
-        super(AdaptativeStructuralMechanicsAnalysis, self).Initialize()
+        super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).Initialize()
         if (self.process_remesh is False):
             convergence_criteria = self._GetSolver().get_convergence_criterion()
             convergence_criteria.Initialize(self._GetSolver().GetComputingModelPart())
@@ -168,20 +168,20 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         ## Solver construction
-        import python_solvers_wrapper_adaptative_structural
-        return python_solvers_wrapper_adaptative_structural.CreateSolver(self.model, self.project_parameters)
+        import python_solvers_wrapper_adaptative_remeshing_structural
+        return python_solvers_wrapper_adaptative_remeshing_structural.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(AdaptativeStructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super(AdaptativeRemeshingStructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["recursive_remeshing_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("AdaptativeStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                KratosMultiphysics.Logger.PrintInfo("AdaptativeRemeshingStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -215,4 +215,4 @@ if __name__ == "__main__":
     else: # using default name
         project_parameters_file_name = "ProjectParameters.json"
 
-    AdaptativeStructuralMechanicsAnalysis(project_parameters_file_name).Run()
+    AdaptativeRemeshingStructuralMechanicsAnalysis(project_parameters_file_name).Run()

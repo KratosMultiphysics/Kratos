@@ -28,7 +28,7 @@ import sys
 # Import the base structural analysis
 from contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
 
-class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
+class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
     """
     This class is the main-script of the ContactStructuralMechanicsApplication when using adaptative remeshing put in a class
 
@@ -68,11 +68,11 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
         else:
             self.process_remesh = False
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
-        super(AdaptativeContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+        super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
-        super(AdaptativeContactStructuralMechanicsAnalysis, self).Initialize()
+        super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).Initialize()
         if (self.process_remesh is False):
             convergence_criteria = self._GetSolver().get_convergence_criterion()
             convergence_criteria.Initialize(self._GetSolver().GetComputingModelPart())
@@ -193,20 +193,20 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         ## Solver construction
-        import python_solvers_wrapper_adaptative_contact_structural
-        return python_solvers_wrapper_adaptative_contact_structural.CreateSolver(self.model, self.project_parameters)
+        import python_solvers_wrapper_adaptative_remeshing_contact_structural
+        return python_solvers_wrapper_adaptative_remeshing_contact_structural.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(AdaptativeContactStructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        list_of_processes = super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["recursive_remeshing_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KM.Logger.PrintInfo("AdaptativeContactStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                KM.Logger.PrintInfo("AdaptativeRemeshingContactStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -290,4 +290,4 @@ if __name__ == "__main__":
     else: # using default name
         project_parameters_file_name = "ProjectParameters.json"
 
-    AdaptativeContactStructuralMechanicsAnalysis(project_parameters_file_name).Run()
+    AdaptativeRemeshingContactStructuralMechanicsAnalysis(project_parameters_file_name).Run()
