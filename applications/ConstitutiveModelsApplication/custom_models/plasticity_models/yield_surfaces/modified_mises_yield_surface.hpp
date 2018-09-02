@@ -45,7 +45,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class THardeningRule>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ModifiedMisesYieldSurface : public YieldSurface<THardeningRule>
+  class ModifiedMisesYieldSurface : public YieldSurface<THardeningRule>
   {
   public:
     ///@name Type Definitions

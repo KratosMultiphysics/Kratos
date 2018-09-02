@@ -40,7 +40,7 @@ namespace Kratos
   /** Computes the energy
    */
 
-  class KRATOS_API(CONTACT_MECHANICS_APPLICATION) SplineCurveUtilities
+  class SplineCurveUtilities
   {
   public:
 

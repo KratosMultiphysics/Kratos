@@ -51,7 +51,7 @@ namespace Kratos
     This bounding box is essentially used for rigid wall contact purposes
 */
 
-class KRATOS_API(CONTACT_MECHANICS_APPLICATION) CylinderBoundingBox
+class CylinderBoundingBox
   : public SpatialBoundingBox
 {
 public:
