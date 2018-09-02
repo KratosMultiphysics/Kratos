@@ -79,6 +79,10 @@ class GiDOutputProcessMPI(gid_output_process.GiDOutputProcess):
         self.nodal_flags_names =[]
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
+        self.elemental_conditional_flags = self._GenerateFlagsListFromInput(result_file_configuration["elemental_conditional_flags_results"])
+        self.elemental_conditional_flags_names =[]
+        for i in range(result_file_configuration["elemental_conditional_flags_results"].size()):
+            self.elemental_conditional_flags_names.append(result_file_configuration["elemental_conditional_flags_results"][i].GetString())
 
         # Set up output frequency and format
         output_file_label = result_file_configuration["file_label"].GetString()
