@@ -70,11 +70,11 @@ namespace Kratos
     MooneyRivlinModel& operator=(MooneyRivlinModel const& rOther);
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override;
+    ConstitutiveModel::Pointer Clone() const override;
 
 
     /// Destructor.
-    virtual ~MooneyRivlinModel();
+    ~MooneyRivlinModel() override;
 
 
     ///@}
@@ -90,7 +90,7 @@ namespace Kratos
     /**
      * Check
      */
-    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -107,7 +107,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MooneyRivlinModel";
@@ -115,13 +115,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MooneyRivlinModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "MooneyRivlinModel Data";
     }
@@ -155,13 +155,13 @@ namespace Kratos
     /**
      * Calculate Stresses
      */
-    virtual void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
+    void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
 
     /**
      * Calculate Constitutive Components
      */
 
-    virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+    double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 					     const unsigned int& a, const unsigned int& b,
 					     const unsigned int& c, const unsigned int& d) override;
 
@@ -169,16 +169,16 @@ namespace Kratos
     //************// Strain Data
 
 
-    virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override;
+    void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override;
 
-    virtual void CalculateScalingFactors(HyperElasticDataType& rVariables) override;
+    void CalculateScalingFactors(HyperElasticDataType& rVariables) override;
 
 
     //************// dW
 
-    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //dU/dJ
+    double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //dU/dJ
 
-    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //ddU/dJdJ
+    double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //ddU/dJdJ
 
 
     virtual double& GetFunction1stI1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI1
@@ -451,12 +451,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )
     }

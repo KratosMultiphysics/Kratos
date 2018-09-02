@@ -35,6 +35,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_and_other_dof_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/residual_displacement_and_other_dof_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/error_mesh_criteria.h"
 
 // Builders and solvers
 
@@ -84,6 +85,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
+    typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
 
     // Custom builder and solvers types
 
@@ -160,15 +162,20 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Displacement and other DoF Convergence Criterion
     class_< DisplacementAndOtherDoFCriteriaType,typename DisplacementAndOtherDoFCriteriaType::Pointer,ConvergenceCriteriaType>(m,"DisplacementAndOtherDoFCriteria")
-            .def(init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
+    .def(init< double, double, std::string >())
+    .def(init< double, double>())
+    ;
 
     // Displacement and other DoF residual Convergence Criterion
     class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
     .def( init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
+    .def(init< double, double>())
+    ;
+
+    // Error mesh Convergence Criterion
+    class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria")
+    .def(init<Parameters>())
+    ;
 
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************

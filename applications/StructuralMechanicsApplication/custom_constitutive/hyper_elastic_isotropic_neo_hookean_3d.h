@@ -96,7 +96,7 @@ public:
     {
         return 3;
     };
-    
+
     /**
      * Voigt tensor size:
      */
@@ -175,9 +175,9 @@ public:
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
-     */ 
+     */
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -201,7 +201,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -296,15 +296,15 @@ private:
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
         );
-    
+
     /**
      * Calculates the Almansi strains
      * @param @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
-    virtual void CalculateAlmansiStrain( 
+    virtual void CalculateAlmansiStrain(
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector 
+        Vector& rStrainVector
         );
 
     ///@}
@@ -335,4 +335,4 @@ private:
 
 }; // Class HyperElasticIsotropicNeoHookean3D
 }  // namespace Kratos.
-#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED  defined

@@ -47,7 +47,7 @@ class PythonGenericFunctionUtility
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PythonGenericFunctionUtility);
 
-    PythonGenericFunctionUtility(  const std::string& function_body,  Parameters local_system = Parameters({}) )
+    PythonGenericFunctionUtility(  const std::string& function_body,  Parameters local_system = Parameters{} )
     {
         //compile the function starting from the string function body
         try

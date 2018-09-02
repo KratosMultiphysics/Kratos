@@ -102,7 +102,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlastic3DLaw();
+    ~HyperElasticPlastic3DLaw() override;
 
     /**
      * Operators

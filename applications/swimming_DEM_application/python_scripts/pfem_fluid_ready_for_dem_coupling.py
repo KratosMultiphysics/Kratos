@@ -66,6 +66,9 @@ class Solution(MainFluidPFEM.Solution):
 
         super(Solution,self).AddNodalVariablesToModelPart()
 
+        # This is the Kinematic Viscosity
+        self.fluid_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+
         self.AddFluidVariablesBySwimmingDEMAlgorithm()
 
     def CalculateNodalArea(self):

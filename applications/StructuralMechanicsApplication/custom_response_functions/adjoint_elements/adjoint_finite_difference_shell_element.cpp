@@ -24,7 +24,7 @@ namespace Kratos
 {
 
 AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(Element::Pointer pPrimalElement)
-                    : AdjointFiniteDifferencingBaseElement(pPrimalElement) {}
+                    : AdjointFiniteDifferencingBaseElement(pPrimalElement, true) {}
 
 AdjointFiniteDifferencingShellElement::~AdjointFiniteDifferencingShellElement() {}
 
@@ -169,9 +169,9 @@ void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Vector >& r
         }
 
         if(stress_is_moment)
-            mpPrimalElement->GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
+            mpPrimalElement->CalculateOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
         else
-            mpPrimalElement->GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
+            mpPrimalElement->CalculateOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
 
         rOutput.resize(num_gps);
         for(IndexType i = 0; i < num_gps; i++)

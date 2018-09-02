@@ -49,6 +49,7 @@ class MechanicalSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "",
+            "add_model_part_to_model_before_reading" : false,
             "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
@@ -123,6 +124,8 @@ class MechanicalSolver(PythonSolver):
             self.solver_imports_model_part = False
         else:
             self.main_model_part = KratosMultiphysics.ModelPart(model_part_name) # Model.CreateodelPart()
+            if self.settings["add_model_part_to_model_before_reading"].GetBool(): # this will be the default behavior once the Model is finished
+                self.model.AddModelPart(self.main_model_part)
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
                 raise Exception('Please specify a "domain_size" >= 0!')
@@ -213,7 +216,7 @@ class MechanicalSolver(PythonSolver):
         # This will be removed once the Model is fully supported! => It wont e necessary anymore
         if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
-            
+
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
     def Initialize(self):
@@ -344,10 +347,10 @@ class MechanicalSolver(PythonSolver):
         check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        # NOTE: We do this here in case the model is empty, so the properties can be assigned 
+        # NOTE: We do this here in case the model is empty, so the properties can be assigned
         if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
-        
+
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:

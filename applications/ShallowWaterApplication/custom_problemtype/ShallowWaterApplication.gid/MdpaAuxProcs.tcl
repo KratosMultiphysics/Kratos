@@ -381,9 +381,6 @@ proc WriteElementSubmodelPart {FileVar CondName} {
         
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
-            #~ # Tables
-            #~ puts $MyFileVar "  Begin SubModelPartTables"
-            #~ puts $MyFileVar "  End SubModelPartTables"
             # Nodes
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
             puts $MyFileVar "  Begin SubModelPartNodes"
@@ -416,13 +413,6 @@ proc WriteConstraintSubmodelPart {FileVar CondName} {
         
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
-            #~ # Tables
-            #~ set TableList [dict get $TableDict [lindex [lindex $Groups $i] 1] TableList]
-            #~ puts $MyFileVar "  Begin SubModelPartTables"
-            #~ for {set j 0} {$j < [llength $TableList]} {incr j} {
-                #~ puts $MyFileVar "    [lindex $TableList $j]"
-            #~ }
-            #~ puts $MyFileVar "  End SubModelPartTables"
             # Nodes
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
             puts $MyFileVar "  Begin SubModelPartNodes"
@@ -444,20 +434,13 @@ proc WriteConstraintSubmodelPart {FileVar CondName} {
 
 #-------------------------------------------------------------------------------
 
-proc WriteLoadSubmodelPart {FileVar CondName TableDict ConditionDict} {
+proc WriteLoadSubmodelPart {FileVar CondName ConditionDict} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
         
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
-            # Tables
-            set TableList [dict get $TableDict [lindex [lindex $Groups $i] 1] TableList]
-            puts $MyFileVar "  Begin SubModelPartTables"
-            for {set j 0} {$j < [llength $TableList]} {incr j} {
-                puts $MyFileVar "    [lindex $TableList $j]"
-            }
-            puts $MyFileVar "  End SubModelPartTables"
             # Nodes
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
             puts $MyFileVar "  Begin SubModelPartNodes"
