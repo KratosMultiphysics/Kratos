@@ -179,8 +179,8 @@ namespace Kratos
     ///@{
 
 
-    // calculate ratial return
-    bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
+    // calculate return mapping
+    bool CalculateReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 

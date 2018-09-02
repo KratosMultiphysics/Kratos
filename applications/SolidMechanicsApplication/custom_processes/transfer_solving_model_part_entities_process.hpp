@@ -442,7 +442,7 @@ private:
 
                 //set mechanical variables to contact conditions:
                 pCondition->Data() = i_cond->Data();
-
+               
                 rDestinationModelPart.Conditions().push_back(pCondition);
               }
             }

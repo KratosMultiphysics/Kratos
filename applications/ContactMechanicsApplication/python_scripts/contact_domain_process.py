@@ -40,12 +40,17 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
         # execute initialize base class
         if( self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):
+            # self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False
             self.InitializeDomains()
+            print(" initialize domains ")
 
         # initialize contact domains
         for domain in self.meshing_domains:
             domain.SetEchoLevel(self.echo_level)
             domain.Initialize()
+
+        if self.restart:
+            self.RemeshDomains()
 
         print(self._class_prefix()+" Ready")
 

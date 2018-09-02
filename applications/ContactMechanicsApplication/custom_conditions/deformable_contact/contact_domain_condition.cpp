@@ -1789,8 +1789,14 @@ namespace Kratos
 
     // Perform base condition checks
     int ErrorCode = 0;
-    ErrorCode = Condition::Check(rCurrentProcessInfo);
+    //ErrorCode = Condition::Check(rCurrentProcessInfo);
 
+    KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
+
+    const double domain_size = this->GetGeometry().DomainSize();
+    KRATOS_WARNING_IF( "DomainSize", domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
+
+        
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);

@@ -290,7 +290,7 @@ namespace Kratos
 	    if(rTransferVariables.Options.Is(MeshDataTransferUtilities::INITIALIZE_MASTER_CONDITION))
 	      {
 
-		std::cout<<"  TRANSFER INITIALIZE MASTER CONDITION "<<std::endl;
+		//std::cout<<"  TRANSFER INITIALIZE MASTER CONDITION "<<std::endl;
 
 		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 		const unsigned int dimension  = rCurrentProcessInfo[SPACE_DIMENSION];
@@ -305,7 +305,7 @@ namespace Kratos
 		    this->TransferInitialBoundaryData(*(ic.base()), rTransferVariables, Variables);
 		  }
 
-		std::cout<<"  TRANSFER DONE "<<std::endl;
+		//std::cout<<"  TRANSFER DONE "<<std::endl;
 	      }
 
 

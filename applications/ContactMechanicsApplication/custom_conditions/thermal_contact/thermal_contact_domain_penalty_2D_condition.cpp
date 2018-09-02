@@ -89,13 +89,16 @@ ThermalContactDomainPenalty2DCondition::~ThermalContactDomainPenalty2DCondition(
 void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
 
 {
+    KRATOS_TRY
+        
+    // std::cout<<" MASTER_ELEMENTS "<<GetValue(MASTER_ELEMENTS).size()<<" MASTER_NODES "<<GetValue(MASTER_NODES).size()<<std::endl;
     unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
     Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS)[vsize-1];
     mContactVariables.SetMasterElement(MasterElement);
 
 
     vsize=GetValue(MASTER_NODES).size();
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
+    Element::NodeType& MasterNode = GetValue(MASTER_NODES)[vsize-1];
     mContactVariables.SetMasterNode(MasterNode);
 
 
@@ -105,7 +108,6 @@ void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
         if(MasterNode.Id()==MasterElement.GetGeometry()[i].Id())
         {
 	    slave=i;
-
         }
     }
 
@@ -176,8 +178,8 @@ void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
         KRATOS_THROW_ERROR( std::invalid_argument, "MASTERNODE do not belongs to MASTER ELEMENT", "" );
 
     }
-
-
+    
+    KRATOS_CATCH("")
 }
 
 //*********************************COMPUTE KINEMATICS*********************************

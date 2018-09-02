@@ -22,7 +22,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
     ##will be called once the mesher is already filled
     def __init__(self, Model, custom_settings):
 
-        self.echo_level = 1
+        self.echo_level = 0
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -102,7 +102,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
         # Meshing Stratety
         self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
 
-        print(self._class_prefix()+"("+self.settings["model_part_name"].GetString(),") Ready")
+        print(self._class_prefix()+" ("+self.settings["model_part_name"].GetString()+") Ready")
 
     ####
 

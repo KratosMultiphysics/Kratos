@@ -357,7 +357,7 @@ namespace Kratos
 	{
 
 	  //3.- Calculate the radial return
-	  bool converged = this->CalculateRadialReturn(rVariables,rStressMatrix);
+	  bool converged = this->CalculateReturnMapping(rVariables,rStressMatrix);
 
 	  if(!converged)
 	    std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
@@ -431,7 +431,7 @@ namespace Kratos
 
     // calculate ratial return
 
-    virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual bool CalculateReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 

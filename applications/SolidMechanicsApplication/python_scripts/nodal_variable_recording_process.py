@@ -54,7 +54,7 @@ class NodalVariableRecordingProcess(KratosMultiphysics.Process):
         self.model_part = self.model.GetModelPart(custom_settings["model_part_name"].GetString())
 
         # Set path and headers
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
+        if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
 
             current_step = self.GetCurrentStep()
 

@@ -182,8 +182,8 @@ void SolidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& r
 void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
     const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+    unsigned int   dofs_size       = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );

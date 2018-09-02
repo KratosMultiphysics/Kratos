@@ -170,6 +170,7 @@ namespace Kratos
 
     HyperElasticDataType Variables;
     this->CalculateStrainData(rValues,Variables);
+    noalias(rStressMatrix) = ZeroMatrix(3,3);
     this->CalculateAndAddIsochoricStressTensor(Variables,rStressMatrix);
 
     KRATOS_CATCH(" ")

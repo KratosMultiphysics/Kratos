@@ -19,6 +19,7 @@ class ContactMesher(mesher.Mesher):
     def __init__(self, main_model_part, meshing_parameters):
 
         mesher.Mesher.__init__(self, main_model_part, meshing_parameters)
+        self.echo_level = 0
 
     #
     def Initialize(self, dimension):

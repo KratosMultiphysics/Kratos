@@ -5,15 +5,19 @@
     "problem_data"             : {
         "domain_type" : "Solid",
         "echo_level"  : 1,
-        "threads"     : 8
+        "threads"     : 1
     },
     "time_settings" : {
         "time_step" : 5.0e-8,
-        "end_time"  : 1.0e-4
+        "end_time"  : 2.5e-5
     },
     "model_settings" : {
 	"model_name" : "Main_Domain",
         "dimension" : 2,
+        "input_file_settings": {
+            "type" : "rest",
+            "label": 17
+        },
 	"bodies_list":[{
 	    "body_type": "Solid",
 	    "body_name": "Solid_Piece",
@@ -72,14 +76,9 @@
 		    },
 		    "linear_solver_settings"    : {
                         "solver_type" : "AMGCL",
-	                "krylov_type": "lgmres",
-	                "smoother_type": "ilu0",
-	                "coarsening_type": "ruge_stuben",
-                        "tolerance"   : 1e-7,
-	                "max_iteration" : 5000,
-	                "gmres_krylov_space_dimension":100,
-	                "verbosity"    : 0,
-                        "scaling"     : true
+			"tolerance"   : 1e-7,
+			"max_iteration" : 5000,
+			"scaling"     : true
 		    },
 		    "dofs" : ["DISPLACEMENT","PRESSURE"],
 		    "solving_model_part": "computing_domain"
@@ -227,7 +226,7 @@
         "Parameters"       : {
             "model_part_name"       : "Main_Domain",
             "meshing_control_type"  : "step",
-            "meshing_frequency"     : 1,
+            "meshing_frequency"     : 2,
             "meshing_before_output" : true,
             "meshing_domains" : [{
                 "python_module": "contact_domain",
@@ -310,18 +309,17 @@
         }
     }
     ],
-    "_output_process_list" : [{
-        "help"            : "This process writes restart files",    
+    "output_process_list" : [{
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",    
         "python_module"   : "restart_process",
         "process_name"    : "RestartProcess",
         "Parameters"      : {
             "model_part_name"     : "Main_Domain",
-            "save_restart"        : false,
-            "restart_file_name"   : "machining_2d_lct",
+            "save_restart"        : true,
+            "restart_file_name"   : "deformable_tool_cutting_2D",
             "restart_file_label"  : "step",
             "output_control_type" : "time",
-            "output_frequency"    : 0,
+            "output_frequency"    : 1.0e-7,
             "json_output"         : false
         }
     }],
@@ -342,7 +340,7 @@
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT_REACTION","NORMAL","CONTACT_FORCE","PRESSURE","TEMPERATURE","DISPLACEMENT"],
             "nodal_flags_results" : ["BOUNDARY","ISOLATED","CONTACT"],
-            "gauss_point_results" : ["CAUCHY_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR","VON_MISES_STRESS","PLASTIC_STRAIN","PLASTIC_DISSIPATION"],
+            "gauss_point_results" : ["CAUCHY_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR","VON_MISES_STRESS","PLASTIC_STRAIN","PLASTIC_DISSIPATION","DELTA_PLASTIC_STRAIN","DELTA_PLASTIC_DISSIPATION"],
             "additional_list_files": [2,5,10,20]
         },
         "point_data_configuration"  : []

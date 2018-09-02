@@ -90,7 +90,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, False);
 
-
         # initialize all meshing domains
         if( self.remesh_domains_active ):
 

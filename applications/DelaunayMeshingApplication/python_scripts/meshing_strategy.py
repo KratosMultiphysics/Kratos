@@ -167,7 +167,8 @@ class MeshingStrategy(object):
         self.SetMeshInfo()
 
         if( self.global_transfer == True ):
-            print(self._class_prefix()+" Elements To Nodes transfer ")
+            if( self.echo_level > 0 ):
+                print(self._class_prefix()+" Elements To Nodes transfer ")
             self.MeshDataTransfer.TransferElementalValuesToNodes(self.TransferParameters,self.model_part)
 
     #

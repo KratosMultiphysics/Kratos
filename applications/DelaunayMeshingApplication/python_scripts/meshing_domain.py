@@ -18,7 +18,7 @@ class MeshingDomain(object):
     ##will be called once the mesher is already filled
     def __init__(self, Model, custom_settings):
 
-        self.echo_level = 1
+        self.echo_level = 0
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -130,7 +130,7 @@ class MeshingDomain(object):
         if(self.active_remeshing):
             Remesh = "Yes"
             
-        print(self._class_prefix()+"("+self.settings["model_part_name"].GetString()+" ("+BodyType+") "+Remesh)
+        print(self._class_prefix()+" "+self.settings["model_part_name"].GetString()+" ("+BodyType+") "+Remesh)
 
     ####
 

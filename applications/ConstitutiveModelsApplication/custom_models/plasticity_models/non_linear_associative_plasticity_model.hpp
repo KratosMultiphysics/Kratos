@@ -171,7 +171,7 @@ namespace Kratos
 
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
-      VolumetricStressMatrix.clear();
+      noalias(VolumetricStressMatrix) = ZeroMatrix(3,3); 
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
 
       // calculate isochoric stress
@@ -260,7 +260,7 @@ namespace Kratos
 
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
-      VolumetricStressMatrix.clear();
+      noalias(VolumetricStressMatrix) = ZeroMatrix(3,3);
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
 
       // calculate isochoric stress
@@ -488,15 +488,15 @@ namespace Kratos
 	else
 	  {
 
-	    //3.- Calculate the radial return
-	    bool converged = this->CalculateRadialReturn(rVariables,rStressMatrix);
-
-	    if(!converged)
-	      std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
-
+	    //3.- Calculate the return mapping
+	    bool converged = this->CalculateReturnMapping(rVariables,rStressMatrix);
 
 	    //4.- Update back stress, plastic strain and stress
 	    this->UpdateStressConfiguration(rVariables,rStressMatrix);
+
+            
+            if(!converged)
+              std::cout<<" ConstitutiveLaw did not converge [Stress: "<<rStressMatrix<<" DeltaGamma: "<<rVariables.DeltaInternal.Variables[0]<<"]"<<std::endl;
 
 	    //5.- Calculate thermal dissipation and delta thermal dissipation
 	    this->CalculateThermalDissipation(rVariables);
@@ -597,9 +597,9 @@ namespace Kratos
     }
 
 
-    // calculate ratial return
+    // calculate return mapping
 
-    virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual bool CalculateReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -622,7 +622,7 @@ namespace Kratos
       rEquivalentPlasticStrain = 0;
       rDeltaGamma = 0;
 
-      while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
+      while(fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 	  //Calculate Delta State Function:
 	  DeltaStateFunction = this->mYieldSurface.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
@@ -642,8 +642,10 @@ namespace Kratos
 	}
 
 
-      if(iter>MaxIterations)
+      if(iter>MaxIterations){
+        std::cout<<" DeltaPlasticStrain "<<DeltaPlasticStrain<<" Equivalent Plastic Strain "<<rEquivalentPlasticStrain<<" StateFunction "<<StateFunction<<" DeltaDeltaGamma "<<DeltaDeltaGamma<<" DeltaGamma "<<rDeltaGamma<<std::endl;
 	return false;
+      }
 
 
       return true;

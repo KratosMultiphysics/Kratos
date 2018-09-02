@@ -59,7 +59,6 @@ class ModelManager(object):
 
         # Composite solving parts
         self.transfer_solving_parts = []
-        self.solving_parts_update_time = 0
 
     ########
 
@@ -74,7 +73,7 @@ class ModelManager(object):
     def ExecuteInitializeSolutionStep(self):
         if( self._domain_parts_updated() ):
             self._update_composite_solving_parts()
-            print(" UPDATE_SOLVING_PARTS Initialize")
+            # print(" UPDATE_SOLVING_PARTS Initialize")
     #
     def ExecuteFinalizeSolutionStep(self):
         pass
@@ -82,12 +81,12 @@ class ModelManager(object):
     def ExecuteBeforeOutputStep(self):
         if( self._domain_parts_updated() ):
             self._update_composite_solving_parts()
-            print(" UPDATE_SOLVING_PARTS Before output")
+            # print(" UPDATE_SOLVING_PARTS Before output")
     #
     def ExecuteAfterOutputStep(self):
         if( self._domain_parts_updated() ):
             self._update_composite_solving_parts()
-            print(" UPDATE_SOLVING_PARTS After output")
+            # print(" UPDATE_SOLVING_PARTS After output")
 
     ########
 
@@ -132,15 +131,21 @@ class ModelManager(object):
             serializer.Load(self.main_model_part.Name, self.main_model_part)
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
+            self.main_model_part.ProcessInfo[KratosSolid.RESTART_STEP_TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+
             #I use it to rebuild the contact conditions.
             load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1
             self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
             # print("   Finished loading model part from restart file ")
 
+            print( self.main_model_part )
+
+            '''
             solving_model_part = self.settings["solving_model_part"].GetString()
             self._add_model_part_to_model(solving_model_part)
 
             # Get the list of the model_part's in the object Model
+
             for i in range(self.settings["domain_parts_list"].size()):
                 part_name = self.settings["domain_parts_list"][i].GetString()
                 self._add_model_part_to_model(part_name)
@@ -149,6 +154,16 @@ class ModelManager(object):
                 part_name = self.settings["processes_parts_list"][i].GetString()
                 self._add_model_part_to_model(part_name)
 
+            solving_parts = self.settings["composite_solving_parts"]
+            for i in range(solving_parts.size()):
+                part_name = solving_parts[i]["model_part_name"].GetString()
+                self._add_model_part_to_model(part_name)
+            '''
+            for part in self.main_model_part.SubModelParts:
+                self._add_model_part_to_model(part.Name)
+
+            self._build_composite_solving_parts()
+                
         else:
             raise Exception("Other input options are not yet implemented.")
 
@@ -240,7 +255,7 @@ class ModelManager(object):
     def _execute_after_reading(self):
 
         # Build bodies
-        if( self._has_bodies() ):
+        if self._has_bodies():
             self._build_bodies()
 
         # Build solving model parts
@@ -248,7 +263,8 @@ class ModelManager(object):
 
         # Build composite solving model parts
         self._build_composite_solving_parts()
-
+        self._update_composite_solving_parts()
+        
         # Build output model part
         #self._create_sub_model_part(self.settings["output_model_part"].GetString())
 
@@ -383,11 +399,10 @@ class ModelManager(object):
         for i in range(0,solving_parts.size()):
             print(self._class_prefix()+" Build Part: "+solving_parts[i]["model_part_name"].GetString())
             solving_part_transfer = KratosSolid.TransferSolvingModelPartProcess(self.main_model_part,solving_parts[i])
-            solving_part_transfer.Execute()
             self.transfer_solving_parts.append(solving_part_transfer)
+
     #
     def _update_composite_solving_parts(self):
-        self.solving_parts_update_time = self.process_info[KratosMultiphysics.TIME]
         for transfer in self.transfer_solving_parts:
             transfer.Execute()
     #
@@ -435,23 +450,38 @@ class ModelManager(object):
 
     #
     def _domain_parts_updated(self):
-        if( self.process_info.Has(KratosSolid.MESHING_STEP_TIME) ):
-            current_time  = self.process_info[KratosMultiphysics.TIME]
-            delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
+        update_time = False
+        if not self._is_not_restarted():
+            if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
+                update_time = self._check_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
+                # print(" RESTART_STEP_TIME ",self.process_info[KratosSolid.RESTART_STEP_TIME], update_time)
 
-            #arithmetic floating point tolerance
-            tolerance = delta_time * 0.001
+        if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
+            update_time = self._check_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
 
-            meshing_step_time = self.process_info[KratosSolid.MESHING_STEP_TIME]
+        return update_time
+    #
+    def _check_time_step(self, step_time):
+        current_time  = self.process_info[KratosMultiphysics.TIME]
+        delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
+        previous_time = current_time - delta_time
 
-            if( self.solving_parts_update_time > current_time-tolerance and self.solving_parts_update_time < current_time+tolerance ):
+        #arithmetic floating point tolerance
+        tolerance = delta_time * 0.001
+
+        if( step_time > previous_time-tolerance and step_time < previous_time+tolerance ):
+            return True
+        else:
+            return False
+    #
+    def _is_not_restarted(self):
+        if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):
+            if self.process_info[KratosMultiphysics.IS_RESTARTED]:
                 return False
-
-            if( meshing_step_time > current_time-tolerance and meshing_step_time < current_time+tolerance ):
+            else:
                 return True
-
-        return False
-
+        else:
+            return True
     #
     def _has_bodies(self):
         if( self.settings.Has("bodies_list") ):

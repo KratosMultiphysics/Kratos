@@ -92,6 +92,8 @@ ContactDomainLM2DCondition::~ContactDomainLM2DCondition()
 void ContactDomainLM2DCondition::SetMasterGeometry()
 
 {
+    KRATOS_TRY
+    // std::cout<<" MASTER_ELEMENTS "<<GetValue(MASTER_ELEMENTS).size()<<" MASTER_NODES "<<GetValue(MASTER_NODES).size()<<std::endl;
     Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(MasterElement);
 
@@ -179,6 +181,7 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
     // std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")"<<std::endl;
 
     // std::cout<<" MASTER  ("<<MasterElement.GetGeometry()[0].Id()<<")("<<MasterElement.GetGeometry()[1].Id()<<")("<<MasterElement.GetGeometry()[2].Id()<<")"<<std::endl;
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -1303,11 +1306,13 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(ConditionVariables
 void ContactDomainLM2DCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ContactDomainCondition )
+    // std::cout<<" Restart Save MASTER_ELEMENTS "<<GetValue(MASTER_ELEMENTS).size()<<" MASTER_NODES "<<GetValue(MASTER_NODES).size()<<std::endl;
 }
 
 void ContactDomainLM2DCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ContactDomainCondition )
+    // std::cout<<" Restart Load MASTER_ELEMENTS "<<GetValue(MASTER_ELEMENTS).size()<<" MASTER_NODES "<<GetValue(MASTER_NODES).size()<<std::endl;
 }
 
 

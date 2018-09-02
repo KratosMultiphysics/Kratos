@@ -277,10 +277,10 @@ class Solution(object):
 
     def _is_not_restarted(self):
         if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):
-            if self.process_info[KratosMultiphysics.IS_RESTARTED] is False:
-                return True
-            else:
+            if self.process_info[KratosMultiphysics.IS_RESTARTED]:
                 return False
+            else:
+                return True
         else:
             return True
 

@@ -47,22 +47,22 @@ class PfemSolution(MainSolid.Solution):
 
         if(processes_parameters.Has("constraints_process_list")):
             constraints_processes = processes_parameters["constraints_process_list"]
-            if(self.echo_level>0):
+            if(self.echo_level>1):
                 print(" CONSTRAINTS_PROCESSES ", processes_parameters["constraints_process_list"].PrettyPrintJsonString())
             extended_constraints_processes = self._set_isolated_nodes_management_process(constraints_processes)
             processes_parameters.AddValue("constraints_process_list", extended_constraints_processes)
             extended_constraints_processes = self._set_selected_elements_management_process(constraints_processes)
             processes_parameters.AddValue("constraints_process_list", extended_constraints_processes)
-            if(self.echo_level>0):
+            if(self.echo_level>1):
                 print(" EXTENDED_CONSTRAINTS_PROCESSES ", processes_parameters["constraints_process_list"].PrettyPrintJsonString())
 
         if(processes_parameters.Has("loads_process_list")):
             loads_processes = processes_parameters["loads_process_list"]
-            if(self.echo_level>0):
+            if(self.echo_level>1):
                 print(" LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
             extended_loads_processes = self._set_volume_acceleration_process(loads_processes)
             processes_parameters.AddValue("loads_process_list", extended_loads_processes)
-            if(self.echo_level>0):
+            if(self.echo_level>1):
                 print(" EXTENDED_LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
 
         return processes_parameters
