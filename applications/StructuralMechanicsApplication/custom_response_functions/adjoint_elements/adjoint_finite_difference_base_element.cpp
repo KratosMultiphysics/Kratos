@@ -191,7 +191,7 @@ void AdjointFiniteDifferencingBaseElement::Calculate(const Variable<Matrix >& rV
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferencingBaseElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                     std::vector<double>& rValues,
                     const ProcessInfo& rCurrentProcessInfo)
 {

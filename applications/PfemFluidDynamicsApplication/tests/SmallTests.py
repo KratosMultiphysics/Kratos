@@ -24,7 +24,6 @@ def SetTestSuite(suites):
 
     small_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-
             Water_Sloshing_2D_Test_Newtonian,
             Water_Sloshing_2D_Test_Non_Newtonian,
             Water_Sloshing_2D_Test_Mu_Rheology
