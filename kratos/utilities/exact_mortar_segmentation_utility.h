@@ -81,7 +81,7 @@ namespace Kratos {
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TBelong If we consider belonging of nodes or not
+ * @tparam TBelong If we consider belonging of nodes or not. When you do the intersections in order to get the directional derivatives you need to know where the intersections belongs to calculate the derivatives. This says between which nodes the intersection belongs
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template <SizeType TDim, SizeType TNumNodes, bool TBelong = false, SizeType TNumNodesMaster = TNumNodes>
