@@ -27,9 +27,9 @@ except ImportError as e:
 import contact_structural_mechanics_implicit_dynamic_solver
 
 def CreateSolver(model, custom_settings):
-    return AdaptativeContactImplicitMechanicalSolver(model, custom_settings)
+    return AdaptativeRemeshingContactImplicitMechanicalSolver(model, custom_settings)
 
-class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_implicit_dynamic_solver.ContactImplicitMechanicalSolver):
+class AdaptativeRemeshingContactImplicitMechanicalSolver(contact_structural_mechanics_implicit_dynamic_solver.ContactImplicitMechanicalSolver):
     """The contact structural mechanics implicit dynamic solver. (Fot adaptative remeshing)
     See contact_structural_mechanics_implicit_dynamic_solver.py for more information.
     """
@@ -85,16 +85,16 @@ class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_imp
         self.adaptative_remesh_parameters = adaptative_remesh_parameters
 
         # Construct the base solver.
-        super(AdaptativeContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdaptativeContactImplicitMechanicalSolver]:: ", "Construction finished")
+        super(AdaptativeRemeshingContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
+        self.print_on_rank_zero("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
     def AddVariables(self):
-        super(AdaptativeContactImplicitMechanicalSolver, self).AddVariables()
+        super(AdaptativeRemeshingContactImplicitMechanicalSolver, self).AddVariables()
         if (missing_meshing_dependencies is False):
             self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
-        self.print_on_rank_zero("::[AdaptativeContactImplicitMechanicalSolver]:: ", "Variables ADDED")
+        self.print_on_rank_zero("::[AdaptativeRemeshingContactImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
         if not hasattr(self, '_remeshing_process'):

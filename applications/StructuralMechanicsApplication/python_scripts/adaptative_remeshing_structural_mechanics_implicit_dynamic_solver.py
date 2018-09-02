@@ -25,9 +25,9 @@ except ImportError as e:
 import structural_mechanics_implicit_dynamic_solver
 
 def CreateSolver(model, custom_settings):
-    return AdaptativeImplicitMechanicalSolver(model, custom_settings)
+    return AdaptativeRemeshingImplicitMechanicalSolver(model, custom_settings)
 
-class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
+class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
     """The structural mechanics implicit dynamic solver. (Fot adaptative remeshing)
     See structural_mechanics_implicit_dynamic_solver.py for more information.
     """
@@ -81,16 +81,16 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         self.adaptative_remesh_parameters = adaptative_remesh_parameters
 
         # Construct the base solver.
-        super(AdaptativeImplicitMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdaptativeImplicitMechanicalSolver]:: ", "Construction finished")
+        super(AdaptativeRemeshingImplicitMechanicalSolver, self).__init__(model, custom_settings)
+        self.print_on_rank_zero("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
     def AddVariables(self):
-        super(AdaptativeImplicitMechanicalSolver, self).AddVariables()
+        super(AdaptativeRemeshingImplicitMechanicalSolver, self).AddVariables()
         if (missing_meshing_dependencies is False):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
-        self.print_on_rank_zero("::[AdaptativeImplicitMechanicalSolver]:: ", "Variables ADDED")
+        self.print_on_rank_zero("::[AdaptativeRemeshingImplicitMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
         if not hasattr(self, '_remeshing_process'):

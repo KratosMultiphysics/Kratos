@@ -25,9 +25,9 @@ except ImportError as e:
 import structural_mechanics_static_solver
 
 def CreateSolver(model, custom_settings):
-    return AdaptativeStaticMechanicalSolver(model, custom_settings)
+    return AdaptativeRemeshingStaticMechanicalSolver(model, custom_settings)
 
-class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
+class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
     """The structural mechanics static solver. (Fot adaptative remeshing)
     See structural_mechanics_static_solver.py for more information.
     """
@@ -81,16 +81,16 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
         self.adaptative_remesh_parameters = adaptative_remesh_parameters
 
         # Construct the base solver.
-        super(AdaptativeStaticMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdaptativeStaticMechanicalSolver]:: ", "Construction finished")
+        super(AdaptativeRemeshingStaticMechanicalSolver, self).__init__(model, custom_settings)
+        self.print_on_rank_zero("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
     def AddVariables(self):
-        super(AdaptativeStaticMechanicalSolver, self).AddVariables()
+        super(AdaptativeRemeshingStaticMechanicalSolver, self).AddVariables()
         if (missing_meshing_dependencies is False):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
-        self.print_on_rank_zero("::[AdaptativeStaticMechanicalSolver]:: ", "Variables ADDED")
+        self.print_on_rank_zero("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
         if not hasattr(self, '_remeshing_process'):

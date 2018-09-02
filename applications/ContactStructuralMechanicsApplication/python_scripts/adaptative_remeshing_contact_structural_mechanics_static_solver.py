@@ -27,9 +27,9 @@ except ImportError as e:
 import contact_structural_mechanics_static_solver
 
 def CreateSolver(model, custom_settings):
-    return AdaptativeContactStaticMechanicalSolver(model, custom_settings)
+    return AdaptativeRemeshingContactStaticMechanicalSolver(model, custom_settings)
 
-class AdaptativeContactStaticMechanicalSolver(contact_structural_mechanics_static_solver.ContactStaticMechanicalSolver):
+class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechanics_static_solver.ContactStaticMechanicalSolver):
     """The structural mechanics static solver. (Fot adaptative remeshing)
     See contact_structural_mechanics_static_solver.py for more information.
     """
@@ -85,16 +85,16 @@ class AdaptativeContactStaticMechanicalSolver(contact_structural_mechanics_stati
         self.adaptative_remesh_parameters = adaptative_remesh_parameters
 
         # Construct the base solver.
-        super(AdaptativeContactStaticMechanicalSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[AdaptativeContactStaticMechanicalSolver]:: ", "Construction finished")
+        super(AdaptativeRemeshingContactStaticMechanicalSolver, self).__init__(model, custom_settings)
+        self.print_on_rank_zero("::[AdaptativeRemeshingContactStaticMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
     def AddVariables(self):
-        super(AdaptativeContactStaticMechanicalSolver, self).AddVariables()
+        super(AdaptativeRemeshingContactStaticMechanicalSolver, self).AddVariables()
         if (missing_meshing_dependencies is False):
             self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
-        self.print_on_rank_zero("::[AdaptativeContactStaticMechanicalSolver]:: ", "Variables ADDED")
+        self.print_on_rank_zero("::[AdaptativeRemeshingContactStaticMechanicalSolver]:: ", "Variables ADDED")
 
     def get_remeshing_process(self):
         if not hasattr(self, '_remeshing_process'):
