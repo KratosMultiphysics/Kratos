@@ -77,7 +77,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             msg  = "Input JSON data contains deprecated setting \'oss_switch\' (int).\n"
             msg += "Please define \'stabilization/formulation\' (set it to \'vms\')\n"
             msg += "and set \'stabilization/use_orthogonal_subscales\' (bool) instead."
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
+            if self._IsPrintingRank():
+                #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
             if not settings.Has("stabilization"):
                 settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
             settings["stabilization"].AddEmptyValue("use_orthogonal_subscales")
@@ -87,7 +89,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             msg  = "Input JSON data contains deprecated setting \'dynamic_tau\' (float).\n"
             msg += "Please define \'stabilization/formulation\' (set it to \'vms\') and \n"
             msg += "set \'stabilization/dynamic_tau\' (float) instead."
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
+            if self._IsPrintingRank():
+                #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
             if not settings.Has("stabilization"):
                 settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
             settings["stabilization"].AddEmptyValue("dynamic_tau")
@@ -99,6 +103,8 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
 
     def __init__(self, model, custom_settings):
+        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
+
         # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
         super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
 
@@ -106,8 +112,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.element_name = self.stabilization.element_name
         self.condition_name = self.stabilization.condition_name
         self.min_buffer_size = 2
-
-        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
 
         ## Construct the linear solver
         import trilinos_linear_solver_factory
