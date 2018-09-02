@@ -84,7 +84,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
             } else if (std::abs(auxiliar_coordinates[1] - 1.0) < tolerance) { // NOTE: Equivalent to == 1.0
                 auxiliar_coordinates[0] = auxiliar_xi[0];
             } else {
-                KRATOS_ERROR << "ERROR:: THIS IS NOT SUPPOSED TO HAPPEN. Auxiliar local coordinate: " <<  auxiliar_xi[0] << ". Auxiliar coordinates: " << auxiliar_coordinates[0] << " , " << auxiliar_coordinates[1] << std::endl;
+                KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN. Auxiliar local coordinate: " <<  auxiliar_xi[0] << ". Auxiliar coordinates: " << auxiliar_coordinates[0] << " , " << auxiliar_coordinates[1] << std::endl;
             }
         } else if ( auxiliar_xi.size() == 2) { // Both nodes of the master belong to the slave (and none of the nodes of the slave belong to the master, the nodes can coincide, there is no other possibility)
             if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0. In this case the node in the left edge is already assigned
@@ -101,15 +101,15 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
                 }
             }
         } else { // THIS IS NOT SUPPOSED TO HAPPEN
-            KRATOS_DEBUG_ERROR << "ERROR:: THIS IS NOT SUPPOSED TO HAPPEN!!!!\n" << rOriginalSlaveGeometry << "\n" << rOriginalMasterGeometry << std::endl;
+            KRATOS_DEBUG_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN!!!!\n" << rOriginalSlaveGeometry << "\n" << rOriginalMasterGeometry << std::endl;
             return false;  // NOTE: Giving problems
         }
 
         total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
     }
 
-    KRATOS_ERROR_IF(total_weight < 0.0) << "ERROR:: Wrong order of the coordinates: "<< auxiliar_coordinates << std::endl;
-    KRATOS_ERROR_IF(total_weight > 2.0) << "ERROR:: Impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
+    KRATOS_ERROR_IF(total_weight < 0.0) << "Wrong order of the coordinates: "<< auxiliar_coordinates << std::endl;
+    KRATOS_ERROR_IF(total_weight > 2.0) << "Impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
 
     // We do the final assignmen
     if (total_weight > ZeroTolerance) {
@@ -548,7 +548,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
                 auxiliar_coordinates[0] = auxiliar_xi[0];
                 auxiliar_belong[0] = auxiliar_master_belong[0];
             } else {
-                KRATOS_ERROR << "ERROR:: THIS IS NOT SUPPOSED TO HAPPEN. Auxiliar local coordinate: " <<  auxiliar_xi[0] << ". Auxiliar coordinates: " << auxiliar_coordinates[0] << " , " << auxiliar_coordinates[1] << std::endl;
+                KRATOS_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN. Auxiliar local coordinate: " <<  auxiliar_xi[0] << ". Auxiliar coordinates: " << auxiliar_coordinates[0] << " , " << auxiliar_coordinates[1] << std::endl;
             }
         } else if ( auxiliar_xi.size() == 2) { // Both nodes of the master belong to the slave (and none of the nodes of the slave belong to the master, the nodes can coincide, there is no other possibility)
             if (std::abs(auxiliar_coordinates[0] + 1.0) < tolerance) { // NOTE: Equivalent to == -1.0. In this case the node in the left edge is already assigned
@@ -571,15 +571,15 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
                 }
             }
         } else { // THIS IS NOT SUPPOSED TO HAPPEN
-            KRATOS_DEBUG_ERROR << "ERROR:: THIS IS NOT SUPPOSED TO HAPPEN!!!!\n" << rOriginalSlaveGeometry << "\n" << rOriginalMasterGeometry << std::endl;
+            KRATOS_DEBUG_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN!!!!\n" << rOriginalSlaveGeometry << "\n" << rOriginalMasterGeometry << std::endl;
             return false;  // NOTE: Giving problems
         }
 
         total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
     }
 
-    KRATOS_ERROR_IF(total_weight < 0.0) << "ERROR:: Wrong order of the coordinates: "<< auxiliar_coordinates << std::endl;
-    KRATOS_ERROR_IF(total_weight > 2.0) << "ERROR:: Impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
+    KRATOS_ERROR_IF(total_weight < 0.0) << "Wrong order of the coordinates: "<< auxiliar_coordinates << std::endl;
+    KRATOS_ERROR_IF(total_weight > 2.0) << "Impossible, Weight higher than 2: "<< auxiliar_coordinates << std::endl;
 
     // We do the final assignmen
     if (total_weight > ZeroTolerance) {
