@@ -38,7 +38,7 @@ public:
     {
         Vector<typename TVariable::Type> data;
         SetDataBuffer(rVariable, rNodes, data, Step);
-        rFile.WriteDataSet(rPrefix + "/NodalResults/" + rVariable.Name(), data, rInfo);
+        rFile.WriteDataSet(rPrefix + "/NodalSolutionStepData/" + rVariable.Name(), data, rInfo);
     }
 };
 
@@ -55,7 +55,7 @@ public:
                     unsigned BlockSize)
     {
         Vector<typename TVariable::Type> data;
-        rFile.ReadDataSet(rPrefix + "/NodalResults/" + rVariable.Name(), data,
+        rFile.ReadDataSet(rPrefix + "/NodalSolutionStepData/" + rVariable.Name(), data,
                           StartIndex, BlockSize);
         SetNodalSolutionStepData(rVariable, data, rNodes, Step);
     }
@@ -103,7 +103,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
             .Execute<WriteVariableFunctor>(local_nodes, Step, *mpFile, mPrefix, info);
 
     // Write block partition.
-    WritePartitionTable(*mpFile, mPrefix + "/NodalResults", info);
+    WritePartitionTable(*mpFile, mPrefix + "/NodalSolutionStepData", info);
 
     KRATOS_CATCH("");
 }
@@ -118,7 +118,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
     std::vector<NodeType*> local_nodes;
     GetLocalNodes(rNodes, local_nodes);
     unsigned start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mPrefix + "/NodalResults");
+    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mPrefix + "/NodalSolutionStepData");
 
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
