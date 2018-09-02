@@ -318,7 +318,8 @@ class MmgProcess(KratosMultiphysics.Process):
                             current_metric_variable,
                             hessian_parameters))
         elif (self.strategy == "superconvergent_patch_recovery"):
-            assert structural_dependencies
+            if not structural_dependencies:
+                raise Exception("You need to compile the StructuralMechanicsApplication in order to use this criteria")
 
             # We compute the error
             error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
