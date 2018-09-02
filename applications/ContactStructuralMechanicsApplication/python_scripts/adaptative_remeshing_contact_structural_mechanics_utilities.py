@@ -26,7 +26,7 @@ except ImportError as e:
 # Import base class
 import adaptative_remeshing_structural_mechanics_utilities
 
-class AdaptativeRemeshingContactMechanicalUtilities(adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingtMechanicalUtilities):
+class AdaptativeRemeshingContactMechanicalUtilities(adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities):
     """These are common utilities for adaptative remeshing (for contact)
     """
 

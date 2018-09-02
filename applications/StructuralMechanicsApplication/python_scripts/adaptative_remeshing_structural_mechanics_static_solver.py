@@ -34,7 +34,7 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
         import adaptative_remeshing_structural_mechanics_utilities
-        self.adaptative_remeshing_utilities = adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingtMechanicalUtilities()
+        self.adaptative_remeshing_utilities = adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities()
         adaptative_remesh_parameters = self.adaptative_remeshing_utilities.GetDefaultParameters()
 
         # Validate the remaining settings in the base class.

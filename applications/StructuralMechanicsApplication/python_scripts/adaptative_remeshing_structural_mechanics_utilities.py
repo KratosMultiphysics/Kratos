@@ -21,7 +21,7 @@ except ImportError as e:
     import re
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
 
-class AdaptativeRemeshingtMechanicalUtilities(object):
+class AdaptativeRemeshingMechanicalUtilities(object):
     """These are common utilities for adaptative remeshing
     """
 
