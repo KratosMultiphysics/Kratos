@@ -29,14 +29,7 @@ def CreateSolver(model, custom_settings):
 
 class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
     """The structural mechanics implicit dynamic solver. (Fot adaptative remeshing)
-
-    This class creates the mechanical solvers for implicit dynamic analysis.
-    It currently supports Newmark, Bossak and dynamic relaxation schemes.
-
-    Public member variables:
-    dynamic_settings -- settings for the implicit dynamic solvers.
-
-    See structural_mechanics_solver.py for more information.
+    See structural_mechanics_implicit_dynamic_solver.py for more information.
     """
         def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.

@@ -31,15 +31,7 @@ def CreateSolver(model, custom_settings):
 
 class AdaptativeContactStaticMechanicalSolver(contact_structural_mechanics_static_solver.ContactStaticMechanicalSolver):
     """The structural mechanics static solver. (Fot adaptative remeshing)
-
-    This class creates the mechanical solvers for static analysis. It currently
-    supports line search, linear, arc-length, form-finding and Newton-Raphson
-    strategies.
-
-    Public member variables:
-    arc_length_settings -- settings for the arc length method.
-
-    See structural_mechanics_solver.py for more information.
+    See contact_structural_mechanics_static_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
