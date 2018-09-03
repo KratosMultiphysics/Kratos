@@ -341,21 +341,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
     ///@name Private Operations
     ///@{
 
-    double GetThreshold() { return mThreshold; }
-    double GetPlasticDissipation() { return mPlasticDissipation; }
-    Vector GetPlasticStrain() { return mPlasticStrain; }
+    double& GetThreshold() { return mThreshold; }
+    double& GetPlasticDissipation() { return mPlasticDissipation; }
+    Vector& GetPlasticStrain() { return mPlasticStrain; }
 
-    double GetNonConvThreshold() { return mNonConvThreshold; }
-    double GetNonConvPlasticDissipation() { return mNonConvPlasticDissipation; }
-    Vector GetNonConvPlasticStrain() { return mNonConvPlasticStrain; }
+    double& GetNonConvThreshold() { return mNonConvThreshold; }
+    double& GetNonConvPlasticDissipation() { return mNonConvPlasticDissipation; }
+    Vector& GetNonConvPlasticStrain() { return mNonConvPlasticStrain; }
 
-    void SetThreshold(const double &toThreshold) { mThreshold = toThreshold; }
-    void SetPlasticDissipation(const double &toCapap) { mPlasticDissipation = toCapap; }
-    void SetPlasticStrain(const Vector &Ep) { mPlasticStrain = Ep; }
+    void SetThreshold(const double Threshold) { mThreshold = Threshold; }
+    void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
+    void SetPlasticStrain(const Vector& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
 
-    void SetNonConvThreshold(const double &toThreshold) { mNonConvThreshold = toThreshold; }
-    void SetNonConvPlasticDissipation(const double &toCapap) { mNonConvPlasticDissipation = toCapap; }
-    void SetNonConvPlasticStrain(const Vector &Ep) { mNonConvPlasticStrain = Ep; }
+    void SetNonConvThreshold(const double NonConvThreshold) { mNonConvThreshold = NonConvThreshold; }
+    void SetNonConvPlasticDissipation(const double NonConvPlasticDissipation) { mNonConvPlasticDissipation = NonConvPlasticDissipation; }
+    void SetNonConvPlasticStrain(const Vector& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
 
     /**
      * @brief This method computes the tangent tensor
