@@ -73,6 +73,8 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         elif(scheme_type == "bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+        elif(scheme_type == "pseudo_static"):
+            mechanical_scheme = KratosMultiphysics.ResidualBasedPseudoStaticDisplacementScheme(StructuralMechanicsApplication.RAYLEIGH_BETA)
         elif(scheme_type.startswith("bdf") or scheme_type == "backward_euler"):
             order = self._bdf_integration_order()
             # In case of rotation dof we declare the dynamic variables
@@ -92,7 +94,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                        damp_factor_f, dynamic_factor_m)
         else:
             err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"newmark\", \"bossak\", \"backward_euler\", \"bdf1\", \"bdf2\", \"bdf3\", \"bdf4\", \"bdf5\", \"relaxation\""
+            err_msg += "Available options are: \"newmark\", \"bossak\", \"pseudo_static\", \"backward_euler\", \"bdf1\", \"bdf2\", \"bdf3\", \"bdf4\", \"bdf5\", \"relaxation\""
             raise Exception(err_msg)
         return mechanical_scheme
 
