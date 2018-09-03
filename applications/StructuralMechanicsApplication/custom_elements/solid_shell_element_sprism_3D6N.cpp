@@ -1231,16 +1231,7 @@ void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS ) {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    } else {
-        const IndexType integration_points_number = GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
-        if ( rValues.size() != integration_points_number )
-            rValues.resize( integration_points_number, false );
-        for ( IndexType ii = 0; ii < integration_points_number; ++ii ) {
-            rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
-        }
-    }
+    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
 
 /********************************** GET VECTOR VALUE *******************************/
@@ -1252,22 +1243,7 @@ void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const IndexType integration_points_number = mConstitutiveLawVector.size();
-
-    if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number );
-
-    if ( rVariable == PK2_STRESS_TENSOR ||  rVariable == CAUCHY_STRESS_TENSOR ) {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    } else if ( rVariable == PK2_STRESS_VECTOR ||  rVariable == CAUCHY_STRESS_VECTOR ) {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    } else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == ALMANSI_STRAIN_TENSOR ||  rVariable == HENCKY_STRAIN_TENSOR) {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    } else {
-        for ( IndexType point_number = 0;  point_number < integration_points_number; ++point_number ) {
-            rValues[point_number] = mConstitutiveLawVector[point_number]->GetValue( rVariable, rValues[point_number] );
-        }
-    }
+    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
 
 /*********************************** GET MATRIX VALUE ******************************/
@@ -1279,19 +1255,7 @@ void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const IndexType integration_points_number = mConstitutiveLawVector.size();
-
-    if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number );
-
-    if ( rVariable == PK2_STRESS_TENSOR ||  rVariable == CAUCHY_STRESS_TENSOR ) {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    } else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == ALMANSI_STRAIN_TENSOR ||  rVariable == HENCKY_STRAIN_TENSOR) {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    } else {
-        for ( IndexType point_number = 0;  point_number < integration_points_number; ++point_number )
-            rValues[point_number] = mConstitutiveLawVector[point_number]->GetValue( rVariable, rValues[point_number] );
-    }
+    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 }
 
 /******************************** GET CONSTITUTIVE VALUE ***************************/
