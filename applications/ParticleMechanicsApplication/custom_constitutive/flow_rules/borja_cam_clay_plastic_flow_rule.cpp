@@ -213,8 +213,10 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
     UnknownVector(0) = TrialVolumetricStrain;
     UnknownVector(1) = TrialDeviatoricStrain;
 
-    // Constant direction of deviatoric strain vector
-    const Vector DirectionStrainVector = (2.0/3.0) * TrialDeviatoricStrainVector / TrialDeviatoricStrain;
+    // Constant direction of deviatoric strain vector -- with check if TrialDeviatoricStrain == 0
+    Vector DirectionStrainVector = ZeroVector(3);
+    if(fabs(TrialDeviatoricStrain) > 1.e-10) 
+        DirectionStrainVector = (2.0/3.0) * TrialDeviatoricStrainVector / TrialDeviatoricStrain;
 
     // Initialize additional temporary Matrices and Vectors;
     mStateFunction = 0.0;
@@ -547,11 +549,14 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( PrincipalStressVector, MeanStressP, DeviatoricQ);
     DeviatoricQ *= sqrt(3.0); //Q = sqrt(3) * J2
 
-    // Compute StrainComponents and direction
+    // Compute StrainComponents and direction -- with check if DeviatoricStrain == 0
     double VolumetricStrain, DeviatoricStrain;
     Vector DeviatoricStrainVector;
     this->CalculateStrainInvariantsFromPrincipalStrain(mElasticPrincipalStrain, VolumetricStrain, DeviatoricStrain, DeviatoricStrainVector);
-    const Vector DirectionVector = (2.0/3.0) * DeviatoricStrainVector / DeviatoricStrain;
+    
+    Vector DirectionVector = ZeroVector(3);
+    if (fabs(DeviatoricStrain) > 1.e-10)
+        DirectionVector = (2.0/3.0) * DeviatoricStrainVector / DeviatoricStrain;
 
     // Compute ElasticMatrix (2x2) D^e
     Matrix ElasticMatrixDe = ZeroMatrix(2,2);
@@ -608,16 +613,21 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     {
         for (unsigned int j = 0; j<3; ++j) 
         {
-            Tensor_1xN(i,j) = DirectionVector(i);
+            Tensor_Nx1(i,j) = DirectionVector(i);
         }
     } 
 
+    // Perform check in case DeviatoricStrain == 0
+    double DeviatoricQ_by_DeviatoricStrain = DeviatoricQ / DeviatoricStrain; 
+    if (fabs(DeviatoricStrain) < 1.e-10 && fabs(DeviatoricQ) < 1.e-10 )
+        DeviatoricQ_by_DeviatoricStrain = 0.0;
+
     // Compute Consistent Tangent Stiffness matrix in principal space
     Matrix DepcP = ZeroMatrix(6,6);
-    DepcP  = ( ElastoPlasticMatrixDep(0,0) - 2.0 * DeviatoricQ / (9.0 * DeviatoricStrain) ) * IdentityCross;
+    DepcP  = ( ElastoPlasticMatrixDep(0,0) - 2.0 * DeviatoricQ_by_DeviatoricStrain / 9.0 ) * IdentityCross;
     DepcP += ( sqrt(2.0/3.0) * ElastoPlasticMatrixDep(0,1) ) * Tensor_1xN; 
     DepcP += ( sqrt(2.0/3.0) * ElastoPlasticMatrixDep(1,0) ) * Tensor_Nx1;
-    DepcP += ( 2.0 * DeviatoricQ / (3.0 * DeviatoricStrain) ) * (FourthOrderIdentity - Tensor_NxN);
+    DepcP += ( 2.0 * DeviatoricQ_by_DeviatoricStrain / 3.0 ) * (FourthOrderIdentity - Tensor_NxN);
     DepcP += ( 2.0 / 3.0 * ElastoPlasticMatrixDep(1,1) ) * Tensor_NxN;
 
     // Return constitutive matrix from principal space to normal space
