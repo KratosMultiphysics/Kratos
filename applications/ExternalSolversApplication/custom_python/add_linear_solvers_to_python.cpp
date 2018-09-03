@@ -126,11 +126,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
 
 }
 
-
-
 }  // namespace Python.
-
-
 
 
 //Must put this definition here to avoid a problem with multiply defined symbols when including the external C libraries
@@ -151,6 +147,7 @@ RegisterLinearSolvers::RegisterLinearSolvers()
         static auto SuperLUIterativeSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SuperLUIterativeSolverType>();
 
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("GMRESSolver"), GMRESSolverFactory);
+        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("Super_LU"), SuperLUSolverFactory); // NOTE: This is duplicated by retrocompatibility
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUSolver"), SuperLUSolverFactory);
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUIterativeSolver"), SuperLUIterativeSolverFactory);
 
