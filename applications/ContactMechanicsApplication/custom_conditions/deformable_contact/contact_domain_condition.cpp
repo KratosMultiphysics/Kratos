@@ -1707,7 +1707,8 @@ namespace Kratos
   {
 
     KRATOS_TRY
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     unsigned int StrainSize;
 
@@ -1753,12 +1754,16 @@ namespace Kratos
             if ( rOutput[PointNumber].size2() != StrainSize)
 	      rOutput[PointNumber].resize( 1 , StrainSize , false );
 
-            Matrix StressMatrix ( dimension, dimension );
-            StressMatrix = mConstitutiveLawVector[PointNumber]->GetValue( rVariable , StressMatrix );
+            // Matrix StressMatrix ( dimension, dimension );
+            // StressMatrix = mConstitutiveLawVector[PointNumber]->GetValue( rVariable , StressMatrix );
+
+            // Vector StressVector ( StrainSize );
+            // StressVector = MathUtils<double>::StressTensorToVector( StressMatrix );
 
             Vector StressVector ( StrainSize );
-            StressVector = MathUtils<double>::StressTensorToVector( StressMatrix );
-
+            StressVector = mConstitutiveLawVector[PointNumber]->GetValue(CAUCHY_STRESS_VECTOR,StressVector);
+                  
+            
             for ( unsigned int ii = 0; ii < StressVector.size(); ii++ )
 	      {
                 rOutput[PointNumber]( 0, ii ) = StressVector[ii];

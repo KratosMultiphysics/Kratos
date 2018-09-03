@@ -35,7 +35,6 @@ ThermalElement::ThermalElement( IndexType NewId, GeometryType::Pointer pGeometry
     //DO NOT ADD DOFS HERE!!!
 }
 
-
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
@@ -45,7 +44,6 @@ ThermalElement::ThermalElement( IndexType NewId, GeometryType::Pointer pGeometry
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
-
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
@@ -54,8 +52,6 @@ ThermalElement::ThermalElement( ThermalElement const& rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
 {
 }
-
-
 
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
@@ -69,7 +65,6 @@ ThermalElement&  ThermalElement::operator=(ThermalElement const& rOther)
     return *this;
 }
 
-
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 
@@ -78,16 +73,12 @@ Element::Pointer ThermalElement::Create( IndexType NewId, NodesArrayType const& 
   return Kratos::make_shared<ThermalElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
-
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
-
 
 ThermalElement::~ThermalElement()
 {
 }
-
-
 
 //************* GETTING METHODS
 //************************************************************************************
@@ -178,7 +169,6 @@ void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step )
     }
 }
 
-
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
@@ -202,7 +192,6 @@ void ThermalElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVaria
 
     KRATOS_CATCH( "" )
 }
-
 
 //*********************************SET MATRIX VALUE***********************************
 //************************************************************************************
@@ -228,7 +217,6 @@ void ThermalElement::GetValueOnIntegrationPoints( const Variable<double>& rVaria
     KRATOS_CATCH( "" )
 }
 
-
 //**********************************GET VECTOR VALUE**********************************
 //************************************************************************************
 
@@ -253,7 +241,6 @@ void ThermalElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVaria
     KRATOS_CATCH( "" )
 }
 
-
 //************* STARTING - ENDING  METHODS
 //************************************************************************************
 //************************************************************************************
@@ -267,6 +254,29 @@ void ThermalElement::Initialize()
     KRATOS_CATCH( "" )
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+void ThermalElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+
+    KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void ThermalElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+
+    KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -306,31 +316,6 @@ void ThermalElement::InitializeGeneralVariables (GeneralVariables & rVariables, 
   this->CalculateThermalProperties(rVariables);
 
 }
-
-////************************************************************************************
-////************************************************************************************
-
-void ThermalElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-
-    KRATOS_CATCH( "" )
-}
-
-
-
-//************************************************************************************
-//************************************************************************************
-
-void ThermalElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-
-    KRATOS_CATCH( "" )
-}
-
 
 //************* COMPUTING  METHODS
 //************************************************************************************
@@ -381,21 +366,9 @@ Matrix& ThermalElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeometry = GetGeometry();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-        }
-    }
+    ElementUtilities::CalculateDeltaPosition(rDeltaPosition,rGeometry);
 
     return rDeltaPosition;
 
@@ -503,7 +476,7 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
     std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector;
 
-    if( Has(MASTER_ELEMENTS) ){
+    if( this->Has(MASTER_ELEMENTS) ){
 
       thermo_mechanical = true;
 
@@ -553,32 +526,36 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
 	if ( rCalculationFlags.Is(ThermalElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
-	    Variables.DeltaPlasticDissipation=0;
-	    if( thermo_mechanical ){
-	      if( ConstitutiveLawVector[PointNumber]->Has(DELTA_PLASTIC_DISSIPATION) )
-		ConstitutiveLawVector[PointNumber]->GetValue(DELTA_PLASTIC_DISSIPATION,Variables.DeltaPlasticDissipation);
-	    }
+          Variables.DeltaPlasticDissipation=0;
+          if( thermo_mechanical ){
+            //std::cout<<" thermo_mechanical element LHS ["<<this->Id()<<"]"<<std::endl;
+            if( ConstitutiveLawVector[PointNumber]->Has(DELTA_PLASTIC_DISSIPATION) ){
+              ConstitutiveLawVector[PointNumber]->GetValue(DELTA_PLASTIC_DISSIPATION,Variables.DeltaPlasticDissipation);
+              //std::cout<<" with DELTA_PLASTIC_DISSIPATION= "<<Variables.DeltaPlasticDissipation<<std::endl;
+            }
+          }
 
-            //contributions to stiffness matrix calculated on the reference config
-            this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables, IntegrationWeight );
+          this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables, IntegrationWeight );
         }
 
         if ( rCalculationFlags.Is(ThermalElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
-            //contribution to external forces
+          //contribution to external forces
+          if( GetProperties().Has(HEAT_SOURCE) ){
             HeatSource = GetProperties()[HEAT_SOURCE];
+            // std::cout<<" HeatSource "<<HeatSource<<std::endl;
+          }
+          
+          Variables.PlasticDissipation=0;
+          if( thermo_mechanical ){
+            //std::cout<<" thermo_mechanical element RHS ["<<this->Id()<<"]"<<std::endl;
+            if( ConstitutiveLawVector[PointNumber]->Has(PLASTIC_DISSIPATION) ){
+              ConstitutiveLawVector[PointNumber]->GetValue(PLASTIC_DISSIPATION,Variables.PlasticDissipation);
+              //std::cout<<" with PLASTIC_DISSIPATION= "<<Variables.PlasticDissipation<<std::endl;
+            }
+          }
 
-	    // std::cout<<" HeatSource "<<HeatSource<<std::endl;
-
-	    Variables.PlasticDissipation=0;
-	    if( thermo_mechanical ){
-
-	      if( ConstitutiveLawVector[PointNumber]->Has(PLASTIC_DISSIPATION) )
-		ConstitutiveLawVector[PointNumber]->GetValue(PLASTIC_DISSIPATION,Variables.PlasticDissipation);
-	    }
-
-	    this->CalculateAndAddRHS ( rRightHandSideVector, Variables, HeatSource, IntegrationWeight );
-
+          this->CalculateAndAddRHS ( rRightHandSideVector, Variables, HeatSource, IntegrationWeight );
         }
 
 
@@ -721,8 +698,10 @@ double& ThermalElement::CalculateIntegrationWeight( double& rIntegrationWeight )
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if( dimension == 2 )
+    if( dimension == 2 ){
+      if ( this->GetProperties().Has( THICKNESS ) )
         rIntegrationWeight *= GetProperties()[THICKNESS];
+    }
 
     return rIntegrationWeight;
 }
@@ -959,85 +938,18 @@ void ThermalElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVar
  */
 int  ThermalElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
-      KRATOS_TRY
+     KRATOS_TRY
 
-//     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-
-//     //verify compatibility with the constitutive law
-//     ConstitutiveLaw::Features LawFeatures;
-//     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
-
-//     bool correct_strain_measure = false;
-//     for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
-//     {
-// 	    if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
-// 		    correct_strain_measure = true;
-//     }
-
-//     if( correct_strain_measure == false )
-// 	    KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Large Displacements " );
-
-
-//     //verify that the variables are correctly initialized
-
-//     if ( VELOCITY.Key() == 0 )
-//         KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
-
-//     if ( DISPLACEMENT.Key() == 0 )
-//         KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
-
-//     if ( ACCELERATION.Key() == 0 )
-//         KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
-
-//     if ( DENSITY.Key() == 0 )
-//         KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
-
-//     // if ( BODY_FORCE.Key() == 0 )
-//     //     KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
-
-//     //verify that the dofs exist
-//     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-//     {
-//         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-//             KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
-
-//         if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-//             KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
-//     }
-
-//     //verify that the constitutive law exists
-//     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
-//     {
-//         KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() );
-//     }
-
-//     //Verify that the body force is defined
-//     // if ( this->GetProperties().Has( BODY_FORCE ) == false )
-//     // {
-//     //     KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
-//     // }
-
-//     //verify that the constitutive law has the correct dimension
-//     if ( dimension == 2 )
-//     {
-//         // if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-//         //   KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
-
-//         if ( THICKNESS.Key() == 0 )
-//             KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );
-
-//         if ( this->GetProperties().Has( THICKNESS ) == false )
-//             KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() );
-//     }
-//     else
-//     {
-//         if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-//             KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() );
-//     }
-
-//     //check if it is in the XY plane for 2D case
-
-
+     // Check that all required variables have been registered
+     KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
+     
+     KRATOS_CHECK_VARIABLE_KEY(HEAT_CAPACITY);
+     KRATOS_CHECK_VARIABLE_KEY(HEAT_CONDUCTIVITY);
+     
+     KRATOS_CHECK_VARIABLE_KEY(HEAT_SOURCE);
+     KRATOS_CHECK_VARIABLE_KEY(PLASTIC_DISSIPATION);
+     KRATOS_CHECK_VARIABLE_KEY(DELTA_PLASTIC_DISSIPATION);
+     
      return 0;
 
      KRATOS_CATCH( "" );

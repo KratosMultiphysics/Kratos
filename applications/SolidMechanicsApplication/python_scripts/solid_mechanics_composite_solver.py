@@ -40,11 +40,16 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
 
     def Solve(self):
 
+        # initialize solution step for all solvers
         for solver in self.solvers:
             solver.InitializeSolutionStep()
+
+        # solver solution step for all solvers
+        for solver in self.solvers:
             solver.SolveSolutionStep()
 
-        #allows to apply implex and other coupled updates
+        # finalize solution step for all solvers
+        # allows to apply implex and other coupled updates
         for solver in self.solvers:
             solver.FinalizeSolutionStep()
 
