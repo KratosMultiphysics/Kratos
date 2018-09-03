@@ -124,6 +124,7 @@ RegisterLinearSolvers::RegisterLinearSolvers()
     KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SparseLUSolver"), SparseLUFactory);
     KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("eigen_sparse_lu"), SparseLUFactory);  // NOTE: Retrocompatibility name
     KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("ComplexSparseLUSolver"), ComplexSparseLUFactory);
+    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("complex_eigen_sparse_lu"), ComplexSparseLUFactory);  // NOTE: Retrocompatibility name
     KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SparseQRSolver"), SparseQRFactory);
     KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("ComplexSparseQRSolver"), ComplexSparseQRFactory);
 
