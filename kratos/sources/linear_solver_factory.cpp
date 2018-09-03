@@ -11,11 +11,9 @@
 //
 //
 
-
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
