@@ -177,7 +177,6 @@ class ClassCreator(TemplateRule):
             for f in self._GenerateCandidateFiles(files, name):
                 src = os.path.join(root, f)
                 with open(src, 'r') as _file:
-                    # print(subfolder, src)
                     for l in _file:
                         [found, m1, m2] = self._IsClassDefinition(l)
                         if found:
