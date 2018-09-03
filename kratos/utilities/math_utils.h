@@ -831,28 +831,41 @@ public:
      * Calculates the norm of vector "a" while avoiding underflow and overflow.
      * @param a Input vector
      * @return The resulting norm
+     * @see http://www.netlib.org/lapack/explore-html/da/d7f/dnrm2_8f_source.html
      */
 
     static inline TDataType StableNorm(const Vector& a)
     {
-        TDataType scale {0};
-
-        for (auto it = a.begin(); it != a.end(); ++it) {
-            scale += std::abs(*it);
-        }
-
-        if (scale == 0) {
+        if (a.size() == 0) {
             return 0;
         }
 
-        TDataType scaled_sum {0};
-
-        for (auto it = a.begin(); it != a.end(); ++it) {
-            TDataType scaled_entry = *it / scale;
-            scaled_sum += scaled_entry * scaled_entry;
+        if (a.size() == 1) {
+            return a[0];
         }
 
-        return scale * std::sqrt(scaled_sum);
+        TDataType max {0};
+
+        TDataType sqr_sum_scaled {1};
+
+        for (auto it = a.begin(); it != a.end(); ++it) {
+            TDataType x = *it;
+
+            if (x != 0) {
+                const TDataType abs_x = std::abs(x);
+
+                if (max < abs_x) {
+                    x = max / abs_x;
+                    sqr_sum_scaled = sqr_sum_scaled * (x * x) + 1.0;
+                    max = abs_x;
+                } else {
+                    x = abs_x / max;
+                    sqr_sum_scaled += x * x;
+                }
+            }
+        }
+
+        return max * std::sqrt(sqr_sum_scaled);
     }
 
     /**
