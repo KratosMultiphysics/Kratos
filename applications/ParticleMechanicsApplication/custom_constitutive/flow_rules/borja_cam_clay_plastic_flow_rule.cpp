@@ -132,14 +132,12 @@ bool BorjaCamClayPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables&
     mElasticPrincipalStrain = MainStrain;
 
     // Check for the yield Condition -- calling the yield criterion
-    InternalVariables PlasticVariables = mInternalVariables;
     rReturnMappingVariables.TrialStateFunction = 0.0;
     rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, PrincipalStress, 0.0, mMaterialParameters.PreconsolidationPressure);
     
     // If yield is reached, do return mapping
     if (rReturnMappingVariables.TrialStateFunction <= 0.0)
     {
-        PlasticVariables.DeltaPlasticStrain = 0;
         mRegion = 0;
         mPrincipalStressUpdated = PrincipalStress;
         PlasticityActive = false;
