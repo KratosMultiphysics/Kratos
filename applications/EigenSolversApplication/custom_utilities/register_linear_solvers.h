@@ -7,11 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_REGISTER_LINEAR_SOLVERS_EXTERNAL_SOLVERS_APPLICATION )
-#define  KRATOS_REGISTER_LINEAR_SOLVERS_EXTERNAL_SOLVERS_APPLICATION
+#if !defined(KRATOS_REGISTER_LINEAR_SOLVERS_EIGEN_SOLVERS_APPLICATION )
+#define  KRATOS_REGISTER_LINEAR_SOLVERS_EIGEN_SOLVERS_APPLICATION
 
 
 
@@ -204,4 +204,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REGISTER_LINEAR_SOLVERS_EXTERNAL_SOLVERS_APPLICATION
+#endif // KRATOS_REGISTER_LINEAR_SOLVERS_EIGEN_SOLVERS_APPLICATION

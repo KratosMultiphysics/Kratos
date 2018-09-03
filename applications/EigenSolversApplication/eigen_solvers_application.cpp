@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "custom_utilities/register_linear_solvers.h"
 #include "eigen_solvers_application.h"
 
 namespace Kratos
@@ -23,9 +24,11 @@ KratosEigenSolversApplication::KratosEigenSolversApplication() : KratosApplicati
 
 void KratosEigenSolversApplication::Register()
 {
-	// calling base class register to register Kratos components
-	KratosApplication::Register();
-	std::cout << "Initializing KratosEigenSolversApplication... " << std::endl;
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
+    std::cout << "Initializing KratosEigenSolversApplication... " << std::endl;
+
+    RegisterLinearSolvers();
 }
 
 } // namespace Kratos
