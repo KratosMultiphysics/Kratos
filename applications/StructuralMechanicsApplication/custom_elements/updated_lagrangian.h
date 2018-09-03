@@ -199,6 +199,11 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
+    // They will be removed from the derived elements; i.e. the implementation
+    // should be in CalculateOnIntegrationPoints!
+    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
+
     /**
      * @brief Get on rVariable a double Value from the Element Constitutive Law
      * @param rVariable The variable we want to get
