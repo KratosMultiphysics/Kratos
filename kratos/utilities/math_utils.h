@@ -828,6 +828,34 @@ public:
     }
 
     /**
+     * Calculates the norm of vector "a" while avoiding underflow and overflow.
+     * @param a Input vector
+     * @return The resulting norm
+     */
+
+    static inline TDataType StableNorm(const Vector& a)
+    {
+        TDataType scale {0};
+
+        for (auto it = a.begin(); it != a.end(); ++it) {
+            scale += std::abs(*it);
+        }
+
+        if (scale == 0) {
+            return 0;
+        }
+
+        TDataType scaled_sum {0};
+
+        for (auto it = a.begin(); it != a.end(); ++it) {
+            TDataType scaled_entry = *it / scale;
+            scaled_sum += scaled_entry * scaled_entry;
+        }
+
+        return scale * std::sqrt(scaled_sum);
+    }
+
+    /**
      * Performs the vector product of the two input vectors a,b
      * a,b are assumed to be of size 3 (no check is performed on vector sizes)
      * @param a First input vector
