@@ -101,6 +101,7 @@ class FluidTransportSteadySolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.DT_PHI) # Generic variable refering to the time derivative of unknown variable
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.PHI_THETA) # Phi variable refering to the n+theta step
 
         print("Variables correctly added")
 
@@ -116,7 +117,11 @@ class FluidTransportSteadySolver(object):
             #node.AddDof(KratosMultiphysics.VELOCITY_Z,KratosMultiphysics.REACTION_Z)
 
             ## Thermal dofs
-            node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
+
+            if(self.settings["solution_type"].GetString() == "Steady"):
+                node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
+            else:
+                node.AddDof(KratosFluidTransport.PHI_THETA, KratosMultiphysics.REACTION_FLUX)
 
         print("DOFs correctly added")
 

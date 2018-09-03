@@ -148,6 +148,7 @@ protected:
 
         ///Nodal variables
         array_1d<double,TNumNodes> NodalPhi;
+        array_1d<double,TNumNodes> NodalPhiTheta;
         array_1d<double,TNumNodes> NodalQSource;
         array_1d<array_1d<double,3>, TNumNodes> NodalVel;
 
@@ -177,7 +178,7 @@ protected:
 
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
-    void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+    virtual void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
     void CalculateNormalsAngle(ElementVariables& rVariables);
 
@@ -215,13 +216,13 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddRHSAbsorption(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddRHSAbsorption(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 

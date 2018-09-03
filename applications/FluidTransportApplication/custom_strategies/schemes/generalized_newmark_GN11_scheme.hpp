@@ -77,6 +77,8 @@ public:
             KRATOS_THROW_ERROR( std::invalid_argument, "UnknownVar Key is 0. Check if all applications were correctly registered.", "" )
         if(DT_PHI.Key() == 0)
             KRATOS_THROW_ERROR( std::invalid_argument, "DT_PHI Key is 0. Check if all applications were correctly registered.", "" )
+        if(PHI_THETA.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument, "PHI_THETA Key is 0. Check if all applications were correctly registered.", "" )
 
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
@@ -85,9 +87,12 @@ public:
                 KRATOS_THROW_ERROR( std::logic_error, "UnknownVar variable is not allocated for node ", it->Id() )
             if(it->SolutionStepsDataHas(DT_PHI) == false)
                 KRATOS_THROW_ERROR( std::logic_error, "DT_PHI variable is not allocated for node ", it->Id() )
+            if(it->SolutionStepsDataHas(PHI_THETA) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "PHI_THETA variable is not allocated for node ", it->Id() )
 
-            if(it->HasDofFor(rUnknownVar) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing UnknownVar dof on node ",it->Id() )
+            // TODO
+            // if(it->HasDofFor(rUnknownVar) == false)
+            //     KRATOS_THROW_ERROR( std::invalid_argument,"missing UnknownVar dof on node ",it->Id() )
         }
 
         //check for minimum value of the buffer index.
@@ -435,26 +440,22 @@ protected:
     {
         KRATOS_TRY
 
-        // Update DtPhi
-
-        double DeltaPhi;
-
         ConvectionDiffusionSettings::Pointer my_settings = r_model_part.GetProcessInfo().GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
         const int NNodes = static_cast<int>(r_model_part.Nodes().size());
         ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
 
-        #pragma omp parallel for private(DeltaPhi)
+        #pragma omp parallel for
         for(int i = 0; i < NNodes; i++)
         {
             ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
-            double& CurrentDtPhi = itNode->FastGetSolutionStepValue(DT_PHI);
-            DeltaPhi = itNode->FastGetSolutionStepValue(rUnknownVar) - itNode->FastGetSolutionStepValue(rUnknownVar, 1);
-            const double& PreviousDtPhi = itNode->FastGetSolutionStepValue(DT_PHI, 1);
+            double& CurrentPhi = itNode->FastGetSolutionStepValue(rUnknownVar);
+            const double& PreviousPhi = itNode->FastGetSolutionStepValue(rUnknownVar, 1);
+            const double& CurrentPhiTheta = itNode->FastGetSolutionStepValue(PHI_THETA);
 
-            CurrentDtPhi = 1.0/(mTheta*mDeltaTime)*(DeltaPhi - (1.0-mTheta)*mDeltaTime*PreviousDtPhi);
+            CurrentPhi = 1.0 / mTheta * CurrentPhiTheta + (1.0 - 1.0 / mTheta) * PreviousPhi;
         }
 
         KRATOS_CATCH( "" )

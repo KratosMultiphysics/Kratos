@@ -42,6 +42,8 @@ public:
     typedef Node <3> NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    typedef typename Element::DofsVectorType DofsVectorType;
+    typedef typename Element::EquationIdVectorType EquationIdVectorType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
     typedef typename SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::ElementVariables ElementVariables;
@@ -71,7 +73,11 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                         VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
@@ -86,15 +92,19 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
-
-    void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+    void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+
+    void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+
+    void CalculateAndAddRHSAbsorption(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+
+    void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
