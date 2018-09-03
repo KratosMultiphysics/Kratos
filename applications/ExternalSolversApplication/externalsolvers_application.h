@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2008-07-23 14:46:21 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    janosch
 //
 
 #if !defined(KRATOS_EXTERNAL_SOLVERS_APPLICATION_H_INCLUDED)
@@ -42,6 +46,45 @@ namespace Kratos {
 ///@}
 ///@name Kratos Classes
 ///@{
+
+/// registers the linear solvers to kratos
+/** registers the linear solvers to kratos
+*/
+class ExternalSolversApplicationRegisterLinearSolvers
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of ExternalSolversApplicationRegisterLinearSolvers
+    KRATOS_CLASS_POINTER_DEFINITION(ExternalSolversApplicationRegisterLinearSolvers);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    ExternalSolversApplicationRegisterLinearSolvers();
+
+    /// Destructor.
+    virtual ~ExternalSolversApplicationRegisterLinearSolvers(){};
+
+
+    ///@}
+
+private:
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    ExternalSolversApplicationRegisterLinearSolvers& operator=(ExternalSolversApplicationRegisterLinearSolvers const& rOther) = delete;
+
+    /// Copy constructor.
+    ExternalSolversApplicationRegisterLinearSolvers(ExternalSolversApplicationRegisterLinearSolvers const& rOther) = delete;
+
+    ///@}
+
+}; // Class ExternalSolversApplicationRegisterLinearSolvers
 
 /// Short class definition.
 /** Detail class definition.

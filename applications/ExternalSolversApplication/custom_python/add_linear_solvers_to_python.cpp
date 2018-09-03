@@ -38,8 +38,8 @@
   #include "external_includes/pastix_complex_solver.h"
 #endif
 
+#include "externalsolvers_application.h"
 #include "includes/linear_solver_factory.h"
-#include "custom_utilities/register_linear_solvers.h"
 
 namespace Kratos
 {
@@ -122,7 +122,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("__repr__", &GMRESSolverType::Info)
     ;
 
-//     RegisterLinearSolvers();
+//     ExternalSolversApplicationRegisterLinearSolvers();
 
 }
 
@@ -130,7 +130,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
 
 
 //Must put this definition here to avoid a problem with multiply defined symbols when including the external C libraries
-RegisterLinearSolvers::RegisterLinearSolvers()
+ExternalSolversApplicationRegisterLinearSolvers::ExternalSolversApplicationRegisterLinearSolvers()
 {
     typedef TUblasSparseSpace<double> SpaceType;
     typedef TUblasDenseSpace<double> LocalSpaceType;
