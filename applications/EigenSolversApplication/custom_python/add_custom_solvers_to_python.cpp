@@ -151,6 +151,7 @@ RegisterLinearSolvers::RegisterLinearSolvers()
     KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PardisoLUSolver"), PardisoLUFactory);
     KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("eigen_pardiso_lu"), PardisoLUFactory); // NOTE: Retrocompatibility name
     KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("ComplexPardisoLUSolver"), ComplexPardisoLUFactory);
+    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("complex_eigen_pardiso_lu"), ComplexPardisoLUFactory); // NOTE: Retrocompatibility name
 #endif
 }
 
