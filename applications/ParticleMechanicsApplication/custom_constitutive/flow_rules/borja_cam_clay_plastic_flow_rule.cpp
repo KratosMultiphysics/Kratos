@@ -142,6 +142,9 @@ bool BorjaCamClayPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables&
         mPrincipalStressUpdated = PrincipalStress;
         PlasticityActive = false;
         rReturnMappingVariables.Options.Set(PLASTIC_REGION,false);
+
+        this->UpdateStateVariables(mPrincipalStressUpdated);
+        
     }
     else
     {
@@ -238,7 +241,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
 
         // Calculate plastic hardening modulus K_p
         double K_p = mpYieldCriterion->GetHardeningLaw().CalculateHardening(K_p, rAlpha, mMaterialParameters.PreconsolidationPressure);
-        K_p *= 1 / (OtherSlope-SwellingSlope);
+        K_p *= 1.0 / (OtherSlope-SwellingSlope);
 
         // Calculate RHS Vector
         RHSVector(0) = UnknownVector(0) - TrialVolumetricStrain + UnknownVector(3) * mStateFunctionFirstDerivative(0);
@@ -274,22 +277,9 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
         if( fabs(NormRatio) <= tolerance || counter == maxcounter)
         {    
             // These updates are done since the following variables will be used during ComputeElastoPlasticTangentMatrix
-            {
-                // Calculate final state function and derivatives
                 rAlpha  = TrialVolumetricStrain - UnknownVector(0);
-                mStateFunction = mpYieldCriterion->CalculateYieldCondition(mStateFunction, PrincipalStressVector, rAlpha, mMaterialParameters.PreconsolidationPressure);
-                mpYieldCriterion->CalculateYieldFunctionDerivative(PrincipalStressVector, mStateFunctionFirstDerivative, rAlpha, mMaterialParameters.PreconsolidationPressure);
-                mpYieldCriterion->CalculateYieldFunctionSecondDerivative(PrincipalStressVector, mStateFunctionSecondDerivative);
+            this->UpdateStateVariables(PrincipalStressVector, rAlpha, UnknownVector(2));
                 
-                // Update plastic hardening modulus K_p
-                K_p = mpYieldCriterion->GetHardeningLaw().CalculateHardening(K_p, rAlpha, mMaterialParameters.PreconsolidationPressure);
-                K_p *= 1 / (OtherSlope-SwellingSlope);
-                mMaterialParameters.PlasticHardeningModulus = K_p;
-
-                // Update Consistency Parameter
-                mMaterialParameters.ConsistencyParameter = UnknownVector(2);
-            }
-
             // Update rPrincipalStressUpdated and rPrincipalStrain as the final elastic principal stress and strain
             rPrincipalStressUpdated = PrincipalStressVector;
             rPrincipalStrain = PrincipalStrainVector;
@@ -729,6 +719,24 @@ bool BorjaCamClayPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables
     mMaterialParameters.PreconsolidationPressure = newPreconsolidationStress;
 
     return true;
+}
+
+void BorjaCamClayPlasticFlowRule::UpdateStateVariables(const Vector rPrincipalStress, const double rAlpha, const double rConsistencyParameter)
+{
+    // Calculate final state function and derivatives
+    mStateFunction = mpYieldCriterion->CalculateYieldCondition(mStateFunction, rPrincipalStress, rAlpha, mMaterialParameters.PreconsolidationPressure);
+    mpYieldCriterion->CalculateYieldFunctionDerivative(rPrincipalStress, mStateFunctionFirstDerivative, rAlpha, mMaterialParameters.PreconsolidationPressure);
+    mpYieldCriterion->CalculateYieldFunctionSecondDerivative(rPrincipalStress, mStateFunctionSecondDerivative);
+    
+    // Update plastic hardening modulus K_p
+    const double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
+    const double OtherSlope    = mpYieldCriterion->GetHardeningLaw().GetProperties()[NORMAL_COMPRESSION_SLOPE];
+    double K_p = mpYieldCriterion->GetHardeningLaw().CalculateHardening(K_p, rAlpha, mMaterialParameters.PreconsolidationPressure);
+    K_p *= 1.0 / (OtherSlope-SwellingSlope);
+    mMaterialParameters.PlasticHardeningModulus = K_p;
+
+    // Update Consistency Parameter
+    mMaterialParameters.ConsistencyParameter = rConsistencyParameter;
 }
 
 double BorjaCamClayPlasticFlowRule::GetSmoothingLodeAngle()

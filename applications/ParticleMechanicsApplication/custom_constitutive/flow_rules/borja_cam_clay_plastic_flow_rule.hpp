@@ -229,6 +229,8 @@ protected:
 
     void CalculateTransformationMatrix(const Matrix& rMainDirection, Matrix& rA);
 
+    void UpdateStateVariables(const Vector rPrincipalStress, const double rAlpha = 0.0, const double rConsistencyParameter = 0.0);
+
     double GetSmoothingLodeAngle();
 
     double GetPI();
