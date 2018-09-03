@@ -844,7 +844,7 @@ public:
             return a[0];
         }
 
-        TDataType max {0};
+        TDataType scale {0};
 
         TDataType sqr_sum_scaled {1};
 
@@ -854,18 +854,18 @@ public:
             if (x != 0) {
                 const TDataType abs_x = std::abs(x);
 
-                if (max < abs_x) {
-                    x = max / abs_x;
-                    sqr_sum_scaled = sqr_sum_scaled * (x * x) + 1.0;
-                    max = abs_x;
+                if (scale < abs_x) {
+                    const TDataType f = scale / abs_x;
+                    sqr_sum_scaled = sqr_sum_scaled * (f * f) + 1.0;
+                    scale = abs_x;
                 } else {
-                    x = abs_x / max;
+                    x = abs_x / scale;
                     sqr_sum_scaled += x * x;
                 }
             }
         }
 
-        return max * std::sqrt(sqr_sum_scaled);
+        return scale * std::sqrt(sqr_sum_scaled);
     }
 
     /**
