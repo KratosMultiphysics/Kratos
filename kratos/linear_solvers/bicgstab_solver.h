@@ -84,17 +84,17 @@ public:
 
     BICGSTABSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
-        
-    BICGSTABSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()):
+
+    BICGSTABSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):
         BaseType(settings, pNewPreconditioner) {}
-        
+
     BICGSTABSolver(Parameters settings):
-        BaseType(settings) 
+        BaseType(settings)
     {
         if(settings.Has("preconditioner_type"))
             BaseType::SetPreconditioner( PreconditionerFactoryBase<TSparseSpaceType,TDenseSpaceType>().CreatePreconditioner(settings["preconditioner_type"].GetString()) );
     }
-        
+
     /// Copy constructor.
     BICGSTABSolver(const BICGSTABSolver& Other) : BaseType(Other) {}
 
@@ -130,7 +130,7 @@ public:
         if(this->IsNotConsistent(rA, rX, rB))
             return false;
 
-        BaseType::GetPreconditioner()->Initialize(rA,rX,rB); 
+        BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
 
         BaseType::GetPreconditioner()->ApplyInverseRight(rX);
 
@@ -421,6 +421,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BICGSTAB_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_BICGSTAB_SOLVER_H_INCLUDED  defined
 
 

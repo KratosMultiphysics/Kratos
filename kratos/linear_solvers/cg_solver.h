@@ -89,17 +89,17 @@ public:
 
     CGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
-        
-    CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()):
+
+    CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):
         BaseType(settings, pNewPreconditioner) {}
 
     CGSolver(Parameters settings):
-        BaseType(settings) 
+        BaseType(settings)
     {
         if(settings.Has("preconditioner_type"))
             BaseType::SetPreconditioner( PreconditionerFactoryBase<TSparseSpaceType,TDenseSpaceType>().CreatePreconditioner(settings["preconditioner_type"].GetString()) );
     }
-        
+
     /// Copy constructor.
     CGSolver(const CGSolver& Other) : BaseType(Other) {}
 
@@ -399,6 +399,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CG_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_CG_SOLVER_H_INCLUDED  defined
 
 
