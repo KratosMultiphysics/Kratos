@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
-//                    
+//
 //
 
 
@@ -37,7 +37,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 1> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -76,7 +76,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -118,7 +118,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 8> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 8> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -164,7 +164,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 14> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 14> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -210,14 +210,14 @@ private:
 class KRATOS_API(KRATOS_CORE) TetrahedronGaussLegendreIntegrationPoints5
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints4);
+    KRATOS_CLASS_POINTER_DEFINITION(TetrahedronGaussLegendreIntegrationPoints5);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 3;
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 24> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 24> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -285,6 +285,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TETRAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_TETRAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

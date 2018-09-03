@@ -24,7 +24,7 @@ namespace Kratos
 
 
     /**
-     * Flags related to the Parameters of the Contitutive Law
+     * Flags related to the Parameters of the Constitutive Law
      */
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, USE_ELEMENT_PROVIDED_STRAIN,  0 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,               1 );
@@ -43,7 +43,7 @@ namespace Kratos
   
 
     /**
-     * Flags related to the Features of the Contitutive Law
+     * Flags related to the Features of the Constitutive Law
      */
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,              1 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,       2 );
@@ -78,6 +78,16 @@ ConstitutiveLaw::Pointer ConstitutiveLaw::Clone() const
 }
 
 /**
+ * Create function (should be implemented by any derived class)
+ * @return a pointer to a new instance of this constitutive law
+ */
+ConstitutiveLaw::Pointer ConstitutiveLaw::Create(Kratos::Parameters NewParameters) const
+{
+    const std::string& name = NewParameters["name"].GetString();
+    return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
+}
+
+/**
  * @return the working space dimension of the current constitutive law
  * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
  */
@@ -93,6 +103,16 @@ ConstitutiveLaw::SizeType ConstitutiveLaw::WorkingSpaceDimension()
 ConstitutiveLaw::SizeType ConstitutiveLaw::GetStrainSize()
 {
     KRATOS_ERROR <<  "Called the virtual function for GetStrainSize"<< std::endl;;
+}
+
+/**
+ * returns whether this constitutive Law has specified variable
+ * @param rThisVariable the variable to be checked for
+ * @return true if the variable is defined in the constitutive law
+ */
+bool ConstitutiveLaw::Has(const Variable<bool>& rThisVariable)
+{
+    return false;
 }
 
 /**
@@ -163,6 +183,17 @@ bool ConstitutiveLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
  * @param rValue a reference to the returned value
  * @param rValue output: the value of the specified variable
  */
+bool& ConstitutiveLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+{
+    return rValue;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
 int& ConstitutiveLaw::GetValue(const Variable<int>& rThisVariable, int& rValue)
 {
     return rValue;
@@ -206,7 +237,7 @@ Matrix& ConstitutiveLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix&
  * @param rValue a reference to the returned value
  * @return the value of the specified variable
  */
-array_1d<double, 3 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable,
+array_1d<double, 3 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
         array_1d<double, 3 > & rValue)
 {
     return rValue;
@@ -218,19 +249,32 @@ array_1d<double, 3 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double,
  * @param rValue a reference to the returned value
  * @return the value of the specified variable
  */
-array_1d<double, 6 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double, 6 > >& rVariable,
+array_1d<double, 6 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double, 6 > >& rThisVariable,
         array_1d<double, 6 > & rValue)
 {
     return rValue;
 }
 
 /**
- * sets the value of a specified variable
- * @param rVariable the variable to be returned
+ * @brief Sets the value of a specified variable (bool)
+ * @param rThisVariable the variable to be returned
  * @param Value new value of the specified variable
  * @param rCurrentProcessInfo the process info
  */
-void ConstitutiveLaw::SetValue(const Variable<int>& rVariable,
+void ConstitutiveLaw::SetValue(const Variable<bool>& rThisVariable,
+                               const bool& Value,
+                               const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+}
+
+/**
+ * @brief Sets the value of a specified variable (int)
+ * @param rThisVariable the variable to be returned
+ * @param Value new value of the specified variable
+ * @param rCurrentProcessInfo the process info
+ */
+void ConstitutiveLaw::SetValue(const Variable<int>& rThisVariable,
                                const int& Value,
                                const ProcessInfo& rCurrentProcessInfo)
 {
@@ -238,7 +282,7 @@ void ConstitutiveLaw::SetValue(const Variable<int>& rVariable,
 }
 
 /**
- * sets the value of a specified variable
+ * @brief Sets the value of a specified variable (double)
  * @param rVariable the variable to be returned
  * @param rValue new value of the specified variable
  * @param rCurrentProcessInfo the process info
@@ -251,7 +295,7 @@ void ConstitutiveLaw::SetValue(const Variable<double>& rVariable,
 }
 
 /**
- * sets the value of a specified variable
+ * @brief Sets the value of a specified variable (Vector)
  * @param rVariable the variable to be returned
  * @param rValue new value of the specified variable
  * @param rCurrentProcessInfo the process info
@@ -263,7 +307,7 @@ void ConstitutiveLaw::SetValue(const Variable<Vector >& rVariable,
 }
 
 /**
- * sets the value of a specified variable
+ * @brief Sets the value of a specified variable (Matrix)
  * @param rVariable the variable to be returned
  * @param rValue new value of the specified variable
  * @param rCurrentProcessInfo the process info
@@ -275,7 +319,7 @@ void ConstitutiveLaw::SetValue(const Variable<Matrix >& rVariable,
 }
 
 /**
- * sets the value of a specified variable
+ * @brief Sets the value of a specified variable (array of 3 components)
  * @param rVariable the variable to be returned
  * @param rValue new value of the specified variable
  * @param rCurrentProcessInfo the process info
@@ -288,7 +332,7 @@ void ConstitutiveLaw::SetValue(const Variable<array_1d<double, 3 > >& rVariable,
 }
 
 /**
- * sets the value of a specified variable
+ * @brief Sets the value of a specified variable (array of 6 components)
  * @param rVariable the variable to be returned
  * @param rValue new value of the specified variable
  * @param rCurrentProcessInfo the process info
@@ -301,9 +345,20 @@ void ConstitutiveLaw::SetValue(const Variable<array_1d<double, 6 > >& rVariable,
 }
 
 
+/**
+ * @brief Calculates the value of a specified variable (bool)
+ * @param rParameterValues the needed parameters for the CL calculation
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+bool& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variable<bool>& rThisVariable, bool& rValue)
+{
+    return rValue;
+}
 
 /**
- * calculates the value of a specified variable
+ * @brief Calculates the value of a specified variable (int)
  * @param rParameterValues the needed parameters for the CL calculation
  * @param rThisVariable the variable to be returned
  * @param rValue a reference to the returned value
@@ -315,7 +370,7 @@ int& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Variabl
 }
 
 /**
- * returns the value of a specified variable
+ * returns the value of a specified variable (double)
  * @param rParameterValues the needed parameters for the CL calculation
  * @param rThisVariable the variable to be returned
  * @param rValue a reference to the returned value
@@ -327,7 +382,7 @@ double& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Vari
 }
 
 /**
- * returns the value of a specified variable
+ * returns the value of a specified variable (Vector)
  * @param rParameterValues the needed parameters for the CL calculation
  * @param rThisVariable the variable to be returned
  * @param rValue a reference to the returned value
@@ -339,7 +394,7 @@ Vector& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Vari
 }
 
 /**
- * returns the value of a specified variable
+ * returns the value of a specified variable (Matrix)
  * @param rParameterValues the needed parameters for the CL calculation
  * @param rThisVariable the variable to be returned
  * @param rValue a reference to the returned value
@@ -351,7 +406,7 @@ Matrix& ConstitutiveLaw::CalculateValue(Parameters& rParameterValues, const Vari
 }
 
 /**
- * returns the value of a specified variable
+ * returns the value of a specified variable (array of 3 components)
  * @param rParameterValues the needed parameters for the CL calculation
  * @param rThisVariable the variable to be returned
  * @param rValue a reference to the returned value
@@ -365,7 +420,7 @@ array_1d<double, 3 > & ConstitutiveLaw::CalculateValue(Parameters& rParameterVal
 
 
   /**
- * returns the value of a specified variable
+ * returns the value of a specified variable (array of 6 components)
  * @param rParameterValues the needed parameters for the CL calculation
  * @param rThisVariable the variable to be returned
  * @param rValue a reference to the returned value
@@ -1660,4 +1715,3 @@ void ConstitutiveLaw::CalculateCauchyStresses(Vector& Cauchy_StressVector,
 
 
 } /* namespace Kratos.*/
-

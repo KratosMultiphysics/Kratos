@@ -11,35 +11,47 @@
 //                   Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/kratos_application.h"
 #include "python/add_kratos_application_to_python.h"
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+using namespace pybind11;
+
+void RegisterToPythonApplicationVariables(std::string ApplicationName)
 {
-namespace Python
-{
-using namespace boost::python;
+    auto comp = KratosComponents<VariableData>::GetComponents();
+    auto m = pybind11::module::import(ApplicationName.c_str()); //Note that this is added to KratosMultiphysics not to 
+    
+    for(auto item = comp.begin(); item!=comp.end(); item++)
+    {
+        auto& var = (item->second);            
+        std::string name = item->first;
+        
+        m.attr(name.c_str()) = var; 
+    }
+}
 
 
-void  AddKratosApplicationToPython()
-{
-    class_<KratosApplication, KratosApplication::Pointer, boost::noncopyable >("KratosApplication")
-    .def("Register",&KratosApplication::Register)
-    //.def("",&Kernel::Initialize)
-    .def(self_ns::str(self))
-    ;
+void AddKratosApplicationToPython(pybind11::module& m) {
+    class_<KratosApplication, KratosApplication::Pointer>(m,"KratosApplication")
+        .def(init<std::string>())
+        .def("Register", [](KratosApplication& self){
+            std::cout << "*************************************" << std::endl;
+            std::cout << "application name = " << self.Name() << std::endl;
+            self.Register();
+            RegisterToPythonApplicationVariables(self.Name());
+        }
+        )
+        .def("__repr__", &KratosApplication::Info);
 }
 
 }  // namespace Python.
 
-} // Namespace Kratos
-
+}  // Namespace Kratos

@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 
@@ -43,11 +43,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Total Lagrangian element for 2D and 3D geometries.
-
 /**
- * Implements a total Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 2D and 3D
+ * @class SmallDisplacement
+ * @ingroup StructuralMechanicsApplication
+ * @brief Small displacement element for 2D and 3D geometries.
+ * @details Implements a small displacement definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacement
@@ -63,6 +65,15 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
+    /// The base element type
+    typedef BaseSolidElement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
     /// Counted pointer of SmallDisplacement
     KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacement);
 
@@ -74,6 +85,11 @@ public:
     SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry);
     SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
+    // Copy constructor
+    SmallDisplacement(SmallDisplacement const& rOther)
+        :BaseType(rOther)
+    {};
+
     /// Destructor.
     ~SmallDisplacement() override;
 
@@ -83,19 +99,39 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
     /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
      */
-    //TODO: ADD THE OTHER CREATE FUNCTION
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
-    
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
-     * @param rCurrentProcessInfo
+     * @param rCurrentProcessInfo The current process info instance
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -135,72 +171,78 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-	SmallDisplacement() : BaseSolidElement()
+
+    SmallDisplacement() : BaseSolidElement()
     {
     }
 
+     /**
+     * @brief This method returns if the element provides the strain
+     */
+    bool UseElementProvidedStrain() override;
+
     /**
-     * This functions calculates both the RHS and the LHS
-     * @param rLeftHandSideMatrix: The LHS
-     * @param rRightHandSideVector: The RHS
-     * @param rCurrentProcessInfo: The current process info instance
-     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
-     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+     * @brief This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix The LHS
+     * @param rRightHandSideVector The RHS
+     * @param rCurrentProcessInfo The current process info instance
+     * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
     void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-    
+
     /**
-     * This functions updates the kinematics variables
-     * @param rThisKinematicVariables: The kinematic variables to be calculated 
-     * @param PointNumber: The integration point considered
-     */ 
+     * @brief This functions updates the kinematics variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param PointNumber The integration point considered
+     */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        const IndexType PointNumber,
+        const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
-        
+
      /**
-     * This functions updates the constitutive variables
-     * @param rThisKinematicVariables: The kinematic variables to be calculated 
-     * @param rThisConstitutiveVariables: The constitutive variables
-     * @param rValues: The CL parameters
-     * @param PointNumber: The integration point considered
-     * @param IntegrationPoints: The list of integration points
-     * @param ThisStressMeasure: The stress measure considered
-     * @param Displacements: The displacements vector
-     */ 
+     * @brief This functions updates the constitutive variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     * @param ThisStressMeasure The stress measure considered
+     */
     void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables, 
-        ConstitutiveVariables& rThisConstitutiveVariables, 
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
-        const Vector Displacements
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure
         ) override;
 
     /**
      * Calculation of the Deformation Matrix B
-     * @param B: The deformation matrix
-     * @param DN_DX: The derivatives of the shape functions
+     * @param rB The deformation matrix
+     * @param rDN_DX The derivatives of the shape functions
+     * @param IntegrationPoints The array containing the integration points
+     * @param PointNumber The integration point considered
      */
     virtual void CalculateB(
         Matrix& rB,
-        const Matrix& DN_DX,
+        const Matrix& rDN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
+        const IndexType PointNumber
         );
 
     /**
      * Calculation of the equivalent deformation gradient
-     * @param StrainVector: The strain tensor (Voigt notation)
+     * @param StrainVector The strain tensor (Voigt notation)
      * @return The deformation gradient F
      */
     virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
@@ -231,18 +273,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-    void CalculateBodyForces(
-        Vector& BodyForce,
-        const ProcessInfo& CurrentProcessInfo
-        );
-
-    void InitializeVariables();
-
-    void CalculateStrain(
-        const Matrix& C,
-        Vector& StrainVector
-        );
 
     ///@}
     ///@name Private Operations
@@ -287,4 +317,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined

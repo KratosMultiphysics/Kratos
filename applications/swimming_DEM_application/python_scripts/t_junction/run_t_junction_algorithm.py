@@ -47,11 +47,11 @@ for radius in set_of_inlet_radii:
         parameters = Parameters(json.dumps(varying_parameters))
 
         with script.Solution(pre_calculated_fluid_algorithm, parameters) as test:
-            test.alg.Run()
+            test.Run()
 
         # try:
         #     test = script.Solution(algorithm, parameters)
-        #     test.alg.Run()
+        #     test.Run()
         #     del test
         #     del script
         # except:

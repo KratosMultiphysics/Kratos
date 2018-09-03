@@ -145,6 +145,29 @@ public:
     ///@name Inquiry
     ///@{
 
+    inline static bool HasSameType(const GeometricalObject& rLHS, const GeometricalObject& rRHS) {
+        return (typeid(rLHS) == typeid(rRHS));
+    }
+
+    inline static bool HasSameType(const GeometricalObject * rLHS, const GeometricalObject* rRHS) {
+        return GeometricalObject::HasSameType(*rLHS, *rRHS);
+    }
+        
+    inline static bool HasSameGeometryType(const GeometricalObject& rLHS, const GeometricalObject& rRHS) {
+        return (rLHS.GetGeometry().GetGeometryType() == rRHS.GetGeometry().GetGeometryType());
+    }
+
+    inline static bool HasSameGeometryType(const GeometricalObject* rLHS, const GeometricalObject* rRHS) {
+        return GeometricalObject::HasSameGeometryType(*rLHS, *rRHS);
+    }
+
+    inline static bool IsSame(const GeometricalObject& rLHS, const GeometricalObject& rRHS) {
+        return GeometricalObject::HasSameType(rLHS, rRHS) && GeometricalObject::HasSameGeometryType(rLHS, rRHS);
+    }
+
+    inline static bool IsSame(const GeometricalObject* rLHS, const GeometricalObject* rRHS) {
+        return GeometricalObject::HasSameType(*rLHS, *rRHS) && GeometricalObject::HasSameGeometryType(*rLHS, *rRHS);
+    }
 
     ///@}
     ///@name Input and output

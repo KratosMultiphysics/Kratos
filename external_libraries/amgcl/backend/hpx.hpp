@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -68,7 +68,7 @@ class hpx_matrix {
         std::vector<std::tuple<index_type, index_type>> yrange;
 
         // Creates the matrix from builtin datatype, sets up xrange.
-        hpx_matrix(boost::shared_ptr<Base> A, int grain_size) : base(A)
+        hpx_matrix(std::shared_ptr<Base> A, int grain_size) : base(A)
         {
             index_type n = backend::rows(*A);
             index_type m = backend::cols(*A);
@@ -114,7 +114,7 @@ class hpx_matrix {
         // Base matrix is stored in shared_ptr<> to reduce the overhead
         // of data transfer from builtin datatypes (used for AMG setup) to the
         // backend datatypes.
-        boost::shared_ptr<Base> base;
+        std::shared_ptr<Base> base;
 
 };
 
@@ -144,17 +144,17 @@ class hpx_vector {
         hpx_vector(size_t n, int grain_size)
             : nseg( (n + grain_size - 1) / grain_size ),
               grain_size( grain_size ),
-              buf( boost::make_shared<Base>(n) )
+              buf( std::make_shared<Base>(n) )
         {
             precondition(grain_size > 0, "grain size should be positive");
             init_futures();
         }
 
         template <class Other>
-        hpx_vector(boost::shared_ptr<Other> o, int grain_size)
+        hpx_vector(std::shared_ptr<Other> o, int grain_size)
             : nseg( (o->size() + grain_size - 1) / grain_size ),
               grain_size( grain_size ),
-              buf(boost::make_shared<Base>(o->data(), o->data() + o->size()))
+              buf(std::make_shared<Base>(o->data(), o->data() + o->size()))
         {
             precondition(grain_size > 0, "grain size should be positive");
             init_futures();
@@ -191,7 +191,7 @@ class hpx_vector {
         // Segments stored in a continuous array.
         // The base vector is stored with shared_ptr for the same reason as with
         // hpx_matrix above: to reduce the overhead of data transfer.
-        boost::shared_ptr<Base> buf;
+        std::shared_ptr<Base> buf;
 
         void init_futures() {
             safe_to_read.reserve(nseg);
@@ -214,7 +214,7 @@ struct HPX {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
 
-    struct provides_row_iterator : boost::false_type {};
+    struct provides_row_iterator : std::false_type {};
 
     struct params {
         /// Number of vector elements in a single segment.
@@ -222,15 +222,17 @@ struct HPX {
 
         params() : grain_size(4096) {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, grain_size)
         {
-            AMGCL_PARAMS_CHECK(p, (grain_size));
+            check_params(p, {"grain_size"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, grain_size);
         }
+#endif
     };
 
     typedef hpx_matrix<value_type>         matrix;
@@ -277,40 +279,40 @@ struct HPX {
     static std::string name() { return "HPX"; }
 
     /// Copy matrix.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr<typename matrix::Base> A, const params &p)
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr<typename matrix::Base> A, const params &p)
     {
-        return boost::make_shared<matrix>(A, p.grain_size);
+        return std::make_shared<matrix>(A, p.grain_size);
     }
 
     /// Copy vector to builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(const typename vector::Base &x, const params &p)
     {
-        return boost::make_shared<vector>(
-                boost::make_shared<typename vector::Base>(x), p.grain_size
+        return std::make_shared<vector>(
+                std::make_shared<typename vector::Base>(x), p.grain_size
                 );
     }
 
     /// Copy vector to builtin backend.
     template <typename Other>
-    static boost::shared_ptr<hpx_vector<typename Other::value_type>>
-    copy_vector(boost::shared_ptr<Other> x, const params &p)
+    static std::shared_ptr<hpx_vector<typename Other::value_type>>
+    copy_vector(std::shared_ptr<Other> x, const params &p)
     {
-        return boost::make_shared<hpx_vector<typename Other::value_type>>(x, p.grain_size);
+        return std::make_shared<hpx_vector<typename Other::value_type>>(x, p.grain_size);
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params &p)
     {
-        return boost::make_shared<vector>(size, p.grain_size);
+        return std::make_shared<vector>(size, p.grain_size);
     }
 
     /// Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr<typename matrix::Base> A, const params&) {
-        return boost::make_shared<direct_solver>(*A);
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr<typename matrix::Base> A, const params&) {
+        return std::make_shared<direct_solver>(*A);
     }
 };
 
@@ -614,7 +616,8 @@ struct copy_impl<
 };
 
 template < typename real >
-struct copy_to_backend_impl<
+struct copy<
+    std::vector<real>,
     hpx_vector<real>
     >
 {

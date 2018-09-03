@@ -475,7 +475,8 @@ class TestParameters(KratosUnittest.TestCase):
         tmp = Parameters("""{
             "valid_vectors" : [ []
             ],
-            "false_vectors" : [ [[2,3],2],
+            "false_vectors" : [ [[]],
+                                [[2,3],2],
                                 [2,3,[2]],
                                 [2,3,[]],
                                 [{"key":3},2],
@@ -581,6 +582,37 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(A2[2,0],5.0)
         self.assertEqual(A2[2,1],6.0)
 
+    def test_null_vs_null_validation(self):
+            
+        # supplied settings
+        null_custom = Parameters("""{
+        "parameter": null
+        }""")
+
+        # default settings
+        null_default = Parameters("""{
+        "parameter": null
+        }""")
+        
+        #this should NOT raise, hence making the test to pass
+        null_custom.ValidateAndAssignDefaults(null_default)
+
+    def test_double_vs_null_validation(self):
+            
+        # supplied settings
+        double_custom = Parameters("""{
+        "parameter": 0.0
+        }""")
+
+        # default settings
+        null_default = Parameters("""{
+        "parameter": null
+        }""")
+
+        with self.assertRaises(RuntimeError):
+            double_custom.ValidateAndAssignDefaults(null_default)
+
+        
         
 if __name__ == '__main__':
     KratosUnittest.main()

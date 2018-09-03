@@ -486,7 +486,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //         NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
+    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -672,9 +672,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
@@ -701,8 +701,8 @@ public:
 
     /**
      * Returns the local coordinates of a given arbitrary point
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates(
@@ -710,8 +710,8 @@ public:
         const CoordinatesArrayType& rPoint
         ) override
     {
-        boost::numeric::ublas::bounded_matrix<double,3,4> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
+        BoundedMatrix<double,3,4> X;
+        BoundedMatrix<double,3,2> DN;
         for(unsigned int i=0; i<4;i++)
         {
             X(0,i ) = 0.5*(this->GetPoint( i ).X() + this->GetPoint( i+4 ).X());

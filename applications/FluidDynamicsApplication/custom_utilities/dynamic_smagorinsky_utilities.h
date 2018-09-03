@@ -1,47 +1,13 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: jcotela $
-//   Date:                $Date: 2010-12-10 11:43:00 $
-//   Revision:            $Revision: 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Jordi Cotela
 //
 
 // System includes
@@ -225,8 +191,8 @@ public:
                 LocalCoarseVel.resize(9);
                 LocalMassMatrix.resize(9,9,false);
                 array_1d<double,3> N;
-                boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
-                boost::numeric::ublas::bounded_matrix<double,2,2> dv_dx;
+                BoundedMatrix<double,3,2> DN_DX;
+                BoundedMatrix<double,2,2> dv_dx;
 
                 // Evaluate the N-S and model terms in each coarse element
                 for( ModelPart::ElementsContainerType::iterator itElem = CoarseElemBegin; itElem != CoarseElemEnd; ++itElem)
@@ -258,8 +224,8 @@ public:
                 LocalCoarseVel.resize(16);
                 LocalMassMatrix.resize(16,16,false);
                 array_1d<double,4> N;
-                boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-                boost::numeric::ublas::bounded_matrix<double,3,3> dv_dx;
+                BoundedMatrix<double,4,3> DN_DX;
+                BoundedMatrix<double,3,3> dv_dx;
 
                 // Evaluate the N-S and model terms in each coarse element
                 for( ModelPart::ElementsContainerType::iterator itElem = CoarseElemBegin; itElem != CoarseElemEnd; ++itElem)
@@ -439,8 +405,8 @@ private:
     /// Return the Galerkin (+stabilization) and Model terms for this element (2D version)
     void GermanoTerms2D(Element& rElem,
                         array_1d<double,3>& rShapeFunc,
-                        boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
-                        boost::numeric::ublas::bounded_matrix<double,2,2>& rGradient,
+                        BoundedMatrix<double,3,2>& rShapeDeriv,
+                        BoundedMatrix<double,2,2>& rGradient,
                         Vector& rNodalResidualContainer,
                         Vector& rNodalVelocityContainer,
                         Matrix& rMassMatrix,
@@ -510,8 +476,8 @@ private:
     /// Return the Galerkin (+stabilization) and Model terms for this element (3D version)
     void GermanoTerms3D(Element& rElem,
                         array_1d<double,4>& rShapeFunc,
-                        boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
-                        boost::numeric::ublas::bounded_matrix<double,3,3>& rGradient,
+                        BoundedMatrix<double,4,3>& rShapeDeriv,
+                        BoundedMatrix<double,3,3>& rGradient,
                         Vector& rNodalResidualContainer,
                         Vector& rNodalVelocityContainer,
                         Matrix& rMassMatrix,

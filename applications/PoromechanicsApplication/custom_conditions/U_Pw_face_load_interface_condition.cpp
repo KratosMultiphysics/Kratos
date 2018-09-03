@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 // Application includes
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
@@ -79,17 +85,17 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rR
     
     //Condition variables
     array_1d<double,TNumNodes*TDim> DisplacementVector;
-    ConditionUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+    PoroConditionUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     array_1d<double,TNumNodes*TDim> FaceLoadVector;
-    ConditionUtilities::GetFaceLoadVector(FaceLoadVector,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim,TDim> RotationMatrix;
+    PoroConditionUtilities::GetNodalVariableVector(FaceLoadVector,Geom,FACE_LOAD);
+    BoundedMatrix<double,TDim,TDim> RotationMatrix;
     const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
     bool ComputeJointWidth;
     double JointWidth;
     this->CheckJointWidth(JointWidth,ComputeJointWidth,RotationMatrix,MinimumJointWidth,Geom);
     array_1d<double,TDim> LocalRelDispVector;
     array_1d<double,TDim> RelDispVector;
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> TractionVector;
     array_1d<double,TNumNodes*TDim> UVector;
     double IntegrationCoefficient;
@@ -98,7 +104,7 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rR
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
         //Compute traction vector 
-        ConditionUtilities::InterpolateVariableWithComponents(TractionVector,NContainer,FaceLoadVector,GPoint);
+        PoroConditionUtilities::InterpolateVariableWithComponents(TractionVector,NContainer,FaceLoadVector,GPoint);
         
         //Compute Nu Matrix
         InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
@@ -111,14 +117,14 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rR
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
-        ConditionUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
+        PoroConditionUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
     }
 }
 
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, boost::numeric::ublas::bounded_matrix<double,2,2>& rRotationMatrix,
+void UPwFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,2,2>& rRotationMatrix,
                                                                 const double& MinimumJointWidth, const Element::GeometryType& Geom)
 {
     //Line_interface_2d_2
@@ -177,7 +183,7 @@ void UPwFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, bo
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix,
+void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,3,3>& rRotationMatrix,
                                                             const double& MinimumJointWidth, const Element::GeometryType& Geom)
 {
     //Quadrilateral_interface_3d_4
@@ -235,9 +241,9 @@ void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bo
 //----------------------------------------------------------------------------------------
     
 template< >
-void UPwFaceLoadInterfaceCondition<2,2>::CalculateJointWidth( double& rJointWidth, const boost::numeric::ublas::bounded_matrix<double,2,4>& Nu,
+void UPwFaceLoadInterfaceCondition<2,2>::CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,2,4>& Nu,
                                                                         const array_1d<double,4>& DisplacementVector, array_1d<double,2>& rRelDispVector,
-                                                                        const boost::numeric::ublas::bounded_matrix<double,2,2>& RotationMatrix,
+                                                                        const BoundedMatrix<double,2,2>& RotationMatrix,
                                                                         array_1d<double,2>& rLocalRelDispVector, const double& MinimumJointWidth,
                                                                         const unsigned int& GPoint )
 {
@@ -258,9 +264,9 @@ void UPwFaceLoadInterfaceCondition<2,2>::CalculateJointWidth( double& rJointWidt
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWidth, const boost::numeric::ublas::bounded_matrix<double,3,12>& Nu,
+void UPwFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,3,12>& Nu,
                                                                         const array_1d<double,12>& DisplacementVector, array_1d<double,3>& rRelDispVector,
-                                                                        const boost::numeric::ublas::bounded_matrix<double,3,3>& RotationMatrix,
+                                                                        const BoundedMatrix<double,3,3>& RotationMatrix,
                                                                         array_1d<double,3>& rLocalRelDispVector, const double& MinimumJointWidth,
                                                                         const unsigned int& GPoint )
 {

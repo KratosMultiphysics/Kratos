@@ -1,0 +1,75 @@
+PROBLEM DATA
+
+TITLE:Problem_Data
+QUESTION: Gravity
+VALUE: 9.81
+QUESTION: Start_Time
+VALUE: 0.0
+HELP: Units in IS: s
+QUESTION: End_Time
+VALUE: 1.0
+HELP: Units in IS: s
+QUESTION: Delta_Time
+VALUE: 0.25
+HELP: Units in IS: s
+QUESTION: Echo_Level
+VALUE: 1
+QUESTION: Parallel_Configuration#CB#(OpenMP,MPI)
+VALUE: OpenMP
+HELP: For the moment, MPI only works in Linux and requires compiling METIS_APPLICATION and TRILINOS_APPLICATION.
+QUESTION: Number_of_threads
+VALUE: 1
+
+
+TITLE:Solver_Settings
+QUESTION: Variables#CB#(Primitive,Conserved)
+VALUE: Primitive
+QUESTION: Framework#CB#(Eulerian,Pfem2)
+VALUE: Pfem2
+DEPENDENCIES: (Pfem2,RESTORE,Maximum_number_of_particles,#CURRENT#)(Table_Interpolation,HIDE,Maximum_number_of_particles,#CURRENT#)
+QUESTION: Maximum_number_of_particles
+VALUE: 16
+QUESTION: Stabilization_parameter
+VALUE: 0.0005
+QUESTION: Relative_tolerance
+VALUE: 1.0E-6
+QUESTION: Absolute_tolerance
+VALUE: 1.0E-9
+QUESTION: Maximum_iterations
+VALUE: 20
+QUESTION: Compute_Reactions#CB#(true,false)
+VALUE: false
+QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
+VALUE: false
+QUESTION: Move_Mesh#CB#(true,false)
+VALUE: false
+QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
+VALUE: AMGCL
+HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
+
+
+TITLE:Output_Configuration
+QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
+VALUE: GiD_PostBinary
+QUESTION: Write_deformed_mesh#CB#(WriteUndeformed,WriteDeformed)
+VALUE: WriteDeformed
+HELP: Write the coordinates of the mesh in its deformed position.
+QUESTION: Write_conditions#CB#(WriteConditions,WriteElementsOnly,WriteConditionsOnly)
+VALUE: WriteElementsOnly
+HELP: Write Gauss points results also on the conditions.
+QUESTION: Multi_file_flag#CB#(SingleFile,MultipleFiles)
+VALUE: SingleFile
+QUESTION: File_label#CB#(step,time)
+VALUE: step
+QUESTION: Output_control_type#CB#(step,time)
+VALUE: step
+QUESTION: Output_frequency
+VALUE: 1
+QUESTION: Body_output#CB#(true,false)
+VALUE: true
+QUESTION: Node_output#CB#(true,false)
+VALUE: false
+QUESTION: Skin_output#CB#(true,false)
+VALUE: false
+
+END PROBLEM DATA

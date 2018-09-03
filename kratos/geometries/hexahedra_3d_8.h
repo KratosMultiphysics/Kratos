@@ -12,6 +12,7 @@
 //                   Felix Nagel
 //  contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Bodhinanda Chandra
 //
 
 #if !defined(KRATOS_HEXAHEDRA_3D_8_H_INCLUDED )
@@ -28,9 +29,26 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Hexahedra3D8
+ * @ingroup KratosCore
+ * @brief An eight node hexahedra geometry with linear shape functions
+ * @details The node ordering corresponds with: 
+ *             v
+ *      3----------2            
+ *      |\     ^   |\          
+ *      | \    |   | \        
+ *      |  \   |   |  \       
+ *      |   7------+---6        
+ *      |   |  +-- |-- | -> u   
+ *      0---+---\--1   |        
+ *       \  |    \  \  |        
+ *        \ |     \  \ |         
+ *         \|      w  \|         
+ *          4----------5   
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Hexahedra3D8 : public Geometry<TPointType>
 {
 public:
@@ -311,7 +329,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //         NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
+    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -455,9 +473,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     virtual bool IsInside( 
@@ -585,6 +603,33 @@ public:
                                               this->pGetPoint( 7 ) ) ) );
         return faces;
     }
+
+
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    {
+        using Quadrilateral3D4Type = Quadrilateral3D4<TPointType>;
+        // Check if faces have intersection
+        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(2), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(4),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(5), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(3),this->pGetPoint(2), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(4), this->pGetPoint(7), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(1),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        
+        CoordinatesArrayType local_coordinates;
+        // if there are no faces intersecting the box then or the box is inside the hexahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
+    }
+
 
     /**
      * Shape Function

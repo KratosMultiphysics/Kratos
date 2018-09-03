@@ -43,6 +43,9 @@ public:
     /// Destructor.
     virtual ~NanoParticle();
 
+    /// Assignment operator.
+    NanoParticle& operator=(NanoParticle const& rOther); 
+
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
@@ -90,13 +93,7 @@ private:
     virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
-    }
-
-    /// Assignment operator.
-    NanoParticle& operator=(NanoParticle const& rOther)
-    {
-    return *this;
-    }
+    }    
 
     /// Copy constructor.
     NanoParticle(NanoParticle const& rOther)

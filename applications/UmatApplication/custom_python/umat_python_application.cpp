@@ -7,46 +7,43 @@
 //
 //
 
-
 // System includes
-
 #if defined(KRATOS_PYTHON)
-// External includes
-#include <boost/python.hpp>
 
+// External includes
 
 // Project includes
-#include "includes/define.h"
-#include "umat_application.h"
-#include "umat_application_variables.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+
+#include "umat_application.h"
 
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    using namespace boost::python;
-
-
-
-    BOOST_PYTHON_MODULE(KratosUmatApplication)
-    {
-
-      class_<KratosUmatApplication,
-	     KratosUmatApplication::Pointer,
-	     bases<KratosApplication>, boost::noncopyable >("KratosUmatApplication")
-	;
-
-      AddCustomConstitutiveLawsToPython();
-
-      //registering variables in python
-
-    }
+using namespace pybind11;
 
 
-  }  // namespace Python.
+
+PYBIND11_MODULE(KratosUmatApplication,m)
+{
+
+  class_<KratosUmatApplication,
+         KratosUmatApplication::Pointer,
+         KratosApplication>(m,"KratosUmatApplication")
+      .def(init<>())
+      ;
+
+  AddCustomConstitutiveLawsToPython(m);
+
+  //registering variables in python
+
+}
+
+
+}  // namespace Python.
 
 }  // namespace Kratos.
 

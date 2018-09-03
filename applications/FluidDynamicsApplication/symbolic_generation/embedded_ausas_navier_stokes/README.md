@@ -1,7 +1,9 @@
-# Navier Stokes Element
+# Embedded Ausas Navier-Stokes Element
 
 ## ELEMENT DESCRIPTION:
-Current directory contains the documentation for the symbolic derivation of the _"navier_stokes"_ element. This element includes a formulation of a quasi-incompressible _Navier-Stokes_ element for both **2D** and **3D** cases.
+Current directory contains the documentation for the symbolic derivation of the _"embedded_ausas_navier_stokes"_ element. This element includes a formulation of a quasi-incompressible _Navier-Stokes_ element for both **2D** and **3D** cases.
+
+The particularity of this formulation is that it integrates by parts the mass conservation equation. This introduces a velocity normal projection boundary term. If this boundary term is dropped and the Ausas discontinuous shape functions (Ausas, 2009) are used, a weak slip boundary condition imposition appears in the embedded interface cut.
 
 ## SYMBOLIC GENERATOR SETTINGS:
 * Dimension to compute: This symbolic generator is valid for both **2D** and **3D** cases. Since the element has been programed with a dimension template in Kratos, it is advised to set the _dim_to_compute_ flag as "_Both_". In this case the _generated .cpp_ file will contain both **2D** and **3D** implementations.
@@ -11,7 +13,7 @@ Current directory contains the documentation for the symbolic derivation of the 
 ## INSTRUCTIONS
 Run:
 ~~~py
-python generate_navier_stokes_element.py
+python generate_embedded_ausas_navier_stokes_element.py
 ~~~
-Then  file "_navier_stokes.cpp_" is generated automatically. Such file should be copied within the "_custom_elements_" folder of the
-**FluidDynamicsApplication**. The corresponding header file "navier_stokes.h", which implements the element is already stored in the custom_elements folder.
+Then  file "_embedded_ausas_navier_stokes.cpp_" is generated automatically. Such file should be copied within the "_custom_elements_" folder of the
+**FluidDynamicsApplication**. The corresponding header file "embedded_ausas_navier_stokes.h", which implements the element is already stored in the custom_elements folder.

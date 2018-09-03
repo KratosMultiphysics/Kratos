@@ -125,20 +125,20 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, Element::PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
 
     Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override {
-        return boost::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< EmbeddedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
     }
 
 
     /**
      * Clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param rThisNodes: the nodes of the new element
+     * @param NewId the ID of the new element
+     * @param rThisNodes the nodes of the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override {
@@ -153,8 +153,8 @@ public:
     /**
      * Fill the element data structure. If the element is split,
      * calls the modified shape functions calculator.
-     * @param rData: reference to the element data structure
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rData reference to the element data structure
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     void FillEmbeddedElementData(
         EmbeddedElementDataStruct& rData,
@@ -184,16 +184,16 @@ public:
         }
 
         // If the element is split, get the modified shape functions
-        if ((rData.n_pos != 0) && (rData.n_neg != 0)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             GeometryPointerType p_geom = this->pGetGeometry();
 
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
             if (TNumNodes == 4) {
-                p_modified_sh_func = boost::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, distances);
+                p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, distances);
             } else {
-                p_modified_sh_func = boost::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, distances);
+                p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, distances);
             }
 
             // Call the fluid side modified shape functions calculator
@@ -229,9 +229,9 @@ public:
 
     /**
      * Calculates both LHS and RHS contributions
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS vector
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
@@ -271,41 +271,12 @@ public:
     }
 
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
-     * @return 0 if no errors were found.
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override {
-        KRATOS_TRY;
-
-        // Base element check
-        int ErrorCode = NavierStokes<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-        if(ErrorCode != 0) return ErrorCode;
-
-        // Specific embedded element check
-        if(DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "DISTANCE Key is 0. Check if the application was correctly registered.","");
-
-        for(unsigned int i=0; i<(this->GetGeometry()).size(); ++i) {
-            if(this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        }
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
      * Calculates both LHS and RHS elemental contributions for those cases in where
      * all the nodes belong to the fluid domain.
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS vector
-     * @param rData: reference to element data structure
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rData reference to element data structure
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     template<unsigned int MatrixSize>
     void ComputeElementAsFluid(
@@ -316,11 +287,11 @@ public:
 
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_local;
 
         // Shape functions Gauss points values
         // TODO: CHANGE THIS, USE THE GEOMETRY WITH A QUADRATURE
-        bounded_matrix<double, TNumNodes, TNumNodes> Ncontainer; // Container with the evaluation of the n shape functions in the n Gauss pts.
+        BoundedMatrix<double, TNumNodes, TNumNodes> Ncontainer; // Container with the evaluation of the n shape functions in the n Gauss pts.
         BaseType::GetShapeFunctionsOnGauss(Ncontainer);
 
         // Loop on gauss point
@@ -344,10 +315,10 @@ public:
     /**
     * Calculates both LHS and RHS elemental contributions for those cases in where
     * the element has both fluid and structure nodes.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rCurrentProcessInfo: reference to the ProcessInfo
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
+    * @param rCurrentProcessInfo reference to the ProcessInfo
     */
     template<unsigned int MatrixSize>
     void ComputeElementAsMixed(
@@ -358,7 +329,7 @@ public:
 
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_local;
 
         // Gauss points loop
         const unsigned int n_gauss_pts = (rData.w_gauss_pos_side).size();
@@ -380,6 +351,115 @@ public:
         // Add level set boundary terms, penalty and modified Nitche contributions
         AddBoundaryConditionElementContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
     }
+
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
+     * @return 0 if no errors were found.
+     */
+    int Check(const ProcessInfo &rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+
+        // Base element check
+        int error_code = NavierStokes<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+        if (error_code != 0){
+            return error_code;
+        }
+
+        // Specific embedded element check
+        if (DISTANCE.Key() == 0){
+            KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
+        }
+
+        for (unsigned int i = 0; i < (this->GetGeometry()).size(); ++i){
+            if (this->GetGeometry()[i].SolutionStepsDataHas(DISTANCE) == false){
+                KRATOS_ERROR << "missing VELOCITY variable on solution step data for node " << this->GetGeometry()[i].Id();
+            }
+        }
+
+        return 0;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Given a vector variable, this function computes its value inside de element.
+     * If the function has not implemented this variable computation, throws an error.
+     * @param rVariable Variable to be computed.
+     * @param rOutput Reference to the output array.
+     * @param rCurrentProcessInfo Reference to the process info.
+     */
+    void Calculate(
+        const Variable<array_1d<double, 3>> &rVariable,
+        array_1d<double, 3> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override {
+
+        rOutput = ZeroVector(3);
+
+        // If the element is split, integrate sigma·n over the interface
+        // Note that in the ausas formulation, both interface sides need to be integrated
+        if (rVariable == DRAG_FORCE) {
+
+            EmbeddedElementDataStruct data;
+            this->FillEmbeddedElementData(data, rCurrentProcessInfo);
+
+            // Check if the element is split
+            if (data.n_pos != 0 && data.n_neg != 0){
+
+                // Integrate positive interface side drag
+                const unsigned int n_int_pos_gauss = (data.w_gauss_pos_int).size();
+                for (unsigned int i_gauss = 0; i_gauss < n_int_pos_gauss; ++i_gauss) {
+                    // Get Gauss pt. data
+                    const double w_gauss = data.w_gauss_pos_int(i_gauss);
+                    const array_1d<double, TNumNodes> aux_N = row(data.N_pos_int, i_gauss);
+                    const array_1d<double, 3> side_normal = data.pos_int_unit_normals[i_gauss];
+
+                    // Obtain Gauss pt. pressure
+                    const double p_gauss = inner_prod(aux_N, data.p);
+
+                    // Call the constitutive law to compute the shear contribution
+                    // Recall to set data.N and data.DN_DX (required by the constitutive law)
+                    noalias(data.N) = aux_N;
+                    noalias(data.DN_DX) = data.DN_DX_pos_int[i_gauss];
+                    this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+
+                    // Get the Voigt notation normal projection matrix
+                    BoundedMatrix<double, TDim, (TDim - 1) * 3> normal_proj_mat = ZeroMatrix(TDim, (TDim - 1) * 3);
+                    this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
+
+                    // Add the shear and pressure drag contributions
+                    const array_1d<double, TDim> shear_proj = w_gauss * prod(normal_proj_mat, data.stress);
+                    for (unsigned int i = 0; i < TDim ; ++i){
+                        rOutput(i) -= shear_proj(i);
+                    }
+                    rOutput += w_gauss * p_gauss * side_normal;
+                }
+            }
+        }
+        else
+        {
+            KRATOS_ERROR << "Calculate method not implemented for the requested variable.";
+        }
+    }
+
+    void Calculate(const Variable<double>& rVariable,
+                   double& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
+
+    void Calculate(const Variable<Vector >& rVariable,
+                   Vector& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
+
+    void Calculate(const Variable<Matrix >& rVariable,
+                   Matrix& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
 
     ///@}
     ///@name Access
@@ -430,9 +510,9 @@ protected:
     * This functions adds the contribution of the boundary terms in the level set cut
     * These terms, which do not vanish at the level set since the test function is not zero
     * at the intersection points, come from the integration by parts of the stress term.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddIntersectionBoundaryTermsContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -447,7 +527,7 @@ protected:
         GetPreviousSolutionVector(rData, prev_sol);
 
         // Declare auxiliar arrays
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
         const unsigned int n_gauss_total = (rData.w_gauss_pos_int).size();
 
@@ -455,24 +535,24 @@ protected:
 
             // Get the current Gauss pt. data
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss_int);                    // Shape function values
-            const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss_int];     // Shape function gradient values
+            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss_int];     // Shape function gradient values
             const double weight = rData.w_gauss_pos_int(i_gauss_int);                                       // Intersection Gauss pt. weight
             const array_1d<double, 3> aux_unit_normal = rData.pos_int_unit_normals[i_gauss_int];            // Gauss pt. unit normal
 
             // Set the current Gauss pt. Voigt notation normal projection matrix
-            bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
+            BoundedMatrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
             SetVoigtNormalProjectionMatrix(aux_unit_normal, voigt_normal_projection_matrix);
 
             // Set the current Gauss pt. strain matrix
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
+            BoundedMatrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
             SetInterfaceStrainMatrix(aux_DN_DX, B_matrix);
 
             // Compute some Gauss pt. auxiliar matrices
-            const bounded_matrix<double, TDim, (TDim-1)*3> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
-            const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+            const BoundedMatrix<double, TDim, (TDim-1)*3> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
+            const BoundedMatrix<double, (TDim-1)*3, MatrixSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
             // Fill the pressure to Voigt notation operator matrix
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> pres_to_voigt_matrix_op = ZeroMatrix((TDim-1)*3, MatrixSize);
+            BoundedMatrix<double, (TDim-1)*3, MatrixSize> pres_to_voigt_matrix_op = ZeroMatrix((TDim-1)*3, MatrixSize);
             for (unsigned int i=0; i<TNumNodes; ++i) {
                 for (unsigned int comp=0; comp<TDim; ++comp) {
                     pres_to_voigt_matrix_op(comp, i*BlockSize+TDim) = aux_N(i);
@@ -480,7 +560,7 @@ protected:
             }
 
             // Set the shape functions auxiliar transpose matrix
-            bounded_matrix<double, MatrixSize, TDim> N_aux_trans = ZeroMatrix(MatrixSize, TDim);
+            BoundedMatrix<double, MatrixSize, TDim> N_aux_trans = ZeroMatrix(MatrixSize, TDim);
             for (unsigned int i=0; i<TNumNodes; ++i) {
                 for (unsigned int comp=0; comp<TDim; ++comp) {
                     N_aux_trans(i*BlockSize+comp, comp) = aux_N(i);
@@ -491,7 +571,7 @@ protected:
             noalias(auxLeftHandSideMatrix) += weight*prod(N_aux_trans, aux_matrix_ACB);
 
             // Contribution coming from the pressure terms
-            const bounded_matrix<double, MatrixSize, (TDim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
+            const BoundedMatrix<double, MatrixSize, (TDim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
             noalias(auxLeftHandSideMatrix) -= weight*prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
         }
 
@@ -504,8 +584,8 @@ protected:
 
     /**
      * This function computes the penalty coefficient for the level set BC imposition
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rData: reference to element data structure
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rData reference to element data structure
      */
     double ComputePenaltyCoefficient(const EmbeddedElementDataStruct& rData) {
 
@@ -547,9 +627,9 @@ protected:
 
     /**
     * This functions adds the penalty extra term level set contribution.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddBoundaryConditionPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -618,9 +698,9 @@ protected:
 
     /**
     * This functions adds the level set strong boundary condition imposition contribution.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddBoundaryConditionModifiedNitcheContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -731,9 +811,9 @@ protected:
 
     /**
     * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void DropOuterNodesVelocityContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -761,9 +841,9 @@ protected:
 
     /**
     * This function adds the Nitsche normal component of the penalty contribution (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterNormalPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -805,7 +885,7 @@ protected:
 
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
         const unsigned int n_gauss_total = (rData.w_gauss_pos_int).size();
 
@@ -816,21 +896,21 @@ protected:
             const array_1d<double, 3> aux_unit_normal = rData.pos_int_unit_normals[i_gauss_int];
 
             // Set the shape functions auxiliar matrices
-            bounded_matrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
+            BoundedMatrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
             for (unsigned int i=0; i<TNumNodes; ++i) {
                 for (unsigned int comp=0; comp<TDim; ++comp) {
                     N_aux(comp,i*BlockSize+comp) = aux_N(i);
                 }
             }
-            const bounded_matrix<double, MatrixSize, TDim> N_aux_trans = trans(N_aux);
+            const BoundedMatrix<double, MatrixSize, TDim> N_aux_trans = trans(N_aux);
 
             // Set the normal projection matrix nxn
-            bounded_matrix<double, TDim, TDim> normal_projection_matrix;
+            BoundedMatrix<double, TDim, TDim> normal_projection_matrix;
             SetNormalProjectionMatrix(aux_unit_normal, normal_projection_matrix);
 
             // Compute the current cut point auxLHS contribution
-            const bounded_matrix<double, MatrixSize, TDim> aux_1 = prod(N_aux_trans, normal_projection_matrix);
-            const bounded_matrix<double, MatrixSize, MatrixSize> aux_2 = prod(aux_1, N_aux);
+            const BoundedMatrix<double, MatrixSize, TDim> aux_1 = prod(N_aux_trans, normal_projection_matrix);
+            const BoundedMatrix<double, MatrixSize, MatrixSize> aux_2 = prod(aux_1, N_aux);
             noalias(auxLeftHandSideMatrix) += cons_coef*weight*aux_2;
         }
 
@@ -859,9 +939,9 @@ protected:
 
     /**
     * This function adds the Nitsche normal component of the symmetric counterpart of the fluxes (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterNormalSymmetricCounterpartContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -880,7 +960,7 @@ protected:
 
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
         const unsigned int n_gauss_total = (rData.w_gauss_pos_int).size();
 
@@ -888,11 +968,11 @@ protected:
             // Get the Gauss pt. data
             const double weight = rData.w_gauss_pos_int(i_gauss_int);
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss_int);
-            const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss_int];
+            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss_int];
             const array_1d<double, 3> aux_unit_normal = rData.pos_int_unit_normals[i_gauss_int];
 
             // Fill the pressure to Voigt notation operator normal projected matrix
-            bounded_matrix<double, MatrixSize, TDim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(MatrixSize, TDim);
+            BoundedMatrix<double, MatrixSize, TDim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(MatrixSize, TDim);
             for (unsigned int i=0; i<TNumNodes; ++i) {
                 for (unsigned int comp=0; comp<TDim; ++comp) {
                     trans_pres_to_voigt_matrix_normal_op(i*BlockSize+TDim, comp) = aux_N(i)*aux_unit_normal(comp);
@@ -900,7 +980,7 @@ protected:
             }
 
             // Set the shape functions auxiliar matrix
-            bounded_matrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
+            BoundedMatrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
             for (unsigned int i=0; i<TNumNodes; ++i) {
                 for (unsigned int comp=0; comp<TDim; ++comp) {
                     N_aux(comp,i*BlockSize+comp) = aux_N(i);
@@ -908,27 +988,27 @@ protected:
             }
 
             // Get the strain matrix
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
+            BoundedMatrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
             SetInterfaceStrainMatrix(aux_DN_DX, B_matrix);
 
             // Get the normal projection matrix
-            bounded_matrix<double, TDim, TDim> normal_projection_matrix = ZeroMatrix(TDim, TDim);
+            BoundedMatrix<double, TDim, TDim> normal_projection_matrix = ZeroMatrix(TDim, TDim);
             SetNormalProjectionMatrix(aux_unit_normal, normal_projection_matrix);
 
             // Get the normal projection matrix in Voigt notation
-            bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
+            BoundedMatrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
             SetVoigtNormalProjectionMatrix(aux_unit_normal, voigt_normal_projection_matrix);
 
             // Compute some Gauss pt. auxiliar matrices
-            const bounded_matrix<double, MatrixSize, (TDim-1)*3> aux_matrix_BC = prod(trans(B_matrix), trans(rData.C));
-            const bounded_matrix<double, (TDim-1)*3, TDim> aux_matrix_APnorm = prod(trans(voigt_normal_projection_matrix), normal_projection_matrix);
-            const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
+            const BoundedMatrix<double, MatrixSize, (TDim-1)*3> aux_matrix_BC = prod(trans(B_matrix), trans(rData.C));
+            const BoundedMatrix<double, (TDim-1)*3, TDim> aux_matrix_APnorm = prod(trans(voigt_normal_projection_matrix), normal_projection_matrix);
+            const BoundedMatrix<double, MatrixSize, TDim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
             // Contribution coming fron the shear stress operator
             noalias(auxLeftHandSideMatrix) += adjoint_consistency_term*weight*prod(aux_matrix_BCAPnorm, N_aux);
 
             // Contribution coming from the pressure terms
-            const bounded_matrix<double, MatrixSize, TDim> aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, normal_projection_matrix);
+            const BoundedMatrix<double, MatrixSize, TDim> aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, normal_projection_matrix);
             noalias(auxLeftHandSideMatrix) += weight*prod(aux_matrix_VPnorm, N_aux);
 
         }
@@ -958,9 +1038,9 @@ protected:
 
     /**
     * This function adds the Nitsche tangential component of the penalty contribution (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterTangentialPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -983,8 +1063,8 @@ protected:
 
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix_1 = ZeroMatrix(MatrixSize, MatrixSize); // Adds the contribution coming from the tangential component of the Cauchy stress vector
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix_2 = ZeroMatrix(MatrixSize, MatrixSize); // Adds the contribution generated by the viscous shear force generated by the velocity
+        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix_1 = ZeroMatrix(MatrixSize, MatrixSize); // Adds the contribution coming from the tangential component of the Cauchy stress vector
+        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix_2 = ZeroMatrix(MatrixSize, MatrixSize); // Adds the contribution generated by the viscous shear force generated by the velocity
 
         const unsigned int n_gauss_total = (rData.w_gauss_pos_int).size();
 
@@ -992,11 +1072,11 @@ protected:
             // Get the Gauss pt. data
             const double weight = rData.w_gauss_pos_int(i_gauss_int);
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss_int);
-            const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss_int];
+            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss_int];
             const array_1d<double, 3> aux_unit_normal = rData.pos_int_unit_normals[i_gauss_int];
 
             // Set the shape functions auxiliar matrix
-            bounded_matrix<double, MatrixSize, TDim> N_aux_trans = ZeroMatrix(MatrixSize, TDim);
+            BoundedMatrix<double, MatrixSize, TDim> N_aux_trans = ZeroMatrix(MatrixSize, TDim);
             for (unsigned int i=0; i<TNumNodes; ++i) {
                 for (unsigned int comp=0; comp<TDim; ++comp) {
                     N_aux_trans(i*BlockSize+comp, comp) = aux_N(i);
@@ -1004,27 +1084,27 @@ protected:
             }
 
             // Get the strain matrix
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
+            BoundedMatrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
             SetInterfaceStrainMatrix(aux_DN_DX, B_matrix);
 
             // Get the normal projection matrix
-            bounded_matrix<double, TDim, TDim> tangential_projection_matrix = ZeroMatrix(TDim, TDim);
+            BoundedMatrix<double, TDim, TDim> tangential_projection_matrix = ZeroMatrix(TDim, TDim);
             SetTangentialProjectionMatrix(aux_unit_normal, tangential_projection_matrix);
 
             // Get the normal projection matrix in Voigt notation
-            bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
+            BoundedMatrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
             SetVoigtNormalProjectionMatrix(aux_unit_normal, voigt_normal_projection_matrix);
 
             // Compute some Gauss pt. auxiliar matrices
-            const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_CB = prod(rData.C, B_matrix);
-            const bounded_matrix<double, (TDim-1)*3, TDim> aux_matrix_PtangA = prod(tangential_projection_matrix, voigt_normal_projection_matrix);
-            const bounded_matrix<double, MatrixSize, TDim> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
+            const BoundedMatrix<double, (TDim-1)*3, MatrixSize> aux_matrix_CB = prod(rData.C, B_matrix);
+            const BoundedMatrix<double, (TDim-1)*3, TDim> aux_matrix_PtangA = prod(tangential_projection_matrix, voigt_normal_projection_matrix);
+            const BoundedMatrix<double, MatrixSize, TDim> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
 
             // Contribution coming from the traction vector tangencial component
             noalias(auxLeftHandSideMatrix_1) += coeff_1*weight*prod(N_aux_trans, aux_matrix_PtangACB);
 
             // Contribution coming from the shear force generated by the velocity jump
-            const bounded_matrix<double, MatrixSize, TDim> aux_matrix_N_trans_tang = prod(N_aux_trans, tangential_projection_matrix);
+            const BoundedMatrix<double, MatrixSize, TDim> aux_matrix_N_trans_tang = prod(N_aux_trans, tangential_projection_matrix);
             noalias(auxLeftHandSideMatrix_2) += coeff_2*weight*prod(aux_matrix_N_trans_tang, trans(N_aux_trans));
         }
 
@@ -1055,9 +1135,9 @@ protected:
 
     /**
     * This function adds the Nitsche tangential component of the symmetric counterpart of the fluxes (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterTangentialSymmetricCounterpartContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -1083,8 +1163,8 @@ protected:
 
         // Declare auxiliar arrays
         array_1d<double, MatrixSize> auxRightHandSideVector = ZeroVector(MatrixSize);
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix_1 = ZeroMatrix(MatrixSize, MatrixSize); // Adds the contribution coming from the tangential component of the Cauchy stress vector
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix_2 = ZeroMatrix(MatrixSize, MatrixSize); // Adds the contribution generated by the viscous shear force generated by the velocity
+        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix_1 = ZeroMatrix(MatrixSize, MatrixSize); // Adds the contribution coming from the tangential component of the Cauchy stress vector
+        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix_2 = ZeroMatrix(MatrixSize, MatrixSize); // Adds the contribution generated by the viscous shear force generated by the velocity
 
         const unsigned int n_gauss_total = (rData.w_gauss_pos_int).size();
 
@@ -1092,11 +1172,11 @@ protected:
             // Get the Gauss pt. data
             const double weight = rData.w_gauss_pos_int(i_gauss_int);
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss_int);
-            const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss_int];
+            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss_int];
             const array_1d<double, 3> aux_unit_normal = rData.pos_int_unit_normals[i_gauss_int];
 
             // Set the shape functions auxiliar matrix
-            bounded_matrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
+            BoundedMatrix<double, TDim, MatrixSize> N_aux = ZeroMatrix(TDim, MatrixSize);
             for (unsigned int i=0; i<TNumNodes; ++i) {
                 for (unsigned int comp=0; comp<TDim; ++comp) {
                     N_aux(comp, i*BlockSize+comp) = aux_N(i);
@@ -1104,23 +1184,23 @@ protected:
             }
 
             // Get the strain matrix
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
+            BoundedMatrix<double, (TDim-1)*3, MatrixSize> B_matrix = ZeroMatrix((TDim-1)*3, MatrixSize);
             SetInterfaceStrainMatrix(aux_DN_DX, B_matrix);
 
             // Get the normal projection matrix
-            bounded_matrix<double, TDim, TDim> tangential_projection_matrix = ZeroMatrix(TDim, TDim);
+            BoundedMatrix<double, TDim, TDim> tangential_projection_matrix = ZeroMatrix(TDim, TDim);
             SetTangentialProjectionMatrix(aux_unit_normal, tangential_projection_matrix);
 
             // Get the normal projection matrix in Voigt notation
-            bounded_matrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
+            BoundedMatrix<double, TDim, (TDim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(TDim, (TDim-1)*3);
             SetVoigtNormalProjectionMatrix(aux_unit_normal, voigt_normal_projection_matrix);
 
             // Compute some Gauss pt. auxiliar matrices
-            const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_projection_matrix));
-            const bounded_matrix<double, MatrixSize, TDim> aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tangential_projection_matrix);
-            const bounded_matrix<double, (TDim-1)*3, MatrixSize> aux_matrix_CB = prod(rData.C, B_matrix);
-            const bounded_matrix<double, TDim, MatrixSize> aux_matrix_ACB = prod(voigt_normal_projection_matrix, aux_matrix_CB);
-            const bounded_matrix<double, MatrixSize, MatrixSize> aux_matrix_BtransAtransPtanACB = prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
+            const BoundedMatrix<double, MatrixSize, TDim> aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_projection_matrix));
+            const BoundedMatrix<double, MatrixSize, TDim> aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tangential_projection_matrix);
+            const BoundedMatrix<double, (TDim-1)*3, MatrixSize> aux_matrix_CB = prod(rData.C, B_matrix);
+            const BoundedMatrix<double, TDim, MatrixSize> aux_matrix_ACB = prod(voigt_normal_projection_matrix, aux_matrix_CB);
+            const BoundedMatrix<double, MatrixSize, MatrixSize> aux_matrix_BtransAtransPtanACB = prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
 
             // Contribution coming from the traction vector tangencial component
             noalias(auxLeftHandSideMatrix_1) += adjoint_consistency_term*coeff_1*weight*aux_matrix_BtransAtransPtanACB;
@@ -1157,9 +1237,9 @@ protected:
 
     /**
     * This functions collects and adds all the level set boundary condition contributions
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddBoundaryConditionElementContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -1188,12 +1268,12 @@ protected:
 
     /**
     * This functions sets the B strain matrix (pressure columns are set to zero)
-    * @param rDN_DX: reference to the current Gauss pt. shape function gradients
-    * @param rB_matrix: reference to the computed B strain matrix
+    * @param rDN_DX reference to the current Gauss pt. shape function gradients
+    * @param rB_matrix reference to the computed B strain matrix
     */
     void SetInterfaceStrainMatrix(
-        const bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
-        bounded_matrix<double, (TDim-1)*3, TNumNodes*(TDim+1)>& rB_matrix) {
+        const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX,
+        BoundedMatrix<double, (TDim-1)*3, TNumNodes*(TDim+1)>& rB_matrix) {
 
         constexpr unsigned int BlockSize = TDim+1;
         rB_matrix.clear();
@@ -1222,12 +1302,12 @@ protected:
 
     /**
     * This functions sets the normal projection matrix nxn
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rNormProjMatrix: reference to the computed normal projection matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param rNormProjMatrix reference to the computed normal projection matrix
     */
     void SetNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        bounded_matrix<double, TDim, TDim>& rNormProjMatrix) {
+        BoundedMatrix<double, TDim, TDim>& rNormProjMatrix) {
 
         rNormProjMatrix.clear();
 
@@ -1244,18 +1324,18 @@ protected:
 
     /**
     * This functions sets the tangential projection matrix I - nxn
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rTangProjMatrix: reference to the computed tangential projection matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param rTangProjMatrix reference to the computed tangential projection matrix
     */
     void SetTangentialProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        bounded_matrix<double, TDim, TDim>& rTangProjMatrix) {
+        BoundedMatrix<double, TDim, TDim>& rTangProjMatrix) {
 
         rTangProjMatrix.clear();
 
         // Fill the tangential projection matrix (I - nxn)
         if (TDim == 3) {
-            identity_matrix<double> id_matrix(TDim);
+            BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim,TDim);
             noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
         } else {
             rTangProjMatrix(0,0) = 1.0 - rUnitNormal(0)*rUnitNormal(0);
@@ -1267,12 +1347,12 @@ protected:
 
     /**
     * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param rVoigtNormProjMatrix reference to the computed normal projection auxiliar matrix
     */
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
+        BoundedMatrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
 
         rVoigtNormProjMatrix.clear();
 
@@ -1296,8 +1376,8 @@ protected:
 
     /**
     * This functions sets a vector containing the element previous solution
-    * @param rData: reference to the element data structure
-    * @param rPrevSolVector: reference to the previous solution vector
+    * @param rData reference to the element data structure
+    * @param rPrevSolVector reference to the previous solution vector
     */
     void GetPreviousSolutionVector(
         const ElementDataType& rData,

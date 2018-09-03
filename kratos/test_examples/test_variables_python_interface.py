@@ -1,10 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-#from KratosMultiphysics.MeshingApplication import *
-#from KratosMultiphysics.IncompressibleFluidApplication import *
-#from KratosMultiphysics.FluidDynamicsApplication import *
-#from KratosMultiphysics.SolidMechanicsApplication import *
 
 white_listed_vars = (
                      "",
@@ -17,13 +13,7 @@ white_listed_vars = (
                      "SOLID FRACTION",
                      "SOLIDIF MODULUS (cm)",
                      "SOLIDIF MODULUS (in)",
-                     "SOLIDIF TIME (s)",
-                     "TEMPERATURES (C)",
-                     "TEMPERATURES (F)",
-                     "X-VELOCITIES (m/s)",
-                     "Y-VELOCITIES (m/s)",
-                     "Z-VELOCITIES (m/s)",
-                     "VELOCITIES (m/s)",
+                     "SOLIDIF TIME (s)"
                      )
 
 def PrintVariablesString(header_name,input_string):

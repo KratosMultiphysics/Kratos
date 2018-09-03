@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined(KRATOS_DOF_H_INCLUDED )
@@ -68,7 +68,6 @@ KRATOS_DOF_TRAITS
 #undef KRATOS_END_DOF_TRAIT
 
 
-
 ///@name Kratos Globals
 ///@{
 
@@ -88,8 +87,11 @@ KRATOS_DOF_TRAITS
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Dof represents a degree of freedom (DoF).
+/** It is a lightweight object which holds its variable, like TEMPERATURE, its
+state of freedom, and a reference to its value in the data structure.
+This class enables the system to work with different set of dofs and also
+represents the Dirichlet condition assigned to each dof.
 */
 template<class TDataType>
 class Dof : public IndexedObject
@@ -103,7 +105,6 @@ public:
 
     typedef std::size_t IndexType;
 
-
     typedef std::size_t EquationIdType;
 
     typedef VariablesListDataValueContainer SolutionStepsDataContainerType;
@@ -116,8 +117,42 @@ public:
     informations to construct a degree of freedom. Also default
     values are used to make it easier to define for simple cases.
 
+    @param NodeId Index of the node which this degree of
+    freedom belongs to it. It can be get by Node::Index() method.
 
-    @param ThisNodeIndex Index of the node which this degree of
+    @param rThisVariable Variable which this degree of freedom
+    holds. This variable considered as unknown of problem to solved
+    and fixing by Fix() method also applied to it. It must be a
+    TDataType variable or component not a vector. For example
+    DISPLACEMENT_X in structural element.
+
+    @see Node
+    @see Variable
+    @see VariableComponent
+    */
+    template<class TVariableType>
+    Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
+        const TVariableType& rThisVariable)
+        : IndexedObject(NodeId),
+          mIsFixed(false),
+          mEquationId(IndexType()),
+          mpSolutionStepsData(pThisSolutionStepsData),
+          mpVariable(&rThisVariable),
+          mpReaction(&msNone),
+          mVariableType(DofTrait<TDataType, TVariableType>::Id),
+          mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
+            << "The Dof-Variable " << rThisVariable.Name() << " is not "
+            << "in the list of variables" << std::endl;
+    }
+
+    /** Constructor. This constructor takes the same input
+    as the previous one, but add the reaction on the DoF
+    declaration
+
+
+    @param NodeId Index of the node which this degree of
     freedom belongs to it. It can be get by Node::Index() method.
 
 
@@ -138,20 +173,6 @@ public:
     @see Variable
     @see VariableComponent
     */
-    template<class TVariableType>
-    Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
-        const TVariableType& rThisVariable)
-        : IndexedObject(NodeId),
-          mIsFixed(false),
-          mEquationId(IndexType()),
-          mpSolutionStepsData(pThisSolutionStepsData),
-          mpVariable(&rThisVariable),
-          mpReaction(&msNone),
-          mVariableType(DofTrait<TDataType, TVariableType>::Id),
-          mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id)
-    {
-    }
-
     template<class TVariableType, class TReactionType>
     Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
         const TVariableType& rThisVariable,
@@ -165,6 +186,13 @@ public:
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
+            << "The Dof-Variable " << rThisVariable.Name() << " is not "
+            << "in the list of variables" << std::endl;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisReaction))
+            << "The Reaction-Variable " << rThisReaction.Name() << " is not "
+            << "in the list of variables" << std::endl;
     }
 
     //This default constructor is needed for pointer vector set
@@ -427,6 +455,11 @@ public:
     void SetSolutionStepsData(SolutionStepsDataContainerType* pNewSolutionStepsData)
     {
         mpSolutionStepsData = pNewSolutionStepsData;
+    }
+
+    bool HasReaction()
+    {
+        return (*mpReaction != msNone);
     }
 
     ///@}
@@ -759,7 +792,7 @@ inline bool operator == ( Dof<TDataType> const& First,
 #undef KRATOS_END_DOF_TRAIT
 
 
-#endif // KRATOS_DOF_H_INCLUDED  defined 
+#endif // KRATOS_DOF_H_INCLUDED  defined
 
 
 

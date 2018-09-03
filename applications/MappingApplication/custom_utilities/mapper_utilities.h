@@ -140,9 +140,9 @@ public:
     static double ComputeDistance(const array_1d<double, 3>& rCoords1,
                                   const array_1d<double, 3>& rCoords2)
     {
-        return sqrt(pow(rCoords1[0] - rCoords2[0] , 2) +
-                    pow(rCoords1[1] - rCoords2[1] , 2) +
-                    pow(rCoords1[2] - rCoords2[2] , 2));
+        return std::sqrt(std::pow(rCoords1[0] - rCoords2[0] , 2) +
+                         std::pow(rCoords1[1] - rCoords2[1] , 2) +
+                         std::pow(rCoords1[2] - rCoords2[2] , 2));
     }
 
     template <typename T>
@@ -223,7 +223,7 @@ public:
     {
         // NumNodes* are casted to doubles in order to use the double devision
         // if this function would take ints, then the return value would also be an int!
-        KRATOS_ERROR_IF(NumNodesDestination <= 0) << "Division by zero!" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(NumNodesDestination <= 0) << "Division by zero!" << std::endl;
 
         return NumNodesOrigin / NumNodesDestination;
     }

@@ -38,7 +38,7 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
     if (dimension == 2)
     {
         Point point_projected;
-        Point point_to_project = Point(this->Coordinate(1), this->Coordinate(2), this->Coordinate(3));
+        Point point_to_project = Point(this->X(), this->Y(), this->Z());
         ProjectPointToLine(rOriginGeom[0], point_to_project, point_projected, Dist);
 
         array_1d<double, 3> point_projected_local_coor;
@@ -61,9 +61,7 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
 
         array_1d<double, 3> RHS, Res;
 
-        RHS[0] = this->Coordinate(1) - rOriginGeom[0].X();
-        RHS[1] = this->Coordinate(2) - rOriginGeom[0].Y();
-        RHS[2] = this->Coordinate(3) - rOriginGeom[0].Z();
+        noalias(RHS) = this->Coordinates() - rOriginGeom[0].Coordinates();
 
         ChangeMatrix(0, 0) = rOriginGeom[1].X() - rOriginGeom[0].X();
         ChangeMatrix(1, 0) = rOriginGeom[1].Y() - rOriginGeom[0].Y();
@@ -237,9 +235,10 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(ModelPart& rOriginModelPart,
 
             for(unsigned int i = 0; i < nnodes; i++)
             {
+                const array_1d<double,3>& r_coordinates = rGeom[i].Coordinates();
                 for(unsigned int j = 0; j < 3; j++)
                 {
-                    Nodes(i,j) = rGeom[i].Coordinate(j + 1);
+                    Nodes(i,j) = r_coordinates[j];
                 }
             }
 
@@ -328,7 +327,7 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
     // Try to use a nearby node as reference for points that couldn't be projected to a condition
     if (ProjectionlessGP.size() != 0)
     {
-        std::cout << "AdvancedNMPointsMapper: " << ProjectionlessGP.size()
+        KRATOS_WARNING("AdvancedNMPointsMapper") << ProjectionlessGP.size()
                   << " Gauss points could not be projected to a condition.\n"
                   << "    Attempring to get a reasonable value for them from a node..." << std::endl;
 
@@ -366,7 +365,7 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
             }
         }
 
-        std::cout << "   ... " << counter << " Gauss Points without a reference value remain." << std::endl;
+        KRATOS_WARNING("AdvancedNMPointsMapper") << counter << " Gauss Points without a reference value remain." << std::endl;
     }
 }
 
@@ -423,9 +422,10 @@ void AdvancedNMPointsMapper::ComputeGeometryCenterAndRadius(const Condition::Poi
 
     for(unsigned int i = 0; i < nnodes; i++)
     {
-        double dx = Center.Coordinate(1) - Cond->GetGeometry()[i].X();
-        double dy = Center.Coordinate(2) - Cond->GetGeometry()[i].Y();
-        double dz = Center.Coordinate(3) - Cond->GetGeometry()[i].Z();
+        const Node<3>& r_node = Cond->GetGeometry()[i];
+        double dx = Center.X() - r_node.X();
+        double dy = Center.Y() - r_node.Y();
+        double dz = Center.Z() - r_node.Z();
 
         double tmp = dx*dx + dy*dy + dz*dz;
         Radius = std::max(Radius,tmp);
@@ -588,7 +588,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
 
         MInterp = prod(MCons, inv_aux_GPPos); // Interpolation matrix (NodalValues = (L/6)*MInterp*GaussValues)
 
-        std::vector< boost::shared_ptr<array_1d<double,2> > > pInterpValues;
+        std::vector< Kratos::shared_ptr<array_1d<double,2> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -627,7 +627,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
             NodalValues[0] = K*(MInterp(0,0)*GPValues[0] + MInterp(0,1)*GPValues[1]);
             NodalValues[1] = K*(MInterp(1,0)*GPValues[0] + MInterp(1,1)*GPValues[1]);
 
-            boost::shared_ptr< array_1d<double,2> > pNodalValues(new array_1d<double,2>(NodalValues) );
+            Kratos::shared_ptr< array_1d<double,2> > pNodalValues(new array_1d<double,2>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 2; // 1 Condition = 2 Gauss Points
@@ -702,12 +702,12 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "ScalarToNormalVectorMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "ScalarToNormalVectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         }
     }
@@ -724,7 +724,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
         MInterp(1, 0) = 1.0; MInterp(1, 1) = 6.0; MInterp(1, 2) = 1.0;
         MInterp(2, 0) = 1.0; MInterp(2, 1) = 1.0; MInterp(2, 2) = 6.0;
 
-        std::vector< boost::shared_ptr< array_1d<double, 3> > > pInterpValues;
+        std::vector< Kratos::shared_ptr< array_1d<double, 3> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -752,7 +752,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
 
             noalias(NodalValues) = (CondArea/24.0) * prod(MInterp, GPValues);
 
-            boost::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
+            Kratos::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 3; // 1 Condition = 3 Gauss Points
@@ -824,12 +824,12 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "ScalarToNormalVectorMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "ScalarToNormalVectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
     }
@@ -889,7 +889,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
 
         MInterp = prod(MCons, inv_aux_GPPos); // Interpolation matrix (NodalValues = (L/6)*MInterp*GaussValues)
 
-        std::vector< boost::shared_ptr<array_1d<double,6> > > pInterpValues;
+        std::vector< Kratos::shared_ptr<array_1d<double,6> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -934,7 +934,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
                 NodalValues[3 + j] = K*(MInterp(1,0)*GPValues[j] + MInterp(1,1)*GPValues[3 + j]);
             }
 
-            boost::shared_ptr< array_1d<double,6> > pNodalValues(new array_1d<double,6>(NodalValues) );
+            Kratos::shared_ptr< array_1d<double,6> > pNodalValues(new array_1d<double,6>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 2; // 1 Condition = 2 Gauss Points
@@ -1028,19 +1028,19 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "NormalVectorToScalarMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "NormalVectorToScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         }
     }
     else
     {
 
-        std::vector< boost::shared_ptr<array_1d<double,9> > > pInterpValues;
+        std::vector< Kratos::shared_ptr<array_1d<double,9> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1085,7 +1085,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
                 NodalValues[6 + i] = K*(1.0 * GPValues[i] + 1.0 * GPValues[3 + i] + 6.0 * GPValues[6 + i]);
             }
 
-            boost::shared_ptr< array_1d<double,9> > pNodalValues(new array_1d<double,9>(NodalValues) );
+            Kratos::shared_ptr< array_1d<double,9> > pNodalValues(new array_1d<double,9>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 3; // 1 Condition = 3 Gauss Points
@@ -1183,12 +1183,12 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "NormalVectorToScalarMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "NormalVectorToScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
     }
@@ -1241,7 +1241,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
 
         MInterp = prod(MCons, inv_aux_GPPos); // Interpolation Matrix (NodalValues = (L/6)*MInterp*GaussValues)
 
-        std::vector< boost::shared_ptr<array_1d<double,2> > > pInterpValues;
+        std::vector< Kratos::shared_ptr<array_1d<double,2> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1270,7 +1270,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
             NodalValues[0] = K*(MInterp(0,0)*GPValues[0] + MInterp(0,1)*GPValues[1]);
             NodalValues[1] = K*(MInterp(1,0)*GPValues[0] + MInterp(1,1)*GPValues[1]);
 
-            boost::shared_ptr< array_1d<double,2> > pNodalValues(new array_1d<double,2>(NodalValues));
+            Kratos::shared_ptr< array_1d<double,2> > pNodalValues(new array_1d<double,2>(NodalValues));
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 2; // 1 Condition = 2 Gauss Points
@@ -1341,12 +1341,12 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
             {
-                std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ( (k + 1) == MaxIter)
             {
-                std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
     }
@@ -1364,7 +1364,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
         MInterp(1, 0) = 1.0; MInterp(1, 1) = 6.0; MInterp(1, 2) = 1.0;
         MInterp(2, 0) = 1.0; MInterp(2, 1) = 1.0; MInterp(2, 2) = 6.0;
 
-        std::vector< boost::shared_ptr< array_1d<double, 3> > > pInterpValues;
+        std::vector< Kratos::shared_ptr< array_1d<double, 3> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1386,7 +1386,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
 
             noalias(NodalValues) = (CondArea/24.0) * prod(MInterp, GPValues);
 
-            boost::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
+            Kratos::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 3; // 1 Condition = 3 Gauss Points
@@ -1456,12 +1456,12 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: ScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "ScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
     }
@@ -1515,7 +1515,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
 
         MInterp = prod(MCons, inv_aux_GPPos); // Interpolation matrix (NodalValues = (L/6)*MInterp*GaussValues)
 
-        std::vector< boost::shared_ptr<array_1d<double,6> > > pInterpValues;
+        std::vector< Kratos::shared_ptr<array_1d<double,6> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1554,7 +1554,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             NodalValues[4] = K*(MInterp(1,0)*GPValues[1] + MInterp(1,1)*GPValues[4]);
             NodalValues[5] = 0.0;
 
-            boost::shared_ptr< array_1d<double,6> > pNodalValues(new array_1d<double,6>(NodalValues) );
+            Kratos::shared_ptr< array_1d<double,6> > pNodalValues(new array_1d<double,6>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 2; // 1 Condition = 2 Gauss Points
@@ -1635,12 +1635,12 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
             {
-                std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ( (k + 1) == MaxIter)
             {
-                std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         }
         // End of Iteration
@@ -1648,7 +1648,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
     }
     else // 3D case
     {
-        std::vector< boost::shared_ptr<array_1d<double,9> > > pInterpValues;
+        std::vector< Kratos::shared_ptr<array_1d<double,9> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1685,7 +1685,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
                 NodalValues[6 + i] = K*(1.0 * GPValues[i] + 1.0 * GPValues[3 + i] + 6.0 * GPValues[6 + i]);
             }
 
-            boost::shared_ptr< array_1d<double,9> > pNodalValues(new array_1d<double,9>(NodalValues) );
+            Kratos::shared_ptr< array_1d<double,9> > pNodalValues(new array_1d<double,9>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 3; // 1 Condition = 3 Gauss Points
@@ -1772,12 +1772,12 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
             {
-                std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ( (k + 1) == MaxIter)
             {
-                std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         }
         // End of Iteration
@@ -1799,7 +1799,6 @@ void AdvancedNMPointsMapper::DistanceCheck()
             double dist = 0.0;
             int Status  = 0;
             mGaussPointList[GPiter + i]->GetProjStatus(Status);
-            std::cout << GPiter + i << " " << Status << std::endl;
 
             if (Status != 0)
             {

@@ -70,7 +70,7 @@ template<class TDataType,
          class TGetKeyType = SetIdentityFunction<TDataType>,
          class TCompareType = std::less<typename TGetKeyType::result_type>,
          class TEqualType = std::equal_to<typename TGetKeyType::result_type>,
-         class TPointerType = boost::shared_ptr<TDataType>,
+         class TPointerType = Kratos::shared_ptr<TDataType>,
          class TContainerType = std::vector<TPointerType> >
 class PointerVectorSet
 {
@@ -123,7 +123,7 @@ public:
     PointerVectorSet(const PointerVectorSet& rOther)
         :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
 
-    PointerVectorSet(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(1)
+    explicit PointerVectorSet(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(1)
     {
         Sort();
         std::unique(mData.begin(), mData.end(), EqualKeyTo());

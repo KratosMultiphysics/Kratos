@@ -240,7 +240,7 @@ namespace Kratos
 	AssignInitialStepValues();
 	
 	double Dp_norm = 1.00;
-	int iteration = 0;
+	//int iteration = 0;
 	//int MaxPressureIterations = this->mMaxPressIterations;
 	Dp_norm = IterativeSolve();
 #endif
@@ -269,7 +269,6 @@ namespace Kratos
 	Timer::Start("Solve_ambos");
 	
 	double Dp_norm = 1.00;
-	int iteration = 0;
 	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	//KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 	rCurrentProcessInfo[VISCOSITY] = 1.0;
@@ -293,11 +292,12 @@ namespace Kratos
 	this->SolveStepaux();
 	//int MaxPressureIterations = this->mMaxPressIterations;
 	//int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-	double p_norm = SavePressureIteration();
+	//double p_norm = SavePressureIteration();
 	Dp_norm = 1.0;
 	//Timer::Stop("Solve_ambos");
 	//KRATOS_WATCH(time)
 #else
+	int iteration = 0;
 	while (  iteration++ < 3)   
 	  {
 	    Dp_norm = SolvePressure();
@@ -414,14 +414,12 @@ namespace Kratos
 	
         array_1d<double, 3 > zero = ZeroVector(3);
 
-	int number_of_threads=0;
-#ifdef _OPENMP
-        number_of_threads = omp_get_max_threads();
-#else
-        number_of_threads = 1;
-#endif
+//#ifdef _OPENMP
+//        int number_of_threads = omp_get_max_threads();
+//#else
+//        int number_of_threads = 1;
+//#endif
 	
-	//number_of_threads = 1;
         //ModelPart& model_part=BaseType::GetModelPart();
 	
         //double dt = model_part.GetProcessInfo()[DELTA_TIME];

@@ -39,10 +39,17 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-/// Short class definition.
-// This process initializes the variables related with the ALM
-/** Detail class definition.
-*/
+/**
+ * @class MetricFastInit
+ *
+ * @ingroup MeshingApplication
+ * 
+ * @brief This process initializes the variables related with the ALM
+ * 
+ * @author Vicente Mataix Ferrandiz
+ * 
+ * @todo Replace with VariableUtils() when updated for nonhistorical
+ */
 template<unsigned int TDim>
 class MetricFastInit
     : public Process

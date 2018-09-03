@@ -1,9 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: jcotela $
-//   Date:                $Date: 2011-07-22 17:06:00 $
-//   Revision:            $Revision: 1.2 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Jordi Cotela
+//                   Riccardo Rossi
 //
 
 
@@ -31,7 +36,6 @@
 #include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-#include "spaces/ublas_space.h"
 
 // Application includes
 #include "custom_utilities/periodic_condition_utilities.h"

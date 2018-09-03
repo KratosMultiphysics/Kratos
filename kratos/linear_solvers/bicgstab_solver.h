@@ -85,7 +85,7 @@ public:
     BICGSTABSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
         
-    BICGSTABSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):
+    BICGSTABSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()):
         BaseType(settings, pNewPreconditioner) {}
         
     BICGSTABSolver(Parameters settings):

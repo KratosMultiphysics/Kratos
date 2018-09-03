@@ -15,14 +15,12 @@
 /* System Includes */
 
 /* External Includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "custom_utilities/contact_utilities.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
 #include "utilities/openmp_utils.h"
@@ -108,6 +106,8 @@ public:
     
     typedef ModelPart::ConditionsContainerType                                  ConditionsArrayType;
     
+    typedef std::size_t                                                                   IndexType;
+    
     /**
      * Default constructor 
      * @param rModelPart: The model part of the problem
@@ -125,7 +125,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
@@ -162,7 +162,7 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
@@ -293,9 +293,9 @@ protected:
 
     /**
      * This method split the vector of increment of DoF in displacement and LM
-     * @return Dx: The increment of displacements and LM
-     * @return DxDisp: The increment of displacements
-     * @return DxLM: The increment of LM
+     * @param Dx The increment of displacements and LM
+     * @param DxDisp The increment of displacements
+     * @param DxLM The increment of LM
      */
         
     void ComputeSplitDx(
@@ -305,15 +305,15 @@ protected:
         )
     {        
         // Now we iterate over all the nodes
-        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size()); 
+        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; ++i) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
     
-            for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
+            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++)
             {
                 const int j = (itDoF)->EquationId();
                 std::size_t CurrVar = (itDoF)->GetVariable().Key();
@@ -334,9 +334,9 @@ protected:
     
     /**
      * This method calculates the norm considering one norm for the displacement and other norm for the LM
-     * @param b: The residual vector
-     * @return normDisp: The norm of the displacement
-     * @return normLM: The norm of the LM
+     * @param b The residual vector
+     * @param normDisp normDisp: The norm of the displacement
+     * @param normLM The norm of the LM
      */
         
     void ComputeMixedResidual(
@@ -346,15 +346,15 @@ protected:
         )
     {        
         // Now we iterate over all the nodes
-        NodesArrayType& NodesArray = StrategyBaseType::GetModelPart().Nodes();
-        const int numNodes = static_cast<int>(NodesArray.size()); 
+        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
+        const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         #pragma omp parallel for
-        for(int i = 0; i < numNodes; i++) 
+        for(int i = 0; i < num_nodes; ++i) 
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = nodes_array.begin() + i;
     
-            for(auto itDoF = itNode->GetDofs().begin() ; itDoF != itNode->GetDofs().end() ; itDoF++)
+            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++)
             {
                 const int j = (itDoF)->EquationId();
                 std::size_t CurrVar = (itDoF)->GetVariable().Key();
@@ -378,11 +378,11 @@ protected:
     
     /**
      * This method computes the parabola necessary for the line search
-     * @return Xmax: The maximal abscissa
-     * @return Xmin: The norm of the LM
-     * @param rf: The residual norm of the full step
-     * @param ro: The residual norm without step
-     * @param rh: The residual norm of the half step
+     * @param Xmax The maximal abscissa
+     * @param Xmin The norm of the LM
+     * @param rf The residual norm of the full step
+     * @param ro The residual norm without step
+     * @param rh The residual norm of the half step
      */
         
     void ComputeParabola(
@@ -401,31 +401,23 @@ protected:
         // c= ro,     b= 4*rh -rf -3*ro,  a= 2*rf - 4*rh + 2*ro
         // max found if a>0 at the position  Xmax = (rf/4 - rh)/(rf - 2*rh);
         
-        const double ParabolaA = 2 * rf + 2 * ro - 4 * rh;
-        const double ParabolaB = 4 * rh - rf - 3 * ro;
+        const double parabole_a = 2 * rf + 2 * ro - 4 * rh;
+        const double parabole_b = 4 * rh - rf - 3 * ro;
         
-        if( ParabolaA > 0.0) //  If parabola has a local minima
+        if( parabole_a > 0.0) //  If parabola has a local minima
         {
-            Xmax = -0.5 * ParabolaB/ParabolaA; // -b / 2a
+            Xmax = -0.5 * parabole_b/parabole_a; // -b / 2a
             if( Xmax > 1.0)
-            {
                 Xmax = 1.0;
-            }
             else if(Xmax < -1.0)
-            {
                 Xmax = -1.0;
-            }
         }
         else // Parabola degenerates to either a line or to have a local max. best solution on either extreme
         {
             if(rf < ro)
-            {
                 Xmax = 1.0;
-            }
             else
-            {
                 Xmax = Xmin; // Should be zero, but otherwise it will stagnate
-            }
         }
     }
     

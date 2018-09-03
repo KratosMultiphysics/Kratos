@@ -29,9 +29,25 @@
 namespace Kratos
 {
 /**
- * A twenty-seven node hexahedra geometry with second order shape functions
+ * @class Hexahedra3D27
+ * @ingroup KratosCore
+ * @brief A twenty-seven node hexahedra geometry with second order shape functions
+ * @details The node ordering corresponds with:
+ *      3----10----2   
+ *      |\         |\
+ *      |15    23  | 14
+ *      9  \ 20   11  \
+ *      |   7----18+---6
+ *      |22 |  26  | 24|
+ *      0---+-8----1   |
+ *       \ 17    25 \  19
+ *       12 |  21    13|
+ *         \|         \|
+ *          4----16----5
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Hexahedra3D27 : public Geometry<TPointType>
 {
 public:
@@ -369,7 +385,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //         NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
+    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -486,9 +502,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     virtual bool IsInside( 
@@ -1192,9 +1208,9 @@ private:
     CalculateShapeFunctionsIntegrationPointsLocalGradients(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
+        const IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
+        const IntegrationPointsArrayType integration_points =
             all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();

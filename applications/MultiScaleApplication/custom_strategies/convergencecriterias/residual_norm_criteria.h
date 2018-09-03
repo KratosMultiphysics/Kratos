@@ -65,7 +65,7 @@ namespace Kratos
 {
 
 template<class TSparseSpace,class TDenseSpace>
-class ResidualNormCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class ResidualNormCriteria : public  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
 

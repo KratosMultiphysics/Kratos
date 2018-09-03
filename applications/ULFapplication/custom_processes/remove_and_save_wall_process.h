@@ -84,7 +84,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~RemoveAndSaveWallNodesProcess()
+    ~RemoveAndSaveWallNodesProcess() override
     {
     }
 
@@ -166,19 +166,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "RemoveAndSaveWallNodesProcess";
     }
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    /// Print information about this object. 
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "RemoveAndSaveWallNodesProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

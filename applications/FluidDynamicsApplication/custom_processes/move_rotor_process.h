@@ -125,7 +125,8 @@ public:
         const array_1d<double,3> current_rotor_position = mCoordinatesOfStatorCenter + vector_to_rotor_center;
 
         //UPDATE VELOCITY OF ROTOR AXIS:
-        const array_1d<double,3> rotor_velocity = MathUtils<double>::CrossProduct(vector_to_rotor_center, mW1);
+        array_1d<double, 3> rotor_velocity;
+        MathUtils<double>::CrossProduct(rotor_velocity, mW1, vector_to_rotor_center);
 
         //UPDATE LOCAL AXES (ROTATE THEM AROUND (0,0,1) THE ROTATED ANGLE )
         const double rotated_angle2 = mW2[2] * rCurrentTime;
@@ -158,7 +159,10 @@ public:
             noalias(node_i->FastGetSolutionStepValue(DISPLACEMENT)) = node_i->Coordinates() - node_i->GetInitialPosition();
 
             array_1d<double,3>& current_node_velocity = node_i->FastGetSolutionStepValue(VELOCITY);
-            noalias(current_node_velocity) = rotor_velocity + MathUtils<double>::CrossProduct(from_rotor_center_to_node, mW2);
+
+            array_1d<double, 3> aux_velocity;
+            MathUtils<double>::CrossProduct(aux_velocity, mW2, from_rotor_center_to_node);
+            noalias(current_node_velocity) = rotor_velocity + aux_velocity;
 
         }//end of loop over nodes
         KRATOS_CATCH("");

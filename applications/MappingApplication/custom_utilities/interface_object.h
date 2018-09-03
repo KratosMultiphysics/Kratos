@@ -55,8 +55,8 @@ namespace Kratos
 /** This class provides a set of functions that is used for identifying the nearest object.
 * It is needed such that the bin-search can be used with both nodes and elements/conditions
 * The bin search is implemented to work with this kind of object
-* It implements the function "EvaluateResult", which is used by the local search to determine which 
-* of the objects in teh vicinity of a point is the best search result. This function has to be 
+* It implements the function "EvaluateResult", which is used by the local search to determine which
+* of the objects in teh vicinity of a point is the best search result. This function has to be
 * implemented by all subclasses. It cannot be made pure virtual, because for remote searching,
 * objects of this type have to be created
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
@@ -168,6 +168,18 @@ public:
         return mIsBeingSent;
     }
 
+    virtual Node<3>* pGetBaseNode()
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return nullptr;
+    }
+
+    virtual Geometry<Node<3>>* pGetBaseGeometry()
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return nullptr;
+    }
+
     virtual bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords,
                                 double& rMinDistance, const double Distance,
                                 std::vector<double>& rShapeFunctionValues)
@@ -209,7 +221,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "InterfaceObject" ;
@@ -217,13 +229,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "InterfaceObject";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -326,13 +338,13 @@ private:
     ///@{
 
     friend class Serializer;
-    
-    virtual void save(Serializer& rSerializer) const 
+
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);
     }
-    virtual void load(Serializer& rSerializer) 
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);

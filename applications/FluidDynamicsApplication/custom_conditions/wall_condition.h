@@ -210,20 +210,20 @@ namespace Kratos
           */
         Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
         {
-            return Condition::Pointer(new WallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+            return Kratos::make_shared<WallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         }
 
 
         Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
         {
-	  		return Condition::Pointer(new WallCondition(NewId, pGeom, pProperties));
+	  		return Kratos::make_shared<WallCondition>(NewId, pGeom, pProperties);
         }
 
         /**
          * Clones the selected element variables, creating a new one
-         * @param NewId: the ID of the new element
-         * @param ThisNodes: the nodes of the new element
-         * @param pProperties: the properties assigned to the new element
+         * @param NewId the ID of the new element
+         * @param ThisNodes the nodes of the new element
+         * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
 

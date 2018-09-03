@@ -117,7 +117,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
 
         # for thin tubes
         #circular_inertia = (3.14 * (diameter_D ** 3) * thickness) * 0.25
-        
+
         # for thick tubes
         circular_inertia = (3.14 * (radius ** 4 - (radius-thickness) ** 4) ) * 0.25
 
@@ -175,7 +175,7 @@ def SetMaterialProperties(ConstitutiveType, MaterialData, BeamProperties):
         if (len(MaterialData) < 1):
             print("Error, Material needs some material properties given in MaterialData")
             raise
-        
+
         ConstitutiveMatrix = Matrix(6,6)
 
         for i in range(0,6):
@@ -185,14 +185,14 @@ def SetMaterialProperties(ConstitutiveType, MaterialData, BeamProperties):
         ConstitutiveMatrix[0,0] = MaterialData[1]  # GAy
         ConstitutiveMatrix[1,1] = MaterialData[1]  # GAz
         ConstitutiveMatrix[2,2] = MaterialData[0]  # EA
-        
+
         ConstitutiveMatrix[3,3] = MaterialData[2]  # EIy
         ConstitutiveMatrix[4,4] = MaterialData[3]  # EIz
         ConstitutiveMatrix[5,5] = MaterialData[4]  # GJ
-        
-        
+
+
         BeamProperties.SetValue(LOCAL_CONSTITUTIVE_MATRIX, ConstitutiveMatrix)
-        
+
     return BeamProperties
 
 

@@ -106,6 +106,11 @@ void AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComp
     KratosComponents<ConstitutiveLaw>::Add(Name, ThisComponent);
 }
 
+void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::Pointer> const& ThisComponent)
+{
+    KratosComponents<Variable<ConstitutiveLaw::Pointer> >::Add(Name, ThisComponent);
+}
+
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
 

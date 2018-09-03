@@ -71,7 +71,6 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISTANCE)
     model_part.AddNodalSolutionStepVariable(IS_SLIP)
     model_part.AddNodalSolutionStepVariable(PRESSURES)
-    #model_part.AddNodalSolutionStepVariable(VELOCITIES)
     #model_part.AddNodalSolutionStepVariable(MATERIAL)
     #model_part.AddNodalSolutionStepVariable(LAST_AIR)
     #model_part.AddNodalSolutionStepVariable(NODAL_MASS)
@@ -129,7 +128,6 @@ class MonolithicSolver:
         # definition of the solvers
         # self.linear_solver =  SkylineLUFactorizationSolver()
 # self.linear_solver =SuperLUSolver()
-# self.linear_solver = MKLPardisoSolver()
         # pPrecond = DiagonalPreconditioner()
 # pPrecond = ILU0Preconditioner()
          # self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)

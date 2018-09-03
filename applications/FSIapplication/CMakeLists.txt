@@ -14,13 +14,13 @@ set( KRATOS_FSI_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_convergence_accelerators_to_python.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AdvancedNMPointsMapper.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/variable_redistribution_utility.cpp
 )
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosFSIApplication SHARED ${KRATOS_FSI_APPLICATION_SOURCES})
-target_link_libraries(KratosFSIApplication KratosCore )
+pybind11_add_module(KratosFSIApplication MODULE THIN_LTO ${KRATOS_FSI_APPLICATION_SOURCES})
+
+target_link_libraries(KratosFSIApplication PRIVATE KratosCore )
 set_target_properties(KratosFSIApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd
@@ -32,6 +32,11 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFSIApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+# Add Cotire
+if(USE_COTIRE MATCHES ON)
+  cotire(KratosFSIApplication)
+endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosFSIApplication DESTINATION libs )
 

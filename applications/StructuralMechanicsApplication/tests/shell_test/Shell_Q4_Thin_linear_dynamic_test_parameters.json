@@ -92,16 +92,6 @@
             "interval"        : [0.0,"End"]
         }
     }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
 	"list_other_processes": [
     {
         "python_module" : "from_json_check_result_process",

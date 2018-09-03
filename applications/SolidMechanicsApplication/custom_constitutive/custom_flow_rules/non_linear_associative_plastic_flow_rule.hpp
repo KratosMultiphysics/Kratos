@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED )
+#if !defined(KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED)
 #define  KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED
 
 
@@ -70,9 +70,9 @@ namespace Kratos
 
     /// Assignment operator.
     NonLinearAssociativePlasticFlowRule& operator=(NonLinearAssociativePlasticFlowRule const& rOther);
-	
+
     /// Destructor.
-    virtual ~NonLinearAssociativePlasticFlowRule();
+    ~NonLinearAssociativePlasticFlowRule() override;
 
 
     ///@}
@@ -83,18 +83,18 @@ namespace Kratos
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this flow rule
      */
-    virtual FlowRule::Pointer Clone() const;
-   
+    FlowRule::Pointer Clone() const override;
+
     ///@}
     ///@name Operations
     ///@{
-    
-    virtual bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix );
 
-    virtual void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
+    bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix ) override;
 
-    virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
-    
+    void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors ) override;
+
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
+
 
     ///@}
     ///@name Access
@@ -136,7 +136,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -146,16 +146,16 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm );
+    double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm ) override;
 
-	  
+
     virtual void SetCriterionParameters( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters );
 
 
     virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters);
 
 
-    void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
+    void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );
 
 
     void CalculateThermalDissipation( YieldCriterion::Parameters& rCriterionParameters, ThermalVariables& rThermalVariables );
@@ -164,7 +164,7 @@ namespace Kratos
     //implex protected methods
 
     virtual void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix );
- 
+
     void CalculateImplexThermalDissipation( YieldCriterion::Parameters& rCriterionParameters );
 
 
@@ -193,8 +193,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -217,9 +217,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry
@@ -275,6 +275,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED  defined
 
 

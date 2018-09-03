@@ -28,6 +28,7 @@
 // Mortar conditions
 #include "custom_conditions/mesh_tying_mortar_condition.h"
 #include "custom_conditions/ALM_frictionless_mortar_contact_condition.h"
+#include "custom_conditions/ALM_frictionless_components_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictionless_mortar_contact_axisym_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_axisym_condition.h"
@@ -45,11 +46,6 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
-#if !defined(TENSOR_VALUE)
-#define TENSOR_VALUE
-    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector2DPScalarValue = 3, Vector3DValue = 3, Vector3DPScalarValue = 4 };
-#endif
     
 ///@}
 ///@name  Functions
@@ -64,7 +60,7 @@ namespace Kratos
  * This application features Elements, Conditions, Constitutive laws and Utilities
  * for structural analysis problems
  */
-class KratosContactStructuralMechanicsApplication : public KratosApplication
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) KratosContactStructuralMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -128,7 +124,6 @@ public:
     ///// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -214,6 +209,13 @@ private:
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true> mALMNVFrictionlessMortarContactCondition3D3N;
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false> mALMFrictionlessMortarContactCondition3D4N;
     const AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true> mALMNVFrictionlessMortarContactCondition3D4N;
+    // Frictionless components cases
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, false> mALMFrictionlessComponentsMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, true> mALMNVFrictionlessComponentsMortarContactCondition2D2N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, false> mALMFrictionlessComponentsMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, true> mALMNVFrictionlessComponentsMortarContactCondition3D3N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, false> mALMFrictionlessComponentsMortarContactCondition3D4N;
+    const AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, true> mALMNVFrictionlessComponentsMortarContactCondition3D4N;
     // Frictional cases
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, false> mALMFrictionalMortarContactCondition2D2N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<2, 2, true> mALMNVFrictionalMortarContactCondition2D2N;

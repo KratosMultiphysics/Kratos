@@ -78,6 +78,9 @@ public:
     typedef std::vector<std::ostream*>            OutputFilesContainerType;
     typedef std::size_t                           SizeType;
 
+    // Prevents this class from hidding IO::WriteProperties(Properties)
+    using BaseType::WriteProperties;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -86,7 +89,7 @@ public:
     ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
     /// Constructor with stream.
-    ModelPartIO(boost::shared_ptr<std::iostream> Stream);
+    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR);
 
 
     /// Constructor with filenames.
@@ -135,7 +138,7 @@ public:
 
     std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
-    virtual void WriteConditions(ConditionsContainerType const& rThisConditions);
+    virtual void WriteConditions(ConditionsContainerType const& rThisConditions) override;
 
     void ReadInitialValues(ModelPart& rThisModelPart) override;
 
@@ -148,7 +151,6 @@ public:
     void ReadModelPart(ModelPart & rThisModelPart) override;
 
     void WriteModelPart(ModelPart & rThisModelPart) override;
-
 
     /// Read the input file and create the nodal connectivities graph, stored in CSR format.
     /**
@@ -174,7 +176,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
-    void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
+    void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * Streams,
                                          SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,
@@ -183,7 +185,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
-    void SwapStreamSource(boost::shared_ptr<std::iostream> newStream);
+    void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
 
 
     ///@}
@@ -281,7 +283,7 @@ protected:
     std::string mFilename;
     Flags mOptions;
 
-    boost::shared_ptr<std::iostream> mpStream;
+    Kratos::shared_ptr<std::iostream> mpStream;
 
 
     ///@}
@@ -301,7 +303,7 @@ protected:
     bool CheckEndBlock(std::string const& BlockName, std::string& rWord);
 
     void ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
-    
+
     void WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
 
     template<class TablesContainerType>
@@ -313,7 +315,7 @@ protected:
     void WriteTableBlock(TablesContainerType& rTables);
 
     void WriteTableBlock(ModelPart::TablesContainerType& rTables);
-    
+
     void ReadNodesBlock(NodesContainerType& rThisNodes);
 
     void ReadNodesBlock(ModelPart& rModelPart);
@@ -333,7 +335,7 @@ protected:
 
 
     void ReadNodalDataBlock(ModelPart& rThisModelPart);
-    
+
     void WriteNodalDataBlock(ModelPart& rThisModelPart);
 
     template<class TVariableType>
@@ -351,8 +353,10 @@ protected:
     void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy);
 
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
-    
-    void WriteElementalDataBlock(ElementsContainerType& rThisElements);
+    template<class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName);
+    template<class TVariableType, class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName);
 
     template<class TVariableType>
     void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable);
@@ -361,8 +365,6 @@ protected:
     template<class TVariableType, class TDataType>
     void ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable, TDataType Dummy);
     void ReadConditionalDataBlock(ConditionsContainerType& rThisConditions);
-    
-    void WriteConditionalDataBlock(ConditionsContainerType& rThisConditions);
 
     template<class TVariableType>
     void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable);
@@ -390,7 +392,7 @@ protected:
     void ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
     void ReadMeshBlock(ModelPart& rModelPart);
-    
+
     void WriteMeshBlock(ModelPart& rModelPart);
 
 
@@ -406,8 +408,8 @@ protected:
     void ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
     void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
-    
-    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string InitialTabulation);
+
+    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string& InitialTabulation);
 
     void ReadSubModelPartDataBlock(ModelPart& rModelPart);
 
@@ -535,6 +537,7 @@ protected:
     template<class TValueType>
     TValueType& ExtractValue(std::string rWord, TValueType & rValue);
 
+    void ReadConstitutiveLawValue(ConstitutiveLaw::Pointer& rValue);
 
     ModelPartIO& ReadWord(std::string& Word);
 

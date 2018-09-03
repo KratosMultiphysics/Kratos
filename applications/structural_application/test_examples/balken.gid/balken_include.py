@@ -22,7 +22,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
+# from KratosMultiphysics.MKLSolversApplication import *
 kernel = Kernel()  # defining kernel
 #
 #
@@ -133,8 +133,8 @@ class Model:
         # INITIALISE SOLVER FOR PARTICULAR SOLUTION #####################
         #
         # defining linear solver
-        # plinear_solver = SkylineLUFactorizationSolver()
-        plinear_solver = MKLPardisoSolver()
+        plinear_solver = SkylineLUFactorizationSolver()
+        # plinear_solver = MKLPardisoSolver()
         self.solver.structure_linear_solver = plinear_solver
         self.solver.Initialize()
         (self.solver.solver).SetEchoLevel(2);

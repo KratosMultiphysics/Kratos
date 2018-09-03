@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division
+
 import sys
 
 from classes.elementCreator import ElementCreator
@@ -8,37 +10,35 @@ from classes.variableCreator import VariableCreator
 
 from applicationGenerator import ApplicationGenerator
 
-# Read the application name and generate Camel, Caps and Low
-appCamel = "MyLaplacian"
+# Set the application name and generate Camel, Caps and Low
+appNameCamel = "MyExample"
 
 # Fetch the applications directory
-debugApp = ApplicationGenerator(appCamel)
+debugApp = ApplicationGenerator(appNameCamel)
 
 # Add KratosVariables
 debugApp.AddVariables([
     VariableCreator(name='MY_SCALAR', vtype='double'),
-    VariableCreator(name='MY_VECTOR', vtype='int', is3D=True),
 ])
 
 # Add test element
 debugApp.AddElements([
-    ElementCreator('MyLaplacianElement')
+    ElementCreator('MyElement')
     .AddDofs(['TEMPERATURE'])
-    .AddDofs(['MY_SCALAR'])
     .AddFlags([])
     .AddClassMemberVariables([])
 ])
 
-# debugApp.AddConditions([
-#     ConditionCreator('MyFaceCondition')
-# 	.AddDofs(['TEMPERATURE'])
-#     .AddFlags([])
-# ])
-#
+debugApp.AddConditions([
+    ConditionCreator('MyCondition')
+    .AddDofs(['TEMPERATURE'])
+    .AddFlags([])
+])
+
 # debugApp.AddProcesses([
 #     ProcessCreator('DoSomethingProcess')
 # ])
 
 debugApp.Generate()
 
-print("Your application has been generated in: applications/{}Application".format(appCamel))
+print("Your application has been generated in: applications/{}Application".format(appNameCamel))

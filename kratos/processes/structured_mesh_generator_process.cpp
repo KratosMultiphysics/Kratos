@@ -124,10 +124,15 @@ namespace Kratos
 				local_coordinates[0] = rMinPoint[0] + (i * local_element_size[0]);
 				local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 				mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
-				if ((i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions))  // Is on skin
-					mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+				if (mCreateSkinSubModelPart && (
+                    (i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions)))  // Is on skin
+					mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
+                                                                                       global_coordinates[1],
+                                                                                       global_coordinates[2]);
 				else
-					mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+					mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0],
+                                                               global_coordinates[1],
+                                                               global_coordinates[2]);
 			}
 		}
 	}
@@ -146,10 +151,16 @@ namespace Kratos
 					local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 					local_coordinates[2] = rMinPoint[2] + (k * local_element_size[2]);
 					mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
-					if ((i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions) || (k == 0) || (k == mNumberOfDivisions))  // Is on skin
-						mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+					if (mCreateSkinSubModelPart && (
+                        (i == 0) || (i == mNumberOfDivisions) || (j == 0) ||
+                        (j == mNumberOfDivisions) || (k == 0) || (k == mNumberOfDivisions)))  // Is on skin
+						mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
+                                                                                           global_coordinates[1],
+                                                                                           global_coordinates[2]);
 					else
-						mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+						mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0],
+                                                                   global_coordinates[1],
+                                                                   global_coordinates[2]);
 				}
 			}
 		}
@@ -263,7 +274,7 @@ namespace Kratos
             cell_points.push_back(coordinates);
         }
 
-        constexpr triangle_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 1,3,2 }},{{ 1,4,3 }} };
+        constexpr triangle_connectivity_in_cell_type connectivity_cases[number_of_cases] = { {{ 0,2,1 }},{{ 0,3,2 }} };
 
         std::vector<Point::Pointer> my_points(3);
         double min_area = 1.0;

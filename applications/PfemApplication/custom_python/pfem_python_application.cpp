@@ -7,55 +7,44 @@
 //
 //
 
+// System includes
 #if defined(KRATOS_PYTHON)
 
-// System includes 
+// External includes
 
-// External includes 
-#include <boost/python.hpp>
-
-// Project includes 
+// Project includes
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_modelers_to_python.h"
-#include "custom_python/add_custom_bounding_to_python.h"
+
 
 #include "pfem_application.h"
- 
+
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    using namespace boost::python;
-  
-    BOOST_PYTHON_MODULE(KratosPfemApplication    )
-    {
+using namespace pybind11;
 
-      class_<KratosPfemApplication    , 
-	     KratosPfemApplication    ::Pointer, 
-	     bases<KratosApplication>, boost::noncopyable >("KratosPfemApplication")
-	  ;
+PYBIND11_MODULE(KratosPfemApplication,m)
+{
 
-      AddCustomProcessesToPython();
-      AddCustomUtilitiesToPython();
-      AddCustomModelersToPython();
-      AddCustomBoundingToPython();
-      
-      //registering variables in python ( if must to be seen from python )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( INITIALIZED_DOMAINS )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( MESHING_STEP_PERFORMED )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( RIGID_WALL )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( MEAN_ERROR )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( OFFSET )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHRINK_FACTOR )
+  class_<KratosPfemApplication,
+         KratosPfemApplication::Pointer,
+         KratosApplication>(m,"KratosPfemApplication")
+      .def(init<>())
+      ;
 
-    }
-  
-  
-  }  // namespace Python.
-  
+  AddCustomProcessesToPython(m);
+
+  //registering variables in python ( if must to be seen from python )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROPERTIES_VECTOR )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MATERIAL_PERCENTAGE )
+}
+
+
+}  // namespace Python.
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

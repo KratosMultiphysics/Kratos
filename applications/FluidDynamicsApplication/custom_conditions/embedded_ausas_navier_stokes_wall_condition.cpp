@@ -116,7 +116,7 @@ void EmbeddedAusasNavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rEl
 * @param data Gauss pt. data structure
 */
 template<unsigned int TDim, unsigned int TNumNodes>
-void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(bounded_matrix<double, TNumNodes*(TDim+1), TNumNodes*(TDim+1)>& lhs_gauss,
+void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(BoundedMatrix<double, TNumNodes*(TDim+1), TNumNodes*(TDim+1)>& lhs_gauss,
                                                                                               const ConditionDataStruct& rData)
 {
     const unsigned int LocalSize = TDim+1;
@@ -156,10 +156,10 @@ void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRH
     this->ComputeRHSNeumannContribution(rhs_gauss, rData);
 
     // Gauss pt. outlet inflow prevention contribution
-    // if (this->Is(OUTLET))
-    // {
-    //     this->ComputeRHSOutletInflowContribution(rhs_gauss, data);
-    // }
+    if (this->Is(OUTLET))
+    {
+        this->ComputeRHSOutletInflowContribution(rhs_gauss, rData);
+    }
 
     // RHS boundary term coming from the integration by parts of the mass conservation equation
     for (unsigned int i=0; i<TNumNodes; ++i)
@@ -207,82 +207,41 @@ void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSNeumannCo
 /// Computes the condition RHS outlet inflow prevention contribution
 /**
 * @param rhs_gauss reference to the local RHS vector
-* @param data Gauss pt. data structure
+* @param rData Gauss pt. data structure
 */
-// template<unsigned int TDim, unsigned int TNumNodes>
-// void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSOutletInflowContribution(array_1d<double,
-//                                                                                                 TNumNodes*(TDim+1)>& rhs_gauss,
-//                                                                                                 const ConditionDataStruct& data)
-// {
-//     const unsigned int LocalSize = TDim+1;
-//     const GeometryType& rGeom = this->GetGeometry();
-
-//     // Compute Gauss pt. density, velocity norm and velocity projection
-//     double rhoGauss = 0.0;
-//     array_1d<double, 3> vGauss = ZeroVector(3);
-//     for (unsigned int i=0; i<TNumNodes; ++i)
-//     {
-//         const double& rRho = rGeom[i].FastGetSolutionStepValue(DENSITY);
-//         const array_1d<double, 3>& rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-//         rhoGauss += data.N[i]*rRho;
-//         vGauss += data.N[i]*rVelNode;
-//     }
-
-//     const double vGaussProj = inner_prod(vGauss, data.Normal);
-//     const double vGaussSquaredNorm = std::pow(vGauss[0],2) + std::pow(vGauss[1],2) + std::pow(vGauss[2],2);
-
-//     // Add outlet inflow prevention contribution
-//     const double delta = data.delta;
-//     const double U_0 = data.charVel;
-//     const double S_0 = 0.5*(1-tanh(vGaussProj/(U_0*delta)));
-
-//     for (unsigned int i=0; i<TNumNodes; ++i)
-//     {
-//         unsigned int row = i*LocalSize;
-//         for (unsigned int d=0; d<TDim; ++d)
-//         {
-//             rhs_gauss[row+d] += data.wGauss*data.N[i]*0.5*rhoGauss*vGaussSquaredNorm*S_0*data.Normal[d];
-//         }
-//     }
-// }
-
-/// Computes the 2D condition normal
-/**
-* @param An reference to condition normal vector
-*/
-template <>
-void EmbeddedAusasNavierStokesWallCondition<2,2>::CalculateNormal(array_1d<double,3>& An)
+template<unsigned int TDim, unsigned int TNumNodes>
+void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSOutletInflowContribution(
+    array_1d<double, TNumNodes*(TDim+1)>& rhs_gauss,
+    const ConditionDataStruct& rData)
 {
-    Geometry<Node<3> >& pGeometry = this->GetGeometry();
+    const unsigned int LocalSize = TDim+1;
+    const GeometryType& r_geom = this->GetGeometry();
 
-    An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
-    An[1] = - (pGeometry[1].X() - pGeometry[0].X());
-    An[2] =    0.00;
+    // Compute Gauss pt. density, velocity norm and velocity projection
+    double rho_gauss = 0.0;
+    array_1d<double, 3> v_gauss = ZeroVector(3);
+    for (unsigned int i=0; i<TNumNodes; ++i) {
+        const double rho = r_geom[i].FastGetSolutionStepValue(DENSITY);
+        const array_1d<double, 3>& r_vel = r_geom[i].FastGetSolutionStepValue(VELOCITY);
+        rho_gauss += rData.N[i]*rho;
+        v_gauss += rData.N[i]*r_vel;
+    }
 
+    const double v_gauss_proj = inner_prod(v_gauss, rData.Normal);
+    const double v_gauss_squared_norm = std::pow(v_gauss[0],2) + std::pow(v_gauss[1],2) + std::pow(v_gauss[2],2);
+
+    // Add outlet inflow prevention contribution
+    const double delta = rData.delta;
+    const double U_0 = rData.charVel;
+    const double S_0 = 0.5*(1-tanh(v_gauss_proj/(U_0*delta)));
+
+    for (unsigned int i=0; i<TNumNodes; ++i) {
+        unsigned int row = i*LocalSize;
+        for (unsigned int d=0; d<TDim; ++d) {
+            rhs_gauss[row+d] += rData.wGauss*rData.N[i]*0.5*rho_gauss*v_gauss_squared_norm*S_0*rData.Normal[d];
+        }
+    }
 }
-
-/// Computes the 3D condition normal
-/**
-* @param An reference to condition normal vector
-*/
-template <>
-void EmbeddedAusasNavierStokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
-{
-    Geometry<Node<3> >& pGeometry = this->GetGeometry();
-
-    array_1d<double,3> v1,v2;
-    v1[0] = pGeometry[1].X() - pGeometry[0].X();
-    v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
-    v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
-
-    v2[0] = pGeometry[2].X() - pGeometry[0].X();
-    v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
-    v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
-
-    MathUtils<double>::CrossProduct(An,v1,v2);
-    An *= 0.5;
-}
-
 
 template class EmbeddedAusasNavierStokesWallCondition<2,2>;
 template class EmbeddedAusasNavierStokesWallCondition<3,3>;

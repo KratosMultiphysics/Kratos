@@ -1,0 +1,50 @@
+{
+    "model_settings"           : {
+        "dimension"            : 3,
+        "domain_parts_list"    : ["Parts_Parts_Auto1"],
+        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto3","DISPLACEMENT_Displacement_Auto4","DISPLACEMENT_Displacement_Auto6","SurfaceLoad3D_Load_on_surfaces_Auto1"]
+    },
+    "solver_settings"          : {
+	"solver_type" : "solid_mechanics_static_solver",
+	"Parameters"  : {
+            "time_integration_settings" : {
+		"solution_type"      : "Quasi-static",
+                "analysis_type"      : "Non-linear",
+		"integration_method" : "Static"
+            },
+            "linear_solver_settings"    : {
+		"solver_type" : "SuperLUSolver",
+		"scaling"     : false
+            }
+        }
+    },
+    "constraints_process_list" : [{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto3"
+    },{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto4",
+        "value"           : [0.0,null,0.0]
+    },{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto6",
+        "value"           : [null,null,0.0]
+    }],
+    "loads_process_list"  : [{
+        "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto1",
+        "variable_name"   : "FORCE_LOAD",
+        "modulus"         : 1.0,
+        "direction"       : [1.0,0.0,0.0]
+    }],
+    "check_process_list" : [
+    {
+        "python_module"   : "check_scalar_on_nodes_process",
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name"    : "CheckScalarOnNodesProcess",
+        "Parameters"      : {
+            "model_part_name" : "SurfaceLoad3D_Load_on_surfaces_Auto1",
+            "variable_name"   : "DISPLACEMENT_X",
+            "interval"        : [0.0, "End"],
+            "value"           : 2.73E-03,
+            "tolerance_rank"  : 3
+        }
+    }
+    ]
+}

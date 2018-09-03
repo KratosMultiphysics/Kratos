@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_MOMENT_CONDITION_H_INCLUDED )
+#if !defined(KRATOS_MOMENT_CONDITION_H_INCLUDED)
 #define  KRATOS_MOMENT_CONDITION_H_INCLUDED
 
 // System includes
@@ -47,7 +47,10 @@ public:
 
     ///@name Type Definitions
     ///@{
-  
+
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+
     // Counted pointer of MomentCondition
     KRATOS_CLASS_POINTER_DEFINITION( MomentCondition );
 
@@ -57,7 +60,7 @@ public:
 
     /// Empty constructor needed for serialization
     MomentCondition();
-  
+
     /// Default constructor.
     MomentCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
@@ -67,7 +70,7 @@ public:
     MomentCondition( MomentCondition const& rOther);
 
     /// Destructor
-    virtual ~MomentCondition();
+    ~MomentCondition() override;
 
     ///@}
     ///@name Operators
@@ -97,7 +100,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
 
@@ -137,12 +140,12 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */      
-    virtual void AddExplicitContribution(const VectorType& rRHS, 
-					 const Variable<VectorType>& rRHSVariable, 
-					 Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    void AddExplicitContribution(const VectorType& rRHS,
+					 const Variable<VectorType>& rRHSVariable,
+					 Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
@@ -154,8 +157,8 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-    
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -172,7 +175,7 @@ public:
 
 protected:
     ///@name Protected static Member Variables
-    ///@{   
+    ///@{
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -182,7 +185,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * Initialize Explicit Contributions
      */
@@ -192,9 +195,9 @@ protected:
     /**
      * Initialize System Matrices
      */
-    
-    virtual unsigned int GetDofsSize() override;
- 
+
+    unsigned int GetDofsSize() override;
+
 
     /**
      * Calculate the External Load of the Condition
@@ -203,17 +206,17 @@ protected:
 
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
-    virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
+    void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
 					       double& rIntegrationWeight) override;
 
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
-    virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
+    double& CalculateAndAddExternalEnergy(double& rEnergy,
 						  ConditionVariables& rVariables,
 						  double& rIntegrationWeight,
 						  const ProcessInfo& rCurrentProcessInfo) override;
@@ -253,13 +256,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class MomentCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_MOMENT_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_MOMENT_CONDITION_H_INCLUDED defined

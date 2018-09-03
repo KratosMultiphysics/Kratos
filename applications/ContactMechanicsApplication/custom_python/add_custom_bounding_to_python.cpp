@@ -10,14 +10,9 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_bounding_to_python.h"
-#include "includes/kratos_parameters.h"
 
 // Bounding Boxes
 #include "custom_bounding/spatial_bounding_box.hpp"
@@ -34,74 +29,61 @@ namespace Kratos
 namespace Python
 {
 
-  typedef SpatialBoundingBox                        BoundingBoxBaseType;
-  typedef SpatialBoundingBox::Pointer                BoundingBoxPointer;
-  typedef std::vector<SpatialBoundingBox::Pointer> BoundingBoxContainer;
+void  AddCustomBoundingToPython(pybind11::module& m)
+{
 
-  typedef SphereBoundingBox                   SphereBoundingBoxBaseType;
+  using namespace pybind11;
 
-
-  void  AddCustomBoundingToPython()
-  {
-
-    using namespace boost::python;
-
-    //plane-wall
-    class_<PlaneBoundingBox, bases<BoundingBoxBaseType>, boost::noncopyable > 
-      ( "PlaneBoundingBox", 
-        init< Vector, Vector, Vector, int >() )
-        .def(init< Parameters >())
-        .def(init< Parameters& >())
-        .def("CreateBoundingBoxBoundaryMesh",&PlaneBoundingBox::CreateBoundingBoxBoundaryMesh)
+  //plane-wall
+  class_<PlaneBoundingBox, typename PlaneBoundingBox::Pointer, SpatialBoundingBox>(m,"PlaneBoundingBox")
+      .def(init< Vector, Vector, Vector, int >() )
+      .def(init< Parameters >())
+      .def(init< Parameters& >())
+      .def("CreateBoundingBoxBoundaryMesh",&PlaneBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
 
-    //sphere-wall
-    class_<SphereBoundingBox, bases<BoundingBoxBaseType>, boost::noncopyable > 
-      ( "SphereBoundingBox", 
-	init< Vector, double, Vector, int >() )
-        .def(init< Parameters >())
-        .def(init< Parameters& >())
-        .def("CreateBoundingBoxBoundaryMesh",&SphereBoundingBox::CreateBoundingBoxBoundaryMesh) 
+  //sphere-wall
+  class_<SphereBoundingBox, typename SphereBoundingBox::Pointer, SpatialBoundingBox>(m,"SphereBoundingBox")
+      .def(init< Vector, double, Vector, int >() )
+      .def(init< Parameters >())
+      .def(init< Parameters& >())
+      .def("CreateBoundingBoxBoundaryMesh",&SphereBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
 
-    //circle-wall
-    class_<CircleBoundingBox, bases<SphereBoundingBoxBaseType>, boost::noncopyable > 
-      ( "CircleBoundingBox", 
-	init< Vector, double, Vector, int >() )
-        .def(init< Parameters >())
-        .def(init< Parameters& >())
-        .def("CreateBoundingBoxBoundaryMesh",&CircleBoundingBox::CreateBoundingBoxBoundaryMesh)
+  //circle-wall
+  class_<CircleBoundingBox, typename CircleBoundingBox::Pointer, SphereBoundingBox>(m,"CircleBoundingBox")
+      .def(init< Vector, double, Vector, int >() )
+      .def(init< Parameters >())
+      .def(init< Parameters& >())
+      .def("CreateBoundingBoxBoundaryMesh",&CircleBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
 
-    //cylinder-wall
-    class_<CylinderBoundingBox, bases<BoundingBoxBaseType>, boost::noncopyable > 
-      ( "CylinderBoundingBox", 
-    	init< Vector, Vector, double, Vector, int >() )
-        .def(init< Parameters >())
-        .def(init< Parameters& >())
-        .def("CreateBoundingBoxBoundaryMesh",&CylinderBoundingBox::CreateBoundingBoxBoundaryMesh)
+  //cylinder-wall
+  class_<CylinderBoundingBox, typename CylinderBoundingBox::Pointer, SpatialBoundingBox>(m,"CylinderBoundingBox")
+      .def(init< Vector, Vector, double, Vector, int >())
+      .def(init< Parameters >())
+      .def(init< Parameters& >())
+      .def("CreateBoundingBoxBoundaryMesh",&CylinderBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
 
-    //tube-wall
-    class_<TubeBoundingBox, bases<BoundingBoxBaseType>, boost::noncopyable > 
-      ( "TubeBoundingBox",
-	init< ModelPart&, double, int >() )
-    	.def(init< ModelPart&, Parameters >())
-        .def(init< ModelPart&, Parameters& >())
-        .def("CreateBoundingBoxBoundaryMesh",&TubeBoundingBox::CreateBoundingBoxBoundaryMesh)
+  //tube-wall
+  class_<TubeBoundingBox, typename TubeBoundingBox::Pointer, SpatialBoundingBox>(m,"TubeBoundingBox")
+      .def(init< ModelPart&, double, int >())
+      .def(init< ModelPart&, Parameters >())
+      .def(init< ModelPart&, Parameters& >())
+      .def("CreateBoundingBoxBoundaryMesh",&TubeBoundingBox::CreateBoundingBoxBoundaryMesh)
       ;
-    
-    //compound_noses-wall
-    class_<CompoundNosesBoundingBox, bases<BoundingBoxBaseType>, boost::noncopyable > 
-      ( "CompoundNosesBoundingBox", 
-	init< Vector, Vector, Vector, Matrix, Vector, Vector, Vector, Vector, Vector, Matrix >() )
-        .def(init< Parameters >())
-        .def(init< Parameters& >())
-        .def("CreateBoundingBoxBoundaryMesh",&CompoundNosesBoundingBox::CreateBoundingBoxBoundaryMesh)
-      ;
-    
 
-  }
+  //compound_noses-wall
+  class_<CompoundNosesBoundingBox, typename CompoundNosesBoundingBox::Pointer, SpatialBoundingBox>(m,"CompoundNosesBoundingBox")
+      .def(init< Vector, Vector, Vector, Matrix, Vector, Vector, Vector, Vector, Vector, Matrix >() )
+      .def(init< Parameters >())
+      .def(init< Parameters& >())
+      .def("CreateBoundingBoxBoundaryMesh",&CompoundNosesBoundingBox::CreateBoundingBoxBoundaryMesh)
+      ;
+
+
+}
 
 }  // namespace Python.
 

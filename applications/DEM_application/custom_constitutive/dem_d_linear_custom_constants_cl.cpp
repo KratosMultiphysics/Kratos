@@ -14,18 +14,18 @@ namespace Kratos {
     }
 
     void DEM_D_Linear_Custom_Constants::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) std::cout << "\nAssigning DEM_D_Linear_Custom_Constants to Properties " << pProp->Id() << std::endl;
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Linear_Custom_Constants to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
     void DEM_D_Linear_Custom_Constants::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
- 
+
         //Normal and Tangent elastic constants
         mKn = 0.5 * (element1->GetParticleKNormal() + element2->GetParticleKNormal());
         mKt = 0.5 * (element1->GetParticleKTangential() + element2->GetParticleKTangential());
     }
 
-    void DEM_D_Linear_Custom_Constants::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta) {
+    void DEM_D_Linear_Custom_Constants::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
                 
         //Normal and Tangent elastic constants
         mKn = element->GetParticleKNormal();

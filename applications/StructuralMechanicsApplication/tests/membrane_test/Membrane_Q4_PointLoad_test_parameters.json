@@ -35,7 +35,7 @@
         },
         "problem_domain_sub_model_part_list" : ["Parts_Membrane"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_NavierSupport","PointLoad3D_Membrane"],
-        "rotation_dofs"                      : true
+        "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
@@ -99,5 +99,5 @@
             "time_frequency"   : 0.90
         }
     }
-    ]     
+    ]
 }

@@ -14,7 +14,6 @@
 //  Framework for Non-Matching Grid Mapping"
 
 
-
 #if !defined(KRATOS_MAPPING_APPLICATION_H_INCLUDED )
 #define  KRATOS_MAPPING_APPLICATION_H_INCLUDED
 
@@ -30,7 +29,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 #include "custom_utilities/interface_object.h"
 #include "custom_utilities/interface_node.h"
 #include "custom_utilities/interface_geometry_object.h"
@@ -91,7 +89,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -110,20 +108,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosMappingApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -137,7 +135,6 @@ public:
         rOStream << "Conditions:" << std::endl;
         KratosComponents<Condition>().PrintData(rOStream);
     }
-
 
     ///@}
     ///@name Friends

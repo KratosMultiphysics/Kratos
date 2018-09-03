@@ -27,29 +27,31 @@ listDISclRK   = [31,33]
 class Solution(main_script.Solution):
 
     def LoadParametersFile(self):
+        file_name = None
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
-            parameters_file = open("ProjectParametersDISCONT.json",'r')
+            file_name = "ProjectParametersDISCONT.json"
         elif benchmark_number in listROLLFR:
-            parameters_file = open("ProjectParametersROLLFR.json",'r')
+            file_name = "ProjectParametersROLLFR.json"
         elif benchmark_number in listDEMFEM:
-            parameters_file = open("ProjectParametersDEMFEM.json",'r')
+            file_name = "ProjectParametersDEMFEM.json"
         elif benchmark_number in listCONT:
-            parameters_file = open("ProjectParametersDEMCONT.json",'r')
+            file_name = "ProjectParametersDEMCONT.json"
         elif benchmark_number == 27:
-            parameters_file = open("ProjectParametersUCS.json",'r')
+            file_name = "ProjectParametersUCS.json"
         #elif benchmark_number == 28:
         #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
         #    parameters_file = open("ProjectParametersDEM.json",'r')
         elif benchmark_number in listDISclZHAO:
-            parameters_file = open("ProjectParametersDISclZHAO.json",'r')
+            file_name = "ProjectParametersDISclZHAO.json"
         elif benchmark_number in listDISclRK:
-            parameters_file = open("ProjectParametersDISclRK.json",'r')
+            file_name = "ProjectParametersDISclRK.json"
         else:
-            print('Benchmark number does not exist')
+            Logger.PrintInfo("DEM",'Benchmark number does not exist')
             sys.exit()
-        self.DEM_parameters = Parameters(parameters_file.read())
 
+        with open(file_name, 'r') as parameters_file:
+            self.DEM_parameters = Parameters(parameters_file.read())
 
     def __init__(self):
         super(Solution, self).__init__()
@@ -103,7 +105,7 @@ class Solution(main_script.Solution):
         #self.graph_print_interval = slt.graph_print_interval
         super(Solution, self).Initialize()
 
-        print("Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
+        Logger.PrintInfo("DEM","Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
         list_of_nodes_ids = [1]
         if self.nodeplotter:
             os.chdir(self.main_path)
@@ -147,6 +149,8 @@ class Solution(main_script.Solution):
             self.plotter.close_files()
             self.tang_plotter.close_files()
 
+        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+
     def FinalizeTimeStep(self, time):
         super(Solution, self).FinalizeTimeStep(time)
         if self.nodeplotter:
@@ -155,7 +159,7 @@ class Solution(main_script.Solution):
             self.tang_plotter.plot_tangential_force(time)
 
     def CleanUpOperations(self):
-        print("running CleanUpOperations")
+        Logger.PrintInfo("DEM","running CleanUpOperations")
         #DBC.delete_archives() #.......Removing some unuseful files
         super(Solution, self).CleanUpOperations()
 
@@ -171,6 +175,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution
         slt.Run()
+        del slt
     end = timer.time()
     benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
 #DBC.delete_archives() #.......Removing some unuseful files

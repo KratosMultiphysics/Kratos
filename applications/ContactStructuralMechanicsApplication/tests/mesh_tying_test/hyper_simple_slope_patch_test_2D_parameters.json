@@ -11,7 +11,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -54,7 +54,7 @@
     }],
     "loads_process_list"       : [{
     "python_module"   : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "AssignVectorByDirectionToConditionProcess",
         "Parameters"            : {
@@ -68,19 +68,13 @@
     "contact_process_list" :[
     {
         "python_module"   : "mesh_tying_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "mesh_tying_model_part"       : "Tying_Part",
-            "type_variable"               : "Components",
-            "geometry_element"            : "Quadrilateral",
-            "search_factor"               : 1.5,
-            "active_check_factor"         : 0.01,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "assume_master_slave"         : {"0":["Parts_Parts_Auto2"]},
+            "mesh_tying_model_part"       : {"0":["Tying_Part"]}
         }
     }
     ],
@@ -126,7 +120,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
             "nodal_nonhistorical_results": ["NORMAL"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","CAUCHY_STRESS_TENSOR"]

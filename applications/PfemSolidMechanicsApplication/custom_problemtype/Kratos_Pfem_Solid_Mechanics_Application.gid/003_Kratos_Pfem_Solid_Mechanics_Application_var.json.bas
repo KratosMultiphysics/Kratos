@@ -1,91 +1,17 @@
 {
     "problem_data"             : {
         "problem_name"    : "*tcl(file tail [GiD_Info Project ModelName])",
-        "model_part_name" : "Main_Domain",
-        "dimension"       : *GenData(DIMENSION,INT),
-	"time_step"       : *GenData(Time_Step),
-        "start_time"      : *GenData(Start_Time),
-        "end_time"        : *GenData(End_Time),
-        "echo_level"      : *GenData(Echo_Level),
-        "threads"         : *GenData(Number_of_threads,INT)
+        "threads"         : *GenData(Number_of_threads,INT),
+        "echo_level"      : *GenData(Echo_Level)
     },
-    "solver_settings"          : {
-        "echo_level"                         : 0,
-        "buffer_size"                        : 2,
-*if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
-        "solution_type"                      : "Dynamic",
-*if(strcmp(GenData(Time_Integration_Method),"Explicit")==0)
-        "solver_type"                        : "solid_mechanics_explicit_dynamic_solver",
-        "time_integration_method"            : "Explicit",
-        "scheme_type"                        : "CentralDifferences",        
-*elseif(strcmp(GenData(Time_Integration_Method),"Implicit")==0)
-*if(strcmp(GenData(DOFS),"U-W")==0)
-        "solver_type"                        : "pfem_solid_mechanics_implicit_dynamic_solver",
-        "time_integration_method"            : "Implicit",
-        "scheme_type"                        : "Bossak",
-*else
-        "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
-        "time_integration_method"            : "Implicit",
-        "scheme_type"                        : "Bossak",
-*endif
-*endif
-*else
-        "solver_type"                        : "pfem_solid_mechanics_static_solver",
-        "solution_type"                      : "Static",
-*if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
-        "scheme_type"                        : "Linear",
-*elseif(strcmp(GenData(Solver_Type),"QuasiStaticSolver")==0)
-        "scheme_type"                        : "Non-Linear",
-*endif
-*endif
-        "model_import_settings"              : {
-*if(strcmp(GenData(Load_Restart),"True")==0)
-            "input_type"       : "rest",
-            "input_filename"   : "*tcl(file tail [GiD_Info Project ModelName])",
-	    "input_file_label" : "*GenData(Load_Step)"
-*else
-            "input_type"       : "mdpa",
-            "input_filename"   : "*tcl(file tail [GiD_Info Project ModelName])",
-	    "input_file_label" : "0"
-*endif
-        },
-        "line_search"                        : *tcl(string tolower *GenData(LineSearch)),
-        "implex"                             : *tcl(string tolower *GenData(Implex)),
-        "compute_reactions"                  : *tcl(string tolower *GenData(Write_Reactions)),
-	"compute_contact_forces"             : *tcl(string tolower *GenData(Write_Contact_Forces)),
-        "convergence_criterion"              : "*GenData(Convergence_Criteria)",
-*if( strcmp(GenData(DOFS),"U-P")==0 || strcmp(GenData(DOFS),"U-wP")==0)
-        "stabilization_factor"               : *GenData(Stabilization_Factor),
-*endif
-        "dofs"                               : [
-*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
-                                                "ROTATION",
-*endif
-*if(strcmp(GenData(DOFS),"U-P")==0)
-                                                "PRESSURE",
-*endif
-*if(strcmp(GenData(DOFS),"U-wP")==0 || strcmp(GenData(DOFS),"U-J-wP")==0 )
-                                                "WATER_PRESSURE",
-*endif
-*if(strcmp(GenData(DOFS),"U-J-wP")==0 || strcmp(GenData(DOFS),"U-J")==0 )
-						"JACOBIAN",
-*endif
-*if(strcmp(GenData(DOFS),"U-W")==0)
-						"WATER_DISPLACEMENT"
-*endif
-					       ],
-        "reform_dofs_at_each_step"           : true,
-        "displacement_relative_tolerance"    : *GenData(Convergence_Tolerance),
-        "displacement_absolute_tolerance"    : *GenData(Absolute_Tolerance),
-        "residual_relative_tolerance"        : *GenData(Convergence_Tolerance),
-        "residual_absolute_tolerance"        : *GenData(Absolute_Tolerance),
-        "max_iteration"                      : *GenData(Max_Iter,INT),
-        "linear_solver_settings"             : {
-             "solver_type" : "*GenData(Linear_Solver)",
-             "tolerance"   : 1e-7,
-             "max_iteration" : *GenData(Linear_Solver_Max_Iteration,INT),
-             "scaling"     : false
-         },
+    "time_settings"             : {
+         "time_step"  : *GenData(Time_Step),
+         "start_time" : *GenData(Start_Time),
+         "end_time"   : *GenData(End_Time)
+    },
+    "model_settings"           : {
+        "model_name": "Main_Domain",
+        "dimension"       : *GenData(DIMENSION,INT),
 	"bodies_list":[
 *set cond group_DeformableBodies *groups
 *add cond group_RigidBodies *groups
@@ -109,7 +35,7 @@
 *end groups
 *endif
 	],
-        "problem_domain_sub_model_part_list" : [
+        "domain_parts_list" : [
 *set cond group_DeformableBodies *groups
 *add cond group_RigidBodies *groups
 *if(CondNumEntities > 0)
@@ -128,7 +54,7 @@
 *end groups
 *endif
 	],
-        "processes_sub_model_part_list" : [
+        "processes_parts_list" : [
 *set cond group_LINEAR_MOVEMENT *groups
 *add cond group_ANGULAR_MOVEMENT *groups
 *add cond group_POINT_LOAD *groups
@@ -155,11 +81,131 @@
 *endif
 *end groups
 *endif
-	]
+	],
+        "input_file_settings"     : {
+*if(strcmp(GenData(Load_Restart),"True")==0)
+            "type"       : "rest",
+            "name"   : "*tcl(file tail [GiD_Info Project ModelName])",
+	    "label" : *GenData(Load_Step)
+*else
+            "type"       : "mdpa",
+            "name"   : "*tcl(file tail [GiD_Info Project ModelName])",
+	    "label" : 0
+*endif
+        }
+    },
+    "solver_settings"          : {
+*if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
+*if(strcmp(GenData(Time_Integration_Method),"Explicit")==0)
+        "solver_type" : "solid_mechanics_explicit_dynamic_solver",
+*elseif(strcmp(GenData(Time_Integration_Method),"Implicit")==0)
+        "solver_type" : "solid_mechanics_implicit_dynamic_solver",
+*endif
+*else
+        "solver_type" : "solid_mechanics_static_solver",
+*endif
+        "Parameters"  : {       
+              "time_integration_settings" : {
+*if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
+                   "solution_type"         : "Dynamic",
+*if(strcmp(GenData(Time_Integration_Method),"Explicit")==0)
+                   "time_integration"      : "Explicit",
+                   "integration_method"    : "CentralDifferences"
+*elseif(strcmp(GenData(Time_Integration_Method),"Implicit")==0)
+*if(strcmp(GenData(DOFS),"U-W")==0)
+                   "time_integration"      : "Implicit",
+                   "integration_method"    : "Bossak",
+		   "lumped_matrix": false,
+		   "consistent_mass_matrix": true
+*elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
+                   "time_integration"      : "Implicit",
+                   "integration_method"    : "Bossak",
+		   "lumped_matrix": false,
+		   "consistent_mass_matrix": true
+*else
+                   "time_integration"      : "Implicit",
+                   "integration_method"    : "Bossak",
+		   "lumped_matrix": false,
+		   "consistent_mass_matrix": true
+*endif
+*endif
+*else
+*if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
+                   "solution_type"         : "Static",
+                   "integration_method"    : "Static"
+*elseif(strcmp(GenData(Solver_Type),"QuasiStaticSolver")==0)
+                   "solution_type"         : "Quasi-static",
+                   "integration_method"    : "Static"
+*endif
+*endif
+              },
+              "solving_strategy_settings" : {
+                   "line_search"                 : *tcl(string tolower *GenData(LineSearch)),
+                   "implex"                      : *tcl(string tolower *GenData(Implex)),
+                   "compute_reactions"           : *tcl(string tolower *GenData(Write_Reactions)),
+	           "compute_contact_forces"      : *tcl(string tolower *GenData(Write_Contact_Forces)),
+                   "max_iteration"               : *GenData(Max_Iter,INT)
+              },
+              "convergence_criterion_settings":{
+                   "convergence_criterion"       : "*GenData(Convergence_Criteria)",
+                   "reform_dofs_at_each_step"    : true,
+                   "variable_relative_tolerance" : *GenData(Convergence_Tolerance),
+                   "variable_absolute_tolerance" : *GenData(Absolute_Tolerance),
+                   "residual_relative_tolerance" : *GenData(Convergence_Tolerance),
+                   "residual_absolute_tolerance" : *GenData(Absolute_Tolerance)
+              },
+              "linear_solver_settings"   : {
+                   "solver_type"    : "*GenData(Linear_Solver)",
+                   "tolerance"      : 1e-7,
+                   "max_iteration"  : *GenData(Linear_Solver_Max_Iteration,INT),
+                   "scaling"        : false
+              },
+              "dofs"                            : [
+*if(strcmp(GenData(DOFS),"DISPLACEMENTS")==0)
+                                                "DISPLACEMENT"
+*endif
+*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
+                                                "DISPLACEMENT",
+                                                "ROTATION"
+*endif
+*if(strcmp(GenData(DOFS),"U-P")==0)
+                                                "DISPLACEMENT",
+                                                "PRESSURE"
+*endif
+*if(strcmp(GenData(DOFS),"U-wP")==0 )
+                                                "DISPLACEMENT",
+                                                "WATER_PRESSURE"
+*endif
+*if( strcmp(GenData(DOFS),"U-J-wP")==0 )
+                                                "DISPLACEMENT",
+                                                "WATER_PRESSURE",
+						"JACOBIAN"
+*endif
+*if( strcmp(GenData(DOFS),"U-J")==0 )
+                                                "DISPLACEMENT",
+						"JACOBIAN"
+*endif
+*if(strcmp(GenData(DOFS),"U-W")==0)
+                                                "DISPLACEMENT",
+						"WATER_DISPLACEMENT"
+*endif
+*if(strcmp(GenData(DOFS),"U-W-wP")==0)
+                                                "DISPLACEMENT",
+						"WATER_DISPLACEMENT",
+                                                "WATER_PRESSURE"
+*endif
+*if(strcmp(GenData(DOFS),"U-J-W-wP")==0)
+                                                "DISPLACEMENT",
+						"JACOBIAN",
+						"WATER_DISPLACEMENT",
+                                                "WATER_PRESSURE"
+*endif
+					       ]
+        }
     },
     "problem_process_list" : [{
         "help"            : "This process applies meshing to the problem domains",
-        "kratos_module"   : "KratosMultiphysics.PfemApplication",
+        "kratos_module"   : "KratosMultiphysics.DelaunayMeshingApplication",
         "python_module"   : "remesh_domains_process",
         "process_name"    : "RemeshDomainsProcess",
         "Parameters"      : {
@@ -291,7 +337,7 @@
 			}
 		    },
 		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
-                    "contact_sub_model_part_list" : [
+                    "contact_bodies_list" : [
 *set cond group_DeformableBodies *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
@@ -429,9 +475,16 @@
 		    },		    
 		    "contact_search_settings":{
 			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			"contact_search_type": "HMParametricWallContactSearch",
+*else
 			"contact_search_type": "ParametricWallContactSearch",
+*endif
 			"contact_parameters":{
 			    "contact_condition_type": "*cond(Contact_Condition)",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			    "hydraulic_condition_type": "*cond(Hydraulic_Contact_Condition)",
+*endif
 			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",			    
 			    "friction_law_type": "HardeningCoulombFrictionLaw",
 			    "variables_of_properties":{
@@ -818,15 +871,29 @@
                                       "WATER_DISPLACEMENT",
                                       "WATER_VELOCITY",
 				      "WATER_ACCELERATION",
+*elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
+                                      "WATER_DISPLACEMENT",
+                                      "WATER_VELOCITY",
+				      "WATER_ACCELERATION",
+				      "WATER_PRESSURE",
+				      "WATER_PRESSURE_VELOCITY",
+				      "WATER_PRESSURE_ACCELERATION",
+*elseif(strcmp(GenData(DOFS),"U-J-W-wP")==0)
+                                      "JACOBIAN",
+                                      "WATER_DISPLACEMENT",
+                                      "WATER_VELOCITY",
+				      "WATER_ACCELERATION",
+				      "WATER_PRESSURE",
+				      "WATER_PRESSURE_VELOCITY",
+				      "WATER_PRESSURE_ACCELERATION",
 *endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)
-				      "REACTION",
+				      "DISPLACEMENT_REACTION",
 *endif
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
 				      "NORMAL",
 				      "CONTACT_FORCE",
-				      "CONTACT_STRESS",
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",

@@ -2,7 +2,7 @@
 //   Project Name:        KratosPfemApplication     $
 //   Created by:          $Author:      JMCarbonell $
 //   Last modified by:    $Co-Author:               $
-//   Date:                $Date:      February 2016 $
+//   Date:                $Date:           May 2018 $
 //   Revision:            $Revision:            0.0 $
 //
 //
@@ -13,35 +13,32 @@ namespace Kratos
 {
   ///@name Type Definitions
   ///@{
-  typedef array_1d<double,3> Vector3;
-  typedef array_1d<double,6> Vector6;
   ///@}
+
+  typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
+  typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
+
 
   ///@name Kratos Globals
   ///@{
 
+
   //Create Variables
+  KRATOS_CREATE_VARIABLE( double, FLUID_PRESSURE )
+  KRATOS_CREATE_VARIABLE( double, FLUID_PRESSURE_VELOCITY )
+  KRATOS_CREATE_VARIABLE( double, FLUID_PRESSURE_ACCELERATION )
+  KRATOS_CREATE_VARIABLE( double, FLUID_PRESSURE_REACTION )
 
-  //geometrical definition
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
-  KRATOS_CREATE_VARIABLE(double, SHRINK_FACTOR )
+  KRATOS_CREATE_VARIABLE( PropertiesContainerPointerType, PROPERTIES_VECTOR )
+  KRATOS_CREATE_VARIABLE( Vector, MATERIAL_PERCENTAGE )
 
-  //domain definition
-  KRATOS_CREATE_VARIABLE(bool, INITIALIZED_DOMAINS )
-  KRATOS_CREATE_VARIABLE(bool, MESHING_STEP_PERFORMED )
-  KRATOS_CREATE_VARIABLE(std::string, MODEL_PART_NAME )
+  //Adaptive time step (review needed)
+  KRATOS_CREATE_VARIABLE(   bool, TIME_INTERVAL_CHANGED )
+  KRATOS_CREATE_VARIABLE(   bool, BAD_VELOCITY_CONVERGENCE )
+  KRATOS_CREATE_VARIABLE(   bool, BAD_PRESSURE_CONVERGENCE )
+  KRATOS_CREATE_VARIABLE( double, INITIAL_DELTA_TIME )
+  KRATOS_CREATE_VARIABLE( double, CURRENT_DELTA_TIME )
 
-  //boundary definition
-  KRATOS_CREATE_VARIABLE(int,                               RIGID_WALL )
-  KRATOS_CREATE_VARIABLE(Condition::Pointer,          MASTER_CONDITION )
-  KRATOS_CREATE_VARIABLE(WeakPointerVector< Element >, MASTER_ELEMENTS )
-  KRATOS_CREATE_VARIABLE(WeakPointerVector< Node<3> >,    MASTER_NODES )
-
-  //condition variables
-  KRATOS_CREATE_VARIABLE(ConditionContainerType,   CHILDREN_CONDITIONS )
-  
-  //modeler criteria
-  KRATOS_CREATE_VARIABLE(double, MEAN_ERROR )
 
   ///@}
 

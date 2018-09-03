@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_APPLICATION_H_INCLUDED )
 #define  KRATOS_POROMECHANICS_APPLICATION_H_INCLUDED
@@ -60,7 +67,7 @@
 namespace Kratos
 {
 
-class KratosPoromechanicsApplication : public KratosApplication
+class KRATOS_API(POROMECHANICS_APPLICATION) KratosPoromechanicsApplication : public KratosApplication
 {
     
 public:
@@ -71,26 +78,26 @@ public:
     KratosPoromechanicsApplication();
 
     // Destructor
-    virtual ~KratosPoromechanicsApplication(){}
+    ~KratosPoromechanicsApplication() override {}
     
 
-    virtual void Register();
+    void Register() override;
 
     // Turn back information as a string
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosPoromechanicsApplication";
     }
 
     // Print information about this object
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     // Print object's data
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );

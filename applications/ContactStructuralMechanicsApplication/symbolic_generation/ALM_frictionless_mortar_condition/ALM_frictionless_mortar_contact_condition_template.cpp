@@ -17,42 +17,51 @@
 /* Mortar includes */
 #include "custom_conditions/ALM_frictionless_mortar_contact_condition.h"
 
-/* Utilities */
-#include "custom_utilities/contact_utilities.h"
-
 namespace Kratos 
 {
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create( 
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return boost::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return boost::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
+    return Kratos::make_shared<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
+Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
+    IndexType NewId,
+    GeometryPointerType pGeom,
+    PropertiesType::Pointer pProperties,
+    GeometryType::Pointer pMasterGeom) const
+{
+    return Kratos::make_shared<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation>::~AugmentedLagrangianMethodFrictionlessMortarContactCondition( )
-{
-}
+= default;
 
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
@@ -70,7 +79,7 @@ AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNor
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& CurrentProcessInfo 
@@ -78,54 +87,34 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 {
     KRATOS_TRY;   
     
-    ConditionMap::Pointer& all_conditions_maps = this->GetValue( MAPPING_PAIRS );
+    if (rResult.size() != MatrixSize)
+        rResult.resize( MatrixSize, false );
     
-    // Calculates the size of the system
-    const unsigned int condition_size = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* all_conditions_maps->size(); 
-    
-    if (rResult.size() != condition_size)
-    {
-        rResult.resize( condition_size, false );
-    }
-    
-    unsigned int index = 0;
+    IndexType index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
-    {
-        GeometryType& current_master = (it_pair->first)->GetGeometry( );
-        
-        // Master Nodes Displacement Equation IDs
-        for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
-        {
-            NodeType& master_node = current_master[i_master];
-            rResult[index++] = master_node.GetDof( DISPLACEMENT_X ).EquationId( );
-            rResult[index++] = master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
-            if (TDim == 3)
-            {
-                rResult[index++] = master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
-            }
-        }
+    GeometryType& current_master = this->GetPairedGeometry();;
+    
+    // Master Nodes Displacement Equation IDs
+    for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
+        NodeType& master_node = current_master[i_master];
+        rResult[index++] = master_node.GetDof( DISPLACEMENT_X ).EquationId( );
+        rResult[index++] = master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
+        if (TDim == 3) rResult[index++] = master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+    }
 
-        // Slave Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
-        {
-            NodeType& slave_node = this->GetGeometry()[ i_slave ];
-            rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
-            rResult[index++] = slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
-            if (TDim == 3)
-            {
-                rResult[index++] = slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
-            }
-        }
+    // Slave Nodes Displacement Equation IDs
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
+        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
+        rResult[index++] = slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
+        if (TDim == 3) rResult[index++] = slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+    }
 
-        // Slave Nodes  Lambda Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
-        {
-            NodeType& slave_node = this->GetGeometry()[ i_slave ];
-            rResult[index++] = slave_node.GetDof( NORMAL_CONTACT_STRESS ).EquationId( );
-        }
-        
+    // Slave Nodes  Lambda Equation IDs
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
+        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        rResult[index++] = slave_node.GetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE ).EquationId( );
     }
     
     KRATOS_CATCH( "" );
@@ -134,64 +123,75 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
 void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::GetDofList(
     DofsVectorType& rConditionalDofList,
     ProcessInfo& rCurrentProcessInfo 
-)
+    )
 {
     KRATOS_TRY;
     
-    ConditionMap::Pointer& all_conditions_maps = this->GetValue( MAPPING_PAIRS );
+    if (rConditionalDofList.size() != MatrixSize)
+        rConditionalDofList.resize( MatrixSize );
     
-    // Calculates the size of the system
-    const unsigned int condition_size = (TDim * ( TNumNodes + TNumNodes) + TNumNodes)* all_conditions_maps->size(); 
-    
-    if (rConditionalDofList.size() != condition_size)
-    {
-        rConditionalDofList.resize( condition_size );
-    }
-    
-    unsigned int index = 0;
+    IndexType index = 0;
     
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
-    for (auto it_pair = all_conditions_maps->begin(); it_pair != all_conditions_maps->end(); ++it_pair )
-    {
-        GeometryType& current_master = (it_pair->first)->GetGeometry( );
+    GeometryType& current_master = this->GetPairedGeometry();;
 
-        // Master Nodes Displacement Equation IDs
-        for ( unsigned int i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
-        {
-            NodeType& master_node = current_master[i_master];
-            rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_X );
-            rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Y );
-            if (TDim == 3)
-            {
-                rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Z );
-            }
-        }
+    // Master Nodes Displacement Equation IDs
+    for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
+        NodeType& master_node = current_master[i_master];
+        rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_X );
+        rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Y );
+        if (TDim == 3) rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Z );
+    }
 
-        // Slave Nodes Displacement Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
-        {
-            NodeType& slave_node = this->GetGeometry()[ i_slave ];
-            rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
-            rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
-            if (TDim == 3)
-            {
-                rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
-            }
-        }
+    // Slave Nodes Displacement Equation IDs
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
+        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
+        rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
+        if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
+    }
 
-        // Slave Nodes Lambda Equation IDs
-        for ( unsigned int i_slave = 0; i_slave < TNumNodes; i_slave++ )
-        {
-            NodeType& slave_node = this->GetGeometry()[ i_slave ];
-            rConditionalDofList[index++] = slave_node.pGetDof( NORMAL_CONTACT_STRESS );
-        }
+    // Slave Nodes Lambda Equation IDs
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )  {
+        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        rConditionalDofList[index++] = slave_node.pGetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE );
     }
     
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
+int AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    // Base class checks for positive Jacobian and Id > 0
+    int ierr = BaseType::Check(rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(NORMAL)
+    KRATOS_CHECK_VARIABLE_KEY(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( IndexType i = 0; i < TNumNodes; ++i ) {
+        Node<3> &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rnode)
+    }
+
+    return ierr;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

@@ -9,4 +9,4 @@ import swimming_DEM_algorithm
 
 for i in range(10):
     test = script.Solution()
-    test.alg.Run()
+    test.Run()

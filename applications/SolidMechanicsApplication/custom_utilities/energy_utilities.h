@@ -8,24 +8,24 @@
 //
 
 
-#if !defined(KRATOS_ENERGY_UTILITIES_H_INCLUDED )
+#if !defined(KRATOS_ENERGY_UTILITIES_H_INCLUDED)
 #define  KRATOS_ENERGY_UTILITIES_H_INCLUDED
 
 
 // System includes
-#include <cmath>
-#include <set>
+//#include <cmath>
+//#include <set>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// #ifdef _OPENMP
+// #include <omp.h>
+// #endif
 
 // External includes
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 #include "utilities/timer.h"
 
 // Project includes
-#include "includes/define.h"
+//#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
@@ -61,7 +61,7 @@ namespace Kratos
 
 
     /// Destructor.
-    ~EnergyUtilities(){};
+    virtual ~EnergyUtilities(){};
 
 
     ///@}
@@ -283,7 +283,7 @@ namespace Kratos
 
     void CalculateNodalMass(ModelPart::NodesContainerType& pNodes, ModelPart::ElementsContainerType& pElements, ProcessInfo& rCurrentProcessInfo)
     {
-         
+
       KRATOS_TRY
       #ifdef _OPENMP
               int number_of_threads = omp_get_max_threads();
@@ -354,8 +354,8 @@ namespace Kratos
       KRATOS_CATCH( "" )
 
     } //CalculateNodalMass
-    
- 
+
+
 
     //**************************************************************************
     //**************************************************************************

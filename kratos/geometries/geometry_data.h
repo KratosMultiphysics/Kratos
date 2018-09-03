@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined(KRATOS_GEOMETRY_DATA_H_INCLUDED )
@@ -153,51 +153,35 @@ public:
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef boost::array<IntegrationPointsArrayType, NumberOfIntegrationMethods> IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, NumberOfIntegrationMethods> IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     continer.
     */
-    typedef boost::array<Matrix, NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
+    typedef std::array<Matrix, NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry data.
     */
-    typedef boost::array<boost::numeric::ublas::vector<Matrix>, NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
+    typedef std::array<DenseVector<Matrix>, NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
 
     /** A third order tensor to hold shape functions'
     gradients. ShapefunctionsLocalGradients function return this
     type as its result.
     */
-    typedef boost::numeric::ublas::vector<Matrix> ShapeFunctionsGradientsType;
+    typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
 
-    typedef boost::numeric::ublas::vector<Matrix> ShapeFunctionsSecondDerivativesType;
+    typedef DenseVector<Matrix> ShapeFunctionsSecondDerivativesType;
 
     /**
      * fourth order tensor to hold the third order derivatives of the
      * shape functions
      */
-    typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > ShapeFunctionsThirdDerivativesType;
+    typedef DenseVector<DenseVector<Matrix> > ShapeFunctionsThirdDerivativesType;
 
-    typedef boost::array<boost::numeric::ublas::vector<Matrix>, NumberOfIntegrationMethods> MassFactorsContainerType;
-
-    typedef boost::array<boost::numeric::ublas::vector<Matrix>, NumberOfIntegrationMethods> LampedMassFactorsContainerType;
     ///@}
     ///@name Life Cycle
     ///@{
-
-//    GeometryData(SizeType ThisDimension = 0,
-//          SizeType ThisWorkingSpaceDimension = 0,
-//          SizeType ThisLocalSpaceDimension = 0)
-//  : mDimension(ThisDimension)
-//  , mWorkingSpaceDimension(ThisWorkingSpaceDimension)
-//  , mLocalSpaceDimension(ThisLocalSpaceDimension)
-//  , mDefaultMethod(GI_GAUSS_1)
-//  , mIntegrationPoints()
-//  , mShapeFunctionsValues()
-//  , mShapeFunctionsLocalGradients()
-//  {
-//  }
 
     /** Complete argument constructor. This constructor gives a
     complete set of arguments to pass all the initial value of
@@ -277,16 +261,6 @@ public:
         , mShapeFunctionsValues( ThisShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
     {
-        for ( unsigned int i = 0 ; i < NumberOfIntegrationMethods ; i++ )
-        {
-            boost::numeric::ublas::vector<Matrix> temp( mIntegrationPoints[i].size() );
-
-            for ( unsigned int j = 0 ; j < mIntegrationPoints[i].size() ; j++ )
-                //temp[j]=outer_prod(mShapeFunctionsValues[i][j], mShapeFunctionsValues[i][j]);
-                temp[j] = outer_prod( row( mShapeFunctionsValues[i], j ), row( mShapeFunctionsValues[i], j ) );
-
-            mMassFactors[i] = temp;
-        }
     }
 
     /** Copy constructor.
@@ -300,7 +274,6 @@ public:
         , mIntegrationPoints( rOther.mIntegrationPoints )
         , mShapeFunctionsValues( rOther.mShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( rOther.mShapeFunctionsLocalGradients )
-        , mMassFactors( rOther.mMassFactors )
     {
     }
 
@@ -333,7 +306,6 @@ public:
         mIntegrationPoints = rOther.mIntegrationPoints;
         mShapeFunctionsValues = rOther.mShapeFunctionsValues;
         mShapeFunctionsLocalGradients = rOther.mShapeFunctionsLocalGradients;
-        mMassFactors = rOther.mMassFactors;
 
         return *this;
     }
@@ -701,25 +673,6 @@ public:
         return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
     }
 
-    boost::numeric::ublas::vector<Matrix> const& MassFactors() const
-    {
-        return mMassFactors[mDefaultMethod];
-    }
-
-    boost::numeric::ublas::vector<Matrix> const& MassFactors( enum IntegrationMethod ThisMethod ) const
-    {
-        return mMassFactors[ThisMethod];
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex ) const
-    {
-        return mMassFactors[mDefaultMethod][IntegrationPointIndex];
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex, enum IntegrationMethod ThisMethod ) const
-    {
-        return mMassFactors[ThisMethod][IntegrationPointIndex];
-    }
 
     ///@}
     ///@name Input and output
@@ -830,10 +783,6 @@ private:
 
     ShapeFunctionsLocalGradientsContainerType mShapeFunctionsLocalGradients;
 
-    MassFactorsContainerType mMassFactors;
-
-    LampedMassFactorsContainerType mLampedMassFactors;
-
     ///@}
     ///@name Serialization
     ///@{
@@ -849,8 +798,6 @@ private:
 //    rSerializer.save("Integration Points", mIntegrationPoints);
 //    rSerializer.save("Shape Functions Values", mShapeFunctionsValues);
 //    rSerializer.save("Shape Functions Local Gradients", mShapeFunctionsLocalGradients);
-//    rSerializer.save("Mass Factors", mMassFactors);
-//    rSerializer.save("Lamped Mass Factors", mLampedMassFactors);
     }
 
     virtual void load( Serializer& rSerializer )
@@ -862,8 +809,6 @@ private:
 //    rSerializer.load("Integration Points", mIntegrationPoints);
 //    rSerializer.load("Shape Functions Values", mShapeFunctionsValues);
 //    rSerializer.load("Shape Functions Local Gradients", mShapeFunctionsLocalGradients);
-//    rSerializer.load("Mass Factors", mMassFactors);
-//    rSerializer.load("Lamped Mass Factors", mLampedMassFactors);
     }
 
     // Private default constructor for serialization
@@ -936,6 +881,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GEOMETRY_DATA_H_INCLUDED  defined 
+#endif // KRATOS_GEOMETRY_DATA_H_INCLUDED  defined
 
 

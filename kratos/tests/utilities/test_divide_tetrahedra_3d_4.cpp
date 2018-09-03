@@ -63,6 +63,22 @@ namespace Kratos
 			// Call the intersection generation method
 			tetrahedra_splitter.GenerateIntersectionsSkin();
 
+			// Call the positive exterior faces generation method
+			std::vector < unsigned int > pos_ext_faces_parent_ids;
+			std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > pos_ext_faces;
+			tetrahedra_splitter.GenerateExteriorFaces(
+				pos_ext_faces,
+				pos_ext_faces_parent_ids,
+				tetrahedra_splitter.mPositiveSubdivisions);
+
+			// Call the negative exterior faces generation method
+			std::vector < unsigned int > neg_ext_faces_parent_ids;
+			std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > neg_ext_faces;
+			tetrahedra_splitter.GenerateExteriorFaces(
+				neg_ext_faces,
+				neg_ext_faces_parent_ids,
+				tetrahedra_splitter.mNegativeSubdivisions);
+
 			const double tolerance = 1e-10;
 
 			// Check general splitting values
@@ -160,6 +176,121 @@ namespace Kratos
 			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mPositiveInterfacesParentIds[0], 0);
 			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mNegativeInterfacesParentIds[0], 2);
 
+			// Check exterior faces
+			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 3);
+			KRATOS_CHECK_EQUAL(neg_ext_faces.size(), 7);
+
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[0], 0);
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[1], 0);
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[2], 0);
+
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[0], 1);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[1], 2);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[2], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[3], 2);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[4], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[5], 1);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[6], 0);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].Z(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[2].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].Z(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[2].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[0].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[1].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[2].Z(), 1.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[2].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[2].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[2].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[2].Z(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[0].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[1].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[1].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[2].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[2].Z(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[1].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[1].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[0].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[1].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[6])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[6])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[6])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[6])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[6])[1].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[6])[1].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[6])[2].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[6])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[6])[2].Z(), 0.0, tolerance);
 		}
 		
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4Oblique, KratosCoreFastSuite)
@@ -202,6 +333,22 @@ namespace Kratos
 
 			// Call the intersection generation method
 			tetrahedra_splitter.GenerateIntersectionsSkin();
+
+			// Call the positive exterior faces generation method
+			std::vector < unsigned int > pos_ext_faces_parent_ids;
+			std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > pos_ext_faces;
+			tetrahedra_splitter.GenerateExteriorFaces(
+				pos_ext_faces,
+				pos_ext_faces_parent_ids,
+				tetrahedra_splitter.mPositiveSubdivisions);
+
+			// Call the negative exterior faces generation method
+			std::vector < unsigned int > neg_ext_faces_parent_ids;
+			std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > neg_ext_faces;
+			tetrahedra_splitter.GenerateExteriorFaces(
+				neg_ext_faces,
+				neg_ext_faces_parent_ids,
+				tetrahedra_splitter.mNegativeSubdivisions);
 
 			const double tolerance = 1e-10;
 
@@ -345,7 +492,144 @@ namespace Kratos
 			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mPositiveInterfacesParentIds[1], 1);
 			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mNegativeInterfacesParentIds[0], 1);
 			KRATOS_CHECK_EQUAL(tetrahedra_splitter.mNegativeInterfacesParentIds[1], 2);
+
+			// Check exterior faces
+			KRATOS_CHECK_EQUAL(pos_ext_faces.size(), 6);
+			KRATOS_CHECK_EQUAL(neg_ext_faces.size(), 6);
+
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[0], 1);
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[1], 2);
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[2], 0);
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[3], 0);
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[4], 2);
+			KRATOS_CHECK_EQUAL(pos_ext_faces_parent_ids[5], 2);
+
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[0], 2);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[1], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[2], 1);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[3], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[4], 0);
+			KRATOS_CHECK_EQUAL(neg_ext_faces_parent_ids[5], 2);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[0].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[1].Z(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[2].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[2].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[0])[2].Z(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[1].Z(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[2].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[1])[2].Z(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[0].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[1].Z(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[2].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[2])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[3])[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[3])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[3])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[3])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[3])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[3])[1].Z(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[3])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[3])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[3])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[4])[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[4])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[4])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[4])[1].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[4])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[4])[1].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[4])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[4])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[4])[2].Z(), 1.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*pos_ext_faces[5])[0].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[5])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[5])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[5])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[5])[1].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[5])[1].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[5])[2].X(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[5])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*pos_ext_faces[5])[2].Z(), 0.0, tolerance);
 			
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[1].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[2].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[2].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[0])[2].Z(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[1].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[2].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[1])[2].Z(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[0].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[1].Z(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[2].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[2])[2].Z(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[1].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[1].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[2].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[3])[2].Z(), 0.5, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[0].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[1].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[1].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[1].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[2].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[4])[2].Z(), 0.0, tolerance);
+
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[0].X(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[0].Y(), 1.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[0].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[1].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[1].Y(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[1].Z(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[2].X(), 0.5, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[2].Y(), 0.0, tolerance);
+			KRATOS_CHECK_NEAR((*neg_ext_faces[5])[2].Z(), 0.0, tolerance);
 		}
 		
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4NoDivision, KratosCoreFastSuite)

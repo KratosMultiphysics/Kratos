@@ -1,5 +1,5 @@
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 // Project includes
 #include "includes/ublas_interface.h"
@@ -15,20 +15,26 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
-void AddCustomSchemesToPython()
+void AddCustomSchemesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
-    class_<AdjointBossakScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
-        "AdjointBossakScheme", init<Parameters&, ResponseFunction::Pointer>())
+    class_<
+        AdjointBossakScheme<SparseSpaceType, LocalSpaceType>,
+        typename AdjointBossakScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        SchemeType>(m,"AdjointBossakScheme")
+        .def(init<Parameters&, ResponseFunction::Pointer>())
         ;
 
-    class_<AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>, bases<SchemeType>, boost::noncopyable>(
-        "AdjointSteadyVelocityPressureScheme", init<Parameters&, ResponseFunction::Pointer>())
+    class_<
+        AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>,
+        typename AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        SchemeType>(m,"AdjointSteadyVelocityPressureScheme")
+        .def(init<Parameters&, ResponseFunction::Pointer>())
         ;
 }
 

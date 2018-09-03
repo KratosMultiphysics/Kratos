@@ -90,7 +90,7 @@ public:
     CGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
         
-    CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):
+    CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()):
         BaseType(settings, pNewPreconditioner) {}
 
     CGSolver(Parameters settings):

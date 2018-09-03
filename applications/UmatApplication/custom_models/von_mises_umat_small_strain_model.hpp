@@ -46,7 +46,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesSmallStrainUmatModel : public SmallStrainUmatModel
+   class KRATOS_API(UMAT_APPLICATION) VonMisesSmallStrainUmatModel : public SmallStrainUmatModel
    {
 
 
@@ -221,12 +221,12 @@ namespace Kratos
 
          virtual void save(Serializer& rSerializer) const override
          {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrainUmatModel )
          }
 
          virtual void load(Serializer& rSerializer) override
          {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrainUmatModel )
          }
 
          ///@}

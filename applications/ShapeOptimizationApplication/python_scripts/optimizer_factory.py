@@ -9,82 +9,94 @@
 # ==============================================================================
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-# Additional imports
-import timer_factory
+# additional imports
+from custom_timer import Timer
+from analyzer_empty import EmptyAnalyzer
+import model_part_controller_factory
+import analyzer_factory
+import communicator_factory
 import algorithm_factory
 
 # ==============================================================================
-def CreateOptimizer( OptimizationModelPart, OptimizationSettings ):
+def CreateOptimizer(optimization_settings, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
 
-    design_variables_type = OptimizationSettings["design_variables"]["design_variables_type"].GetString()
-    
-    if design_variables_type == "vertex_morphing":
-        return VertexMorphingMethod( OptimizationModelPart, OptimizationSettings )
+    model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
+
+    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
+
+    communicator = communicator_factory.CreateCommunicator(optimization_settings)
+
+    if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
+        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
     else:
-        raise NameError("The following design variables type is not supported by the optimizer (name may be misspelled): " + design_variables_type)              
+        raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
 
 # ==============================================================================
 class VertexMorphingMethod:
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, OptimizationSettings ):
-        
-        self.OptimizationModelPart = OptimizationModelPart
-        self.OptimizationSettings = OptimizationSettings
-        self.__addVariablesNeededForOptimization( OptimizationModelPart )
+    def __init__(self, optimization_settings, model_part_controller, analyzer, communicator):
+        self.optimization_settings = optimization_settings
+        self.model_part_controller = model_part_controller
+        self.analyzer = analyzer
+        self.communicator = communicator
+
+        self.__AddNodalVariablesNeededForOptimization()
 
     # --------------------------------------------------------------------------
-    def __addVariablesNeededForOptimization( self, OptimizationModelPart ):
-        OptimizationModelPart.AddNodalSolutionStepVariable(NORMAL)
-        OptimizationModelPart.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-        OptimizationModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
-        OptimizationModelPart.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
-        OptimizationModelPart.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
-        OptimizationModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
-        OptimizationModelPart.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
-        OptimizationModelPart.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY) 
-        OptimizationModelPart.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
-        OptimizationModelPart.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)  
-        OptimizationModelPart.AddNodalSolutionStepVariable(SEARCH_DIRECTION) 
-        OptimizationModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
-        OptimizationModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE)
-        OptimizationModelPart.AddNodalSolutionStepVariable(MESH_CHANGE)        
+    def __AddNodalVariablesNeededForOptimization(self):
+        model_part = self.model_part_controller.GetOptimizationModelPart()
+        number_of_objectives = self.optimization_settings["objectives"].size()
+        number_of_constraints = self.optimization_settings["constraints"].size()
+
+        for itr in range(1,number_of_objectives+1):
+            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX_MAPPED")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+
+        for itr in range(1,number_of_constraints+1):
+            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX_MAPPED")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+
+        model_part.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
+        model_part.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
+        model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
+        model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE)
+        model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE)
+        model_part.AddNodalSolutionStepVariable(MESH_CHANGE)
+        model_part.AddNodalSolutionStepVariable(NORMAL)
+        model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
 
     # --------------------------------------------------------------------------
-    def importModelPart( self ):
-        model_part_io = ModelPartIO( self.OptimizationSettings["design_variables"]["optimization_model_part_name"].GetString() )
-        model_part_io.ReadModelPart( self.OptimizationModelPart )
-        buffer_size = 1
-        self.OptimizationModelPart.SetBufferSize( buffer_size )
-        self.OptimizationModelPart.ProcessInfo.SetValue( DOMAIN_SIZE, self.OptimizationSettings["design_variables"]["domain_size"].GetInt() )
-
-    # --------------------------------------------------------------------------
-    def importAnalyzer( self, newAnalyzer ): 
-        self.analyzer = newAnalyzer
-
-    # --------------------------------------------------------------------------
-    def optimize( self ):
-        
-        timer = timer_factory.CreateTimer()
-        algorithmName = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
+    def Optimize(self):
+        algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
 
         print("\n> ==============================================================================================================")
-        print("> ",timer.GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithmName)
+        print("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
         print("> ==============================================================================================================\n")
-    
-        algorithm = algorithm_factory.CreateAlgorithm( self.OptimizationModelPart, self.analyzer, self.OptimizationSettings )
-        algorithm.execute()       
+
+        self.model_part_controller.ImportOptimizationModelPart()
+
+        algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
+                                                                  self.analyzer,
+                                                                  self.communicator,
+                                                                  self.model_part_controller)
+
+        algorithm.CheckApplicability()
+        algorithm.InitializeOptimizationLoop()
+        algorithm.RunOptimizationLoop()
+        algorithm.FinalizeOptimizationLoop()
 
         print("\n> ==============================================================================================================")
         print("> Finished optimization                                                                                           ")
-        print("> ==============================================================================================================\n")            
+        print("> ==============================================================================================================\n")
 
 # ==============================================================================

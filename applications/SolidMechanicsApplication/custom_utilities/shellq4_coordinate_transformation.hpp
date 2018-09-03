@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SHELLQ4_COORDINATE_TRANSFORMATION_H_INCLUDED )
+#if !defined(KRATOS_SHELLQ4_COORDINATE_TRANSFORMATION_H_INCLUDED)
 #define  KRATOS_SHELLQ4_COORDINATE_TRANSFORMATION_H_INCLUDED
 
 #include "shellq4_local_coordinate_system.hpp"
@@ -15,170 +15,170 @@
 namespace Kratos
 {
 
-	/** \brief ShellQ4_CoordinateTransformation
-	*
-	* This class represents a basic (linear) coordinate transformation that can be used
-	* by any element whose geometry is a QUAD 4 in 3D space, with 6 D.O.F.s per node.
-	* It's main aim is to:
-	* 1) Create the local coordinate system
-	* 2) Transform the incoming global displacements in local coordinate system
-	* 3) Transform the outgoing matrices and vectors in global coordinate system
-	*/
-	class ShellQ4_CoordinateTransformation
-	{
+/** \brief ShellQ4_CoordinateTransformation
+ *
+ * This class represents a basic (linear) coordinate transformation that can be used
+ * by any element whose geometry is a QUAD 4 in 3D space, with 6 D.O.F.s per node.
+ * It's main aim is to:
+ * 1) Create the local coordinate system
+ * 2) Transform the incoming global displacements in local coordinate system
+ * 3) Transform the outgoing matrices and vectors in global coordinate system
+ */
+class ShellQ4_CoordinateTransformation
+{
 
-	public:
+ public:
 
-		KRATOS_CLASS_POINTER_DEFINITION( ShellQ4_CoordinateTransformation );
+  KRATOS_CLASS_POINTER_DEFINITION( ShellQ4_CoordinateTransformation );
 
-		typedef Element::GeometryType GeometryType;
+  typedef Element::GeometryType GeometryType;
 
-		typedef Vector VectorType;
+  typedef Vector VectorType;
 
-		typedef Matrix MatrixType;
+  typedef Matrix MatrixType;
 
-	public:
+ public:
 
-		ShellQ4_CoordinateTransformation(const GeometryType::Pointer & pGeometry)
-			: mpGeometry(pGeometry)
-		{
-		}
+  ShellQ4_CoordinateTransformation(const GeometryType::Pointer & pGeometry)
+      : mpGeometry(pGeometry)
+  {
+  }
 
-		virtual ~ShellQ4_CoordinateTransformation()
-		{
-		}
+  virtual ~ShellQ4_CoordinateTransformation()
+  {
+  }
 
-	private:
+ private:
 
-		ShellQ4_CoordinateTransformation(const ShellQ4_CoordinateTransformation & other);
+  ShellQ4_CoordinateTransformation(const ShellQ4_CoordinateTransformation & other);
 
-		ShellQ4_CoordinateTransformation & operator = (const ShellQ4_CoordinateTransformation & other);
+  ShellQ4_CoordinateTransformation & operator = (const ShellQ4_CoordinateTransformation & other);
 
-	public:
+ public:
 
-		virtual ShellQ4_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const
-		{
-			return ShellQ4_CoordinateTransformation::Pointer( new ShellQ4_CoordinateTransformation( pGeometry ) );
-		}
+  virtual ShellQ4_CoordinateTransformation::Pointer Create(GeometryType::Pointer pGeometry)const
+  {
+    return ShellQ4_CoordinateTransformation::Pointer( new ShellQ4_CoordinateTransformation( pGeometry ) );
+  }
 
-		virtual void Initialize()
-		{
-		}
+  virtual void Initialize()
+  {
+  }
 
-		virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
-		{
-		}
-		
-		virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
-		{
-		}
-		
-		virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-		{
-		}
-		
-		virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-		{
-		}
+  virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  {
+  }
 
-		virtual ShellQ4_LocalCoordinateSystem CreateReferenceCoordinateSystem()const
-		{
-			const GeometryType & geom = GetGeometry();
-			return ShellQ4_LocalCoordinateSystem(geom[0].GetInitialPosition(),
-											     geom[1].GetInitialPosition(),
-											     geom[2].GetInitialPosition(),
-											     geom[3].GetInitialPosition());
-		}
+  virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  {
+  }
 
-		virtual ShellQ4_LocalCoordinateSystem CreateLocalCoordinateSystem()const
-		{
-			return CreateReferenceCoordinateSystem();
-		}
+  virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+  {
+  }
 
-		virtual Vector CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS, 
-												   const VectorType & globalDisplacements)
-		{
-			MatrixType R(24, 24);
-			LCS.ComputeTotalRotationMatrix( R );
-			if(LCS.IsWarped()) {
-				MatrixType W(24, 24);
-				LCS.ComputeTotalWarpageMatrix( W );
-				R = prod( W, R );
-			}
-			return prod( R, globalDisplacements );
-		}
+  virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+  {
+  }
 
-		virtual void FinalizeCalculations(const ShellQ4_LocalCoordinateSystem & LCS,
-										  const VectorType & globalDisplacements,
-										  const VectorType & localDisplacements,
-										  MatrixType & rLeftHandSideMatrix,
-										  VectorType & rRightHandSideVector,
-										  const bool RHSrequired,
-										  const bool LHSrequired)
-		{
-			MatrixType R(24, 24);
-			LCS.ComputeTotalRotationMatrix( R );
-			if(LCS.IsWarped()) {
-				MatrixType W(24, 24);
-				LCS.ComputeTotalWarpageMatrix( W );
-				R = prod( W, R );
-			}
+  virtual ShellQ4_LocalCoordinateSystem CreateReferenceCoordinateSystem()const
+  {
+    const GeometryType & geom = GetGeometry();
+    return ShellQ4_LocalCoordinateSystem(geom[0].GetInitialPosition(),
+                                         geom[1].GetInitialPosition(),
+                                         geom[2].GetInitialPosition(),
+                                         geom[3].GetInitialPosition());
+  }
 
-			if(LHSrequired) {
-				MatrixType temp(24, 24);
-				noalias( temp ) = prod( trans( R ), rLeftHandSideMatrix );
-				noalias( rLeftHandSideMatrix ) = prod( temp, R );
-			}
+  virtual ShellQ4_LocalCoordinateSystem CreateLocalCoordinateSystem()const
+  {
+    return CreateReferenceCoordinateSystem();
+  }
 
-			if(RHSrequired) {
-				rRightHandSideVector = prod( trans( R ), rRightHandSideVector );
-			}
-		}
+  virtual Vector CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS,
+                                             const VectorType & globalDisplacements)
+  {
+    MatrixType R(24, 24);
+    LCS.ComputeTotalRotationMatrix( R );
+    if(LCS.IsWarped()) {
+      MatrixType W(24, 24);
+      LCS.ComputeTotalWarpageMatrix( W );
+      R = prod( W, R );
+    }
+    return prod( R, globalDisplacements );
+  }
 
-		virtual MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
-			                                                   const Vector& globalDisplacements,
-															   size_t nodeid)
-		{
-			return IdentityMatrix(3,3);
-		}
+  virtual void FinalizeCalculations(const ShellQ4_LocalCoordinateSystem & LCS,
+                                    const VectorType & globalDisplacements,
+                                    const VectorType & localDisplacements,
+                                    MatrixType & rLeftHandSideMatrix,
+                                    VectorType & rRightHandSideVector,
+                                    const bool RHSrequired,
+                                    const bool LHSrequired)
+  {
+    MatrixType R(24, 24);
+    LCS.ComputeTotalRotationMatrix( R );
+    if(LCS.IsWarped()) {
+      MatrixType W(24, 24);
+      LCS.ComputeTotalWarpageMatrix( W );
+      R = prod( W, R );
+    }
 
-		virtual MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
-			                                                   const Vector& globalDisplacements,
-															   const Vector& N)
-		{
-			return IdentityMatrix(3,3);
-		}
+    if(LHSrequired) {
+      MatrixType temp(24, 24);
+      noalias( temp ) = prod( trans( R ), rLeftHandSideMatrix );
+      noalias( rLeftHandSideMatrix ) = prod( temp, R );
+    }
 
-	public:
+    if(RHSrequired) {
+      rRightHandSideVector = prod( trans( R ), rRightHandSideVector );
+    }
+  }
 
-		inline const GeometryType & GetGeometry()const { return *mpGeometry; }
+  virtual MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
+                                                         const Vector& globalDisplacements,
+                                                         size_t nodeid)
+  {
+    return IdentityMatrix(3,3);
+  }
 
-	protected:
+  virtual MatrixType GetNodalDeformationalRotationTensor(const ShellQ4_LocalCoordinateSystem & LCS,
+                                                         const Vector& globalDisplacements,
+                                                         const Vector& N)
+  {
+    return IdentityMatrix(3,3);
+  }
 
-		ShellQ4_CoordinateTransformation()
-		  : mpGeometry(GeometryType::Pointer())
-		{
-		}
+ public:
 
-	private:
+  inline const GeometryType & GetGeometry()const { return *mpGeometry; }
 
-		GeometryType::Pointer mpGeometry;
+ protected:
 
-	private:
+  ShellQ4_CoordinateTransformation()
+      : mpGeometry(GeometryType::Pointer())
+  {
+  }
 
-		friend class Serializer;
+ private:
 
-		virtual void save(Serializer& rSerializer) const
-		{
-			rSerializer.save("pGeom", mpGeometry);
-		}
+  GeometryType::Pointer mpGeometry;
 
-		virtual void load(Serializer& rSerializer)
-		{
-			rSerializer.load("pGeom", mpGeometry);
-		}
+ private:
 
-	};
+  friend class Serializer;
+
+  virtual void save(Serializer& rSerializer) const
+  {
+    rSerializer.save("pGeom", mpGeometry);
+  }
+
+  virtual void load(Serializer& rSerializer)
+  {
+    rSerializer.load("pGeom", mpGeometry);
+  }
+
+};
 
 }
 

@@ -177,14 +177,13 @@ public:
             1, mIparm, mDparm);
     }
 
-    /** Normal solve method.
-     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
-     * rVectorx is also th initial guess for iterative methods.
+    /** 
+     * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
      * @param rA. System matrix
      * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         if (mpPastixData == nullptr)
             KRATOS_ERROR << "pastix_data == nullptr upon entering Solve." << std::endl;
@@ -201,6 +200,20 @@ public:
             static_cast<pastix_int_t*>(&mInvp[0]),
             static_cast<std::complex<double>*>(&rX[0]),
             1, mIparm, mDparm);
+    }
+
+    /** 
+     * @brief Normal solve method.
+     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rVectorx is also th initial guess for iterative methods.
+     * @param rA. System matrix
+     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB. Right hand side vector.
+     */
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+	    	InitializeSolutionStep(rA, rX, rB);
+        PerformSolutionStep(rA, rX, rB);
+        FinalizeSolutionStep(rA, rX, rB);
 
         return true;
     }

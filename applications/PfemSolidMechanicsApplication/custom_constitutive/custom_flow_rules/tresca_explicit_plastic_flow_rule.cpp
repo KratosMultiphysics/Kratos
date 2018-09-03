@@ -89,12 +89,12 @@ void TrescaExplicitFlowRule::CalculatePlasticPotentialDerivatives(const Vector& 
 }
 void TrescaExplicitFlowRule::save( Serializer& rSerializer) const 
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, J2ExplicitFlowRule )
 }
 
 void TrescaExplicitFlowRule::load( Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, J2ExplicitFlowRule )
 
 }
 

@@ -303,19 +303,19 @@ public:
 
 		mIsConverged = false;
 
-		ModelPart& model = BaseType::GetModelPart();
+		ModelPart& model_part = BaseType::GetModelPart();
 
 		if (!mInitializeWasPerformed) this->Initialize();
 
-		bool verbose_allowed = model.GetCommunicator().MyPID() == 0;
+		bool verbose_allowed = model_part.GetCommunicator().MyPID() == 0;
 		bool verbose         = this->GetEchoLevel() > 0 && verbose_allowed;
 
-		model.GetProcessInfo()[STRATEGY_SOLUTION_STEP_SOLVED] = 0;
+		model_part.GetProcessInfo()[STRATEGY_SOLUTION_STEP_SOLVED] = 0;
 
 		if (mpBuilderAndSolver->GetDofSetIsInitializedFlag() == false || mReformDofSetAtEachStep == true)
 		{
-			mpBuilderAndSolver->SetUpDofSet(mpScheme, model);
-			mpBuilderAndSolver->SetUpSystem(model);
+			mpBuilderAndSolver->SetUpDofSet(mpScheme, model_part);
+			mpBuilderAndSolver->SetUpSystem(model_part);
 		}
 
 		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
@@ -345,7 +345,7 @@ public:
 			// the RHS vector will contain only the external forces and 0 internal forces (balanced without external forces)
 			// Here we further assume that LAMBDA is set to 1
 			TSystemVectorType& mFhat = *mpFhat;
-			mpBuilderAndSolver->BuildRHS(mpScheme, model, mFhat);
+			mpBuilderAndSolver->BuildRHS(mpScheme, model_part, mFhat);
 			// check for a reference load
 			bool haveLoad = false;
 			for (unsigned int i=0; i<sys_size; i++) {
@@ -378,19 +378,19 @@ public:
 		
 		mIsConverged = false;
 
-		ModelPart& model = BaseType::GetModelPart();
+		ModelPart& model_part = BaseType::GetModelPart();
 
 		if (!mInitializeWasPerformed) this->Initialize();
 
-		bool verbose_allowed = model.GetCommunicator().MyPID() == 0;
+		bool verbose_allowed = model_part.GetCommunicator().MyPID() == 0;
 		bool verbose         = this->GetEchoLevel() > 0 && verbose_allowed;
 
-		model.GetProcessInfo()[STRATEGY_SOLUTION_STEP_SOLVED] = 0;
+		model_part.GetProcessInfo()[STRATEGY_SOLUTION_STEP_SOLVED] = 0;
 
 		if (mpBuilderAndSolver->GetDofSetIsInitializedFlag() == false || mReformDofSetAtEachStep == true)
 		{
-			mpBuilderAndSolver->SetUpDofSet(mpScheme, model);
-			mpBuilderAndSolver->SetUpSystem(model);
+			mpBuilderAndSolver->SetUpDofSet(mpScheme, model_part);
+			mpBuilderAndSolver->SetUpSystem(model_part);
 		}
 
 		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
@@ -437,12 +437,12 @@ public:
 			===============================================================================
 			*/
 
-			mpBuilderAndSolver->BuildRHS(mpScheme, model, mb);
+			mpBuilderAndSolver->BuildRHS(mpScheme, model_part, mb);
 			if(this->CheckIntegrationErrors() != 0.0)
 			{
 				if(verbose) this->PromptIntegrationErrors();
 				mIsConverged = false;
-				model.GetProcessInfo()[NL_ITERATION_NUMBER] = mMaxIterationNumber;
+				model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = mMaxIterationNumber;
 			}
 			else
 			{
@@ -479,13 +479,13 @@ public:
 			*/
 
 			unsigned int iteration_number = 0;
-			model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+			model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
 			// K,fint = assembleTangentStiffness( props, globdat )
 			TSparseSpace::SetToZero(mDx);
 			TSparseSpace::SetToZero(mA);
 			TSparseSpace::SetToZero(mb);
-			mpBuilderAndSolver->Build(mpScheme, model, mA, mb); // <<<<<<<<<<<<<<<<<<<<<<<<<<<< INT ERROR
+			mpBuilderAndSolver->Build(mpScheme, model_part, mA, mb); // <<<<<<<<<<<<<<<<<<<<<<<<<<<< INT ERROR
 			
 			while (true)
 			{
@@ -496,10 +496,10 @@ public:
 				*/
 
 				iteration_number++;
-				model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+				model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-				mpScheme->InitializeNonLinIteration(model, mA, mDx, mb);
-				mIsConverged = mpConvergenceCriteria->PreCriteria(model, rDofSet, mA, mDx, mb);
+				mpScheme->InitializeNonLinIteration(model_part, mA, mDx, mb);
+				mIsConverged = mpConvergenceCriteria->PreCriteria(model_part, rDofSet, mA, mDx, mb);
 
 				if(!mIsNrgControlled)
 				{
@@ -568,22 +568,22 @@ public:
 				noalias(u)  += mDx;
 				noalias(Du) += mDx;
 				rDofSet = mpBuilderAndSolver->GetDofSet();
-				mpScheme->Update(model, rDofSet, mA, mDx, resi);
+				mpScheme->Update(model_part, rDofSet, mA, mDx, resi);
 				if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
-				mpScheme->FinalizeNonLinIteration(model, mA, mDx, mb);
+				mpScheme->FinalizeNonLinIteration(model_part, mA, mDx, mb);
 				
 				
 				// K,fint = assembleTangentStiffness( props, globdat )
 				// error  = globdat.dofs.norm( globdat.lam*fhat-fint ) / globdat.dofs.norm( globdat.lam*fhat )
 				TSparseSpace::SetToZero(mb);
 				TSparseSpace::SetToZero(mA);
-				mpBuilderAndSolver->Build(mpScheme, model, mA, mb);
+				mpBuilderAndSolver->Build(mpScheme, model_part, mA, mb);
 				if(this->CheckIntegrationErrors() != 0.0)
 				{
 					if(verbose) this->PromptIntegrationErrors();
 					mIsConverged = false;
 					iteration_number = mMaxIterationNumber;
-					model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+					model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 					break;
 				}
 				noalias(resi) = lambda*mFhat + mb;
@@ -596,18 +596,18 @@ public:
 				===============================================================================
 				*/
 
-				model.GetProcessInfo()[ITERATION_CONVERGENCE_FLAG] = 0;
+				model_part.GetProcessInfo()[ITERATION_CONVERGENCE_FLAG] = 0;
 
-				mIsConverged = mpConvergenceCriteria->PostCriteria(model, rDofSet, mA, mDx, resi);
+				mIsConverged = mpConvergenceCriteria->PostCriteria(model_part, rDofSet, mA, mDx, resi);
 				if(iteration_number == 1)
 					mIsConverged = false;
 
-				if(model.GetProcessInfo()[ITERATION_CONVERGENCE_FLAG] != 0)
+				if(model_part.GetProcessInfo()[ITERATION_CONVERGENCE_FLAG] != 0)
 				{
 					if(verbose) this->PromptIntegrationErrors();
 					mIsConverged = false;
 					iteration_number = mMaxIterationNumber;
-					model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+					model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 					break;
 				}
 
@@ -616,13 +616,13 @@ public:
 
 			// refesh RHS (we DON'T do this in BuilderAndSolver to check for integration errors!!!!)
 			TSparseSpace::SetToZero(mb);
-			mpBuilderAndSolver->BuildRHS(mpScheme, model, mb);
+			mpBuilderAndSolver->BuildRHS(mpScheme, model_part, mb);
 			if(this->CheckIntegrationErrors() != 0.0)
 			{
 				if(verbose) this->PromptIntegrationErrors();
 				mIsConverged = false;
 				iteration_number = mMaxIterationNumber;
-				model.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+				model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 			}
 			noalias(resi) = lambda*mFhat + mb;
 			
@@ -689,7 +689,7 @@ public:
 		===============================================================================
 		*/
 
-		model.GetProcessInfo()[STRATEGY_SOLUTION_STEP_SOLVED] = 1;
+		model_part.GetProcessInfo()[STRATEGY_SOLUTION_STEP_SOLVED] = 1;
 
 		if(mIsConverged)
 		{
@@ -755,16 +755,16 @@ protected:
 
     void Initialize()
     {
-		ModelPart & model = BaseType::GetModelPart();
+		ModelPart & model_part = BaseType::GetModelPart();
 
         if(!mpScheme->SchemeIsInitialized())
-			mpScheme->Initialize(model);
+			mpScheme->Initialize(model_part);
 
         if(!mpScheme->ElementsAreInitialized())
-			mpScheme->InitializeElements(model);
+			mpScheme->InitializeElements(model_part);
 
         if(!mpConvergenceCriteria->mConvergenceCriteriaIsInitialized)
-			mpConvergenceCriteria->Initialize(model);
+			mpConvergenceCriteria->Initialize(model_part);
 
 		BaseType::mStiffnessMatrixIsBuilt = false;
 
@@ -775,23 +775,21 @@ protected:
 
     void InitializeSolutionStep()
     {
-		ModelPart & model = BaseType::GetModelPart();
+		ModelPart & model_part = BaseType::GetModelPart();
 
         mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, 
 					mpA, mpDx, mpb, 
-					model.Elements(), 
-					model.Conditions(), 
-					model.GetProcessInfo());
+					model_part);
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
-        mpBuilderAndSolver->InitializeSolutionStep(model, mA, mDx, mb);
-        mpScheme->InitializeSolutionStep(model, mA, mDx, mb);
+        mpBuilderAndSolver->InitializeSolutionStep(model_part, mA, mDx, mb);
+        mpScheme->InitializeSolutionStep(model_part, mA, mDx, mb);
 
 		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
-		mpConvergenceCriteria->InitializeSolutionStep(model, rDofSet, mA, mDx, mb);
+		mpConvergenceCriteria->InitializeSolutionStep(model_part, rDofSet, mA, mDx, mb);
 		
         mSolutionStepIsInitialized = true;
 
@@ -800,16 +798,16 @@ protected:
 
 	void FinalizeSolutionStep(TSystemMatrixType& mA, TSystemVectorType& mDx, TSystemVectorType& mb)
 	{
-		ModelPart & model = BaseType::GetModelPart();
+		ModelPart & model_part = BaseType::GetModelPart();
 
 		if (mCalculateReactionsFlag) {
-            mpBuilderAndSolver->CalculateReactions(mpScheme, model, mA, mDx, mb);
+            mpBuilderAndSolver->CalculateReactions(mpScheme, model_part, mA, mDx, mb);
 		}
 
-        mpScheme->FinalizeSolutionStep(model, mA, mDx, mb);
+        mpScheme->FinalizeSolutionStep(model_part, mA, mDx, mb);
 		mpScheme->Clean();
 		
-        mpBuilderAndSolver->FinalizeSolutionStep(model, mA, mDx, mb);
+        mpBuilderAndSolver->FinalizeSolutionStep(model_part, mA, mDx, mb);
 
 		if(mReformDofSetAtEachStep) 
 			this->Clear();
@@ -819,11 +817,11 @@ protected:
 	
 	void AbortSolutionStep()
 	{
-		ModelPart & model = BaseType::GetModelPart();
+		ModelPart & model_part = BaseType::GetModelPart();
 
 		if(BaseType::MoveMeshFlag())
 		{
-			for (ModelPart::NodeIterator i = model.NodesBegin(); i != model.NodesEnd(); ++i)
+			for (ModelPart::NodeIterator i = model_part.NodesBegin(); i != model_part.NodesEnd(); ++i)
 			{
 				(i)->Coordinates() = (i)->GetInitialPosition() + (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 			}
@@ -846,12 +844,12 @@ protected:
 
 	double CheckIntegrationErrors()
 	{
-		ModelPart & model = BaseType::GetModelPart();
+		ModelPart & model_part = BaseType::GetModelPart();
 		std::vector<double> error_codes;
-		for(ModelPart::ElementIterator elem_iter = model.ElementsBegin(); elem_iter != model.ElementsEnd(); elem_iter++)
+		for(ModelPart::ElementIterator elem_iter = model_part.ElementsBegin(); elem_iter != model_part.ElementsEnd(); elem_iter++)
 		{
 			Element& elem = *elem_iter;
-			elem.GetValueOnIntegrationPoints(CONSTITUTIVE_INTEGRATION_ERROR_CODE, error_codes, model.GetProcessInfo());
+			elem.GetValueOnIntegrationPoints(CONSTITUTIVE_INTEGRATION_ERROR_CODE, error_codes, model_part.GetProcessInfo());
 			for(size_t i = 0; i < error_codes.size(); i++)
 				if(error_codes[i] != 0.0)
 					return error_codes[i];
@@ -900,11 +898,11 @@ protected:
 
         BaseType::Check();
 
-		ModelPart & model = BaseType::GetModelPart();
+		ModelPart & model_part = BaseType::GetModelPart();
 
-        mpBuilderAndSolver->Check(model);
-        mpScheme->Check(model);
-        mpConvergenceCriteria->Check(model);
+        mpBuilderAndSolver->Check(model_part);
+        mpScheme->Check(model_part);
+        mpConvergenceCriteria->Check(model_part);
 
         KRATOS_CATCH("")
 		

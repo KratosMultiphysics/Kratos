@@ -3,7 +3,8 @@
 
 # Defines
 $KRATOS_MAJOR = 5
-$KRATOS_MINOR = 1
+$KRATOS_MINOR = 3
+$KRATOS_PATCH = 0
 $KRATOS_ARCHY = 64
 $KRATOS_NEWSD = "Beta Release"
 $KRATOS_TVERS = "$KRATOS_MAJOR.$KRATOS_MINOR"
@@ -13,7 +14,7 @@ $KRATOS_RLS = "C:\KratosStage\Pack64"			                      # Local folder whe
 $KRATOS_SRC = "C:\KratosSource"		                        			# Kratos source
 $KRATOS_CMP = "C:\KratosStage\Release64"			                  # Kratos install directory
 $KRATOS_AUX = "C:\KratosStage\LibsForPack64"                    # Kratos additional libraries.
-$GIDINT_SRC = "C:\KratosSource\interfaces\GiD\kratos.gid"				# GID Interface
+$GIDINT_SRC = "C:\GiDInterface\kratos.gid"											# GID Interface
 $GIDINT_KTS = "kratos.gid\exec"			        										# GiD Kratos Interface install dir
 $GIDINT_DEM = "UNUSED"			            												# GiD DEM Interface install dir
 $DEPLOY_DIR = "C:\KratosDeploy"               									# Deploy directory (masterdisc).
@@ -31,13 +32,13 @@ $GIT_NUMB = "$GIT_HASH($GIT_BRAN)"
 Remove-Item -Force -Recurse "$KRATOS_RLS\*"
 
 # Copy Kratos, Kratos.Gid and additional libraries to the local release directory
-xcopy /s/e/h/y "$GIDINT_SRC"   "$KRATOS_RLS\kratos.gid\"
+xcopy /s/e/h/y "$GIDINT_SRC\*"   "$KRATOS_RLS\kratos.gid\"
 
 for ($i=0; $i -lt $GIDINT_ARR.length; $i++) {
 	$GITINT_DIR = $GIDINT_ARR[$i]
 
-	xcopy /s/e/h/y "$KRATOS_CMP"   "$KRATOS_RLS\$GITINT_DIR\kratos\"
-	xcopy /s/e/h/y "$KRATOS_AUX\*" "$KRATOS_RLS\$GITINT_DIR\kratos\"
+	xcopy /s/e/h/y "$KRATOS_CMP"   "$KRATOS_RLS\$GITINT_DIR\Kratos\"
+	xcopy /s/e/h/y "$KRATOS_AUX\*" "$KRATOS_RLS\$GITINT_DIR\Kratos\"
 
 	# Remove trash (.lib, .svn)
 	get-childitem "$KRATOS_RLS\$GITINT_DIR\" -Force -Include *.svn -Recurse | remove-item -Force -Recurse
@@ -47,7 +48,7 @@ for ($i=0; $i -lt $GIDINT_ARR.length; $i++) {
 # Update the xml file with the correct svn release number
 [xml]$kratosxml = Get-content "$KRATOS_RLS\kratos.gid\kratos.xml"
 
-$kratosxml.Infoproblemtype.Program.Version               = "$KRATOS_MAJOR.$KRATOS_MINOR-$GIT_NUMB"
+$kratosxml.Infoproblemtype.Program.Version               = "$KRATOS_MAJOR.$KRATOS_MINOR.$KRATOS_PATCH"
 # $kratosxml.Infoproblemtype.Program.NewsInVersion.version = "$KRATOS_TVERS"
 # $kratosxml.Infoproblemtype.Program.NewsInVersion.date    = "$KRATOS_TDATE"
 # $kratosxml.Infoproblemtype.Program.NewsInVersion.'#text' = "$KRATOS_NEWSD"
@@ -63,11 +64,11 @@ $kratosxml.Infoproblemtype.Program.Version               = "$KRATOS_MAJOR.$KRATO
 $kratosxml.save("$KRATOS_RLS\kratos.gid\kratos.xml")
 
 # Create the the zip file
-7z a -r "$KRATOS_RLS\kratos-$KRATOS_MAJOR.$KRATOS_MINOR-$GIT_NUMB-win-$KRATOS_ARCHY.zip" "$KRATOS_RLS\kratos.gid"
+7z a -r "$KRATOS_RLS\kratos-$KRATOS_MAJOR.$KRATOS_MINOR.$KRATOS_PATCH-$GIT_NUMB-win-$KRATOS_ARCHY.zip" "$KRATOS_RLS\kratos.gid"
 
 # Rm the old release in the deploy directoy (Optional)
 # Remove-Item "$DEPLOY_DIR\*.zip"
 
 # Move the current release to the deploy directory
 # TODO: remove "echo F" and find the proper flag.
-echo f Yes | xcopy "$KRATOS_RLS\kratos-$KRATOS_MAJOR.$KRATOS_MINOR-$GIT_NUMB-win-$KRATOS_ARCHY.zip" "$DEPLOY_DIR\kratos-$KRATOS_MAJOR.$KRATOS_MINOR-$GIT_NUMB-win-$KRATOS_ARCHY.zip"
+echo f Yes | xcopy "$KRATOS_RLS\kratos-$KRATOS_MAJOR.$KRATOS_MINOR.$KRATOS_PATCH-$GIT_NUMB-win-$KRATOS_ARCHY.zip" "$DEPLOY_DIR\kratos-$KRATOS_MAJOR.$KRATOS_MINOR.$KRATOS_PATCH-$GIT_NUMB-win-$KRATOS_ARCHY.zip"

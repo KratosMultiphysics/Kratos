@@ -47,7 +47,6 @@ class DamAddedMassConditionProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
@@ -65,7 +64,6 @@ class DamAddedMassConditionProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
@@ -82,34 +80,34 @@ class DamAddedMassConditionProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
 
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
         double added_mass;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         double ref_coord = mReferenceCoordinate + mWaterLevel;
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double y_water = ref_coord - (it->Coordinate(direction));
+                double y_water = ref_coord - (it->Coordinates()[direction]);
 
                 if (y_water < 0.0)
                 {
@@ -136,34 +134,34 @@ class DamAddedMassConditionProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
 
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
         double added_mass;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         double ref_coord = mReferenceCoordinate + mWaterLevel;
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double y_water = ref_coord - (it->Coordinate(direction));
+                double y_water = ref_coord - (it->Coordinates()[direction]);
 
                 if (y_water < 0.0)
                 {
@@ -189,19 +187,19 @@ class DamAddedMassConditionProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamAddedMassConditionProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamAddedMassConditionProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 
@@ -211,7 +209,6 @@ class DamAddedMassConditionProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     std::string mGravityDirection;
     double mReferenceCoordinate;

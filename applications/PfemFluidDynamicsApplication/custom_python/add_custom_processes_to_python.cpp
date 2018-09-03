@@ -7,14 +7,10 @@
 //
 //
 
-// System includes 
-#include <boost/python.hpp>
-
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/node.h"
-#include "includes/define.h"
 #include "processes/process.h"
 
 //Application includes
@@ -36,6 +32,7 @@
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
 #include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
+#include "custom_processes/set_active_flag_mesher_process.hpp"
 #include "custom_processes/adaptive_time_interval_process.hpp"
 #include "custom_processes/transfer_model_part_elements_process.hpp"
 
@@ -44,95 +41,77 @@
 
 namespace Kratos
 {
-	
+
   namespace Python
   {
 
 
-    void  AddCustomProcessesToPython()
+    void  AddCustomProcessesToPython(pybind11::module& m)
     {
 
-      using namespace boost::python;
+      using namespace pybind11;
       typedef Process                                         ProcessBaseType;
-      typedef ModelStartEndMeshingProcess     ModelStartEndMeshingProcessType;
+      typedef SettleModelStructureProcess     ModelStartEndMeshingProcessType;
 
 
 
-      class_<RecoverVolumeLossesProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "RecoverVolumeLosses", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+      class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, MesherProcess>
+	(m, "RecoverVolumeLosses")
+	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
+      class_<RemoveMeshNodesForFluidsProcess, RemoveMeshNodesForFluidsProcess::Pointer, MesherProcess>
+      	(m, "RemoveMeshNodesForFluids")
+	.def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-      class_<RemoveMeshNodesForFluidsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "RemoveMeshNodesForFluids", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
-      	 )
-      	;
+      class_<GenerateNewNodesBeforeMeshingProcess, GenerateNewNodesBeforeMeshingProcess::Pointer, MesherProcess>
+      	(m, "GenerateNewNodesBeforeMeshing")
+	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
+      class_<SelectMeshElementsForFluidsProcess, SelectMeshElementsForFluidsProcess::Pointer, MesherProcess>
+	(m, "SelectMeshElementsForFluids")
+	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
-      class_<GenerateNewNodesBeforeMeshingProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "GenerateNewNodesBeforeMeshing", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-      	 )
-      	;
+      class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>
+      	(m, "InletManagement")
+	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
-      class_<SelectMeshElementsForFluidsProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "SelectMeshElementsForFluids", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+      class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>
+      	(m, "SetInlet")
+	.def(init<ModelPart&, int>());
 
-      class_<InletManagementProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "InletManagement", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-      	 )
-      	;
+      class_<SplitElementsProcess, SplitElementsProcess::Pointer, ProcessBaseType>
+	(m,"SplitElementsProcess")
+	.def(init<ModelPart&, int>());
 
-      class_<SetInletProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "SetInlet", init<ModelPart&, int>()
-      	 )
-      	;
+      class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>
+	(m, "SetActiveFlagProcess")
+	.def(init<ModelPart&, bool, bool, int>());
 
-      class_<SplitElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "SplitElementsProcess", init<ModelPart&, int>()
-	 )
-	;
+     class_<SetActiveFlagMesherProcess, SetActiveFlagMesherProcess::Pointer, SetActiveFlagProcess>
+	(m, "SetActiveFlagMesherProcess")
+	.def(init<ModelPart&, bool, bool, int>());
 
-      class_<SetActiveFlagProcess,  bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "SetActiveFlagProcess", init<ModelPart&, bool, bool, int>()
-	 )
-	;
+      
+      class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, ProcessBaseType>
+      	(m, "AdaptiveTimeIntervalProcess")
+	.def(init<ModelPart&, int>());
 
-      class_<AdaptiveTimeIntervalProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AdaptiveTimeIntervalProcess", init<ModelPart&, int>()
-      	 )
-      	;
-
-     class_<ModelStartEndMeshingForFluidsProcess, bases<ModelStartEndMeshingProcessType>, boost::noncopyable >
-	(
-	 "ModelMeshingForFluids", init<ModelPart&, Flags, int>()
-	 )
-	;
+     class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>
+       (m, "ModelMeshingForFluids")
+       .def(init<ModelPart&, Flags, int>());
 
       //**********TRANSFER ELEMENTS TO MODEL PART*********//
 
-      class_<TransferModelPartElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "TransferModelPartElementsProcess", init<ModelPart&, ModelPart&>()
-      	)
+      class_<TransferModelPartElementsProcess, TransferModelPartElementsProcess::Pointer, ProcessBaseType>
+      	(m, "TransferModelPartElementsProcess")
+	  .def(init<ModelPart&, ModelPart&>())
         .def("Execute", &TransferModelPartElementsProcess::Execute)
       	;
-      
 
-    }	
- 
- 
+
+    }
+
+
   }  // namespace Python.
 
 } // Namespace Kratos

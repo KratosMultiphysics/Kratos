@@ -25,7 +25,6 @@ set( KRATOS_LAGRANGIAN_MPM_APPLICATION_SOURCES
 add_library(KratosLagrangianMPMApplication SHARED ${KRATOS_LAGRANGIAN_MPM_APPLICATION_SOURCES})
 target_link_libraries(KratosLagrangianMPMApplication KratosCore )
 set_target_properties(KratosLagrangianMPMApplication PROPERTIES PREFIX "")
-install(TARGETS KratosLagrangianMPMApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -37,11 +36,19 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         set_target_properties(KratosLagrangianMPMApplication PROPERTIES SUFFIX .so)
         endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosLagrangianMPMApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosLagrangianMPMApplication DESTINATION libs )
+
 # install the python files
-        if(${INSTALL_PYTHON_FILES} MATCHES ON)
-            get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-            install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-            endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+if(${INSTALL_PYTHON_FILES} MATCHES ON)
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-            install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/LagrangianMPMApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/LagrangianMPMApplication.py" DESTINATION KratosMultiphysics )

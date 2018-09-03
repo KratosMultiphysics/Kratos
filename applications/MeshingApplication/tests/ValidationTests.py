@@ -7,7 +7,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import Kratos_Execute_Meshing_Test as Execute_Test
 
-# This utiltiy will control the execution scope in case we need to acces files or we depend
+# This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
 # TODO: Should we move this to KratosUnittest?
@@ -43,9 +43,3 @@ class MeshingTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
-
-class TwoDSphereRemeshedChannelTest(MeshingTestFactory):
-    file_name = "mmg_eulerian_test/2D_sphere_remeshed_channel_test"
-    
-class ThreeDSphereRemeshedChannelTest(MeshingTestFactory):
-    file_name = "mmg_eulerian_test/3D_sphere_remeshed_channel_test"

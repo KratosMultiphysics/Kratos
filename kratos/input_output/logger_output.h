@@ -27,6 +27,7 @@
 
 
 // Project includes
+#include "includes/define.h"
 #include "input_output/logger_message.h"
 
 namespace Kratos
@@ -48,6 +49,9 @@ namespace Kratos
 			///@name Type Definitions
 			///@{
 
+
+            /// Pointer definition of LoggerOutput
+            KRATOS_CLASS_POINTER_DEFINITION(LoggerOutput);
 
 			///@}
 			///@name Enums
@@ -82,13 +86,11 @@ namespace Kratos
 			///@name Access
 			///@{
 
-			void WriteMessage(LoggerMessage const& TheMessage) {
-				auto message_severity = TheMessage.GetSeverity();
-				if (message_severity <= mSeverity)
-				{
-					mrStream << /*TheMessage.GetTime() << " :: " << */TheMessage.GetMessage();
-				}
-			}
+			virtual void WriteHeader();
+
+			virtual void WriteMessage(LoggerMessage const& TheMessage);
+
+			virtual void Flush();
 
 			void SetMaxLevel(std::size_t TheLevel) {
 				mMaxLevel = TheLevel;
@@ -153,6 +155,9 @@ namespace Kratos
 
 
 			///@}
+        protected:
+
+            std::ostream& GetStream() {return mrStream;}
 
 		private:
 			///@name Life Cycle

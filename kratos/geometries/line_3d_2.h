@@ -49,7 +49,15 @@ namespace Kratos
 ///@{
 
 /**
-*/
+ * @class Line3D2
+ * @ingroup KratosCore
+ * @brief An two node 3D line geometry with linear shape functions
+ * @details The node ordering corresponds with: 
+ *      0----------1 --> u  
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
+ */
 template<class TPointType>
 
 class Line3D2 : public Geometry<TPointType>
@@ -272,7 +280,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
     //     }
 
     //     //creating a geometry with the new points

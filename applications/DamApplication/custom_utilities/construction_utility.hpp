@@ -14,12 +14,12 @@
 #if !defined(KRATOS_CONSTRUCTION_UTILITIES)
 #define KRATOS_CONSTRUCTION_UTILITIES
 
+// System includes
 #include <cmath>
 
 // Project includes
-#include "includes/kratos_flags.h"
+#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "processes/process.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
 #include "includes/element.h"
@@ -46,7 +46,6 @@ class ConstructionUtility
         KRATOS_TRY
 
         // Getting values
-        mMeshId = rParameters["mesh_id"].GetInt();
         mGravityDirection = rParameters["gravity_direction"].GetString();
         mReferenceCoordinate = rParameters["reservoir_bottom_coordinate_in_gravity_direction"].GetDouble();
         mHeight = rParameters["height_dam"].GetDouble();
@@ -78,11 +77,11 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
-        const unsigned int nnodes = mrMechanicalModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nelements = mrMechanicalModelPart.GetMesh(0).Elements().size();
+        const int nnodes = mrMechanicalModelPart.GetMesh(0).Nodes().size();
 
-        mMechanicalLastCondition = mrMechanicalModelPart.GetMesh(mMeshId).Conditions().size();
-        mThermalLastCondition = mrThermalModelPart.GetMesh(mMeshId).Conditions().size();
+        mMechanicalLastCondition = mrMechanicalModelPart.GetMesh(0).Conditions().size();
+        mThermalLastCondition = mrThermalModelPart.GetMesh(0).Conditions().size();
 
         if (nelements != 0)
         {
@@ -91,7 +90,7 @@ class ConstructionUtility
             mNumNode = el_begin->GetGeometry().PointsNumber();
 
 #pragma omp parallel for
-            for (unsigned int k = 0; k < nelements; ++k)
+            for (int k = 0; k < nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -102,7 +101,7 @@ class ConstructionUtility
             // Same nodes for both computing model part
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-            for (unsigned int i = 0; i < nnodes; ++i)
+            for (int i = 0; i < nnodes; ++i)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->Set(ACTIVE, false);
@@ -111,8 +110,8 @@ class ConstructionUtility
         }
 
         // Activation of the soil ( User must specify the soil part through the interface)
-        const unsigned int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();
-        const unsigned int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
+        const int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();
+        const int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
 
         if (soil_nelements != 0)
         {
@@ -121,7 +120,7 @@ class ConstructionUtility
             mNumNode = el_begin->GetGeometry().PointsNumber();
 
 #pragma omp parallel for
-            for (unsigned int k = 0; k < soil_nelements; ++k)
+            for (int k = 0; k < soil_nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -132,7 +131,7 @@ class ConstructionUtility
             // Same nodes for both computing model part
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).NodesBegin();
 #pragma omp parallel for
-            for (unsigned int i = 0; i < soil_nnodes; ++i)
+            for (int i = 0; i < soil_nnodes; ++i)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->Set(ACTIVE, true);
@@ -147,7 +146,7 @@ class ConstructionUtility
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-                for (unsigned int i = 0; i < nnodes; ++i)
+                for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
@@ -157,7 +156,7 @@ class ConstructionUtility
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-                for (unsigned int i = 0; i < nnodes; ++i)
+                for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->FastGetSolutionStepValue(ALPHA_HEAT_SOURCE) = mAlphaInitial;
@@ -175,7 +174,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
+        const int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
         int direction;
         if (mGravityDirection == "X")
             direction = 0;
@@ -192,7 +191,7 @@ class ConstructionUtility
             double previous_height = mReferenceCoordinate + (mHeight / mPhases) * (phase - 1);
 
 #pragma omp parallel for
-            for (unsigned int k = 0; k < nelements; ++k)
+            for (int k = 0; k < nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                 array_1d<double, 3> central_position = it_thermal->GetGeometry().Center();
@@ -217,7 +216,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
+        const int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
         int direction;
 
         if (mGravityDirection == "X")
@@ -237,7 +236,7 @@ class ConstructionUtility
             ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).ElementsBegin();
 
 #pragma omp parallel for
-            for (unsigned int k = 0; k < nelements; ++k)
+            for (int k = 0; k < nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -266,7 +265,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrThermalModelPart.GetMesh(0).Elements().size();
         const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
         std::vector<std::size_t> ConditionNodeIds(Dim);
         if (mNumNode == 8)
@@ -281,7 +280,7 @@ class ConstructionUtility
             if (Dim == 2)
             {
 #pragma omp parallel for
-                for (unsigned int k = 0; k < nelements; ++k)
+                for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                     // Elements
@@ -318,7 +317,7 @@ class ConstructionUtility
             else
             {
 #pragma omp parallel for
-                for (unsigned int k = 0; k < nelements; ++k)
+                for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                     // Elements
@@ -363,7 +362,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrMechanicalModelPart.GetMesh(0).Elements().size();
         const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
         std::vector<std::size_t> ConditionNodeIds(Dim);
         if (mNumNode == 8)
@@ -379,7 +378,7 @@ class ConstructionUtility
             {
 // Searching for thermal boundary conditions Edges
 #pragma omp parallel for
-                for (unsigned int k = 0; k < nelements; ++k)
+                for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                     // Elements
@@ -418,7 +417,7 @@ class ConstructionUtility
             {
 // Searching for thermal boundary conditions
 #pragma omp parallel for
-                for (unsigned int k = 0; k < nelements; ++k)
+                for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                     // Elements
@@ -472,7 +471,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nnodes = mrThermalModelPart.Nodes().size();
+        const int nnodes = mrThermalModelPart.Nodes().size();
 
         // Getting Noorzai Values
         double density = NoorzaiParameters["density"].GetDouble();
@@ -484,7 +483,7 @@ class ConstructionUtility
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
 #pragma omp parallel for
-        for (unsigned int i = 0; i < nnodes; ++i)
+        for (int i = 0; i < nnodes; ++i)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION));
@@ -507,7 +506,7 @@ class ConstructionUtility
 
         if (mAging == false)
         {
-            const unsigned int nnodes = mrThermalModelPart.Nodes().size();
+            const int nnodes = mrThermalModelPart.Nodes().size();
 
             // Getting Azenha Values
             double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
@@ -525,7 +524,7 @@ class ConstructionUtility
 
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-            for (unsigned int i = 0; i < nnodes; ++i)
+            for (int i = 0; i < nnodes; ++i)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION));
@@ -568,7 +567,6 @@ class ConstructionUtility
     ModelPart &mrMechanicalModelPart;
     ModelPart &mrThermalModelPart;
     int mNumNode;
-    std::size_t mMeshId;
     std::string mGravityDirection;
     std::string mMechanicalSoilPart;
     std::string mThermalSoilPart;
@@ -591,7 +589,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const unsigned int nnodes = mrThermalModelPart.Nodes().size();
+        const int nnodes = mrThermalModelPart.Nodes().size();
 
         // Getting Azenha Values
         double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
@@ -609,7 +607,7 @@ class ConstructionUtility
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 #pragma omp parallel for
-        for (unsigned int i = 0; i < nnodes; ++i)
+        for (int i = 0; i < nnodes; ++i)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             double current_activation_time = time - (it->FastGetSolutionStepValue(TIME_ACTIVATION));
@@ -647,8 +645,8 @@ class ConstructionUtility
         KRATOS_TRY;
 
         const unsigned int size = ConditionNodeIds.size();
-        const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
-        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
+        const unsigned int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
+        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(0).NodesBegin();
 
         double time = mrThermalModelPart.GetProcessInfo()[TIME];
         time = time / mTimeUnitConverter;
@@ -682,8 +680,8 @@ class ConstructionUtility
         KRATOS_TRY;
 
         const unsigned int size = ConditionNodeIds.size();
-        const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
-        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
+        const unsigned int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
+        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(0).NodesBegin();
 
         if (size != 0)
         {

@@ -19,6 +19,8 @@
 #include "testing/testing.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "tests/geometries/test_geometry.h"
+#include "tests/geometries/test_shape_function_derivatives.h"
+#include "tests/geometries/cross_check_shape_functions_values.h"
 
 // Utility includes
 #include "utilities/geometry_utilities.h"
@@ -64,6 +66,21 @@ namespace Testing
         ));
     }
 
+    /** Generates a sample Quadrilateral3D4.
+    * Generates a right quadrilateral with origin in the origin and leg size 1.
+    * @return  Pointer to a Quadrilateral3D4
+    */
+    template<class TPointType>
+    typename Quadrilateral3D4<TPointType>::Pointer GenerateFlatQuadrilateral3D4() 
+    {
+        return typename Quadrilateral3D4<TPointType>::Pointer(new Quadrilateral3D4<TPointType>(
+        GeneratePoint<TPointType>( 0.0, 0.0, 0.0),
+        GeneratePoint<TPointType>( 1.0, 0.0, 0.0),
+        GeneratePoint<TPointType>( 1.0, 1.0, 0.0),
+        GeneratePoint<TPointType>( 0.0, 1.0, 0.0)
+        ));
+    }
+
     /// Tests
 
     /** Checks if the number of edges is correct.
@@ -96,6 +113,49 @@ namespace Testing
         
         KRATOS_CHECK_NEAR(geom->Area(), 1.06947235, TOLERANCE);
 //         KRATOS_CHECK_NEAR(geom->Area(), 1.08935, TOLERANCE); // NOTE: Solution from Mathematica
+    }
+
+    /** Tests the PointLocalCoordinates for Quadrilateral2D4.
+     * Tests the PointLocalCoordinates for Quadrilateral2D4.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateFlatQuadrilateral3D4<Node<3>>();
+
+        Point TestPointA(1.0, 1.0, 0.0);
+        Point TestPointB(0.5, 0.5, 0.0);
+        Point TestResultA(0.0, 0.0, 0.0);
+        Point TestResultB(0.0, 0.0, 0.0);
+
+        geom->PointLocalCoordinates(TestResultA, TestPointA);
+        geom->PointLocalCoordinates(TestResultB, TestPointB);
+
+        // Test transformation in the edge
+        KRATOS_CHECK_NEAR(TestResultA[0], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultA[1], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultA[2], 0.0, TOLERANCE);
+
+        // Test transformation in the center
+        KRATOS_CHECK_NEAR(TestResultB[0], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultB[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultB[2], 0.0, TOLERANCE);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+      auto geom = GenerateFlatQuadrilateral3D4<Node<3>>();
+      array_1d<double, 3> coord(3);
+      coord[0] = 1.0 / 2.0;
+      coord[1] = 1.0 / 4.0;
+      coord[2] = 0.0;
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.09375, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.28125, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.46875, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.15625, TOLERANCE);
+      CrossCheckShapeFunctionsValues(*geom);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateFlatQuadrilateral3D4<Node<3>>();
+        TestAllShapeFunctionsLocalGradients(*geom);
     }
 
 //     /** Checks if the volume of the quadrilateral is calculated correctly.

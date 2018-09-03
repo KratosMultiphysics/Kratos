@@ -35,7 +35,7 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "includes/matrix_market_interface.h"
-
+#include "utilities/dof_updater.h"
 
 namespace Kratos
 {
@@ -136,8 +136,11 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef typename boost::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename boost::shared_ptr< TVectorType > VectorPointerType;
+    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
+    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+
+    typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
+    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -286,22 +289,22 @@ public:
 #endif
         return std::sqrt(aux_sum);
     }
-    
+
     /**
      * This method computes the Jacobi norm
-     * @param rA: The matrix to compute the Jacobi norm
+     * @param rA The matrix to compute the Jacobi norm
      * @return aux_sum: The Jacobi norm
      */
     static TDataType JacobiNorm(MatrixType const& rA)
     {
         TDataType aux_sum = TDataType();
-        
+
 #ifndef _OPENMP
         for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
             for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
-                if (i != j) 
+                if (i != j)
                 {
                     aux_sum += std::abs(rA(i,j));
                 }
@@ -313,7 +316,7 @@ public:
         {
             for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
-                if (i != j) 
+                if (i != j)
                 {
                     aux_sum += std::abs(rA(i,j));
                 }
@@ -726,13 +729,13 @@ public:
 
     //***********************************************************************
 
-    inline static double GetValue(const VectorType& x, std::size_t I)
+    inline static TDataType GetValue(const VectorType& x, std::size_t I)
     {
         return x[I];
     }
     //***********************************************************************
 
-    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, double* pValues)
+    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, TDataType* pValues)
     {
         KRATOS_TRY
 
@@ -743,17 +746,23 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char *FileName, TOtherMatrixType &M, bool Symmetric)
+    static bool WriteMatrixMarketMatrix(const char* pFileName, /*const*/ TOtherMatrixType& rM, const bool Symmetric)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
-        return Kratos::WriteMatrixMarketMatrix(FileName,M,Symmetric);
+        return Kratos::WriteMatrixMarketMatrix(pFileName, rM, Symmetric);
     }
 
     template< class VectorType >
-    static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
+    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
-        return Kratos::WriteMatrixMarketVector(FileName,V);
+        return Kratos::WriteMatrixMarketVector(pFileName, rV);
+    }
+
+    static DofUpdaterPointerType CreateDofUpdater()
+    {
+        DofUpdaterType tmp;
+        return tmp.Create();
     }
 
     ///@}
@@ -820,7 +829,7 @@ private:
     static void ParallelProductNoAdd(const MatrixType& A, const VectorType& in, VectorType& out)
     {
         //create partition
-        boost::numeric::ublas::vector<unsigned int> partition;
+        DenseVector<unsigned int> partition;
         unsigned int number_of_threads = omp_get_max_threads();
         unsigned int number_of_initialized_rows = A.filled1() - 1;
         CreatePartition(number_of_threads, number_of_initialized_rows, partition);
@@ -846,7 +855,7 @@ private:
         }
     }
 
-    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, boost::numeric::ublas::vector<unsigned int>& partitions)
+    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;

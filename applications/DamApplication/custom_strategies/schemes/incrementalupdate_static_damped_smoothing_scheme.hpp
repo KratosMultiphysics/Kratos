@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosDamApplication   $
 //   Last Modified by:    $Author:Lorenzo Gracia $
 //   Date:                $Date:    November 2016$
@@ -38,27 +38,27 @@ public:
 
     ///Constructor
     IncrementalUpdateStaticDampedSmoothingScheme(double rayleigh_m, double rayleigh_k)
-        : IncrementalUpdateStaticSmoothingScheme<TSparseSpace,TDenseSpace>() 
-        
+        : IncrementalUpdateStaticSmoothingScheme<TSparseSpace,TDenseSpace>()
+
     {
         mRayleighAlpha = rayleigh_m;
         mRayleighBeta = rayleigh_k;
-                
+
         //Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
         mDampingMatrix.resize(NumThreads);
-        mVelocityVector.resize(NumThreads);        
-            
+        mVelocityVector.resize(NumThreads);
+
     }
-    
+
     //------------------------------------------------------------------------------------
-    
+
     ///Destructor
     virtual ~IncrementalUpdateStaticDampedSmoothingScheme() {}
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check(ModelPart& r_model_part)
+    int Check(ModelPart& r_model_part) override
     {
         KRATOS_TRY
 
@@ -69,30 +69,30 @@ public:
             KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_ALPHA has Key zero! (check if the application is correctly registered", "" )
         if ( RAYLEIGH_BETA.Key() == 0 )
             KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_BETA has Key zero! (check if the application is correctly registered", "" )
-            
+
         // Check rayleigh coefficients
         if( mRayleighAlpha < 0.0 || mRayleighBeta < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"Some of the rayleigh coefficients has an invalid value ", "" )
-            
+
         return 0;
-        
+
         KRATOS_CATCH( "" )
     }
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Initialize(ModelPart& r_model_part)
+    void Initialize(ModelPart& r_model_part) override
     {
         KRATOS_TRY
 
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        
-        // Pure Newmark scheme 
+
+        // Pure Newmark scheme
         // Note: this is a quasistatic scheme. The velocity and acceleration are stored without affecting the displacement
         mbeta = 0.25;
         mgamma = 0.5;
-        
+
         mNewmark0 = ( 1.0 / (mbeta * mDeltaTime * mDeltaTime) );
         mNewmark1 = ( mgamma / (mbeta * mDeltaTime) );
         mNewmark2 = ( 1.0 / (mbeta * mDeltaTime) );
@@ -102,9 +102,9 @@ public:
 
         r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = mRayleighAlpha;
         r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mRayleighBeta;
-        
+
         mSchemeIsInitialized = true;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -117,7 +117,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY;
 
@@ -163,7 +163,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) override
     {
         KRATOS_TRY;
 
@@ -177,7 +177,7 @@ public:
 
             typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
             typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
-            
+
             //Update Displacement and Pressure (DOFs)
             for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
             {
@@ -185,7 +185,7 @@ public:
                     itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
             }
         }
-        
+
         // Updating time derivatives (nodally for efficiency)
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -225,7 +225,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -238,7 +238,7 @@ public:
         this->AddDampingToLHS (LHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDampingToRHS (rCurrentElement, RHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
-        
+
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
@@ -252,7 +252,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -278,7 +278,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -299,17 +299,17 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    
+
     //Member variables
     double mNewmark0,mNewmark1,mNewmark2,mNewmark3,mNewmark4,mNewmark5;
-    
+
     double mDeltaTime;
     double mbeta;
     double mgamma;
-    
+
     double mRayleighAlpha;
     double mRayleighBeta;
-    
+
     std::vector< Matrix > mDampingMatrix;
     std::vector< Vector > mVelocityVector;
 
@@ -323,7 +323,7 @@ protected:
             noalias(LHS_Contribution) += mgamma/(mbeta*mDeltaTime)*C;
         }
     }
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void AddDampingToRHS(Element::Pointer rCurrentElement,LocalSystemVectorType& RHS_Contribution, LocalSystemMatrixType& C,ProcessInfo& CurrentProcessInfo)
@@ -336,10 +336,10 @@ protected:
             rCurrentElement->GetFirstDerivativesVector(mVelocityVector[thread], 0);
 
             noalias(RHS_Contribution) -= prod(C, mVelocityVector[thread]);
-            
+
         }
     }
-        
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     inline void UpdateVelocity(

@@ -45,7 +45,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer SurfaceMomentCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new SurfaceMomentCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<SurfaceMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -58,8 +58,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new SurfaceMomentCondition(NewCondition) );
+    return Kratos::make_shared<SurfaceMomentCondition>(NewCondition);
   }
 
 
@@ -76,9 +75,9 @@ namespace Kratos
   void SurfaceMomentCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-      
+
     MomentCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
-  
+
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
@@ -94,10 +93,10 @@ namespace Kratos
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_0/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
-    KRATOS_CATCH( "" )   
+    KRATOS_CATCH( "" )
   }
 
-  
+
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
@@ -112,7 +111,7 @@ namespace Kratos
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
-    
+
     //get first vector of the plane
     rVariables.Tangent1[0] = rVariables.J[rPointNumber](0, 0);
     rVariables.Tangent1[1] = rVariables.J[rPointNumber](1, 0);
@@ -124,7 +123,7 @@ namespace Kratos
     rVariables.Tangent2[2] = rVariables.J[rPointNumber](2, 1);
 
     //Compute the  normal
-    CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
+    MathUtils<double>::CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
 
     //Jacobian to the last known configuration
     double Jacobian =  norm_2(rVariables.Normal);
@@ -142,7 +141,7 @@ namespace Kratos
     rVariables.Tangent2[2] = rVariables.j[rPointNumber](2, 1);
 
     //Compute the  normal
-    CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
+    MathUtils<double>::CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
 
     //Jacobian to the deformed configuration
     rVariables.Jacobian = norm_2(rVariables.Normal);
@@ -158,7 +157,7 @@ namespace Kratos
     rVariables.Jacobian =  Jacobian;
 
     //Set Shape Functions Values for this integration point
-    rVariables.N =row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Set Shape Functions Derivatives [dN/d£] for this integration point
     rVariables.DN_De = DN_De[rPointNumber];
@@ -181,48 +180,48 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
     noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
 
     rVariables.ExternalScalarValue = 0;
-    
+
     //MOMENT CONDITION:
-    
+
     //defined on condition
-    if( this->Has( SURFACE_MOMENT ) ){
-      array_1d<double, 3 > & SurfaceMoment = this->GetValue( SURFACE_MOMENT );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    if( this->Has( MOMENT_LOAD ) ){
+      array_1d<double, 3 > & SurfaceMoment = this->GetValue( MOMENT_LOAD );
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceMoment[k];
 	}
     }
 
     //defined on condition nodes
-    if( this->Has( SURFACE_MOMENT_VECTOR ) ){
-      Vector& SurfaceMoments = this->GetValue( SURFACE_MOMENT_VECTOR );
+    if( this->Has( MOMENT_LOAD_VECTOR ) ){
+      Vector& SurfaceMoments = this->GetValue( MOMENT_LOAD_VECTOR );
       unsigned int counter = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    {
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceMoments[counter];
 	      counter++;
 	    }
 	}
     }
-        
+
     //defined on geometry nodes
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_MOMENT ) ){
-	  array_1d<double, 3 > & SurfaceMoment = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_MOMENT );
-	  for( unsigned int k = 0; k < dimension; k++ )
+	if( GetGeometry()[i].SolutionStepsDataHas( MOMENT_LOAD ) ){
+	  array_1d<double, 3 > & SurfaceMoment = GetGeometry()[i].FastGetSolutionStepValue( MOMENT_LOAD );
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceMoment[k];
 	}
       }
@@ -246,134 +245,45 @@ namespace Kratos
 	  unsigned int MatSize = this->GetDofsSize();
 	  if(rLeftHandSideMatrix.size1() != MatSize )
 	    rLeftHandSideMatrix.resize(MatSize,MatSize,false);
-	  
+
 	  noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
 
 	}
       else
 	{
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
+	  BoundedMatrix<double, 3, 3 > Kij;
+	  BoundedMatrix<double, 3, 3 > Cross_ge;
+	  BoundedMatrix<double, 3, 3 > Cross_gn;
 
 	  double coeff;
-	  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	  const SizeType number_of_nodes = GetGeometry().PointsNumber();
 
-	  this->MakeCrossMatrix(Cross_ge, rVariables.Tangent1);
-	  this->MakeCrossMatrix(Cross_gn, rVariables.Tangent2);
+	  BeamMathUtils<double>::VectorToSkewSymmetricTensor(rVariables.Tangent1,Cross_ge);
+	  BeamMathUtils<double>::VectorToSkewSymmetricTensor(rVariables.Tangent2,Cross_gn);
 
 	  unsigned int RowIndex = 0;
 	  unsigned int ColIndex = 0;
 
-	  for (unsigned int i = 0; i < number_of_nodes; i++)
+	  for (SizeType i = 0; i < number_of_nodes; i++)
 	    {
 	      RowIndex = i * 3;
-	      for (unsigned int j = 0; j < number_of_nodes; j++)
+	      for (SizeType j = 0; j < number_of_nodes; j++)
 		{
 		  ColIndex = j * 3;
 
-		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
-		  noalias(Kij) = coeff * Cross_ge;
-
 		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 0) * rIntegrationWeight;
 
-		  noalias(Kij) -= coeff * Cross_gn;
+		  noalias(Kij) = coeff * Cross_gn;
 
-		  this->AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+
+		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
+		  noalias(Kij) -= coeff * Cross_ge;
+
+
+		  BeamMathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 		}
 	    }
 	}
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void SurfaceMomentCondition::MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M, 
-					     Vector& U)
-  {
-    M(0, 0) = 0.00;
-    M(0, 1) = U[2];
-    M(0, 2) = -U[1];
-    M(1, 0) = -U[2];
-    M(1, 1) = 0.00;
-    M(1, 2) = U[0];
-    M(2, 0) = U[1];
-    M(2, 1) = -U[0];
-    M(2, 2) = 0.00;
-  }
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void SurfaceMomentCondition::CrossProduct(Vector & cross,
-					  Vector & a,
-					  Vector & b)
-  {
-    cross[0] = a[1] * b[2] - a[2] * b[1];
-    cross[1] = a[2] * b[0] - a[0] * b[2];
-    cross[2] = a[0] * b[1] - a[1] * b[0];
-  }
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void SurfaceMomentCondition::ExpandReducedMatrix(Matrix& Destination,
-						 Matrix& ReducedMatrix)
-  {
-    KRATOS_TRY
-
-    unsigned int size = ReducedMatrix.size2();
-    unsigned int rowindex = 0;
-    unsigned int colindex = 0;
-
-    for (unsigned int i = 0; i < size; i++)
-      {
-        rowindex = i * 3;
-        for (unsigned int j = 0; j < size; j++)
-	  {
-            colindex = j * 3;
-            for (unsigned int ii = 0; ii < 3; ii++)
-	      Destination(rowindex + ii, colindex + ii) += ReducedMatrix(i, j);
-	  }
-      }
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void SurfaceMomentCondition::AddMatrix(MatrixType& Destination,
-				       boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
-				       int InitialRow,
-				       int InitialCol)
-  {
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < 3; i++)
-      for (unsigned int j = 0; j < 3; j++)
-	Destination(InitialRow + i, InitialCol + j) += InputMatrix(i, j);
-    
-    KRATOS_CATCH( "" )
-  }
-
-  //***********************************************************************************
-  //***********************************************************************************
-
-  void SurfaceMomentCondition::SubtractMatrix(MatrixType& Destination,
-					    boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
-					    int InitialRow,
-					    int InitialCol)
-  {
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < 3; i++)
-      for (unsigned int j = 0; j < 3; j++)
-	Destination(InitialRow + i, InitialCol + j) -= InputMatrix(i, j);
 
     KRATOS_CATCH( "" )
   }
@@ -390,13 +300,13 @@ namespace Kratos
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
-    
+
     // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_MOMENT);
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_MOMENT_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD_VECTOR);
 
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

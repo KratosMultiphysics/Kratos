@@ -1,10 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 from KratosMultiphysics import *
-
-#
-#
-#
-
 
 def ConstructPreconditioner(configuration):
     if hasattr(configuration, 'preconditioner_type'):
@@ -82,6 +78,7 @@ def ConstructSolver(configuration):
             linear_solver = BICGSTABSolver(tol, max_it, precond)
     #
     elif(solver_type == "GMRES" or solver_type == "GMRESSolver"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         precond = ConstructPreconditioner(configuration)
         max_it = configuration.max_iteration
@@ -130,11 +127,12 @@ def ConstructSolver(configuration):
         linear_solver = SkylineLUFactorizationSolver()
     #
     elif(solver_type == "Super LU" or solver_type == "Super_LU" or solver_type == "SuperLUSolver"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
-        linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver(
-        )
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver()
     #
     elif(solver_type == "SuperLUIterativeSolver"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         tol = configuration.tolerance
         max_it = configuration.max_iteration
@@ -167,6 +165,7 @@ def ConstructSolver(configuration):
 
     #
     elif(solver_type == "PastixDirect" or solver_type == "PastixSolver"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         is_symmetric = False
         if hasattr(configuration, 'is_symmetric'):
@@ -178,6 +177,7 @@ def ConstructSolver(configuration):
             verbosity, is_symmetric)
     #
     elif(solver_type == "PastixIterative"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         tol = configuration.tolerance
         max_it = configuration.max_iteration
@@ -307,11 +307,15 @@ def ConstructSolver(configuration):
         scaling = params["scaling"].GetBool()
 
         linear_solver = AMGCL_NS_Solver(params)
-    #
+
     elif (solver_type == "Parallel MKL Pardiso" or solver_type == "Parallel_MKL_Pardiso"):
-        import MKLSolversApplication
-        linear_solver = MKLSolversApplication.ParallelMKLPardisoSolver(
-        )
+        # emulating the solvers of the MKLSolversApplication through the EigenSolversApplication
+        Logger.PrintWarning("LinearSolverFactor", "Solver Parallel_MKL_Pardiso is deprecated,\
+        please use it through the EigenSolversApplication (see the Readme in the Application)")
+        import EigenSolversApplication
+        params = Parameters("""{}""")
+        linear_solver = EigenSolversApplication.PardisoLUSolver(params)
+
     else:
         print("*****************************************************************")
         print("Inexisting solver type. Possibilities are:")
@@ -326,7 +330,7 @@ def ConstructSolver(configuration):
         print("SuperLUIterativeSolver (requires ExternalSolversApplication)")
         print("PastixDirect (requires ExternalSolversApplication + shall be habilitated at compilation time)")
         print("PastixIterative (requires ExternalSolversApplication + shall be habilitated at compilation time)")
-        print("Parallel MKL Pardiso (requires MKLSolversApplication)")
+        print("Parallel MKL Pardiso (requires EigenSolversApplication with MKL enabled)")
         print("*****************************************************************")
         raise RuntimeError(" Wrong Solver Definition ")
     # else:

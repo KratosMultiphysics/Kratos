@@ -26,15 +26,9 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 
-CamClayKinematicHardeningLaw::CamClayKinematicHardeningLaw()
+CamClayHardeningLaw::CamClayHardeningLaw()
 	:HardeningLaw()
 {
-   //Combined isotropic-kinematic 0<mTheta<1
-   //Pure isotropic hardening mTheta=1;  
-   //Pure kinematic hardening mTheta=0; 
-
-   //Hardening law:
-   //mTheta = 1; 
    
 }
 
@@ -42,7 +36,7 @@ CamClayKinematicHardeningLaw::CamClayKinematicHardeningLaw()
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 
-CamClayKinematicHardeningLaw& CamClayKinematicHardeningLaw::operator=(CamClayKinematicHardeningLaw const& rOther)
+CamClayHardeningLaw& CamClayHardeningLaw::operator=(CamClayHardeningLaw const& rOther)
 {
    HardeningLaw::operator=(rOther);
    return *this;
@@ -51,7 +45,7 @@ CamClayKinematicHardeningLaw& CamClayKinematicHardeningLaw::operator=(CamClayKin
 //*******************************COPY CONSTRUCTOR*************************************
 //************************************************************************************
 
-CamClayKinematicHardeningLaw::CamClayKinematicHardeningLaw(CamClayKinematicHardeningLaw const& rOther)
+CamClayHardeningLaw::CamClayHardeningLaw(CamClayHardeningLaw const& rOther)
 	:HardeningLaw(rOther)
 {
 
@@ -61,7 +55,7 @@ CamClayKinematicHardeningLaw::CamClayKinematicHardeningLaw(CamClayKinematicHarde
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-CamClayKinematicHardeningLaw::~CamClayKinematicHardeningLaw()
+CamClayHardeningLaw::~CamClayHardeningLaw()
 {
 }
 
@@ -70,7 +64,7 @@ CamClayKinematicHardeningLaw::~CamClayKinematicHardeningLaw()
 //*******************************CALCULATE TOTAL HARDENING****************************
 //************************************************************************************
 
-double& CamClayKinematicHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double rTemperature)
+double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double rTemperature)
 {
 	
 
@@ -86,13 +80,13 @@ double& CamClayKinematicHardeningLaw::CalculateHardening(double &rHardening, con
   
 
 
-void CamClayKinematicHardeningLaw::save( Serializer& rSerializer ) const
+void CamClayHardeningLaw::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
 
 }
 
-void CamClayKinematicHardeningLaw::load( Serializer& rSerializer )
+void CamClayHardeningLaw::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
 

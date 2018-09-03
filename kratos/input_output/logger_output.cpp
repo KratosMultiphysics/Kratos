@@ -19,6 +19,7 @@
 
 // Project includes
 #include "input_output/logger_output.h"
+#include "includes/kratos_version.h"
 
 
 namespace Kratos
@@ -26,6 +27,32 @@ namespace Kratos
 	std::string LoggerOutput::Info() const
 	{
 		return "LoggerOutput";
+    }
+
+    void LoggerOutput::WriteHeader()
+    {
+        mrStream << " |  /           |             " << std::endl;
+        mrStream << " ' /   __| _` | __|  _ \\   __|" << std::endl;
+        mrStream << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
+        mrStream << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
+        mrStream << "           Multi-Physics "<< KRATOS_VERSION << std::endl;
+    }
+    
+    void LoggerOutput::WriteMessage(LoggerMessage const& TheMessage)
+    {
+		auto message_severity = TheMessage.GetSeverity();
+        if (message_severity <= mSeverity)
+        {
+            if(TheMessage.GetLabel().size())
+                mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+            else
+                mrStream << TheMessage.GetMessage();
+        }
+    }
+
+	void LoggerOutput::Flush()
+	{
+		mrStream << std::flush;
 	}
 
 	/// Print information about this object.

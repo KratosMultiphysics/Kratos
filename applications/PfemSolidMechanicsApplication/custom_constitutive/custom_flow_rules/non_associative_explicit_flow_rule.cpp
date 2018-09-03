@@ -906,7 +906,8 @@ namespace Kratos
 
          double DriftViolation;
 
-         DriftViolation = mpYieldCriterion->CalculateYieldCondition(DriftViolation, NewStressVector, PlasticVariables.EquivalentPlasticStrain);
+         DriftViolation = mpYieldCriterion->CalculateYieldCondition(DriftViolation, NewStressVector, rReturnMappingVariables.DeltaGamma);
+
          //rReturnMappingVariables.EigenVectors = NewElasticLeftCauchyGreen; 
          double Beta = rReturnMappingVariables.DeltaBeta;
          if ( fabs(DriftViolation) > Tolerance ) {
@@ -1120,25 +1121,6 @@ namespace Kratos
       UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor (MuyAuxiliar);
       UpdateMatrix = prod( rDeltaDeformationGradient, UpdateMatrix);
 
-      int a = rPreviousElasticLeftCauchyGreen.size1();
-      int b =  rPreviousElasticLeftCauchyGreen.size2();  
-      int c =  UpdateMatrix.size1(); 
-      int d = UpdateMatrix.size2();
-      bool tonti = false; 
-      if ( a != 3)
-         tonti = true;
-      if ( b != 3)
-         tonti = true;
-      if ( c != 3)
-         tonti = true;
-      if ( d != 3)
-         tonti = true;
-      if ( tonti) {
-         for (int i = 0; i < 100; i++) {
-            std::cout << " are you fucking kidding me?" << std::endl;
-            std::cout << " a " << a << " b " << b << " c " << c << " d " << d << std::endl;
-         }
-      }
       rNewElasticLeftCauchyGreen = prod(UpdateMatrix, rPreviousElasticLeftCauchyGreen);
       rNewElasticLeftCauchyGreen = prod( rNewElasticLeftCauchyGreen, trans(UpdateMatrix));
 
@@ -1149,7 +1131,7 @@ namespace Kratos
 
       rNewPlasticShearStrain = 0.0;
       for (unsigned int i = 0; i < 3; ++i)
-         rNewPlasticShearStrain += pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i) - rNewEquivalentPlasticStrain, 2);
+         rNewPlasticShearStrain += pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i) - PlasticPotentialP/3.0, 2);
 
       for (unsigned int i = 3; i < 6; ++i)
          rNewPlasticShearStrain += 2.0*pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i)/2.0, 2);
@@ -1483,7 +1465,7 @@ namespace Kratos
       Vector EigenValues;
       int a = rCauchyGreenMatrix.size1();
       int b = rCauchyGreenMatrix.size2();
-      SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, EigenVectors, EigenValues);
+      SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, EigenVectors, EigenValues, 1e-12, 100);
 
       Matrix Aux = ZeroMatrix(3,3);
       a = Aux.size1();
@@ -1513,7 +1495,7 @@ namespace Kratos
       Matrix EigenVectors = ZeroMatrix(3,3);
       Vector EigenValues = ZeroVector(3);
 
-      SolidMechanicsMathUtilities<double>::EigenVectors(HenckyStrainMatrix, EigenVectors, EigenValues);
+      SolidMechanicsMathUtilities<double>::EigenVectors(HenckyStrainMatrix, EigenVectors, EigenValues, 1e-12, 100);
 
       Matrix Aux = ZeroMatrix(3,3);
 

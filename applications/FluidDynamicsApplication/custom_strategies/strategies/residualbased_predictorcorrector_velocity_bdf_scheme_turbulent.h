@@ -77,8 +77,6 @@ namespace Kratos {
         /**@name Type Definitions */
         /*@{ */
 
-        //typedef boost::shared_ptr< ResidualBasedPredictorCorrectorBossakScheme<TSparseSpace,TDenseSpace> > Pointer;
-
         KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedPredictorCorrectorBDFSchemeTurbulent);
 
         typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
@@ -112,9 +110,7 @@ namespace Kratos {
         :
           Scheme<TSparseSpace, TDenseSpace>(),
           mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
-        {
-
-        }
+        {}
 
         /** Constructor without a turbulence model
          */
@@ -124,8 +120,7 @@ namespace Kratos {
         :
           Scheme<TSparseSpace, TDenseSpace>(),
           mRotationTool(DomainSize,DomainSize+1,rSlipVar,0.0) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
-        {
-        }
+        {}
 
         /** Constructor with a turbulence model
          */
@@ -136,8 +131,7 @@ namespace Kratos {
           Scheme<TSparseSpace, TDenseSpace>(),
           mpTurbulenceModel(pTurbulenceModel),
           mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs
-        {
-        }
+        {}
 
         /** Destructor.
          */
@@ -165,47 +159,12 @@ namespace Kratos {
 
             mRotationTool.RotateVelocities(r_model_part);
 
-            BasicUpdateOperations(r_model_part, rDofSet, A, Dv, b);
+            mpDofUpdater->UpdateDofs(rDofSet,Dv);
 
             mRotationTool.RecoverVelocities(r_model_part);
 
             KRATOS_CATCH("")
         }
-
-        //***************************************************************************
-
-        virtual void BasicUpdateOperations(ModelPart& rModelPart,
-                                           DofsArrayType& rDofSet,
-                                           TSystemMatrixType& A,
-                                           TSystemVectorType& Dv,
-                                           TSystemVectorType& b)
-        {
-            KRATOS_TRY
-
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::PartitionVector DofSetPartition;
-            OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
-
-            //update of velocity (by DOF)
-            #pragma omp parallel
-            {
-                int k = OpenMPUtils::ThisThread();
-
-                typename DofsArrayType::iterator DofSetBegin = rDofSet.begin() + DofSetPartition[k];
-                typename DofsArrayType::iterator DofSetEnd = rDofSet.begin() + DofSetPartition[k + 1];
-
-                for (typename DofsArrayType::iterator itDof = DofSetBegin; itDof != DofSetEnd; itDof++) {
-                    if (itDof->IsFree()) {
-                        itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dv, itDof->EquationId());
-                    }
-                }
-
-            }
-
-            KRATOS_CATCH("")
-        }
-
-
 
         //***************************************************************************
         //predicts the solution at the current step as
@@ -588,6 +547,12 @@ namespace Kratos {
         //************************************************************************************************
         //************************************************************************************************
 
+        /// Free memory allocated by this object.
+        void Clear() override
+        {
+            this->mpDofUpdater->Clear();
+        }
+
         /*@} */
         /**@name Operations */
         /*@{ */
@@ -656,6 +621,7 @@ namespace Kratos {
         /**@name Member Variables */
         /*@{ */
 
+        typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
 
         /*@} */

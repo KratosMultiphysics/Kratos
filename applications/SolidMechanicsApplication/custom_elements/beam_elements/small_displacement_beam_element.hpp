@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED)
 #define  KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED
 
 // System includes
@@ -40,7 +40,7 @@ namespace Kratos
  * Implements a Small Displacement definition for structural analysis.
  */
 
-class SmallDisplacementBeamElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementBeamElement
     :public BeamElement
 {
 public:
@@ -64,7 +64,7 @@ public:
     SmallDisplacementBeamElement(SmallDisplacementBeamElement const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementBeamElement();
+    ~SmallDisplacementBeamElement() override;
 
 
     ///@}
@@ -102,7 +102,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Small Displacement Beam Element #" << Id();
@@ -110,13 +110,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Small Displacement Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -137,6 +137,8 @@ protected:
     ///@{
     SmallDisplacementBeamElement() {};
 
+    //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -144,72 +146,72 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**   
+    /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
-    /**   
+    /**
      * Calculate Deformation Matrix
      */
     virtual void CalculateDeformationMatrix(Matrix& rB, const Vector& rN, const Matrix& rDN_DX);
 
 
-    /**   
+    /**
      * Calculate Element Constitutive Matrix
-     */ 
-    virtual void CalculateConstitutiveMatrix(ElementVariables& rVariables) override;
+     */
+    void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
 
-     /**   
+     /**
      * Calculate Element Stress Resultants and Couples
-     */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
- 
+     */
+    void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
+
     /**
      * Calculation of the Rotation tensor
      */
     void CalculateTransformationMatrix(Matrix& RotationMatrix);
 
-  
-    /**
-     * Transform Vector Variable form Spatial Frame to Global Frame
-     */    
-    virtual void MapLocalToGlobal(ElementVariables& rVariables, Matrix& rVariable) override;
 
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
-     */    
-    virtual void MapLocalToGlobal(ElementVariables& rVariables, VectorType& rVector) override;
-  
+     */
+    void MapLocalToGlobal(ElementDataType& rVariables, Matrix& rVariable) override;
+
+    /**
+     * Transform Vector Variable form Spatial Frame to Global Frame
+     */
+    void MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector) override;
+
 
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
      */
 
-    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+    void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight) override;
 
 
     /**
      * Calculation of the Material Stiffness Matrix
      */
-    void CalculateLocalStiffnessMatrix(Matrix& LocalMatrix,ElementVariables& rVariables);
+    void CalculateLocalStiffnessMatrix(Matrix& LocalMatrix,ElementDataType& rVariables);
 
 
      /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       ElementVariables & rVariables,
+    void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+					       ElementDataType & rVariables,
 					       double& rIntegrationWeight) override;
 
-  
+
    ///@}
     ///@name Protected  Access
     ///@{
@@ -247,12 +249,12 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

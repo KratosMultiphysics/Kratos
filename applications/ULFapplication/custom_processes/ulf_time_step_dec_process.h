@@ -122,7 +122,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~UlfTimeStepDecProcess()
+    ~UlfTimeStepDecProcess() override
     {
     }
 
@@ -159,15 +159,15 @@ public:
 
         double deltatime_new;
         double deltatime = dt_max;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim+1> aux;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim+1> aux_ac;
+        BoundedMatrix<double,TDim,TDim+1> aux;
+        BoundedMatrix<double,TDim,TDim+1> aux_ac;
         //this is for 2D only
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Dv_dx;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Da_dx;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> J;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> I = IdentityMatrix(TDim,TDim);
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Zero = ZeroMatrix(TDim,TDim);
+        BoundedMatrix<double,TDim+1,TDim> DN_DX;
+        BoundedMatrix<double,TDim,TDim> Dv_dx;
+        BoundedMatrix<double,TDim,TDim> Da_dx;
+        BoundedMatrix<double,TDim,TDim> J;
+        BoundedMatrix<double,TDim,TDim> I = IdentityMatrix(TDim,TDim);
+        BoundedMatrix<double,TDim,TDim> Zero = ZeroMatrix(TDim,TDim);
         array_1d<double,TDim+1> N;
         double Area;
         double detJ;
@@ -256,19 +256,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "UlfTimeStepDecProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "UlfTimeStepDecProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

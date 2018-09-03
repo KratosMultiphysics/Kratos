@@ -46,7 +46,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SmallStrainUmatModel : public ConstitutiveModel
+   class KRATOS_API(UMAT_APPLICATION) SmallStrainUmatModel : public ConstitutiveModel
    {
       protected:
 
@@ -320,7 +320,7 @@ namespace Kratos
          {
 
             VectorType StrainVector;
-            StrainVector = ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
+            ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
 
             rpStrain = new double[6];
             rpIncrementalStrain = new double[6];
@@ -353,7 +353,7 @@ namespace Kratos
          virtual void UpdateVariables( UmatDataType & rVariables, double* & rpStressVector, double* & rpStateVariables, double Pressure = 0.0)
          {
             VectorType StrainVector;
-            StrainVector = ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
+            ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
             mStrainVectorFinalized = StrainVector;
 
 
@@ -440,6 +440,7 @@ namespace Kratos
          virtual void save(Serializer& rSerializer) const override
          {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
+            rSerializer.save("InitializedModel", mInitializedModel );
             rSerializer.save("StressVectorFinalized", mStressVectorFinalized );
             rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized );
             rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized );
@@ -448,6 +449,7 @@ namespace Kratos
          virtual void load(Serializer& rSerializer) override
          {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
+            rSerializer.load("InitializedModel", mInitializedModel );
             rSerializer.load("StressVectorFinalized", mStressVectorFinalized );
             rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized );
             rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized );

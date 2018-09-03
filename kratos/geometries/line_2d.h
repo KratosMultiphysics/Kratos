@@ -156,14 +156,14 @@ public:
 //         BaseType::Points().push_back(typename PointType::Pointer(new PointType(SecondPoint)));
 //     }
 
-    Line2D(typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint)
+    KRATOS_DEPRECATED_MESSAGE("DEPRECATED: This implemenation of a 2D line duplicates the code of Line2D2. To avoid conflicts and future problems please replace line_2d.h for line2d_2.h. If any feature is missing, please communicate via GitHub and the feature will be implemented on line_2d_2.h") Line2D(typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint)
         : BaseType(PointsArrayType(), &msGeometryData)
     {
         BaseType::Points().push_back(pFirstPoint);
         BaseType::Points().push_back(pSecondPoint);
     }
 
-    Line2D(const PointsArrayType& ThisPoints)
+    KRATOS_DEPRECATED_MESSAGE("DEPRECATED: This implemenation of a 2D line duplicates the code of Line2D2. To avoid conflicts and future problems please replace line_2d.h for line_2d_2.h. If any feature is missing, please communicate via GitHub and the feature will be implemented on line2d_2.h") Line2D(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( BaseType::PointsNumber() != 2)
@@ -267,7 +267,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
     //     }
 
     //     //creating a geometry with the new points

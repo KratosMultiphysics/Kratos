@@ -130,8 +130,8 @@ public:
         mIntegrationMethodDestination = IntegrationMethodDestination;
     }
 
-    void TransferVariableData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                              std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
+    void TransferVariableData(const std::function<double(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                              const std::function<void(InterfaceObject::Pointer, double)>& FunctionPointerDestination,
                               const Variable<double>& rOriginVariable) override
     {
         mrModelPartOrigin.GetCommunicator().SynchronizeVariable(rOriginVariable); // required bcs
@@ -142,8 +142,8 @@ public:
         MPI_Barrier(MPI_COMM_WORLD);
     }
 
-    void TransferVariableData(std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                              std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointerDestination,
+    void TransferVariableData(const std::function<array_1d<double, 3>(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                              const std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)>& FunctionPointerDestination,
                               const Variable< array_1d<double, 3> >& rOriginVariable) override
     {
         mrModelPartOrigin.GetCommunicator().SynchronizeVariable(rOriginVariable); // required bcs
@@ -293,8 +293,8 @@ private:
     }
 
     template <typename T>
-    void ExchangeDataRemote(std::function<T(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                            std::function<void(InterfaceObject*, T)> FunctionPointerDestination)
+    void ExchangeDataRemote(const std::function<T(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                            const std::function<void(InterfaceObject::Pointer, T)>& FunctionPointerDestination)
     {
         int send_buffer_size = 0;
         int receive_buffer_size = 0;

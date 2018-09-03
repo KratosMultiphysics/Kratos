@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_3D2N_H_INCLUDED )
+#if !defined(KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_3D2N_H_INCLUDED)
 #define  KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_3D2N_H_INCLUDED
 
 // System includes
@@ -42,7 +42,7 @@ namespace Kratos
  * This works for line geometries in 3D :: it must be extended to 2D and large displacements
  */
 
-class SmallDisplacementBeamElement3D2N
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementBeamElement3D2N
     :public Element
 {
 public:
@@ -50,6 +50,8 @@ public:
     ///@name Type Definitions
     ///@{
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
 
     /// Counted pointer of SmallDisplacementBeamElement3D2N
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementBeamElement3D2N );
@@ -63,9 +65,6 @@ protected:
      */
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
-
 
     struct SectionProperties
     {
@@ -86,8 +85,8 @@ protected:
     struct LocalSystemComponents
     {
     private:
-      
-      //for calculation local system with compacted LHS and RHS 
+
+      //for calculation local system with compacted LHS and RHS
       MatrixType *mpLeftHandSideMatrix;
       VectorType *mpRightHandSideVector;
 
@@ -112,7 +111,7 @@ protected:
       MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
 
       VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
- 
+
     };
 
 
@@ -130,7 +129,7 @@ public:
     SmallDisplacementBeamElement3D2N(SmallDisplacementBeamElement3D2N const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementBeamElement3D2N();
+    ~SmallDisplacementBeamElement3D2N() override;
 
 
     ///@}
@@ -148,7 +147,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
 
-  
+
 
     //************* GETTING METHODS
 
@@ -212,7 +211,7 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize() override;
-  
+
       /**
      * Called at the beginning of each solution step
      */
@@ -283,7 +282,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -295,7 +294,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Beam Element #" << Id();
@@ -303,13 +302,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -342,11 +341,13 @@ protected:
      * Beam element length
      */
     double mLength;                          // Length of the beam element
-  
+
     ///@}
     ///@name Protected Operators
     ///@{
     SmallDisplacementBeamElement3D2N() {};
+
+    //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
 
     ///@}
     ///@name Protected Operations
@@ -358,7 +359,7 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-  
+
     void CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
 				   ProcessInfo& rCurrentProcessInfo );
 
@@ -389,13 +390,13 @@ protected:
      * Calculation of the Material Stiffness Matrix
      */
     void CalculateLocalStiffnessMatrix(Matrix& LocalMatrix);
- 
+
 
     /**
      * Calculation of the Rotation tensor
      */
     void CalculateTransformationMatrix(Matrix& RotationMatrix);
-  
+
 
     /**
      * Calculation of the Volume Force of the Element
@@ -467,12 +468,12 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

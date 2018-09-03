@@ -23,8 +23,6 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 
-// TODO: Add parallellization!!!
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -33,12 +31,7 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
-    typedef Point                                  PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -51,8 +44,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
   
-/** \brief InterfacePreprocessCondition 
- * Creates Model Parts containing the interface
+/**
+ * @ingroup ContactStructuralMechanicsApplication
+ * @class InterfacePreprocessCondition
+ * @brief Creates Model Parts containing the interface
+ * @todo Add parallelization
+ * @author Vicente Mataix Ferrandiz
  */
 class InterfacePreprocessCondition
 {
@@ -60,9 +57,22 @@ public:
     ///@name Type Definitions
     ///@{
     
-    typedef ModelPart::NodesContainerType                   NodesArrayType;
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
+    /// Geometric definitions
+    typedef Point                                              PointType;
+    typedef Node<3>                                             NodeType;
+    typedef Geometry<NodeType>                              GeometryType;
+    typedef Geometry<PointType>                        GeometryPointType;
+
+    /// The index type
+    typedef std::size_t                                        IndexType;
+
+    /// The size type
+    typedef std::size_t                                         SizeType;
+
+    /// Definition of the entities container
+    typedef ModelPart::NodesContainerType                 NodesArrayType;
+    typedef ModelPart::ElementsContainerType           ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType       ConditionsArrayType;
     
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessCondition);
@@ -74,10 +84,9 @@ public:
     /// Constructor
     
     /**
-     * This is the default constructor
-     * @param rModelPart: The model part to consider
+     * @brief This is the default constructor
+     * @param rMainModelPrt The model part to consider
      */
-    
     InterfacePreprocessCondition(ModelPart& rMainModelPrt)
     :mrMainModelPart(rMainModelPrt)
     {
@@ -95,18 +104,15 @@ public:
     ///@{
 
     /**
-     * Generate a new ModelPart containing only the interface. It will contain the conditions addressed in the call 
-     * @param rOriginPart The original model part
+     * @brief Generate a new ModelPart containing only the interface. It will contain the conditions addressed in the call
      * @param rInterfacePart The interface model part
      * @param ThisParameters The configuration parameters
      */
-    
-    template< const unsigned int TDim>
+    template<const std::size_t TDim>
     void GenerateInterfacePart(
-            ModelPart& rOriginPart,
-            ModelPart& rInterfacePart,
-            Parameters ThisParameters =  Parameters(R"({})")
-            );
+        ModelPart& rInterfacePart,
+        Parameters ThisParameters =  Parameters(R"({})")
+        );
     
 protected:
     ///@name Protected static Member Variables
@@ -144,7 +150,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart&  mrMainModelPart;
+    ModelPart& mrMainModelPart; /// The main model part storing all the information
     
     ///@}
     ///@name Private Operators
@@ -155,88 +161,122 @@ private:
     ///@{
 
     /**
-     * Creates a new condition with a giving name
-     * @param rpElem The pointer to the element
+     * @brief Check if the existing conditions have properties and if doesn't it creates it
+     * @param rInterfacePart The interface model part
+     */
+    void CheckAndCreateProperties(ModelPart& rInterfacePart);
+
+    /**
+     * @brief Check if the existing combination exists on the geometry
+     * @param IndexVector The vector containing the indexes of the nodes in the condition
+     * @param rElementGeometry The element geometry
+     */
+    bool CheckOnTheFace(
+        const std::vector<std::size_t>& rIndexVector,
+        GeometryType& rElementGeometry
+        );
+
+    /**
+     * @brief Creates a new properties (contaning just values related with contact)
+     * @details These values are removed from the original property (in order to reduce overload of properties on the original elements)
+     * @return A map containing new properties
+     */
+    std::unordered_map<IndexType, Properties::Pointer> CreateNewProperties();
+
+    /**
+     * @brief Copies a value from the original property to the new one
+     * @param pOriginalProperty The original property
+     * @param pNewProperty The new property
+     * @param rVariable The variable to copy an erase
+     */
+    template<class TClass>
+    void CopyProperties(
+        Properties::Pointer pOriginalProperty,
+        Properties::Pointer pNewProperty,
+        const Variable<TClass>& rVariable,
+        const bool AssignZero = true
+        )
+    {
+        if(pOriginalProperty->Has(rVariable)) {
+            const TClass& value = pOriginalProperty->GetValue(rVariable);
+            pNewProperty->SetValue(rVariable, value);
+        } else if (AssignZero) {
+            KRATOS_INFO("InterfacePreprocessCondition") << "Property " << rVariable.Name() << " not available. Assigning zero value" << std::endl;
+            pNewProperty->SetValue(rVariable, rVariable.Zero());
+        }
+    }
+
+    /**
+     * @brief Creates a new condition with a giving name
+     * @param prThisProperties The pointer to the element
      * @param rGeometry The  geometry considered
      * @param CondId The Id of the condition
-     * @param ConditionName The name of the condition
-     * @param IsMortar If the condition is mortar
+     * @param rCondition The base condition
      */
 
     void CreateNewCondition(
-            Element::Pointer rpElem,
-            Geometry<Node<3> > & rGeometry,
-            const unsigned int CondId,
-            const std::string& ConditionName,
-            const bool IsMortar
-            );
-    
-    /**
-     * It prints the nodes and conditions in the interface, gives an error otherwise there are not
-     * @param NodesCounter Number of nodes in the interface
-     * @param CondCounter Number of conditions in the interface
-     */
-
-    void PrintNodesAndConditions(
-            const int NodesCounter,
-            const int CondCounter
-            );
-    
-    /**
-     * It reorders the Ids of the conditions
-     * @return cond_id: The Id from the last condition
-     */
-
-    unsigned int ReorderConditions();
-    
-    /**
-     * This method creates the conditions for the edges
-     * @param rInterfacePart The model part of the interface
-     * @param rpElem Pointer to the element
-     * @param EdgeGeometry Geometry considered
-     * @param ConditionName The name of the condition
-     * @param FinalString The last part added to the name condition
-     * @param SimplestGeometry If consider or not the simplest geometry
-     * @param CondCounter The counter of conditions
-     * @param CondId The condition id
-     * @param IsMortar If the condition is mortar
-     */
-
-    inline void GenerateEdgeCondition(
-        ModelPart& rInterfacePart,
-        Element::Pointer rpElem,
-        GeometryType& EdgeGeometry,
-        const std::string& ConditionName,
-        const std::string& FinalString,
-        const bool SimplestGeometry,
-        unsigned int& CondCounter,
-        unsigned int& CondId,
-        const bool IsMortar
+        Properties::Pointer prThisProperties,
+        GeometryType& rGeometry,
+        const IndexType CondId,
+        Condition const& rCondition
         );
     
     /**
-     * This method creates the conditions for the faces
+     * @brief This method assign the corresponding master/slave flag to the condition in function of its nodes
+     * @param pCond The pointer to the condition
+     */
+    void AssignMasterSlaveCondition(Condition::Pointer pCond);
+
+    /**
+     * @brief It prints the nodes and conditions in the interface, gives an error otherwise there are not
+     * @param NodesCounter Number of nodes in the interface
+     * @param CondCounter Number of conditions in the interface
+     */
+    void PrintNodesAndConditions(
+        const IndexType NodesCounter,
+        const IndexType CondCounter
+        );
+    
+    /**
+     * @brief It reorders the Ids of the conditions
+     * @return cond_id: The Id from the last condition
+     */
+    IndexType ReorderConditions();
+    
+    /**
+     * @brief This method creates the conditions for the edges
      * @param rInterfacePart The model part of the interface
-     * @param rpElem Pointer to the element
-     * @param FaceGeometry Geometry considered
-     * @param ConditionName The name of the condition
-     * @param FinalString The last part added to the name condition
+     * @param prThisProperties The properties of the base element
+     * @param EdgeGeometry Geometry considered
      * @param SimplestGeometry If consider or not the simplest geometry
      * @param CondCounter The counter of conditions
      * @param CondId The condition id
-     * @param IsMortar If the condition is mortar
      */
-
+    inline void GenerateEdgeCondition(
+        ModelPart& rInterfacePart,
+        Properties::Pointer prThisProperties,
+        GeometryType& EdgeGeometry,
+        const bool SimplestGeometry,
+        IndexType& CondCounter,
+        IndexType& CondId
+        );
+    
+    /**
+     * @brief This method creates the conditions for the faces
+     * @param rInterfacePart The model part of the interface
+     * @param prThisProperties The properties of the base element
+     * @param FaceGeometry Geometry considered
+     * @param SimplestGeometry If consider or not the simplest geometry
+     * @param CondCounter The counter of conditions
+     * @param CondId The condition id
+     */
     inline void GenerateFaceCondition(
         ModelPart& rInterfacePart,
-        Element::Pointer rpElem,
+        Properties::Pointer prThisProperties,
         GeometryType& FaceGeometry,
-        const std::string& ConditionName,
-        const std::string& FinalString,
         const bool SimplestGeometry,
-        unsigned int& CondCounter,
-        unsigned int& CondId,
-        const bool IsMortar
+        IndexType& CondCounter,
+        IndexType& CondId
         );
     
     ///@}

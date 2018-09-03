@@ -15,8 +15,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test",
-            "input_file_label" : 0
+            "input_filename"   : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "and_criterion",
@@ -33,7 +32,7 @@
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "kratos_module" : "StructuralMechanicsApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
@@ -44,7 +43,7 @@
         }
     },{
         "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "kratos_module" : "StructuralMechanicsApplication",
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
@@ -56,7 +55,7 @@
     }],
     "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "kratos_module" : "StructuralMechanicsApplication",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
@@ -67,7 +66,7 @@
         }
     },{
         "python_module": "assign_vector_by_direction_to_condition_process",
-        "kratos_module": "KratosMultiphysics.StructuralMechanicsApplication",
+        "kratos_module": "StructuralMechanicsApplication",
         "process_name": "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
@@ -124,15 +123,5 @@
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR","DAMAGE_VARIABLE"]
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     }
 }

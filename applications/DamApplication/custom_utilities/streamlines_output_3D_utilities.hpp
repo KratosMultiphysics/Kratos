@@ -14,15 +14,15 @@
 #if !defined(KRATOS_STREAMLINES_OUTPUT_3D_UTILITIES)
 #define KRATOS_STREAMLINES_OUTPUT_3D_UTILITIES
 
+// System includes
 #include <cmath>
 
 // Project includes
-#include "includes/kratos_flags.h"
+#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "processes/process.h"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 // Application includes
 #include "dam_application_variables.h"
@@ -118,7 +118,7 @@ class StreamlinesOutput3DUtilities
         array_1d<double, 3> vap2;
         array_1d<double, 3> vap3;
         array_1d<double, 3> Result;
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> AutovectorMatrix;
+        BoundedMatrix<double, 3, 3> AutovectorMatrix;
 
         // Tangential Components
         const double &Sxy = Tangential_components[0];

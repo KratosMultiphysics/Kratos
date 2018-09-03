@@ -1,0 +1,19 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "rectangular_plate_structure",
+        "model_part_name" : "rectangular_plate_structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "kratos_response_settings":{
+        "response_type"          : "strain_energy",
+        "primal_settings"        : "rectangular_plate_parameters_without_hdf5.json",
+        "gradient_mode"          : "semi_analytic",
+        "step_size"              : 1e-6,
+        "consider_discretization": false
+    }
+}

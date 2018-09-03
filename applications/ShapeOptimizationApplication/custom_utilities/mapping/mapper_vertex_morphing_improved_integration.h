@@ -71,10 +71,10 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingImprovedIntegration( ModelPart& designSurface, Parameters optimizationSettings )
-        : MapperVertexMorphing(designSurface, optimizationSettings)
+    MapperVertexMorphingImprovedIntegration( ModelPart& designSurface, Parameters MapperSettings )
+        : MapperVertexMorphing(designSurface, MapperSettings)
     {
-        SetIntegrationMethod(optimizationSettings);
+        SetIntegrationMethod(MapperSettings);
         FindNeighbourConditions();
     }
 
@@ -93,16 +93,115 @@ public:
     ///@name Operations
     ///@{
 
-    // --------------------------------------------------------------------------
-    void SetIntegrationMethod( Parameters optimizationSettings )
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
     {
-        std::string integration_method = optimizationSettings["design_variables"]["filter"]["integration"]["integration_method"].GetString();
+        return "MapperVertexMorphingImprovedIntegration";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "MapperVertexMorphingImprovedIntegration";
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    // Initialized by class constructor
+    Element::IntegrationMethod mIntegrationMethod;
+    bool mAreaWeightedNodeSum;
+    std::vector<double> nodalAreas;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    // --------------------------------------------------------------------------
+    void SetIntegrationMethod( Parameters MapperSettings )
+    {
+        std::string integration_method = MapperSettings["integration"]["integration_method"].GetString();
         if (integration_method.compare("area_weighted_sum") == 0)
             mAreaWeightedNodeSum = true;
         else if (integration_method.compare("gauss_integration") == 0)
         {
             mAreaWeightedNodeSum = false;
-            int number_of_gauss_points = optimizationSettings["design_variables"]["filter"]["integration"]["number_of_gauss_points"].GetInt();
+            int number_of_gauss_points = MapperSettings["integration"]["number_of_gauss_points"].GetInt();
             if (number_of_gauss_points == 1)
                 mIntegrationMethod = GeometryData::GI_GAUSS_1;
             else if (number_of_gauss_points == 2)
@@ -141,7 +240,7 @@ public:
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
+                                        double& sum_of_weights ) override
     {
         for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
         {
@@ -154,7 +253,7 @@ public:
                 // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
                 double Aij = mpFilterFunction->compute_weight(node_j.Coordinates(),node_i.Coordinates());
                 Aij *= nodalAreas[node_j.GetValue(MAPPING_ID)];
-;
+
                 // Add values to list
                 list_of_weights[j_itr] += Aij;
 
@@ -220,7 +319,8 @@ public:
         }
     }
 
-    virtual void InitializeComputationOfMappingMatrix()
+    // --------------------------------------------------------------------------
+    void InitializeComputationOfMappingMatrix() override
     {
         // from base class
         MapperVertexMorphing::InitializeComputationOfMappingMatrix();
@@ -247,110 +347,7 @@ public:
             }
         }
     }
-
-    // ==============================================================================
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "MapperVertexMorphingImprovedIntegration";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "MapperVertexMorphingImprovedIntegration";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    // ==============================================================================
-    // Initialized by class constructor
-    // ==============================================================================
-    Element::IntegrationMethod mIntegrationMethod;
-    bool mAreaWeightedNodeSum;
-    std::vector<double> nodalAreas;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
+    // --------------------------------------------------------------------------
 
     ///@}
     ///@name Private  Access

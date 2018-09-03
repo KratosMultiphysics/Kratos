@@ -183,8 +183,8 @@ public:
                                 || mGeometryType == GeometryData::Kratos_Line3D3 )
                         {
                             nodes_id[0] = (it)->GetGeometry() [0].Id();
-                            nodes_id[1] = (it)->GetGeometry() [2].Id();
-                            nodes_id[2] = (it)->GetGeometry() [1].Id();
+                            nodes_id[1] = (it)->GetGeometry() [1].Id();
+                            nodes_id[2] = (it)->GetGeometry() [2].Id();
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
                         

@@ -37,7 +37,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   AxisymmetricLineElasticCondition::AxisymmetricLineElasticCondition( AxisymmetricLineElasticCondition const& rOther )
-    : LineElasticCondition(rOther)     
+    : LineElasticCondition(rOther)
   {
   }
 
@@ -45,7 +45,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer AxisymmetricLineElasticCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new AxisymmetricLineElasticCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<AxisymmetricLineElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -58,8 +58,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new AxisymmetricLineElasticCondition(NewCondition) );
+    return Kratos::make_shared<AxisymmetricLineElasticCondition>(NewCondition);
   }
 
 
@@ -87,7 +86,7 @@ namespace Kratos
 
     rVariables.Normal[0] = -rVariables.j[rPointNumber](1, 0); //-x_2,e
     rVariables.Normal[1] =  rVariables.j[rPointNumber](0, 0); // x_1,e
-    
+
     //Jacobian to the deformed configuration
     rVariables.Jacobian = norm_2(rVariables.Normal);
 
@@ -104,17 +103,17 @@ namespace Kratos
     rVariables.Jacobian = norm_2(rVariables.Tangent2);
 
     //Set Shape Functions Values for this integration point
-    rVariables.N =row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Get geometry size
     rVariables.GeometrySize = GetGeometry().Length();
 
     //Get external load
     this->CalculateExternalStiffness(rVariables);
-    
+
     //Calculate radius
     CalculateRadius ( rVariables.CurrentRadius,  rVariables.ReferenceRadius, rVariables.N);
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -131,29 +130,32 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     rCurrentRadius=0;
     rReferenceRadius=0;
 
     if ( dimension == 2 )
       {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
             //Displacement from the reference to the current configuration
-            array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
-	    array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
-	    array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
+            // array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            // array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            // array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
+	    // array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
+	    // array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
 
-            rCurrentRadius   += CurrentPosition[0]*rN[i];
-            rReferenceRadius += ReferencePosition[0]*rN[i];
+            // rCurrentRadius   += CurrentPosition[0]*rN[i];
+            // rReferenceRadius += ReferencePosition[0]*rN[i];
+
+	    rCurrentRadius   += rN[i] * GetGeometry()[i].X();
+	    rReferenceRadius += rN[i] * GetGeometry()[i].X0();
+
 	  }
       }
-
 
     if ( dimension == 3 )
       {
@@ -171,7 +173,7 @@ namespace Kratos
   void AxisymmetricLineElasticCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
 
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
 
     //contributions to stiffness matrix calculated on the reference config
 
@@ -185,7 +187,7 @@ namespace Kratos
 
   void AxisymmetricLineElasticCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
 
     //contribution to external forces
 
@@ -205,7 +207,7 @@ namespace Kratos
     ErrorCode = LineElasticCondition::Check(rCurrentProcessInfo);
 
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

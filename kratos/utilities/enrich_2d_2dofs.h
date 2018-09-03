@@ -30,24 +30,12 @@
 #include "includes/define.h"
 //#include "utilities/split_tetrahedra.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
 namespace Kratos
 {
 
-/** This utility can be used to calculate the enriched shape function for tetrahedra element.
- *  The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
- *  cacluate the enrichment information using these partitions.
+/** @brief This utility can be used to calculate the enriched shape function for tetrahedra element.
+ *  @details The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
+ *  calculate the enrichment information using these partitions.
  */
 class EnrichmentUtilities_2D
 {
@@ -84,8 +72,8 @@ public:
      * @param face_gauss_N_enrich is the value of the enrichment shape functions in the integration point
      * 		  actually it's value is always the same so no need to use it: the shape functions were defined to make it 1 in the first shape function,
      * 		  And 1 and -1 the second shape function (it's discontinous, so it has these two values in the interfase)
-     * 		  WARNING: therefore the discontinuity in the shape function is equal to 2.
-     * @param type_of_cut: the partition that is 'alone': the one that is on one side of the shape function
+     * 		  @warning therefore the discontinuity in the shape function is equal to 2.
+     * @param type_of_cut the partition that is 'alone': the one that is on one side of the shape function
      * 		  the other two are the ones in the other side, meaning they have the same derivatives and , for example, densities.
      * 
      * @return number of partitions created which can be from 1 to 3.
@@ -106,7 +94,7 @@ public:
 		unsigned int i_aux,j_aux,k_aux; //
 		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   INTERFASES ON nodes are not contemplated   
 		const double one_third=1.0/3.0;
-		bounded_matrix<double, 3, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+		BoundedMatrix<double, 3, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
 		double Area;//area of the complete element
 		rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
 		Area = CalculateVolume2D( rPoints );
@@ -429,8 +417,8 @@ public:
     private:
     
 		static inline void CalculateGeometryData(
-			const bounded_matrix<double, 3, 3 > & coordinates,
-			boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+			const BoundedMatrix<double, 3, 3 > & coordinates,
+			BoundedMatrix<double,3,2>& DN_DX,
 			array_1d<double,3>& N,
 			double& Area)
 		{
@@ -465,7 +453,7 @@ public:
 		
 		//template<class TMatrixType, class TVectorType, class TGradientType>
 		static inline double CalculateVolume2D(
-			const bounded_matrix<double, 3, 3 > & coordinates)
+			const BoundedMatrix<double, 3, 3 > & coordinates)
 		{
 			double x10 = coordinates(1,0) - coordinates(0,0);
 			double y10 = coordinates(1,1) - coordinates(0,1);
@@ -476,7 +464,7 @@ public:
 			return 0.5*detJ;
 		}
 		
-		static inline bool CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
+		static inline bool CalculatePosition(const BoundedMatrix<double, 3, 3 > & coordinates,
                 const double xc, const double yc, const double zc,
                 array_1d<double, 3 > & N
                 )

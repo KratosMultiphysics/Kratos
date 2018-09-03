@@ -165,7 +165,7 @@ public:
 
         mVector.fm.resize(NumThreads);
 	mVector.fd.resize(NumThreads);
-    
+
     }
 
     /** Destructor.
@@ -214,16 +214,16 @@ public:
 	      //DELTA_ROTATION variable used to store previous iteration rotation
 	      array_1d<double, 3 > & CurrentRotation      = (i)->FastGetSolutionStepValue(ROTATION);
 	      array_1d<double, 3 > & ReferenceRotation    = (i)->FastGetSolutionStepValue(DELTA_ROTATION, 1);
-    
+
 	      // Rotation at iteration i
-	      ReferenceRotation    = CurrentRotation; 
+	      ReferenceRotation    = CurrentRotation;
 
 	      //STEP_DISPLACEMENT variable used to store previous iteration displacement
 	      array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
 	      array_1d<double, 3 > & ReferenceDisplacement= (i)->FastGetSolutionStepValue(STEP_DISPLACEMENT, 1);
 
 	      // Displacement at iteration i
-	      ReferenceDisplacement = CurrentDisplacement; 
+	      ReferenceDisplacement = CurrentDisplacement;
 
 	    }
 	  }
@@ -249,7 +249,7 @@ public:
 	  {
 
 	    if( i->IsNot(SLAVE) && i->IsNot(RIGID) ){
-	    
+
 	      array_1d<double, 3 > & CurrentDisplacement      = (i)->FastGetSolutionStepValue(DISPLACEMENT);
 	      array_1d<double, 3 > & ReferenceDisplacement    = (i)->FastGetSolutionStepValue(STEP_DISPLACEMENT, 1); //the CurrentDisplacement of the last iteration was stored here
 
@@ -263,13 +263,13 @@ public:
 
 	      array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY);
 	      array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION);
-             
+
               array_1d<double, 3 > & PreviousVelocity      = (i)->FastGetSolutionStepValue(VELOCITY,1);
               array_1d<double, 3 > & PreviousAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION,1);
 
-              UpdateAcceleration ((*i), CurrentAcceleration, DeltaDisplacement, CurrentStepDisplacement, PreviousAcceleration, PreviousVelocity);                   
-              UpdateVelocity     ((*i), CurrentVelocity, DeltaDisplacement, CurrentAcceleration, PreviousAcceleration, PreviousVelocity);                   
-                            
+              UpdateAcceleration ((*i), CurrentAcceleration, DeltaDisplacement, CurrentStepDisplacement, PreviousAcceleration, PreviousVelocity);
+              UpdateVelocity     ((*i), CurrentVelocity, DeltaDisplacement, CurrentAcceleration, PreviousAcceleration, PreviousVelocity);
+
 	    }
 	  }
 
@@ -304,7 +304,7 @@ public:
 	      array_1d<double, 3 > & CurrentDeltaRotation= (i)->FastGetSolutionStepValue(DELTA_ROTATION);
 
 	      CurrentDeltaRotation = CurrentRotation-ReferenceRotation;
-	    
+
 	      // if( (i)->Id()==26 )
 	      //   {
 	      // 	  std::cout<<" CurrentDeltaRotation "<<CurrentDeltaRotation<<std::endl;
@@ -318,17 +318,17 @@ public:
 
 		  TotalRotationVector[j]  = ReferenceRotation[j];    //previous iteration total rotation
 
-		  StepRotationVector[j]   = CurrentStepRotation[j];  //previous iteration step rotation 
+		  StepRotationVector[j]   = CurrentStepRotation[j];  //previous iteration step rotation
 		}
-	    
+
 
 	      DeltaRotationQuaternion = QuaternionType::FromRotationVector( DeltaRotationVector );
 
 	      // updated step rotations:
 	      ReferenceRotationQuaternion = QuaternionType::FromRotationVector( StepRotationVector );
-	    
+
 	      CurrentRotationQuaternion = DeltaRotationQuaternion * ReferenceRotationQuaternion;
-	    
+
 	      CurrentRotationQuaternion.ToRotationVector( StepRotationVector );
 
 	      // ---------------
@@ -337,18 +337,18 @@ public:
 
 	      // updated compound rotations:
 	      ReferenceRotationQuaternion = QuaternionType::FromRotationVector( TotalRotationVector );
-    
+
 	      CurrentRotationQuaternion = DeltaRotationQuaternion * ReferenceRotationQuaternion;
-	    
+
 	      CurrentRotationQuaternion.ToRotationVector( TotalRotationVector );
 
 	      // ---------------
 
 	      for( unsigned int j=0; j<3; j++)
 		{
-		  LinearDeltaRotationVector[j] = StepRotationVector[j] - CurrentStepRotation[j]; 
+		  LinearDeltaRotationVector[j] = StepRotationVector[j] - CurrentStepRotation[j];
 		}
-              
+
 	      // update delta rotation composed:
 	      Matrix RotationMatrix;
 	      (ReferenceRotationQuaternion.conjugate()).ToRotationMatrix(RotationMatrix);
@@ -367,7 +367,7 @@ public:
 
 		  //array_1d to pass in the acceleration and velocity updates
 		  LinearDeltaRotation[j]  = LinearDeltaRotationVector[j];
-		}	    
+		}
 
 
 	      array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -376,9 +376,9 @@ public:
 
               array_1d<double, 3 > & PreviousAngularAcceleration  = (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION,1);
               array_1d<double, 3 > & PreviousAngularVelocity      = (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY,1);
-              
-              
-              UpdateAngularAcceleration ((*i), CurrentAcceleration, LinearDeltaRotation, CurrentStepRotation, PreviousAngularAcceleration, PreviousAngularVelocity);                                                                   
+
+
+              UpdateAngularAcceleration ((*i), CurrentAcceleration, LinearDeltaRotation, CurrentStepRotation, PreviousAngularAcceleration, PreviousAngularVelocity);
 	      UpdateAngularVelocity     ((*i), CurrentVelocity, LinearDeltaRotation, CurrentAcceleration, PreviousAngularAcceleration, PreviousAngularVelocity);
 
 
@@ -386,7 +386,7 @@ public:
 
 	  }
 
-	
+
 	//UPDATE SLAVE NODES
 	SlaveNodesUpdate(r_model_part);
 
@@ -443,17 +443,17 @@ public:
 
 	      Matrix RotationMatrix;
 	      TotalQuaternion.ToRotationMatrix(RotationMatrix);
-	      
+
 	      for(int j=0; j<3; j++)
 		RadiusVector[j] = Radius[j];
-	      
+
 	      RadiusVector = prod( RotationMatrix, RadiusVector );
 
 	      for(int j=0; j<3; j++)
 		Radius[j] = RadiusVector[j];
 
 	      //TotalQuaternion.RotateVector3<array_1d<double,3> >(Radius);
-        
+
 	      array_1d<double, 3 >&  NodeDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
 	      array_1d<double, 3 >&  NodeRotation      = (i)->FastGetSolutionStepValue(ROTATION);
 	      array_1d<double, 3 >&  NodeStepRotation  = (i)->FastGetSolutionStepValue(STEP_ROTATION);
@@ -462,33 +462,33 @@ public:
 	      noalias(NodeDisplacement)  = ( (Center + Displacement)  + Radius ) - (i)->GetInitialPosition();
 	      noalias(NodeRotation)      = Rotation;
 	      noalias(NodeStepRotation)  = StepRotation;
-	      noalias(NodeDeltaRotation) = DeltaRotation;    
-     
+	      noalias(NodeDeltaRotation) = DeltaRotation;
+
 	      for(int j=0; j<3; j++)
 		RadiusVector[j] = Radius[j];
 
 	      //********************
-	      
+
 	      for(int j=0; j<3; j++)
 		Variable[j] = AngularVelocity[j];
 
 	      //compute the skewsymmmetric tensor of the angular velocity
 	      BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
-	      
+
 	      //compute the contribution of the angular velocity to the velocity v = Wxr
 	      Variable = prod(SkewSymVariable,RadiusVector);
-     
+
 	      for(int j=0; j<3; j++)
 		VariableArray[j] = Variable[j];
 
 	      (i)->FastGetSolutionStepValue(VELOCITY)               = Velocity + VariableArray;
 
 	      //********************
-	      
+
 	      //centripetal acceleration:
 	      for(int j=0; j<3; j++)
 		AngularVariable[j] = AngularVelocity[j];
-		
+
 	      //compute the skewsymmmetric tensor of the angular velocity
 	      BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVariable, SkewSymVariable);
 
@@ -499,7 +499,7 @@ public:
 
 	      //compute the skewsymmmetric tensor of the angular acceleration
 	      BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
-	      
+
 	      //compute the contribution of the angular velocity to the velocity a = Axr
 	      Variable = prod(SkewSymVariable,RadiusVector);
 
@@ -512,14 +512,14 @@ public:
 	      //********************
 	      (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)       = AngularVelocity;
 	      (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION)   = AngularAcceleration;
-    
-	      // 	std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
-	      // 	std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;  
-	      // 	std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;  
 
-     
+	      // 	std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
+	      // 	std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;
+	      // 	std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;
+
+
 	    }
-	    
+
 	  }
 
 	KRATOS_CATCH( "" )
@@ -547,7 +547,7 @@ public:
         //double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
 	//DISPLACEMENTS
-	 
+
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)
 	  {
@@ -562,16 +562,16 @@ public:
 	      array_1d<double, 3 > & CurrentAcceleration      = (i)->FastGetSolutionStepValue(ACCELERATION);
 
 	      array_1d<double, 3 > & CurrentStepDisplacement  = (i)->FastGetSolutionStepValue(STEP_DISPLACEMENT);
-              
-              
+
+
               //DISPLACEMENT AND STEP DISPLACEMENT
 	      unsigned int previous = 1;
               array_1d<double, 3 > & ReferenceDisplacement    = (i)->FastGetSolutionStepValue(DISPLACEMENT,previous);
 	      array_1d<double, 3 > & PreviousVelocity         = (i)->FastGetSolutionStepValue(VELOCITY,previous);
 	      array_1d<double, 3 > & PreviousAcceleration     = (i)->FastGetSolutionStepValue(ACCELERATION,previous);
-	      
+
 	      noalias(CurrentStepDisplacement) = CurrentDisplacement - ReferenceDisplacement;
-    
+
               //only used in a special prediction of the displacement
 	      array_1d<double, 3 > & CurrentAngularVelocity   = (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
@@ -581,8 +581,8 @@ public:
 		{
 		  double& PreviousLM    = (i)->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_NORMAL, 1);
 		  double& CurrentLM     = (i)->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_NORMAL);
-		
-		  CurrentLM = PreviousLM;	
+
+		  CurrentLM = PreviousLM;
 		}
 
 	      //DISPLACEMENT, LINEAR VELOCITIES AND ACCELERATIONS
@@ -591,7 +591,7 @@ public:
 
 	      //updating time derivatives ::: please note that displacements and its time derivatives
 	      //can not be consistently fixed separately
- 
+
 	      PredictAcceleration ( (*i), CurrentAcceleration, CurrentStepDisplacement, PreviousAcceleration, PreviousVelocity);
 	      PredictVelocity     ( (*i), CurrentVelocity, CurrentStepDisplacement, CurrentAcceleration, PreviousAcceleration, PreviousVelocity);
 
@@ -602,11 +602,11 @@ public:
 
 
 	//ROTATIONS
-       
+
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)
 	  {
-	  
+
 	    if( i->IsNot(SLAVE) && i->IsNot(RIGID) ){
 
 	      //ATTENTION::: the prediction is performed only on free nodes
@@ -615,7 +615,7 @@ public:
 	      array_1d<double, 3 >& CurrentAngularVelocity       = (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
 	      array_1d<double, 3 >& CurrentAngularAcceleration   = (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-	      //array_1d<double, 3 >& ImposedRotation              = (i)->FastGetSolutionStepValue(IMPOSED_ROTATION);   
+	      //array_1d<double, 3 >& ImposedRotation              = (i)->FastGetSolutionStepValue(IMPOSED_ROTATION);
 
 	      //ROTATIONS AND STEP ROTATIONS
 	      unsigned int previous = 1;
@@ -623,13 +623,13 @@ public:
 	      array_1d<double, 3 >  PreviousAngularAcceleration = (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION,previous);
 
 	      PredictStepRotation( (*i), CurrentStepRotation, CurrentAngularVelocity, PreviousAngularAcceleration, CurrentAngularAcceleration);
-	    
+
 	      //ROTATIONS, ANGULAR VELOCITIES AND ACCELERATIONS
 
 	      //updating time derivatives ::: please note that rotations and its time derivatives
 	      //can not be consistently fixed separately
 
-	      PredictRotation(CurrentRotation, CurrentStepRotation);      
+	      PredictRotation(CurrentRotation, CurrentStepRotation);
 
 
 	      PredictAngularAcceleration ( (*i), CurrentAngularAcceleration, CurrentStepRotation, PreviousAngularAcceleration,  PreviousAngularVelocity);
@@ -734,7 +734,7 @@ public:
 
         Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
 
-	
+
         double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
         if (DeltaTime == 0)
@@ -746,7 +746,7 @@ public:
 	  CurrentProcessInfo[NEWMARK_BETA]  = mNewmark.beta;
 	  CurrentProcessInfo[NEWMARK_GAMMA] = mNewmark.gamma;
 	  CurrentProcessInfo[BOSSAK_ALPHA]  = mAlpha.m;
-	  CurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;  
+	  CurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
 	}
 
         //initializing Newmark constants
@@ -899,7 +899,7 @@ public:
 
         if(mNewmark.static_dynamic !=0)
         {
-	    
+
  	  (rCurrentElement) -> CalculateSecondDerivativesContributions(mMatrix.M[thread],mVector.fm[thread],CurrentProcessInfo);
 
 	  (rCurrentElement) -> CalculateFirstDerivativesContributions(mMatrix.D[thread],mVector.fd[thread],CurrentProcessInfo);
@@ -912,7 +912,7 @@ public:
 
         if(mNewmark.static_dynamic !=0)
         {
-	  
+
 	  AddDynamicsToLHS(LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
 	  AddDynamicsToRHS(RHS_Contribution, mVector.fd[thread], mVector.fm[thread], CurrentProcessInfo);
@@ -992,7 +992,7 @@ public:
         {
 
 	  (rCurrentCondition) -> CalculateSecondDerivativesContributions(mMatrix.M[thread],mVector.fm[thread],CurrentProcessInfo);
-	  
+
 	  (rCurrentCondition) -> CalculateFirstDerivativesContributions(mMatrix.D[thread],mVector.fd[thread],CurrentProcessInfo);
 
         }
@@ -1048,7 +1048,7 @@ public:
 
         if(mNewmark.static_dynamic !=0)
         {
-	  
+
 	  AddDynamicsToRHS (RHS_Contribution, mVector.fd[thread], mVector.fm[thread], CurrentProcessInfo);
 
         }
@@ -1195,17 +1195,17 @@ protected:
 
       if ((Node.pGetDof(DISPLACEMENT_X))->IsFixed() == false)
 	{
-	  CurrentStepDisplacement[0]  = 0;	  
+	  CurrentStepDisplacement[0]  = 0;
 	}
-      
+
       if ((Node.pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
 	{
-	  CurrentStepDisplacement[1]  = 0;	 
+	  CurrentStepDisplacement[1]  = 0;
 	}
-      
+
       if ((Node.pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
 	{
-	  CurrentStepDisplacement[2]  = 0;	  
+	  CurrentStepDisplacement[2]  = 0;
 	}
 
 	//noalias(CurrentStepDisplacement) = ( mNewmark.c4 * PreviousVelocity + mNewmark.c5 * PreviousAcceleration + CurrentAcceleration) * mNewmark.beta *  mNewmark.static_dynamic;
@@ -1219,7 +1219,7 @@ protected:
 	// Vector AngularVelocityVector = ZeroVector(3);
 
 	// for( unsigned int j=0; j<3; j++)
-	//   {	    
+	//   {
 	//     AngularVelocityVector[j]  =  mNewmark.c4 * mNewmark.beta * CurrentAngularVelocity[j];
 	//   }
 
@@ -1228,14 +1228,14 @@ protected:
 
 	// Vector CurrentStepDisplacementVector   = ZeroVector(3);
 	// for( unsigned int j=0; j<3; j++)
-	//   {	    
+	//   {
 	//     CurrentStepDisplacementVector[j]  = CurrentStepDisplacement[j];
 	//   }
 
 	// AngularVelocityQuaternion.RotateVector3(CurrentStepDisplacementVector);
- 
+
 	// for( unsigned int j=0; j<3; j++)
-	//   {	    
+	//   {
 	//     CurrentStepDisplacement[j]  = CurrentStepDisplacementVector[j];
 	//   }
     }
@@ -1261,10 +1261,10 @@ protected:
 				const array_1d<double, 3 > & CurrentAcceleration,
 				const array_1d<double, 3 > & PreviousAcceleration,
 				const array_1d<double, 3 > & PreviousVelocity)
-				
+
     {
-      
-      // BELYTSCHKO:      
+
+      // BELYTSCHKO:
       // if ((Node.pGetDof(DISPLACEMENT_X))->IsFixed() == false)
       // 	{
 
@@ -1284,25 +1284,25 @@ protected:
       // 	{
       // 	  CurrentVelocity[2]  =  (  mNewmark.c0 * StepDisplacement[2]
       // 	  			   - ( (mNewmark.gamma / mNewmark.beta) - 1.0  ) * PreviousVelocity[2]
-      // 	  			   - ( mNewmark.deltatime * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2 ) ) * PreviousAcceleration[2]) * mNewmark.static_dynamic;	  
+      // 	  			   - ( mNewmark.deltatime * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2 ) ) * PreviousAcceleration[2]) * mNewmark.static_dynamic;
       // 	}
 
 
       //SIMO:
       if ((Node.pGetDof(DISPLACEMENT_X))->IsFixed() == false)
       	{
-      	  CurrentVelocity[0]  =  PreviousVelocity[0] + (mNewmark.c2 * PreviousAcceleration[0] 
+      	  CurrentVelocity[0]  =  PreviousVelocity[0] + (mNewmark.c2 * PreviousAcceleration[0]
       			           + mNewmark.c3 * CurrentAcceleration[0] ) * mNewmark.static_dynamic;
       	}
       if ((Node.pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
       	{
-      	  CurrentVelocity[1]  =  PreviousVelocity[1] + (mNewmark.c2 * PreviousAcceleration[1] 
+      	  CurrentVelocity[1]  =  PreviousVelocity[1] + (mNewmark.c2 * PreviousAcceleration[1]
       			           + mNewmark.c3 * CurrentAcceleration[1] ) * mNewmark.static_dynamic;
       	}
       if ((Node.pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
       	{
-      	  CurrentVelocity[2]  =  PreviousVelocity[2] + (mNewmark.c2 * PreviousAcceleration[2] 
-      			           + mNewmark.c3 * CurrentAcceleration[2] ) * mNewmark.static_dynamic;	  
+      	  CurrentVelocity[2]  =  PreviousVelocity[2] + (mNewmark.c2 * PreviousAcceleration[2]
+      			           + mNewmark.c3 * CurrentAcceleration[2] ) * mNewmark.static_dynamic;
       	}
 
     }
@@ -1337,15 +1337,15 @@ protected:
       // SIMO:
       // if ((Node.pGetDof(DISPLACEMENT_X))->IsFixed() == false)
       // 	{
-      // 	  //CurrentAcceleration[0] =  (- mNewmark.c4 * PreviousVelocity[0] + mNewmark.c5 * PreviousAcceleration[0]) * mNewmark.static_dynamic; 
-	  
+      // 	  //CurrentAcceleration[0] =  (- mNewmark.c4 * PreviousVelocity[0] + mNewmark.c5 * PreviousAcceleration[0]) * mNewmark.static_dynamic;
+
       // 	  //CurrentAcceleration[0] = PreviousAcceleration[0]; //not stable
       // 	  CurrentAcceleration[0] = 0; //ok
       // 	}
 
       // if ((Node.pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
       // 	{
-      // 	  //CurrentAcceleration[1] =  (- mNewmark.c4 * PreviousVelocity[1] + mNewmark.c5 * PreviousAcceleration[1]) * mNewmark.static_dynamic; 
+      // 	  //CurrentAcceleration[1] =  (- mNewmark.c4 * PreviousVelocity[1] + mNewmark.c5 * PreviousAcceleration[1]) * mNewmark.static_dynamic;
 
       // 	  //CurrentAcceleration[1] = PreviousAcceleration[1]; //not stable
       // 	  CurrentAcceleration[1] = 0; //ok
@@ -1353,7 +1353,7 @@ protected:
 
       // if ((Node.pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
       // 	{
-      // 	  //CurrentAcceleration[2] =  (- mNewmark.c4 * PreviousVelocity[2] + mNewmark.c5 * PreviousAcceleration[2]) * mNewmark.static_dynamic; 
+      // 	  //CurrentAcceleration[2] =  (- mNewmark.c4 * PreviousVelocity[2] + mNewmark.c5 * PreviousAcceleration[2]) * mNewmark.static_dynamic;
 
       // 	  //CurrentAcceleration[2] = PreviousAcceleration[2]; //not stable
       // 	  CurrentAcceleration[2] = 0; //ok
@@ -1371,28 +1371,28 @@ protected:
 				    const array_1d<double, 3 > & PreviousAcceleration,
 				    const array_1d<double, 3 > & CurrentAcceleration)
     {
-      
+
       //CurrentStepRotation.clear(); //not needed :rigid bodies remain without rotation
       if ((Node.pGetDof(ROTATION_X))->IsFixed() == false)
 	{
-	  CurrentStepRotation[0]  = 0;	  
+	  CurrentStepRotation[0]  = 0;
 	}
-      
+
       if ((Node.pGetDof(ROTATION_Y))->IsFixed() == false)
 	{
-	  CurrentStepRotation[1]  = 0;	 
+	  CurrentStepRotation[1]  = 0;
 	}
-      
+
       if ((Node.pGetDof(ROTATION_Z))->IsFixed() == false)
 	{
-	  CurrentStepRotation[2]  = 0;	  
+	  CurrentStepRotation[2]  = 0;
 	}
-      
+
       //noalias(CurrentStepRotation) = ( mNewmark.c4 * PreviousVelocity + mNewmark.c5 * PreviousAcceleration + CurrentAcceleration) * mNewmark.beta *  mNewmark.static_dynamic;
 
       //noalias(CurrentStepRotation) = ( mNewmark.deltatime * PreviousVelocity ) *  mNewmark.static_dynamic;
-      
-      
+
+
     }
 
 
@@ -1404,7 +1404,7 @@ protected:
     inline void PredictRotation(array_1d<double, 3 > & CurrentRotation,
 				const array_1d<double, 3 > & StepRotation)
     {
-      
+
         noalias(CurrentRotation) += StepRotation; //needed for imposed rotations
 
 	// QuaternionType StepRotationQuaternion;
@@ -1415,7 +1415,7 @@ protected:
 	// Vector StepRotationVector = ZeroVector(3);
 
 	// for( unsigned int j=0; j<3; j++)
-	//   {	    
+	//   {
 	//     PreviousRotationVector[j]  = PreviousRotation[j];
 	//     StepRotationVector[j]      = StepRotation[j];
 	//   }
@@ -1423,12 +1423,12 @@ protected:
 	// // updated total rotations:
 	// StepRotationQuaternion      = QuaternionType::FromRotationVector( StepRotationVector );
 	// ReferenceRotationQuaternion = QuaternionType::FromRotationVector( PreviousRotationVector );
-	    
-	// CurrentRotationQuaternion = StepRotationQuaternion * ReferenceRotationQuaternion;   	
+
+	// CurrentRotationQuaternion = StepRotationQuaternion * ReferenceRotationQuaternion;
 	// CurrentRotationQuaternion.ToRotationVector( PreviousRotationVector );
 
 	// for( unsigned int j=0; j<3; j++)
-	//   {	    
+	//   {
 	//     CurrentRotation[j] = PreviousRotationVector[j];
 	//   }
 
@@ -1445,7 +1445,7 @@ protected:
 				       const array_1d<double, 3 > & PreviousAngularAcceleration,
 				       const array_1d<double, 3 > & PreviousAngularVelocity)
     {
- 
+
       if(Node.Is(SLAVE)) return;
 
       // BELYTSCHKO:
@@ -1468,28 +1468,28 @@ protected:
       // 	{
       // 	  CurrentAngularVelocity[2]  =  (  mNewmark.c0 * StepRotation[2]
       // 	  			   - ( (mNewmark.gamma / mNewmark.beta) - 1.0  ) * PreviousAngularVelocity[2]
-      // 	  			   - ( mNewmark.deltatime * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2 ) ) * PreviousAngularAcceleration[2]) * mNewmark.static_dynamic;	  
+      // 	  			   - ( mNewmark.deltatime * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2 ) ) * PreviousAngularAcceleration[2]) * mNewmark.static_dynamic;
       // 	}
 
 
-      // SIMO: 
+      // SIMO:
       if ((Node.pGetDof(ROTATION_X))->IsFixed() == false)
 	{
-	  CurrentAngularVelocity[0]  =  PreviousAngularVelocity[0] + (mNewmark.c2 * PreviousAngularAcceleration[0] 
+	  CurrentAngularVelocity[0]  =  PreviousAngularVelocity[0] + (mNewmark.c2 * PreviousAngularAcceleration[0]
 						   + mNewmark.c3 * CurrentAngularAcceleration[0] ) * mNewmark.static_dynamic;
-	  
+
 	}
       if ((Node.pGetDof(ROTATION_Y))->IsFixed() == false)
 	{
-	  CurrentAngularVelocity[1]  =  PreviousAngularVelocity[1] + (mNewmark.c2 * PreviousAngularAcceleration[1] 
+	  CurrentAngularVelocity[1]  =  PreviousAngularVelocity[1] + (mNewmark.c2 * PreviousAngularAcceleration[1]
 						   + mNewmark.c3 * CurrentAngularAcceleration[1] ) * mNewmark.static_dynamic;
-	  
+
 	}
       if ((Node.pGetDof(ROTATION_Z))->IsFixed() == false)
 	{
-	  CurrentAngularVelocity[2]  =  PreviousAngularVelocity[2] + (mNewmark.c2 * PreviousAngularAcceleration[2] 
+	  CurrentAngularVelocity[2]  =  PreviousAngularVelocity[2] + (mNewmark.c2 * PreviousAngularAcceleration[2]
 							+ mNewmark.c3 * CurrentAngularAcceleration[2] ) * mNewmark.static_dynamic;
-	  
+
 	}
     }
 
@@ -1504,24 +1504,24 @@ protected:
 					   const array_1d<double, 3 > & PreviousAngularVelocity)
     {
       if(Node.Is(SLAVE)) return;
-      
+
       // BELYTSCHKO:
       if ((Node.pGetDof(ROTATION_X))->IsFixed() == false)
       	{
       	  CurrentAngularAcceleration[0] =  ( mNewmark.c1 * StepRotation[0] - mNewmark.c6 * PreviousAngularVelocity[0] - mNewmark.c7 * PreviousAngularAcceleration[0]) * mNewmark.static_dynamic;
       	}
-      
+
        if ((Node.pGetDof(ROTATION_Y))->IsFixed() == false)
       	{
       	  CurrentAngularAcceleration[1] =  ( mNewmark.c1 * StepRotation[1] - mNewmark.c6 * PreviousAngularVelocity[1] - mNewmark.c7 * PreviousAngularAcceleration[1]) * mNewmark.static_dynamic;
-      
+
       	}
-      
+
        if ((Node.pGetDof(ROTATION_Z))->IsFixed() == false)
       	{
       	  CurrentAngularAcceleration[2] =  ( mNewmark.c1 * StepRotation[2] - mNewmark.c6 * PreviousAngularVelocity[2] - mNewmark.c7 * PreviousAngularAcceleration[2]) * mNewmark.static_dynamic;
       	}
-      
+
 
       //SIMO
       // if ((Node.pGetDof(ROTATION_X))->IsFixed() == false)
@@ -1556,37 +1556,37 @@ protected:
     //Updating first time Derivative
     //*********************************************************************************
 
-    inline void UpdateVelocity(ModelPart::NodeType& Node,                                      
+    inline void UpdateVelocity(ModelPart::NodeType& Node,
 			       array_1d<double, 3 > & CurrentVelocity,
 			       const array_1d<double, 3 > & DeltaDisplacement,
 			       const array_1d<double, 3 > & CurrentAcceleration,
 			       const array_1d<double, 3 > & PreviousAcceleration,
 			       const array_1d<double, 3 > & PreviousVelocity)
-    { 
-      
+    {
+
       if(Node.Is(SLAVE)) return;
 
       // BELYTSCHKO:
-      if ((Node.pGetDof(DISPLACEMENT_X))->IsFixed() == false) 
+      if ((Node.pGetDof(DISPLACEMENT_X))->IsFixed() == false)
 	{
-	  CurrentVelocity[0] =  PreviousVelocity[0] + mNewmark.c2 * PreviousAcceleration[0] 
+	  CurrentVelocity[0] =  PreviousVelocity[0] + mNewmark.c2 * PreviousAcceleration[0]
                                 + mNewmark.c3 * CurrentAcceleration[0];
 	}
 
       if ((Node.pGetDof(DISPLACEMENT_Y))->IsFixed() == false)
 	{
-	  CurrentVelocity[1] =  PreviousVelocity[1] +  mNewmark.c2 * PreviousAcceleration[1] 
+	  CurrentVelocity[1] =  PreviousVelocity[1] +  mNewmark.c2 * PreviousAcceleration[1]
                                 + mNewmark.c3 * CurrentAcceleration[1];
 	}
 
       if ((Node.pGetDof(DISPLACEMENT_Z))->IsFixed() == false)
 	{
-	  CurrentVelocity[2] =  PreviousVelocity[2] + mNewmark.c2 * PreviousAcceleration[2] 
+	  CurrentVelocity[2] =  PreviousVelocity[2] + mNewmark.c2 * PreviousAcceleration[2]
                                 + mNewmark.c3 * CurrentAcceleration[2];
       }
 
       // SIMO:
-      // if ((Node.pGetDof(DISPLACEMENT_X))->IsFixed() == false) 
+      // if ((Node.pGetDof(DISPLACEMENT_X))->IsFixed() == false)
       // 	{
       // 	  CurrentVelocity[0] += mNewmark.c0 * DeltaDisplacement[0];
       // 	}
@@ -1600,25 +1600,25 @@ protected:
       // 	{
       // 	  CurrentVelocity[2] += mNewmark.c0 * DeltaDisplacement[2];
       // }
-      
-      
+
+
     }
-    
+
     //*********************************************************************************
     //Updating second time Derivative
     //*********************************************************************************
 
-    
+
     inline void UpdateAcceleration(ModelPart::NodeType& Node,
 				   array_1d<double, 3 > & CurrentAcceleration,
 				   const array_1d<double, 3 > & DeltaDisplacement,
 				   const array_1d<double, 3 > & StepDisplacement,
 				   const array_1d<double, 3 > & PreviousAcceleration,
 				   const array_1d<double, 3 > & PreviousVelocity)
-    {   
+    {
 
-      if(Node.Is(SLAVE)) return;        
-      
+      if(Node.Is(SLAVE)) return;
+
       // BELYTSCHKO:
       if ((Node.pGetDof(DISPLACEMENT_X))->IsFixed() == false)
 	{
@@ -1650,46 +1650,46 @@ protected:
       // 	{
       // 	  CurrentAcceleration[2] +=  mNewmark.c1 * DeltaDisplacement[2];
       // }
-            
+
     }
-    
-    
+
+
 
 
     //*********************************************************************************
     //Updating first time Derivative
     //*********************************************************************************
 
- 
+
     inline void UpdateAngularVelocity(ModelPart::NodeType& Node,
                                       array_1d<double, 3 > & CurrentAngularVelocity,
 				      const array_1d<double, 3 > & DeltaRotation,
 				      const array_1d<double, 3 > & CurrentAngularAcceleration,
                                       const array_1d<double, 3 > & PreviousAngularAcceleration,
                                       const array_1d<double, 3 > & PreviousAngularVelocity)
-    { 
+    {
 
-      if(Node.Is(SLAVE)) return;        
-      
-      // BELYTSCHKO:         
+      if(Node.Is(SLAVE)) return;
+
+      // BELYTSCHKO:
       if ((Node.pGetDof(ROTATION_X))->IsFixed() == false)
 	{
-	  CurrentAngularVelocity[0] = ( PreviousAngularVelocity[0] + (1-mNewmark.gamma) * mNewmark.deltatime * PreviousAngularAcceleration[0] 
+	  CurrentAngularVelocity[0] = ( PreviousAngularVelocity[0] + (1-mNewmark.gamma) * mNewmark.deltatime * PreviousAngularAcceleration[0]
                                 + mNewmark.gamma * mNewmark.deltatime * CurrentAngularAcceleration[0]) * mNewmark.static_dynamic;
 	}
 
       if ((Node.pGetDof(ROTATION_Y))->IsFixed() == false)
 	{
-	  CurrentAngularVelocity[1] = ( PreviousAngularVelocity[1] + (1-mNewmark.gamma) * mNewmark.deltatime * PreviousAngularAcceleration[1] 
+	  CurrentAngularVelocity[1] = ( PreviousAngularVelocity[1] + (1-mNewmark.gamma) * mNewmark.deltatime * PreviousAngularAcceleration[1]
                                 + mNewmark.gamma * mNewmark.deltatime * CurrentAngularAcceleration[1]) * mNewmark.static_dynamic;
 	}
 
       if ((Node.pGetDof(ROTATION_Z))->IsFixed() == false)
 	{
-	  CurrentAngularVelocity[2] = ( PreviousAngularVelocity[2] + (1-mNewmark.gamma) * mNewmark.deltatime * PreviousAngularAcceleration[2] 
+	  CurrentAngularVelocity[2] = ( PreviousAngularVelocity[2] + (1-mNewmark.gamma) * mNewmark.deltatime * PreviousAngularAcceleration[2]
                                 + mNewmark.gamma * mNewmark.deltatime * CurrentAngularAcceleration[2]) * mNewmark.static_dynamic;
       }
-      
+
       // SIMO:
       // if ((Node.pGetDof(ROTATION_X))->IsFixed() == false)
       // 	{
@@ -1712,17 +1712,17 @@ protected:
     //Updating second time Derivative
     //*********************************************************************************
 
-    
+
     inline void UpdateAngularAcceleration(ModelPart::NodeType& Node,
                                           array_1d<double, 3 > & CurrentAngularAcceleration,
 					  const array_1d<double, 3 > & DeltaRotation,
 					  const array_1d<double, 3 > & StepRotation,
                                           const array_1d<double, 3 > & PreviousAngularAcceleration,
                                           const array_1d<double, 3 > & PreviousAngularVelocity)
-    {           
-      if(Node.Is(SLAVE)) return;        
+    {
+      if(Node.Is(SLAVE)) return;
 
-      //BELYTSCHKO:   
+      //BELYTSCHKO:
       if ((Node.pGetDof(ROTATION_X))->IsFixed() == false)
       	{
       	  CurrentAngularAcceleration[0] =  ( mNewmark.c1 * StepRotation[0]- mNewmark.c6 * PreviousAngularVelocity[0] - mNewmark.c7 * PreviousAngularAcceleration[0]) * mNewmark.static_dynamic;
@@ -1737,7 +1737,7 @@ protected:
       	{
       	  CurrentAngularAcceleration[2] =  ( mNewmark.c1 * StepRotation[2]- mNewmark.c6 * PreviousAngularVelocity[2] - mNewmark.c7 * PreviousAngularAcceleration[2]) * mNewmark.static_dynamic;
       	}
-            
+
       // SIMO:
       // if ((Node.pGetDof(ROTATION_X))->IsFixed() == false)
       // 	{

@@ -260,20 +260,20 @@ creator_destructor = ParticleCreatorDestructor()
 dem_fem_search = DEM_FEM_Search()
 
 #Getting chosen scheme:
-if DEM_parameters["IntegrationScheme"].GetString() == 'Forward_Euler':
+if DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler':
     scheme = ForwardEulerScheme()
-elif DEM_parameters["IntegrationScheme"].GetString() == 'Symplectic_Euler':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler':
     if pp.CFD_DEM.basset_force_type > 0:
         scheme = SymplecticEulerOldVelocityScheme()
     else:
         scheme = SymplecticEulerScheme()
-elif DEM_parameters["IntegrationScheme"].GetString() == 'Taylor_Scheme':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme':
     scheme = TaylorScheme()
-elif DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method':
     scheme = NewmarkBetaScheme(0.5, 0.25)
-elif DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Verlet_Velocity':
     scheme = VerletVelocityScheme()
-elif DEM_parameters["IntegrationScheme"].GetString() == 'Hybrid_Bashforth':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Hybrid_Bashforth':
     scheme = HybridBashforthScheme()
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
@@ -282,7 +282,7 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
     scheme = TerminalVelocityScheme()
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
 # Add variables
 
@@ -864,9 +864,9 @@ while (time <= final_time):
 
 #G
     error_mat_deriv = 0.
-    max_error_mat_deriv = - float('inf')
+    max_mat_deriv_error = - float('inf')
     error_laplacian = 0.
-    max_error_laplacian = - float('inf')
+    max_laplacian_error = - float('inf')
 
     total_volume = 0.
     mat_deriv_average = Vector(3)
@@ -908,10 +908,10 @@ while (time <= final_time):
             #total_volume += nodal_volume
             current_error = swim_proc.NormOfDifference(calc_mat_deriv, mat_deriv)
             error_mat_deriv += current_error
-            max_error_mat_deriv = max(max_error_mat_deriv, current_error)
+            max_mat_deriv_error = max(max_mat_deriv_error, current_error)
             current_error = swim_proc.NormOfDifference(calc_laplacian, laplacian)
             error_laplacian += current_error
-            max_error_laplacian = max(max_error_laplacian, current_error)
+            max_laplacian_error = max(max_laplacian_error, current_error)
             diff_mat_deriv = [calc_mat_deriv[i] - mat_deriv[i] for i in range(len(calc_mat_deriv))]
             diff_laplacian = [calc_laplacian[i] - laplacian[i] for i in range(len(calc_laplacian))]
             #mat_deriv_averager.swim_proc.Norm(diff_mat_deriv)
@@ -947,9 +947,9 @@ while (time <= final_time):
 
         if norm_mat_deriv_average > 0. and norm_laplacian_average > 0:
             current_mat_deriv_errors[0] = error_mat_deriv / norm_mat_deriv_average
-            current_mat_deriv_errors[1] = max_error_mat_deriv / norm_mat_deriv_average * len(fluid_model_part.Nodes)
+            current_mat_deriv_errors[1] = max_mat_deriv_error / norm_mat_deriv_average * len(fluid_model_part.Nodes)
             current_laplacian_errors[0] = error_laplacian / norm_laplacian_average
-            current_laplacian_errors[1] = max_error_laplacian / norm_laplacian_average * len(fluid_model_part.Nodes)
+            current_laplacian_errors[1] = max_laplacian_error / norm_laplacian_average * len(fluid_model_part.Nodes)
             mat_deriv_errors.append(current_mat_deriv_errors)
             laplacian_errors.append(current_laplacian_errors)
             #print('mat_deriv: min, max, avg, ', mat_deriv_averager.GetCurrentData())
@@ -984,7 +984,7 @@ while (time <= final_time):
             else:
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
 
-                if DEM_parameters["IntegrationScheme"].GetString() == 'Hybrid_Bashforth':
+                if DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Hybrid_Bashforth':
                     solver.Solve() # only advance in space
                     projection_module.InterpolateVelocity()
 

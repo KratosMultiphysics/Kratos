@@ -30,19 +30,19 @@ namespace Kratos
 {
 
 	///@name Kratos Globals
-	///@{ 
+	///@{
 
-	///@} 
+	///@}
 	///@name Type Definitions
-	///@{ 
+	///@{
 
 
-	///@} 
+	///@}
 	///@name  Enum's
 	///@{
 
 	///@}
-	///@name  Functions 
+	///@name  Functions
 	///@{
 
 	///@}
@@ -53,10 +53,10 @@ namespace Kratos
 	/** Detail class definition.
 		Update the PRESSURE_FORCE on the nodes
 
-		
+
 	*/
 
-	class SolidificationProcess 
+	class SolidificationProcess
 		: public Process
 	{
 	public:
@@ -67,8 +67,8 @@ namespace Kratos
 		KRATOS_CLASS_POINTER_DEFINITION(SolidificationProcess);
 
 		///@}
-		///@name Life Cycle 
-		///@{ 
+		///@name Life Cycle
+		///@{
 
 		/// Default constructor.
 // 		DuplicateInterfaceNodesCreateConditionsProcess()
@@ -77,7 +77,7 @@ namespace Kratos
 	       SolidificationProcess(ModelPart& ThisModelPart,const double solidificarion_temperature )
 		:Process(), mr_model_part(ThisModelPart), mr_solid_temp(solidificarion_temperature)
 		{
-		}		
+		}
 
 		/// Destructor.
 		virtual ~SolidificationProcess()
@@ -86,7 +86,7 @@ namespace Kratos
 
 
 		///@}
-		///@name Operators 
+		///@name Operators
 		///@{
 
 		void operator()()
@@ -98,23 +98,23 @@ namespace Kratos
 		///@name Operations
 		///@{
 
-	   virtual void Execute()
+	   void Execute() override
 		 {
 	            KRATOS_WATCH("INSIDE SolidificationProcess");
-		   
-		   //loop over nodes to assign zero fixe velocity base on solidification temperature 		   
-		    for(ModelPart::NodesContainerType::iterator ind = mr_model_part.NodesBegin(); 
+
+		   //loop over nodes to assign zero fixe velocity base on solidification temperature
+		    for(ModelPart::NodesContainerType::iterator ind = mr_model_part.NodesBegin();
 			    ind!=mr_model_part.NodesEnd(); ind++)
-		    {		   
-		      const double TT = ind->FastGetSolutionStepValue(TEMPERATURE); 
-		      const double dist = ind->FastGetSolutionStepValue(DISTANCE); 
+		    {
+		      const double TT = ind->FastGetSolutionStepValue(TEMPERATURE);
+		      const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 		      if( TT <= mr_solid_temp && dist<0.0 ){
 			ind->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
 			ind->Fix(VELOCITY_X);
 			ind->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
 			ind->Fix(VELOCITY_Y);
 			ind->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
-			ind->Fix(VELOCITY_Z);		
+			ind->Fix(VELOCITY_Z);
 		      }
 		    }
 
@@ -122,20 +122,20 @@ namespace Kratos
 
 
 
-			
-		private:		
+
+		private:
 			  ModelPart& mr_model_part;
 			  const double mr_solid_temp;
-			  
-		//functions
-		
 
-		
+		//functions
+
+
+
 	};//end of class
-		  
+
 
 }//end of namespace Kratos
 
-#endif // KRATOS_DUPLICATE_INTERFACE_NODES_CREATE_CONDITIONS_PROCESS  defined 
+#endif // KRATOS_DUPLICATE_INTERFACE_NODES_CREATE_CONDITIONS_PROCESS  defined
 
 

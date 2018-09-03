@@ -10,13 +10,13 @@
 
 // Project includes
 #include "includes/define.h"
-#include "../../custom_elements/spheric_particle.h"
+#include "custom_elements/spheric_particle.h"
 
 /* External includes */
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#include "boost/python/list.hpp"
 
 namespace Kratos
 {
@@ -33,13 +33,6 @@ AnalyticWatcher(){}
 /// Destructor
 
 virtual ~AnalyticWatcher(){}
-
-static void ClearList(boost::python::list& my_list) // its best to pass empty lists in the first place to avoid this operation
-{
-    while (len(my_list)){
-        my_list.pop(); // only way I found to remove all entries
-    }
-}
 
 virtual void ClearData(){}
 

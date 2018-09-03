@@ -189,23 +189,29 @@ void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 //    MathUtils<double>::CrossProduct(rnormal, v1, v2);
 
 //    rnormal /= MathUtils<double>::Norm3(rnormal);
-    double v1[3];
-    double v2[3];
     Geometry<Node<3> >& geom = GetGeometry();
-    double p0[3] = {geom[0][0], geom[0][1], geom[0][2]};
-    double p1[3] = {geom[1][0], geom[1][1], geom[1][2]};
-    double p2[3] = {geom[2][0], geom[2][1], geom[2][2]};
+    if (geom.size()>2){
+        double v1[3];
+        double v2[3];
 
-    v1[0] = p1[0] - p0[0];
-    v1[1] = p1[1] - p0[1];
-    v1[2] = p1[2] - p0[2];
+        double p0[3] = {geom[0][0], geom[0][1], geom[0][2]};
+        double p1[3] = {geom[1][0], geom[1][1], geom[1][2]};
+        double p2[3] = {geom[2][0], geom[2][1], geom[2][2]};
 
-    v2[0] = p2[0] - p0[0];
-    v2[1] = p2[1] - p0[1];
-    v2[2] = p2[2] - p0[2];
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(v1, v2, rnormal)
-    const double norm_n_inv = 1.0 / DEM_MODULUS_3(rnormal) ;
-    DEM_MULTIPLY_BY_SCALAR_3(rnormal, norm_n_inv)
+        v1[0] = p1[0] - p0[0];
+        v1[1] = p1[1] - p0[1];
+        v1[2] = p1[2] - p0[2];
+
+        v2[0] = p2[0] - p0[0];
+        v2[1] = p2[1] - p0[1];
+        v2[2] = p2[2] - p0[2];
+        DEM_SET_TO_CROSS_OF_FIRST_TWO_3(v1, v2, rnormal)
+        const double norm_n_inv = 1.0 / DEM_MODULUS_3(rnormal) ;
+        DEM_MULTIPLY_BY_SCALAR_3(rnormal, norm_n_inv);
+    }
+    else{
+        KRATOS_ERROR << "Calculating normal direction for line or point is not possible" << std::endl;
+    }
 }
 
 
@@ -324,6 +330,24 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
     
 }
 
+array_1d<double, 3> RigidFace3D::GetVelocity() {
+        
+    size_t FE_size = this->GetGeometry().size();
+    array_1d<double, 3> rigid_face_velocity = ZeroVector(3);
+    double factor = 1.0;
+    
+    for (std::size_t inode = 0; inode < FE_size; inode++) {
+        
+        DEM_ADD_SECOND_TO_FIRST(rigid_face_velocity, this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY))
+    }
+    
+    if (FE_size) factor /= FE_size;
+    
+    DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, factor)
+    
+    return rigid_face_velocity;
+}
+
 void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
                                                SphericParticle* const particle,
                                                double LocalCoordSystem[3][3],
@@ -428,11 +452,13 @@ bool RigidFace3D::CheckProjectionFallsInside(SphericParticle *p_particle)
     const array_1d<double, 3> w  = P - geom[0].Coordinates();
     array_1d<double, 3> u1 = geom[1].Coordinates() - geom[0].Coordinates();
     array_1d<double, 3> u2 = geom[2].Coordinates() - geom[0].Coordinates();
+    array_1d<double, 3> u2_copy;
+    noalias(u2_copy) = u2;
     array_1d<double, 3> n;
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(u1, u2, n)
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(w, u2, u2)
+    GeometryFunctions::CrossProduct(u1, u2, n);
+    GeometryFunctions::CrossProduct(w, u2_copy, u2);
     const double beta = DEM_INNER_PRODUCT_3(u2, n);
-    DEM_SET_TO_CROSS_OF_FIRST_TWO_3(u1, w, u1)
+    GeometryFunctions::CrossProduct(u1, w, u1);
     const double gamma = DEM_INNER_PRODUCT_3(u1, n);
     const double n2 = DEM_INNER_PRODUCT_3(n, n);
     const double alpha = n2 - beta - gamma;

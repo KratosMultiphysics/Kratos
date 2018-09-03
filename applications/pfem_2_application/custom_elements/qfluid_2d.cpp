@@ -156,8 +156,8 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
   //const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
   
   //double h = sqrt(2.00*Area);
-  double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
-  norm_u = sqrt(norm_u);
+  //double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
+  //norm_u = sqrt(norm_u);
   //double tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
   
   //Matrix msMassFactors(6,6);
@@ -810,10 +810,11 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
 	double temp=t1 + t2 + t3;
 	temp *= 0.33333333333333;
 	if(temp>1000.0) temp=1000.0;
-
-        GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  C * exp(-E_over_R/(temp)) * 0.33333333333333 * Area ;
-        GalerkinRHS[1] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  C * exp(-E_over_R/(temp)) * 0.33333333333333 * Area ;
-        GalerkinRHS[2] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  C * exp(-E_over_R/(temp)) * 0.33333333333333 * Area ;
+ 
+        double aux_var= C * exp(-E_over_R/(temp));
+        GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  aux_var * 0.33333333333333 * Area ;
+        GalerkinRHS[1] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  aux_var * 0.33333333333333 * Area ;
+        GalerkinRHS[2] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  aux_var * 0.33333333333333 * Area ;
 
 	//double ddd=C * exp(-E_over_R/(temp));
 	//KRATOS_WATCH(ddd);

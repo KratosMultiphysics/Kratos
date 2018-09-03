@@ -180,11 +180,12 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
-//create a partition of the element array
+        //create a partition of the element array
         int number_of_threads = OpenMPUtils::GetNumThreads();
-        int A_size = A.size1();
 
 #ifdef _OPENMP
+        int A_size = A.size1();
+
         //creating an array of lock variables of the size of the system matrix
         std::vector< omp_lock_t > lock_array(A.size1());
 
@@ -340,6 +341,24 @@ public:
 
         BaseType::mDofSetIsInitialized = true;
 
+
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG        
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        { 
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        }
+    }
+    #endif
+
+
         KRATOS_CATCH("")
     }
 
@@ -351,14 +370,10 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& rModelPart
     ) override
     {
-#ifndef __SUNPRO_CC
         KRATOS_TRY
-#endif
 
         if(pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
         {
@@ -399,7 +414,8 @@ public:
         {
             if(A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
             {
-                KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+                //KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,true);
 #ifdef _OPENMP
                 ParallelConstructGraph(A);
@@ -419,7 +435,7 @@ public:
         //if needed resize the vector for the calculation of reactions
         if(BaseType::mCalculateReactionsFlag == true)
         {
-            unsigned int ReactionsVectorSize = BaseType::mDofSet.size()-BaseType::mEquationSystemSize;
+            unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
             if(BaseType::mpReactionsVector->size() != ReactionsVectorSize)
                 BaseType::mpReactionsVector->resize(ReactionsVectorSize,false);
         }

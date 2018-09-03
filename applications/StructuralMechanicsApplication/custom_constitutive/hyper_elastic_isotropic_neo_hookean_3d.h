@@ -96,7 +96,7 @@ public:
     {
         return 3;
     };
-    
+
     /**
      * Voigt tensor size:
      */
@@ -111,7 +111,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
+    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -119,7 +119,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -127,7 +127,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+    void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -135,7 +135,7 @@ public:
      * @param rValues: The Internalvalues of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -143,7 +143,7 @@ public:
       * @param rValues: The Internalvalues of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
+    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -151,7 +151,7 @@ public:
       * @param rValues: The Internalvalues of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
+    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -159,7 +159,7 @@ public:
       * @param rValues: The Internalvalues of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rValues)  override;
+    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues)  override;
 
     /**
       * Updates the material response:
@@ -167,7 +167,7 @@ public:
       * @param rValues: The Internalvalues of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
+    void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * calculates the value of a specified variable
@@ -175,9 +175,9 @@ public:
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
-     */ 
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
+     */
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -201,7 +201,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -231,7 +231,7 @@ private:
      * @param InverseCTensor: The inverse right Cauchy-Green tensor
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param LameMu: Second Lame parameter
      */
     virtual void CalculateConstitutiveMatrixPK2(
         Matrix& ConstitutiveMatrix,
@@ -246,9 +246,9 @@ private:
      * @param ConstitutiveMatrix: The constitutive matrix
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param LameMu: Second Lame parameter
      */
-    virtual void CalculateConstitutiveMatrixKirchoff(
+    virtual void CalculateConstitutiveMatrixKirchhoff(
         Matrix& ConstitutiveMatrix,
         const double& DeterminantF,
         const double& LameLambda,
@@ -261,7 +261,7 @@ private:
      * @param rStressVector: The stress vector in Voigt notation
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param LameMu: Second Lame parameter
      */
     virtual void CalculatePK2Stress(
         const Matrix& InvCTensor,
@@ -277,9 +277,9 @@ private:
      * @param rStressVector: The stress vector in Voigt notation
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param LameMu: Second Lame parameter
      */
-    virtual void CalculateKirchoffStress(
+    virtual void CalculateKirchhoffStress(
         const Matrix& BTensor,
         Vector& rStressVector,
         const double& DeterminantF,
@@ -293,18 +293,18 @@ private:
      * @param rStrainVector: The strain vector in Voigt notation
      */
     virtual void CalculateCauchyGreenStrain(
-        Parameters& rValues,
+        ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
         );
-    
+
     /**
      * Calculates the Almansi strains
      * @param @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
      */
-    virtual void CalculateAlmansiStrain( 
-        Parameters& rValues,
-        Vector& rStrainVector 
+    virtual void CalculateAlmansiStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
         );
 
     ///@}
@@ -335,4 +335,4 @@ private:
 
 }; // Class HyperElasticIsotropicNeoHookean3D
 }  // namespace Kratos.
-#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_NEO_HOOKEAN_3D_LAW_H_INCLUDED  defined

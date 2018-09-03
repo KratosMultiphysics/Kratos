@@ -45,10 +45,18 @@ namespace Kratos
         rOStream << "Modified shape functions computation base class:\n";
         rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
         std::stringstream distances_buffer;
+        std::stringstream stm;
         for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
-            distances_buffer << std::to_string(nodal_distances(i)) << " ";
+            stm << nodal_distances(i);
+            distances_buffer << stm.str() << " ";
         }
         rOStream << "\tDistance values: " << distances_buffer.str();
+    };
+
+    // Returns a pointer to the splitting utility
+    const DivideGeometry::Pointer ModifiedShapeFunctions::pGetSplittingUtil() const {
+        KRATOS_ERROR << "Trying to retrieve the splitting utility from the modified shape functions base class. \n" <<
+                         "Implement the pGetSplittingUtil according to the input geometry in the proper modified shape functions derived class.";
     };
 
     // Returns the input original geometry.
@@ -187,7 +195,7 @@ namespace Kratos
     };
 
     // Given the interfaces pattern of either the positive or negative interface side, computes the shape function values.
-    void ModifiedShapeFunctions::ComputeInterfaceValuesOnOneSide(
+    void ModifiedShapeFunctions::ComputeFaceValuesOnOneSide(
         Matrix &rInterfaceShapeFunctionsValues,
         ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues,
         Vector &rInterfaceWeightsValues,
@@ -204,7 +212,8 @@ namespace Kratos
         const unsigned int split_edges_size = n_edges + n_nodes;                                             // Split edges vector size
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
         const unsigned int n_dim = (*rParentGeometriesVector[0]).Dimension();                                // Number of dimensions
-        const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
+        const unsigned int n_int_pts = 
+            n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
         // Resize the shape function values matrix
@@ -299,15 +308,16 @@ namespace Kratos
         }
     };
 
-    // Given the interfaces pattern of either the positive or negative interface side, computes the outwards unit normal vector
-    void ModifiedShapeFunctions::ComputeInterfaceNormalOnOneSide(
+    // Given the interfaces pattern of either the positive or negative interface side, computes the outwards area normal vector
+    void ModifiedShapeFunctions::ComputeFaceNormalOnOneSide(
         std::vector<Vector> &rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod) {
 
         // Set some auxiliar variables
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
-        const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
+        const unsigned int n_int_pts = 
+            n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
         rInterfaceAreaNormalValues.clear();
@@ -323,11 +333,34 @@ namespace Kratos
             IntegrationPointsArrayType interface_gauss_pts;
             interface_gauss_pts = r_interface_geom.IntegrationPoints(IntegrationMethod);
 
-            // Compute the ouwards unit normal vector values
+            // Compute the ouwards area normal vector values
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                array_1d<double,3> aux_unit_normal = r_interface_geom.AreaNormal(interface_gauss_pts[i_gauss].Coordinates());
-                rInterfaceAreaNormalValues.push_back(aux_unit_normal);
+                array_1d<double,3> aux_area_normal = r_interface_geom.AreaNormal(interface_gauss_pts[i_gauss].Coordinates());
+                rInterfaceAreaNormalValues.push_back(aux_area_normal);
             }
         }
     };
+
+    // Computes the edge intersection shape function values for either the positive or negative sides
+    void ModifiedShapeFunctions::ComputeEdgeIntersectionValuesOnOneSide(
+        const Matrix &rPmatrix,
+        Matrix &rEdgeShapeFunctionValues){
+
+        // Get geometry information
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();
+        const unsigned int n_edges = p_input_geometry->EdgesNumber();
+        const unsigned int n_nodes = p_input_geometry->PointsNumber();
+
+        // Initialize the output matrix. Note that the non-split edges values must be equal to zero
+        rEdgeShapeFunctionValues = ZeroMatrix(n_edges, n_nodes);
+        
+        // Take the shape function values from the condensation matrix
+        for (unsigned int i_edge = 0; i_edge < n_edges; ++i_edge){
+            const unsigned int p_mat_row = n_nodes + i_edge;
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+                rEdgeShapeFunctionValues(i_edge, i_node) = rPmatrix(p_mat_row, i_node);
+            }
+        }
+    };
+
 }; // namespace Kratos

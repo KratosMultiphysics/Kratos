@@ -113,22 +113,17 @@ public:
         MPI_Sendrecv(&SendBufferSize, 1, MPI_INT, CommPartner, 0, &rReceiveBufferSize,
                      1, MPI_INT, CommPartner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        // Debug Check
-        if (SendBufferSize > MaxSendBufferSize)
-        {
-            KRATOS_ERROR << "Send Buffer too small!; "
-                         << "SendBufferSize = " << SendBufferSize
-                         << ", MaxSendBufferSize = "
-                         << MaxSendBufferSize << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF(SendBufferSize > MaxSendBufferSize)
+            << "Send Buffer too small!; "
+            << "SendBufferSize = " << SendBufferSize
+            << ", MaxSendBufferSize = "
+            << MaxSendBufferSize << std::endl;
 
-        if (rReceiveBufferSize > MaxReceiveBufferSize)
-        {
-            KRATOS_ERROR << "Receive Buffer too small!; "
-                         << "rReceiveBufferSize = " << rReceiveBufferSize
-                         << ", MaxReceiveBufferSize = "
-                         << MaxReceiveBufferSize << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF(rReceiveBufferSize > MaxReceiveBufferSize)
+            << "Receive Buffer too small!; "
+            << "rReceiveBufferSize = " << rReceiveBufferSize
+            << ", MaxReceiveBufferSize = "
+            << MaxReceiveBufferSize << std::endl;
 
         // Perform the actual exchange of the buffers
         MPI_Sendrecv(pSendBuffer, SendBufferSize, DataType, CommPartner, 0, pReceiveBuffer,

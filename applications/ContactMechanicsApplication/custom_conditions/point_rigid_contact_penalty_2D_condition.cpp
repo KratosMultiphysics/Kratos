@@ -57,7 +57,7 @@ namespace Kratos
   Condition::Pointer PointRigidContactPenalty2DCondition::Create(IndexType NewId, NodesArrayType
 								 const& ThisNodes,  PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new PointRigidContactPenalty2DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<PointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -66,7 +66,7 @@ namespace Kratos
 
    Condition::Pointer PointRigidContactPenalty2DCondition::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
    {
-     return Condition::Pointer(new PointRigidContactPenalty2DCondition(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
+     return Kratos::make_shared<PointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
    }
 
   //************************************************************************************
@@ -80,25 +80,22 @@ namespace Kratos
 
 
 
-  
+
   //***********************************************************************************
   //************************************************************************************
 
   double& PointRigidContactPenalty2DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-  { 
+  {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( this->GetProperties().Has(THICKNESS) ) {
-       if ( dimension == 2 && GetProperties()[THICKNESS]>0 ) 
+       if ( dimension == 2 && GetProperties()[THICKNESS]>0 )
           rIntegrationWeight *= GetProperties()[THICKNESS];
 
-       return rIntegrationWeight;
     }
+    return rIntegrationWeight;
   }
 
 
 
 } // Namespace Kratos
-
-
-

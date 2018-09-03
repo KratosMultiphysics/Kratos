@@ -295,9 +295,9 @@ namespace Kratos
    }
 
 
-   void UpdatedLagrangianUPwPElement::InitializeElementVariables ( ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUPwPElement::InitializeElementData ( ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianUPressureElement::InitializeElementVariables( rVariables, rCurrentProcessInfo );
+      UpdatedLagrangianUPressureElement::InitializeElementData( rVariables, rCurrentProcessInfo );
 
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
 
@@ -330,132 +330,6 @@ namespace Kratos
                   return correct;
 
       KRATOS_CATCH( "" );
-   }
-
-   //*********************************SET DOUBLE VALUE***********************************
-   //************************************************************************************
-
-   void UpdatedLagrangianUPwPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-         std::vector<double>& rValues,
-         const ProcessInfo& rCurrentProcessInfo )
-   {
-
-      UpdatedLagrangianUPressureElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-   }
-
-
-   //**********************************GET DOUBLE VALUE**********************************
-   //************************************************************************************
-
-
-   void UpdatedLagrangianUPwPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-         std::vector<double>& rValues,
-         const ProcessInfo& rCurrentProcessInfo )
-   {
-
-      LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-   }
-
-   void UpdatedLagrangianUPwPElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
-   {
-
-      KRATOS_TRY
-
-
-      const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-
-      if ( rOutput.size() != integration_points_number )
-         rOutput.resize( integration_points_number );
-      LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
-
-      KRATOS_CATCH("")
-   }
-
-
-   void UpdatedLagrangianUPwPElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
-   {
-      const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-      if ( rOutput.size() != integration_points_number )
-         rOutput.resize( integration_points_number );
-
-      if (rVariable == CAUCHY_STRESS_TENSOR) 
-      {
-         //create and initialize element variables:
-         ElementVariables Variables;
-         this->InitializeElementVariables(Variables,rCurrentProcessInfo);
-
-         Variables.StressVector = ZeroVector(6); // I WANT TO GET THE THIRD COMPONENT
-         //create constitutive law parameters:
-         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-         //set constitutive law flags:
-         Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-         //reading integration points
-         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-         {
-            //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables,PointNumber);
-
-            //to take in account previous step writing
-            if( mFinalizedStep ){
-               this->GetHistoricalVariables(Variables,PointNumber);
-            }		
-
-            //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
-
-
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-
-
-            if ( ( rOutput[PointNumber].size1() != 3 ) |
-                  ( rOutput[PointNumber].size2() != 3 ) )
-               rOutput[PointNumber].resize( 3, 3, false );
-
-            rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor( Variables.StressVector );
-
-
-         }
-
-      }
-      else {
-         UpdatedLagrangianUPressureElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
-      }
-   }
-
-   void UpdatedLagrangianUPwPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
-   {
-
-      LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
-
-   }
-
-
-
-   void UpdatedLagrangianUPwPElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
-   {
-
-      LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-   }
-
-   //**********************************GET TENSOR VALUE**********************************
-   //************************************************************************************
-
-   void UpdatedLagrangianUPwPElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
-   {
-      if ( rVariable == CAUCHY_STRESS_TENSOR) {
-         CalculateOnIntegrationPoints(rVariable, rValue, rCurrentProcessInfo);
-      }
-      else {
-         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
-      }
-
    }
 
 
@@ -512,7 +386,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUPwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUPwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -580,7 +454,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUPwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUPwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
 
       /*if ( this->Id() == 1) {
@@ -621,7 +495,7 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUPwPElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-         ElementVariables& rVariables,
+         ElementDataType& rVariables,
          Vector& rVolumeForce,
          double& rIntegrationWeight)
 
@@ -656,7 +530,7 @@ namespace Kratos
    //************************************** Idem but with Total Stress ***********
 
    void UpdatedLagrangianUPwPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight
          )
    {
@@ -726,7 +600,7 @@ namespace Kratos
    // ********* MASS BALANCE EQUATION: WATER PRESSURE EQUATION ***********************
    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    void UpdatedLagrangianUPwPElement::CalculateAndAddWaterPressureForces( VectorType& rRightHandSideVector, 
-         ElementVariables& rVariables,
+         ElementDataType& rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -820,7 +694,7 @@ namespace Kratos
    // ******************************* CALCULATE AND ADD PRESSURE FORCES ***************
    // *********************************************************************************
    void UpdatedLagrangianUPwPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -866,7 +740,7 @@ namespace Kratos
    //************************************************************************************
 
    void UpdatedLagrangianUPwPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -900,10 +774,11 @@ namespace Kratos
 
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
+
+         SolidElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         LargeDisplacementElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
+         SolidElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
       }
@@ -940,7 +815,7 @@ namespace Kratos
    // ********* STABILIZATION OF THE MASS BALANCE EQUATION **************************
    // *******************************************************************************
    void UpdatedLagrangianUPwPElement::CalculateAndAddStabilizedWaterPressure( VectorType& rRightHandSideVector, 
-         ElementVariables& rVariables,
+         ElementDataType& rVariables,
          double& rIntegrationWeight)
    {
       // FPL just copied from there
@@ -954,7 +829,8 @@ namespace Kratos
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
-      GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
+
+      SolidElement::GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
       Caux = 1.0/Mmodulus[0];
 
       double he;
@@ -1023,7 +899,7 @@ namespace Kratos
    // ** ***************** Calculation of the geometric terms due to the water pressure 
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddUnconsideredKuuTerms(MatrixType& rK,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1034,7 +910,7 @@ namespace Kratos
    // ************** Calculation of the Ku wP Matrix *********************************************
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddKuwP(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1065,7 +941,7 @@ namespace Kratos
    //* *************************** Calculation of the KwP U Matrix
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddKwPu(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1115,7 +991,7 @@ namespace Kratos
    // ********************** Calculation of the KwP P Matrix
    // 
    void UpdatedLagrangianUPwPElement::CalculateAndAddKwPP(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1127,7 +1003,7 @@ namespace Kratos
    //** ***************** Calculation of the K wP wP Matrix
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddKwPwP(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight )
    {
       KRATOS_TRY
@@ -1186,7 +1062,7 @@ namespace Kratos
    // ** ***************** Calculation of the Stabilization Tangent Matrix
    //
    void UpdatedLagrangianUPwPElement::CalculateAndAddKwPwPStab(MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -1202,7 +1078,7 @@ namespace Kratos
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
-      GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
+      SolidElement::GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
       Caux = 1.0/Mmodulus[0];
 
       double he;
@@ -1254,7 +1130,7 @@ namespace Kratos
    //************************************CALCULATE VOLUME CHANGE*************************
    //************************************************************************************
 
-   double& UpdatedLagrangianUPwPElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
+   double& UpdatedLagrangianUPwPElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
    {
       KRATOS_TRY
 
@@ -1273,8 +1149,8 @@ namespace Kratos
       KRATOS_TRY
 
       //create and initialize element variables:
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
       //create constitutive law parameters:
       ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1293,7 +1169,7 @@ namespace Kratos
          this->CalculateKinematics(Variables,PointNumber);
 
          //set general variables to constitutivelaw parameters
-         this->SetElementVariables(Variables,Values,PointNumber);
+         this->SetElementData(Variables,Values,PointNumber);
 
 
          //call the constitutive law to update material variables
@@ -1312,8 +1188,7 @@ namespace Kratos
       }
 
 
-
-      mFinalizedStep = true;
+      this->Set(SolidElement::FINALIZED_STEP,true);
 
       KRATOS_CATCH( "" )
    }
@@ -1332,8 +1207,8 @@ namespace Kratos
       KRATOS_TRY
 
       //create and initialize element variables:
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
       //create constitutive law parameters:
       ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1357,7 +1232,7 @@ namespace Kratos
          this->CalculateKinematics(Variables,PointNumber);
 
          //set general variables to constitutivelaw parameters
-         this->SetElementVariables(Variables,Values,PointNumber);
+         this->SetElementData(Variables,Values,PointNumber);
 
 
          //compute stresses and constitutive parameters
@@ -1365,7 +1240,7 @@ namespace Kratos
 
 
          //some transformation of the configuration can be needed (UL element specially)
-         this->TransformElementVariables(Variables,PointNumber);
+         this->TransformElementData(Variables,PointNumber);
 
          //calculating weights for integration on the "reference configuration"
          double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
@@ -1385,303 +1260,8 @@ namespace Kratos
 
             this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntegrationWeight );
          }
-
-
-         /*std::cout<<" Element: "<<this->Id()<<std::endl;
-           unsigned int number_of_nodes = GetGeometry().PointsNumber();
-           for ( unsigned int i = 0; i < number_of_nodes; i++ )
-           {
-           array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
-           array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-           array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-           array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-           std::cout<<" Previous  Position  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<std::endl;
-           }
-           for ( unsigned int i = 0; i < number_of_nodes; i++ )
-           {
-           array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-           std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
-           }
-           for ( unsigned int i = 0; i < number_of_nodes; i++ )
-           {
-           array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-           std::cout<<" Previous Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousDisplacement<<std::endl;
-           }
-
-           for ( unsigned int i = 0; i < number_of_nodes; i++ )
-           {
-           array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-           std::cout<<" Current  Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentDisplacement<<std::endl;
-           }
-           for ( unsigned int i = 0; i < number_of_nodes; i++ )
-           {
-           double & CurrentPW  = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
-           double & PreviousPW  = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
-           std::cout<<" Current  WATER_PRESSURE  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPW<<std::endl;
-           std::cout<<" Previous  WATER_PRESSURE  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousPW<<std::endl;
-           }
-           for ( unsigned int i = 0; i < number_of_nodes; i++ )
-           {
-           double & CurrentPW  = GetGeometry()[i].FastGetSolutionStepValue(JACOBIAN);
-           double & PreviousPW  = GetGeometry()[i].FastGetSolutionStepValue(JACOBIAN);
-           std::cout<<" Current  JACOPBIAN  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPW<<std::endl;
-           std::cout<<" Previous  JACOBIAN  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousPW<<std::endl;
-           }
-
-           std::cout<<" Stress "<<Variables.StressVector<<std::endl;
-           std::cout<<" Strain "<<Variables.StrainVector<<std::endl;
-           std::cout<<" F  "<<Variables.F<<std::endl;
-           std::cout<<" F0 "<<Variables.F0<<std::endl;
-           std::cout<<" ConstitutiveMatrix "<<Variables.ConstitutiveMatrix<<std::endl;
-           std::cout<<" K "<<rLocalSystem.GetLeftHandSideMatrix()<<std::endl;
-           std::cout<<" f "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
-          */
-
-
-
       }
 
-      if ( this->Id() < 0 ) {
-         double delta = 0.000001;
-
-         std::cout << " TRY TO COMPUTE SOMETHING SIMILAR TO A Numerical Derivative and then try to compare it to that " << std::endl;
-         if ( ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) && ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) )//calculation of the vector is required
-         {
-            std::cout << " LHS MATRIX. LEts see what " << rLocalSystem.GetLeftHandSideMatrix() << std::endl;
-            MatrixType ThisMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
-            std::cout << " THE RHS " << rLocalSystem.GetRightHandSideVector() << std::endl;
-            std::cout << " THEEEE MAAATRIX " << std::endl;
-            for (unsigned int i = 0; i< 12; i++) {
-               for (unsigned int j = 0; j < 12; j++) {
-                  std::cout<< ThisMatrix(j,i) << " , ";
-               }
-               std::cout << " ... " << std::endl;
-            }
-            //
-            VectorType PreviousRHS = rLocalSystem.GetRightHandSideVector() ; 
-
-            // CHECK THE PRESSURE DERIVATIVE
-            const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-            for (unsigned int node = 0; node < number_of_nodes; node++)
-            {
-               VectorType & PRHS = rLocalSystem.GetRightHandSideVector();
-               PRHS = ZeroVector( 3*4);
-               std::cout << " ---------  DERIVATIVE WITH WATER PRESSURE RESPECT PRESSURE ------------" << std::endl;
-               int PointNumber = 0;
-               const double  ThisNodePressure = GetGeometry()[node].GetSolutionStepValue(WATER_PRESSURE);
-
-               GetGeometry()[node].GetSolutionStepValue(WATER_PRESSURE) = ThisNodePressure + delta; 
-
-
-               // DO THE STUPID COMPUTATION 
-               //compute element kinematics B, F, DN_DX ...
-               this->CalculateKinematics(Variables,PointNumber);
-
-               //set general variables to constitutivelaw parameters
-               this->SetElementVariables(Variables,Values,PointNumber);
-
-               // OBS, now changing Variables I change Values because they are pointers ( I hope);
-               double NodalJacobian = 0;
-               for (int i = 0; i < 3; i++)
-                  NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
-
-               double detFT = Variables.detH;
-               const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-               double dimension_double = double(dimension);
-
-               // T1
-               Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
-               Variables.detH = (NodalJacobian);
-
-               //compute stresses and constitutive parameters
-               ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-               mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-               // T1
-               Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-               Variables.detH = detFT;
-
-               //some transformation of the configuration can be needed (UL element specially)
-               this->TransformElementVariables(Variables,PointNumber);
-
-               //calculating weights for integration on the "reference configuration"
-               double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-               IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
-
-               //contributions to stiffness matrix calculated on the reference config
-               this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce,  IntegrationWeight );
-
-               // END STUPID COMPUTATION
-               VectorType ThisRHS = rLocalSystem.GetRightHandSideVector();
-               std::cout << " THE DERIVATIVE i: " << node << " is " << -( ThisRHS -PreviousRHS) / delta << std::endl;
-               std::cout << " THE MATRIX IS : " << node << "   []  " ;
-               int i = 4*(node+1) - 1;
-               for (unsigned int j = 0; j < 12; j++) {
-                  std::cout<< ThisMatrix(j,i) << " , ";
-               }
-               std::cout << " ... " << std::endl;
-               std::cout << std::endl;
-
-               // PUT IT AS IT WAS
-               GetGeometry()[node].GetSolutionStepValue(WATER_PRESSURE) = ThisNodePressure; 
-            } // end for Pressure derivative
-
-            VectorType& THISRH = rLocalSystem.GetRightHandSideVector(); 
-            THISRH = PreviousRHS; 
-
-
-            // NUMERICAL DERIVATIVE WITH RESPECT TO THE JACOBIAN
-            // CHECK THE JACOBIAN DERIVATIVE
-            for (unsigned int node = 0; node < number_of_nodes; node++)
-            {
-               VectorType & PRHS = rLocalSystem.GetRightHandSideVector();
-               PRHS = ZeroVector( 3*4);
-               std::cout << " ---------  DERIVATIVE WITH RESPECT jacobian ------------" << std::endl;
-               int PointNumber = 0;
-               const double  ThisNodePressure = GetGeometry()[node].GetSolutionStepValue(JACOBIAN);
-
-               GetGeometry()[node].GetSolutionStepValue(JACOBIAN) = ThisNodePressure + delta; 
-
-               // DO THE STUPID COMPUTATION 
-               //compute element kinematics B, F, DN_DX ...
-               this->CalculateKinematics(Variables,PointNumber);
-
-               //set general variables to constitutivelaw parameters
-               this->SetElementVariables(Variables,Values,PointNumber);
-
-               // OBS, now changing Variables I change Values because they are pointers ( I hope);
-               double NodalJacobian = 0;
-               for (int i = 0; i < 3; i++)
-                  NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
-
-               double detFT = Variables.detH;
-               const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-               double dimension_double = double(dimension);
-
-               // T1
-               Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
-               Variables.detH = (NodalJacobian);
-
-               //compute stresses and constitutive parameters
-               mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-               // T1
-               Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-               Variables.detH = detFT;
-
-               //some transformation of the configuration can be needed (UL element specially)
-               this->TransformElementVariables(Variables,PointNumber);
-
-               //calculating weights for integration on the "reference configuration"
-               double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-               IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
-
-               //contributions to stiffness matrix calculated on the reference config
-               this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce,  IntegrationWeight );
-
-               // END STUPID COMPUTATION
-               VectorType ThisRHS = rLocalSystem.GetRightHandSideVector();
-               std::cout << " THE DERIVATIVE i: " << node << " is " << -( ThisRHS -PreviousRHS) / delta << std::endl;
-               std::cout << " THE MATRIX IS : " << node << "   []  " ;
-               int i = 4*(node+1) - 2;
-               for (unsigned int j = 0; j < 12; j++) {
-                  std::cout<< ThisMatrix(j,i) << " , ";
-               }
-               std::cout << " ... " << std::endl;
-               std::cout << std::endl;
-               std::cout << std::endl;
-
-               // PUT IT AS IT WAS
-               GetGeometry()[node].GetSolutionStepValue(JACOBIAN) = ThisNodePressure; 
-            } // end check derivative of jacobian
-
-            // NUMERICAL DERIVATIVE WITH RESPECT TO THE DISPLACEMENT
-            // CHECK THE DISPLACEMENT DERIVATIVE
-            const unsigned int dimensionIS       = GetGeometry().WorkingSpaceDimension();
-            delta = 0.000001;
-
-
-            for (unsigned int node = 0; node < number_of_nodes; node++)
-            {
-               for (unsigned int dime = 0; dime < dimensionIS; dime++) 
-               {
-                  VectorType & PRHS = rLocalSystem.GetRightHandSideVector();
-                  PRHS = ZeroVector( 3*4);
-                  std::cout << " ---------  DERIVATIVE WITH RESPECT DISPLACEMENT ------------" << std::endl;
-                  int PointNumber = 0;
-
-                  const array_1d< double, 3 > ConstDispl = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-                  array_1d< double, 3 > & Displ = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-                  Displ[dime] = ConstDispl[dime] + delta; 
-
-                  const array_1d< double, 3 > PlotDispl = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-
-                  this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-                  // DO THE STUPID COMPUTATION 
-                  //compute element kinematics B, F, DN_DX ...
-                  this->CalculateKinematics(Variables,PointNumber);
-
-                  //set general variables to constitutivelaw parameters
-                  this->SetElementVariables(Variables,Values,PointNumber);
-
-                  // OBS, now changing Variables I change Values because they are pointers ( I hope);
-                  double NodalJacobian = 0;
-                  for (int i = 0; i < 3; i++)
-                     NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
-
-                  double detFT = Variables.detH;
-                  const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-                  double dimension_double = double(dimension);
-
-                  // T1
-                  Variables.H *= pow( (NodalJacobian) / Variables.detH, 1.0/dimension_double);
-                  Variables.detH = (NodalJacobian);
-
-                  //compute stresses and constitutive parameters
-                  mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-
-                  // T1
-                  Variables.H *=  pow(  detFT / (  NodalJacobian), 1.0/dimension_double);
-                  Variables.detH = detFT;
-
-                  //some transformation of the configuration can be needed (UL element specially)
-                  this->TransformElementVariables(Variables,PointNumber);
-
-                  //calculating weights for integration on the "reference configuration"
-                  double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-                  IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
-
-                  //contributions to stiffness matrix calculated on the reference config
-                  this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce,  IntegrationWeight );
-
-                  // END STUPID COMPUTATION
-                  VectorType ThisRHS = rLocalSystem.GetRightHandSideVector();
-                  std::cout << " THE DERIVATIVE i: " << node << " COMPONENT " << dime << " is " << -( ThisRHS -PreviousRHS) / delta << std::endl;
-                  std::cout << " THE MATRIX IS : " << node << "   []  " ;
-                  int i = 4*node + dime;
-                  for (unsigned int j = 0; j < 12; j++) {
-                     std::cout<< ThisMatrix(j,i) << " , ";
-                  }
-                  std::cout << " ... " << std::endl;
-                  std::cout << std::endl;
-                  std::cout << std::endl;
-                  std::cout << std::endl;
-
-                  // PUT IT AS IT WAS
-                  Displ[dime] = ConstDispl[dime];
-               }
-            } // end check derivative of jacobian
-
-            THISRH = PreviousRHS; 
-
-         }
-
-      } // end of this stupid thing that I 'm doing.
 
       KRATOS_CATCH( "" )
    }

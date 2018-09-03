@@ -47,17 +47,14 @@ class DamReservoirConstantTemperatureProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed"                                         : false,
                 "Gravity_Direction"                                : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
                 "Water_temp"                                       : 0.0,
-                "Water_temp_Table"                                 : 0,                
+                "Water_temp_Table"                                 : 0,
                 "Water_level"                                      : 0.0,
-                "Water_level_Table"                                : 0,
-                "Outer_temp"                                       : 0.0,
-                "Outer_temp_Table"                                 : 0
+                "Water_level_Table"                                : 0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -69,28 +66,22 @@ class DamReservoirConstantTemperatureProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mIsFixed = rParameters["is_fixed"].GetBool();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
         mWaterTemp = rParameters["Water_temp"].GetDouble();
         mWaterLevel = rParameters["Water_level"].GetDouble();
-        mOuterTemp = rParameters["Outer_temp"].GetDouble();
 
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableIdWaterTemp = rParameters["Water_temp_Table"].GetInt();
         mTableIdWater = rParameters["Water_level_Table"].GetInt();
-        mTableIdOuter = rParameters["Outer_temp_Table"].GetInt();
 
         if (mTableIdWaterTemp != 0)
             mpTableWaterTemp = mrModelPart.pGetTable(mTableIdWaterTemp);
 
         if (mTableIdWater != 0)
             mpTableWater = mrModelPart.pGetTable(mTableIdWater);
-
-        if (mTableIdOuter != 0)
-            mpTableOuter = mrModelPart.pGetTable(mTableIdOuter);
 
         KRATOS_CATCH("");
     }
@@ -102,43 +93,40 @@ class DamReservoirConstantTemperatureProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void Execute() override
     {
 
         KRATOS_TRY;
 
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinate(direction);
+                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
+                    if (mIsFixed)
+                    {
+                        it->Fix(var);
+                    }
                     it->FastGetSolutionStepValue(var) = mWaterTemp;
                 }
-                else
-                    it->FastGetSolutionStepValue(var) = mOuterTemp;
             }
         }
 
@@ -147,7 +135,7 @@ class DamReservoirConstantTemperatureProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -170,44 +158,61 @@ class DamReservoirConstantTemperatureProcess : public Process
             mWaterLevel = mpTableWater->GetValue(time);
         }
 
-        if (mTableIdOuter != 0)
-        {
-            double time = mrModelPart.GetProcessInfo()[TIME];
-            time = time / mTimeUnitConverter;
-            mOuterTemp = mpTableOuter->GetValue(time);
-        }
-
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinate(direction);
+                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
+                    if (mIsFixed)
+                    {
+                        it->Fix(var);
+                    }
                     it->FastGetSolutionStepValue(var) = mWaterTemp;
                 }
-                else
-                    it->FastGetSolutionStepValue(var) = mOuterTemp;
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteFinalizeSolutionStep() override
+    {
+
+        KRATOS_TRY;
+
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+
+        if (nnodes != 0)
+        {
+
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
+
+            #pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->Free(var);
             }
         }
 
@@ -215,19 +220,19 @@ class DamReservoirConstantTemperatureProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamReservoirConstantTemperatureProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamReservoirConstantTemperatureProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 
@@ -237,21 +242,17 @@ class DamReservoirConstantTemperatureProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     std::string mGravityDirection;
     bool mIsFixed;
     double mReferenceCoordinate;
     double mWaterTemp;
     double mWaterLevel;
-    double mOuterTemp;
     double mTimeUnitConverter;
     TableType::Pointer mpTableWaterTemp;
     TableType::Pointer mpTableWater;
-    TableType::Pointer mpTableOuter;
     int mTableIdWaterTemp;
     int mTableIdWater;
-    int mTableIdOuter;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

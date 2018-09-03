@@ -12,13 +12,14 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.PfemApplication import *
+from KratosMultiphysics.DelaunayMeshingApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PfemSolidMechanicsApplication import *
 from KratosMultiphysics.PfemFluidDynamicsApplication import *
 from KratosMultiphysics.ContactMechanicsApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+
 
 class Solution:
     def __init__(self, algorithm = None, varying_parameters = Parameters("{}")):
@@ -28,5 +29,8 @@ class Solution:
             import swimming_DEM_PFEM_algorithm
             self.alg = swimming_DEM_PFEM_algorithm.Algorithm(varying_parameters)
 
+    def Run(self):
+        return self.alg.Run()
+
 if __name__=="__main__":
-    Solution().alg.Run()
+    Solution().Run()

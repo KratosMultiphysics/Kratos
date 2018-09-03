@@ -15,11 +15,9 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
@@ -31,6 +29,7 @@
 #include "custom_processes/boussinesq_force_process.h"
 #include "custom_processes/embedded_nodes_initialization_process.h"
 #include "custom_processes/embedded_postprocess_process.h"
+#include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/move_rotor_process.h"
 #include "spaces/ublas_space.h"
 
@@ -44,50 +43,70 @@ namespace Kratos
 namespace Python
 {
 
-void AddCustomProcessesToPython()
+void AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_< SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
-    ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
+    class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
+    (m,"SpalartAllmarasTurbulenceModel")
+    .def(init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
     .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
     .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
     ;
 
-    class_< StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
-    ("StokesInitializationProcess",init<ModelPart::Pointer, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
+    class_<StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
+    (m,"StokesInitializationProcess")
+    .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
     .def("SetConditions",&StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>::SetConditions)
     ;
 
-    class_< BoussinesqForceProcess, bases<Process>, boost::noncopyable >
-    ("BoussinesqForceProcess",init<ModelPart::Pointer, Parameters& >())
+    class_<BoussinesqForceProcess, BoussinesqForceProcess::Pointer, Process>
+    (m,"BoussinesqForceProcess")
+    .def(init<ModelPart*, Parameters& >())
     ;
 
-    class_< WindkesselModel, bases<Process>, boost::noncopyable >
-    ("WindkesselModel", init < ModelPart&>())
+    class_<WindkesselModel, WindkesselModel::Pointer, Process>
+    (m,"WindkesselModel")
+    .def(init < ModelPart&>())
     ;
 
-    class_< DistanceModificationProcess, bases<Process>, boost::noncopyable >
-    ("DistanceModificationProcess",init < ModelPart&, const bool, const bool, const bool >())
+    class_<DistanceModificationProcess, DistanceModificationProcess::Pointer, Process>
+    (m,"DistanceModificationProcess")
+    .def(init < ModelPart&, const double, const double, const bool, const bool, const bool >())
     .def(init< ModelPart&, Parameters& >())
     ;
 
-    class_< EmbeddedNodesInitializationProcess, bases<Process>, boost::noncopyable >
-    ("EmbeddedNodesInitializationProcess",init < ModelPart&, unsigned int >())
+    class_<EmbeddedNodesInitializationProcess, EmbeddedNodesInitializationProcess::Pointer, Process>
+    (m,"EmbeddedNodesInitializationProcess")
+    .def(init < ModelPart&, unsigned int >())
     ;
 
-
-    class_< EmbeddedPostprocessProcess, bases<Process>, boost::noncopyable >
-    ("EmbeddedPostprocessProcess",init < ModelPart& >())
+    class_<EmbeddedPostprocessProcess, EmbeddedPostprocessProcess::Pointer, Process>
+    (m,"EmbeddedPostprocessProcess")
+    .def(init < ModelPart& >())
     ;
 
-    class_< MoveRotorProcess, bases<Process>, boost::noncopyable >
-    ("MoveRotorProcess",init < ModelPart&, const double, const double, const double, const double, const double, const double >())
+    class_<EmbeddedSkinVisualizationProcess, EmbeddedSkinVisualizationProcess::Pointer, Process>
+    (m,"EmbeddedSkinVisualizationProcess")
+    .def(init < 
+        ModelPart&, 
+        ModelPart&, 
+        const std::vector<Variable <double> >, 
+        const std::vector<Variable< array_1d<double, 3> > >, 
+        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >, 
+        std::string, 
+        const bool >())
+    .def(init< ModelPart&, ModelPart&, Parameters& >())
+    ;
+
+    class_<MoveRotorProcess, MoveRotorProcess::Pointer, Process>
+    (m,"MoveRotorProcess")
+    .def(init < ModelPart&, const double, const double, const double, const double, const double, const unsigned int >())
     .def(init< ModelPart&, Parameters& >())
     ;
 

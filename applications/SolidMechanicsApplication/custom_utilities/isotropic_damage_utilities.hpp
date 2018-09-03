@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_ISOTROPIC_DAMAGE_UTILITIES )
-#define  KRATOS_ISOTROPIC_DAMAGE_UTILITIES
+#if !defined(KRATOS_ISOTROPIC_DAMAGE_UTILITIES_H_INCLUDED)
+#define  KRATOS_ISOTROPIC_DAMAGE_UTILITIES_H_INCLUDED
 
 
 /* System includes */
@@ -32,16 +32,16 @@ public:
      * Calculates perturbations in each direction of a given vector.
      * @param InputVector the given vector used to obtain the perturbations.
      */
-    
+
     static inline void ComputePerturbationVector( Vector& rPerturbationVector, const Vector& InputVector )
-    {        
+    {
         const unsigned int VSize = InputVector.size();
         if(rPerturbationVector.size() != VSize)
             rPerturbationVector.resize(VSize,false);
-        
+
         const double MinTol = 1.0e-10;
         const double MaxTol = 1.0e-5;
-        
+
         //Maximum and minimum vector components
         double max_component = fabs(InputVector[0]) , min_component = fabs(InputVector[0]);
 
@@ -50,7 +50,7 @@ public:
             if( fabs(InputVector[i]) < min_component )
             {
                 min_component = fabs(InputVector[i]);
-            }   
+            }
             else if( fabs(InputVector[i]) > max_component )
             {
                 max_component = fabs(InputVector[i]);
@@ -63,7 +63,7 @@ public:
         {
             aux = max_component*MinTol;
         }
-        
+
         //PerturbationVector
         for( unsigned int i=0; i<VSize; i++ )
         {
@@ -86,4 +86,4 @@ public:
 }; /* Class IsotropicDamageUtilities */
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_ISOTROPIC_DAMAGE_UTILITIES defined */
+#endif /* KRATOS_ISOTROPIC_DAMAGE_UTILITIES_H_INCLUDED defined */

@@ -29,9 +29,29 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Prism3D15
+ * @ingroup KratosCore
+ * @brief A fifteen node prism geometry with quadratic shape functions
+ * @details The node ordering corresponds with: 
+ *                 3                          
+ *               ,/|`\                    
+ *             12  |  14               
+ *           ,/    |    `\          
+ *          4------13-----5       
+ *          |      9      |        
+ *          |      |      |        
+ *          |      |      |       
+ *          |      |      |       
+ *          10     |      11       
+ *          |      0      |        
+ *          |    ,/ `\    |       
+ *          |  ,6     `8  |        
+ *          |,/         `\|       
+ *          1------7------2          
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Prism3D15 : public Geometry<TPointType>
 {
 public:
@@ -332,7 +352,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -512,9 +532,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     virtual bool IsInside( 

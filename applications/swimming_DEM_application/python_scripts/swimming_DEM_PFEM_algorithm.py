@@ -10,7 +10,7 @@ import swimming_DEM_procedures as SDP
 import variables_management as vars_man
 
 sys.path.insert(0,'')
-import DEM_explicit_solver_var as DEM_parameters
+#import DEM_explicit_solver_var as DEM_parameters
 BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 
 class Algorithm(BaseAlgorithm):
@@ -23,12 +23,13 @@ class Algorithm(BaseAlgorithm):
     def SetCouplingParameters(self, varying_parameters):
 
         super(Algorithm,self).SetCouplingParameters(varying_parameters)
-        self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["domain_size"].GetInt()
+        self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["dimension"].GetInt()
 
     def SetBetaParameters(self):
 
         self.pp.Dt = self.fluid_solution.GetDeltaTimeFromParameters()
         super(Algorithm,self).SetBetaParameters()
+        self.pp.CFD_DEM["body_force_per_unit_mass_variable_name"].SetString('VOLUME_ACCELERATION')
 
     #def SetCouplingParameters(self, varying_parameters):
         #parameters_file = open("ProjectParametersDEM.json",'r')
@@ -65,6 +66,20 @@ class Algorithm(BaseAlgorithm):
                 source_model_part = self.fluid_solution.main_model_part.GetSubModelPart(body_model_part_name)
                 SwimmingDemInPfemUtils().TransferWalls(source_model_part, destination_model_part)
 
+    def TransferGravityFromDisperseToFluid(self):
+        # setting fluid's body force to the same as DEM's
+        if self.pp.CFD_DEM["body_force_on_fluid_option"].GetBool():
+
+            for node in self.fluid_model_part.Nodes:
+                node.SetSolutionStepValue(VOLUME_ACCELERATION_X, 0, self.pp.CFD_DEM["GravityX"].GetDouble())
+                node.SetSolutionStepValue(VOLUME_ACCELERATION_Y, 0, self.pp.CFD_DEM["GravityY"].GetDouble())
+                node.SetSolutionStepValue(VOLUME_ACCELERATION_Z, 0, self.pp.CFD_DEM["GravityZ"].GetDouble())
+
+    def AssignKinematicViscosityFromDynamicViscosity(self):
+        for node in self.fluid_model_part.Nodes:
+            kinematic_viscosity = node.GetSolutionStepValue(DYNAMIC_VISCOSITY,0) / node.GetSolutionStepValue(DENSITY,0)
+            node.SetSolutionStepValue(VISCOSITY, 0, kinematic_viscosity)
+
     def FluidInitialize(self):
 
         self.fluid_solution.vars_man=vars_man
@@ -85,11 +100,12 @@ class Algorithm(BaseAlgorithm):
             print(" [STEP:",self.step," TIME:",self.time,"]")
 
     def CloneTimeStep(self):
+        self.TransferTimeToFluidSolver()
 
         if self.step < self.GetFirstStepForFluidComputation() or self.stationarity:
             self.fluid_solution.main_model_part.CloneTimeStep(self.time)
 
-    def FluidSolve(self, time = 'None'):
+    def FluidSolve(self, time = 'None', solve_system = True):
 
         self.fluid_solution.InitializeSolutionStep()
         self.fluid_solution.SolveSolutionStep()
