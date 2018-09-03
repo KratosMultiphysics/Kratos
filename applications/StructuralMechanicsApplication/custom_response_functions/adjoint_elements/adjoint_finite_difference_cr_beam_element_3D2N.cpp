@@ -82,9 +82,9 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rV
         }
 
         if(stress_is_moment)
-            mpPrimalElement->GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
+            mpPrimalElement->CalculateOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
         else
-            mpPrimalElement->GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
+            mpPrimalElement->CalculateOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
 
         if(rVariable == STRESS_ON_GP)
         {

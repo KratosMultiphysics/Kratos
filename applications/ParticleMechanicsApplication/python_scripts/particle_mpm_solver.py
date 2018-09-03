@@ -82,7 +82,7 @@ class ParticleMPMSolver(object):
                 "max_iteration": 200,
                 "provide_coordinates": false,
                 "gmres_krylov_space_dimension": 100,
-                "verbosity" : 2,
+                "verbosity" : 0,
                 "tolerance": 1e-7,
                 "scaling": false,
                 "block_size": 3,

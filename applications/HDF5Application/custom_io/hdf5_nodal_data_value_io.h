@@ -7,12 +7,11 @@
 //  License:		 BSD License
 //					 license: HDF5Application/license.txt
 //
-//  Main author:    Michael Andre, https://github.com/msandre
-//                  Suneth Warnakulasuriya, https://github.com/sunethwarna
+//  Main author:    https://github.com/msandre
 //
 
-#if !defined(KRATOS_HDF5_ELEMENT_SOLUTION_STEP_DATA_IO_H_INCLUDED)
-#define KRATOS_HDF5_ELEMENT_SOLUTION_STEP_DATA_IO_H_INCLUDED
+#if !defined(KRATOS_HDF5_NODAL_DATA_VALUE_IO_H_INCLUDED)
+#define KRATOS_HDF5_NODAL_DATA_VALUE_IO_H_INCLUDED
 
 // System includes
 #include <string>
@@ -31,6 +30,7 @@ namespace Kratos
 {
 
 class Parameters;
+class Communicator;
 
 namespace HDF5
 {
@@ -40,55 +40,52 @@ namespace HDF5
 ///@name Kratos Classes
 ///@{
 
-/// A class for IO of element solution step data in HDF5.
-class ElementSolutionStepDataIO
+/// A class for IO of non-historical nodal values in HDF5.
+class NodalDataValueIO
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(ElementSolutionStepDataIO);
+    KRATOS_CLASS_POINTER_DEFINITION(NodalDataValueIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    ElementSolutionStepDataIO(Parameters Settings, File::Pointer pFile);
+    NodalDataValueIO(Parameters Settings, File::Pointer pFile);
 
     ///@}
     ///@name Operations
     ///@{
 
-    void WriteElementResults(ElementsContainerType const& rElements);
+    void WriteNodalResults(NodesContainerType const& rNodes);
 
-    void ReadElementResults(ElementsContainerType& rElements);
-    
-    ///@}
+    void ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm);
 
-protected:
-    ///@name Protected Operations
-    ///@{
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
+
     File::Pointer mpFile;
     std::string mPrefix;
     std::vector<std::string> mVariableNames;
+
     ///@}
     ///@name Private Operations
     ///@{
 
     ///@}
 
-}; // class ElementSolutionStepDataIO.
+}; // class NodalDataValueIO.
 
 ///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
 
-#endif // KRATOS_HDF5_ELEMENT_SOLUTION_STEP_DATA_IO_H_INCLUDED defined
+#endif // KRATOS_HDF5_NODAL_DATA_VALUE_IO_H_INCLUDED defined

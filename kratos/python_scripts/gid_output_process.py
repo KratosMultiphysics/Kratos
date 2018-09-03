@@ -3,6 +3,14 @@ import os
 from KratosMultiphysics import *
 CheckForPreviousImport()
 
+def Factory(settings, Model):
+    if(type(settings) != Parameters):
+        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+    model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
+    output_name = settings["Parameters"]["output_name"].GetString()
+    postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
+    return GiDOutputProcess(model_part, output_name, postprocess_parameters)
+
 class GiDOutputProcess(Process):
 
     defaults = Parameters('''{
