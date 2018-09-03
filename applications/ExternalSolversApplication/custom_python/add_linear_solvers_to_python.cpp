@@ -38,7 +38,7 @@
   #include "external_includes/pastix_complex_solver.h"
 #endif
 
-#include "includes/linear_solver_factory.h"  
+#include "includes/linear_solver_factory.h"
 #include "custom_utilities/register_linear_solvers.h"
 
 namespace Kratos
@@ -78,17 +78,17 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;                          //SOME PROBLEM WITH THE SKYLINE_CUSTOM ... TO BE FIXED
     class_<FEASTSolverType, FEASTSolverType::Pointer, LinearSolverType >
         (m, "FEASTSolver")
-        .def(init<Parameters::Pointer>() )
-        .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
+        .def(init<Parameters>() )
+        .def(init<Parameters, TLinearSolverType<std::complex<double>>::Pointer>())
         ;
-#endif    
-          
-    
+#endif
+
+
     class_<SuperLUSolverType, typename SuperLUSolverType::Pointer,DirectSolverType>
     (m, "SuperLUSolver")
       .def(init<>() )
       .def(init<Parameters>());
-      
+
     class_<SuperLUIterativeSolverType, typename SuperLUIterativeSolverType::Pointer,LinearSolverType>
     (m, "SuperLUIterativeSolver")
     .def(init<>() )
@@ -111,7 +111,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(init<Parameters&>())
     ;
 #endif
-    
+
     class_<GMRESSolverType,typename GMRESSolverType::Pointer, IterativeSolverType>
     (m, "GMRESSolver")
     .def(init<Parameters >())
@@ -121,12 +121,12 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
     .def("__repr__", &GMRESSolverType::Info)
     ;
-    
+
 //     RegisterLinearSolvers();
-  
+
 }
 
-    
+
 
 }  // namespace Python.
 
@@ -145,33 +145,33 @@ RegisterLinearSolvers::RegisterLinearSolvers()
 
         //REGISTERING SOLVERS
         typedef LinearSolverFactoryBase<SpaceType,  LocalSpaceType> LinearSolverFactoryBaseType;
-        
+
         static auto GMRESSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,GMRESSolverType>();
         static auto SuperLUSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SuperLUSolverType>();
         static auto SuperLUIterativeSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SuperLUIterativeSolverType>();
-            
+
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("GMRESSolver"), GMRESSolverFactory);
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUSolver"), SuperLUSolverFactory);
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUIterativeSolver"), SuperLUIterativeSolverFactory);
-        
+
     #ifdef INCLUDE_PASTIX
         typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
         typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
         typedef LinearSolverFactoryBase<ComplexSpaceType, ComplexLocalSpaceType> ComplexLinearSolverFactoryBaseType;
         typedef PastixSolver<SpaceType,  LocalSpaceType> PastixSolverType;
-        static auto PastixSolverFactory = LinearSolverFactory<SpaceType,LocalSpaceType,PastixSolverType>();    
+        static auto PastixSolverFactory = LinearSolverFactory<SpaceType,LocalSpaceType,PastixSolverType>();
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PastixSolver"), PastixSolverFactory);
         typedef PastixComplexSolver<ComplexSpaceType, ComplexLocalSpaceType> PastixComplexSolverType;
         static auto PastixComplexSolverFactory = LinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, PastixComplexSolverType>();
         KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("PastixComplexSolver"), PastixComplexSolverFactory);
     #endif
-        
+
     #ifdef INCLUDE_FEAST
         typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
         static auto FEASTSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,FEASTSolverType>();
         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("FEASTSolver"), FEASTSolverFactory);
     #endif
     }
-    
+
 } // Namespace Kratos
 
