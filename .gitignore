@@ -52,6 +52,7 @@ kratos/includes/kratos_version.h
 
 # HDF5 post files
 *.h5
+*.dat
 
 # GiD post files
 *.post.res
