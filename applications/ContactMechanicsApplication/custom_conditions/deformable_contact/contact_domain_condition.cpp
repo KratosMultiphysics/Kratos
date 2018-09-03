@@ -52,7 +52,6 @@ namespace Kratos
   ContactDomainCondition::ContactDomainCondition( ContactDomainCondition const& rOther)
     :Condition(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
-    ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
     ,mContactVariables(rOther.mContactVariables)
   {
   }
@@ -66,14 +65,6 @@ namespace Kratos
     Condition::operator=(rOther);
 
     mThisIntegrationMethod = rOther.mThisIntegrationMethod;
-
-    mConstitutiveLawVector.clear();
-    mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-
-    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-      {
-        mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
-      }
 
     mContactVariables = rOther.mContactVariables;
 
@@ -307,27 +298,19 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-							    std::vector<double>& rValues,
-							    const ProcessInfo& rCurrentProcessInfo )
+                                                            std::vector<double>& rValues,
+                                                            const ProcessInfo& rCurrentProcessInfo )
   {
-    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-      {
-        mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
-      }
+
   }
 
   //*********************************SET VECTOR VALUE***********************************
   //************************************************************************************
 
   void ContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
-							    std::vector<Vector>& rValues,
-							    const ProcessInfo& rCurrentProcessInfo )
+                                                            std::vector<Vector>& rValues,
+                                                            const ProcessInfo& rCurrentProcessInfo )
   {
-
-    for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
-      {
-        mConstitutiveLawVector[PointNumber]->SetValue( rVariable,rValues[PointNumber], rCurrentProcessInfo );
-      }
 
   }
 
@@ -336,13 +319,9 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-							    std::vector<Matrix>& rValues,
-							    const ProcessInfo& rCurrentProcessInfo )
+                                                            std::vector<Matrix>& rValues,
+                                                            const ProcessInfo& rCurrentProcessInfo )
   {
-    for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
-      {
-        mConstitutiveLawVector[PointNumber]->SetValue( rVariable,rValues[PointNumber], rCurrentProcessInfo );
-      }
 
   }
 
@@ -350,77 +329,33 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-							    std::vector<double>& rValues,
-							    const ProcessInfo& rCurrentProcessInfo )
+                                                            std::vector<double>& rValues,
+                                                            const ProcessInfo& rCurrentProcessInfo )
   {
-    if ( rValues.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-      rValues.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
-
-    for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-      rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+    this->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
   }
-
 
   //**********************************GET VECTOR VALUE**********************************
   //************************************************************************************
 
   void ContactDomainCondition::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
-							    std::vector<Vector>& rValues,
-							    const ProcessInfo& rCurrentProcessInfo )
+                                                            std::vector<Vector>& rValues,
+                                                            const ProcessInfo& rCurrentProcessInfo )
   {
-    const unsigned int& size = GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
-
-    if ( rValues.size() != size )
-      rValues.resize( size );
-
-    if ( rVariable == PK2_STRESS_TENSOR || rVariable == CAUCHY_STRESS_TENSOR)
-      {
-        for ( unsigned int PointNumber = 0;
-	      PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
-	      PointNumber++ )
-	  {
-            rValues[PointNumber] =
-	      mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
-	  }
-      }
-
-
-    if ( rVariable == INTERNAL_VARIABLES )
-      {
-        for ( unsigned int PointNumber = 0;
-	      PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
-	      PointNumber++ )
-	  {
-            rValues[PointNumber] =
-	      mConstitutiveLawVector[PointNumber]->GetValue( INTERNAL_VARIABLES, rValues[PointNumber] );
-
-	  }
-      }
-
+    this->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
   }
 
   //***********************************GET MATRIX VALUE*********************************
   //************************************************************************************
 
   void ContactDomainCondition::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-							    std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+                                                            std::vector<Matrix>& rValues,
+                                                            const ProcessInfo& rCurrentProcessInfo )
   {
-    if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-      {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-      }
-
-    if ( rVariable == PK2_STRESS_TENSOR || rVariable == CAUCHY_STRESS_TENSOR)
-      {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-      }
-
-
+    this->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
   }
 
 
-
-  //************* STARTING - ENDING  METHODS
   //************************************************************************************
   //************************************************************************************
 
@@ -428,15 +363,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      //std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
-
-      KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
   }
 
 
-
-  ////************************************************************************************
-  ////************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
   void ContactDomainCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
   {
@@ -447,13 +379,11 @@ namespace Kratos
     //1.- Clear nodal contact forces
     ClearNodalForces();
 
-    //2.-Set Master Element Geometry: Master Elements and Nodes
+    //2.- Set Master Element Geometry: Master Elements and Nodes
     this->SetMasterGeometry();
 
-    //3.-Get ConstitutiveLaw from the selected Master Element
+    //3.- Get Master Element
     ElementType& MasterElement = mContactVariables.GetMasterElement();
-
-    MasterElement.GetValueOnIntegrationPoints( CONSTITUTIVE_LAW, mConstitutiveLawVector, rCurrentProcessInfo );
 
     //4.- Clear possible residual forces from the mesh refining and interpolation:
     ClearMasterElementNodalForces( MasterElement );
@@ -721,7 +651,7 @@ namespace Kratos
 
 
     //Get integration points number
-    unsigned int integration_points_number = MasterGeometry.IntegrationPointsNumber( MasterElement.GetIntegrationMethod() );
+    const unsigned int& integration_points_number = MasterGeometry.IntegrationPointsNumber( MasterElement.GetIntegrationMethod() );
 
     unsigned int voigtsize = 3;
     int dimension = GetGeometry().WorkingSpaceDimension();
@@ -764,9 +694,10 @@ namespace Kratos
     MasterElement.GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
 
     // UL
+    // ConstitutiveLaw Constitutive;
     // for( unsigned int i=0; i<StressVector.size(); i++)
     //   {
-    // 	StressVector[i] = mConstitutiveLawVector[rPointNumber]->TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2);
+    // 	StressVector[i] = Constitutive.TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2);
     //   }
 
     //std::cout<<" StressVector "<<StressVector[rPointNumber]<<std::endl;
@@ -789,14 +720,14 @@ namespace Kratos
 
 
     //Get Current Constitutive Matrix
-    std::vector<Matrix> ConstitutiveMatrix(mConstitutiveLawVector.size());
+    std::vector<Matrix> ConstitutiveMatrix( integration_points_number );
        // SL (ask for the current configuration constitutive matrix)
     MasterElement.CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX,ConstitutiveMatrix,rCurrentProcessInfo);
 
     rVariables.ConstitutiveMatrix = ConstitutiveMatrix[rPointNumber];
 
     // UL (ask for the last known configuration constitutive matrix)
-    //mConstitutiveLawVector[0]->PullBackConstitutiveMatrix(rVariables.ConstitutiveMatrix,rVariables.F);
+    //Constitutive.PullBackConstitutiveMatrix(rVariables.ConstitutiveMatrix,rVariables.F);
 
     //Calculate Explicit Lagrange Multipliers or Penalty Factors
     this->CalculateExplicitFactors( rVariables, rCurrentProcessInfo );
@@ -1221,21 +1152,28 @@ namespace Kratos
     int slave=mContactVariables.slaves[0];
     PointType  CurrentVelocity;
     for (int i = 0; i < number_of_nodes; i++ )
-      {
-        //Current velocity
+    {
+      //Current velocity
+      if( GetGeometry()[i].SolutionStepsDataHas(VELOCITY) ){
         CurrentVelocity  = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        if(i!=slave)
-	  CurrentVelocity *=(-1)*(1.0/double(number_of_nodes - 1));
-
-        TangentVelocity+=CurrentVelocity;
       }
+      else{
+        CurrentVelocity  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        CurrentVelocity /= rCurrentProcessInfo[DELTA_TIME];
+      }
+
+      if(i!=slave)
+        CurrentVelocity *=(-1)*(1.0/double(number_of_nodes - 1));
+
+      TangentVelocity+=CurrentVelocity;
+    }
 
     //Relative tangent movement of the slave if the master is fixed (the direction is implicit in the method)
     TangentVelocity =  rVariables.Contact.CurrentSurface.Tangent*(inner_prod(TangentVelocity,rVariables.Contact.CurrentSurface.Tangent));
 
     //Filter for low velocities (relatives to dynamic waves)
     CurrentVelocity.clear();
-    CalculateRelativeDisplacement(rVariables, CurrentVelocity,rCurrentProcessInfo);
+    CalculateRelativeDisplacement(rVariables, CurrentVelocity, rCurrentProcessInfo);
 
     if( norm_2(TangentVelocity)>0 ){
 
@@ -1363,7 +1301,10 @@ namespace Kratos
     if( GetProperties()[FRICTION_ACTIVE] == 1 )
       Variables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_FORCES);
 
-    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
         //Calculate Element Kinematics
         this->CalculateKinematics( Variables, rCurrentProcessInfo, PointNumber );
@@ -1651,130 +1592,69 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
   {
-    if ( rOutput.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-      rOutput.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size());
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
-    for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-      rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
+    if ( rValues.size() != integration_points_number )
+      rValues.resize( integration_points_number );
+
+    for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
+      rValues[ii] = 0.0;
   }
 
 
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainCondition::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainCondition::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
   {
-    unsigned int StrainSize;
-
-    if ( GetGeometry().WorkingSpaceDimension() == 2 )
-      {
-        StrainSize = 3;
-      }
-    else
-      {
-        StrainSize = 6;
-      }
-
-    Vector StressVector( StrainSize );
-
-    if ( rVariable == PK2_STRESS_TENSOR )
-      {
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-	  {
-            if ( rOutput[ii].size() != StressVector.size() )
-	      rOutput[ii].resize( StressVector.size(), false );
-
-            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
-	  }
-      }
-    else
-      {
-        if ( rOutput.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-	  rOutput.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() );
-
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-	  rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
-      }
-
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void ContactDomainCondition::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo )
-  {
-
     KRATOS_TRY
-        
+
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rValues.size() != integration_points_number )
+        rValues.resize( integration_points_number );
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int size = 3;
+    if( dimension == 3 )
+      size = 6;
+
+    for( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+    {
+      if( rValues[PointNumber].size() != size )
+        rValues[PointNumber].resize( size, false );
+
+      noalias(rValues[PointNumber]) = ZeroVector(size);
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void ContactDomainCondition::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+  {
+    KRATOS_TRY
+
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rValues.size() != integration_points_number )
+        rValues.resize( integration_points_number );
+
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    unsigned int StrainSize;
+    for( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+    {
+      if( rValues[PointNumber].size1() != dimension || rValues[PointNumber].size2() != dimension )
+        rValues[PointNumber].resize( dimension , dimension , false );
 
-    if ( dimension == 2 )
-      StrainSize = 3;
-    else
-      StrainSize = 6;
+      noalias(rValues[PointNumber]) = ZeroMatrix(dimension,dimension);
+    }
 
-
-    if ( rVariable == PK2_STRESS_TENSOR )
-      {
-
-        ConditionVariables Variables;
-        this->InitializeConditionVariables(Variables, rCurrentProcessInfo);
-
-        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-	  {
-
-            if ( rOutput[PointNumber].size2() != StrainSize )
-	      rOutput[PointNumber].resize( 1 ,  StrainSize , false );
-
-	    //Get Current Stress
-	    ElementType& MasterElement = mContactVariables.GetMasterElement();
-
-	    std::vector<Vector> StressVector ( mConstitutiveLawVector.size() );
-	    StressVector[PointNumber]=ZeroVector(StrainSize);
-
-	    MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
-
-            for ( unsigned int ii = 0; ii < StressVector[PointNumber].size(); ii++ )
-	      {
-                rOutput[PointNumber]( 0, ii ) = StressVector[PointNumber][ii];
-	      }
-
-
-	  }
-      }
-    if ( rVariable == CAUCHY_STRESS_TENSOR )
-      {
-
-        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-	  {
-            if ( rOutput[PointNumber].size2() != StrainSize)
-	      rOutput[PointNumber].resize( 1 , StrainSize , false );
-
-            // Matrix StressMatrix ( dimension, dimension );
-            // StressMatrix = mConstitutiveLawVector[PointNumber]->GetValue( rVariable , StressMatrix );
-
-            // Vector StressVector ( StrainSize );
-            // StressVector = MathUtils<double>::StressTensorToVector( StressMatrix );
-
-            Vector StressVector ( StrainSize );
-            StressVector = mConstitutiveLawVector[PointNumber]->GetValue(CAUCHY_STRESS_VECTOR,StressVector);
-                  
-            
-            for ( unsigned int ii = 0; ii < StressVector.size(); ii++ )
-	      {
-                rOutput[PointNumber]( 0, ii ) = StressVector[ii];
-	      }
-
-
-	  }
-
-      }
-
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
   }
 
 
@@ -1801,7 +1681,7 @@ namespace Kratos
     const double domain_size = this->GetGeometry().DomainSize();
     KRATOS_WARNING_IF( "DomainSize", domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
 
-        
+
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
@@ -1822,39 +1702,6 @@ namespace Kratos
 	if( rCurrentProcessInfo[SPACE_DIMENSION] == 3)
 	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rNode);
       }
-
-    // Commented checks to the constitutive law, the one used if from the MasterElements and MasterConditions
-
-    //verify that the constitutive law exists
-    // if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
-    // {
-    //     KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
-    // }
-
-    //unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-
-    //verify that the constitutive law has the correct dimension
-    // if ( dimension == 2 )
-    // {
-    //     if ( this->GetProperties().Has( THICKNESS ) == false )
-    //         KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
-
-    //     if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-    //         KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() )
-    // }
-    // else
-    // {
-    //     if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-    //         KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
-    // }
-
-    //check constitutive law
-    // for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    // {
-    //     return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
-    // }
-
-    //check if it is in the XY plane for 2D case
 
 
     return ErrorCode;

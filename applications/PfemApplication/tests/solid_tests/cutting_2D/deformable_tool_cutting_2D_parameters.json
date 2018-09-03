@@ -5,7 +5,7 @@
     "problem_data"             : {
         "domain_type" : "Solid",
         "echo_level"  : 1,
-        "threads"     : 1
+        "threads"     : 4
     },
     "time_settings" : {
         "time_step" : 5.0e-8,
@@ -15,8 +15,8 @@
 	"model_name" : "Main_Domain",
         "dimension" : 2,
         "input_file_settings": {
-            "type" : "mdpa",
-            "label": 17
+            "type" : "rest",
+            "label": 188
         },
 	"bodies_list":[{
 	    "body_type": "Solid",
@@ -75,9 +75,9 @@
 			"residual_absolute_tolerance" : 1e-9
 		    },
 		    "linear_solver_settings"    : {
-                        "solver_type" : "AMGCL",
+                        "solver_type" : "SuperLUSolver",
 			"tolerance"   : 1e-7,
-			"max_iteration" : 7000,
+			"max_iteration" : 5000,
 			"scaling"     : true
 		    },
 		    "dofs" : ["DISPLACEMENT","PRESSURE"],
@@ -114,7 +114,7 @@
 		}
 	    }],
 	    "processes"   : []
-	}        
+	}
     },
     "problem_process_list" : [{
         "help"            : "This process applies meshing to the problem domains",
@@ -181,46 +181,21 @@
                         "on_distance": false,
                         "on_threshold": true,
                         "on_error": false
-                    },              
+                    },
                     "refining_box":{
                         "refine_in_box_only": false,
                         "upper_point": [0,0,0],
                         "lower_point": [0,0,0],
                         "velocity": [0,0,0]
                     }
-                },            
-                "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
-            },{
-                "python_module": "meshing_domain",
-                "model_part_name": "Solid_Tool",
-                "alpha_shape": 2.4,
-                "offset_factor": 1e-6,
-                "meshing_strategy":{
-                    "python_module": "meshing_strategy",
-                    "meshing_frequency": 10,
-                    "remesh": false,
-                    "refine": false,
-                    "reconnect": false,
-                    "transfer": false,
-                    "constrained": true,
-                    "mesh_smoothing": false,
-                    "variables_smoothing": false,
-                    "elemental_variables_to_smooth":[ "DETERMINANT_F" ],
-                    "reference_element_type": "Element2D3N",
-                    "reference_condition_type": "CompositeCondition2D2N"
                 },
-                "spatial_bounding_box":{
-                    "upper_point": [0.0, 0.0, 0.0],
-                    "lower_point": [0.0, 0.0, 0.0],
-                    "velocity": [0.0, 0.0, 0.0]
-                },           
                 "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
             }
          ]
         }
     },{
-        "help"             : "This process applies contact domain search by remeshing outer boundaries",    
-        "kratos_module"    : "KratosMultiphysics.ContactMechanicsApplication",   
+        "help"             : "This process applies contact domain search by remeshing outer boundaries",
+        "kratos_module"    : "KratosMultiphysics.ContactMechanicsApplication",
         "python_module"    : "contact_domain_process",
         "process_name"     : "ContactDomainProcess",
         "Parameters"       : {
@@ -240,7 +215,7 @@
                     "constrained": true,
                     "contact_parameters":{
                         "contact_condition_type": "ContactDomainLMCondition2D3N",
-                        "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",                            
+                        "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
                         "friction_law_type": "HardeningCoulombFrictionLaw",
                         "variables_of_properties":{
                             "FRICTION_ACTIVE": false,
@@ -297,7 +272,7 @@
         }
     }
     ],
-    "loads_process_list"       : [{       
+    "loads_process_list"       : [{
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
         "python_module"   : "assign_modulus_and_direction_to_nodes_process",
         "Parameters"      : {
@@ -310,7 +285,7 @@
     }
     ],
     "output_process_list" : [{
-        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",    
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
         "python_module"   : "restart_process",
         "process_name"    : "RestartProcess",
         "Parameters"      : {

@@ -96,7 +96,7 @@ namespace Kratos
 
   void ContactDomainPenalty2DCondition::CalculateContactFactor( ProcessInfo& rCurrentProcessInfo )
   {
-    //Initilialize Tau for the stabilization
+    //Initilialize penalty parameter
     double penalty_parameter = 1000;
     penalty_parameter = GetProperties()[PENALTY_PARAMETER];
 

@@ -304,7 +304,8 @@ class SolutionScheme:
             self.dof_reactions = self.dof_reactions + ['DISPLACEMENT_REACTION']
 
             # Add dynamic variables
-            self.dof_derivatives = self.dof_derivatives + ['VELOCITY','ACCELERATION']
+            if(self.settings["solution_type"].GetString() == "Dynamic"):
+                self.dof_derivatives = self.dof_derivatives + ['VELOCITY','ACCELERATION']
 
         if self._check_input_dof("VELOCITY"):
             # Add specific variables for the problem (velocity dofs)
@@ -321,7 +322,8 @@ class SolutionScheme:
             self.dof_variables = self.dof_variables + ['ROTATION']
             self.dof_reactions = self.dof_reactions + ['ROTATION_REACTION']
 
-            self.dof_derivatives = self.dof_derivatives + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
+            if(self.settings["solution_type"].GetString() == "Dynamic"):
+                self.dof_derivatives = self.dof_derivatives + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
             # Add large rotation variables
             self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
 
@@ -331,7 +333,8 @@ class SolutionScheme:
             self.dof_variables = self.dof_variables + ['PRESSURE']
             self.dof_reactions = self.dof_reactions + ['PRESSURE_REACTION']
 
-            self.dof_derivatives = self.dof_derivatives + ['PRESSURE_VELOCITY','PRESSURE_ACCELERATION']
+            if(self.settings["solution_type"].GetString() == "Dynamic"):
+                self.dof_derivatives = self.dof_derivatives + ['PRESSURE_VELOCITY','PRESSURE_ACCELERATION']
 
         # Add fluid pressure variables
         if self._check_input_dof("FLUID_PRESSURE"):

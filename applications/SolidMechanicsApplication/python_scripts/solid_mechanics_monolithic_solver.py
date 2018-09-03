@@ -204,6 +204,9 @@ class MonolithicSolver(object):
         if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
             update_time = self._check_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
 
+        if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
+            update_time = self._check_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
+
         return update_time
 
     def _check_time_step(self, step_time):

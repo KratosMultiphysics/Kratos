@@ -498,7 +498,8 @@ namespace Kratos
     double detF =MathUtils<double>::Det(F);
 
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=J*CauchyStress*F^-T)
-    mConstitutiveLawVector[0]->TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
+    ConstitutiveLaw Constitutive;
+    Constitutive.TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
 
     //c.- Compute (n-1) normals, tangents and relative displacements from historic mX on boundaries
 
@@ -684,7 +685,8 @@ namespace Kratos
     double detF =MathUtils<double>::Det(F);
 
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=J*CauchyStress*F^-T)
-    mConstitutiveLawVector[0]->TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
+    ConstitutiveLaw Constitutive;
+    Constitutive.TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
 
 
     //c.- Compute (n-1) normals, tangents and relative displacements from historic mX on boundaries
@@ -990,7 +992,8 @@ namespace Kratos
 
     // UL
     //b.- Compute the 1srt Piola Kirchhoff stress tensor
-    StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
+    ConstitutiveLaw Constitutive;
+    StressMatrix = Constitutive.TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
 
     //c.- Compute the tension (or traction) vector T=P*N (in the Reference configuration)
     mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.ReferenceSurface.Normal);
@@ -1329,7 +1332,8 @@ namespace Kratos
 
     // UL
     //b.- Compute the 1srt Piola Kirchhoff stress tensor
-    StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
+    ConstitutiveLaw Constitutive;
+    StressMatrix = Constitutive.TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
 
     //c.- Compute the tension (or traction) vector T=P*N (in the Reference configuration)
     mContactVariables.TractionVector=prod(StressMatrix,mContactVariables.ReferenceSurface.Normal);

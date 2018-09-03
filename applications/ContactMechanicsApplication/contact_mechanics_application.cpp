@@ -126,6 +126,9 @@ namespace Kratos {
       //thermal properties
       KRATOS_REGISTER_VARIABLE( HEAT_CONDUCTIVITY )
 
+      //solution
+      KRATOS_REGISTER_VARIABLE(CONTACT_STEP_TIME)
+
       }
 
 }  // namespace Kratos.

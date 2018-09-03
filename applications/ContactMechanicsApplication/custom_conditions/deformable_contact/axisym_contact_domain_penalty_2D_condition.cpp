@@ -241,9 +241,10 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     //MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
     MasterElement.GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
 
+    // ConstitutiveLaw Constitutive;
     // for( unsigned int i=0; i<StressVector.size(); i++)
     //   {
-    // 	StressVector[i] = mConstitutiveLawVector[rPointNumber]->TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2);
+    // 	StressVector[i] = Constitutive.TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2);
     //   }
 
     SetContactIntegrationVariable( rVariables.StressVector, StressVector, rPointNumber );
@@ -265,7 +266,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
 
 
     //Get Current Constitutive Matrix
-    std::vector<Matrix> ConstitutiveMatrix(mConstitutiveLawVector.size());
+    std::vector<Matrix> ConstitutiveMatrix(integration_points_number);
     MasterElement.CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX,ConstitutiveMatrix,rCurrentProcessInfo);
 
     rVariables.ConstitutiveMatrix = ConstitutiveMatrix[rPointNumber];
@@ -291,8 +292,8 @@ void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(LocalSystemCompon
 
   // SL
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
-  if ( MasterElement.GetProperties().Has(THICKNESS) )
-      rIntegrationWeight /= MasterElement.GetProperties()[THICKNESS];
+  if( MasterElement.GetProperties().Has(THICKNESS) )
+    rIntegrationWeight /= MasterElement.GetProperties()[THICKNESS];
 
   ContactDomainCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 

@@ -50,5 +50,9 @@ namespace Kratos
   //thermal properties
   KRATOS_CREATE_VARIABLE( double, HEAT_CONDUCTIVITY )
 
+  //solution
+  KRATOS_CREATE_VARIABLE( double, CONTACT_STEP_TIME )
+
+
   ///@}
 }

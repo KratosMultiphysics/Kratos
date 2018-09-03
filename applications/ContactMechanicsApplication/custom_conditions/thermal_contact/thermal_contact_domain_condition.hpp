@@ -425,11 +425,6 @@ protected:
      */
     IntegrationMethod mThisIntegrationMethod;
 
-    /**
-     * Container for constitutive law instances on each integration point
-     */
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-
 
     /**
      * Variables stored in the condition during the computation

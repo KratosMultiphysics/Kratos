@@ -243,7 +243,8 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     double detF =MathUtils<double>::Det(F);
 
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=J*CauchyStress*F^-T)
-    mConstitutiveLawVector[0]->TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
+    ConstitutiveLaw Constitutive;
+    Constitutive.TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
 
     //Compute the tension (or traction) vector T=P*N (in the Reference configuration)
 
@@ -473,11 +474,12 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rV
 
     // UL
     //b.- Compute the 1srt Piola Kirchhoff stress tensor
-    StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
+    ConstitutiveLaw Constitutive;
+    StressMatrix = Constitutive.TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
 
     // UTL
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=F·S)
-    //StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_PK1);
+    //StressMatrix = Constitutive.TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_PK1);
     //StressMatrix=prod(rVariables.F,StressMatrix);
 
     //b.- Transform to 3 components
@@ -742,7 +744,6 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rV
 
         //Calculate Friction Coefficient
         this->CalculateFrictionCoefficient(rVariables,TangentVelocity);
-
 
 	//std::cout<<" Friction Coefficient ["<<this->Id()<<"]"<<rVariables.Contact.FrictionCoefficient<<" Sign "<<rVariables.Contact.TangentialGapSign<<std::endl;
 

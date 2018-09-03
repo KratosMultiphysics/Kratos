@@ -556,17 +556,17 @@ namespace Kratos
 
       mpModel->GetDomainVariablesList(ScalarVariables, ComponentVariables);
 
-      for(std::vector<Variable<array_1d<double,3> > >::iterator cv_it=ComponentVariables.begin(); cv_it != ComponentVariables.end(); cv_it++)
+      for(std::vector<Variable<array_1d<double,3> > >::iterator cv_it=ComponentVariables.begin(); cv_it != ComponentVariables.end(); ++cv_it)
 	{
 	  if( *cv_it == DISPLACEMENT ){
-	    for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); sv_it++)
+	    for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); ++sv_it)
 	      {
 		if( *sv_it == PRESSURE )
 		  rFeatures.mOptions.Set( U_P_LAW );
 	      }
 	  }
 	  // if( *cv_it == VELOCITY ){
-	  //   for(std::vector<Variables<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); )
+	  //   for(std::vector<Variables<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); ++sv_it)
 	  //     {
 	  // 	if( *sv_it == PRESSURE )
 	  // 	  rFeatures.mOptions.Set( V_P_LAW );
@@ -576,7 +576,6 @@ namespace Kratos
 
       //...
     }
-
 
 
     KRATOS_CATCH(" ")

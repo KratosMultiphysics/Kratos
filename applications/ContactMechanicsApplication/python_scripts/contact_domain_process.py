@@ -93,7 +93,8 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         return KratosContact.ContactModelStructure(self.main_model_part, meshing_options, self.echo_level)
     #
     def SetMeshingStepTime(self):
-        pass
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.main_model_part.ProcessInfo.SetValue(KratosContact.CONTACT_STEP_TIME, current_time)
     #
     def GetVariables(self):
 

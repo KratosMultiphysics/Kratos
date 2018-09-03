@@ -163,7 +163,7 @@ class ModelManager(object):
                 self._add_model_part_to_model(part.Name)
 
             self._build_composite_solving_parts()
-                
+
         else:
             raise Exception("Other input options are not yet implemented.")
 
@@ -242,8 +242,8 @@ class ModelManager(object):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
 
-        #print(self.nodal_variables)
-        #print(self._class_prefix()+" General Variables ADDED")
+        print(self.nodal_variables)
+        print(self._class_prefix()+" General Variables ADDED")
 
 
     def _set_input_variables(self):
@@ -264,7 +264,7 @@ class ModelManager(object):
         # Build composite solving model parts
         self._build_composite_solving_parts()
         self._update_composite_solving_parts()
-        
+
         # Build output model part
         #self._create_sub_model_part(self.settings["output_model_part"].GetString())
 
@@ -403,6 +403,7 @@ class ModelManager(object):
 
     #
     def _update_composite_solving_parts(self):
+        print(self._class_prefix()+" Update Solving Parts")
         for transfer in self.transfer_solving_parts:
             transfer.Execute()
     #
@@ -458,6 +459,9 @@ class ModelManager(object):
 
         if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
             update_time = self._check_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
+
+        if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
+            update_time = self._check_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
 
         return update_time
     #

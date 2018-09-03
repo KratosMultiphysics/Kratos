@@ -243,9 +243,10 @@ void AxisymContactDomainLM2DCondition::CalculateKinematics( ConditionVariables& 
     //MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
     MasterElement.GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
 
+    // ConstitutiveLaw Constitutive;
     // for( unsigned int i=0; i<StressVector.size(); i++)
     //   {
-    // 	StressVector[i] = mConstitutiveLawVector[rPointNumber]->TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2);
+    // 	StressVector[i] = Constitutive.TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2);
     //   }
 
     SetContactIntegrationVariable( rVariables.StressVector, StressVector, rPointNumber );
@@ -267,7 +268,7 @@ void AxisymContactDomainLM2DCondition::CalculateKinematics( ConditionVariables& 
 
 
     //Get Current Constitutive Matrix
-    std::vector<Matrix> ConstitutiveMatrix(mConstitutiveLawVector.size());
+    std::vector<Matrix> ConstitutiveMatrix( integration_points_number );
     MasterElement.CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX,ConstitutiveMatrix,rCurrentProcessInfo);
 
     rVariables.ConstitutiveMatrix = ConstitutiveMatrix[rPointNumber];
