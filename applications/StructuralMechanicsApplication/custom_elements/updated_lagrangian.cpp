@@ -493,18 +493,6 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 int UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
