@@ -454,7 +454,7 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::SetValueOnIntegrationPoints(
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -467,14 +467,14 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(
             mDetF0[point_number] = rValues[point_number];
         }
     } else {
-        BaseSolidElement::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        BaseSolidElement::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::SetValueOnIntegrationPoints(
+void UpdatedLagrangian::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -486,7 +486,7 @@ void UpdatedLagrangian::SetValueOnIntegrationPoints(
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number )
             mF0[point_number] = rValues[point_number];
     } else {
-        BaseSolidElement::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        BaseSolidElement::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 }
 
