@@ -62,6 +62,8 @@ namespace Python
 
 void  AddLinearSolversToPython(pybind11::module& m)
 {
+    using namespace pybind11;
+
     typedef TUblasSparseSpace<double> SpaceType;
     typedef TUblasDenseSpace<double> LocalSpaceType;
     typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
@@ -78,35 +80,30 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationHighestEigenvalueSolverType;
     typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
     typedef DeflatedGMRESSolver<SpaceType,  LocalSpaceType> DeflatedGMRESSolverType;
-    
-    using namespace boost::python;
 
-    
-    
     //////////////////////////////////////////////////////////////7
     //HERE THE TOOLS TO REGISTER LINEAR SOLVERS
-    class_<LinearSolverFactoryBase< SpaceType, LocalSpaceType >,
-            LinearSolverFactoryBase< SpaceType, LocalSpaceType >::Pointer,
-            boost::noncopyable >("LinearSolverFactoryBase")
+
+    typedef LinearSolverFactoryBase< SpaceType, LocalSpaceType > LinearSolverFactoryBaseType;
+    typedef LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryBaseType;
+    typedef PreconditionerFactoryBase< SpaceType, LocalSpaceType > PreconditionerFactoryBaseType;
+
+    class_<LinearSolverFactoryBaseType, LinearSolverFactoryBaseType::Pointer>(m, "LinearSolverFactoryBase")
      .def( init< >() )
-     .def("CreateSolver",&LinearSolverFactoryBase< SpaceType, LocalSpaceType>::CreateSolver)
-     .def("Has",&LinearSolverFactoryBase< SpaceType, LocalSpaceType>::Has)
+     .def("CreateSolver",&LinearSolverFactoryBaseType::CreateSolver)
+     .def("Has",&LinearSolverFactoryBaseType::Has)
     ;
 
-    class_<LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType >,
-            LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType >::Pointer,
-            boost::noncopyable >("ComplexLinearSolverFactoryBase")
+    class_<ComplexLinearSolverFactoryBaseType, ComplexLinearSolverFactoryBaseType::Pointer>(m, "ComplexLinearSolverFactoryBase")
      .def( init< >() )
-     .def("CreateSolver",&LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType>::CreateSolver)
-     .def("Has",&LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType>::Has)
+     .def("CreateSolver",&ComplexLinearSolverFactoryBaseType::CreateSolver)
+     .def("Has",&ComplexLinearSolverFactoryBaseType::Has)
     ;
-    
-    class_<PreconditionerFactoryBase< SpaceType, LocalSpaceType >,
-            PreconditionerFactoryBase< SpaceType, LocalSpaceType >::Pointer,
-            boost::noncopyable >("PreconditionerFactoryBase")
+
+    class_<PreconditionerFactoryBaseType, PreconditionerFactoryBaseType::Pointer >(m, "PreconditionerFactoryBase")
      .def( init< >() )
-     .def("CreatePreconditioner",&PreconditionerFactoryBase< SpaceType, LocalSpaceType>::CreatePreconditioner)
-    ;   
+     .def("CreatePreconditioner",&PreconditionerFactoryBaseType::CreatePreconditioner)
+    ;
 
     typedef TLinearSolverType<std::complex<double>> ComplexLinearSolverType;
     typedef TDirectSolverType<std::complex<double>> ComplexDirectSolverType;
@@ -116,9 +113,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
     void (LinearSolverType::*pointer_to_solve_eigen)(LinearSolverType::SparseMatrixType& rK, LinearSolverType::SparseMatrixType& rM,LinearSolverType::DenseVectorType& Eigenvalues, LinearSolverType::DenseMatrixType& Eigenvectors) = &LinearSolverType::Solve;
     bool (ComplexLinearSolverType::*pointer_to_complex_solve)(ComplexLinearSolverType::SparseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
-    
-    using namespace pybind11;
-
 
     //****************************************************************************************************
     //preconditioners
