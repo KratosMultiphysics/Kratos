@@ -21,7 +21,7 @@
 #include "custom_solvers/eigensystem_solver.h"
 
 #include "includes/linear_solver_factory.h"
-#include "custom_utilities/register_linear_solvers.h"
+#include "eigen_solvers_application.h"
 
 namespace Kratos
 {
@@ -98,7 +98,7 @@ void AddCustomSolversToPython(pybind11::module& m)
 } // namespace Python
 
 //Must put this definition here to avoid a problem with multiply defined symbols when including the external C libraries
-RegisterLinearSolvers::RegisterLinearSolvers()
+EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLinearSolvers()
 {
     using complex = std::complex<double>;
 

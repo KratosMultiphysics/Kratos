@@ -45,6 +45,45 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/// registers the linear solvers to kratos
+/** registers the linear solvers to kratos
+*/
+class EigenSolversApplicationRegisterLinearSolvers
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of EigenSolversApplicationRegisterLinearSolvers
+    KRATOS_CLASS_POINTER_DEFINITION(EigenSolversApplicationRegisterLinearSolvers);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    EigenSolversApplicationRegisterLinearSolvers();
+
+    /// Destructor.
+    virtual ~EigenSolversApplicationRegisterLinearSolvers(){};
+
+
+    ///@}
+
+private:
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    EigenSolversApplicationRegisterLinearSolvers& operator=(EigenSolversApplicationRegisterLinearSolvers const& rOther) = delete;
+
+    /// Copy constructor.
+    EigenSolversApplicationRegisterLinearSolvers(EigenSolversApplicationRegisterLinearSolvers const& rOther) = delete;
+
+    ///@}
+
+}; // Class EigenSolversApplicationRegisterLinearSolvers
+
 class KratosEigenSolversApplication : public KratosApplication
 {
 public:
