@@ -562,6 +562,36 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<ConstitutiveLaw >::Add(name, reference); \
     Serializer::Register(name, reference);
 
+#ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
+#undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_VARIABLE(variable) \
+	scope().attr(#variable) = std::ref(variable);
+
+#ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(name) \
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name) \
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_X) \
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Y) \
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Z)
+
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
+    scope().attr(#flag) = std::ref(flag)      \
+ 
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
+
+    
+    
 #if __cplusplus >= 201402L
 #define KRATOS_DEPRECATED [[deprecated]]
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
@@ -576,12 +606,21 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_DEPRECATED
 #define KRATOS_DEPRECATED_MESSAGE(deprecated_message)
 #endif
-
+    
 
 namespace Kratos
 {
-///@name Type Definitions
-///@{
+
+
+/**@name Kratos Classes */
+/*@{ */
+
+/*@} */
+
+/**@name Type Definitions */
+/*@{ */
+
+/*@} */
 
 #if defined(_MSC_VER)
 #pragma warning (disable: 4355)
