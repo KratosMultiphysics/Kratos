@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/checks.h"
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
@@ -54,7 +55,7 @@ namespace Kratos
 template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -169,6 +170,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
     {
     }
 
+    /**
+     * @brief This method defines the check to be performed in the yield surface
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        return 0;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -187,7 +197,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -216,7 +226,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
     ///@{
 
     ///@}
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 

@@ -383,6 +383,25 @@ Matrix& GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::Calcula
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <class ConstLawIntegratorType>
+int GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+
+    const int check_integrator = ConstLawIntegratorType::Check(rMaterialProperties);
+
+    if ((check_base + check_integrator) > 0) return 1;
+
+    return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential>>>;
 template class GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
 template class GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>;

@@ -46,7 +46,7 @@ namespace Kratos
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -133,7 +133,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -163,7 +163,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
