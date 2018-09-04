@@ -455,7 +455,10 @@ protected:
             const double& PreviousPhi = itNode->FastGetSolutionStepValue(rUnknownVar, 1);
             const double& CurrentPhiTheta = itNode->FastGetSolutionStepValue(PHI_THETA);
 
-            CurrentPhi = 1.0 / mTheta * CurrentPhiTheta + (1.0 - 1.0 / mTheta) * PreviousPhi;
+            if(itNode -> IsFixed(rUnknownVar) == false)
+            {
+                CurrentPhi = 1.0 / mTheta * CurrentPhiTheta + (1.0 - 1.0 / mTheta) * PreviousPhi;
+            }
         }
 
         KRATOS_CATCH( "" )

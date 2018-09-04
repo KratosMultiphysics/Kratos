@@ -168,7 +168,11 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         NodalPhi0[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar,1);
     }
 
-    noalias(rRightHandSideVector) -= 1.0 / (Theta*DeltaTime) * prod(rLeftHandSideMatrix, NodalPhi0);
+    array_1d<double,TNumNodes> aux_vector;
+
+    noalias(aux_vector) = Variables.NodalPhiTheta - NodalPhi0;
+
+    noalias(rRightHandSideVector) -= 1.0 / (Theta*DeltaTime) * prod(rLeftHandSideMatrix, aux_vector);
 
     KRATOS_CATCH("")
 }
@@ -234,8 +238,6 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop,
                                                                                         const ProcessInfo& CurrentProcessInfo)
 {
-    // TODO: maybe this is not necessary
-    SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVariables(rVariables,Prop,CurrentProcessInfo);
 
     // GeometryType& rGeom = this->GetGeometry();
     const Geometry<Node<3> >& rGeom = this->GetGeometry();
@@ -291,7 +293,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     double fk = 2.0 *tanh(300.0 * (sustr_phi) / (sum_phi));
 
     //TODO
-    if (rVariables.IterationNumber == 2 && this->Id() == 102)
+    if (rVariables.IterationNumber == 2)
     {
         KRATOS_WATCH (this->Id())
         KRATOS_WATCH (fk)
@@ -302,7 +304,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     rVariables.TransientAbsorption = rVariables.absorption + rVariables.rho_dot_c / (theta * delta_time) * fk;
 
     //TODO
-    rVariables.TransientAbsorption = rVariables.absorption;
+    // rVariables.TransientAbsorption = rVariables.absorption;
     // double previous_absorption = rVariables.absorption;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -386,6 +388,13 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
 
         rVariables.AlphaVBar = 1.0 / tanh(rVariables.Peclet) - 1.0 / rVariables.Peclet;
+
+        KRATOS_WATCH (this->Id())
+
+        KRATOS_WATCH (rVariables.TransientAbsorption)
+        KRATOS_WATCH (rVariables.OmegaV)
+        KRATOS_WATCH (rVariables.SigmaV)
+        KRATOS_WATCH (rVariables.AlphaVBar)
     }
 
     rVariables.LambdaV = std::sqrt(rVariables.Peclet * rVariables.Peclet + rVariables.OmegaV);
@@ -415,6 +424,11 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     {
         rVariables.AlphaV = 1.0;
     }
+
+    KRATOS_WATCH (rVariables.LambdaV)
+    KRATOS_WATCH (rVariables.XiV)
+    KRATOS_WATCH (rVariables.AlphaV)
+
 
     //TODO: Can be calculated before Gauss point loop
     //////////////////////////////////////////////////////
@@ -735,7 +749,6 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSA
 
     noalias(rRightHandSideVector) -= prod(rVariables.AbpMatrixAux, rVariables.NodalPhiTheta);
 
-    KRATOS_WATCH ( rRightHandSideVector )
 }
 
 //----------------------------------------------------------------------------------------
