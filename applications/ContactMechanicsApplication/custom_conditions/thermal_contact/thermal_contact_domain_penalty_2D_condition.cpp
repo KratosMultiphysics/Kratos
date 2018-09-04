@@ -299,13 +299,13 @@ void ThermalContactDomainPenalty2DCondition::CalcProjections(GeneralVariables & 
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-
+    rVariables.Options.Set(ACTIVE,true);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
 	PointType & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-	if(norm_2(ContactForce)>0){
-	    rVariables.Options.Set(ACTIVE,true);
-	    break;
+	if(norm_2(ContactForce)==0){
+          rVariables.Options.Set(ACTIVE,false);
+          break;
 	}
     }
 

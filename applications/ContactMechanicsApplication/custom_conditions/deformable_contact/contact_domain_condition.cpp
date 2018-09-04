@@ -1158,7 +1158,7 @@ namespace Kratos
         CurrentVelocity  = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
       }
       else{
-        CurrentVelocity  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        CurrentVelocity  = (GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1));
         CurrentVelocity /= rCurrentProcessInfo[DELTA_TIME];
       }
 
@@ -1209,7 +1209,7 @@ namespace Kratos
     for (int i = 0; i < number_of_nodes; i++ )
       {
         //Displacement from the reference to the current configuration
-        CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        CurrentDisplacement  = (GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1));
         if(i!=slave)
 	  CurrentDisplacement *=(-1)*(1.0/double(number_of_nodes - 1));
 
