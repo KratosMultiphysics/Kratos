@@ -214,7 +214,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     {
         Vector deviator = ZeroVector(6);
         Vector h_capa = ZeroVector(6);
-        double J2, r0, r1, Slope, HardParam;
+        double J2, r0, r1, slope, hardening_parameter;
 
         YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector,
                                                     rUniaxialStress, rMaterialProperties);
@@ -223,12 +223,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rMaterialProperties);
         CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rMaterialProperties);
         CalculateRFactors(rPredictiveStressVector, r0, r1);
-        CalculatePlasticDissipation(rPredictiveStressVector, r0, r1, rPlasticStrainIncrement,
-                                    rPlasticDissipation, h_capa, rMaterialProperties, CharacteristicLength);
-        CalculateEquivalentStressThreshold(rPlasticDissipation, r0,
-                                           r1, rThreshold, Slope, rMaterialProperties);
-        CalculateHardeningParameter(rFflux, Slope, h_capa, HardParam);
-        CalculatePlasticDenominator(rFflux, rGflux, rC, HardParam, rPlasticDenominator);
+        CalculatePlasticDissipation(rPredictiveStressVector, r0, r1, rPlasticStrainIncrement, rPlasticDissipation, h_capa, rMaterialProperties, CharacteristicLength);
+        CalculateEquivalentStressThreshold(rPlasticDissipation, r0, r1, rThreshold, slope, rMaterialProperties);
+        CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
+        CalculatePlasticDenominator(rFflux, rGflux, rC, hardening_parameter, rPlasticDenominator);
     }
 
     /**
@@ -395,23 +393,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
             switch (static_cast<HardeningCurveType>(curve_type))
             {
             case HardeningCurveType::LinearSoftening:
-                CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1,
-                                                     eq_thresholds[i], slopes[i], rMaterialProperties);
+                CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
                 break;
 
             case HardeningCurveType::ExponentialSoftening:
-                CalculateEqStressThresholdHardCurve2(PlasticDissipation, r0, r1,
-                                                     eq_thresholds[i], slopes[i], rMaterialProperties);
+                CalculateEqStressThresholdHardCurve2(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
                 break;
 
             case HardeningCurveType::InitialHardeningExponentialSoftening:
-                CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1,
-                                                     eq_thresholds[i], slopes[i], rMaterialProperties);
+                CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
                 break;
 
             case HardeningCurveType::PerfectPlasticity:
-                CalculateEqStressThresholdHardCurve4(PlasticDissipation, r0, r1,
-                                                     eq_thresholds[i], slopes[i], rMaterialProperties);
+                CalculateEqStressThresholdHardCurve4(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
                 break;
 
                 // Add more cases...
@@ -423,6 +417,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         }
         rEquivalentStressThreshold = r0 * eq_thresholds[0] + r1 * eq_thresholds[1];
         rSlope = rEquivalentStressThreshold * ((r0 * slopes[0] / eq_thresholds[0]) + (r1 * slopes[1] / eq_thresholds[1]));
+        KRATOS_DEBUG_ERROR_IF(rEquivalentStressThreshold < tolerance) << "Threshold set to zero. r0: " << r0 << " eq_thresholds[0]: " << eq_thresholds[0] << " r1: " << r1 << " eq_thresholds[1]:" << eq_thresholds[1] << std::endl;
     }
 
     /**
@@ -540,24 +535,24 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @brief This method computes hardening parameter needed for the algorithm
      * @param Gflux The derivative of the plastic potential
      * @param SlopeThreshold The slope of the PlasticDiss-Threshold curve
-     * @param rHardParameter The hardening parameter needed for the algorithm
+     * @param rHardeningParameter The hardening parameter needed for the algorithm
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      */
     static void CalculateHardeningParameter(
         const Vector& GFlux,
         const double SlopeThreshold,
         const Vector& HCapa,
-        double& rHardParameter
+        double& rHardeningParameter
         )
     {
-        rHardParameter = -SlopeThreshold;
+        rHardeningParameter = -SlopeThreshold;
         double aux = 0.0;
 
         for (IndexType i = 0; i < 6; i++) {
             aux += HCapa[i] * GFlux[i];
         }
         if (aux != 0.0)
-            rHardParameter *= aux;
+            rHardeningParameter *= aux;
     }
 
     /**
@@ -566,14 +561,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param Fflux The derivative of the yield surface
      * @param Gflux The derivative of the plastic potential
      * @param C The elastic constitutive matrix
-     * @param rHardParameter The hardening parameter needed for the algorithm
+     * @param rHardeningParameter The hardening parameter needed for the algorithm
      * @param PlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
      */
     static void CalculatePlasticDenominator(
         const Vector& FFlux,
         const Vector& GFlux,
         const Matrix& C,
-        double& rHardParameter,
+        double& rHardeningParameter,
         double& PlasticDenominator
         )
     {
@@ -586,7 +581,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         }
 
         const double A2 = 0.0; // Only for isotropic hard
-        const double A3 = rHardParameter;
+        const double A3 = rHardeningParameter;
         PlasticDenominator = 1.0 / (A1 + A2 + A3);
     }
 
