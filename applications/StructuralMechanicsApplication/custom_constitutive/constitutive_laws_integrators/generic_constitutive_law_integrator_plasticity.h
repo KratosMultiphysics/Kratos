@@ -271,30 +271,27 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method computes the tensile/compressive indicators
-     * @param StressVector The stress vector
+     * @param rStressVector The stress vector
      * @param r0 The tensile indicator
      * @param r1 The compressive indicator
      */
     static void CalculateRFactors(
-        const Vector& StressVector,
+        const Vector& rStressVector,
         double& r0,
         double& r1
         )
     {
         Vector principal_stresses = ZeroVector(3);
-        ConstitutiveLawUtilities::CalculatePrincipalStresses(principal_stresses, StressVector);
+        ConstitutiveLawUtilities::CalculatePrincipalStresses(principal_stresses, rStressVector);
 
         double suma = 0.0, sumb = 0.0, sumc = 0.0;
-        Vector SA = ZeroVector(3), SB = ZeroVector(3), SC = ZeroVector(3);
+        double aux_sa;
 
         for (IndexType i = 0; i < 3; i++) {
-            SA[i] = std::abs(principal_stresses[i]);
-            SB[i] = 0.5 * (principal_stresses[i] + SA[i]);
-            SC[i] = 0.5 * (-principal_stresses[i] + SA[i]);
-
-            suma += SA[i];
-            sumb += SB[i];
-            sumc += SC[i];
+            aux_sa = std::abs(principal_stresses[i]);
+            suma += aux_sa;
+            sumb += 0.5 * (principal_stresses[i] + aux_sa);
+            sumc += 0.5 * (-principal_stresses[i] + aux_sa);
         }
 
         if (std::abs(suma) > tolerance) {
