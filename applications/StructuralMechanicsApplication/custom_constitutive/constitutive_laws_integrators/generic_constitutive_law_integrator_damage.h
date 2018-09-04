@@ -177,6 +177,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     }
 
     /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * @param rThreshold The uniaxial stress threshold
+     * @param rMaterialProperties The material properties
+     */
+    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    {
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, rThreshold);
+    }
+
+    /**
      * @brief This method defines in the CL integrator
      * @return 0 if OK, 1 otherwise
      */
