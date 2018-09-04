@@ -591,6 +591,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         PlasticDenominator = 1.0 / (A1 + A2 + A3);
     }
 
+    /**
+     * @brief This method defines in the CL integrator
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        return TYieldSurfaceType::Check(rMaterialProperties);
+    }
+
     ///@}
     ///@name Access
     ///@{
