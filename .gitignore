@@ -50,6 +50,10 @@ kratos/includes/kratos_version.h
 *.a
 *.lib
 
+# HDF5 post files
+*.h5
+*.dat
+
 # GiD post files
 *.post.res
 *.post.msh
