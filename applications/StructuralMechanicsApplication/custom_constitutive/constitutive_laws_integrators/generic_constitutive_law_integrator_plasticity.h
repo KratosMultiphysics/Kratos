@@ -393,19 +393,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
             switch (static_cast<HardeningCurveType>(curve_type))
             {
             case HardeningCurveType::LinearSoftening:
-                CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
+                CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
                 break;
 
             case HardeningCurveType::ExponentialSoftening:
-                CalculateEqStressThresholdHardCurve2(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
+                CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
                 break;
 
             case HardeningCurveType::InitialHardeningExponentialSoftening:
-                CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
+                CalculateEquivalentStressThresholdHardeningCurveInitialHardeningExponentialSoftening(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
                 break;
 
             case HardeningCurveType::PerfectPlasticity:
-                CalculateEqStressThresholdHardCurve4(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
+                CalculateEquivalentStressThresholdHardeningCurvePerfectPlasticity(PlasticDissipation, r0, r1, eq_thresholds[i], slopes[i], rMaterialProperties);
                 break;
 
                 // Add more cases...
@@ -429,7 +429,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve1(
+    static void CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(
         const double PlasticDissipation,
         const double r0,
         const double r1,
@@ -454,7 +454,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve2(
+    static void CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(
         const double PlasticDissipation,
         const double r0,
         const double r1,
@@ -478,7 +478,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve3(
+    static void CalculateEquivalentStressThresholdHardeningCurveInitialHardeningExponentialSoftening(
         const double PlasticDissipation,
         const double r0,
         const double r1,
@@ -487,7 +487,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const Properties& rMaterialProperties
         )
     {
-//         const double initial_threshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];  // sikma
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
         const double ultimate_stress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
@@ -516,7 +515,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve4(
+    static void CalculateEquivalentStressThresholdHardeningCurvePerfectPlasticity(
         const double PlasticDissipation,
         const double r0,
         const double r1,
