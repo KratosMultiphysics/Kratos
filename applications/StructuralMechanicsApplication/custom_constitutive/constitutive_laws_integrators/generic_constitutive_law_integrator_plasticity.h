@@ -280,6 +280,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         double& r1
         )
     {
+        // We do an initial check
+        if (norm_2(rStressVector) < 1.0e-8) {
+            r0 = 0.5;
+            r1 = 0.5;
+            return;
+        }
+
+        // We proceed as usual
         Vector principal_stresses = ZeroVector(3);
         ConstitutiveLawUtilities::CalculatePrincipalStresses(principal_stresses, rStressVector);
 
