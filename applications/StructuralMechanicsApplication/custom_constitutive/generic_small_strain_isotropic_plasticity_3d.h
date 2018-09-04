@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 
 namespace Kratos
 {
@@ -50,11 +50,14 @@ namespace Kratos
  */
 template <class ConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity3D
-    : public ConstitutiveLaw
+    : public ElasticIsotropic3D
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
+
+    /// Definition of the base class
+    typedef ElasticIsotropic3D BaseType;
 
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPlasticity3D);
@@ -82,7 +85,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
     * Copy constructor.
     */
     GenericSmallStrainIsotropicPlasticity3D(const GenericSmallStrainIsotropicPlasticity3D &rOther)
-        : ConstitutiveLaw(rOther), mPlasticDissipation(rOther.mPlasticDissipation), mThreshold(rOther.mThreshold), mPlasticStrain(rOther.mPlasticStrain), mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation), mNonConvThreshold(rOther.mNonConvThreshold), mNonConvPlasticStrain(rOther.mNonConvPlasticStrain), mUniaxialStress(rOther.mUniaxialStress)
+        : BaseType(rOther), mPlasticDissipation(rOther.mPlasticDissipation), mThreshold(rOther.mThreshold), mPlasticStrain(rOther.mPlasticStrain), mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation), mNonConvThreshold(rOther.mNonConvThreshold), mNonConvPlasticStrain(rOther.mNonConvPlasticStrain), mUniaxialStress(rOther.mUniaxialStress)
     {
     }
 
@@ -93,10 +96,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
     {
     }
 
-    // ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
-    // {
-    // }
-
     ///@}
     ///@name Operators
     ///@{
@@ -106,48 +105,32 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
     ///@{
 
     /**
-     * @brief Dimension of the law:
-     */
-    SizeType WorkingSpaceDimension() override
-    {
-        return 3;
-    };
-
-    /**
-     * @brief Voigt tensor size:
-     */
-    SizeType GetStrainSize() override
-    {
-        return 6;
-    };
-
-    /**
-     * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
+     * @brief To be called at the end of each solution step
+     * @details (e.g. from Element::FinalizeSolutionStep)
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
@@ -156,30 +139,30 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
     void FinalizeSolutionStep(
         const Properties &rMaterialProperties,
         const GeometryType &rElementGeometry,
-        const Vector &rShapeFunctionsValues,
+        const Vector& rShapeFunctionsValues,
         const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
-     * Finalize the material response,  called by the element in FinalizeSolutionStep.
+     * @brief Finalize the material response,  called by the element in FinalizeSolutionStep.
      * @see Parameters
      * @see StressMeasures
      */
     void FinalizeMaterialResponse(ConstitutiveLaw::Parameters &rValues, const StressMeasure &rStressMeasure); //override;
 
     /**
-     * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
     void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
     void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Finalize the material response in terms of Kirchhoff stresses
+     * @brief Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
     void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
@@ -211,7 +194,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
      */
     void SetValue(
         const Variable<double> &rThisVariable,
-        const double &rValue,
+        const double& rValue,
         const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
@@ -222,7 +205,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
      */
     void SetValue(
         const Variable<Vector> &rThisVariable,
-        const Vector &rValue,
+        const Vector& rValue,
         const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
@@ -231,9 +214,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    double &GetValue(
+    double& GetValue(
         const Variable<double> &rThisVariable,
-        double &rValue) override;
+        double& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (Vector)
@@ -241,30 +224,43 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    Vector &GetValue(
+    Vector& GetValue(
         const Variable<Vector> &rThisVariable,
-        Vector &rValue) override;
+        Vector& rValue) override;
 
     /**
-     * returns the value of a specified variable (double)
+     * @brief Returns the value of a specified variable (matrix)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Matrix& GetValue(
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    double &CalculateValue(
-        ConstitutiveLaw::Parameters &rParameterValues,
-        const Variable<double> &rThisVariable,
-        double &rValue) override;
+    double& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
+        double& rValue) override;
 
-    Matrix &GetValue(
-        const Variable<Matrix> &rThisVariable,
-        Matrix &rValue) override;
-
-    Matrix &CalculateValue(
-        ConstitutiveLaw::Parameters &rParameterValues,
-        const Variable<Matrix> &rThisVariable,
-        Matrix &rValue) override;
+    /**
+     * @brief Returns the value of a specified variable (matrix)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Matrix& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue) override;
     ///@}
     ///@name Access
     ///@{
@@ -362,15 +358,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
-
-    /**
-     * @brief This method computes the elastic tensor
-     * @param rElasticityTensor The elastic tensor
-     * @param rMaterialProperties The material properties
-     */
-    void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties);
 
     ///@}
     ///@name Private  Access
