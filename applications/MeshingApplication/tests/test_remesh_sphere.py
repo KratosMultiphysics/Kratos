@@ -11,6 +11,8 @@ import os
 class TestRemeshMMG(KratosUnittest.TestCase):
 
     def test_remesh_sphere(self):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
         # We create the model part
         main_model_part = KratosMultiphysics.ModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
