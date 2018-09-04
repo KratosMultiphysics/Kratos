@@ -85,7 +85,14 @@ public:
     * Copy constructor.
     */
     GenericSmallStrainIsotropicPlasticity3D(const GenericSmallStrainIsotropicPlasticity3D &rOther)
-        : BaseType(rOther), mPlasticDissipation(rOther.mPlasticDissipation), mThreshold(rOther.mThreshold), mPlasticStrain(rOther.mPlasticStrain), mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation), mNonConvThreshold(rOther.mNonConvThreshold), mNonConvPlasticStrain(rOther.mNonConvPlasticStrain), mUniaxialStress(rOther.mUniaxialStress)
+        : BaseType(rOther),
+          mPlasticDissipation(rOther.mPlasticDissipation),
+          mThreshold(rOther.mThreshold),
+          mPlasticStrain(rOther.mPlasticStrain),
+          mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation),
+          mNonConvThreshold(rOther.mNonConvThreshold),
+          mNonConvPlasticStrain(rOther.mNonConvPlasticStrain),
+          mUniaxialStress(rOther.mUniaxialStress)
     {
     }
 
