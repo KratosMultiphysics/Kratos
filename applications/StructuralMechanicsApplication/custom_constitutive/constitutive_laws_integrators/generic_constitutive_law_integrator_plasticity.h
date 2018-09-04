@@ -286,7 +286,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         double suma = 0.0, sumb = 0.0, sumc = 0.0;
         double aux_sa;
 
-        for (IndexType i = 0; i < 3; i++) {
+        for (IndexType i = 0; i < 3; ++i) {
             aux_sa = std::abs(principal_stresses[i]);
             suma += aux_sa;
             sumb += 0.5 * (principal_stresses[i] + aux_sa);
@@ -344,7 +344,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         }
         const double constant = constant0 + constant1;
 
-        for (IndexType i = 0; i < 6; i++) {
+        for (IndexType i = 0; i < 6; ++i) {
             rHCapa[i] = constant * StressVector[i];
             dplastic_dissipation += rHCapa[i] * PlasticStrainInc[i];
         }
@@ -385,7 +385,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         Gf[0] = rMaterialProperties[FRACTURE_ENERGY];
         Gf[1] = std::pow(n, 2) * Gf[0];
 
-        for (IndexType i = 0; i < 2; i++) { // i:0 Tension ; i:1 compression
+        for (IndexType i = 0; i < 2; ++i) { // i:0 Tension ; i:1 compression
             switch (static_cast<HardeningCurveType>(curve_type))
             {
             case HardeningCurveType::LinearSoftening:
@@ -554,7 +554,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         rHardeningParameter = -SlopeThreshold;
         double aux = 0.0;
 
-        for (IndexType i = 0; i < 6; i++) {
+        for (IndexType i = 0; i < 6; ++i) {
             aux += HCapa[i] * GFlux[i];
         }
         if (aux != 0.0)
@@ -582,7 +582,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const Vector delta_vector = prod(rGFlux, rC);
         double A1 = 0.0;
 
-        for (IndexType i = 0; i < 6; i++) {
+        for (IndexType i = 0; i < 6; ++i) {
             A1 += rFFlux[i] * delta_vector[i];
         }
 

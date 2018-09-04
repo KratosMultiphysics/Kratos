@@ -23,6 +23,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// The size type definition
     typedef std::size_t SizeType;
 
 ///@}
@@ -49,6 +50,9 @@ class ConstitutiveLawUtilities
   public:
     ///@name Type definitions
     ///@{
+
+    /// The index type definition
+    typedef std::size_t IndexType;
 
     /// We define the dimension (TODO: Implement a template for 2D/3D)
     static constexpr SizeType TDim = 3;
@@ -284,7 +288,9 @@ class ConstitutiveLawUtilities
             rPrincipalStressVector[1] = aux2 + aux1 * std::cos(phi - deg_120);
             rPrincipalStressVector[2] = aux2 + aux1 * std::cos(phi - deg_240);
         } else {
-            rPrincipalStressVector = ZeroVector(TDim);
+            for (IndexType i = 0; i < TDim; ++i) {
+                rPrincipalStressVector[i] = rStressVector[i];
+            }
         }
     }
 
