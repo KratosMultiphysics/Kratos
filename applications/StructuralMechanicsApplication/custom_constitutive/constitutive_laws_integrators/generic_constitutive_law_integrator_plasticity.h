@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/checks.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -442,7 +443,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const Properties& rMaterialProperties
         )
     {
-        //const double initial_threshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
@@ -467,7 +467,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         double& rSlope,
         const Properties& rMaterialProperties)
     {
-//         const double initial_threshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
@@ -597,6 +596,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      */
     static int Check(const Properties& rMaterialProperties)
     {
+        KRATOS_CHECK_VARIABLE_KEY(HARDENING_CURVE);
+        KRATOS_CHECK_VARIABLE_KEY(MAXIMUM_STRESS);
+        KRATOS_CHECK_VARIABLE_KEY(MAXIMUM_STRESS_POSITION);
+        KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
+
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(HARDENING_CURVE)) << "HARDENING_CURVE is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MAXIMUM_STRESS)) << "MAXIMUM_STRESS is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MAXIMUM_STRESS_POSITION)) << "MAXIMUM_STRESS_POSITION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
+
         return TYieldSurfaceType::Check(rMaterialProperties);
     }
 
