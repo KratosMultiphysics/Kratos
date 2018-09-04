@@ -120,32 +120,32 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method integrates the predictive stress vector with the CL using differents evolution laws using the backward euler scheme
-     * @param PredictiveStressVector The predictive stress vector S = C:(E-Ep)
-     * @param StrainVector The equivalent strain vector of that integration point
-     * @param UniaxialStress The equivalent uniaxial stress
-     * @param Threshold The maximum uniaxial stress of the linear behaviour
-     * @param PlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
-     * @param Fflux The derivative of the yield surface
-     * @param Gflux The derivative of the plastic potential
-     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
-     * @param PlasticStrainIncrement The increment of plastic strain of this time step
-     * @param C The elastic constitutive matrix
-     * @param PlasticStrain The elastic constitutive matrix
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The equivalent strain vector of that integration point
+     * @param rUniaxialStress The equivalent uniaxial stress
+     * @param rThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rPlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
+     * @param rFflux The derivative of the yield surface
+     * @param rGflux The derivative of the plastic potential
+     * @param rPlasticDissipation The internal variable of energy dissipation due to plasticity
+     * @param rPlasticStrainIncrement The increment of plastic strain of this time step
+     * @param rC The elastic constitutive matrix
+     * @param rPlasticStrain The elastic constitutive matrix
      * @param rMaterialProperties The material properties
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void IntegrateStressVector(
         Vector& rPredictiveStressVector,
-        Vector& StrainVector,
-        double& UniaxialStress,
-        double& Threshold,
-        double& PlasticDenominator,
-        Vector& Fflux,
-        Vector& Gflux,
-        double& PlasticDissipation,
-        Vector& PlasticStrainIncrement,
-        const Matrix& C,
-        Vector& PlasticStrain,
+        Vector& rStrainVector,
+        double& rUniaxialStress,
+        double& rThreshold,
+        double& rPlasticDenominator,
+        Vector& rFflux,
+        Vector& rGflux,
+        double& rPlasticDissipation,
+        Vector& rPlasticStrainIncrement,
+        const Matrix& rC,
+        Vector& rPlasticStrain,
         const Properties& rMaterialProperties,
         const double CharacteristicLength
         )
@@ -157,21 +157,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
-            F = UniaxialStress - Threshold;
-            plastic_consistency_factor_increment = F * PlasticDenominator;
+            F = rUniaxialStress - rThreshold;
+            plastic_consistency_factor_increment = F * rPlasticDenominator;
             //if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0;
-            noalias(PlasticStrainIncrement) = plastic_consistency_factor_increment * Gflux;
-            noalias(PlasticStrain) += PlasticStrainIncrement;
-            noalias(delta_sigma) = prod(C, PlasticStrainIncrement);
+            noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
+            noalias(rPlasticStrain) += rPlasticStrainIncrement;
+            noalias(delta_sigma) = prod(rC, rPlasticStrainIncrement);
             noalias(rPredictiveStressVector) -= delta_sigma;
 
-            CalculatePlasticParameters(rPredictiveStressVector, StrainVector, UniaxialStress, Threshold,
-                                       PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement,
-                                       C, rMaterialProperties, CharacteristicLength);
+            CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
+                                       rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
+                                       rC, rMaterialProperties, CharacteristicLength);
 
-            F = UniaxialStress - Threshold;
+            F = rUniaxialStress - rThreshold;
 
-            if (std::abs(F) <= std::abs(1.0e-4 * Threshold)) { // Has converged
+            if (std::abs(F) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
             } else {
                 iteration++;
@@ -182,31 +182,31 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     /**
      * @brief This method calculates all the plastic parameters required for the integration of the PredictiveStressVector
-     * @param PredictiveStressVector The predictive stress vector S = C:(E-Ep)
-     * @param StrainVector The equivalent strain vector of that integration point
-     * @param UniaxialStress The equivalent uniaxial stress
-     * @param Threshold The maximum uniaxial stress of the linear behaviour
-     * @param PlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
-     * @param Fflux The derivative of the yield surface
-     * @param Gflux The derivative of the plastic potential
-     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
-     * @param PlasticStrainIncrement The increment of plastic strain of this time step
-     * @param C The elastic constitutive matrix
-     * @param PlasticStrain The elastic constitutive matrix
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The equivalent strain vector of that integration point
+     * @param rUniaxialStress The equivalent uniaxial stress
+     * @param rThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rPlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
+     * @param rFflux The derivative of the yield surface
+     * @param rGflux The derivative of the plastic potential
+     * @param rPlasticDissipation The internal variable of energy dissipation due to plasticity
+     * @param rPlasticStrainIncrement The increment of plastic strain of this time step
+     * @param rC The elastic constitutive matrix
+     * @param rPlasticStrain The elastic constitutive matrix
      * @param rMaterialProperties The material properties
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculatePlasticParameters(
-        Vector& PredictiveStressVector,
-        Vector& StrainVector,
-        double& UniaxialStress,
-        double& Threshold,
-        double& PlasticDenominator,
-        Vector& Fflux,
-        Vector& Gflux,
-        double& PlasticDissipation,
-        Vector& PlasticStrainIncrement,
-        const Matrix& C,
+        Vector& rPredictiveStressVector,
+        Vector& rStrainVector,
+        double& rUniaxialStress,
+        double& rThreshold,
+        double& rPlasticDenominator,
+        Vector& rFflux,
+        Vector& rGflux,
+        double& rPlasticDissipation,
+        Vector& rPlasticStrainIncrement,
+        const Matrix& rC,
         const Properties& rMaterialProperties,
         const double CharacteristicLength
         )
@@ -215,19 +215,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         Vector h_capa = ZeroVector(6);
         double J2, r0, r1, Slope, HardParam;
 
-        YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, StrainVector,
-                                                    UniaxialStress, rMaterialProperties);
-        const double I1 = PredictiveStressVector[0] + PredictiveStressVector[1] + PredictiveStressVector[2];
-        ConstitutiveLawUtilities::CalculateJ2Invariant(PredictiveStressVector, I1, deviator, J2);
-        CalculateFFluxVector(PredictiveStressVector, deviator, J2, Fflux, rMaterialProperties);
-        CalculateGFluxVector(PredictiveStressVector, deviator, J2, Gflux, rMaterialProperties);
-        CalculateRFactors(PredictiveStressVector, r0, r1);
-        CalculatePlasticDissipation(PredictiveStressVector, r0, r1, PlasticStrainIncrement,
-                                    PlasticDissipation, h_capa, rMaterialProperties, CharacteristicLength);
-        CalculateEquivalentStressThreshold(PlasticDissipation, r0,
-                                           r1, Threshold, Slope, rMaterialProperties);
-        CalculateHardeningParameter(Fflux, Slope, h_capa, HardParam);
-        CalculatePlasticDenominator(Fflux, Gflux, C, HardParam, PlasticDenominator);
+        YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector,
+                                                    rUniaxialStress, rMaterialProperties);
+        const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
+        ConstitutiveLawUtilities::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rMaterialProperties);
+        CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rMaterialProperties);
+        CalculateRFactors(rPredictiveStressVector, r0, r1);
+        CalculatePlasticDissipation(rPredictiveStressVector, r0, r1, rPlasticStrainIncrement,
+                                    rPlasticDissipation, h_capa, rMaterialProperties, CharacteristicLength);
+        CalculateEquivalentStressThreshold(rPlasticDissipation, r0,
+                                           r1, rThreshold, Slope, rMaterialProperties);
+        CalculateHardeningParameter(rFflux, Slope, h_capa, HardParam);
+        CalculatePlasticDenominator(rFflux, rGflux, rC, HardParam, rPlasticDenominator);
     }
 
     /**
