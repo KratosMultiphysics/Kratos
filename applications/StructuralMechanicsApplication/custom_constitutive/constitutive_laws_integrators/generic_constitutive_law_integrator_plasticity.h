@@ -216,8 +216,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         Vector h_capa = ZeroVector(6);
         double J2, r0, r1, slope, hardening_parameter;
 
-        YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector,
-                                                    rUniaxialStress, rMaterialProperties);
+        YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rMaterialProperties);
         const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
         ConstitutiveLawUtilities::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rMaterialProperties);
@@ -554,31 +553,31 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     /**
      * @brief This method computes the plastic denominator needed
      * to compute the plastic consistency factor
-     * @param Fflux The derivative of the yield surface
-     * @param Gflux The derivative of the plastic potential
-     * @param C The elastic constitutive matrix
+     * @param rFflux The derivative of the yield surface
+     * @param rGflux The derivative of the plastic potential
+     * @param rC The elastic constitutive matrix
      * @param rHardeningParameter The hardening parameter needed for the algorithm
-     * @param PlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
+     * @param rPlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
      */
     static void CalculatePlasticDenominator(
-        const Vector& FFlux,
-        const Vector& GFlux,
-        const Matrix& C,
+        const Vector& rFFlux,
+        const Vector& rGFlux,
+        const Matrix& rC,
         double& rHardeningParameter,
-        double& PlasticDenominator
+        double& rPlasticDenominator
         )
     {
         //const Vector delta_vector = prod(C, GFlux);
-        const Vector delta_vector = prod(GFlux, C);
+        const Vector delta_vector = prod(rGFlux, rC);
         double A1 = 0.0;
 
         for (IndexType i = 0; i < 6; i++) {
-            A1 += FFlux[i] * delta_vector[i];
+            A1 += rFFlux[i] * delta_vector[i];
         }
 
         const double A2 = 0.0; // Only for isotropic hard
         const double A3 = rHardeningParameter;
-        PlasticDenominator = 1.0 / (A1 + A2 + A3);
+        rPlasticDenominator = 1.0 / (A1 + A2 + A3);
     }
 
     /**
