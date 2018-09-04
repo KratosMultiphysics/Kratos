@@ -162,11 +162,27 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateT
 /***********************************************************************************/
 
 template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::InitializeMaterial(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector& rShapeFunctionsValues
+    )
+{
+    double initial_threshold;
+    ConstLawIntegratorType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+    this->SetThreshold(initial_threshold);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::FinalizeSolutionStep(
     const Properties& r_material_properties,
     const GeometryType &rElementGeometry,
     const Vector& rShapeFunctionsValues,
-    const ProcessInfo &rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo
+    )
 {
     this->SetPlasticDissipation(this->GetNonConvPlasticDissipation());
     this->SetThreshold(this->GetNonConvThreshold());

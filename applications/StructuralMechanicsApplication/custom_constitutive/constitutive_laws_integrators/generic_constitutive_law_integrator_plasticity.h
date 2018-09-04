@@ -435,7 +435,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         )
     {
         double initial_threshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+        GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold * std::sqrt(1.0 - PlasticDissipation);
         rSlope = -0.5 * (std::pow(initial_threshold, 2.0) / (rEquivalentStressThreshold));
@@ -459,7 +459,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const Properties& rMaterialProperties)
     {
         double initial_threshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+        GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
         rSlope = -0.5 * initial_threshold;
@@ -484,7 +484,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         )
     {
         double initial_threshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+        GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
         const double ultimate_stress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
         const double max_stress_position = rMaterialProperties[MAXIMUM_STRESS_POSITION]; // cappi
 
@@ -521,11 +521,22 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         )
     {
         double initial_threshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+        GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold;
         rSlope = -0.5 * initial_threshold;
     }
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * @param rThreshold The uniaxial stress threshold
+     * @param rMaterialProperties The material properties
+     */
+    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    {
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, rThreshold);
+    }
+
     /**
      * @brief This method computes hardening parameter needed for the algorithm
      * @param Gflux The derivative of the plastic potential
