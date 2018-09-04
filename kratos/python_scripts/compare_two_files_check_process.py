@@ -287,11 +287,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 end_line = "  \n"
 
             if (lines_ref[i][0] == " "):
-                lines_ref[i] = lines_ref[i][1:]
+                tmp1 = ConvertStringToListFloat(lines_ref[i][1:], space, end_line)
+            else:
+                tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
             if (lines_out[i][0] == " "):
-                lines_ref[i][0] = lines_out[i][1:]
-            tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
-            tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
+                tmp2 = ConvertStringToListFloat(lines_out[i][1:], space, end_line)
+            else:
+                tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
             if (self.dimension == 2):
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
@@ -308,7 +310,8 @@ def ConvertStringToListFloat(line, space = " ", endline = ""):
     list_values = []
     string_values = (line.replace(endline,"")).split(space)
     for string in string_values:
-        list_values.append(float(string))
+        if (string != ""):
+            list_values.append(float(string))
 
     return list_values
 
