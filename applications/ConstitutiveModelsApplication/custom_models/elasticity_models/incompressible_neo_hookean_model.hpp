@@ -211,10 +211,10 @@ namespace Kratos
 
       this->CalculateVolumetricFactor(rVariables,rFactor);
 
-      rFactor *= rVariables.GetModelData().GetPressure();
+      rFactor *= rVariables.GetModelData().GetPressure() * rVariables.Strain.Invariants.J;
 
       KRATOS_CATCH(" ")
-    }    
+    }
 
     void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
@@ -233,7 +233,7 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-    
+
 
     //************// dW
 

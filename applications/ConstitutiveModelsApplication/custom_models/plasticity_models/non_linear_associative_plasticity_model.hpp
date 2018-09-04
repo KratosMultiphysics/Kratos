@@ -171,7 +171,7 @@ namespace Kratos
 
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
-      noalias(VolumetricStressMatrix) = ZeroMatrix(3,3); 
+      noalias(VolumetricStressMatrix) = ZeroMatrix(3,3);
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
 
       // calculate isochoric stress
@@ -477,7 +477,7 @@ namespace Kratos
       if( rVariables.State().Is(ConstitutiveModelData::IMPLEX_ACTIVE) )
 	{
 	  //3.- Calculate the implex radial return
-	  this->CalculateImplexRadialReturn(rVariables,rStressMatrix);
+	  this->CalculateImplexReturnMapping(rVariables,rStressMatrix);
 	}
       else{
 
@@ -494,7 +494,7 @@ namespace Kratos
 	    //4.- Update back stress, plastic strain and stress
 	    this->UpdateStressConfiguration(rVariables,rStressMatrix);
 
-            
+
             if(!converged)
               std::cout<<" ConstitutiveLaw did not converge [Stress: "<<rStressMatrix<<" DeltaGamma: "<<rVariables.DeltaInternal.Variables[0]<<"]"<<std::endl;
 
@@ -654,7 +654,7 @@ namespace Kratos
     }
 
     // implex protected methods
-    virtual void CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual void CalculateImplexReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 

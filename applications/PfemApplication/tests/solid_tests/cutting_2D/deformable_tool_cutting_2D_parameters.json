@@ -8,15 +8,15 @@
         "threads"     : 4
     },
     "time_settings" : {
-        "time_step" : 5.0e-8,
-        "end_time"  : 2.5e-5
+        "time_step" : 2.5e-8,
+        "end_time"  : 2.5e-4
     },
     "model_settings" : {
 	"model_name" : "Main_Domain",
         "dimension" : 2,
         "input_file_settings": {
-            "type" : "rest",
-            "label": 188
+            "type" : "mdpa",
+            "label": 250
         },
 	"bodies_list":[{
 	    "body_type": "Solid",

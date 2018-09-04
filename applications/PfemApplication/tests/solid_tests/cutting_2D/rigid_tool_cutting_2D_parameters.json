@@ -40,7 +40,8 @@
                 "entity_type": "Element",
 		"entity_kratos_type": "ThermalElement2D3N"
 	    }]
-	}]
+	}],
+	"variables": ["VELOCITY","ACCELERATION"]
     },
     "solver_settings" : {
         "solver_type" : "solid_mechanics_composite_solver",

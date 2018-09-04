@@ -108,12 +108,18 @@ public:
 
           if( it->Is(ISOLATED) || (it->Is(RIGID) && (it->IsNot(SOLID) && it->IsNot(FLUID))) ){
 
-	    it->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0;
+            if(it->SolutionStepsDataHas(PRESSURE)){
+              it->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
+              it->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
+            }
+            if(it->SolutionStepsDataHas(PRESSURE_VELOCITY)){
+              it->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0;
+              it->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0;
+            }
+            if(it->SolutionStepsDataHas(PRESSURE_ACCELERATION)){
+              it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0;
+              it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0;
+            }
 
           }
         }
@@ -126,7 +132,6 @@ public:
     void ExecuteFinalizeSolutionStep() override
     {
       KRATOS_TRY
-
 
       const int nnodes = mrModelPart.Nodes().size();
       const double TimeStep = mrModelPart.GetProcessInfo()[DELTA_TIME];
