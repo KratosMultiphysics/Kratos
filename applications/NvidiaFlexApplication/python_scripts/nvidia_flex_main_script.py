@@ -20,10 +20,6 @@ class Solution(main_script.Solution):
 
     def SolverSolve(self):
         if self.step < 2:
-        #    for node in self.spheres_model_part.Nodes:
-        #        node.SetSolutionStepValue(VELOCITY_X, 0.0)
-        #        node.SetSolutionStepValue(VELOCITY_Y, 0.0)
-        #        node.SetSolutionStepValue(VELOCITY_Z, 0.0)
             self._CheckNvidiaParameters()
             self.nvidia_flex_wrapper.UpdateFlex()
 
