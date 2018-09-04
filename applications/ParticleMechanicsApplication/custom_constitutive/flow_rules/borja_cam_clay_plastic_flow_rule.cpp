@@ -201,9 +201,10 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
 
     // Initiate iterator variable
     unsigned int counter = 0;
-    unsigned int maxcounter = 10;
+    unsigned int maxcounter = 20;
     double InitialNormResidual, CurrentNormResidual, NormRatio;
-    const double tolerance = 5e-05;
+    const double tolerance = 5e-03;
+    const double norm_tolerance = 5e-012;
 
     // Initial UnknownVector
     UnknownVector = ZeroVector(3);
@@ -274,7 +275,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
         this->CalculatePrincipalStressVector(PrincipalStrainVector, PrincipalStressVector);
 
         // Weighted residual Convergence criteria - to exit Newton iteration loop
-        if( fabs(NormRatio) <= tolerance || counter == maxcounter)
+        if( fabs(mStateFunction) <= tolerance || fabs(NormRatio) <= norm_tolerance || counter == maxcounter)
         {    
             // These updates are done since the following variables will be used during ComputeElastoPlasticTangentMatrix
                 rAlpha  = TrialVolumetricStrain - UnknownVector(0);
