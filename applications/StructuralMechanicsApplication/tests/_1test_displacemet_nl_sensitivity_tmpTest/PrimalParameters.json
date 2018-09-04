@@ -29,7 +29,8 @@
         "max_iteration"                      : 100,
         "problem_domain_sub_model_part_list" : ["Parts_TRUSS_1","Parts_TRUSS_2"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad2D_BC_NEUMANN"],
-        "rotation_dofs"                      : false
+        "rotation_dofs"                      : false,
+        "buffer_size":                        3
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
@@ -68,7 +69,7 @@
             "model_part_name" : "PointLoad2D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : "0.35*t",
-            "direction"       : [-1.0,0.0,0.0],
+            "direction"       : [0.0,1.0,0.0],
             "interval"        : [0.0,"End"]
         }
     }],
@@ -90,7 +91,7 @@
             }
         }
     }],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostAscii",

@@ -66,7 +66,7 @@
             "model_part_name" : "PointLoad2D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : "0.35*t",
-            "direction"       : [-1.0,0.0,0.0],
+            "direction"       : [0.0,1.0,0.0],
             "interval"        : [0.0,"End"]
         }
     }],
@@ -88,7 +88,7 @@
             }
         }
     }],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostAscii",
@@ -104,7 +104,8 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT"],
-            "gauss_point_results" : ["FORCE"]
+            "gauss_point_results" : ["FORCE"],
+            "nodal_nonhistorical_results": ["DISPLACEMENT_NL_SENSITIVITY", "NL_SENSITIVITY_FIRST_ORDER", "NL_SENSITIVITY_SECOND_ORDER"]
         },
         "point_data_configuration"  : []
     }
