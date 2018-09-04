@@ -154,13 +154,14 @@ public:
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
+     * @param rCurrentProcessInfo the current ProcessInfo instance
      */
     void FinalizeSolutionStep(
         const Properties &rMaterialProperties,
         const GeometryType &rElementGeometry,
         const Vector& rShapeFunctionsValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
      * @brief Finalize the material response,  called by the element in FinalizeSolutionStep.
@@ -215,7 +216,8 @@ public:
     void SetValue(
         const Variable<double> &rThisVariable,
         const double& rValue,
-        const ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
      * @brief Sets the value of a specified variable (Vector)
@@ -226,7 +228,8 @@ public:
     void SetValue(
         const Variable<Vector> &rThisVariable,
         const Vector& rValue,
-        const ProcessInfo &rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
      * @brief Returns the value of a specified variable (double)
@@ -236,7 +239,8 @@ public:
      */
     double& GetValue(
         const Variable<double> &rThisVariable,
-        double& rValue) override;
+        double& rValue
+        ) override;
 
     /**
      * @brief Returns the value of a specified variable (Vector)
