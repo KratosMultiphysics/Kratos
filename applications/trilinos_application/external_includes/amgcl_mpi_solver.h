@@ -4,609 +4,413 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Denis Demidov
 //                   Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED )
 #define  KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED
 
-
+// #ifndef AMGCL_PARAM_MISSING
+// #define AMGCL_PARAM_MISSING(name) std::cout << "unset AMGCL parameter with name " << name <<std::endl;
+// #endif
+// KRATOS_ERROR << , #name)
+// Unknown parameter action
 #ifndef AMGCL_PARAM_UNKNOWN
 #  define AMGCL_PARAM_UNKNOWN(name)                                            \
       std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
 #endif
 
+// System includes
+#include <iostream>
+#include <fstream>
+#include <utility>
 
 // External includes
+/* BOOST */
+#include <boost/range/iterator_range.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
+/* AMGCL */
+#include <amgcl/adapter/crs_tuple.hpp>
+#include <amgcl/adapter/ublas.hpp>
+#include <amgcl/adapter/zero_copy.hpp>
+#include <amgcl/adapter/block_matrix.hpp>
+#include <amgcl/backend/builtin.hpp>
+#include <amgcl/value_type/static_matrix.hpp>
+#include <amgcl/make_solver.hpp>
+#include <amgcl/amg.hpp>
+#include <amgcl/coarsening/runtime.hpp>
+#include <amgcl/relaxation/runtime.hpp>
+#include <amgcl/solver/runtime.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "linear_solvers/linear_solver.h"
+#include "linear_solvers/amgcl_solver.h"
 
-//aztec solver includes
-#include "AztecOO.h"
-#include "Epetra_LinearProblem.h"
-//#include "Teuchos_ParameterList.hpp"
-
-
-#include <boost/range/iterator_range.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
-#include <amgcl/amg.hpp>
-#include <amgcl/adapter/epetra.hpp>
-#include <amgcl/make_solver.hpp>
-#include <amgcl/coarsening/runtime.hpp>
-#include <amgcl/relaxation/runtime.hpp>
-#include <amgcl/solver/runtime.hpp>
-#include <amgcl/mpi/direct_solver/runtime.hpp>
-#include <amgcl/mpi/subdomain_deflation.hpp>
-#include <amgcl/profiler.hpp>
-
-namespace amgcl {
-    profiler<> prof;
-}
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
 
 
+///@}
+///@name  Functions
+///@{
 
+///@}
+///@name Kratos Classes
+///@{
 
-struct deflation_space
-{
-    std::vector<bool> mdirichlet;
-    int mblock_size;
-    int mdim;
-    double mconstant_value;
-    std::vector<double> mxx;
-    std::vector<double> myy;
-    std::vector<double> mzz;
-
-    //n is the size of the chunk
-    //block_size is the size of the block
-    deflation_space(int n, int block_size, int dim)
-        : mdirichlet(n, 0), mblock_size(block_size), mdim(dim), mxx(n/block_size) , myy(n/block_size), mzz(n/block_size)
-    {
-        mconstant_value = 1.0/static_cast<double>(n);
-    }
-
-    int dim() const
-    {
-        return mblock_size*(mdim+1);
-    }
-
-    double operator()(int idx, int k) const
-    {
-         if (mdirichlet[idx]) return 0.0;
-
-        int j = idx/mblock_size;
-        int m = idx%mblock_size;
-        int l = k/(mdim+1);
-        int n = k%(mdim+1);
-
-        if(m == l)
-        {
-            if( n == 0) //constant deflation
-                return mconstant_value;
-            else if( n == 1) //x coordinate
-                return mxx[j]*mconstant_value;
-            else if( n == 2) //y coordinate
-                return myy[j]*mconstant_value;
-            else if( n == 3) //z coordinate
-                return mzz[j]*mconstant_value;
-        }
-        return 0.0;
-
-    }
-};
-
-struct constant_deflation_space
-{
-    std::vector<bool> mdirichlet;
-    int mblock_size;
-    int mdim;
-    double mconstant_value;
-
-    //n is the size of the chunk
-    //block_size is the size of the block
-    //dim is the dimension of the working space
-    constant_deflation_space(int n, int block_size, int dim)
-        : mdirichlet(n, 0), mblock_size(block_size), mdim(dim)
-    {
-        mconstant_value = 1.0/static_cast<double>(n);
-    }
-
-    int dim() const
-    {
-        return mblock_size;
-    }
-
-    double operator()(int idx, int k) const
-    {
-         if (mdirichlet[idx]) return 0.0;
-
-        if(k == (idx%mblock_size) ) return mconstant_value;
-        return 0.0;
-
-    }
-};
-
-
-
+/**
+ * @class AmgclMPISolver
+ * @ingroup KratosCore
+ * @brief This is a multigrid solver based on the AMGCL library
+ * @details Created by Denis Deminov: https://github.com/ddemidov/amgcl
+ * AMGCL is a header-only C++ library for solving large sparse linear systems with algebraic multigrid (AMG) method. AMG is one of the most effective iterative methods for solution of equation systems arising, for example, from discretizing PDEs on unstructured grids. The method can be used as a black-box solver for various computational problems, since it does not require any information about the underlying geometry. AMG is often used not as a standalone solver but as a preconditioner within an iterative solver (e.g. Conjugate Gradients, BiCGStab, or GMRES).
+ * AMGCL builds the AMG hierarchy on a CPU and then transfers it to one of the provided backends. This allows for transparent acceleration of the solution phase with help of OpenCL, CUDA, or OpenMP technologies. Users may provide their own backends which enables tight integration between AMGCL and the user code.
+ * @author Denis Demidov
+ * @author Riccardo Rossi
+ */
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class AmgclMPISolver : public LinearSolver< TSparseSpaceType,
-    TDenseSpaceType, TReordererType>
+class AmgclMPISolver : public AMGCLSolver< TSparseSpaceType,TDenseSpaceType, TReordererType >
 {
 public:
-    /**
-     * Counted pointer of AmgclMPISolver
-     */
-    KRATOS_CLASS_POINTER_DEFINITION(AmgclMPISolver);
+    ///@name Type Definitions
+    ///@{
 
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+    /// Pointer definition of AmgclMPISolver
+    KRATOS_CLASS_POINTER_DEFINITION( AmgclMPISolver );
 
+    /// The base class definition
+    typedef AMGCLSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+
+    /// The sparse matric type
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
+    /// Vector type definition
     typedef typename TSparseSpaceType::VectorType VectorType;
 
+    /// Dense matrix type
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+    /// DofArray type
+    typedef ModelPart::DofsArrayType DofsArrayType;
 
-    AmgclMPISolver(Parameters rParameters)
+    /// The index type definition
+    typedef std::size_t IndexType;
+
+    /// The size type definition
+    typedef std::size_t SizeType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * @brief This is the default constructor
+     * @param ThisParameters The configuration parameters
+     */
+    AmgclMPISolver(Parameters ThisParameters = Parameters(R"({})"))
+        :
+        AMGCLSolver< TSparseSpaceType,TDenseSpaceType, TReordererType>(ThisParameters)
     {
-
-
-        Parameters default_parameters( R"(
-                                   {
-                                       "solver_type" : "AmgclMPISolver",
-                                       "scaling": false,
-                                       "verbosity" : 1,
-                                       "max_iteration": 100,
-                                       "krylov_type": "fgmres",
-                                       "gmres_krylov_space_dimension": 100,
-                                       "tolerance": 1e-6,
-                                       "use_block_matrices_if_possible" : false,
-                                       "local_solver" :
-                                       {
-                                            "smoother_type":"ilu0",
-                                            "coarsening_type": "aggregation",
-                                            "provide_coordinates": false,
-                                            "block_size": 1,
-                                            "coarse_enough" : 5000
-                                       },
-                                       "direct_solver" : "skyline_lu"
-                                   }  )" );
-
-
-        //now validate agains defaults -- this also ensures no type mismatch
-        rParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mverbosity = rParameters["verbosity"].GetInt();
-
-        //validate if values are admissible
-        std::set<std::string> available_smoothers = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
-        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres"};
-        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
-        std::set<std::string> available_direct = {"skyline_lu","pastix"};
-        std::stringstream msg;
-
-
-        //////////////////////////////////////////////////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////////////////////////////////////////
-        //define the LOCAL SOLVER
-        //////////////////////////////////////////////////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////////////////////////////////////////
-        if(available_smoothers.find(rParameters["local_solver"]["smoother_type"].GetString()) == available_smoothers.end())
-        {
-            msg << "currently prescribed smoother_type : " << rParameters["local_solver"]["smoother_type"].GetString() << std::endl;
-            msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
-            KRATOS_THROW_ERROR(std::invalid_argument," smoother_type is invalid: ",msg.str());
-        }
-        if(available_solvers.find(rParameters["krylov_type"].GetString()) == available_solvers.end())
-        {
-            msg << "currently prescribed krylov_type : " << rParameters["krylov_type"].GetString() << std::endl;
-            msg << "admissible values are : gmres,bicgstab,cg,bicgstabl"<< std::endl;
-            KRATOS_THROW_ERROR(std::invalid_argument," krylov_type is invalid: available possibilities are : ",msg.str());
-        }
-        if(available_coarsening.find(rParameters["local_solver"]["coarsening_type"].GetString()) == available_coarsening.end())
-        {
-            msg << "currently prescribed coarsening_type : " << rParameters["local_solver"]["coarsening_type"].GetString() << std::endl;
-            msg << "admissible values are : ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" << std::endl;
-            KRATOS_THROW_ERROR(std::invalid_argument," coarsening_type is invalid: available possibilities are : ",msg.str());
-        }
-        if(available_direct.find(rParameters["direct_solver"].GetString()) == available_direct.end())
-        {
-            msg << "currently prescribed direct_solver : " << rParameters["direct_solver"].GetString()  << std::endl;
-            msg << "admissible values are : skyline_lu, pastix" << std::endl;
-            KRATOS_THROW_ERROR(std::invalid_argument," coarsening_type is invalid: available possibilities are : ",msg.str());
-        }
-
-        //OUTER SOLVER CONFIGURATION
-        mprm.put("isolver.type", rParameters["krylov_type"].GetString());
-        mprm.put("isolver.tol", rParameters["tolerance"].GetDouble());
-        mprm.put("isolver.maxiter", rParameters["max_iteration"].GetInt());
-        //TODO: here is global
-
-        if(rParameters["krylov_type"].GetString() == "gmres" ||
-            rParameters["krylov_type"].GetString() == "lgmres" ||
-            rParameters["krylov_type"].GetString() == "fgmres")
-        {
-            mprm.put("isolver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
-        }
-
-
-        //setting the direct_solver
-        mprm.put("dsolver.type",  rParameters["direct_solver"].GetString());
-
-        mprm.put("local.relax.type", rParameters["local_solver"]["smoother_type"].GetString());
-        mprm.put("local.coarsening.type",  rParameters["local_solver"]["coarsening_type"].GetString());
-
-//         muse_block_matrices_if_possible = rParameters["local_solver"]["use_block_matrices_if_possible"].GetBool();
-
-
-
-        if(mprovide_coordinates==true && muse_block_matrices_if_possible==true)
-        {
-            std::cout << "sorry coordinates can not be provided when using block matrices, hence setting muse_block_matrices_if_possible to false" << std::endl;
-            muse_block_matrices_if_possible = false;
-            rParameters["use_block_matrices_if_possible"].SetBool(false);
-        }
-
 
     }
 
-
-    //put("solver.M", 100) --> to set the size of the gmres search space
-    //put("amg.ncycle", 2) --> to do more swipes...
-    void SetDoubleParameter(std::string param_name, const double value)
-    {
-        mprm.put(param_name,value);
-    }
-
-    void SetIntParameter(std::string param_name, const int value)
-    {
-        mprm.put(param_name,value);
-    }
 
     /**
      * Destructor
      */
-    virtual ~AmgclMPISolver() {}
+    ~AmgclMPISolver() override {};
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
-     * Normal solve method.
-     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
-     * rX is also th initial guess for iterative methods.
-     * @param rA. System matrix
-     * @param rX. Solution vector.
-     * @param rB. Right hand side vector.
+     * @brief Normal solve method.
+     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rVectorx is also th initial guess for iterative methods.
+     * @param rA System matrix
+     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
-    {
-        KRATOS_TRY
-
-        using amgcl::prof;
-        prof.reset();
-
-
-        amgcl::mpi::communicator world(MPI_COMM_WORLD);
-        if (mverbosity >=0 && world.rank == 0) std::cout << "World size: " << world.size << std::endl;
-
-        int chunk = rA.NumMyRows();
-        boost::iterator_range<double*> xrange(rX.Values(), rX.Values() + chunk);
-        boost::iterator_range<double*> frange(rB.Values(), rB.Values() + chunk);
-
-        //set block size
-        mprm.put("local.coarsening.aggr.block_size",mndof);
-
-        std::function<double(ptrdiff_t, unsigned)> dv;
-        if(muse_linear_deflation == false )
-        {
-            if(mpconstant_def_space == nullptr)
-            {
-                //this is in case of emergency if we were not able to compute the deflation step in another way
-                std::size_t dim = 1;
-                mpconstant_def_space = Kratos::make_shared<constant_deflation_space>(rA.NumMyRows(), mndof,dim);
-            }
-            dv = *mpconstant_def_space;;
-        }
-        else
-        {
-            if(mplinear_def_space == nullptr)
-            {
-                KRATOS_ERROR << "the linear deformation space was not correctly constructed" ;
-            }
-            dv = *mplinear_def_space;;
-        }
-
-        mprm.put("num_def_vec", mpconstant_def_space->mdim);
-        mprm.put("def_vec", &dv);
-
-        if(mverbosity > 1 && world.rank == 0)
-            write_json(std::cout, mprm);
-
-        typedef amgcl::backend::builtin<double> Backend;
-        typedef
-            amgcl::mpi::subdomain_deflation<
-                amgcl::amg<Backend, amgcl::runtime::coarsening::wrapper, amgcl::runtime::relaxation::wrapper>,
-                amgcl::runtime::solver::wrapper,
-                amgcl::runtime::mpi::direct::solver<double>
-            > SDD;
-
-        prof.tic("setup");
-        SDD solve(world, amgcl::backend::map(rA), mprm);
-        double tm_setup = prof.toc("setup");
-
-        prof.tic("Solve");
-        size_t iters;
-        double resid;
-        std::tie(iters, resid) = solve(frange, xrange);
-        double solve_tm = prof.toc("Solve");
-
-
-
-        if (rA.Comm().MyPID() == 0)
-        {
-            if(mverbosity > 0)
-            {
-            std::cout
-                    << "------- AMGCL -------\n" << std::endl
-                    << "Iterations      : " << iters   << std::endl
-                    << "Error           : " << resid   << std::endl
-                    << "amgcl setup time: " << tm_setup   << std::endl
-                    << "amgcl solve time: " << solve_tm   << std::endl;
-            }
-
-            if(mverbosity > 1)
-                   std::cout << prof  << std::endl;
-        }
-
-
-
-        return true;
-
-
-
-
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * Multi solve method for solving a set of linear systems with same coefficient matrix.
-     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
-     * rX is also th initial guess for iterative methods.
-     * @param rA. System matrix
-     * @param rX. Solution vector.
-     * @param rB. Right hand side vector.
-     */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
-    {
-
-        return false;
-    }
-
-    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
-    * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-    * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
-    * which require knowledge on the spatial position of the nodes associated to a given dof.
-    * This function tells if the solver requires such data
-    */
-    bool AdditionalPhysicalDataIsNeeded() override
-    {
-        return true;
-    }
-
-    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
-     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
-     * which require knowledge on the spatial position of the nodes associated to a given dof.
-     * This function is the place to eventually provide such data
-     */
-    void ProvideAdditionalData (
+    bool Solve(
         SparseMatrixType& rA,
         VectorType& rX,
-        VectorType& rB,
-        typename ModelPart::DofsArrayType& rdof_set,
-        ModelPart& r_model_part
-    ) override
+        VectorType& rB
+        ) override
     {
-        int my_pid = rA.Comm().MyPID();
-        int old_ndof = -1;
-        unsigned int old_node_id = rdof_set.begin()->Id();
-        int ndof=0;
-        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-        {
-            unsigned int id = it->Id();
-            if(id != old_node_id)
-            {
-                old_node_id = id;
-                if(old_ndof == -1) old_ndof = ndof;
-                else if(old_ndof != ndof) //if it is different than the block size is 1
-                {
-                    old_ndof = -1;
-                    break;
-                }
+/*        // Initial checks
+        KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA) != rA.size2() ) << "matrix A is not square! sizes are " << rA.size1() << " and " << rA.size2() << std::endl;
+        KRATOS_ERROR_IF(rX.size() != rA.size1()) << "size of x does not match the size of A. x size is " << rX.size() << " matrix size is " << rA.size1() << std::endl;
+        KRATOS_ERROR_IF(rB.size() != rA.size1()) << "size of b does not match the size of A. b size is " << rB.size() << " matrix size is " << rA.size1() << std::endl;
 
-                ndof=1;
+        // Set block size
+        if((this->mAMGCLParameters).get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
+            this->mAMGCLParameters.put("precond.coarsening.aggr.eps_strong",0.0);
+            this->mAMGCLParameters.put("precond.coarsening.aggr.block_size",this->mBlockSize);
+        }
+        this->mAMGCLParameters.put("solver.tol", this->mTolerance);
+        this->mAMGCLParameters.put("solver.maxiter", this->mMaxIterationsNumber);
+        this->mAMGCLParameters.put("precond.coarse_enough",this->mCoarseEnough/this->mBlockSize);
+
+        Matrix B;
+        if(this->mProvideCoordinates) {
+            B = ZeroMatrix(  rA.size1(), this->mBlockSize*4  );
+            for(IndexType i=0; i<rA.size1(); i+=this->mBlockSize) {
+                for( IndexType j=0; j<static_cast<IndexType>(this->mBlockSize); j++) {
+                    B(i+j,  j) = 1.0;
+
+                    IndexType inode = i/this->mBlockSize;
+
+                    B(i+j, this->mBlockSize +j*3 + 0) = this->mCoordinates[inode][0];
+                    B(i+j, this->mBlockSize +j*3 + 1) = this->mCoordinates[inode][1];
+                    B(i+j, this->mBlockSize +j*3 + 2) = this->mCoordinates[inode][2];
+                }
             }
-            else
-            {
-                ndof++;
-            }
+            this->mAMGCLParameters.put("precond.coarsening.nullspace.cols", B.size2());
+            this->mAMGCLParameters.put("precond.coarsening.nullspace.rows", B.size1());
+            this->mAMGCLParameters.put("precond.coarsening.nullspace.B",    &(B.data()[0]));
         }
 
-        r_model_part.GetCommunicator().MinAll(old_ndof);
+        if(this->mVerbosity > 1)
+            write_json(std::cout, this->mAMGCLParameters);
 
-        if(old_ndof == -1)
-            mndof = 1;
-        else
-            mndof = ndof;
-
-        if(my_pid == 0)
-            std::cout << "number of dofs = "<< mndof << std::endl;
-
-        //fill deflation space
-        std::size_t chunk = rA.NumMyRows();
-        int dim = 3; //we will change it later on if we detect that we are in 2D
-
-        if(muse_linear_deflation == true)
-        {
-            mplinear_def_space = Kratos::make_shared<deflation_space>(chunk, mndof,dim);
-
-            unsigned int i=0;
-            for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-            {
-                if(it->GetSolutionStepValue(PARTITION_INDEX)== my_pid)
-                {
-                    mplinear_def_space->mdirichlet[i] = it->IsFixed();
-                    i++;
-                }
-            }
-
-
-            //add linear deflation space
-            double xg = 0.0;
-            double yg = 0.0;
-            double zg = 0.0;
-            double xmin = 1e20;
-            double xmax = -1e20;
-            double ymin = 1e20;
-            double ymax = -1e20;
-            double zmin = 1e20;
-            double zmax = -1e20;
-            i=0;
-
-            for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it+=mndof)
-            {
-                if (it->GetSolutionStepValue(PARTITION_INDEX) == my_pid)
-                {
-
-                    ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(it->Id());
-
-
-
-                    unsigned int compressed_index;
-                    if( i%mndof == 0 )
-                    {
-                        double xx = inode->X();
-                        double yy = inode->Y();
-                        double zz = inode->Z();
-
-                        xg += xx;
-                        yg += yy;
-                        zg += zz;
-
-                        if(xx > xmax) xmax = xx;
-                        if(xx < xmin) xmin = xx;
-                        if(yy > ymax) ymax = yy;
-                        if(yy < ymin) ymin = yy;
-                        if(zz > zmax) zmax = zz;
-                        if(zz < zmin) zmin = zz;
-                        compressed_index = i/mndof;
-
-                        mplinear_def_space->mxx[compressed_index] = xx;
-                        mplinear_def_space->myy[compressed_index] = yy;
-                        mplinear_def_space->mzz[compressed_index] = zz;
-                    }
-
-                    i++;
-                }
-            }
-            int nn = mplinear_def_space->mxx.size();
-            xg /= static_cast<double>(nn);
-            yg /= static_cast<double>(nn);
-            zg /= static_cast<double>(nn);
-
-            const double dx = xmax - xmin;
-            const double dy = ymax - ymin;
-            const double dz = zmax - zmin;
-
-            double zgmax = fabs(zmax-zmin);
-            r_model_part.GetCommunicator().MaxAll(zgmax);
-            if(zgmax <1e-20) //2d problem!! - change the dimension of the space
-            {
-                std::cout << " switching to 2D deflation " <<std::endl;
-                mplinear_def_space->mdim = 2;
-            }
-
-            #pragma omp parallel for
-            for(int i=0; i<nn; i++)
-            {
-                mplinear_def_space->mxx[i] -= xg;
-                mplinear_def_space->myy[i] -= yg;
-                mplinear_def_space->mzz[i] -= zg;
-
-                mplinear_def_space->mxx[i] /= dx;
-                mplinear_def_space->myy[i] /= dy;
-                mplinear_def_space->mzz[i] /= dz;
-            }
-
-
-        }
-        else
-        {
-            mpconstant_def_space = Kratos::make_shared<constant_deflation_space>(chunk, mndof,dim);
-
-            unsigned int i=0;
-            for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-            {
-                if(it->GetSolutionStepValue(PARTITION_INDEX)== my_pid)
-                {
-                    mpconstant_def_space->mdirichlet[i] = it->IsFixed();
-                    i++;
-                }
-            }
+        if(this->mVerbosity == 4) {
+            KRATOS_ERROR << " Verbosity = 4 for AMGCL not implemented in mpi" << std::endl;
         }
 
+        size_t iters;
+        double resid;
+        {
+            if(this->mFallbackToGMRES) this->mAMGCLParameters.put("solver.type", "bicgstab"); //first we need to try with bicgstab
 
+            if(this->mUseBlockMatricesIfPossible) {
+                KRATOS_ERROR_IF(rA.size1()%this->mBlockSize != 0) << "The block size employed " << this->mBlockSize << " is not an exact multiple of the matrix size " << rA.size1() << std::endl;
+                if(this->mBlockSize == 1) ScalarSolve(rA,rX,rB, iters, resid);
+                else if(this->mBlockSize == 2) BlockSolve<2>(rA,rX,rB, iters, resid);
+                else if(this->mBlockSize == 3) BlockSolve<3>(rA,rX,rB, iters, resid);
+                else if(this->mBlockSize == 4) BlockSolve<4>(rA,rX,rB, iters, resid);
+                else
+                    ScalarSolve(rA,rX,rB, iters, resid);
+            } else {
+                ScalarSolve(rA,rX,rB, iters, resid);
+            }
+        } //please do not remove this parenthesis!
 
+        if(this->mFallbackToGMRES && resid > this->mTolerance ) {
+            this->mAMGCLParameters.put("solver.type", "gmres");
+            ScalarSolve(rA,rX,rB, iters, resid);
+        }
 
+        KRATOS_WARNING_IF("AMGCL Linear Solver", this->mTolerance < resid)<<"Non converged linear solution. ["<< resid << " > "<< this->mTolerance << "]" << std::endl;
+
+        KRATOS_INFO_IF("AMGCL Linear Solver", this->mVerbosity > 1)
+                    << "Iterations: " << iters << std::endl
+                    << "Error: " << resid << std::endl << std::endl;
+
+        // Setting values
+        this->SetResidualNorm(resid);
+        this->SetIterationsNumber(iters);
+
+        // We check the convergence
+        if(resid > this->mTolerance)
+            return false;
+*/
+        return true;
     }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /**
      * Print information about this object.
      */
-    void PrintInfo(std::ostream& rOStream) const override
+    void  PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AMGCL_MPI solver finished.";
+        rOStream << "AMGCL MPI solver finished.";
     }
 
     /**
      * Print object's data.
      */
-    void PrintData(std::ostream& rOStream) const override
+    void  PrintData(std::ostream& rOStream) const override
     {
     }
 
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    double mtol;
-    int mmax_iter;
-    int mndof = 1;
-    int mverbosity;
-    bool muse_linear_deflation = false;
-    bool mprovide_coordinates = false;
-    bool muse_block_matrices_if_possible = false;
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-    Kratos::shared_ptr< deflation_space    > mplinear_def_space = nullptr;
-    Kratos::shared_ptr< constant_deflation_space    > mpconstant_def_space = nullptr;
+    /**
+     * @brief This method computes a scalar solve
+     * @param rA System matrix
+     * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
+     * @param rB Right hand side vector.
+     * @param rIterationNumber The current number of iterations
+     * @param rResidual The current residual of the problem
+     */
+    void ScalarSolve(
+        SparseMatrixType& rA,
+        VectorType& rX,
+        VectorType& rB,
+        IndexType& rIterationNumber,
+        double& rResidual
+        )
+    {
+        typedef amgcl::backend::builtin<double> Backend;
 
-//     amgcl::runtime::coarsening::type mcoarsening;
-//     amgcl::runtime::relaxation::type mrelaxation;
-//     amgcl::runtime::solver::type miterative_solver;
-//     amgcl::runtime::mpi::dsolver::type mdirect_solver;
+        amgcl::make_solver<
+            amgcl::amg<
+                Backend,
+                amgcl::runtime::coarsening::wrapper,
+                amgcl::runtime::relaxation::wrapper
+                >,
+            amgcl::runtime::solver::wrapper<Backend>
+            > solve(amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), this->mAMGCLParameters);
 
-    boost::property_tree::ptree mprm;
+        // Compute preconditioner
+//         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 0) << solve.precond() << std::endl;
+//         else solve.precond();
+
+        std::tie(rIterationNumber, rResidual) = solve(rB, rX);
+    }
+
+    /**
+     * @brief This method solves by block a Ax=b system
+     * @param rA System matrix
+     * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
+     * @param rB Right hand side vector.
+     * @param rIterationNumber The current number of iterations
+     * @param rResidual The current residual of the problem
+     */
+    template< SizeType TBlockSize>
+    void BlockSolve(
+        SparseMatrixType& rA,
+        VectorType& rX,
+        VectorType& rB,
+        IndexType& rIterationNumber,
+        double& rResidual
+        )
+    {
+        this->mAMGCLParameters.put("precond.coarsening.aggr.block_size",1);
+
+        typedef amgcl::static_matrix<double, TBlockSize, TBlockSize> value_type;
+        typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;
+        typedef amgcl::backend::builtin<value_type> Backend;
+
+        SizeType n = rA.size1();
+
+        amgcl::make_solver<
+            amgcl::amg<
+                Backend,
+                amgcl::runtime::coarsening::wrapper,
+                amgcl::runtime::relaxation::wrapper
+                >,
+            amgcl::runtime::solver::wrapper<Backend>
+            > solve( amgcl::adapter::block_matrix<value_type>(std::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), this->mAMGCLParameters);
+
+//         //compute preconditioner
+//         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
+//         else solve.precond();
+
+        rhs_type* x_begin = reinterpret_cast<rhs_type*>(&rX[0]);
+        boost::iterator_range<rhs_type*> x_range = boost::make_iterator_range(x_begin, x_begin + n / TBlockSize);
+
+        const rhs_type* b_begin = reinterpret_cast<const rhs_type*>(&rB[0]);
+        boost::iterator_range<const rhs_type*> b_range = boost::make_iterator_range(b_begin, b_begin + n / TBlockSize);
+
+        std::tie(rIterationNumber, rResidual) = solve(b_range, x_range);
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
     /**
      * Assignment operator.
      */
@@ -617,7 +421,7 @@ private:
      */
     AmgclMPISolver(const AmgclMPISolver& Other);
 
-};
+}; // Class AmgclMPISolver
 
 
 /**
@@ -645,9 +449,9 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
+//#undef MPI_COMM_WORLD
 
 }  // namespace Kratos.
 
+
 #endif // KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED  defined
-
-
