@@ -701,22 +701,26 @@ bool BorjaCamClayPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables
 {
     // Compute Delta Plastic Strain
     double NormPlasticPrincipalStrain = norm_2(mPlasticPrincipalStrain);
-    mInternalVariables.DeltaPlasticStrain = NormPlasticPrincipalStrain;
 
     // Compute Strain Components and its invariants
-    double VolumetricPlasticPrincipalStrain, DeltaAccumulatedPlasticDeviatoricStrain;
-    Vector DeviatoricPlasticPrincipalStrain;
-    this->CalculateStrainInvariantsFromPrincipalStrain(mPlasticPrincipalStrain, VolumetricPlasticPrincipalStrain, DeltaAccumulatedPlasticDeviatoricStrain, DeviatoricPlasticPrincipalStrain);
+    double VolumetricStrain, DeviatoricStrain;
+    Vector DeviatoricStrainVector;
+    this->CalculateStrainInvariantsFromPrincipalStrain(mPlasticPrincipalStrain, VolumetricStrain, DeviatoricStrain, DeviatoricStrainVector);
 
     // Update Equivalent Plastic Strain
-    mInternalVariables.EquivalentPlasticStrain += mInternalVariables.DeltaPlasticStrain;
+    mInternalVariables.DeltaPlasticStrain = NormPlasticPrincipalStrain;
+    mInternalVariables.EquivalentPlasticStrain += NormPlasticPrincipalStrain;
+
+    // Update Accumulated Plastic Volumetric Strain
+    mInternalVariables.DeltaPlasticVolumetricStrain = VolumetricStrain;
+    mInternalVariables.AccumulatedPlasticVolumetricStrain += VolumetricStrain;
 
     // Update Accumulated Plastic Deviatoric Strain
-    mInternalVariables.DeltaPlasticDeviatoricStrain = DeltaAccumulatedPlasticDeviatoricStrain;
-    mInternalVariables.AccumulatedPlasticDeviatoricStrain += DeltaAccumulatedPlasticDeviatoricStrain;
+    mInternalVariables.DeltaPlasticDeviatoricStrain = DeviatoricStrain;
+    mInternalVariables.AccumulatedPlasticDeviatoricStrain += DeviatoricStrain;
 
     // Update Preconsolidation Stress for the next time step
-    double newPreconsolidationStress = mpYieldCriterion->GetHardeningLaw().CalculateHardening(newPreconsolidationStress, VolumetricPlasticPrincipalStrain, mMaterialParameters.PreconsolidationPressure);
+    double newPreconsolidationStress = mpYieldCriterion->GetHardeningLaw().CalculateHardening(newPreconsolidationStress, VolumetricStrain, mMaterialParameters.PreconsolidationPressure);
     mMaterialParameters.PreconsolidationPressure = newPreconsolidationStress;
 
     return true;

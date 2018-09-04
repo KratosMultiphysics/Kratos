@@ -1021,9 +1021,23 @@ void UpdatedLagrangianQuadrilateral::FinalizeStepVariables( GeneralVariables & r
 
     this->SetValue(MP_CAUCHY_STRESS_VECTOR, rVariables.StressVector);
     this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
+
+    // Delta Plastic Strains
+    double DeltaPlasticStrain = mConstitutiveLawVector->GetValue(DELTA_PLASTIC_STRAIN, DeltaPlasticStrain );
+    this->SetValue(MP_DELTA_PLASTIC_STRAIN, DeltaPlasticStrain);
+
+    double DeltaPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, DeltaPlasticVolumetricStrain);
+    this->SetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, DeltaPlasticVolumetricStrain);
+
+    double DeltaPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, DeltaPlasticDeviatoricStrain);
+    this->SetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, DeltaPlasticDeviatoricStrain);
     
+    // Total Plastic Strain
     double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
     this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
+
+    double AccumulatedPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, AccumulatedPlasticVolumetricStrain);
+    this->SetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, AccumulatedPlasticVolumetricStrain);
 
     double AccumulatedPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
     this->SetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);

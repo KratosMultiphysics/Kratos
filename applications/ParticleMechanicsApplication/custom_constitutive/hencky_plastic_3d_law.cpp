@@ -92,16 +92,34 @@ bool HenckyElasticPlastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 
 double& HenckyElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
+    if (rThisVariable==DELTA_PLASTIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticStrain;
+    }
+    
     if (rThisVariable==PLASTIC_STRAIN)
     {
         const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.EquivalentPlasticStrain;
     }
 
-    if (rThisVariable==DELTA_PLASTIC_STRAIN)
+    if (rThisVariable==MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN)
     {
         const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
-        rValue=InternalVariables.DeltaPlasticStrain;
+        rValue=InternalVariables.DeltaPlasticVolumetricStrain;
+    }
+
+    if (rThisVariable==MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.AccumulatedPlasticVolumetricStrain;
+    }
+
+    if (rThisVariable==MP_DELTA_PLASTIC_DEVIATORIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticDeviatoricStrain;
     }
 
     if (rThisVariable==MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN)
