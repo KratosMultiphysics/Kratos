@@ -291,9 +291,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             else:
                 tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
             if (lines_out[i][0] == " "):
-                tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
-            else:
                 tmp2 = ConvertStringToListFloat(lines_out[i][1:], space, end_line)
+            else:
+                tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
             if (self.dimension == 2):
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
