@@ -261,6 +261,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicDa
     ///@name Protected Operations
     ///@{
 
+    double GetThreshold() { return mThreshold; }
+    double GetDamage() { return mDamage; }
+    double GetNonConvThreshold() { return mNonConvThreshold; }
+    double GetNonConvDamage() { return mNonConvDamage; }
+
+    void SetThreshold(const double &toThreshold) { mThreshold = toThreshold; }
+    void SetDamage(const double &toDamage) { mDamage = toDamage; }
+    void SetNonConvThreshold(const double &toThreshold) { mNonConvThreshold = toThreshold; }
+    void SetNonConvDamage(const double &toDamage) { mNonConvDamage = toDamage; }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -298,16 +308,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicDa
     ///@}
     ///@name Private Operations
     ///@{
-
-    double GetThreshold() { return mThreshold; }
-    double GetDamage() { return mDamage; }
-    double GetNonConvThreshold() { return mNonConvThreshold; }
-    double GetNonConvDamage() { return mNonConvDamage; }
-
-    void SetThreshold(const double &toThreshold) { mThreshold = toThreshold; }
-    void SetDamage(const double &toDamage) { mDamage = toDamage; }
-    void SetNonConvThreshold(const double &toThreshold) { mNonConvThreshold = toThreshold; }
-    void SetNonConvDamage(const double &toDamage) { mNonConvDamage = toDamage; }
 
     /**
      * @brief This method computes the tangent tensor
