@@ -150,6 +150,7 @@ class Kratos_Execute_Test:
         # ### START SOLUTION ####
 
         self.computing_model_part = self.solver.GetComputingModelPart()
+        self.root_model_part = self.computing_model_part.GetRootModelPart()
 
         if (self.output_post == True):
             self.gid_output.ExecuteBeforeSolutionLoop()
@@ -162,8 +163,6 @@ class Kratos_Execute_Test:
             # #Stepping and time settings (get from process info or solving info)
             # Delta time
             delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
-            # Start step
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
             # Start time
             time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
             # End time
@@ -180,12 +179,13 @@ class Kratos_Execute_Test:
                 time = time + delta_time
                 self.solver.AdvanceInTime(time)
                 step = step + 1
+                self.root_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
 
                 if(step >= init_step):
                     for process in self.list_of_processes:
                         process.ExecuteInitializeSolutionStep()
 
-                    if (self.main_model_part.Is(KratosMultiphysics.MODIFIED) == True):
+                    if (self.root_model_part.Is(KratosMultiphysics.MODIFIED)):
                         # WE INITIALIZE THE SOLVER
                         self.solver.Initialize()
                         # WE RECOMPUTE THE PROCESSES AGAIN
