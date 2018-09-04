@@ -505,7 +505,7 @@ void BorjaCamClayPlasticFlowRule::CalculatePrincipalStrainFromStrainInvariants(V
 void BorjaCamClayPlasticFlowRule::CalculateStrainInvariantsFromPrincipalStrain(const Vector& rPrincipalStrain, double& rVolumetricStrain, double& rDeviatoricStrain, Vector& rDeviatoricStrainVector)
 {
     rDeviatoricStrainVector = rPrincipalStrain;
-    rVolumetricStrain = norm_1(rPrincipalStrain);
+    rVolumetricStrain = sum(rPrincipalStrain);
     for (unsigned int i = 0; i<3; ++i)
     {
         rDeviatoricStrainVector[i] -= 1.0/3.0 * rVolumetricStrain;

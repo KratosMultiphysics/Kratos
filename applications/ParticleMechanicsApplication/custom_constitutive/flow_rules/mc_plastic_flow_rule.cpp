@@ -737,7 +737,7 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
     mInternalVariables.DeltaPlasticStrain = NormPlasticPrincipalStrain;
 
     // Compute Strain Components and its invariants
-    double VolumetricPlasticPrincipalStrain = norm_1(mPlasticPrincipalStrain);
+    double VolumetricPlasticPrincipalStrain = sum(mPlasticPrincipalStrain);
     Vector DeviatoricPlasticPrincipalStrain = mPlasticPrincipalStrain;
     for (unsigned int i = 0; i<3; ++i)
         DeviatoricPlasticPrincipalStrain(i) -= 1.0/3.0 * VolumetricPlasticPrincipalStrain;
