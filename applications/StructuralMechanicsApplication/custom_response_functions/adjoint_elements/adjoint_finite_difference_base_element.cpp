@@ -191,7 +191,7 @@ void AdjointFiniteDifferencingBaseElement::Calculate(const Variable<Matrix >& rV
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferencingBaseElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                     std::vector<double>& rValues,
                     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -578,7 +578,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
 }
 
 // private
-const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<double>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<double>& rDesignVariable)
 {
     const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
     const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
@@ -586,7 +586,7 @@ const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Var
     return delta;
 }
 
-const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
 {
     const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
     const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;

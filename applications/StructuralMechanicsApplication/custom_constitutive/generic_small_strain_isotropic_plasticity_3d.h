@@ -295,6 +295,23 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
     ///@name Protected Operators
     ///@{
 
+    double GetThreshold() { return mThreshold; }
+    double GetPlasticDissipation() { return mPlasticDissipation; }
+    Vector GetPlasticStrain() { return mPlasticStrain; }
+
+    double GetNonConvThreshold() { return mNonConvThreshold; }
+    double GetNonConvPlasticDissipation() { return mNonConvPlasticDissipation; }
+    Vector GetNonConvPlasticStrain() { return mNonConvPlasticStrain; }
+
+    void SetThreshold(const double &toThreshold) { mThreshold = toThreshold; }
+    void SetPlasticDissipation(const double &toCapap) { mPlasticDissipation = toCapap; }
+    void SetPlasticStrain(const Vector &Ep) { mPlasticStrain = Ep; }
+
+    void SetNonConvThreshold(const double &toThreshold) { mNonConvThreshold = toThreshold; }
+    void SetNonConvPlasticDissipation(const double &toCapap) { mNonConvPlasticDissipation = toCapap; }
+    void SetNonConvPlasticStrain(const Vector &Ep) { mNonConvPlasticStrain = Ep; }
+
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -340,22 +357,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPl
     ///@}
     ///@name Private Operations
     ///@{
-
-    double GetThreshold() { return mThreshold; }
-    double GetPlasticDissipation() { return mPlasticDissipation; }
-    Vector GetPlasticStrain() { return mPlasticStrain; }
-
-    double GetNonConvThreshold() { return mNonConvThreshold; }
-    double GetNonConvPlasticDissipation() { return mNonConvPlasticDissipation; }
-    Vector GetNonConvPlasticStrain() { return mNonConvPlasticStrain; }
-
-    void SetThreshold(const double &toThreshold) { mThreshold = toThreshold; }
-    void SetPlasticDissipation(const double &toCapap) { mPlasticDissipation = toCapap; }
-    void SetPlasticStrain(const Vector &Ep) { mPlasticStrain = Ep; }
-
-    void SetNonConvThreshold(const double &toThreshold) { mNonConvThreshold = toThreshold; }
-    void SetNonConvPlasticDissipation(const double &toCapap) { mNonConvPlasticDissipation = toCapap; }
-    void SetNonConvPlasticStrain(const Vector &Ep) { mNonConvPlasticStrain = Ep; }
 
     /**
      * @brief This method computes the tangent tensor

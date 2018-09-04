@@ -30,9 +30,9 @@
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_model_part_io.h"
 #include "custom_io/hdf5_nodal_solution_step_data_io.h"
-#include "custom_io/hdf5_element_solution_step_data_io.h"
+#include "custom_io/hdf5_element_data_value_io.h"
 #include "custom_io/hdf5_nodal_solution_step_bossak_io.h"
-#include "custom_io/hdf5_non_historical_nodal_value_io.h"
+#include "custom_io/hdf5_nodal_data_value_io.h"
 #include "custom_io/hdf5_data_value_container_io.h"
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_file_parallel.h"
@@ -89,18 +89,18 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("SetAlphaBossak", &HDF5::NodalSolutionStepBossakIO::SetAlphaBossak)
     ;
 
-    class_<HDF5::ElementSolutionStepDataIO, HDF5::ElementSolutionStepDataIO::Pointer>(
-        m,"HDF5ElementSolutionStepDataIO")
+    class_<HDF5::ElementDataValueIO, HDF5::ElementDataValueIO::Pointer>(
+        m,"HDF5ElementDataValueIO")
         .def(init<Parameters, HDF5::File::Pointer>())
-        .def("WriteElementResults", &HDF5::ElementSolutionStepDataIO::WriteElementResults)
-        .def("ReadElementResults", &HDF5::ElementSolutionStepDataIO::ReadElementResults)
-    ;    
+        .def("WriteElementResults", &HDF5::ElementDataValueIO::WriteElementResults)
+        .def("ReadElementResults", &HDF5::ElementDataValueIO::ReadElementResults)
+    ;
 
-    class_<HDF5::NonHistoricalNodalValueIO, HDF5::NonHistoricalNodalValueIO::Pointer>(
-        m,"HDF5NonHistoricalNodalValueIO")
+    class_<HDF5::NodalDataValueIO, HDF5::NodalDataValueIO::Pointer>(
+        m,"HDF5NodalDataValueIO")
         .def(init<Parameters, HDF5::File::Pointer>())
-        .def("WriteNodalResults", &HDF5::NonHistoricalNodalValueIO::WriteNodalResults)
-        .def("ReadNodalResults", &HDF5::NonHistoricalNodalValueIO::ReadNodalResults)
+        .def("WriteNodalResults", &HDF5::NodalDataValueIO::WriteNodalResults)
+        .def("ReadNodalResults", &HDF5::NodalDataValueIO::ReadNodalResults)
     ;
 
 #ifdef KRATOS_USING_MPI
