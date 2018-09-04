@@ -217,7 +217,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
     // Constant direction of deviatoric strain vector -- with check if TrialDeviatoricStrain == 0
     Vector DirectionStrainVector = ZeroVector(3);
     if(fabs(TrialDeviatoricStrain) > 1.e-10) 
-        DirectionStrainVector = (2.0/3.0) * TrialDeviatoricStrainVector / TrialDeviatoricStrain;
+        DirectionStrainVector = sqrt(2.0/3.0) * TrialDeviatoricStrainVector / TrialDeviatoricStrain;
 
     // Initialize additional temporary Matrices and Vectors;
     mStateFunction = 0.0;
@@ -544,7 +544,7 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     
     Vector DirectionVector = ZeroVector(3);
     if (fabs(DeviatoricStrain) > 1.e-10)
-        DirectionVector = (2.0/3.0) * DeviatoricStrainVector / DeviatoricStrain;
+        DirectionVector = sqrt(2.0/3.0) * DeviatoricStrainVector / DeviatoricStrain;
 
     // Compute ElasticMatrix (2x2) D^e
     Matrix ElasticMatrixDe = ZeroMatrix(2,2);
