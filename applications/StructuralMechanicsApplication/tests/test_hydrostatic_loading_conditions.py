@@ -57,19 +57,30 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         mp.CreateNewNode(3,0.0,0.0,1.0)
         mp.CreateNewNode(4,0.0,1.0,1.0)
        
-        
-        lenght = 2.0
-        width = 1.0
-        specific_gravity = 10.0
+        specific_weight= 10.0
 
-        nodeIds1 = [1,2,3]
-        nodeIds2 = [2,4,3]
+        centre = [0.0,0.0,0.5]
+        radius = 10.0
+        normal = [0.0,0.0,1.0]
+        fluid_volume = 2.0
+
+
+
+        nodeIds1 = [1,3,2]
+        nodeIds2 = [2,3,4]
         nodeIds =  list(set().union(nodeIds1,nodeIds2))
         
     
         
         #ensure that the property 1 is created
-        mp.GetProperties()[1]
+        self.properties = mp.GetProperties()[1]
+
+        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_RADIUS, radius)
+        self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, fluid_volume)
+
+        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_CENTRE, centre)
+        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_NORMAL, normal) 
+        self.properties.SetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT, specific_weight) 
 
         mp.SetBufferSize(2)
 
@@ -82,14 +93,11 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         cond_hydro_1 = mp.CreateNewCondition("HydrostaticLoadCondition3D3N", 1, nodeIds1, mp.GetProperties()[1])
         cond_hydro_2 = mp.CreateNewCondition("HydrostaticLoadCondition3D3N", 2, nodeIds2, mp.GetProperties()[1])
 
-        cond_sur_1 = mp.CreateNewCondition("SurfaceLoadCondition3D3N", 3, nodeIds1, mp.GetProperties()[1])
-        cond_sur_2 = mp.CreateNewCondition("SurfaceLoadCondition3D3N", 4, nodeIds2, mp.GetProperties()[1])
+
         
         elem1 = mp.CreateNewElement("ShellThinElement3D3N", 1, nodeIds1, mp.GetProperties()[1])
         elem2 = mp.CreateNewElement("ShellThinElement3D3N", 2, nodeIds2, mp.GetProperties()[1])
-        centre = [0,0,1.0]
-        radius = 5
-        normal = [0,0,1]
+
 
         for node in mp.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0,0.0)
@@ -105,11 +113,11 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         
         VolumeCalcUtilty = StructuralMechanicsApplication.VolumeCalculationUnderPlaneUtility(centre, radius, normal)
         vol = VolumeCalcUtilty.CalculateVolume(mp)
+        intersected_area = VolumeCalcUtilty.GetIntersectedArea()
+        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_AREA, intersected_area) 
+
 
        
-        
-
-
         avg_nodes = 10
         avg_elems = 10
 
@@ -119,11 +127,6 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         
        
         
-        
-        
-        
-        area = 1.0
-        
         print("Initial Volume of the structure is ::	%f "%vol)
         
         for node in mp.Nodes:
@@ -132,7 +135,7 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
             height = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0)
             
             if height < 0:
-                pressure = specific_gravity*height
+                pressure = specific_weight*height
 
                 
             else: pressure = 0
@@ -140,30 +143,20 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,pressure)
     
         
-        mp.ProcessInfo.SetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT, specific_gravity)
-        
-        mp.ProcessInfo.SetValue(StructuralMechanicsApplication.FREE_SURFACE_AREA, area)
-        mp.ProcessInfo.SetValue(StructuralMechanicsApplication.FREE_SURFACE_NORMAL, normal)
+
         lhs_hydro_1 = KratosMultiphysics.Matrix(0,0)
         rhs_hydro_1 = KratosMultiphysics.Vector(0)
         lhs_hydro_2 = KratosMultiphysics.Matrix(0,0)
         rhs_hydro_2 = KratosMultiphysics.Vector(0)
 
 
-        lhs_sur_1 = KratosMultiphysics.Matrix(0,0)
-        rhs_sur_1 = KratosMultiphysics.Vector(0)
-        lhs_sur_2 = KratosMultiphysics.Matrix(0,0)
-        rhs_sur_2 = KratosMultiphysics.Vector(0)      
+   
 
        
         ## Global Matrix
         lhs_hydro = np.zeros([len(nodeIds)*3,len(nodeIds)*3])
         rhs_hydro = np.zeros([len(nodeIds)*3])
-
-        lhs_sur = np.zeros([len(nodeIds)*3,len(nodeIds)*3])
-        rhs_sur = np.zeros([len(nodeIds)*3])
-
-      
+   
 
         for node in mp.Nodes:
             print("Distance :: ",node.GetSolutionStepValue(KratosMultiphysics.DISTANCE,0))
@@ -174,30 +167,41 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
         cond_hydro_1.CalculateLocalSystem(lhs_hydro_1,rhs_hydro_1,mp.ProcessInfo)
         cond_hydro_2.CalculateLocalSystem(lhs_hydro_2,rhs_hydro_2,mp.ProcessInfo)
 
-        cond_sur_1.CalculateLocalSystem(lhs_sur_1,rhs_sur_1,mp.ProcessInfo)
-        cond_sur_2.CalculateLocalSystem(lhs_sur_2,rhs_sur_2,mp.ProcessInfo)
 
 
 
-        AssembleLHSAndRHSInGlobal(lhs_hydro,rhs_hydro,lhs_hydro_1,rhs_hydro_1,nodeIds1)
+
+        #AssembleLHSAndRHSInGlobal(lhs_hydro,rhs_hydro,lhs_hydro_1,rhs_hydro_1,nodeIds1)
   
-        AssembleLHSAndRHSInGlobal(lhs_hydro,rhs_hydro,lhs_hydro_2,rhs_hydro_2,nodeIds2)
+        #AssembleLHSAndRHSInGlobal(lhs_hydro,rhs_hydro,lhs_hydro_2,rhs_hydro_2,nodeIds2)
 
-        AssembleLHSAndRHSInGlobal(lhs_sur,rhs_sur,lhs_sur_1,rhs_sur_1,nodeIds1)
-        AssembleLHSAndRHSInGlobal(lhs_sur,rhs_sur,lhs_sur_2,rhs_sur_2,nodeIds2)
+        #AssembleLHSAndRHSInGlobal(lhs_sur,rhs_sur,lhs_sur_1,rhs_sur_1,nodeIds1)
+        #AssembleLHSAndRHSInGlobal(lhs_sur,rhs_sur,lhs_sur_2,rhs_sur_2,nodeIds2)
 
-        print("##############Global RHS###################")
+        for node in mp.Nodes:
+            print("Nodal Normal :: ",node.GetSolutionStepValue(KratosMultiphysics.NORMAL),0)
 
-        print(rhs_hydro)
-        print("#####################################")
-        print(rhs_sur)
+        print(lhs_hydro_1)
+        print('#################')
+        print(lhs_hydro_2)
+        print('#################')
+        print(rhs_hydro_1)
+        print('#################')
+        print(rhs_hydro_2)
+
+
+        #print("##############Global RHS###################")
+
+        #print(rhs_hydro)
+        #print("#####################################")
+        #print(rhs_sur)
       
 
-        print("##############Global LHS###################")
+        #print("##############Global LHS###################")
         
-        printMatrix(lhs_hydro)
-        print("#####################################")
-        printMatrix(lhs_sur)
+        #printMatrix(lhs_hydro)
+        #print("#####################################")
+        #printMatrix(lhs_sur)
 
 
 
@@ -205,13 +209,13 @@ class TestLoadingConditionsSurface(KratosUnittest.TestCase):
 
 
         
-        """print("###########Hydrostatic EigenValues#######")
+     #print("###########Hydrostatic EigenValues#######")
         
-        for i in range(0,lhs_hydro.shape[0]):
-            if(math.fabs(np.real(eigen_hydro[0][i])) > 1e-15):
-                print("Eigen value :: ", eigen_hydro[0][i])
-                print("Eigen vector :: ",eigen_hydro[1][:,i])
-                ApplyDisplacement(mp, eigen_hydro[1][:,i]) """
+        #for i in range(0,lhs_hydro.shape[0]):
+            #if(math.fabs(np.real(eigen_hydro[0][i])) > 1e-15):
+                #print("Eigen value :: ", eigen_hydro[0][i])
+                #print("Eigen vector :: ",eigen_hydro[1][:,i])
+                #ApplyDisplacement(mp, eigen_hydro[1][:,i])
 
         
 

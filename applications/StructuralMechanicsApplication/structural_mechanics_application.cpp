@@ -83,6 +83,9 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mNodalConcentratedDampedElement2D1N(0, Element::GeometryType::Pointer(new Point2D<NodeType>(Element::GeometryType::PointsArrayType(1))), false),
       mNodalConcentratedElement3D1N(0, Element::GeometryType::Pointer(new Point3D<NodeType>(Element::GeometryType::PointsArrayType(1))), true),
       mNodalConcentratedDampedElement3D1N(0, Element::GeometryType::Pointer(new Point3D<NodeType>(Element::GeometryType::PointsArrayType(1))), false),
+     
+     // Adding nodal concentrated fluid element
+     mNodalConcentratedFluidElement3D1N(0, Element::GeometryType::Pointer(new Point3D<NodeType>(Element::GeometryType::PointsArrayType(1)))),
       // Adding the kinematic linear elements
       mSmallDisplacement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType>(Element::GeometryType::PointsArrayType(3)))),
       mSmallDisplacement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType>(Element::GeometryType::PointsArrayType(4)))),
@@ -325,9 +328,12 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURES_VECTOR)
     KRATOS_REGISTER_VARIABLE(SPECIFIC_WEIGHT)     //nav
     KRATOS_REGISTER_VARIABLE(FREE_SURFACE_AREA)   //nav
+    KRATOS_REGISTER_VARIABLE(CURRENT_FLUID_VOLUME)   //nav
     KRATOS_REGISTER_VARIABLE(FREE_SURFACE_RADIUS)   //nav
     KRATOS_REGISTER_VARIABLE(FLUID_VOLUME)   //nav
     KRATOS_REGISTER_VARIABLE(FREE_SURFACE_CENTRE) //nav
+    KRATOS_REGISTER_VARIABLE(MASTER_CONDITIONS) //nav
+    KRATOS_REGISTER_VARIABLE(MASTER_NODES) //nav
     // Response function variables
     KRATOS_REGISTER_VARIABLE(RESPONSE_VALUE)
 
@@ -363,6 +369,9 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("NodalConcentratedDampedElement2D1N", mNodalConcentratedDampedElement2D1N);
     KRATOS_REGISTER_ELEMENT("NodalConcentratedElement3D1N", mNodalConcentratedElement3D1N);
     KRATOS_REGISTER_ELEMENT("NodalConcentratedDampedElement3D1N", mNodalConcentratedDampedElement3D1N);
+
+    // Register the nodal concentrated fluid element
+     KRATOS_REGISTER_ELEMENT("NodalConcentratedFluidElement3D1N", mNodalConcentratedFluidElement3D1N);
 
     // SOLID ELEMENTS
     // Small displacement elements

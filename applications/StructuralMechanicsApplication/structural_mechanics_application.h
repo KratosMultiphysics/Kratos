@@ -46,6 +46,7 @@
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_thick_element_3D3N.hpp"
 #include "custom_elements/nodal_concentrated_element.hpp"
+#include "custom_elements/nodal_concentrated_fluid_element.h"
 
 /* Adding the spring damper element */
 #include "custom_elements/spring_damper_element_3D2N.hpp"
@@ -61,6 +62,7 @@
 #include "custom_elements/updated_lagrangian.h"
 #include "custom_elements/axisym_updated_lagrangian.h"
 #include "custom_elements/small_displacement_bbar.h"
+
 
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
@@ -287,6 +289,9 @@ private:
     const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
     const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
+
+    //Adding the nodal fluid concentrated element
+    const NodalConcentratedFluidElement mNodalConcentratedFluidElement3D1N;
 
     // Linear kinematic elements
     const SmallDisplacement mSmallDisplacement2D3N;

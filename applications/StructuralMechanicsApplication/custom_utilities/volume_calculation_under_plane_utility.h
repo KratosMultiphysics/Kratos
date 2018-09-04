@@ -139,40 +139,37 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         if (!(HasDisplacement))
             KRATOS_WARNING("The model doesn't have DISPLACEMENT as variable. The predicted displacement will be set to zero");
 
-
-
-        for (ModelPart::NodesContainerType::iterator inode = rModelPart.NodesBegin(); inode != rModelPart.NodesEnd(); inode++)
+        for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); i_node++)
         {
 
-            inode->FastGetSolutionStepValue(DISTANCE) = 1.0 + dist_limit; // Initialise with max_distance
-            inode->FastGetSolutionStepValue(NORMAL) = ZeroVector(3);      // initialize nodal normal to zero
+            i_node->FastGetSolutionStepValue(DISTANCE) = 1.0 + dist_limit; // Initialise with max_distance
+            i_node->FastGetSolutionStepValue(NORMAL) = ZeroVector(3);      // initialize nodal normal to zero
         }
 
-        
         // Calculation of vertical distance of nodes of the model part from the cutting plane
         if (mRadius < std::numeric_limits<double>::epsilon())
         {
 
-            for (ModelPart::NodesContainerType::iterator inode = rModelPart.NodesBegin(); inode != rModelPart.NodesEnd(); inode++)
+            for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); i_node++)
             {
 
-                node_v_distance = CalculateDistanceFromPlane(inode->Coordinates());
-                inode->FastGetSolutionStepValue(DISTANCE) = node_v_distance;
+                node_v_distance = CalculateDistanceFromPlane(i_node->Coordinates());
+                i_node->FastGetSolutionStepValue(DISTANCE) = node_v_distance;
             }
         }
 
         else
         {
 
-            for (ModelPart::NodesContainerType::iterator inode = rModelPart.NodesBegin(); inode != rModelPart.NodesEnd(); inode++)
+            for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); i_node++)
             {
 
-                node_v_distance = CalculateDistanceFromPlane(inode->Coordinates());
-                node_vector = inode->Coordinates() - mCentre;
+                node_v_distance = CalculateDistanceFromPlane(i_node->Coordinates());
+                node_vector = i_node->Coordinates() - mCentre;
                 node_h_dist = norm_2(node_vector - node_v_distance * mNormal);
 
                 if (node_h_dist < mRadius)
-                    inode->FastGetSolutionStepValue(DISTANCE) = node_v_distance;
+                    i_node->FastGetSolutionStepValue(DISTANCE) = node_v_distance;
             }
         }
 
@@ -186,53 +183,57 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
 
             GeometryType &geom = cond->GetGeometry();
 
-            for (IndexType i = 0; i < geom.size(); ++i)
-                distances_vector(i) = geom[i].FastGetSolutionStepValue(DISTANCE);
-
-            cond->SetValue(ELEMENTAL_DISTANCES, distances_vector);
-
-            Vector &r_elemental_distances = cond->GetValue(ELEMENTAL_DISTANCES);
-
-            DivideTriangle2D3 triangle_splitter(geom, r_elemental_distances);
-
-            VolumeCalculationUnderPlaneUtility::IsNegativeOrSplit(geom, is_split, is_negative);
-
-            if (is_split)
+            if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
             {
-                // Call the divide geometry method
 
-                triangle_splitter.GenerateDivision();
+                for (IndexType i = 0; i < geom.size(); ++i)
+                    distances_vector(i) = geom[i].FastGetSolutionStepValue(DISTANCE);
 
-                for (IndexType i = 0; i < triangle_splitter.mNegativeSubdivisions.size(); i++)
+                cond->SetValue(ELEMENTAL_DISTANCES, distances_vector);
+
+                Vector &r_elemental_distances = cond->GetValue(ELEMENTAL_DISTANCES);
+
+                DivideTriangle2D3 triangle_splitter(geom, r_elemental_distances);
+
+                VolumeCalculationUnderPlaneUtility::IsNegativeOrSplit(geom, is_split, is_negative);
+
+                if (is_split)
                 {
+                    // Call the divide geometry method
 
-                    IndexedPointGeometryType indexed_subgeom = *(triangle_splitter.mNegativeSubdivisions[i]);
+                    triangle_splitter.GenerateDivision();
 
-                    Node<3>::Pointer node_i = Node<3>::Pointer(new Node<3>(indexed_subgeom[0].Id(), indexed_subgeom[0].X(), indexed_subgeom[0].Y(), indexed_subgeom[0].Z()));
+                    for (IndexType i = 0; i < triangle_splitter.mNegativeSubdivisions.size(); i++)
+                    {
 
-                    Node<3>::Pointer node_j = Node<3>::Pointer(new Node<3>(indexed_subgeom[1].Id(), indexed_subgeom[1].X(), indexed_subgeom[1].Y(), indexed_subgeom[1].Z()));
-                    Node<3>::Pointer node_k = Node<3>::Pointer(new Node<3>(indexed_subgeom[2].Id(), indexed_subgeom[2].X(), indexed_subgeom[2].Y(), indexed_subgeom[2].Z()));
+                        IndexedPointGeometryType indexed_subgeom = *(triangle_splitter.mNegativeSubdivisions[i]);
 
-                    Triangle3D3<Node<3>>::Pointer subgeom = Triangle3D3<Node<3>>::Pointer(new Triangle3D3<Node<3>>(node_i, node_j, node_k));
+                        Node<3>::Pointer node_i = Node<3>::Pointer(new Node<3>(indexed_subgeom[0].Id(), indexed_subgeom[0].X(), indexed_subgeom[0].Y(), indexed_subgeom[0].Z()));
 
-                    CalculateIntDistanceDotN(*subgeom, IntegrationMethod, int_distance_dot_n);
-                    CalculateIntAreaDotNplane(*subgeom, IntegrationMethod, int_area_dot_n_plane);
-                    CalculateAndAssignNodalNormal(*subgeom, geom, IntegrationMethod);
-                    if (HasDisplacement)
-                        CalculateDisplacementDotN(*subgeom, geom, IntegrationMethod, dV); //TODO: Use the nodal normals to predict
+                        Node<3>::Pointer node_j = Node<3>::Pointer(new Node<3>(indexed_subgeom[1].Id(), indexed_subgeom[1].X(), indexed_subgeom[1].Y(), indexed_subgeom[1].Z()));
+                        Node<3>::Pointer node_k = Node<3>::Pointer(new Node<3>(indexed_subgeom[2].Id(), indexed_subgeom[2].X(), indexed_subgeom[2].Y(), indexed_subgeom[2].Z()));
+
+                        Triangle3D3<Node<3>>::Pointer subgeom = Triangle3D3<Node<3>>::Pointer(new Triangle3D3<Node<3>>(node_i, node_j, node_k));
+
+                        VolumeCalculationUnderPlaneUtility::CalculateIntDistanceDotN(*subgeom, IntegrationMethod, int_distance_dot_n);
+                        VolumeCalculationUnderPlaneUtility::CalculateIntAreaDotNplane(*subgeom, IntegrationMethod, int_area_dot_n_plane);
+                        VolumeCalculationUnderPlaneUtility::CalculateAndAssignNodalNormal(*subgeom, geom, IntegrationMethod);
+                        if (HasDisplacement)
+                            VolumeCalculationUnderPlaneUtility::CalculateDisplacementDotN(*subgeom, geom, IntegrationMethod, dV); //TODO: Use the nodal normals to predict
+                    }
                 }
-            }
-            else
-            {
-
-                if (is_negative)
+                else
                 {
 
-                    CalculateIntDistanceDotN(geom, IntegrationMethod, int_distance_dot_n);
-                    CalculateIntAreaDotNplane(geom, IntegrationMethod, int_area_dot_n_plane);
-                    CalculateAndAssignNodalNormal(geom, geom, IntegrationMethod);
-                    if (HasDisplacement)
-                        CalculateDisplacementDotN(geom, geom, IntegrationMethod, dV); //TODO: Use the nodal normals to predict
+                    if (is_negative)
+                    {
+
+                        VolumeCalculationUnderPlaneUtility::CalculateIntDistanceDotN(geom, IntegrationMethod, int_distance_dot_n);
+                        VolumeCalculationUnderPlaneUtility::CalculateIntAreaDotNplane(geom, IntegrationMethod, int_area_dot_n_plane);
+                        VolumeCalculationUnderPlaneUtility::CalculateAndAssignNodalNormal(geom, geom, IntegrationMethod);
+                        if (HasDisplacement)
+                            VolumeCalculationUnderPlaneUtility::CalculateDisplacementDotN(geom, geom, IntegrationMethod, dV); //TODO: Use the nodal normals to predict
+                    }
                 }
             }
         }
@@ -241,11 +242,144 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         intersected_area = -int_area_dot_n_plane;
 
         mVolume = volume;
-        mIntersectedArea = intersected_area;
+        if (intersected_area > std::numeric_limits<double>::epsilon())
+            mIntersectedArea = intersected_area;
+        else
+        {
+            mIntersectedArea = Globals::Pi * mRadius * mRadius;
+            KRATOS_WARNING("Calculated area is negative or zero") << "WARNING:: Calculated area is " << intersected_area << ", but is set to default value " << mIntersectedArea << std::endl;
+        }
 
-        mPredictedDisplacement = -dV / intersected_area;
+        mPredictedDisplacement = -dV / mIntersectedArea;
 
         return volume;
+
+        KRATOS_CATCH(" ");
+    }
+
+    void CalculateVolumeForConditions(WeakPointerVector<Condition> &rConditonWeakPointersVector, WeakPointerVector<Node<3>> &rNodeWeakPointersVector)
+
+    {
+        KRATOS_TRY;
+
+        std::cout << "Calculating volume enclosed by plane" << std::endl;
+        const double dist_limit = pow(10, std::numeric_limits<double>::digits10);
+        double volume = 0.0;
+        double int_distance_dot_n = 0.0;
+        double int_area_dot_n_plane = 0.0;
+        double intersected_area = 0.0;
+        double node_h_dist;
+        double node_v_distance;
+        array_1d<double, 3> node_vector;
+
+        IntegrationMethodType IntegrationMethod = GeometryData::GI_GAUSS_1;
+
+        for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); i_node++)
+        {
+
+            i_node->FastGetSolutionStepValue(DISTANCE) = 1.0 + dist_limit; // Initialise with max_distance
+            i_node->FastGetSolutionStepValue(NORMAL) = ZeroVector(3);
+        }
+
+        // Calculation of vertical distance of nodes of the model part from the cutting plane
+        if (mRadius < std::numeric_limits<double>::epsilon())
+        {
+
+            for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); i_node++)
+            {
+
+                node_v_distance = CalculateDistanceFromPlane(i_node->Coordinates());
+                i_node->FastGetSolutionStepValue(DISTANCE) = node_v_distance;
+            }
+        }
+
+        else
+        {
+
+            for (WeakPointerVector<Node<3>>::iterator i_node = rNodeWeakPointersVector.begin(); i_node != rNodeWeakPointersVector.end(); i_node++)
+            {
+
+                node_v_distance = VolumeCalculationUnderPlaneUtility::CalculateDistanceFromPlane(i_node->Coordinates());
+                node_vector = i_node->Coordinates() - mCentre;
+                node_h_dist = norm_2(node_vector - node_v_distance * mNormal);
+
+                if (node_h_dist < mRadius)
+                    i_node->FastGetSolutionStepValue(DISTANCE) = node_v_distance;
+            }
+        }
+
+        for (WeakPointerVector<Condition>::iterator cond = rConditonWeakPointersVector.begin(); cond != rConditonWeakPointersVector.end(); cond++)
+        {
+
+            array_1d<double, 3> distances_vector;
+
+            bool is_split = false;
+            bool is_negative = false;
+
+            GeometryType &geom = cond->GetGeometry();
+
+            if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
+            {
+
+                for (IndexType i = 0; i < geom.size(); ++i)
+                    distances_vector(i) = geom[i].FastGetSolutionStepValue(DISTANCE);
+
+                cond->SetValue(ELEMENTAL_DISTANCES, distances_vector);
+
+                Vector &r_elemental_distances = cond->GetValue(ELEMENTAL_DISTANCES);
+
+                DivideTriangle2D3 triangle_splitter(geom, r_elemental_distances);
+
+                VolumeCalculationUnderPlaneUtility::IsNegativeOrSplit(geom, is_split, is_negative);
+
+                if (is_split)
+                {
+                    // Call the divide geometry method
+
+                    triangle_splitter.GenerateDivision();
+
+                    for (IndexType i = 0; i < triangle_splitter.mNegativeSubdivisions.size(); i++)
+                    {
+
+                        IndexedPointGeometryType indexed_subgeom = *(triangle_splitter.mNegativeSubdivisions[i]);
+
+                        Node<3>::Pointer node_i = Node<3>::Pointer(new Node<3>(indexed_subgeom[0].Id(), indexed_subgeom[0].X(), indexed_subgeom[0].Y(), indexed_subgeom[0].Z()));
+
+                        Node<3>::Pointer node_j = Node<3>::Pointer(new Node<3>(indexed_subgeom[1].Id(), indexed_subgeom[1].X(), indexed_subgeom[1].Y(), indexed_subgeom[1].Z()));
+                        Node<3>::Pointer node_k = Node<3>::Pointer(new Node<3>(indexed_subgeom[2].Id(), indexed_subgeom[2].X(), indexed_subgeom[2].Y(), indexed_subgeom[2].Z()));
+
+                        Triangle3D3<Node<3>>::Pointer subgeom = Triangle3D3<Node<3>>::Pointer(new Triangle3D3<Node<3>>(node_i, node_j, node_k));
+
+                        VolumeCalculationUnderPlaneUtility::CalculateIntDistanceDotN(*subgeom, IntegrationMethod, int_distance_dot_n);
+                        VolumeCalculationUnderPlaneUtility::CalculateIntAreaDotNplane(*subgeom, IntegrationMethod, int_area_dot_n_plane);
+                        VolumeCalculationUnderPlaneUtility::CalculateAndAssignNodalNormal(*subgeom, geom, IntegrationMethod);
+                    }
+                }
+                else
+                {
+
+                    if (is_negative)
+                    {
+
+                        VolumeCalculationUnderPlaneUtility::CalculateIntDistanceDotN(geom, IntegrationMethod, int_distance_dot_n);
+                        VolumeCalculationUnderPlaneUtility::CalculateIntAreaDotNplane(geom, IntegrationMethod, int_area_dot_n_plane);
+                        VolumeCalculationUnderPlaneUtility::CalculateAndAssignNodalNormal(geom, geom, IntegrationMethod);
+                    }
+                }
+            }
+        }
+
+        volume = int_distance_dot_n;
+        intersected_area = -int_area_dot_n_plane;
+
+        mVolume = volume;
+        if (intersected_area > std::numeric_limits<double>::epsilon())
+            mIntersectedArea = intersected_area;
+        else
+        {
+            mIntersectedArea = Globals::Pi * mRadius * mRadius;
+            KRATOS_WARNING("Calculated area is negative or zero") << "WARNING:: Calculated area is " << intersected_area << ", but is set to default value " << mIntersectedArea << std::endl;
+        }
 
         KRATOS_CATCH(" ");
     }
@@ -368,10 +502,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
             Vector N(rGeom.size());
             array_1d<double, 3> displacement = ZeroVector(3);
             rGeom.ShapeFunctionsValues(N, local_coords);
-            for (IndexType i = 0; i < rGeom.size(); i++)
+            for (IndexType i_node = 0; i_node < rGeom.size(); i_node++)
             {
 
-                displacement += N[i] * (rGeom[i].GetSolutionStepValue(DISPLACEMENT, 0) - rGeom[i].GetSolutionStepValue(DISPLACEMENT, 1));
+                displacement += N[i_node] * (rGeom[i_node].GetSolutionStepValue(DISPLACEMENT, 0) - rGeom[i_node].GetSolutionStepValue(DISPLACEMENT, 1));
             }
 
             // Integration displacement dot normal
@@ -386,6 +520,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         KRATOS_TRY;
 
         const unsigned int n_int_pts = rSubGeom.IntegrationPointsNumber(IntegrationMethod);
+        SizeType number_of_nodes = rGeom.size();
         IntegrationPointsArrayType gauss_pts;
 
         // Gauss points from subgeom
@@ -394,11 +529,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         rSubGeom.DeterminantOfJacobian(jacobians_values, IntegrationMethod);
         array_1d<double, 3> area_normal;
         double area;
-        Vector N(rGeom.size());
+        Vector N(number_of_nodes);
         CoordinatesArrayType global_coords = ZeroVector(3);
         CoordinatesArrayType local_coords = ZeroVector(3);
 
-        for (IndexType i = 0; i < rGeom.size(); ++i)
+        for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node)
         {
 
             for (IndexType i_gauss = 0; i_gauss < n_int_pts; ++i_gauss)
@@ -418,7 +553,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
                 rGeom.PointLocalCoordinates(local_coords, global_coords);
                 rGeom.ShapeFunctionsValues(N, local_coords);
 
-                noalias(rGeom[i].FastGetSolutionStepValue(NORMAL)) += area_normal * N[i] * gauss_pts[i_gauss].Weight() * jacobians_values[i_gauss];
+                //#pragma omp atomic
+                noalias(rGeom[i_node].FastGetSolutionStepValue(NORMAL)) += area_normal * N[i_node] * gauss_pts[i_gauss].Weight() * jacobians_values[i_gauss];
             }
         }
 
@@ -432,9 +568,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         double nodal_distance = 0.0;
         const double dist_limit = pow(10, std::numeric_limits<double>::digits10);
 
-        for (IndexType i = 0; i < rGeom.size(); ++i)
+        for (IndexType i_node = 0; i_node < rGeom.size(); ++i_node)
         {
-            nodal_distance = rGeom[i].FastGetSolutionStepValue(DISTANCE);
+            nodal_distance = rGeom[i_node].FastGetSolutionStepValue(DISTANCE);
 
             if (nodal_distance < 0.0 - std::numeric_limits<double>::epsilon())
             {
@@ -477,13 +613,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
 
         return inner_prod(mNormal, rPoint) - inner_prod(mNormal, mCentre);
     }
+    Vector GetCentre() const
+    {
+        return mCentre;
+    }
 
-    double GetVolume()
+    double GetVolume() const
     {
         return mVolume;
     }
 
-    double GetIntersectedArea()
+    double GetIntersectedArea() const
     {
         return mIntersectedArea;
     }
@@ -524,9 +664,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
         ///For checking the nodal normal implementation
 
         double check_displacement_value = 0.0;
-        for (ModelPart::NodesContainerType::iterator inode = rModelPart.NodesBegin(); inode != rModelPart.NodesEnd(); inode++)
+        for (ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(); i_node != rModelPart.NodesEnd(); i_node++)
         {
-            check_displacement_value += MathUtils<double>::Dot((inode->GetSolutionStepValue(DISPLACEMENT, 0) - inode->GetSolutionStepValue(DISPLACEMENT, 1)), inode->FastGetSolutionStepValue(NORMAL));
+            check_displacement_value += MathUtils<double>::Dot((i_node->GetSolutionStepValue(DISPLACEMENT, 0) - i_node->GetSolutionStepValue(DISPLACEMENT, 1)), i_node->FastGetSolutionStepValue(NORMAL));
         }
 
         check_displacement_value /= area;
@@ -581,7 +721,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
 
         else if (type == "LeapFroggingNewton") */
         // {
-        while (fabs(vol_rel_residual) >= MaxRelRes && fabs(vol_residual - vol_inter_residual) >= std::numeric_limits<double>::epsilon() && iteration_nr < MaxIterations)
+        while (std::fabs(vol_rel_residual) >= MaxRelRes && std::fabs(vol_residual - vol_inter_residual) >= std::numeric_limits<double>::epsilon() && iteration_nr < MaxIterations)
         {
 
             if (area <= std::numeric_limits<double>::epsilon())
@@ -639,7 +779,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCalculationUnderPlaneUt
     double mIntersectedArea;
     double mPredictedDisplacement;
 
-}; //class VolumeCalculationUnderPlaneUtility
+}; // namespace Kratos
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_VOLUME_UTILITY_H_INCLUDED  defined */

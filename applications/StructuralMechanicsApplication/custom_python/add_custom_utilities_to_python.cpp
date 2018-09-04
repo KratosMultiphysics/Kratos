@@ -26,34 +26,31 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython(pybind11::module& m)
+void AddCustomUtilitiesToPython(pybind11::module &m)
 {
     using namespace pybind11;
 
-    class_<FormfindingIOUtility>(m,"FormfindingIOUtility")
-    .def(init<ModelPart&, const Parameters>())
-    .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)
-    .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
-    .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
-    ;
+    class_<FormfindingIOUtility>(m, "FormfindingIOUtility")
+        .def(init<ModelPart &, const Parameters>())
+        .def("PrintModelPart", &FormfindingIOUtility::PrintModelPart)
+        .def("ReadPrestressData", &FormfindingIOUtility::ReadPrestressData)
+        .def("PrintPrestressData", &FormfindingIOUtility::PrintPrestressData);
 
-     class_<VolumeCalculationUnderPlaneUtility>(m,"VolumeCalculationUnderPlaneUtility")
+    class_<VolumeCalculationUnderPlaneUtility>(m, "VolumeCalculationUnderPlaneUtility")
         .def(init<Vector, double, Vector>())
         //.def("CalculateVolumeEnclosedByClosedSurface", &VolumeCalcUsingSurfaceUtility::CalculateVolumeEnclosedByClosedSurface)
         .def("CalculateVolume", &VolumeCalculationUnderPlaneUtility::CalculateVolume)
         .def("UpdatePositionOfPlaneBasedOnTargetVolume", &VolumeCalculationUnderPlaneUtility::UpdatePositionOfPlaneBasedOnTargetVolume)
         .def("SetPlaneParameters", &VolumeCalculationUnderPlaneUtility::SetPlaneParameters)
-        .def("GetIntersectedArea", &VolumeCalculationUnderPlaneUtility::GetIntersectedArea);
-        
-    class_<VtkOutput>(m,"VtkOutput")
+        .def("GetIntersectedArea", &VolumeCalculationUnderPlaneUtility::GetIntersectedArea)
+        .def("GetCentre", &VolumeCalculationUnderPlaneUtility::GetCentre);
+
+    class_<VtkOutput>(m, "VtkOutput")
         .def(init<ModelPart &, std::string, Parameters>())
         .def("PrintOutput", &VtkOutput::PrintOutput)
         .def("PrintOutput", &VtkOutput::PrintOutputSubModelPart);
 }
 
-}  // namespace Python.
+} // namespace Python.
 
 } // Namespace Kratos
-
-
-     

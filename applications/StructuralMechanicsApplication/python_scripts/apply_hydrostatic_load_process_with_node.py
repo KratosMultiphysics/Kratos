@@ -19,13 +19,13 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
                     {
                     "mesh_id"                       : 0,
                     "properties_id"                 : 0,
-                    "main_model_part_name"               : "Structure",
+                    "main_model_part_name"          : "Structure",
                     "model_part_name"               : "SurfacePressure3D_hemisphere",
-                    "specific_weight"              : "200*t",
+                    "specific_weight"               : "200*t",
                     "interval"                      : [0.0, 1e30],
                     "local_axes"                    : {},
                     "fluid_volume"                  : 1.5,
-                    "centre"                        : [0.0,0.0,0.0],
+                    "nodal_element_id"              : 0,
                     "plane_normal"                  : [0.0,0.0,1.0],
                     "initial_free_surface_radius"   : 0.0              
                 
@@ -70,10 +70,12 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
 
         
         self.fluid_volume = settings["fluid_volume"].GetDouble()
-        x = settings["centre"].GetVector()[0]
-        y = settings["centre"].GetVector()[1]
-        z = settings["centre"].GetVector()[2]
-        self.free_surface_centre = [x,y,z]
+        nodal_element_id = settings["nodal_element_id"].GetInt()
+        print("####NODAL ELEMENT ID :: ",nodal_element_id)
+        
+        if (nodal_element_id == 0):
+            raise RuntimeError("The elment Id of NodalFluidConcentratedElement3D3N has to be given as the argument")
+
         n_x = settings["plane_normal"].GetVector()[0]
         n_y = settings["plane_normal"].GetVector()[1]
         n_z = settings["plane_normal"].GetVector()[2]
@@ -86,29 +88,50 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
         for cond in self.model_part.Conditions:
             cond.Properties = self.properties
 
+
+        self.nodal_elem = self.main_model_part.GetElement(nodal_element_id)
+        self.nodal_elem.Properties = self.properties
+        self.free_surface_centre = [self.nodal_elem.GetNode(0).X,self.nodal_elem.GetNode(0).Y,self.nodal_elem.GetNode(0).Z]
+
+        print("####### AfterConstructor######################")
+        print("NODAL ELEMENT")
+        print(self.nodal_elem)
+        print("FREE SURFACE CENRE")
+        print(self.free_surface_centre)
+        
+
+
+
+
+
+       
+
+
+
         
 
 
 
     def ExecuteInitialize(self):
  
-
-
         self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_RADIUS, self.initial_free_surface_radius)
         self.properties.SetValue(StructuralMechanicsApplication.FLUID_VOLUME, self.fluid_volume)
-
-        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_CENTRE, self.free_surface_centre)
         self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_NORMAL, self.plane_normal) 
-            
-
-
-        print(self.initial_free_surface_radius,self.free_surface_centre, self.plane_normal, self.fluid_volume)
 
         self.VolumeCalcUtilty = StructuralMechanicsApplication.VolumeCalculationUnderPlaneUtility(self.free_surface_centre, self.initial_free_surface_radius, self.plane_normal)
-        vol = self.VolumeCalcUtilty.CalculateVolume(self.model_part)
-        print("Vol ::", vol)
         self.VolumeCalcUtilty.UpdatePositionOfPlaneBasedOnTargetVolume(self.model_part, self.fluid_volume, 1E-6,20)
+        self.free_surface_centre = self.VolumeCalcUtilty.GetCentre()  
+
+        self.nodal_elem.GetNode(0).X = self.free_surface_centre[0]
+        self.nodal_elem.GetNode(0).Y = self.free_surface_centre[1]
+        self.nodal_elem.GetNode(0).Z = self.free_surface_centre[2]
+
+        self.nodal_elem.GetNode(0).X0 = self.free_surface_centre[0]
+        self.nodal_elem.GetNode(0).Y0 = self.free_surface_centre[1]
+        self.nodal_elem.GetNode(0).Z0 = self.free_surface_centre[2]
+
         self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_AREA,self.VolumeCalcUtilty.GetIntersectedArea())
+        self.properties.SetValue(StructuralMechanicsApplication.FREE_SURFACE_CENTRE,self.free_surface_centre)
         
         avg_nodes = 10
         avg_elems = 10
@@ -117,6 +140,19 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
 
         neighbhor_finder.Execute()
 
+        self.nodal_elem.SetValue(StructuralMechanicsApplication.STIFFNESS_SCALING,1.0)
+        self.nodal_elem.SetValue(StructuralMechanicsApplication.IS_DYNAMIC, False)
+
+        master_creator = StructuralMechanicsApplication.BuildMasterConditionsForHydrostaticLoadingProcess(self.model_part, self.nodal_elem)
+        
+        master_creator.Execute()
+
+        print("####### AfterConstructor######################")
+        print("NODAL ELEMENT")
+        print(self.nodal_elem)
+        print("FREE SURFACE CENRE")
+        print(self.free_surface_centre)
+       
 
     
     def ExecuteBeforeSolutionLoop(self):
@@ -148,10 +184,10 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
 
             centre = self.properties.GetValue(StructuralMechanicsApplication.FREE_SURFACE_CENTRE)
             specific_wt = self.properties.GetValue(StructuralMechanicsApplication.SPECIFIC_WEIGHT)
-            
 
-            self.VolumeCalcUtilty.SetPlaneParameters(centre,self.initial_free_surface_radius,self.plane_normal)
-            vol = self.VolumeCalcUtilty.CalculateVolume(self.model_part)
+
+            self.VolumeCalcUtilty.SetPlaneParameters(centre,self.free_surface_radius,self.plane_normal)
+            vol = self.VolumeCalcUtilty.CalculateVolume(self.main_model_part)
             area = self.VolumeCalcUtilty.GetIntersectedArea()
             
             print("#######################################")
@@ -160,5 +196,14 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
             print("Fluid volume :: ", vol)
             print("Free surface area :: ", area)
             print("#######################################")
+
+            print("#######################################")
+           
+            print("Nodal Surface Centre X :: ", self.nodal_elem.GetNode(0).X)
+            print("Nodal Surface Centre Y :: ", self.nodal_elem.GetNode(0).Y)
+            print("Nodal Surface Centre Z :: ", self.nodal_elem.GetNode(0).Z)
+            
+            print("#######################################")
+            
         
             self.step_is_active = False
