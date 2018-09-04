@@ -578,6 +578,9 @@ class LineSearchSolutionStrategy
     }
 
     mAlpha = xmax;
+    
+    if(mAlpha!=1.0)
+      KRATOS_INFO("LineSearch") << "alpha: "<<mAlpha<<" iterations: NO "<<std::endl;
 
     //perform final update
     TSparseSpace::Assign((*this->mpDx),mAlpha,Dx0);
