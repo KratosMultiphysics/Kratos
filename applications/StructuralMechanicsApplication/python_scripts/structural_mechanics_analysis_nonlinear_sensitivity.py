@@ -48,12 +48,12 @@ class StructuralMechanicsAnalysisNLSensitivity(StructuralMechanicsAnalysis):
             time_step = self._GetSolver().ComputeDeltaTime()
             load_factors = np.array([self.start_time, self.start_time + time_step, self.start_time + time_step*2])
             self._ComputeEFDisplacementCurvature(model_part, load_factors)
-            self._ComputeFirstAndSecondOrderNLSensitivityFactors(model_part, load_factors)
+            self._ComputeFirstAndSecondOrderNLDisplacementSensitivityFactors(model_part, load_factors)
 
         super(StructuralMechanicsAnalysisNLSensitivity, self).FinalizeSolutionStep()
 
 
-    def _ComputeEFDisplacementCurvature(self, model_part, load_factor):
+    def _ComputeEFDisplacementCurvature(self, model_part, load_factor_array):
         for node in model_part.Nodes:
             disp_1_x = abs( node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 2) )
             disp_2_x = abs( node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 1) )
@@ -65,25 +65,26 @@ class StructuralMechanicsAnalysisNLSensitivity(StructuralMechanicsAnalysis):
             disp_2_z = abs( node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 1) )
             disp_3_z = abs( node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0) )
 
+            # X
             disp_x = np.array([disp_1_x, disp_2_x, disp_3_x])
-            px = np.polyfit(load_factor, disp_x, 2)
+            curvature_x = self._ComputeEFCurvature(disp_x, load_factor_array)
+            node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_X, curvature_x)
+            # Y
             disp_y = np.array([disp_1_y, disp_2_y, disp_3_y])
-            py = np.polyfit(load_factor, disp_y, 2)
+            curvature_y = self._ComputeEFCurvature(disp_y, load_factor_array)
+            node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_Y, curvature_y)
+            # Z
             disp_z = np.array([disp_1_z, disp_2_z, disp_3_z])
-            pz = np.polyfit(load_factor, disp_z, 2)
+            curvature_z = self._ComputeEFCurvature(disp_z, load_factor_array)
+            node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_Z, curvature_z)
 
-            node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_X, 2 * px[0])
-            node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_Y, 2 * py[0])
-            node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_Z, 2 * pz[0])
+    def _ComputeEFCurvature(self, response_value_array, load_factor_array):
+        polynom = np.polyfit(load_factor_array, response_value_array, 2)
+        curvature = 2 * polynom[0]
+        return curvature
 
-    def _ComputeFirstAndSecondOrderNLSensitivityFactors(self, model_part, load_factor):
-        lambda_0 = load_factor[0]
-        lambda_1 = load_factor[1]
-        lambda_2 = load_factor[2]
-        f_1 = lambda_1 / lambda_0
-        #f_2 = lambda_2 / lambda_0
-        delta_10 = lambda_1 - lambda_0
-        delta_20 = lambda_2 - lambda_0
+
+    def _ComputeFirstAndSecondOrderNLDisplacementSensitivityFactors(self, model_part, load_factor_array):
         for node in model_part.Nodes:
             disp_1_x = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 2)
             disp_2_x = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 1)
@@ -94,48 +95,48 @@ class StructuralMechanicsAnalysisNLSensitivity(StructuralMechanicsAnalysis):
             disp_1_z = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 2)
             disp_2_z = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 1)
             disp_3_z = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0)
-            #print("Displacement = ", disp_1_x)
-            #print("Displacement = ", disp_2_x)
-            #print("Displacement = ", disp_3_x)
 
-            if abs(disp_1_x) > 1e-8:
-                sensitivity_first_order_1_x = disp_2_x / ( disp_1_x * f_1 )
-                #sensitivity_first_order_2_x = disp_3_x / ( disp_1_x * f_2 )
-                #sensitivity_second_order_x = sensitivity_first_order_2_x / sensitivity_first_order_1_x
-                slope_10_x = (disp_2_x-disp_1_x)/delta_10
-                slope_20_x = (disp_3_x-disp_1_x)/delta_20
-                sensitivity_second_order_x = slope_20_x / slope_10_x
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_X, sensitivity_first_order_1_x)
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_X, sensitivity_second_order_x)
-            else:
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_X, 0.0)
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_X, 0.0)
+            # X
+            disp_x = np.array([disp_1_x, disp_2_x, disp_3_x])
+            sen_first_x, sen_second_x = self._ComputeFirstAndSecondOrderNLSensitivityFactors(disp_x, load_factor_array)
+            node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_X, sen_first_x)
+            node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_X, sen_second_x)
+            # Y
+            disp_y = np.array([disp_1_y, disp_2_y, disp_3_y])
+            sen_first_y, sen_second_y = self._ComputeFirstAndSecondOrderNLSensitivityFactors(disp_y, load_factor_array)
+            node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Y, sen_first_y)
+            node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Y, sen_second_y)
+            # Z
+            disp_z = np.array([disp_1_z, disp_2_z, disp_3_z])
+            sen_first_z, sen_second_z = self._ComputeFirstAndSecondOrderNLSensitivityFactors(disp_z, load_factor_array)
+            node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Z, sen_first_z)
+            node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Z, sen_second_z)
 
-            if abs(disp_1_y) > 1e-8:
-                sensitivity_first_order_1_y = disp_2_y / ( disp_1_y * f_1 )
-                #sensitivity_first_order_2_y = disp_3_y / ( disp_1_y * f_2 )
-                #sensitivity_second_order_y = sensitivity_first_order_2_y / sensitivity_first_order_1_y
-                slope_10_y = (disp_2_y-disp_1_y)/delta_10
-                slope_20_y = (disp_3_y-disp_1_y)/delta_20
-                sensitivity_second_order_y = slope_20_y / slope_10_y
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Y, sensitivity_first_order_1_y)
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Y, sensitivity_second_order_y)
-            else:
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Y, 0.0)
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Y, 0.0)
 
-            if abs(disp_1_z) > 1e-8:
-                sensitivity_first_order_1_z = disp_2_z / ( disp_1_z * f_1 )
-                #sensitivity_first_order_2_z = disp_3_z / ( disp_1_z * f_2 )
-                #sensitivity_second_order_z = sensitivity_first_order_2_z / sensitivity_first_order_1_z
-                slope_10_z = (disp_2_z-disp_1_z)/delta_10
-                slope_20_z = (disp_3_z-disp_1_z)/delta_20
-                sensitivity_second_order_z = slope_20_z / slope_10_z
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Z, sensitivity_first_order_1_z)
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Z, sensitivity_second_order_z)
-            else:
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Z, 0.0)
-                node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Z, 0.0)
+    def _ComputeFirstAndSecondOrderNLSensitivityFactors(self, response_value_array, load_factor_array):
+        lambda_0 = load_factor_array[0]
+        lambda_1 = load_factor_array[1]
+        lambda_2 = load_factor_array[2]
+        f_1 = lambda_1 / lambda_0
+        delta_10 = lambda_1 - lambda_0
+        delta_20 = lambda_2 - lambda_0
+
+        response_0 = response_value_array[0]
+        response_1 = response_value_array[1]
+        response_2 = response_value_array[1]
+
+        sensitivity_first_order = 0.0
+        sensitivity_second_order = 0.0
+
+        if abs(response_0) > 1e-8:
+            sensitivity_first_order = response_1 / ( response_0 * f_1 )
+            slope_10 = (response_1 - response_0) / delta_10
+            slope_20 = (response_2 - response_1) / delta_20
+            sensitivity_second_order = slope_20 / slope_10
+
+        return sensitivity_first_order, sensitivity_second_order
+
+
 
 
 
