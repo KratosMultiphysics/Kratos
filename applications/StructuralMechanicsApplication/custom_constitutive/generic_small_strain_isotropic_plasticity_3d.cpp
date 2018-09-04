@@ -69,66 +69,66 @@ template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
     // Integrate Stress plasticity
-    const Properties &rMaterialProperties = rValues.GetMaterialProperties();
-    const int VoigtSize = this->GetStrainSize();
-    Vector& IntegratedStressVector = rValues.GetStressVector();
-    Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const double CharacteristicLength = rValues.GetElementGeometry().Length();
-    const Flags &ConstitutiveLawOptions = rValues.GetOptions();
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const int voigt_size = this->GetStrainSize();
+    Vector& integrated_stress_vector = rValues.GetStressVector();
+    Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+    const double characteristic_length = rValues.GetElementGeometry().Length();
+    const Flags& constitututive_law_options = rValues.GetOptions();
 
     // Elastic Matrix
     Matrix C;
-    this->CalculateElasticMatrix(C, rMaterialProperties);
+    this->CalculateElasticMatrix(C, r_material_properties);
 
-    double& Threshold = this->GetThreshold();
-    double& PlasticDissipation = this->GetPlasticDissipation();
-    Vector& PlasticStrain = this->GetPlasticStrain();
+    double& r_threshold = this->GetThreshold();
+    double& r_plastic_dissipation = this->GetPlasticDissipation();
+    Vector& r_plastic_strain = this->GetPlasticStrain();
 
     // S0 = C:(E-Ep)
-    Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
+    Vector predictive_stress_vector = prod(C, rValues.GetStrainVector() - r_plastic_strain);
 
     // Initialize Plastic Parameters
-    double UniaxialStress = 0.0, PlasticDenominator = 0.0;
-    Vector Fflux = ZeroVector(VoigtSize), Gflux = ZeroVector(VoigtSize); // DF/DS & DG/DS
-    Vector PlasticStrainIncrement = ZeroVector(VoigtSize);
+    double uniaxial_stress = 0.0, plastic_denominator = 0.0;
+    Vector f_flux = ZeroVector(voigt_size), g_flux = ZeroVector(voigt_size); // DF/DS & DG/DS
+    Vector plastic_strain_increment = ZeroVector(voigt_size);
 
-    ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, rValues.GetStrainVector(),
-                                                       UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation,
-                                                       PlasticStrainIncrement, C, rMaterialProperties, CharacteristicLength);
+    ConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, rValues.GetStrainVector(),
+                                                       uniaxial_stress, r_threshold, plastic_denominator, f_flux, g_flux, r_plastic_dissipation,
+                                                       plastic_strain_increment, C, r_material_properties, characteristic_length);
 
-    const double F = UniaxialStress - Threshold;
+    const double F = uniaxial_stress - r_threshold;
 
-    if (F <= std::abs(1.0e-4 * Threshold)) { // Elastic case
-        noalias(IntegratedStressVector) = PredictiveStressVector;
-        this->SetNonConvPlasticDissipation(PlasticDissipation);
-        this->SetNonConvPlasticStrain(PlasticStrain);
-        this->SetNonConvThreshold(Threshold);
+    if (F <= std::abs(1.0e-4 * r_threshold)) { // Elastic case
+        noalias(integrated_stress_vector) = predictive_stress_vector;
+        this->SetNonConvPlasticDissipation(r_plastic_dissipation);
+        this->SetNonConvPlasticStrain(r_plastic_strain);
+        this->SetNonConvThreshold(r_threshold);
 
-        if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            noalias(TangentTensor) = C;
-            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+        if (constitututive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            noalias(tangent_tensor) = C;
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
         }
     } else { // Plastic case
         // while loop backward euler
-        /* Inside "IntegrateStressVector" the PredictiveStressVector
+        /* Inside "IntegrateStressVector" the predictive_stress_vector
             is updated to verify the yield criterion */
-        ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, rValues.GetStrainVector(),
-                                                      UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux,
-                                                      PlasticDissipation, PlasticStrainIncrement, C, PlasticStrain,
-                                                      rMaterialProperties, CharacteristicLength);
-        noalias(IntegratedStressVector) = PredictiveStressVector;
+        ConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, rValues.GetStrainVector(),
+                                                      uniaxial_stress, r_threshold, plastic_denominator, f_flux, g_flux,
+                                                      r_plastic_dissipation, plastic_strain_increment, C, r_plastic_strain,
+                                                      r_material_properties, characteristic_length);
+        noalias(integrated_stress_vector) = predictive_stress_vector;
 
-        this->SetNonConvPlasticDissipation(PlasticDissipation);
-        this->SetNonConvPlasticStrain(PlasticStrain);
-        this->SetNonConvThreshold(Threshold);
+        this->SetNonConvPlasticDissipation(r_plastic_dissipation);
+        this->SetNonConvPlasticStrain(r_plastic_strain);
+        this->SetNonConvThreshold(r_threshold);
 
-        if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        if (constitututive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-            noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
-            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+            noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
         }
     }
-    // this->SetValue(INTEGRATED_STRESS_TENSOR, MathUtils<double>::StressVectorToTensor(IntegratedStressVector), rValues.GetProcessInfo());
+    // this->SetValue(INTEGRATED_STRESS_TENSOR, MathUtils<double>::StressVectorToTensor(integrated_stress_vector), rValues.GetProcessInfo());
 } // End CalculateMaterialResponseCauchy
 
 /***********************************************************************************/
@@ -146,7 +146,7 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateT
 
 template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::FinalizeSolutionStep(
-    const Properties &rMaterialProperties,
+    const Properties& r_material_properties,
     const GeometryType &rElementGeometry,
     const Vector& rShapeFunctionsValues,
     const ProcessInfo &rCurrentProcessInfo)
@@ -172,10 +172,10 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::FinalizeMa
 template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateElasticMatrix(
     Matrix& rElasticityTensor,
-    const Properties &rMaterialProperties)
+    const Properties& r_material_properties)
 {
-    const double E = rMaterialProperties[YOUNG_MODULUS];
-    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double poisson_ratio = r_material_properties[POISSON_RATIO];
     const double lambda = E * poisson_ratio / ((1. + poisson_ratio) * (1.0 - 2.0 * poisson_ratio));
     const double mu = E / (2.0 + 2.0 * poisson_ratio);
 
@@ -371,7 +371,7 @@ Matrix& GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::Calcula
         strain_vector[5] = right_cauchy_green(0, 2); // xz
 
         Matrix C;
-        const Properties &MaterialProperties = rParameterValues.GetMaterialProperties();
+        const Properties& MaterialProperties = rParameterValues.GetMaterialProperties();
         this->CalculateElasticMatrix(C, MaterialProperties);
 
         rValue = MathUtils<double>::StressVectorToTensor(prod(C, strain_vector - mPlasticStrain));
