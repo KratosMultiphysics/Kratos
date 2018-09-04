@@ -621,7 +621,7 @@ double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeModificationFact
     if(rDesignVariable == SHAPE)
     {
         const double domain_size = mpPrimalElement->GetGeometry().DomainSize();
-        KRATOS_DEBUG_ERROR_IF(domain_size <= std::numeric_limits<double>::epsilon())
+        KRATOS_DEBUG_ERROR_IF(domain_size <= 0.0)
             << "Pertubation size for shape derivatives of element" << this->Id() << "~ 0" << std::endl;
         return domain_size;
     }
