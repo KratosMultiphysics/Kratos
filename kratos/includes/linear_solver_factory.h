@@ -37,7 +37,7 @@ class LinearSolverFactory : public LinearSolverFactoryBase<TSparseSpace,TLocalSp
 {
 protected:
 
-    typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer CreateHelper(Kratos::Parameters settings) const
+    typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer CreateHelper(Kratos::Parameters settings) const override
     {
 
         if(settings.Has("scaling") && settings["scaling"].GetBool() == true)
