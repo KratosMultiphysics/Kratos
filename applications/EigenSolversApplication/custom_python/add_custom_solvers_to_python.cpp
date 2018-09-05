@@ -147,7 +147,7 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     KratosComponents<LinearSolverFactoryBaseType>::Add("eigen_pardiso_llt", PardisoLLTFactor); // NOTE: Retrocompatibility name
 //     KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("ComplexPardisoLLTSolver", ComplexPardisoLLTFactory);
     KratosComponents<LinearSolverFactoryBaseType>::Add("PardisoLDLTSolver", PardisoLDLTFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add("eigen_pardiso_ldlt"), PardisoLDLTFactory); // NOTE: Retrocompatibility name
+    KratosComponents<LinearSolverFactoryBaseType>::Add("eigen_pardiso_ldlt", PardisoLDLTFactory); // NOTE: Retrocompatibility name
 //     KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("ComplexPardisoLDLTSolver", ComplexPardisoLDLTFactory);
     KratosComponents<LinearSolverFactoryBaseType>::Add("PardisoLUSolver", PardisoLUFactory);
     KratosComponents<LinearSolverFactoryBaseType>::Add("eigen_pardiso_lu", PardisoLUFactory); // NOTE: Retrocompatibility name
