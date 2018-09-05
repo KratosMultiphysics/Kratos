@@ -146,10 +146,10 @@ ExternalSolversApplicationRegisterLinearSolvers::ExternalSolversApplicationRegis
     static auto SuperLUSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SuperLUSolverType>();
     static auto SuperLUIterativeSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SuperLUIterativeSolverType>();
 
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("GMRESSolver"), GMRESSolverFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("Super_LU"), SuperLUSolverFactory); // NOTE: This is duplicated by retrocompatibility
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUSolver"), SuperLUSolverFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SuperLUIterativeSolver"), SuperLUIterativeSolverFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("GMRESSolver", GMRESSolverFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("Super_LU", SuperLUSolverFactory); // NOTE: This is duplicated by retrocompatibility
+    KratosComponents<LinearSolverFactoryBaseType>::Add("SuperLUSolver", SuperLUSolverFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("SuperLUIterativeSolver", SuperLUIterativeSolverFactory);
 
 #ifdef INCLUDE_PASTIX
     typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
@@ -157,16 +157,16 @@ ExternalSolversApplicationRegisterLinearSolvers::ExternalSolversApplicationRegis
     typedef LinearSolverFactoryBase<ComplexSpaceType, ComplexLocalSpaceType> ComplexLinearSolverFactoryBaseType;
     typedef PastixSolver<SpaceType,  LocalSpaceType> PastixSolverType;
     static auto PastixSolverFactory = LinearSolverFactory<SpaceType,LocalSpaceType,PastixSolverType>();
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PastixSolver"), PastixSolverFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("PastixSolver", PastixSolverFactory);
     typedef PastixComplexSolver<ComplexSpaceType, ComplexLocalSpaceType> PastixComplexSolverType;
     static auto PastixComplexSolverFactory = LinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, PastixComplexSolverType>();
-    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("PastixComplexSolver"), PastixComplexSolverFactory);
+    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("PastixComplexSolver", PastixComplexSolverFactory);
 #endif
 
 #ifdef INCLUDE_FEAST
     typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
     static auto FEASTSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,FEASTSolverType>();
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("FEASTSolver"), FEASTSolverFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("FEASTSolver", FEASTSolverFactory);
 #endif
 }
 

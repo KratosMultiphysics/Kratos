@@ -121,12 +121,12 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     static auto SparseQRFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SparseQRType>();
     static auto ComplexSparseQRFactory= LinearSolverFactory<ComplexSpaceType,ComplexLocalSpaceType,ComplexSparseQRType>();
 
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SparseLUSolver"), SparseLUFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("eigen_sparse_lu"), SparseLUFactory);  // NOTE: Retrocompatibility name
-    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("ComplexSparseLUSolver"), ComplexSparseLUFactory);
-    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("complex_eigen_sparse_lu"), ComplexSparseLUFactory);  // NOTE: Retrocompatibility name
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SparseQRSolver"), SparseQRFactory);
-    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("ComplexSparseQRSolver"), ComplexSparseQRFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("SparseLUSolver", SparseLUFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("eigen_sparse_lu", SparseLUFactory);  // NOTE: Retrocompatibility name
+    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("ComplexSparseLUSolver", ComplexSparseLUFactory);
+    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("complex_eigen_sparse_lu", ComplexSparseLUFactory);  // NOTE: Retrocompatibility name
+    KratosComponents<LinearSolverFactoryBaseType>::Add("SparseQRSolver", SparseQRFactory);
+    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("ComplexSparseQRSolver", ComplexSparseQRFactory);
 
 #ifdef USE_EIGEN_MKL
     typedef EigenDirectSolver<PardisoLLT<double>> PardisoLLTSolver;
@@ -143,16 +143,16 @@ EigenSolversApplicationRegisterLinearSolvers::EigenSolversApplicationRegisterLin
     static auto PardisoLUFactory= LinearSolverFactory<SpaceType,LocalSpaceType,PardisoLUType>();
     static auto ComplexPardisoLUFactory= LinearSolverFactory<ComplexSpaceType,ComplexLocalSpaceType,ComplexPardisoLUType>();
 
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PardisoLLTSolver"), PardisoLLTFactor);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("eigen_pardiso_llt"), PardisoLLTFactor); // NOTE: Retrocompatibility name
-//     KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("ComplexPardisoLLTSolver"), ComplexPardisoLLTFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PardisoLDLTSolver"), PardisoLDLTFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("eigen_pardiso_ldlt"), PardisoLDLTFactory); // NOTE: Retrocompatibility name
-//     KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("ComplexPardisoLDLTSolver"), ComplexPardisoLDLTFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("PardisoLUSolver"), PardisoLUFactory);
-    KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("eigen_pardiso_lu"), PardisoLUFactory); // NOTE: Retrocompatibility name
-    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("ComplexPardisoLUSolver"), ComplexPardisoLUFactory);
-    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("complex_eigen_pardiso_lu"), ComplexPardisoLUFactory); // NOTE: Retrocompatibility name
+    KratosComponents<LinearSolverFactoryBaseType>::Add("PardisoLLTSolver", PardisoLLTFactor);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("eigen_pardiso_llt", PardisoLLTFactor); // NOTE: Retrocompatibility name
+//     KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("ComplexPardisoLLTSolver", ComplexPardisoLLTFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("PardisoLDLTSolver", PardisoLDLTFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("eigen_pardiso_ldlt"), PardisoLDLTFactory); // NOTE: Retrocompatibility name
+//     KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("ComplexPardisoLDLTSolver", ComplexPardisoLDLTFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("PardisoLUSolver", PardisoLUFactory);
+    KratosComponents<LinearSolverFactoryBaseType>::Add("eigen_pardiso_lu", PardisoLUFactory); // NOTE: Retrocompatibility name
+    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("ComplexPardisoLUSolver", ComplexPardisoLUFactory);
+    KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("complex_eigen_pardiso_lu", ComplexPardisoLUFactory); // NOTE: Retrocompatibility name
 #endif
 }
 

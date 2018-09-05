@@ -57,10 +57,10 @@ namespace Kratos
         static auto ILUFactory= PreconditionerFactory<SpaceType,LocalSpaceType,ILUPreconditionerType>();
 
         //registration of linear solvers
-        KratosComponents<PreconditionerFactoryBaseType>::Add(std::string("None"), PreconditionerF);
-        KratosComponents<PreconditionerFactoryBaseType>::Add(std::string("DiagonalPreconditioner"), DiagonalPreconditionerFactory);
-        KratosComponents<PreconditionerFactoryBaseType>::Add(std::string("ILU0Preconditioner"), ILU0Factory);
-        KratosComponents<PreconditionerFactoryBaseType>::Add(std::string("ILUPreconditioner"),ILUFactory );
+        KratosComponents<PreconditionerFactoryBaseType>::Add("None", PreconditionerF);
+        KratosComponents<PreconditionerFactoryBaseType>::Add("DiagonalPreconditioner", DiagonalPreconditionerFactory);
+        KratosComponents<PreconditionerFactoryBaseType>::Add("ILU0Preconditioner", ILU0Factory);
+        KratosComponents<PreconditionerFactoryBaseType>::Add("ILUPreconditioner",ILUFactory );
 
     };
 
@@ -100,18 +100,18 @@ namespace Kratos
         static auto SkylineLUComplexSolverFactory = LinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
 
         //registration of linear solvers
-//         KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("LinearSolver"), LinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
-        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("CGSolver"), CGSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("BICGSTABSolver"), BICGSTABSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("DeflatedCGSolver"), DeflatedCGSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("TFQMRSolver"), TFQMRSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("SkylineLUFactorizationSolver"),SkylineLUFactorizationSolverFactory );
-        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("AMGCL"), AMGCLSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("AMGCLSolver"), AMGCLSolverFactory); //registered with two different names
-        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("AMGCL_NS_Solver"),AMGCL_NS_SolverFactory );
-        KratosComponents<LinearSolverFactoryBaseType>::Add(std::string("ScalingSolver"),ScalingSolverFactory );
-        KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("SkylineLUComplexSolver"), SkylineLUComplexSolverFactory);
-        KratosComponents<ComplexLinearSolverFactoryBaseType>::Add(std::string("complex_skyline_lu_solver"), SkylineLUComplexSolverFactory); // NOTE: Name duplicated for retrocompatibility
+//         KratosComponents<LinearSolverFactoryBaseType>::Add("LinearSolver", LinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
+        KratosComponents<LinearSolverFactoryBaseType>::Add("CGSolver", CGSolverFactory);
+        KratosComponents<LinearSolverFactoryBaseType>::Add("BICGSTABSolver", BICGSTABSolverFactory);
+        KratosComponents<LinearSolverFactoryBaseType>::Add("DeflatedCGSolver", DeflatedCGSolverFactory);
+        KratosComponents<LinearSolverFactoryBaseType>::Add("TFQMRSolver", TFQMRSolverFactory);
+        KratosComponents<LinearSolverFactoryBaseType>::Add("SkylineLUFactorizationSolver",SkylineLUFactorizationSolverFactory );
+        KratosComponents<LinearSolverFactoryBaseType>::Add("AMGCL", AMGCLSolverFactory);
+        KratosComponents<LinearSolverFactoryBaseType>::Add("AMGCLSolver", AMGCLSolverFactory); //registered with two different names
+        KratosComponents<LinearSolverFactoryBaseType>::Add("AMGCL_NS_Solver",AMGCL_NS_SolverFactory );
+        KratosComponents<LinearSolverFactoryBaseType>::Add("ScalingSolver",ScalingSolverFactory );
+        KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("SkylineLUComplexSolver", SkylineLUComplexSolverFactory);
+        KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("complex_skyline_lu_solver", SkylineLUComplexSolverFactory); // NOTE: Name duplicated for retrocompatibility
 
     };
 
