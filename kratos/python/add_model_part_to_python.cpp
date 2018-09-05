@@ -185,9 +185,9 @@ void ModelPartRemoveNodeFromAllLevels4(ModelPart& rModelPart, ModelPart::NodeTyp
     rModelPart.RemoveNodeFromAllLevels(pThisNode, ThisIndex);
 }
 
-void ModelPartRemoveNodesFromAllLevels(ModelPart& rModelPart, Flags identifier_flag)
+void ModelPartRemoveNodesFromAllLevels(ModelPart& rModelPart, Flags IdentifierFlag)
 {
-    rModelPart.RemoveNodesFromAllLevels(identifier_flag);
+    rModelPart.RemoveNodesFromAllLevels(IdentifierFlag);
 }
 
 
@@ -351,10 +351,56 @@ void ModelPartRemoveElementFromAllLevels4(ModelPart& rModelPart, ModelPart::Elem
     rModelPart.RemoveElementFromAllLevels(pThisElement, ThisIndex);
 }
 
-void ModelPartRemoveElementsFromAllLevels(ModelPart& rModelPart, Flags identifier_flag)
+void ModelPartRemoveElementsFromAllLevels(ModelPart& rModelPart, Flags IdentifierFlag)
 {
-    rModelPart.RemoveElementsFromAllLevels(identifier_flag);
+    rModelPart.RemoveElementsFromAllLevels(IdentifierFlag);
 }
+
+void ModelPartRemoveElementAndBelongingNodes1(ModelPart& rModelPart, ModelPart::IndexType ElementId, Flags IdentifierFlag)
+{
+    rModelPart.RemoveElementAndBelongingNodes(ElementId, IdentifierFlag);
+}
+
+void ModelPartRemoveElementAndBelongingNodes2(ModelPart& rModelPart, ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rModelPart.RemoveElementAndBelongingNodes(ElementId, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveElementAndBelongingNodes3(ModelPart& rModelPart, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag)
+{
+    rModelPart.RemoveElementAndBelongingNodes(pThisElement, IdentifierFlag);
+}
+
+void ModelPartRemoveElementAndBelongingNodes4(ModelPart& rModelPart, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rModelPart.RemoveElementAndBelongingNodes(pThisElement, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveElementAndBelongingNodesFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType ElementId, Flags IdentifierFlag)
+{
+    rModelPart.RemoveElementAndBelongingNodesFromAllLevels(ElementId, IdentifierFlag);
+}
+
+void ModelPartRemoveElementAndBelongingNodesFromAllLevels2(ModelPart& rModelPart, ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rModelPart.RemoveElementAndBelongingNodesFromAllLevels(ElementId, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveElementAndBelongingNodesFromAllLevels3(ModelPart& rModelPart, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag)
+{
+    rModelPart.RemoveElementAndBelongingNodesFromAllLevels(pThisElement, IdentifierFlag);
+}
+
+void ModelPartRemoveElementAndBelongingNodesFromAllLevels4(ModelPart& rModelPart, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rModelPart.RemoveElementAndBelongingNodesFromAllLevels(pThisElement, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveElementsAndBelongingNodesFromAllLevels(ModelPart& rModelPart, Flags IdentifierFlag)
+{
+    rModelPart.RemoveElementsAndBelongingNodesFromAllLevels(IdentifierFlag);
+}
+
 // Conditions
 
 ModelPart::SizeType ModelPartNumberOfConditions1(ModelPart& rModelPart)
@@ -442,11 +488,55 @@ void ModelPartRemoveConditionFromAllLevels4(ModelPart& rModelPart, ModelPart::Co
     rModelPart.RemoveConditionFromAllLevels(pThisCondition, ThisIndex);
 }
 
-void ModelPartRemoveConditionsFromAllLevels(ModelPart& rModelPart, Flags identifier_flag)
+void ModelPartRemoveConditionsFromAllLevels(ModelPart& rModelPart, Flags IdentifierFlag)
 {
-    rModelPart.RemoveConditionsFromAllLevels(identifier_flag);
+    rModelPart.RemoveConditionsFromAllLevels(IdentifierFlag);
 }
 
+void ModelPartRemoveConditionAndBelongingNodes1(ModelPart& rModelPart, ModelPart::IndexType ConditionId, Flags IdentifierFlag)
+{
+    rModelPart.RemoveConditionAndBelongingNodes(ConditionId, IdentifierFlag);
+}
+
+void ModelPartRemoveConditionAndBelongingNodes2(ModelPart& rModelPart, ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rModelPart.RemoveConditionAndBelongingNodes(ConditionId, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveConditionAndBelongingNodes3(ModelPart& rModelPart, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag)
+{
+    rModelPart.RemoveConditionAndBelongingNodes(pThisCondition, IdentifierFlag);
+}
+
+void ModelPartRemoveConditionAndBelongingNodes4(ModelPart& rModelPart, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rModelPart.RemoveConditionAndBelongingNodes(pThisCondition, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveConditionAndBelongingNodesFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType ConditionId, Flags IdentifierFlag)
+{
+    rModelPart.RemoveConditionAndBelongingNodesFromAllLevels(ConditionId, IdentifierFlag);
+}
+
+void ModelPartRemoveConditionAndBelongingNodesFromAllLevels2(ModelPart& rModelPart, ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rModelPart.RemoveConditionAndBelongingNodesFromAllLevels(ConditionId, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveConditionAndBelongingNodesFromAllLevels3(ModelPart& rModelPart, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag)
+{
+    rModelPart.RemoveConditionAndBelongingNodesFromAllLevels(pThisCondition, IdentifierFlag);
+}
+
+void ModelPartRemoveConditionAndBelongingNodesFromAllLevels4(ModelPart& rModelPart, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rModelPart.RemoveConditionAndBelongingNodesFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveConditionsAndBelongingNodesFromAllLevels(ModelPart& rModelPart, Flags IdentifierFlag)
+{
+    rModelPart.RemoveConditionsAndBelongingNodesFromAllLevels(IdentifierFlag);
+}
 
 // Master slave constraints
 /* // Try with perfect forwarding
@@ -807,6 +897,16 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels3)
         .def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels4)
         .def("RemoveElementsFromAllLevels", ModelPartRemoveElementsFromAllLevels)
+        .def("RemoveElementAndBelongingNodes", ModelPartRemoveElementAndBelongingNodes1)
+        .def("RemoveElementAndBelongingNodes", ModelPartRemoveElementAndBelongingNodes2)
+        .def("RemoveElementAndBelongingNodes", ModelPartRemoveElementAndBelongingNodes3)
+        .def("RemoveElementAndBelongingNodes", ModelPartRemoveElementAndBelongingNodes4)
+        .def("RemoveElementsAndBelongingNodes", &ModelPart::RemoveElementsAndBelongingNodes)
+        .def("RemoveElementAndBelongingNodesFromAllLevels", ModelPartRemoveElementAndBelongingNodesFromAllLevels1)
+        .def("RemoveElementAndBelongingNodesFromAllLevels", ModelPartRemoveElementAndBelongingNodesFromAllLevels2)
+        .def("RemoveElementAndBelongingNodesFromAllLevels", ModelPartRemoveElementAndBelongingNodesFromAllLevels3)
+        .def("RemoveElementAndBelongingNodesFromAllLevels", ModelPartRemoveElementAndBelongingNodesFromAllLevels4)
+        .def("RemoveElementsAndBelongingNodesFromAllLevels", ModelPartRemoveElementsAndBelongingNodesFromAllLevels)
         .def("ElementsArray", &ModelPart::ElementsArray, return_value_policy::reference_internal)
         .def_property("Conditions", ModelPartGetConditions1, ModelPartSetConditions1)
         .def("GetCondition", ModelPartGetCondition1)
@@ -827,6 +927,16 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
         .def("RemoveConditionsFromAllLevels", ModelPartRemoveConditionsFromAllLevels)
+        .def("RemoveConditionAndBelongingNodes", ModelPartRemoveConditionAndBelongingNodes1)
+        .def("RemoveConditionAndBelongingNodes", ModelPartRemoveConditionAndBelongingNodes2)
+        .def("RemoveConditionAndBelongingNodes", ModelPartRemoveConditionAndBelongingNodes3)
+        .def("RemoveConditionAndBelongingNodes", ModelPartRemoveConditionAndBelongingNodes4)
+        .def("RemoveConditionsAndBelongingNodes", &ModelPart::RemoveConditionsAndBelongingNodes)
+        .def("RemoveConditionAndBelongingNodesFromAllLevels", ModelPartRemoveConditionAndBelongingNodesFromAllLevels1)
+        .def("RemoveConditionAndBelongingNodesFromAllLevels", ModelPartRemoveConditionAndBelongingNodesFromAllLevels2)
+        .def("RemoveConditionAndBelongingNodesFromAllLevels", ModelPartRemoveConditionAndBelongingNodesFromAllLevels3)
+        .def("RemoveConditionAndBelongingNodesFromAllLevels", ModelPartRemoveConditionAndBelongingNodesFromAllLevels4)
+        .def("RemoveConditionsAndBelongingNodesFromAllLevels", ModelPartRemoveConditionsAndBelongingNodesFromAllLevels)
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
         .def("GetSubModelPart", &ModelPart::GetSubModelPart, return_value_policy::reference_internal)
