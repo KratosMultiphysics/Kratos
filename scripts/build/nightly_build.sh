@@ -22,7 +22,7 @@ done
 
 # Download additional dependencies
 cd ${HOME}
-wget https://github.com/loumalouomega/MMGPrecompiled/archive/master.zip -O mmg.zip
+wget https://drive.google.com/uc\?export\=download\&id\=1ythlWTtOCqm2nSKQzvc6QLiFYeFgC1NX -O mmg.zip
 unzip mmg.zip
 
 # Install dependencies
