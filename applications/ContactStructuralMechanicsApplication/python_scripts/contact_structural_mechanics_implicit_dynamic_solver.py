@@ -36,20 +36,26 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         {
             "contact_settings" :
             {
-                "mortar_type"                            : "",
-                "condn_convergence_criterion"            : false,
-                "fancy_convergence_criterion"            : true,
-                "print_convergence_criterion"            : false,
-                "ensure_contact"                         : false,
-                "gidio_debug"                            : false,
-                "adaptative_strategy"                    : false,
-                "split_factor"                           : 10.0,
-                "max_number_splits"                      : 3,
-                "contact_displacement_relative_tolerance": 1.0e-4,
-                "contact_displacement_absolute_tolerance": 1.0e-9,
-                "contact_residual_relative_tolerance"    : 1.0e-4,
-                "contact_residual_absolute_tolerance"    : 1.0e-9,
-                "use_mixed_ulm_solver"                   : true,
+                "mortar_type"                                       : "",
+                "condn_convergence_criterion"                       : false,
+                "fancy_convergence_criterion"                       : true,
+                "print_convergence_criterion"                       : false,
+                "ensure_contact"                                    : false,
+                "frictional_decomposed"                             : true,
+                "gidio_debug"                                       : false,
+                "adaptative_strategy"                               : false,
+                "split_factor"                                      : 10.0,
+                "max_number_splits"                                 : 3,
+                "contact_displacement_relative_tolerance"           : 1.0e-4,
+                "contact_displacement_absolute_tolerance"           : 1.0e-9,
+                "contact_residual_relative_tolerance"               : 1.0e-4,
+                "contact_residual_absolute_tolerance"               : 1.0e-9,
+                "frictional_contact_displacement_relative_tolerance": 1.0e-4,
+                "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
+                "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
+                "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
+                "simplified_semi_smooth_newton"                     : false,
+                "use_mixed_ulm_solver"                              : true,
                 "mixed_ulm_solver_parameters" :
                 {
                     "solver_type"          : "mixed_ulm_linear_solver",
@@ -144,6 +150,13 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     def Initialize(self):
         super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
 
+        # We set the flag INTERACTION
+        computing_model_part = self.GetComputingModelPart()
+        if self.contact_settings["simplified_semi_smooth_newton"].GetBool() is True:
+            computing_model_part.Set(KM.INTERACTION, False)
+        else:
+            computing_model_part.Set(KM.INTERACTION, True)
+
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -184,22 +197,23 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                     if (linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver"):
                         amgcl_param = KM.Parameters("""
                         {
-                            "solver_type" : "AMGCL",
-                            "smoother_type":"ilu0",
-                            "krylov_type": "lgmres",
-                            "coarsening_type": "aggregation",
-                            "max_iteration": 100,
-                            "provide_coordinates": false,
-                            "gmres_krylov_space_dimension": 100,
-                            "verbosity" : 1,
-                            "tolerance": 1e-6,
-                            "scaling": false,
-                            "block_size": 3,
+                            "solver_type"                    : "AMGCL",
+                            "smoother_type"                  :"ilu0",
+                            "krylov_type"                    : "lgmres",
+                            "coarsening_type"                : "aggregation",
+                            "max_iteration"                  : 100,
+                            "provide_coordinates"            : false,
+                            "gmres_krylov_space_dimension"   : 100,
+                            "verbosity"                      : 1,
+                            "tolerance"                      : 1e-6,
+                            "scaling"                        : false,
+                            "block_size"                     : 3,
                             "use_block_matrices_if_possible" : true,
-                            "coarse_enough" : 500
+                            "coarse_enough"                  : 500
                         }
                         """)
                         amgcl_param["block_size"].SetInt(self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
+                        amgcl_param = self.settings["linear_solver_settings"].RecursivelyValidateAndAssignDefaults(amgcl_param)
                         linear_solver = KM.AMGCLSolver(amgcl_param)
                     mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, self.contact_settings["mixed_ulm_solver_parameters"])
                     return mixed_ulm_solver
@@ -229,10 +243,15 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         conv_params.AddValue("contact_displacement_absolute_tolerance", self.contact_settings["contact_displacement_absolute_tolerance"])
         conv_params.AddValue("contact_residual_relative_tolerance", self.contact_settings["contact_residual_relative_tolerance"])
         conv_params.AddValue("contact_residual_absolute_tolerance", self.contact_settings["contact_residual_absolute_tolerance"])
+        conv_params.AddValue("frictional_contact_displacement_relative_tolerance", self.contact_settings["frictional_contact_displacement_relative_tolerance"])
+        conv_params.AddValue("frictional_contact_displacement_absolute_tolerance", self.contact_settings["frictional_contact_displacement_absolute_tolerance"])
+        conv_params.AddValue("frictional_contact_residual_relative_tolerance", self.contact_settings["frictional_contact_residual_relative_tolerance"])
+        conv_params.AddValue("frictional_contact_residual_absolute_tolerance", self.contact_settings["frictional_contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type", self.contact_settings["mortar_type"])
         conv_params.AddValue("condn_convergence_criterion", self.contact_settings["condn_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion", self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact", self.contact_settings["ensure_contact"])
+        conv_params.AddValue("frictional_decomposed", self.contact_settings["frictional_decomposed"])
         conv_params.AddValue("gidio_debug", self.contact_settings["gidio_debug"])
 
         return conv_params

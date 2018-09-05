@@ -14,7 +14,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ## MAIN FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/contact_structural_mechanics_application.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/contact_structural_mechanics_application_variables.cpp
-  
+
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
@@ -34,6 +34,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_fast_init_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_variables_calculation_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_dynamic_factor_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_spr_error_process.cpp
 
   ## EXTERNAL LIBRARIES
 
@@ -57,7 +58,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosContactStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES} ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES})
 
-target_link_libraries(KratosContactStructuralMechanicsApplication PRIVATE KratosCore)
+target_link_libraries(KratosContactStructuralMechanicsApplication PRIVATE KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "CONTACT_STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES PREFIX "")
 if(USE_COTIRE MATCHES ON)

@@ -82,7 +82,7 @@ class ConvergenceCriterion : public Flags
   }
 
   /// Destructor.
-  virtual ~ConvergenceCriterion()
+  ~ConvergenceCriterion() override
   {
   }
 

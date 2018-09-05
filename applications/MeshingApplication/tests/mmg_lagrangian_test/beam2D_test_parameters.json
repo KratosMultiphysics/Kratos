@@ -36,7 +36,8 @@
             "scaling"     : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1"]
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1"],
+        "auxiliary_variables_list" : ["NODAL_H", "NODAL_AREA"]
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
