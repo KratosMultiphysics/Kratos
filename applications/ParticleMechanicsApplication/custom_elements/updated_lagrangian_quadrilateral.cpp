@@ -1854,23 +1854,26 @@ int  UpdatedLagrangianQuadrilateral::Check( const ProcessInfo& rCurrentProcessIn
     }
 
     // Verify that the constitutive law exists
-    KRATOS_ERROR_IF( GetProperties().Has( CONSTITUTIVE_LAW ) == false ) << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
-
-    // Verify that the constitutive law has the correct dimension
-    if ( dimension == 2 )
+    if( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false)
     {
-        KRATOS_ERROR_IF(THICKNESS.Key() == 0 ) << "THICKNESS has Key zero! (check if the application is correctly registered" << std::endl;
-        KRATOS_ERROR_IF( this->GetProperties().Has( THICKNESS ) == false ) << "THICKNESS not provided for element " << this->Id() << std::endl;
+        KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
     }
     else
     {
-        KRATOS_ERROR_IF( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 ) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) " << this->Id() << std::endl;
-    }
+        // Verify that the constitutive law has the correct dimension
+        if ( dimension == 2 )
+        {
+            KRATOS_ERROR_IF(THICKNESS.Key() == 0 ) << "THICKNESS has Key zero! (check if the application is correctly registered" << std::endl;
+            KRATOS_ERROR_IF( this->GetProperties().Has( THICKNESS ) == false ) << "THICKNESS not provided for element " << this->Id() << std::endl;
+        }
+        else
+        {
+            KRATOS_ERROR_IF( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 ) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) " << this->Id() << std::endl;
+        }
 
-    // Check constitutive law
-    if (mConstitutiveLawVector!= 0)
-    {
-        return mConstitutiveLawVector->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
+        // Check constitutive law
+        this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
+
     }
 
     return 0;
