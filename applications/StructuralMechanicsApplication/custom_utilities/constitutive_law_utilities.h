@@ -188,7 +188,7 @@ class ConstitutiveLawUtilities
         if (SecondVector.size() != VoigtSize)
             SecondVector.resize(VoigtSize);
         const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-        for (int i = 0; i < VoigtSize; i++) {
+        for (IndexType i = 0; i < VoigtSize; ++i) {
             SecondVector[i] = Deviator[i] / (twosqrtJ2);
         }
 

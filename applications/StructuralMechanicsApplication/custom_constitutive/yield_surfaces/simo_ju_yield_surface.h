@@ -223,7 +223,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
 
-        return 0;
+        return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
     ///@}
