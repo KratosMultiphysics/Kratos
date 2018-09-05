@@ -828,6 +828,47 @@ public:
     }
 
     /**
+     * Calculates the norm of vector "a" while avoiding underflow and overflow.
+     * @param a Input vector
+     * @return The resulting norm
+     * @see http://www.netlib.org/lapack/explore-html/da/d7f/dnrm2_8f_source.html
+     */
+
+    static inline TDataType StableNorm(const Vector& a)
+    {
+        if (a.size() == 0) {
+            return 0;
+        }
+
+        if (a.size() == 1) {
+            return a[0];
+        }
+
+        TDataType scale {0};
+
+        TDataType sqr_sum_scaled {1};
+
+        for (auto it = a.begin(); it != a.end(); ++it) {
+            TDataType x = *it;
+
+            if (x != 0) {
+                const TDataType abs_x = std::abs(x);
+
+                if (scale < abs_x) {
+                    const TDataType f = scale / abs_x;
+                    sqr_sum_scaled = sqr_sum_scaled * (f * f) + 1.0;
+                    scale = abs_x;
+                } else {
+                    x = abs_x / scale;
+                    sqr_sum_scaled += x * x;
+                }
+            }
+        }
+
+        return scale * std::sqrt(sqr_sum_scaled);
+    }
+
+    /**
      * Performs the vector product of the two input vectors a,b
      * a,b are assumed to be of size 3 (no check is performed on vector sizes)
      * @param a First input vector
