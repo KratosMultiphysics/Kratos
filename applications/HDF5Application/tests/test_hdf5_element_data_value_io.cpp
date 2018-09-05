@@ -23,7 +23,7 @@
 // Application includes
 #include "tests/test_utils.h"
 #include "custom_io/hdf5_file_serial.h"
-#include "custom_io/hdf5_element_solution_step_data_io.h"
+#include "custom_io/hdf5_element_data_value_io.h"
 
 namespace Kratos
 {
@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     ModelPart write_model_part("test_write");
     TestModelPartFactory::CreateModelPart(write_model_part, {{"Element2D3N"}});
     TestModelPartFactory::CreateModelPart(read_model_part, {{"Element2D3N"}});
-    
+
     read_model_part.SetBufferSize(2);
     write_model_part.SetBufferSize(2);
 
@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
             "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL"]
         })");
 
-    HDF5::ElementSolutionStepDataIO data_io(io_params, p_test_file);
+    HDF5::ElementDataValueIO data_io(io_params, p_test_file);
     data_io.WriteElementResults(write_model_part.Elements());
     data_io.ReadElementResults(read_model_part.Elements());
 
