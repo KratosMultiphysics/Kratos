@@ -10,7 +10,7 @@ def GetFilePath(fileName):
     return os.path.dirname(__file__) + "/" + fileName
 
 
-class IgaTrussElementTest(KratosUnittest.TestCase):
+class IgaTrussElementTests(KratosUnittest.TestCase):
 
     def solve(create_geometry):
         model_part = ModelPart('Model')
@@ -142,7 +142,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_2, curve
 
-        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -170,7 +170,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_2, curve
 
-        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -202,7 +202,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -234,7 +234,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -267,7 +267,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
