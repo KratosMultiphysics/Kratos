@@ -295,7 +295,7 @@
             "restart_file_name"   : "deformable_tool_cutting_2D",
             "restart_file_label"  : "step",
             "output_control_type" : "time",
-            "output_frequency"    : 2.5e-8,
+            "output_frequency"    : 1.0e-7,
             "json_output"         : false
         }
     }],
