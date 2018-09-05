@@ -15,6 +15,7 @@
 // System includes
 
 // Project includes
+#include "includes/checks.h"
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
@@ -204,6 +205,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
         const Properties &rMaterialProperties)
     {
         KRATOS_ERROR << "Yield surface derivative not defined for SimoJu..." << std::endl;
+    }
+
+    /**
+     * @brief This method defines the check to be performed in the yield surface
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
+        KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
+        KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
+
+        return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
     ///@}
