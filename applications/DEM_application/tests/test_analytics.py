@@ -13,13 +13,13 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunObjectInOneOpenMPThread(object):
+def CreateAndRunObjectInOneOpenMPThread(my_obj):
     omp_utils = Kratos.OpenMPUtils()
     if "OMP_NUM_THREADS" in os.environ:
         initial_number_of_threads = os.environ['OMP_NUM_THREADS']
         omp_utils.SetNumThreads(1)
 
-    object().Run()
+    my_obj().Run()
 
     if "OMP_NUM_THREADS" in os.environ:
         omp_utils.SetNumThreads(int(initial_number_of_threads))
