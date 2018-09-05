@@ -43,6 +43,9 @@ KRATOS_CREATE_VARIABLE(Vector,
 KRATOS_CREATE_VARIABLE(Vector,
     MMG_METRIC);  // The condensed metric used to remesh with MMG utility
     
+KRATOS_CREATE_VARIABLE(Element::Pointer, FATHER_ELEMENT)
+KRATOS_CREATE_VARIABLE(Condition::Pointer, FATHER_CONDITION)
+
 //for ULF (surface_tension) application:
 KRATOS_CREATE_VARIABLE(double, TRIPLE_POINT)
 KRATOS_CREATE_VARIABLE(double, CONTACT_ANGLE)
@@ -71,6 +74,9 @@ void KratosMeshingApplication::Register() {
         AUXILIAR_HESSIAN);  // An auxiliar hessian needed to compute the metric
     KRATOS_REGISTER_VARIABLE(
         MMG_METRIC);  // The condensed metric used to remesh with MMG utility
+    
+    KRATOS_REGISTER_VARIABLE(FATHER_ELEMENT)
+    KRATOS_REGISTER_VARIABLE(FATHER_CONDITION)
     
     //--------------- ULF Application (surface_tension) -------------------//
     KRATOS_REGISTER_VARIABLE(TRIPLE_POINT)
