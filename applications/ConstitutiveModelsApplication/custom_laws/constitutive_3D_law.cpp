@@ -797,7 +797,6 @@ namespace Kratos
 
     const Properties& rProperties = rValues.GetMaterialProperties();
     if( rProperties.Has(TEMPERATURE_VARIABLE) )
-
       rTemperature = this->CalculateDomainVariable(rValues,KratosComponents<Variable<double> >::Get(rProperties[TEMPERATURE_VARIABLE]),rTemperature);
     else
       rTemperature = this->CalculateDomainVariable(rValues,TEMPERATURE,rTemperature);

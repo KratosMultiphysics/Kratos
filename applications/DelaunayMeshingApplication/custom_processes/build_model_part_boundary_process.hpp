@@ -90,8 +90,8 @@ namespace Kratos
 
     /// Default constructor.
     BuildModelPartBoundaryProcess(ModelPart& rModelPart,
-			     std::string const rModelPartName,
-			     int EchoLevel = 0)
+                                  std::string const rModelPartName,
+                                  int EchoLevel = 0)
       : mrModelPart(rModelPart)
     {
       mModelPartName = rModelPartName;
@@ -215,7 +215,7 @@ namespace Kratos
       bool found=false;
 
       //std::cout<<" [ START SEARCH CONDITIONS MASTERS : "<<std::endl;
-      
+
       for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(); i_cond != mrModelPart.ConditionsEnd(); ++i_cond)
       {
 
@@ -311,7 +311,7 @@ namespace Kratos
                       else{
                         std::cout<<" First Assignment of Master Nodes "<<i_cond->Id()<<std::endl;
                       }
-                    }                 
+                    }
                     i_cond->SetValue(MASTER_NODES,MasterNodes);
                   }
                   else{
@@ -412,13 +412,13 @@ namespace Kratos
             std::cout<<" MN= "<<i_cond->GetValue(MASTER_NODES)[0].Id();
           std::cout<<std::endl;
         }
-        
+
         if(found)
           ++counter;
 
       }
 
-     
+
       if(counter == total_conditions){
 	if(mEchoLevel >= 1)
 	  std::cout<<"   Condition Masters (ModelPart "<<mrModelPart.Name()<<"): LOCATED ["<<counter<<"]"<<std::endl;
@@ -436,8 +436,8 @@ namespace Kratos
 
 
       //std::cout<<"   END SEARCH CONDITIONS MASTERS ] "<<found<<std::endl;
-      
-      return found;     
+
+      return found;
 
       KRATOS_CATCH( "" )
     }
@@ -622,9 +622,103 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
+
     //**************************************************************************
     //**************************************************************************
 
+    virtual void SetBoundaryFlags( ModelPart& rModelPart )
+    {
+
+      KRATOS_TRY
+
+      ModelPart::ElementsContainerType::iterator elements_begin  = rModelPart.ElementsBegin();
+      ModelPart::ElementsContainerType::iterator elements_end    = rModelPart.ElementsEnd();
+
+      //clear nodal boundary flag
+      for(ModelPart::ElementsContainerType::iterator i_elem = elements_begin; i_elem != elements_end ; ++i_elem)
+        {
+          Geometry< Node<3> >& rElementGeometry = i_elem->GetGeometry();
+
+          for(unsigned int j=0; j<rElementGeometry.size(); ++j)
+          {
+            rElementGeometry[j].Set(BOUNDARY,false);
+            if(rModelPart.Is(FLUID)){
+              rElementGeometry[j].Set(FREE_SURFACE,false);
+            }
+          }
+        }
+
+      for(ModelPart::ElementsContainerType::iterator i_elem = elements_begin; i_elem != elements_end ; ++i_elem)
+	{
+	  Geometry< Node<3> >& rElementGeometry = i_elem->GetGeometry();
+
+	  const unsigned int dimension = rElementGeometry.WorkingSpaceDimension();
+
+	  if( rElementGeometry.FacesNumber() >= (dimension+1) ){ //3 or 4
+
+	    DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
+	    DenseVector<unsigned int> lnofa; //number of points defining faces
+
+	    //get matrix nodes in faces
+	    rElementGeometry.NodesInFaces(lpofa);
+	    rElementGeometry.NumberNodesInFaces(lnofa);
+
+            WeakPointerVector<Element >& rE = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+
+	    //loop on neighbour elements of an element
+	    unsigned int iface=0;
+	    for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ++ne)
+	      {
+		unsigned int NumberNodesInFace = lnofa[iface];
+		if (ne->Id() == i_elem->Id())
+                {
+                  //if no neighbour is present => the face is free surface
+                  unsigned int rigid_nodes = 0;
+                  unsigned int free_surface_nodes = 0;
+                  for(unsigned int j=1; j<=NumberNodesInFace; ++j)
+                  {
+                    rElementGeometry[lpofa(j,iface)].Set(BOUNDARY,true);
+                    if(rModelPart.Is(FLUID)){
+                      if(rElementGeometry[lpofa(j,iface)].Is(RIGID) || rElementGeometry[lpofa(j,iface)].Is(SOLID)){
+                        ++rigid_nodes;
+                      }
+                      else{
+                        ++free_surface_nodes;
+                      }
+                    }
+                    //std::cout<<" node ["<<j<<"]"<<rElementGeometry[lpofa(j,iface)].Id()<<std::endl;
+                  }
+
+                  if(rModelPart.Is(FLUID)){
+                    if( (free_surface_nodes>0 && rigid_nodes>0) || rigid_nodes==0 ){
+                      for(unsigned int j=1; j<=NumberNodesInFace; ++j)
+                      {
+                        rElementGeometry[lpofa(j,iface)].Set(FREE_SURFACE,true);
+                      }
+                    }
+                  }
+
+                } //end face condition
+
+		++iface;
+	      } //end loop neighbours
+
+ 	  }
+          else{
+          //set nodes to BOUNDARY for elements outside of the working space dimension
+            for(unsigned int j=0; j<rElementGeometry.size(); ++j)
+            {
+              rElementGeometry[j].Set(BOUNDARY,true);
+            }
+          }
+	}
+
+
+      KRATOS_CATCH( "" )
+    }
+
+    //**************************************************************************
+    //**************************************************************************
 
     virtual bool BuildCompositeConditions( ModelPart& rModelPart, ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& rPreservedConditions, unsigned int& rConditionId )
     {

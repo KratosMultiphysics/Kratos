@@ -681,8 +681,7 @@ protected:
   virtual void SetMasterGeometry()
   {
     KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
-
-	};
+  };
 
 
   /**
@@ -691,8 +690,7 @@ protected:
   virtual void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
-
-	};
+  };
 
   /**
    * Calculation of the Contact Previous Gap

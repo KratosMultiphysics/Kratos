@@ -62,6 +62,7 @@ class MonolithicSolver(object):
             "solving_strategy_settings":{
                 "builder_type": "block_builder",
                 "line_search": false,
+                "line_search_type": 0,
                 "implex": false,
                 "compute_reactions": true,
                 "move_mesh_flag": true,
@@ -199,17 +200,28 @@ class MonolithicSolver(object):
         update_time = False
         if not self._is_not_restarted():
             if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
-                update_time = self._check_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
+                update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
 
         if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
-            update_time = self._check_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
+            update_time = self._check_previous_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
 
         if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
-            update_time = self._check_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
+            update_time = self._check_previous_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
 
         return update_time
 
-    def _check_time_step(self, step_time):
+    def _check_current_time_step(self, step_time):
+        current_time  = self.process_info[KratosMultiphysics.TIME]
+        delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
+        #arithmetic floating point tolerance
+        tolerance = delta_time * 0.001
+
+        if( step_time > current_time-tolerance and step_time < current_time+tolerance ):
+            return True
+        else:
+            return False
+
+    def _check_previous_time_step(self, step_time):
         current_time  = self.process_info[KratosMultiphysics.TIME]
         delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
         previous_time = current_time - delta_time
@@ -224,13 +236,11 @@ class MonolithicSolver(object):
 
     def _check_initialized(self):
         if not self._is_not_restarted():
-            self._get_solution_scheme().Initialize(self.main_model_part)
             mechanical_solver = self._get_mechanical_solver()
             if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
                 mechanical_solver.SetInitializePerformedFlag(True)
             else:
                 mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
-
 
     def _is_not_restarted(self):
         if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):

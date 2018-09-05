@@ -488,7 +488,6 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::
 //************************************************************************************
 //************************************************************************************
 
-
 void SolidElement::Initialize()
 {
     KRATOS_TRY
@@ -496,7 +495,7 @@ void SolidElement::Initialize()
     //member variables initialization
     InitializeConstitutiveLaw();
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -529,7 +528,7 @@ void SolidElement::InitializeConstitutiveLaw()
       KRATOS_ERROR << " a constitutive law needs to be specified for the element with ID " << std::endl;
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -546,7 +545,7 @@ void SolidElement::ResetConstitutiveLaw()
             mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -586,7 +585,7 @@ void SolidElement::CalculateKinetics(ElementDataType& rVariables, const double& 
 
     this->CalculateKinematics(rVariables,rPointNumber);
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -611,7 +610,7 @@ unsigned int SolidElement::GetDofsSize()
 
   return size;
 
-  KRATOS_CATCH( "" )
+  KRATOS_CATCH("")
 }
 
 
@@ -673,7 +672,7 @@ void SolidElement::CalculateMaterialResponse(ElementDataType& rVariables,
     //compute stresses and constitutive parameters
     mConstitutiveLawVector[rPointNumber]->CalculateMaterialResponse(rValues, rVariables.StressMeasure);
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -722,18 +721,22 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
         Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 
-        if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-        {
+        if( !IsSliver() ){
+
+          if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+          {
             //contributions to stiffness matrix calculated on the reference config
 	    this->CalculateAndAddLHS ( rLocalSystem, Variables, Variables.IntegrationWeight );
-        }
+          }
 
-        if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-        {
+          if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+          {
             //contribution to external forces
             VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
 
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, Variables.IntegrationWeight );
+          }
+
         }
 
 	//for debugging purposes
@@ -742,7 +745,7 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
     }
 
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -803,7 +806,7 @@ void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 
     mThisIntegrationMethod = ThisIntegrationMethod;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -850,7 +853,7 @@ void SolidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, 
     std::cout<<" K "<<rLocalSystem.GetLeftHandSideMatrix()<<std::endl;
     std::cout<<" f "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -870,7 +873,7 @@ void SolidElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, Eleme
 
     //KRATOS_WATCH( rLeftHandSideMatrix )
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -891,7 +894,7 @@ void SolidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, Eleme
     // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
     this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -938,7 +941,7 @@ void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
     }
 
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1001,7 +1004,7 @@ void SolidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, E
 
   noalias(rRightHandSideVector) = prod( MassMatrix, CurrentAccelerationVector );
 
-  KRATOS_CATCH( "" )
+  KRATOS_CATCH("")
 }
 
 
@@ -1021,7 +1024,7 @@ double& SolidElement::CalculateIntegrationWeight(double& rIntegrationWeight)
 
     return rIntegrationWeight;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1050,7 +1053,7 @@ void SolidElement::CalculateRightHandSide( VectorType& rRightHandSideVector, Pro
     //Calculate elemental system
     this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1080,7 +1083,7 @@ void SolidElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, Proce
     //Calculate elemental system
     this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1126,7 +1129,7 @@ void SolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, Vector
 
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1195,7 +1198,7 @@ void SolidElement::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatr
 	value = original;
       }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1215,8 +1218,8 @@ void SolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
                 rCurrentProcessInfo );
 
     this->Set(SolidElement::FINALIZED_STEP,false);
-    
-    KRATOS_CATCH( "" )
+
+    KRATOS_CATCH("")
 
 }
 
@@ -1279,8 +1282,13 @@ void SolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     }
 
     this->Set(SolidElement::FINALIZED_STEP,true);
-    
-    KRATOS_CATCH( "" )
+
+    if(this->Is(SELECTED) && this->Is(ACTIVE)){
+      this->Set(SELECTED,false);
+      std::cout<<" Undo SELECTED "<<this->Id()<<std::endl;
+    }
+
+    KRATOS_CATCH("")
 }
 
 
@@ -1305,7 +1313,7 @@ void SolidElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
     //contributions to stiffness matrix calculated on the reference config
     noalias( rLeftHandSideMatrix ) += rIntegrationWeight * prod( trans( rVariables.B ), Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1344,7 +1352,7 @@ void SolidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVecto
         }
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1361,7 +1369,7 @@ void SolidElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVecto
     VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
     noalias( rRightHandSideVector ) -= InternalForces;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1388,7 +1396,7 @@ void SolidElement::InitializeExplicitContributions()
       }
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //***********************************************************************************
@@ -1463,7 +1471,7 @@ void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
 	  }
       }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1477,7 +1485,7 @@ void SolidElement::CalculateKinematics(ElementDataType& rVariables, const double
 
     KRATOS_ERROR << " calling the default method CalculateKinematics for a solid element " << std::endl;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1496,7 +1504,7 @@ Matrix& SolidElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
 
     return rDeltaPosition;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //*************************COMPUTE TOTAL DELTA POSITION*******************************
@@ -1511,7 +1519,7 @@ Matrix& SolidElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
     ElementUtilities::CalculateTotalDeltaPosition(rDeltaPosition,rGeometry);
     return rDeltaPosition;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1557,7 +1565,7 @@ double& SolidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
 
     return rTotalMass;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************CALCULATE VOLUME CHANGE*************************
@@ -1571,7 +1579,7 @@ double& SolidElement::CalculateVolumeChange( double& rVolumeChange, ElementDataT
 
     return rVolumeChange;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1606,7 +1614,7 @@ Vector& SolidElement::CalculateVolumeForce( Vector& rVolumeForce, ElementDataTyp
 
     return rVolumeForce;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -1635,7 +1643,7 @@ void SolidElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandS
     noalias(rRightHandSideVector) = prod( rLeftHandSideMatrix, CurrentVelocityVector );
 
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -1707,7 +1715,7 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
     }
 
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1751,7 +1759,7 @@ void SolidElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix
 
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -1821,7 +1829,7 @@ void SolidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVecto
     }
 
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1892,7 +1900,7 @@ void SolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
     }
 
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -1952,7 +1960,7 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
 
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -2146,7 +2154,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -2206,7 +2214,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
         }
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -2322,7 +2330,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
     }
 
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -2379,7 +2387,7 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     return ErrorCode;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************

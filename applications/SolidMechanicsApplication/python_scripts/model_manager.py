@@ -454,18 +454,29 @@ class ModelManager(object):
         update_time = False
         if not self._is_not_restarted():
             if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
-                update_time = self._check_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
+                update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
                 # print(" RESTART_STEP_TIME ",self.process_info[KratosSolid.RESTART_STEP_TIME], update_time)
 
         if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
-            update_time = self._check_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
+            update_time = self._check_previous_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
 
         if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
-            update_time = self._check_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
+            update_time = self._check_previous_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
 
         return update_time
     #
-    def _check_time_step(self, step_time):
+    def _check_current_time_step(self, step_time):
+        current_time  = self.process_info[KratosMultiphysics.TIME]
+        delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
+        #arithmetic floating point tolerance
+        tolerance = delta_time * 0.001
+
+        if( step_time > current_time-tolerance and step_time < current_time+tolerance ):
+            return True
+        else:
+            return False
+    #
+    def _check_previous_time_step(self, step_time):
         current_time  = self.process_info[KratosMultiphysics.TIME]
         delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
         previous_time = current_time - delta_time

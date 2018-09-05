@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_flags.h"
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "custom_utilities/element_utilities.hpp"
@@ -759,6 +760,17 @@ protected:
      */
     virtual unsigned int GetDofsSize();
 
+
+    /**
+     * Get element calculation flag
+     */
+    bool IsSliver()
+    {
+      if( this->IsDefined(SELECTED) )
+        return this->Is(SELECTED);
+      else
+        return false;
+    }
 
     /**
      * Initialize System Matrices

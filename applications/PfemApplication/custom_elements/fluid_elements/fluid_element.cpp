@@ -659,17 +659,20 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
         Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
+        if( !IsSliver() ){
 
-        if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-        {
+          if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+          {
             //contributions to stiffness matrix calculated on the reference config
 	    this->CalculateAndAddLHS ( rLocalSystem, Variables );
-        }
+          }
 
-        if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-        {
+          if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+          {
             //contribution to external forces
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables );
+          }
+
         }
 
 	//for debugging purposes
@@ -961,8 +964,7 @@ void FluidElement::CalculateRightHandSide( VectorType& rRightHandSideVector, Pro
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    if( !IsSliver() )
-      this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
     KRATOS_CATCH( "" )
 }
@@ -995,8 +997,7 @@ void FluidElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, Proce
     LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
     //Calculate elemental system
-    if( !IsSliver() )
-      this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
     KRATOS_CATCH( "" )
 }
@@ -1027,8 +1028,7 @@ void FluidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, Vector
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    if( !IsSliver() )
-      this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
     bool test_tangent = false;
     if( test_tangent ){
@@ -1202,6 +1202,11 @@ void FluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     }
 
     this->Set(FluidElement::FINALIZED_STEP,true);
+
+    if(this->Is(SELECTED) && this->Is(ACTIVE)){
+      this->Set(SELECTED,false);
+      KRATOS_WARNING("")<<" Undo SELECTED Element "<<this->Id()<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
 }

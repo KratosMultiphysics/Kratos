@@ -113,9 +113,9 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
         options.Set(KratosSolid.SolverLocalFlags.UPDATE_VARIABLES, self.settings["solving_strategy_settings"]["iterative_update"].GetBool())
         #options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.settings["solving_strategy_settings"]["move_mesh_flag"].GetBool())
 
-        line_search_type = 0
         return KratosSolid.LineSearchStrategy(self.model_part, solution_scheme, builder_and_solver, convergence_criterion,
-                                              options, self.settings["solving_strategy_settings"]["max_iteration"].GetInt(), line_search_type)
+                                              options, self.settings["solving_strategy_settings"]["max_iteration"].GetInt(),
+                                              self.settings["solving_strategy_settings"]["line_search_type"].GetInt())
 
     def _create_newton_raphson_strategy(self):
         solution_scheme = self._get_solution_scheme()

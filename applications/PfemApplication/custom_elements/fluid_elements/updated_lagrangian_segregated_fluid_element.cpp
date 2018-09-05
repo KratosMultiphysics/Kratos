@@ -625,7 +625,7 @@ void UpdatedLagrangianSegregatedFluidElement::SetElementData(ElementDataType& rV
 
     if(this->Is(SELECTED) && this->Is(ACTIVE)){
       this->Set(SELECTED,false);
-      std::cout<<" Undo SELECTED "<<this->Id()<<std::endl;
+      KRATOS_WARNING("")<<" Undo SELECTED ULSFluidElement "<<this->Id()<<std::endl;
     }
   }
 

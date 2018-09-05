@@ -93,18 +93,16 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
     def _check_initialized(self):
         if( not self._is_not_restarted() ):
             for solver in self.solvers:
-                solver._get_solution_scheme().Initialize(self.main_model_part)
                 if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
                     solver._get_mechanical_solver().SetInitializePerformedFlag(True)
                 else:
                     solver._get_mechanical_solver().Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
 
             if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
-                self._get_mechanical_solver.SetInitializePerformedFlag(True)
+                self._get_mechanical_solver().SetInitializePerformedFlag(True)
             else:
-                self._get_mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
+                self._get_mechanical_solver().Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
 
-    #
     def _create_mechanical_solver(self):
         strategies = []
         for solver in self.solvers:

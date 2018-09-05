@@ -5,18 +5,18 @@
     "problem_data"             : {
         "domain_type" : "Solid",
         "echo_level"  : 1,
-        "threads"     : 4
+        "threads"     : 1
     },
     "time_settings" : {
         "time_step" : 2.5e-8,
-        "end_time"  : 2.5e-4
+        "end_time"  : 1.0e-4
     },
     "model_settings" : {
 	"model_name" : "Main_Domain",
         "dimension" : 2,
         "input_file_settings": {
             "type" : "mdpa",
-            "label": 250
+            "label": 0
         },
 	"bodies_list":[{
 	    "body_type": "Solid",
@@ -64,6 +64,7 @@
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"            : true,
+			"line_search_type"       : 0,
 			"implex"                 : false,
 			"compute_reactions"      : true,
 			"reform_dofs_at_each_step" : true,
@@ -77,7 +78,7 @@
 		    "linear_solver_settings"    : {
                         "solver_type" : "SuperLUSolver",
 			"tolerance"   : 1e-7,
-			"max_iteration" : 5000,
+			"max_iteration" : 7000,
 			"scaling"     : true
 		    },
 		    "dofs" : ["DISPLACEMENT","PRESSURE"],
@@ -294,7 +295,7 @@
             "restart_file_name"   : "deformable_tool_cutting_2D",
             "restart_file_label"  : "step",
             "output_control_type" : "time",
-            "output_frequency"    : 1.0e-7,
+            "output_frequency"    : 2.5e-8,
             "json_output"         : false
         }
     }],
@@ -313,8 +314,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT_REACTION","NORMAL","CONTACT_FORCE","PRESSURE","TEMPERATURE","DISPLACEMENT"],
-            "nodal_flags_results" : ["BOUNDARY","ISOLATED","CONTACT"],
+            "nodal_results"       : ["VOLUME_ACCELERATION","DISPLACEMENT_REACTION","NORMAL","CONTACT_FORCE","PRESSURE","TEMPERATURE","DISPLACEMENT"],
+            "nodal_flags_results" : [],
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR","VON_MISES_STRESS","PLASTIC_STRAIN","PLASTIC_DISSIPATION","DELTA_PLASTIC_STRAIN","DELTA_PLASTIC_DISSIPATION"],
             "additional_list_files": [2,5,10,20]
         },

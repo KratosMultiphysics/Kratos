@@ -487,16 +487,14 @@ namespace Kratos
 	  }
 	else
 	  {
-
 	    //3.- Calculate the return mapping
 	    bool converged = this->CalculateReturnMapping(rVariables,rStressMatrix);
 
 	    //4.- Update back stress, plastic strain and stress
 	    this->UpdateStressConfiguration(rVariables,rStressMatrix);
 
-
-            if(!converged)
-              std::cout<<" ConstitutiveLaw did not converge [Stress: "<<rStressMatrix<<" DeltaGamma: "<<rVariables.DeltaInternal.Variables[0]<<"]"<<std::endl;
+            if( !converged )
+              KRATOS_WARNING("NON-LINEAR PLASTICITY")<<"Not converged"<<std::endl;
 
 	    //5.- Calculate thermal dissipation and delta thermal dissipation
 	    this->CalculateThermalDissipation(rVariables);
@@ -641,12 +639,10 @@ namespace Kratos
 	  iter++;
 	}
 
-
       if(iter>MaxIterations){
-        std::cout<<" DeltaPlasticStrain "<<DeltaPlasticStrain<<" Equivalent Plastic Strain "<<rEquivalentPlasticStrain<<" StateFunction "<<StateFunction<<" DeltaDeltaGamma "<<DeltaDeltaGamma<<" DeltaGamma "<<rDeltaGamma<<std::endl;
-	return false;
+        std::cout<<" ConstitutiveLaw did not converge [Stress: "<<rStressMatrix<<" DeltaGamma: "<<rDeltaGamma<<" StateFunction: "<<StateFunction<<" DeltaDeltaGamma: "<<DeltaDeltaGamma<<"]"<<std::endl;
+        return false;
       }
-
 
       return true;
 
