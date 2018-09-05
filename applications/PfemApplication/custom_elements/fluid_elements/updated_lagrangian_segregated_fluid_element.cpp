@@ -616,10 +616,38 @@ void UpdatedLagrangianSegregatedFluidElement::SetElementData(ElementDataType& rV
   //to be accurate calculus must stop
   if(rVariables.detF<0){
 
-    KRATOS_WARNING(" [Element Ignored]") << "ULSFluidElement["<<this->Id()<<"] (|F|=" << rVariables.detF <<")  (Iter:"<<rVariables.GetProcessInfo()[NL_ITERATION_NUMBER]<<")"<<std::endl;
+    if(this->IsNot(SELECTED)){
+
+      KRATOS_WARNING(" [Element Ignored]") << "ULSFluidElement["<<this->Id()<<"] (|F|=" << rVariables.detF <<")  (Iter:"<<rVariables.GetProcessInfo()[NL_ITERATION_NUMBER]<<")"<<std::endl;
+      this->Set(SELECTED,true);
+
+      // SizeType number_of_nodes  = GetGeometry().PointsNumber();
+
+      // for ( SizeType i = 0; i < number_of_nodes; i++ )
+      // {
+      //   array_1d<double, 3> & CurrentPosition      = GetGeometry()[i].Coordinates();
+      //   array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+      //   array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+      //   array_1d<double, 3> PreviousPosition       = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+      //   KRATOS_WARNING("")<<" Node["<<GetGeometry()[i].Id()<<"]: (Position: (pre)"<<PreviousPosition<<",(cur)"<<CurrentPosition<<")"<<std::endl;
+      //   //KRATOS_WARNING("")<<" (Displacement: (pre)"<<CurrentDisplacement<<",(cur)"<<PreviousDisplacement<<")"<<std::endl;
+      // }
+      // for ( SizeType i = 0; i < number_of_nodes; i++ )
+      // {
+      //   if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
+      //     array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+      //     array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+      //     KRATOS_WARNING("")<<" (Contact: (pre)"<<PreContactForce<<",(cur)"<<ContactForce<<")["<<GetGeometry()[i].Id()<<"]"<<std::endl;
+      //   }
+
+      // }
+
+      // KRATOS_ERROR<<" [Element Failed] ["<<this->Id()<<"]"<<std::endl;
+
+    }
+
     rVariables.detJ = 0;
 
-    this->Set(SELECTED,true);
   }
   else{
 
@@ -629,34 +657,7 @@ void UpdatedLagrangianSegregatedFluidElement::SetElementData(ElementDataType& rV
     }
   }
 
-  //to be accurate calculus must stop
-  // if(rVariables.detF<0){
 
-  //   std::cout<<" ELEMENT ["<<this->Id()<<"]"<<std::endl;
-
-  //   const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-  //   if( dimension == 3)
-  //     std::cout<<" (Volume "<<GetGeometry().Volume()<<") "<<std::endl;
-  //   else
-  //     std::cout<<" (Area "<<GetGeometry().Area()<<") "<<std::endl;
-
-  //   SizeType number_of_nodes = GetGeometry().PointsNumber();
-
-  //   for ( SizeType i = 0; i < number_of_nodes; i++ )
-  //   {
-  //     array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-  //     array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-  //     array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-  //     array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-  //     std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"] sliver: "<<GetGeometry()[i].Is(SELECTED)<<" rigid: "<<GetGeometry()[i].Is(RIGID)<<" freesurface: "<<GetGeometry()[i].Is(FREE_SURFACE)<<std::endl;
-  //     std::cout<<"   -POSITION-   : " <<CurrentPosition<<" (Pre: "<<PreviousPosition<<")"<<std::endl;
-  //     std::cout<<" -DISPLACEMENT- : "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
-  //     std::cout<<"   -VELOCITY-   : "<<GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)<<" (Pre: "<<GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1)<<")"<<std::endl;
-  //   }
-
-  //   KRATOS_ERROR << " UPDATED LAGRANGIAN SEGREGATED FLUID ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
-  // }
 
   Flags& ConstitutiveLawOptions = rValues.GetOptions();
   ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);

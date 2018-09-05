@@ -553,9 +553,10 @@ bool FluidElement::IsSliver()
   //   }
   // }
   //return is_sliver;
-
-  return this->Is(SELECTED);
-
+  if( this->IsDefined(SELECTED) )
+    return this->Is(SELECTED);
+  else
+    return false;
 }
 
 
