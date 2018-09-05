@@ -510,7 +510,7 @@ void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<double>&
 
     if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
     { // TODO should be KRATOS_WARNING_ONCE but this is currently not compiling
-        KRATOS_INFO_FIRST_N("ShellThickElement3D4N", 1) << "Gauss point results have "
+        KRATOS_WARNING_FIRST_N("ShellThickElement3D4N", 1) << "Gauss point results have "
             << "been requested for a linear analysis. The membrane formulation used "
             << "requires iteration to accurately determine recovered "
             << "quantities (strain, stress, etc...)." << std::endl;
