@@ -403,8 +403,12 @@ void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const Vector& rPrinci
     e += d(1) * ( b(0,0) * mStateFunctionFirstDerivative(1) - b(1,0) * mStateFunctionFirstDerivative(0) );
 
     // Construct Vector a
-    a(0) = ( d(0) * (b(1,1) * c(0) - b(0,1) * c(1)) + d(1) * (b(0,0) * c(1) - b(1,0) * c(0)) + detb * K_ptrial * mStateFunctionFirstDerivative(2) ) / e;
-    a(1) = sqrt(2.0/3.0) * ( d(1) * b(0,0) - d(0) * b(0,1) ) / e;
+    a(0) = ( d(0) * (b(1,1) * c(0) - b(0,1) * c(1)) + d(1) * (b(0,0) * c(1) - b(1,0) * c(0)) + detb * K_ptrial * mStateFunctionFirstDerivative(2) );
+    a(1) = sqrt(2.0/3.0) * ( d(1) * b(0,0) - d(0) * b(0,1) );
+    
+    // Check if e == 0
+    if (fabs(e) < 1.e-9 && fabs(a(0)) < 1.e-9 && fabs(a(1)) < 1.e-9){ a(0) = 0.0; a(1) = 0.0; }
+    else{ a *= 1.0 / e; }
 
     // Arrange rPlasticMatrix from all the constructed variables
     rPlasticMatrix(0,0) = b(1,1) * (c(0) - a(0) * mStateFunctionFirstDerivative(0)) - b(0,1) * (c(1) - a(0) * mStateFunctionFirstDerivative(1));
