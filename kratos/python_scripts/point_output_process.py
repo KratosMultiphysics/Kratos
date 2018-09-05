@@ -26,13 +26,13 @@ class PointOutputProcess(KratosMultiphysics.Process):
     def __init__(self, model, params):
 
         default_settings = KratosMultiphysics.Parameters('''{
+            "help"            : "This process writes results from a geometrical position (point) in the model to a file. It first searches the entity containing the requested output location and then interpolates the requested variable(s). The output can be requested for elements, conditions and nodes. For nodes no geometrical interpolation is performed, the exact coordinates have to be specified. This process works in MPI as well as with restarts. It can serve as a basis for other processes (e.g. MultiplePointsOutputProcess). Furthermore it can be used for testing in MPI where the node numbers can change",
             "model_part_name"   : "",
             "entity_type"       : "element",
             "position"          : [],
             "output_variables"  : [],
-            "output_file_name"  : "",
-            "write_buffer_size" : -1,
-            "print_format"      : ""
+            "print_format"      : "",
+            "output_file_settings": {}
         }''')
 
         self.model = model
@@ -123,15 +123,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
         writing_rank = self.model_part.GetCommunicator().MaxAll(my_rank) # The partition with the larger rank writes
 
         if my_rank == writing_rank:
-            # setting up the output_file
-            output_file_name = self.params["output_file_name"].GetString()
-            if not output_file_name.endswith(".dat"):
-                output_file_name += ".dat"
 
-            file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
-            file_handler_params["output_file_name"].SetString(output_file_name)
-            file_handler_params.AddValue("write_buffer_size", self.params["write_buffer_size"])
-
+            file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
             file_header = GetFileHeader(entity_type, found_id, point, self.output_variables[0])
             self.output_file.append(TimeBasedAsciiFileWriterUtility(
                 self.model_part, file_handler_params, file_header).file)

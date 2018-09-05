@@ -16,7 +16,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # ==============================================================================
-def CreateMapper( ModelPartController, OptimizationSettings ):
+def CreateMapper(model_part, mapper_settings):
     default_settings = Parameters("""
     {
         "filter_function_type"       : "linear",
@@ -31,10 +31,7 @@ def CreateMapper( ModelPartController, OptimizationSettings ):
         "consistent_mapping_to_geometry_space": false
     }""")
 
-    mapper_settings = OptimizationSettings["design_variables"]["filter"]
     mapper_settings.RecursivelyValidateAndAssignDefaults(default_settings)
-
-    design_surface = ModelPartController.GetDesignSurface()
 
     if mapper_settings["matrix_free_filtering"].GetBool():
         if mapper_settings["consistent_mapping_to_geometry_space"].GetBool():
@@ -42,12 +39,12 @@ def CreateMapper( ModelPartController, OptimizationSettings ):
         if mapper_settings["integration"]["integration_method"].GetString() != "node_sum":
              raise ValueError ("Matrix free Mapper can only be combined with 'node_sum' integration method!")
         else:
-            return MapperVertexMorphingMatrixFree( design_surface, mapper_settings )
+            return MapperVertexMorphingMatrixFree(model_part, mapper_settings)
     else:
         if mapper_settings["integration"]["integration_method"].GetString() in ["gauss_integration", "area_weighted_sum"]:
-            return MapperVertexMorphingImprovedIntegration( design_surface, mapper_settings )
+            return MapperVertexMorphingImprovedIntegration(model_part, mapper_settings)
         elif mapper_settings["integration"]["integration_method"].GetString() == "node_sum":
-            return MapperVertexMorphing( design_surface, mapper_settings )
+            return MapperVertexMorphing(model_part, mapper_settings)
         else:
             raise ValueError ("CreateMapper: integration_method not known!")
 

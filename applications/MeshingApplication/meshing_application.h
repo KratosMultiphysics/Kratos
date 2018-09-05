@@ -48,8 +48,11 @@ KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);    // An auxiliar gradient n
 KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);     // An auxiliar hessian needed to compute the metric
 KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);           // The condensed metric used to remesh with MMG utility
 KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_DIVISIONS);      // The number of divisions for the multi scale refining
-KRATOS_DEFINE_VARIABLE(Element::Pointer, FATHER_ELEMENT)
-KRATOS_DEFINE_VARIABLE(Condition::Pointer, FATHER_CONDITION)
+
+//for ULF (surface_tension) application:
+KRATOS_DEFINE_VARIABLE(double, TRIPLE_POINT)
+KRATOS_DEFINE_VARIABLE(double, CONTACT_ANGLE)
+
 ///@}
 ///@name Type Definitions
 ///@{

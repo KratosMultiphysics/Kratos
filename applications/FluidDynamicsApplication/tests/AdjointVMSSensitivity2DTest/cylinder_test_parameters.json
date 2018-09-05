@@ -131,7 +131,7 @@
             "model_part_output_settings" : {
                 "prefix" : "/ModelData"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
             },
             "output_time_settings" : {
@@ -155,7 +155,10 @@
         "Parameters" : {
             "position"         : [0.015717, 0.0043484, 0.0],
             "model_part_name"  : "Parts_Fluid",
-            "output_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe1.dat",
+            "output_file_settings": {
+                "file_name"  : "cylinder_test_probe1.dat",
+                "folder_name": "AdjointVMSSensitivity2DTest"
+            },
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -169,7 +172,10 @@
         "Parameters" : {
             "position"         : [0.02601,-0.0018744, 0.0],
             "model_part_name"  : "Parts_Fluid",
-            "output_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe2.dat",
+            "output_file_settings": {
+                "file_name"  : "cylinder_test_probe2.dat",
+                "folder_name": "AdjointVMSSensitivity2DTest"
+            },
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",

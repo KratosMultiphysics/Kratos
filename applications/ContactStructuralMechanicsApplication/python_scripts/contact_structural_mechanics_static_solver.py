@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes KM backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics as KM
-import KratosMultiphysics as KM
 
 # Check that applications were imported in the main script
 KM.CheckRegisteredApplications("StructuralMechanicsApplication")
 KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
 
+# Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
@@ -14,9 +14,9 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 import structural_mechanics_static_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return StaticMechanicalSolver(main_model_part, custom_settings)
+    return ContactStaticMechanicalSolver(main_model_part, custom_settings)
 
-class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
+class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
     """The structural mechanics contact static solver.
 
     This class creates the mechanical solvers for contact static analysis. It currently
@@ -37,25 +37,32 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         {
             "contact_settings" :
             {
-                "mortar_type"                            : "",
-                "condn_convergence_criterion"            : false,
-                "fancy_convergence_criterion"            : true,
-                "print_convergence_criterion"            : false,
-                "ensure_contact"                         : false,
-                "gidio_debug"                            : false,
-                "adaptative_strategy"                    : false,
-                "split_factor"                           : 10.0,
-                "max_number_splits"                      : 3,
-                "contact_displacement_relative_tolerance": 1.0e-4,
-                "contact_displacement_absolute_tolerance": 1.0e-9,
-                "contact_residual_relative_tolerance"    : 1.0e-4,
-                "contact_residual_absolute_tolerance"    : 1.0e-9,
-                "use_mixed_ulm_solver"                   : true,
+                "mortar_type"                                       : "",
+                "condn_convergence_criterion"                       : false,
+                "fancy_convergence_criterion"                       : true,
+                "print_convergence_criterion"                       : false,
+                "ensure_contact"                                    : false,
+                "frictional_decomposed"                             : true,
+                "gidio_debug"                                       : false,
+                "adaptative_strategy"                               : false,
+                "split_factor"                                      : 10.0,
+                "max_number_splits"                                 : 3,
+                "contact_displacement_relative_tolerance"           : 1.0e-4,
+                "contact_displacement_absolute_tolerance"           : 1.0e-9,
+                "contact_residual_relative_tolerance"               : 1.0e-4,
+                "contact_residual_absolute_tolerance"               : 1.0e-9,
+                "frictional_contact_displacement_relative_tolerance": 1.0e-4,
+                "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
+                "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
+                "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
+                "simplified_semi_smooth_newton"                     : false,
+                "use_mixed_ulm_solver"                              : true,
                 "mixed_ulm_solver_parameters" :
                 {
-                    "solver_type": "mixed_ulm_linear_solver",
-                    "tolerance" : 1.0e-6,
-                    "max_iteration_number" : 200
+                    "solver_type"          : "mixed_ulm_linear_solver",
+                    "tolerance"            : 1.0e-6,
+                    "max_iteration_number" : 200,
+                    "echo_level"           : 0
                 }
             }
         }
@@ -67,7 +74,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         self.contact_settings = contact_settings["contact_settings"]
 
         # Construct the base solver.
-        super().__init__(self.main_model_part, self.settings)
+        super(ContactStaticMechanicalSolver, self).__init__(self.main_model_part, self.settings)
 
         # Setting default configurations true by default
         if (self.settings["clear_storage"].GetBool() == False):
@@ -93,7 +100,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
 
     def AddVariables(self):
 
-        super().AddVariables()
+        super(ContactStaticMechanicalSolver, self).AddVariables()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if mortar_type != "":
@@ -123,7 +130,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
 
     def AddDofs(self):
 
-        super().AddDofs()
+        super(ContactStaticMechanicalSolver, self).AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictionless"):
@@ -142,7 +149,14 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
-        super().Initialize() # The mechanical solver is created here.
+        super(ContactStaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
+
+        # We set the flag INTERACTION
+        computing_model_part = self.GetComputingModelPart()
+        if self.contact_settings["simplified_semi_smooth_newton"].GetBool() is True:
+            computing_model_part.Set(KM.INTERACTION, False)
+        else:
+            computing_model_part.Set(KM.INTERACTION, True)
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
@@ -172,7 +186,9 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         # This function will be overridden in the trilinos-solvers
         KM.Logger.PrintWarning(" ".join(map(str,args)))
 
-    def _create_convergence_criterion(self):
+    #### Private functions ####
+
+    def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         if (self.contact_settings["fancy_convergence_criterion"].GetBool() is True):
             table = KM.TableStreamUtility()
@@ -190,17 +206,26 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
         conv_params.AddValue("contact_displacement_absolute_tolerance", self.contact_settings["contact_displacement_absolute_tolerance"])
         conv_params.AddValue("contact_residual_relative_tolerance", self.contact_settings["contact_residual_relative_tolerance"])
         conv_params.AddValue("contact_residual_absolute_tolerance", self.contact_settings["contact_residual_absolute_tolerance"])
+        conv_params.AddValue("frictional_contact_displacement_relative_tolerance", self.contact_settings["frictional_contact_displacement_relative_tolerance"])
+        conv_params.AddValue("frictional_contact_displacement_absolute_tolerance", self.contact_settings["frictional_contact_displacement_absolute_tolerance"])
+        conv_params.AddValue("frictional_contact_residual_relative_tolerance", self.contact_settings["frictional_contact_residual_relative_tolerance"])
+        conv_params.AddValue("frictional_contact_residual_absolute_tolerance", self.contact_settings["frictional_contact_residual_absolute_tolerance"])
         conv_params.AddValue("mortar_type", self.contact_settings["mortar_type"])
         conv_params.AddValue("condn_convergence_criterion", self.contact_settings["condn_convergence_criterion"])
         conv_params.AddValue("print_convergence_criterion", self.contact_settings["print_convergence_criterion"])
         conv_params.AddValue("ensure_contact", self.contact_settings["ensure_contact"])
+        conv_params.AddValue("frictional_decomposed", self.contact_settings["frictional_decomposed"])
         conv_params.AddValue("gidio_debug", self.contact_settings["gidio_debug"])
+
+        return conv_params
+
+    def _create_convergence_criterion(self):
         import contact_convergence_criteria_factory
-        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(conv_params)
+        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        linear_solver = super()._create_linear_solver()
+        linear_solver = super(ContactStaticMechanicalSolver, self)._create_linear_solver()
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
             if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
@@ -211,22 +236,23 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                     if (linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver"):
                         amgcl_param = KM.Parameters("""
                         {
-                            "solver_type" : "AMGCL",
-                            "smoother_type":"ilu0",
-                            "krylov_type": "lgmres",
-                            "coarsening_type": "aggregation",
-                            "max_iteration": 100,
-                            "provide_coordinates": false,
-                            "gmres_krylov_space_dimension": 100,
-                            "verbosity" : 1,
-                            "tolerance": 1e-6,
-                            "scaling": false,
-                            "block_size": 3,
+                            "solver_type"                    : "AMGCL",
+                            "smoother_type"                  :"ilu0",
+                            "krylov_type"                    : "lgmres",
+                            "coarsening_type"                : "aggregation",
+                            "max_iteration"                  : 100,
+                            "provide_coordinates"            : false,
+                            "gmres_krylov_space_dimension"   : 100,
+                            "verbosity"                      : 1,
+                            "tolerance"                      : 1e-6,
+                            "scaling"                        : false,
+                            "block_size"                     : 3,
                             "use_block_matrices_if_possible" : true,
-                            "coarse_enough" : 500
+                            "coarse_enough"                  : 500
                         }
                         """)
                         amgcl_param["block_size"].SetInt(self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
+                        amgcl_param = self.settings["linear_solver_settings"].RecursivelyValidateAndAssignDefaults(amgcl_param)
                         linear_solver = KM.AMGCLSolver(amgcl_param)
                     mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, self.contact_settings["mixed_ulm_solver_parameters"])
                     return mixed_ulm_solver
@@ -249,7 +275,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
             else:
                 raise Exception("Contact not compatible with EliminationBuilderAndSolver")
         else:
-            builder_and_solver = super()._create_builder_and_solver()
+            builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
 
         return builder_and_solver
 
@@ -263,7 +289,7 @@ class StaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanical
                 else:
                     mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
         else:
-            mechanical_solution_strategy = super()._create_mechanical_solution_strategy()
+            mechanical_solution_strategy = super(ContactStaticMechanicalSolver, self)._create_mechanical_solution_strategy()
 
         return mechanical_solution_strategy
 

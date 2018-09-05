@@ -35,23 +35,18 @@
 //#include "Teuchos_ParameterList.hpp"
 
 
+#include <boost/range/iterator_range.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #include <amgcl/amg.hpp>
 #include <amgcl/adapter/epetra.hpp>
-// #include <amgcl/coarsening/plain_aggregates.hpp>
-// #include <amgcl/coarsening/pointwise_aggregates.hpp>
-// #include <amgcl/coarsening/smoothed_aggregation.hpp>
-// #include <amgcl/coarsening/ruge_stuben.hpp>
-// //#include <amgcl/relaxation/spai0.hpp>
-// #include <amgcl/relaxation/ilu0.hpp>
-// #include <amgcl/solver/bicgstabl.hpp>
-#include <amgcl/profiler.hpp>
-
 #include <amgcl/make_solver.hpp>
-#include <amgcl/runtime.hpp>
-#include <amgcl/mpi/direct_solver.hpp>
+#include <amgcl/coarsening/runtime.hpp>
+#include <amgcl/relaxation/runtime.hpp>
+#include <amgcl/solver/runtime.hpp>
+#include <amgcl/mpi/direct_solver/runtime.hpp>
 #include <amgcl/mpi/subdomain_deflation.hpp>
-
-#include <boost/property_tree/json_parser.hpp> //needed to print AMGCL internal settings
+#include <amgcl/profiler.hpp>
 
 namespace amgcl {
     profiler<> prof;
@@ -311,7 +306,7 @@ public:
         //set block size
         mprm.put("local.coarsening.aggr.block_size",mndof);
 
-        boost::function<double(ptrdiff_t, unsigned)> dv;
+        std::function<double(ptrdiff_t, unsigned)> dv;
         if(muse_linear_deflation == false )
         {
             if(mpconstant_def_space == nullptr)
@@ -337,50 +332,45 @@ public:
         if(mverbosity > 1 && world.rank == 0)
             write_json(std::cout, mprm);
 
+        typedef amgcl::backend::builtin<double> Backend;
         typedef
-//             amgcl::mpi::subdomain_deflation<
-//                 amgcl::runtime::relaxation::as_preconditioner< amgcl::backend::builtin<double> >,
-//                 amgcl::runtime::iterative_solver,
-//                 amgcl::runtime::mpi::direct_solver<double>
-//             > SDD;
-
             amgcl::mpi::subdomain_deflation<
-                amgcl::runtime::amg< amgcl::backend::builtin<double> >,
-                amgcl::runtime::iterative_solver,
-                amgcl::runtime::mpi::direct_solver<double>
+                amgcl::amg<Backend, amgcl::runtime::coarsening::wrapper, amgcl::runtime::relaxation::wrapper>,
+                amgcl::runtime::solver::wrapper,
+                amgcl::runtime::mpi::direct::solver<double>
             > SDD;
 
-            prof.tic("setup");
-            SDD solve(world, amgcl::backend::map(rA), mprm);
-            double tm_setup = prof.toc("setup");
+        prof.tic("setup");
+        SDD solve(world, amgcl::backend::map(rA), mprm);
+        double tm_setup = prof.toc("setup");
 
-            prof.tic("Solve");
-            size_t iters;
-            double resid;
-            boost::tie(iters, resid) = solve(frange, xrange);
-            double solve_tm = prof.toc("Solve");
+        prof.tic("Solve");
+        size_t iters;
+        double resid;
+        std::tie(iters, resid) = solve(frange, xrange);
+        double solve_tm = prof.toc("Solve");
 
 
 
-            if (rA.Comm().MyPID() == 0)
+        if (rA.Comm().MyPID() == 0)
+        {
+            if(mverbosity > 0)
             {
-                if(mverbosity > 0)
-                {
-                std::cout
-                        << "------- AMGCL -------\n" << std::endl
-                        << "Iterations      : " << iters   << std::endl
-                        << "Error           : " << resid   << std::endl
-                        << "amgcl setup time: " << tm_setup   << std::endl
-                        << "amgcl solve time: " << solve_tm   << std::endl;
-                }
-
-                if(mverbosity > 1)
-                       std::cout << prof  << std::endl;
+            std::cout
+                    << "------- AMGCL -------\n" << std::endl
+                    << "Iterations      : " << iters   << std::endl
+                    << "Error           : " << resid   << std::endl
+                    << "amgcl setup time: " << tm_setup   << std::endl
+                    << "amgcl solve time: " << solve_tm   << std::endl;
             }
 
+            if(mverbosity > 1)
+                   std::cout << prof  << std::endl;
+        }
 
 
-            return true;
+
+        return true;
 
 
 

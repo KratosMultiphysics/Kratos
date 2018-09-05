@@ -53,8 +53,11 @@ MAPPING_APPLICATION;\
 EIGEN_SOLVERS_APPLICATION;\
 STABILIZED_CFD_APPLICATION;\
 HDF5_APPLICATION;\
+DELAUNAY_MESHING_APPLICATION;\
 FREE_SURFACE_APPLICATION;\
 FLUID_TRANSPORT_APPLICATION;\
+FLUID_RVE_LAGRANGE_MULTIPLIERS_APPLICATION;\
+IGA_APPLICATION;\
 ")
 
 message( " ")
@@ -89,6 +92,10 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 #include subdirectories for compilation
+if(${FLUID_RVE_LAGRANGE_MULTIPLIERS_APPLICATION} MATCHES ON)
+  add_subdirectory(fluid_rve_lagrange_multipliers_application)
+endif(${FLUID_RVE_LAGRANGE_MULTIPLIERS_APPLICATION} MATCHES ON)
+
 if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON)
   add_subdirectory(ExternalSolversApplication)
 endif(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON)
@@ -233,10 +240,6 @@ if(${ADJOINT_FLUID_APPLICATION} MATCHES ON)
   add_subdirectory(AdjointFluidApplication)
 endif(${ADJOINT_FLUID_APPLICATION} MATCHES ON)
 
-if(${NURBS_APPLICATION} MATCHES ON)
-  add_subdirectory(nurbs_application)
-endif(${NURBS_APPLICATION} MATCHES ON)
-
 if(${FREEZING_SOIL_APPLICATION} MATCHES ON)
   add_subdirectory(freezing_soil_application)
 endif(${FREEZING_SOIL_APPLICATION} MATCHES ON)
@@ -301,6 +304,10 @@ if(${STABILIZED_CFD_APPLICATION} MATCHES ON)
   add_subdirectory(StabilizedCFDApplication)
 endif(${STABILIZED_CFD_APPLICATION} MATCHES ON)
 
+if(${DELAUNAY_MESHING_APPLICATION} MATCHES ON)
+  add_subdirectory(DelaunayMeshingApplication)
+endif(${DELAUNAY_MESHING_APPLICATION} MATCHES ON)
+
 if(${FREE_SURFACE_APPLICATION} MATCHES ON)
   add_subdirectory(FreeSurfaceApplication)
 endif(${FREE_SURFACE_APPLICATION} MATCHES ON)
@@ -308,6 +315,14 @@ endif(${FREE_SURFACE_APPLICATION} MATCHES ON)
 if(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
   add_subdirectory(FluidTransportApplication)
 endif(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
+
+if(${CSHARP_WRAPPER_APPLICATION} MATCHES ON)
+  add_subdirectory(CSharpWrapperApplication)
+endif(${CSHARP_WRAPPER_APPLICATION} MATCHES ON)
+
+if(${IGA_APPLICATION} MATCHES ON)
+  add_subdirectory(IgaApplication)
+endif(${IGA_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")

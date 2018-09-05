@@ -154,56 +154,12 @@ void ShellThinElement3D4N::Initialize()
 {
     KRATOS_TRY
 
-    const GeometryType & geom = GetGeometry();
-    const PropertiesType & props = GetProperties();
+    const int points_number = GetGeometry().PointsNumber();
 
-    if (geom.PointsNumber() != 4)
-        KRATOS_THROW_ERROR(std::logic_error,
-            "ShellThinElement3D4N Element - Wrong number of nodes",
-            geom.PointsNumber());
+    KRATOS_ERROR_IF_NOT(points_number == 4) <<"ShellThinElement3D4N - Wrong number of nodes"
+        << points_number << std::endl;
 
-    const SizeType num_gps = GetNumberOfGPs();
-
-    if (mSections.size() != num_gps)
-    {
-        const Matrix & shapeFunctionsValues =
-            geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-        ShellCrossSection::Pointer theSection;
-
-        if (props.Has(SHELL_CROSS_SECTION))
-        {
-            theSection = props[SHELL_CROSS_SECTION];
-        }
-        else if (ShellCrossSection::CheckIsOrthotropic(props))
-        {
-            // make new instance of shell cross section
-            theSection =
-                ShellCrossSection::Pointer(new ShellCrossSection());
-
-            // Parse material properties for each layer
-            theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());
-        }
-        else
-        {
-            theSection =
-                ShellCrossSection::Pointer(new ShellCrossSection());
-            theSection->BeginStack();
-            theSection->AddPly(props[THICKNESS], 0.0, 5,
-                this->pGetProperties());
-            theSection->EndStack();
-        }
-
-        mSections.clear();
-        for (SizeType i = 0; i < num_gps; ++i)
-        {
-            ShellCrossSection::Pointer sectionClone = theSection->Clone();
-            sectionClone->SetSectionBehavior(GetSectionBehavior());
-            sectionClone->InitializeCrossSection(props, geom,
-                row(shapeFunctionsValues, i));
-            mSections.push_back(sectionClone);
-        }
-    }
+    BaseShellElement::Initialize();
 
     mpCoordinateTransformation->Initialize();
 
@@ -288,8 +244,8 @@ void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
             // Calculate average mass per unit area and thickness at the
             // current GP
             av_mass_per_unit_area =
-                mSections[gauss_point]->CalculateMassPerUnitArea();
-            thickness = mSections[gauss_point]->GetThickness();
+                mSections[gauss_point]->CalculateMassPerUnitArea(GetProperties());
+            thickness = mSections[gauss_point]->GetThickness(GetProperties());
 
             // Calc jacobian and weighted dA at current GP
             jacOp.Calculate(referenceCoordinateSystem,
@@ -332,7 +288,7 @@ void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,
 
         // Calculate average mass per unit area over the whole element
         for (SizeType i = 0; i < 4; i++)
-            av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
+            av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea(GetProperties());
         av_mass_per_unit_area /= 4.0;
 
         // lumped area
@@ -371,7 +327,7 @@ void ShellThinElement3D4N::AddBodyForces(CalculationData& data,
     {
         // get mass per unit area
         double mass_per_unit_area =
-            mSections[igauss]->CalculateMassPerUnitArea();
+            mSections[igauss]->CalculateMassPerUnitArea(GetProperties());
 
         // interpolate nodal volume accelerations to this gauss point
         // and obtain the body force vector
@@ -403,8 +359,8 @@ void ShellThinElement3D4N::AddBodyForces(CalculationData& data,
 //
 // =========================================================================
 
-void ShellThinElement3D4N::GetValueOnIntegrationPoints
-(const Variable<double>& rVariable,
+void ShellThinElement3D4N::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -414,6 +370,10 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
     if (rVariable == TSAI_WU_RESERVE_FACTOR)
     {
         caseId = 10;
+    }
+    else if (rVariable == SHEAR_ANGLE)
+    {
+        caseId = 40;
     }
     else if (rVariable == VON_MISES_STRESS ||
         rVariable == VON_MISES_STRESS_TOP_SURFACE ||
@@ -431,8 +391,6 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
     {
         caseId = 30;
     }
-
-
 
     if (caseId > 19)
     {
@@ -494,7 +452,7 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
 
                 // recover stresses
                 CalculateStressesFromForceResultants(data.generalizedStresses,
-                    section->GetThickness());
+                    section->GetThickness(GetProperties()));
 
                 // account for orientation
                 if (section->GetOrientationAngle() != 0.0)
@@ -507,10 +465,14 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
 
                 CalculateVonMisesStress(data, rVariable, resultDouble);
             }
+            else if (caseId == 40)
+            {
+                resultDouble = std::atan(0.5*data.generalizedStrains[2]) * 180 / Kratos::Globals::Pi;
+            }
             else
             {
                 KRATOS_ERROR <<
-                    "Error: ELEMENT ShellThinElement3D4N, METHOD GetValueOnIntegrationPoints(double)"
+                    "Error: ELEMENT ShellThinElement3D4N, METHOD CalculateOnIntegrationPoints(double)"
                     << std::endl;
             }
 
@@ -580,7 +542,7 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
             // Retrieve ply orientations
             section = mSections[gauss_point];
             Vector ply_orientation(section->NumberOfPlies());
-            section->GetLaminaeOrientation(ply_orientation);
+            section->GetLaminaeOrientation(props, ply_orientation);
 
             //Calculate lamina stresses
             CalculateLaminaStrains(data);
@@ -628,7 +590,7 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
         std::vector<double> temp(size);
 
         for (SizeType i = 0; i < size; i++)
-            mSections[i]->GetValue(rVariable, temp[i]);
+            mSections[i]->GetValue(rVariable, GetProperties(), temp[i]);
 
         const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues();
         Vector N(size);
@@ -648,8 +610,8 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
     KRATOS_CATCH("");
 }
 
-void ShellThinElement3D4N::GetValueOnIntegrationPoints
-(const Variable<Vector>& rVariable,
+void ShellThinElement3D4N::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -718,62 +680,22 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
     }
 }
 
-void ShellThinElement3D4N::GetValueOnIntegrationPoints
-(const Variable<Matrix>& rVariable,
+void ShellThinElement3D4N::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses
-    (rVariable, rValues, rCurrentProcessInfo)) return;
+    if (TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(
+        rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThinElement3D4N::GetValueOnIntegrationPoints
-(const Variable<array_1d<double, 3> >& rVariable,
+void ShellThinElement3D4N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3> >& rVariable,
     std::vector<array_1d<double, 3> >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable,
+    if (TryCalculateOnIntegrationPoints_MaterialOrientation(rVariable,
         rValues, rCurrentProcessInfo)) return;
-}
-
-void ShellThinElement3D4N::GetValueOnIntegrationPoints
-(const Variable<array_1d<double, 6> >& rVariable,
-    std::vector<array_1d<double, 6> >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo & rCurrentProcessInfo)
-{
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable,
-    std::vector<array_1d<double, 3> >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable,
-    std::vector<array_1d<double, 6> >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 void ShellThinElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
@@ -816,7 +738,7 @@ void ShellThinElement3D4N::CalculateLaminaStrains(CalculationData& data)
     ShellCrossSection::Pointer& section = mSections[data.gpIndex];
 
     // Get laminate properties
-    double thickness = section->GetThickness();
+    double thickness = section->GetThickness(GetProperties());
     double z_current = thickness / -2.0; // start from the top of the 1st layer
 
     // Establish current strains at the midplane
@@ -831,7 +753,7 @@ void ShellThinElement3D4N::CalculateLaminaStrains(CalculationData& data)
 
     // Get ply thicknesses
     Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
-    section->GetPlyThicknesses(ply_thicknesses);
+    section->GetPlyThicknesses(GetProperties(), ply_thicknesses);
 
     // Resize output vector. 2 Surfaces for each ply
     data.rlaminateStrains.resize(2 * section->NumberOfPlies());
@@ -2096,6 +2018,7 @@ void ShellThinElement3D4N::CalculateSectionResponse(CalculationData& data)
 
     ShellCrossSection::Pointer& section = mSections[data.gpIndex];
     data.SectionParameters.SetShapeFunctionsValues(iN);
+    data.SectionParameters.SetMaterialProperties(GetProperties());
     data.D.clear();
     section->CalculateSectionResponse(data.SectionParameters,
         ConstitutiveLaw::StressMeasure_PK2);
@@ -2205,7 +2128,7 @@ void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     AddBodyForces(data, rRightHandSideVector);
 }
 
-bool ShellThinElement3D4N::TryGetValueOnIntegrationPoints_MaterialOrientation
+bool ShellThinElement3D4N::TryCalculateOnIntegrationPoints_MaterialOrientation
 (const Variable<array_1d<double, 3> >& rVariable,
     std::vector<array_1d<double, 3> >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -2271,7 +2194,7 @@ bool ShellThinElement3D4N::TryGetValueOnIntegrationPoints_MaterialOrientation
 }
 
 bool ShellThinElement3D4N::
-    TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses
+    TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses
     (const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -2353,7 +2276,7 @@ bool ShellThinElement3D4N::
                 {
                     // Compute stresses
                     CalculateStressesFromForceResultants(data.generalizedStresses,
-                        section->GetThickness());
+                        section->GetThickness(GetProperties()));
                 }
             }
             DecimalCorrection(data.generalizedStresses);
@@ -2524,7 +2447,7 @@ bool ShellThinElement3D4N::
                 const PropertiesType & props = GetProperties();
                 section->GetLaminaeStrengths(Laminae_Strengths, props);
                 Vector ply_orientation(section->NumberOfPlies());
-                section->GetLaminaeOrientation(ply_orientation);
+                section->GetLaminaeOrientation(GetProperties(), ply_orientation);
 
                 // Rotate lamina stress from section CS
                 // to lamina angle to lamina material principal directions

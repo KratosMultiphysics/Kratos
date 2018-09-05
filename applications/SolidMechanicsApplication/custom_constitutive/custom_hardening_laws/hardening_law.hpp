@@ -62,20 +62,20 @@ public:
         const double* mpLameMu_bar;
 
         const double* mpDeltaTime;
-        const double* mpTemperature;	
+        const double* mpTemperature;
 
         const double* mpEquivalentPlasticStrain;
-        const double* mpEquivalentPlasticStrainOld;		
-        
+        const double* mpEquivalentPlasticStrainOld;
+
         const double* mpCharacteristicSize;
-        
+
         const Matrix* mpStrainMatrix;
         const Matrix* mpStressMatrix;
 
 	public:
 
         //Set Parameters
-        void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;     };	
+        void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;     };
         void SetDeltaGamma  (const double& rDeltaGamma)  { mpDeltaGamma = &rDeltaGamma;   };
         void SetLameMu_bar  (const double& rLameMu_bar)  { mpLameMu_bar = &rLameMu_bar;   };
         void SetDeltaTime   (const double& rDeltaTime)   { mpDeltaTime = &rDeltaTime;     };
@@ -100,7 +100,7 @@ public:
         const double& GetEquivalentPlasticStrainOld    () const { return *mpEquivalentPlasticStrainOld;    };
 
         const double& GetCharacteristicSize () const {return *mpCharacteristicSize; }
-        
+
         const Matrix& GetStrainMatrix () const { return *mpStrainMatrix; }
         const Matrix& GetStressMatrix () const { return *mpStressMatrix; }
 
@@ -118,10 +118,10 @@ public:
 	    // std::cout<<" StrainMatrix "<<*mpStrainMatrix<<std::endl;
 	    // std::cout<<" StressMatrix "<<*mpStressMatrix<<std::endl;
 	  }
-	  
+
 	// /// Constructor
 	// Parameters(){};
-	  
+
         // /// Copy constructor.
 	// Parameters(Parameters const& rOther)
 	//   :mRateFactor(rOther.mRateFactor)
@@ -157,7 +157,7 @@ public:
 	// /// Destructor.
 	// virtual ~Parameters() {};
 
-	  
+
 	};
 
 
@@ -205,8 +205,7 @@ public:
      */
     virtual HardeningLaw::Pointer Clone() const
     {
-      HardeningLaw::Pointer p_clone(new HardeningLaw(*this));
-      return p_clone;
+      return Kratos::make_shared<HardeningLaw>(*this);
     }
 
     ///@}
@@ -231,7 +230,7 @@ public:
 
 
     virtual double& CalculateHardening(double &rHardening, const Parameters& rValues){ return rHardening; };
-  
+
     virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues){ return rIsotropicHardening; };
 
     virtual double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues){ return rKinematicHardening; };
@@ -246,6 +245,8 @@ public:
     virtual double& CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const Parameters& rValues){ return rDeltaThermalHardening; };
 
     virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double rTemperature = 0.0) {return rHardening; };
+
+    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const Variable<double>& rThisVariable) {return rHardening;};
     ///@}
     ///@name Access
     ///@{
@@ -267,7 +268,7 @@ public:
     // virtual void PrintInfo(std::ostream& rOStream) const;
 
     // /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const; 
+    // virtual void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -287,7 +288,7 @@ protected:
     ///@{
 
     PropertiesPointer mpProperties;
-     
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -354,7 +355,7 @@ private:
     {
       //Properties can not be stored in serializer
       //because Properties have a ConstitutiveLaw pointer
-      //when the constitutive law pointer is called to be saved 
+      //when the constitutive law pointer is called to be saved
       //a recursive call is done if properties are saved.
       //rSerializer.save("Properties",mpProperties);
     };
@@ -410,6 +411,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HARDENING_LAW_H_INCLUDED  defined 
-
-
+#endif // KRATOS_HARDENING_LAW_H_INCLUDED  defined

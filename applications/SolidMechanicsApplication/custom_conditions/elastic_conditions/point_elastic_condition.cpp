@@ -39,7 +39,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   PointElasticCondition::PointElasticCondition( PointElasticCondition const& rOther )
-    : ElasticCondition(rOther)     
+    : ElasticCondition(rOther)
   {
   }
 
@@ -50,7 +50,7 @@ namespace Kratos
 						  NodesArrayType const& ThisNodes,
 						  PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new PointElasticCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<PointElasticCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -64,8 +64,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new PointElasticCondition(NewCondition) );
+    return Kratos::make_shared<PointElasticCondition>(NewCondition);
   }
 
 
@@ -82,13 +81,13 @@ namespace Kratos
   void PointElasticCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-      
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& local_dimension = GetGeometry().LocalSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVariables.Initialize(dimension, local_dimension, number_of_nodes);
-   
+
     //Only one node:
     rVariables.N[0] = 1.0;
 
@@ -104,49 +103,49 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
     noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
-   
+
     //STIFFNESS CONDITION:
-    
+
     //defined on condition
     if( this->Has( ELASTIC_LOAD ) ){
       array_1d<double, 3 > & PointStiffness = this->GetValue( ELASTIC_LOAD );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(PointStiffness[k]);
 	}
     }
-    
+
     //defined on condition nodes
     if( this->Has( ELASTIC_LOAD_VECTOR ) ){
       Vector& PointStiffnesss = this->GetValue( ELASTIC_LOAD_VECTOR );
       unsigned int counter = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  counter = i*3;
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    {
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(PointStiffnesss[counter+k]);
 	    }
-	  
+
 	}
     }
-    
-    //defined on condition nodes      
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+
+    //defined on condition nodes
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( ELASTIC_LOAD ) ){
 	  array_1d<double, 3 > & PointStiffness = GetGeometry()[i].FastGetSolutionStepValue( ELASTIC_LOAD );
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(PointStiffness[k]);
- 
+
 	}
       }
 
@@ -187,27 +186,27 @@ namespace Kratos
 
     //compute element kinematics B, F, DN_DX ...
     this->CalculateKinematics(Variables,PointNumber);
-    
+
     //calculating weights for integration on the "reference configuration"
     double IntegrationWeight = 1;
-    
+
     if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
 	//contributions to stiffness matrix calculated on the reference config
 	this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
       }
-    
+
     if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
       {
-	
+
 	this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
       }
-    
-  
+
+
     KRATOS_CATCH( "" )
   }
 
- 
+
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
@@ -219,13 +218,13 @@ namespace Kratos
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = ElasticCondition::Check(rCurrentProcessInfo);
-    
+
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD);
     KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD_VECTOR);
 
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

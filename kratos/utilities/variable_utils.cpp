@@ -37,6 +37,28 @@ void VariableUtils::SetVectorVar(
         NodesContainerType::iterator it_node = rNodes.begin() + k;
         noalias(it_node->FastGetSolutionStepValue(rVariable)) = Value;
     }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::SetVectorVarForFlag(
+    const ArrayVarType& rVariable,
+    const array_1d<double, 3 >& Value,
+    NodesContainerType& rNodes,
+    const Flags Flag,
+    const bool Check
+    )
+{
+    KRATOS_TRY
+
+    #pragma omp parallel for
+    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
+        NodesContainerType::iterator it_node = rNodes.begin() + k;
+        if (it_node->Is(Flag) == Check) noalias(it_node->FastGetSolutionStepValue(rVariable)) = Value;
+    }
     
     KRATOS_CATCH("")
 }
@@ -57,7 +79,7 @@ void VariableUtils::SetNonHistoricalVectorVar(
         NodesContainerType::iterator it_node = rNodes.begin() + k;
         it_node->SetValue(rVariable, Value);
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -391,12 +413,18 @@ bool VariableUtils::CheckVariableKeys()
 
     CheckVariableKeysHelper< Variable<double> >();
     CheckVariableKeysHelper< Variable<array_1d<double,3> > >();
+    CheckVariableKeysHelper< Variable<array_1d<double,4> > >();
+    CheckVariableKeysHelper< Variable<array_1d<double,6> > >();
+    CheckVariableKeysHelper< Variable<array_1d<double,9> > >();
     CheckVariableKeysHelper< Variable<bool> >();
     CheckVariableKeysHelper< Variable<int> >();
     CheckVariableKeysHelper< Variable<unsigned int> >();
     CheckVariableKeysHelper< Variable<Vector> >();
     CheckVariableKeysHelper< Variable<Matrix> >();
     CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >();
+    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >();
+    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >();
+    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >();
         
     return true;
     
