@@ -85,6 +85,92 @@ enum AMGCLCoarseningType
 ///@name  Functions
 ///@{
 
+/**
+ * @brief This function computes a scalar solve for Ublas Matrix type
+ * @param rA System matrix
+ * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
+ * @param rB Right hand side vector.
+ * @param rIterationNumber The current number of iterations
+ * @param rResidual The current residual of the problem
+ */
+template <class TSparseSpaceType>
+typename std::enable_if<!TSparseSpaceType::IsDistributed(), void>::type
+AMGCLScalarSolve(
+    typename TSparseSpaceType::MatrixType& rA,
+    typename TSparseSpaceType::VectorType& rX,
+    typename TSparseSpaceType::VectorType& rB,
+    typename TSparseSpaceType::IndexType& rIterationNumber,
+    double& rResidual,
+    const boost::property_tree::ptree &amgclParams
+    )
+{
+    typedef amgcl::backend::builtin<double> Backend;
+
+    amgcl::make_solver<
+        amgcl::amg<
+            Backend,
+            amgcl::runtime::coarsening::wrapper,
+            amgcl::runtime::relaxation::wrapper
+            >,
+        amgcl::runtime::solver::wrapper<Backend>
+        > solve(amgcl::adapter::zero_copy(TSparseSpaceType::Size1(rA), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), amgclParams);
+
+    // Compute preconditioner
+//         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 0) << solve.precond() << std::endl;
+//         else solve.precond();
+
+    std::tie(rIterationNumber, rResidual) = solve(rB, rX);
+}
+
+/**
+ * @brief This method solves by block a Ax=b system
+ * @param rA System matrix
+ * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
+ * @param rB Right hand side vector.
+ * @param rIterationNumber The current number of iterations
+ * @param rResidual The current residual of the problem
+ */
+template <int TBlockSize, class TSparseSpaceType>
+typename std::enable_if<!TSparseSpaceType::IsDistributed(), void>::type
+AMGCLBlockSolve(
+    typename TSparseSpaceType::MatrixType & rA,
+    typename TSparseSpaceType::VectorType& rX,
+    typename TSparseSpaceType::VectorType& rB,
+    typename TSparseSpaceType::IndexType& rIterationNumber,
+    double& rResidual,
+    boost::property_tree::ptree amgclParams
+    )
+{
+    amgclParams.put("precond.coarsening.aggr.block_size",1);
+
+    typedef amgcl::static_matrix<double, TBlockSize, TBlockSize> value_type;
+    typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;
+    typedef amgcl::backend::builtin<value_type> Backend;
+
+    std::size_t n = TSparseSpaceType::Size1(rA);
+
+    amgcl::make_solver<
+        amgcl::amg<
+            Backend,
+            amgcl::runtime::coarsening::wrapper,
+            amgcl::runtime::relaxation::wrapper
+            >,
+        amgcl::runtime::solver::wrapper<Backend>
+        > solve( amgcl::adapter::block_matrix<value_type>(std::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), amgclParams);
+
+//         //compute preconditioner
+//         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
+//         else solve.precond();
+
+    rhs_type* x_begin = reinterpret_cast<rhs_type*>(&rX[0]);
+    boost::iterator_range<rhs_type*> x_range = boost::make_iterator_range(x_begin, x_begin + n / TBlockSize);
+
+    const rhs_type* b_begin = reinterpret_cast<const rhs_type*>(&rB[0]);
+    boost::iterator_range<const rhs_type*> b_range = boost::make_iterator_range(b_begin, b_begin + n / TBlockSize);
+
+    std::tie(rIterationNumber, rResidual) = solve(b_range, x_range);
+}
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -389,20 +475,20 @@ public:
             if(mUseBlockMatricesIfPossible) {
                 KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA)%mBlockSize != 0) << "The block size employed " << mBlockSize << " is not an exact multiple of the matrix size "
                     << TSparseSpaceType::Size1(rA) << std::endl;
-                if(mBlockSize == 1) ScalarSolve<SparseMatrixType>(rA,rX,rB, iters, resid);
-                else if(mBlockSize == 2) BlockSolve<2,SparseMatrixType>(rA,rX,rB, iters, resid);
-                else if(mBlockSize == 3) BlockSolve<3,SparseMatrixType>(rA,rX,rB, iters, resid);
-                else if(mBlockSize == 4) BlockSolve<4,SparseMatrixType>(rA,rX,rB, iters, resid);
+                if(mBlockSize == 1) AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
+                else if(mBlockSize == 2) AMGCLBlockSolve<2, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
+                else if(mBlockSize == 3) AMGCLBlockSolve<3, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
+                else if(mBlockSize == 4) AMGCLBlockSolve<4, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
                 else
-                    ScalarSolve<SparseMatrixType>(rA,rX,rB, iters, resid);
+                    AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
             } else {
-                ScalarSolve<SparseMatrixType>(rA,rX,rB, iters, resid);
+                AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
             }
         } //please do not remove this parenthesis!
 
         if(mFallbackToGMRES && resid > mTolerance ) {
             mAMGCLParameters.put("solver.type", "gmres");
-            ScalarSolve<SparseMatrixType>(rA,rX,rB, iters, resid);
+            AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
         }
 
         KRATOS_WARNING_IF("AMGCL Linear Solver", mTolerance < resid)<<"Non converged linear solution. ["<< resid << " > "<< mTolerance << "]" << std::endl;
@@ -768,49 +854,6 @@ protected:
         };
     }
 
-    /**
-     * @brief This method computes a scalar solve
-     * @param rA System matrix
-     * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
-     * @param rIterationNumber The current number of iterations
-     * @param rResidual The current residual of the problem
-     */
-    template< class TSparseMatrixType>
-    void ScalarSolve(
-        TSparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB,
-        IndexType& rIterationNumber,
-        double& rResidual
-        )
-    {
-        KRATOS_ERROR << "Function Scalar Solve need to be specialized for the given sparse matrix type " << std::endl;
-    }
-
-
-
-    
-
-    /**
-     * @brief This method solves by block a Ax=b system
-     * @param rA System matrix
-     * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
-     * @param rIterationNumber The current number of iterations
-     * @param rResidual The current residual of the problem
-     */
-    template< SizeType TBlockSize, class TSparseMatrixType>
-    void BlockSolve(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB,
-        IndexType& rIterationNumber,
-        double& rResidual
-        )
-    {
-        KRATOS_ERROR << "Function BlockSolve need to be specialized for the given sparse matrix type " << std::endl;
-    }
 
     ///@}
     ///@name Private  Access
@@ -864,73 +907,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 //#undef MPI_COMM_WORLD
-
-    template< >
-    void ScalarSolve(
-        boost::numeric::ublas::compressed_matrix<double>& rA,
-        Vector& rX,
-        Vector& rB,
-        std::size_t& rIterationNumber,
-        double& rResidual
-        )
-    {
-        typedef amgcl::backend::builtin<double> Backend;
-
-        amgcl::make_solver<
-            amgcl::amg<
-                Backend,
-                amgcl::runtime::coarsening::wrapper,
-                amgcl::runtime::relaxation::wrapper
-                >,
-            amgcl::runtime::solver::wrapper<Backend>
-            > solve(amgcl::adapter::zero_copy(TSparseSpaceType::Size1(rA), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), mAMGCLParameters);
-
-        // Compute preconditioner
-//         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 0) << solve.precond() << std::endl;
-//         else solve.precond();
-
-        std::tie(rIterationNumber, rResidual) = solve(rB, rX);
-    }
-
-    template< std::size_t TBlockSize >
-    void BlockSolve(
-        boost::numeric::ublas::compressed_matrix<double>& rA,
-        Vector& rX,
-        Vector& rB,
-        std::size_t& rIterationNumber,
-        double& rResidual
-        )
-    {
-        mAMGCLParameters.put("precond.coarsening.aggr.block_size",1);
-
-        typedef amgcl::static_matrix<double, TBlockSize, TBlockSize> value_type;
-        typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;
-        typedef amgcl::backend::builtin<value_type> Backend;
-
-        SizeType n = TSparseSpaceType::Size1(rA);
-
-        amgcl::make_solver<
-            amgcl::amg<
-                Backend,
-                amgcl::runtime::coarsening::wrapper,
-                amgcl::runtime::relaxation::wrapper
-                >,
-            amgcl::runtime::solver::wrapper<Backend>
-            > solve( amgcl::adapter::block_matrix<value_type>(std::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), mAMGCLParameters);
-
-//         //compute preconditioner
-//         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
-//         else solve.precond();
-
-        rhs_type* x_begin = reinterpret_cast<rhs_type*>(&rX[0]);
-        boost::iterator_range<rhs_type*> x_range = boost::make_iterator_range(x_begin, x_begin + n / TBlockSize);
-
-        const rhs_type* b_begin = reinterpret_cast<const rhs_type*>(&rB[0]);
-        boost::iterator_range<const rhs_type*> b_range = boost::make_iterator_range(b_begin, b_begin + n / TBlockSize);
-
-        std::tie(rIterationNumber, rResidual) = solve(b_range, x_range);
-    }
-
 
 }  // namespace Kratos.
 

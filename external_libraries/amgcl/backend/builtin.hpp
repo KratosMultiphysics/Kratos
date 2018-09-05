@@ -521,6 +521,8 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
 
                     while(beg < end) {
                         ptrdiff_t c = A.col[beg];
+                        S v = math::norm(A.val[beg]);
+                        ++beg;
 
                         if (c >= col_end) {
                             if (done) {
@@ -533,7 +535,6 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                             break;
                         }
 
-                        S v = math::norm(A.val[beg]);
 
                         if (first) {
                             first = false;
@@ -541,8 +542,6 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                         } else {
                             cur_val = std::max(cur_val, v);
                         }
-
-                        ++beg;
                     }
 
                     j[k] = beg;

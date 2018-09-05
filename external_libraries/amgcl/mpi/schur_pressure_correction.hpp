@@ -176,8 +176,11 @@ class schur_pressure_correction {
             using std::shared_ptr;
             using std::make_shared;
 
-            build_matrix &K_loc = *K->local();
-            build_matrix &K_rem = *K->remote();
+            auto _K_loc = K->local();
+            auto _K_rem = K->remote();
+
+            build_matrix &K_loc = *_K_loc;
+            build_matrix &K_rem = *_K_rem;
 
             ptrdiff_t n = K->loc_rows();
 
@@ -404,18 +407,22 @@ class schur_pressure_correction {
             tmp = backend_type::create_vector(nu, bprm);
 
             if (prm.approx_schur) {
-                M = backend_type::create_vector(nu, bprm);
-
+                AMGCL_TIC("approx_schur");
+                auto m = std::make_shared<backend::numa_vector<value_type>>(nu, false);
 #pragma omp parallel
                 for(ptrdiff_t i = 0; i < nu; ++i) {
                     value_type v = math::zero<value_type>();
                     for(ptrdiff_t j = Kuu_loc->ptr[i], e = Kuu_loc->ptr[i+1]; j < e; ++j) {
                         if (Kuu_loc->col[j] == i) {
                             v = math::inverse(Kuu_loc->val[j]);
+                            break;
                         }
                     }
-                    (*M)[i] = v;
+                    (*m)[i] = v;
                 }
+
+                M = backend_type::copy_vector(m, bprm);
+                AMGCL_TOC("approx_schur");
             }
             AMGCL_TOC("other");
 

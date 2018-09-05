@@ -29,29 +29,11 @@
 #include <fstream>
 #include <utility>
 
-// External includes
-/* BOOST */
-#include <boost/range/iterator_range.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
-/* AMGCL */
-#include <amgcl/adapter/crs_tuple.hpp>
-#include <amgcl/adapter/ublas.hpp>
-#include <amgcl/adapter/zero_copy.hpp>
-#include <amgcl/adapter/block_matrix.hpp>
-#include <amgcl/backend/builtin.hpp>
-#include <amgcl/value_type/static_matrix.hpp>
-#include <amgcl/make_solver.hpp>
-#include <amgcl/amg.hpp>
-#include <amgcl/coarsening/runtime.hpp>
-#include <amgcl/relaxation/runtime.hpp>
-#include <amgcl/solver/runtime.hpp>
-
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "external_includes/amgcl_mpi_solve_functions.h"
 #include "linear_solvers/amgcl_solver.h"
-
 
 namespace Kratos
 {
@@ -70,6 +52,7 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
+
 
 ///@}
 ///@name Kratos Classes
@@ -153,6 +136,7 @@ public:
      * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB Right hand side vector.
      */
+#if 0
     bool Solve(
         SparseMatrixType& rA,
         VectorType& rX,
@@ -238,6 +222,7 @@ public:
 */
         return true;
     }
+#endif
 
     ///@}
     ///@name Access

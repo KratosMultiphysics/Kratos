@@ -54,7 +54,7 @@
 #include "external_includes/ml_solver.h"
 
 #include "external_includes/amgcl_mpi_solver.h"
-#include "external_includes/amgcl_deflation_solver.h"
+//#include "external_includes/amgcl_deflation_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
 
 namespace Kratos
@@ -118,10 +118,12 @@ void  AddLinearSolvers(pybind11::module& m)
     (m,"AmgclMPISolver").def( init<Parameters>()) 
     ;
     
+#if 0
     typedef AmgclDeflationSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclDeflationSolverType;
     class_<AmgclDeflationSolverType, typename AmgclDeflationSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmgclDeflationSolver").def( init<Parameters>())
     ;
+#endif
 
     typedef AmgclMPISchurComplementSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISchurComplementSolverType;
     class_<AmgclMPISchurComplementSolverType, typename AmgclMPISchurComplementSolverType::Pointer, TrilinosLinearSolverType >

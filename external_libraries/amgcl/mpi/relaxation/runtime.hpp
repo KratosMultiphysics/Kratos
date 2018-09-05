@@ -54,8 +54,9 @@ namespace relaxation {
 
 template <class Backend>
 struct wrapper {
-    typedef boost::property_tree::ptree params;
+    typedef Backend                     backend_type;
     typedef typename Backend::params    backend_params;
+    typedef boost::property_tree::ptree params;
 
     runtime::relaxation::type r;
     void *handle;
@@ -321,7 +322,6 @@ struct wrapper {
     call_apply(const Matrix&, const VectorRHS&, VectorX&) const {
         throw std::logic_error("The relaxation is not supported by the backend");
     }
-
 };
 
 } // namespace relaxation

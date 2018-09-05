@@ -437,6 +437,7 @@ class distributed_matrix {
         }
 
         void move_to_backend(const backend_params &bprm = backend_params()) {
+            AMGCL_TIC("move to backend");
             if (!A_loc) {
                 A_loc = Backend::copy_matrix(a_loc, bprm);
             }
@@ -450,6 +451,7 @@ class distributed_matrix {
 
             a_loc.reset();
             a_rem.reset();
+            AMGCL_TOC("move to backend");
         }
 
         template <class A, class VecX, class B, class VecY>
