@@ -460,44 +460,47 @@ class ApplyChimeraProcessMonolithic : public Process
 
     }
 
-	std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart)
-	{
-		std::vector<double> local_bounding_box {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
-		// xmax, xmin,  ymax, ymin,  zmax, zmin
-
-		// loop over all nodes (local and ghost(necessary if conditions have only ghost nodes) )
-		for (auto &r_node : rModelPart.Nodes())
-		{
-			local_bounding_box[0] = std::max(r_node.X(), local_bounding_box[0]);
-			local_bounding_box[1] = std::min(r_node.X(), local_bounding_box[1]);
-			local_bounding_box[2] = std::max(r_node.Y(), local_bounding_box[2]);
-			local_bounding_box[3] = std::min(r_node.Y(), local_bounding_box[3]);
-			local_bounding_box[4] = std::max(r_node.Z(), local_bounding_box[4]);
-			local_bounding_box[5] = std::min(r_node.Z(), local_bounding_box[5]);
-		}
-		return local_bounding_box;
-	}
-
-
-	bool BoundingBoxTest(ModelPart &A,ModelPart &B)
+	bool BoundingBoxTest(ModelPart &A,ModelPart &B)  //background A and Patch B
 	{
 		double min_cornerA[3],max_cornerA[3],min_cornerB[3],max_cornerB[3];
 		GetBoundingBox(A,min_cornerA,max_cornerA);
 		GetBoundingBox(B,min_cornerB,max_cornerB);
 
-		std::cout<<" Bounding box A"<<min_cornerA[0]<<"::"<<max_cornerA[0]<<std::endl;
-		std::cout<<" Bounding box B"<<min_cornerB[0]<<"::"<<max_cornerB[0]<<std::endl;
+		std::cout<<" Bounding box Background"<<min_cornerA[0]<<"::"<<max_cornerA[0]<<std::endl;
+		std::cout<<" Bounding box Patch"<<min_cornerB[0]<<"::"<<max_cornerB[0]<<std::endl;
 
-		for (int idim=0;idim<3;idim++)
+		//int max_dim =GetGeometry().WorkingSpaceDimension();
+
+		ProcessInfo &CurrentProcessInfo = A.GetProcessInfo();
+
+		int idim = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
+
+		for (int i=0;i<idim;i++)
 		{
-			if(min_cornerA[idim]<min_cornerB[idim]!=true) return false;
-			if(max_cornerA[idim]>max_cornerB[idim]!=true) return false;
-			std::cout<<" checked direction"<<"::"<<idim<<std::endl;
+			std::cout<<" checked direction"<<"::"<<i<<std::endl;
+			if(min_cornerA[i]<min_cornerB[i]!=true) return false;
+			if(max_cornerA[i]>max_cornerB[i]!=true) return false;
 		}
+		std::cout<<" outside loop "<<std::endl;
 		return true;
 	}
 
-	void DoChimeraLoop()
+	void FindOutsideBoundaryOfModelPartGivenInside(ModelPart &rModelPart,ModelPart &rInsideBoundary,ModelPart &rExtractedBoundaryModelPart)
+	{
+		std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
+
+		if (n_nodes == 3)
+		{
+			this->pHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary,rModelPart, rExtractedBoundaryModelPart);
+		}
+
+		else if (n_nodes == 4)
+		{
+			this->pHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary,rModelPart, rExtractedBoundaryModelPart);
+		}
+	}
+
+	void DoChimeraLoop() //selecting patch and background combination for chimera method
 	{
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
 		{
@@ -565,17 +568,10 @@ class ApplyChimeraProcessMonolithic : public Process
 						},
 						"point_data_configuration"  : []})" );
 
-
-
 		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
 		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
 		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
 		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
-
-		const ProcessInfo& rCurrentProcessInfo = rBackgroundModelPart.GetProcessInfo();
-
-		bool BBoxOverlapTest = BoundingBoxTest(rBackgroundModelPart,rPatchModelPart);
-		std::cout<<"is Bounding box of patch is inside background ?"<<BBoxOverlapTest<<std::endl;
 
  		//ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
  //rishith debug
@@ -607,15 +603,25 @@ class ApplyChimeraProcessMonolithic : public Process
 		{
 			ModelPartPointer pHoleModelPart = ModelPartPointer(new ModelPart("HoleModelpart"));
 			ModelPartPointer pHoleBoundaryModelPart = ModelPartPointer(new ModelPart("HoleBoundaryModelPart"));
-
 			//ModelPartPointer pOutOfDomainPatchModelPart = ModelPartPointer(new ModelPart("OutOfDomainPatch"));
 			//ModelPartPointer pOutOfDomainPatchBoundaryModelPart = ModelPartPointer(new ModelPart("OutOfDomainPatchBoundary"));
 			ModelPartPointer pModifiedPatchBoundaryModelPart = ModelPartPointer(new ModelPart("ModifiedPatchBoundary"));
 			ModelPartPointer pModifiedPatchModelPart = ModelPartPointer(new ModelPart("ModifiedPatch"));
 
-			this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
+			bool BBoxOverlapTest = BoundingBoxTest(rBackgroundModelPart,rPatchModelPart);
+			BBoxOverlapTest = false;
+
+			if(BBoxOverlapTest)
+			{
+				FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart,rPatchInsideBoundaryModelPart,*pModifiedPatchBoundaryModelPart);
+			}
+			else
+			{
+				std::cout<<" If bounding boxes overlap , find the modified patch boundary"<<std::endl;
+				this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
 			   			//this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pOutOfDomainPatchModelPart, *pOutOfDomainPatchBoundaryModelPart);
-			this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
+				this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
+			}
 
 			//rishith
 			VtkOutput VtkOutput_Boundary = VtkOutput(*pModifiedPatchBoundaryModelPart,"nnn",parameters);

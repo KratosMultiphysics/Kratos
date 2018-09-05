@@ -865,6 +865,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddConditions",AddConditionsByIds)
         .def("AddElement", &ModelPart::AddElement)
         .def("AddElements",AddElementsByIds)
+        .def("GetParentModelPart", &ModelPart::GetParentModelPart, return_value_policy::reference_internal)
         .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_value_policy::reference_internal)
         .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })

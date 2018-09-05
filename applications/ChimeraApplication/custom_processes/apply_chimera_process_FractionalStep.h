@@ -600,204 +600,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 		std::cout << counter << " pressure nodes from " << rBoundaryModelPart.Name() << " is coupled" << std::endl;
 	}
 
-	void ApplyMpcConstraintFractionalVelocity(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
-	{
-		//loop over nodes and find the triangle in which it falls, than do interpolation
-		array_1d<double, TDim + 1> N;
-		const int max_results = 10000;
-		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
-
-		std::size_t counter = 0;
-
-#pragma omp parallel for firstprivate(results, N)
-		//MY NEW LOOP: setting all the boundary nodes as not visited
-		for (int i = 0; i < n_boundary_nodes; i++)
-		{
-			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
-			Node<3>::Pointer p_boundary_node = *(iparticle.base());
-			p_boundary_node->Set(VISITED, false);
-		}
-
-		for (int i = 0; i < n_boundary_nodes; i++)
-
-		{
-			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
-			Node<3>::Pointer p_boundary_node = *(iparticle.base());
-
-			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-			Element::Pointer pElement;
-
-			bool is_found = false;
-			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
-
-			// Initialise the boundary nodes dofs to 0 at ever time steps
-
-			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
-			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
-
-			if (TDim == 3)
-				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
-
-			if (is_found == true)
-			{
-				Geometry<Node<3>> &geom = pElement->GetGeometry();
-
-				for (std::size_t i = 0; i < geom.size(); i++)
-				{
-					//Interpolation of velocity
-					p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * N[i];
-					p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * N[i];
-
-					//Define master slave relation for velocity
-					AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
-					AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
-					if (TDim == 3)
-					{
-						//Interpolation of velocity
-						p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
-
-						//Define master slave relation for velocity
-						AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
-					}
-					counter++;
-				} // end of loop over host element nodes
-
-			} // if (is_found = true)
-
-			// Setting the buffer 1 same buffer 0
-			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0);
-			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0);
-
-			if (TDim == 3)
-				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0);
-
-		} // end of loop over boundary nodes
-
-		counter /= TDim + 1;
-
-		std::cout << counter << " nodes from " << rBoundaryModelPart.Name() << " is coupled" << std::endl;
-	}
-
-
-	void ApplyMpcConstraintFractionalPressure(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
-	{
-
-		//loop over nodes and find the triangle in which it falls, than do interpolation
-		array_1d<double, TDim + 1> N;
-		const int max_results = 10000;
-		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
-
-		std::size_t counter = 0;
-
-#pragma omp parallel for firstprivate(results, N)
-		//MY NEW LOOP: reset the visited flag
-		for (int i = 0; i < n_boundary_nodes; i++)
-
-		{
-			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
-			Node<3>::Pointer p_boundary_node = *(iparticle.base());
-			p_boundary_node->Set(VISITED, false);
-		}
-
-		for (int i = 0; i < n_boundary_nodes; i++)
-
-		{
-			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
-			Node<3>::Pointer p_boundary_node = *(iparticle.base());
-
-			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-			Element::Pointer pElement;
-
-			bool is_found = false;
-			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
-
-			// Initialise the boundary nodes dofs to 0 at ever time steps
-			if (pressure_coupling == "all")
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-
-			if (is_found == true)
-			{
-				Geometry<Node<3>> &geom = pElement->GetGeometry();
-
-				for (std::size_t i = 0; i < geom.size(); i++)
-				{
-					if (pressure_coupling == "all")
-					{
-						//Interpolation of pressure
-						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-
-						//Defining master slave relation for pressure
-						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-
-						counter++;
-					}
-				} // end of loop over host element nodes
-
-			} // if (is_found = true)
-
-			if (pressure_coupling == "all")
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
-
-		} // end of loop over boundary nodes
-
-		if (pressure_coupling == "one")
-		{
-
-			Node<3>::Pointer p_boundary_node;
-			if (m_parameters["pressure_coupling_node"].GetDouble() == 0.0)
-			{
-
-				ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin();
-				p_boundary_node = *(iparticle.base());
-			}
-			else
-			{
-				std::size_t node_num = m_parameters["pressure_coupling_node"].GetDouble();
-
-				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
-			}
-
-			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-			Element::Pointer pElement;
-
-			bool is_found = false;
-			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
-
-			//Initialsing pressure to 0 at every time steps
-			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-
-			if (is_found == true)
-			{
-				Geometry<Node<3>> &geom = pElement->GetGeometry();
-				for (std::size_t i = 0; i < geom.size(); i++)
-				{
-					// Interpolation of pressure
-					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-
-					// Defining master slave relation for one pressure node
-					AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-					counter++;
-				}
-			}
-			// Setting the buffer 1 same buffer 0
-			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
-
-			std::cout << "Coordinates of node that are pressure coupled" << std::endl;
-			std::cout << p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
-
-		} // end of if (pressure_coupling == "one")
-
-		counter /= TDim + 1;
-
-		std::cout << counter << " pressure nodes from " << rBoundaryModelPart.Name() << " is coupled" << std::endl;
-	}
-
-
 	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpcV,MpcDataPointerType pMpcP,  std::string pressure_coupling)
 	{
 
@@ -834,7 +636,73 @@ class ApplyChimeraProcessFractionalStep : public Process
 		ApplyConservativeCorrections(mrMainModelPart, pMpcV);
 	}
 
-	void DoChimeraLoop()
+	static inline void GetBoundingBox(ModelPart &model_part, double *rLowPoint, double *rHighPoint)
+    {
+
+		rLowPoint[0] = 1e10;
+		rLowPoint[1] = 1e10;
+		rLowPoint[2] = 1e10;
+
+		rHighPoint[0] = -1e10;
+		rHighPoint[1] = -1e10;
+		rHighPoint[2] = -1e10;
+
+		for (auto &r_node : model_part.Nodes())
+		{
+			rLowPoint[0] = std::min(r_node.X(), rLowPoint[0]);
+			rLowPoint[1] = std::min(r_node.Y(), rLowPoint[1]);
+			rLowPoint[2] = std::min(r_node.Z(), rLowPoint[2]);
+
+			rHighPoint[0] = std::max(r_node.X(), rHighPoint[0]);
+			rHighPoint[1] = std::max(r_node.Y(), rHighPoint[1]);
+			rHighPoint[2] = std::max(r_node.Z(), rHighPoint[2]);
+		}
+
+    }
+
+	bool BoundingBoxTest(ModelPart &A,ModelPart &B)  //background A and Patch B
+	{
+		double min_cornerA[3],max_cornerA[3],min_cornerB[3],max_cornerB[3];
+		GetBoundingBox(A,min_cornerA,max_cornerA);
+		GetBoundingBox(B,min_cornerB,max_cornerB);
+
+		std::cout<<" Bounding box Background"<<min_cornerA[0]<<"::"<<max_cornerA[0]<<std::endl;
+		std::cout<<" Bounding box Patch"<<min_cornerB[0]<<"::"<<max_cornerB[0]<<std::endl;
+
+		//int max_dim =GetGeometry().WorkingSpaceDimension();
+
+		ProcessInfo &CurrentProcessInfo = A.GetProcessInfo();
+
+		int idim = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
+
+		for (int i=0;i<idim;i++)
+		{
+			std::cout<<" checked direction"<<"::"<<i<<std::endl;
+			if(min_cornerA[i]<min_cornerB[i]!=true) return false;
+			if(max_cornerA[i]>max_cornerB[i]!=true) return false;
+		}
+		std::cout<<" outside loop "<<std::endl;
+		return true;
+	}
+
+	void FindOutsideBoundaryOfModelPartGivenInside(ModelPart &rModelPart,ModelPart &rInsideBoundary,ModelPart &rExtractedBoundaryModelPart)
+	{
+		std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
+
+		if (n_nodes == 3)
+		{
+			std::cout<<"BBOXrishith :: 3D surface extraction"<<std::endl;
+			this->pHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary,rModelPart, rExtractedBoundaryModelPart);
+		}
+
+		else if (n_nodes == 4)
+		{
+			std::cout<<"BBOXrishith :: 3D surface extraction"<<std::endl;
+			this->pHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary,rModelPart, rExtractedBoundaryModelPart);
+		}
+	}
+
+	void DoChimeraLoop() //selecting patch and background combination for chimera method
 	{
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
 		{
@@ -906,14 +774,14 @@ class ApplyChimeraProcessFractionalStep : public Process
 			KRATOS_THROW_ERROR("", "Overlap distance should be a positive number \n", "");
 		}
 
+		bool BBoxOverlapTest = BoundingBoxTest(rBackgroundModelPart,rPatchModelPart);
+
 		if (m_overlap_distance > epsilon)
-		{	std::cout<<"Debug 1"<<std::endl;
+		{
 			ModelPartPointer pHoleModelPart = ModelPartPointer(new ModelPart("HoleModelpart"));
 			ModelPartPointer pHoleBoundaryModelPart = ModelPartPointer(new ModelPart("HoleBoundaryModelPart"));
 			ModelPartPointer pModifiedPatchBoundaryModelPart = ModelPartPointer(new ModelPart("ModifiedPatchBoundary"));
 			ModelPartPointer pModifiedPatchModelPart = ModelPartPointer(new ModelPart("ModifiedPatch"));
-			std::cout<<"Debug 2"<<std::endl;
-
 
 			Parameters parameters= Parameters(R"({
 						"result_file_configuration" : {
@@ -940,9 +808,15 @@ class ApplyChimeraProcessFractionalStep : public Process
 			VtkOutput VtkOutput_Boundary = VtkOutput(rDomainBoundaryModelPart,"nnn",parameters);
 			VtkOutput_Boundary.PrintOutput();
 
-
-			this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
-			this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
+			if(BBoxOverlapTest)
+			{
+				FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart,rPatchInsideBoundaryModelPart,*pModifiedPatchBoundaryModelPart);
+			}
+			else
+			{
+				this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
+				this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
+			}
 
 			//this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchInsideBoundaryModelPart);
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);
@@ -955,15 +829,16 @@ class ApplyChimeraProcessFractionalStep : public Process
 			CalculateNodalAreaAndNodalMass(*pModifiedPatchBoundaryModelPart, 1);
 			CalculateNodalAreaAndNodalMass(*pHoleBoundaryModelPart, -1);
 
+			VtkOutput VtkOutput_ModifiedPatch = VtkOutput(*pModifiedPatchBoundaryModelPart,"nnn",parameters);
+			VtkOutput_ModifiedPatch.PrintOutput();
+
 			std::cout<<"Formulate chimera for fractional step"<<std::endl;
 
 			pMpcPatchVelocity->SetIsWeak(m_parameters["IsWeak"].GetBool());
 			pMpcPatchPressure->SetIsWeak(m_parameters["IsWeak"].GetBool());
-			//pMpcPatchPressure->SetIsWeak(false); //rishith
 
 			pMpcBackgroundVelocity->SetIsWeak(m_parameters["IsWeak"].GetBool());
 			pMpcBackgroundPressure->SetIsWeak(m_parameters["IsWeak"].GetBool());
-			//pMpcBackgroundPressure->SetIsWeak(false);//rishith
 
 			std::string pr_coupling_patch = m_parameters["pressure_coupling"].GetString();
 			std::string pr_coupling_background = m_parameters["pressure_coupling"].GetString();
@@ -972,14 +847,14 @@ class ApplyChimeraProcessFractionalStep : public Process
 			{
 				ApplyMpcConstraintForFractionalStep(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity,pMpcPatchPressure, pr_coupling_patch);
 				ApplyMpcConstraintForFractionalStep(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity,pMpcBackgroundPressure, pr_coupling_background);
-				std::cout << "Fractional : Patch boundary coupled with background" << std::endl;
+				std::cout << "Fractional : Patch boundary coupled with background and hole boundary with patch" << std::endl;
 			}
 			else if (m_type == "conservative")
 			{
 				std::cout<<"Fractional step MPC Conservative not implemented "<<std::endl;
 				ApplyMpcConstraintConservative(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity,pMpcPatchPressure, pr_coupling_patch);
 				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity,pMpcBackgroundPressure, pr_coupling_background);
-				std::cout << "Patch boundary coupled with background using conservative approach" << std::endl;
+				std::cout << "Patch boundary coupled with background and hole boundary with patch using conservative approach" << std::endl;
 			}
 			std::cout<<"Formulate Chimera: Appplied MPCs "<<std::endl;
 		}

@@ -134,11 +134,6 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CORRECTION_X)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CORRECTION_Y)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CORRECTION_Z)
-
-
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
@@ -217,12 +212,12 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Solver initialization finished.")
 
 
-    # def SolveSolutionStep(self):
-    #     print("solve solution step")
-    #     if self._TimeBufferIsInitialized():
-    #         self.solver.SolveSolutionStep()
-    #         if self.compute_reactions:
-    #             self.solver.CalculateReactions()
+    def SolveSolutionStep(self):
+        print("solve solution step")
+        if self._TimeBufferIsInitialized():
+            self.solver.SolveSolutionStep()
+            if self.compute_reactions:
+                self.solver.CalculateReactions()
 
 
     def _set_physical_properties(self):
