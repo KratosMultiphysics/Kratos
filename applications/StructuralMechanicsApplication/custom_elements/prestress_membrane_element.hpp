@@ -124,9 +124,6 @@ namespace Kratos
       Vector& rValues,
       int Step = 0) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-      std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
   protected:
 
 

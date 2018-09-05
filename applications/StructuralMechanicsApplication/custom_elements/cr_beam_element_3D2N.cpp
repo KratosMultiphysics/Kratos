@@ -1242,15 +1242,6 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
   KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>> &rVariable,
-    std::vector<array_1d<double, 3>> &rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-  this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-  KRATOS_CATCH("")
-}
-
 void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
     const ProcessInfo &rCurrentProcessInfo) {
@@ -1276,14 +1267,6 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
   }
 
   KRATOS_CATCH("");
-}
-
-void CrBeamElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<Vector> &rVariable, std::vector<Vector> &rValues,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-  this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-  KRATOS_CATCH("")
 }
 
 void CrBeamElement3D2N::AssembleSmallInBigMatrix(

@@ -1177,97 +1177,49 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 /******************************** SET DOUBLE VALUE *********************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /******************************** SET VECTOR VALUE *********************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /******************************** SET MATRIX VALUE *********************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /****************************** SET CONSTITUTIVE VALUE *****************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-/******************************** GET DOUBLE VALUE *********************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/********************************** GET VECTOR VALUE *******************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/*********************************** GET MATRIX VALUE ******************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/******************************** GET CONSTITUTIVE VALUE ***************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    BaseType::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 //********************************* CHECK VALUES **********************************//
