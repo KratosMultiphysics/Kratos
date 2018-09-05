@@ -215,8 +215,8 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& 
 
     if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
     { // TODO should be KRATOS_WARNING_ONCE but this is currently not compiling
-        KRATOS_WARNING_FIRST_N("ShellThinElement3D3N", 1) << "Gauss point results have "
-            << "been requested for a linear analysis. The membrane formulation used "
+        KRATOS_WARNING_FIRST_N("ShellThinElement3D3N", 1) << "Warning: Gauss point results have "
+            << "been requested for a linear analysis.\nThe membrane formulation used "
             << "requires iteration to accurately determine recovered "
             << "quantities (strain, stress, etc...)." << std::endl;
     }
@@ -425,24 +425,17 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<Matrix>& 
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-	// The membrane formulation needs to iterate to find the correct
-	// mid-surface strain values.
-	//
-	// Check if we are doing a non-linear analysis type. If not, print warning
-	// for just the first element.
+    // The membrane formulation needs to iterate to find the correct
+    // mid-surface strain values.
+    // Check if we are doing a non-linear analysis type. If not, print warning
 
-	if (this->Id() == 1)
-	{
-		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-		{
-			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis."
-				<< "\nThe membrane formulation used in the specified shell element"
-				<< "(ShellThinElement3D3N) requires iteration to accurately determine "
-				<< "recovered quantities (strain, stress, etc...).\n"
-				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities."
-				<< std::endl;
-		}
-	}
+    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+    { // TODO should be KRATOS_WARNING_ONCE but this is currently not compiling
+        KRATOS_WARNING_FIRST_N("ShellThinElement3D3N", 1) << "Warning: Gauss point results have "
+            << "been requested for a linear analysis.\nThe membrane formulation used "
+            << "requires iteration to accurately determine recovered "
+            << "quantities (strain, stress, etc...)." << std::endl;
+    }
 
     if(TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 }
