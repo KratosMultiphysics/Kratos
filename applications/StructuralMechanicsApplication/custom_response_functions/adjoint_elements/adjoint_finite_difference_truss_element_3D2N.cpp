@@ -178,18 +178,6 @@ void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCu
     cl->Check(r_properties ,this->GetGeometry(),rCurrentProcessInfo);
 }
 
-double AdjointFiniteDifferenceTrussElement::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if(rDesignVariable == SHAPE)
-        return this->CalculateReferenceLength();
-    else
-        return 1.0;
-
-    KRATOS_CATCH("")
-}
-
 double AdjointFiniteDifferenceTrussElement::CalculateReferenceLength()
 {
   KRATOS_TRY;
