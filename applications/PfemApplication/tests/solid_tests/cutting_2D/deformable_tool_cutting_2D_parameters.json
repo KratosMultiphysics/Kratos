@@ -5,7 +5,7 @@
     "problem_data"             : {
         "domain_type" : "Solid",
         "echo_level"  : 1,
-        "threads"     : 1
+        "threads"     : 4
     },
     "time_settings" : {
         "time_step" : 2.5e-8,
@@ -314,7 +314,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["VOLUME_ACCELERATION","DISPLACEMENT_REACTION","NORMAL","CONTACT_FORCE","PRESSURE","TEMPERATURE","DISPLACEMENT"],
+            "nodal_results"       : ["DISPLACEMENT_REACTION","NORMAL","CONTACT_FORCE","PRESSURE","TEMPERATURE","DISPLACEMENT"],
             "nodal_flags_results" : [],
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR","VON_MISES_STRESS","PLASTIC_STRAIN","PLASTIC_DISSIPATION","DELTA_PLASTIC_STRAIN","DELTA_PLASTIC_DISSIPATION"],
             "additional_list_files": [2,5,10,20]
