@@ -12,7 +12,7 @@ def GetFilePath(fileName):
 
 class IgaTrussElementTest(KratosUnittest.TestCase):
 
-    def solve(self, create_geometry):
+    def solve(create_geometry):
         model_part = ModelPart('Model')
 
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
@@ -21,13 +21,12 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
         # create property for truss elements
 
-        truss_properties = Properties(1)
+        truss_properties = model_part.GetProperties()[1]
         truss_properties.SetValue(CROSS_AREA      , 0.01  )
         truss_properties.SetValue(PRESTRESS_CAUCHY, 0     )
         truss_properties.SetValue(YOUNG_MODULUS   , 210000)
         truss_properties.SetValue(POISSON_RATIO   , 0     )
         truss_properties.SetValue(DENSITY         , 7856  )
-        model_part.AddProperties(truss_properties)
 
         # create a node based geometry
 
@@ -36,7 +35,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
         # create elements for each integration point
 
         integration_points = [integration_point for span in curve.Spans()
-            for integration_point in IntegrationPoints.Points1(curve.Degree + 1,
+            for integration_point in IntegrationPoints.Points1D(curve.Degree + 1,
             span)]
 
         shapes = CurveShapeEvaluator(Degree=curve.Degree, Order=1)
@@ -79,14 +78,13 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
         # apply neumann conditions
 
-        prop = Properties(2)
-        model_part.AddProperties(prop)
+        prop = model_part.GetProperties()[2]
 
-        model_part.CreateNewCondition('PointLoadCondition3D1N', 1, [node_2.Id],
+        model_part.CreateNewCondition('PointLoadCondition3D1N', 2, [node_2.Id],
             prop)
 
         node_2.SetSolutionStepValue(POINT_LOAD_X, 1000)
-        
+
         # setup solver
 
         model_part.SetBufferSize(1)
@@ -94,7 +92,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
         time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         linear_solver = new_linear_solver_factory.ConstructSolver(Parameters(
-            r"""{"solver_type": "eigen_sparse_lu"}"""))
+            r'{"solver_type": "SkylineLUFactorizationSolver"}'))
 
         relative_tolerance = 1e-7
         absolute_tolerance = 1e-7
@@ -131,8 +129,8 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
             node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
             node_2 = model_part.CreateNewNode(2, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(1, 2)
 
@@ -144,7 +142,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_2, curve
 
-        node_1, node_2, curve = self.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -159,8 +157,8 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
             node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
             node_2 = model_part.CreateNewNode(2, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(1, 2)
 
@@ -172,7 +170,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_2, curve
 
-        node_1, node_2, curve = self.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -188,9 +186,9 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
             node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
             node_3 = model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_3.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_3.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(1, 3)
 
@@ -204,7 +202,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, curve = self.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -220,9 +218,9 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
             node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
             node_3 = model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_3.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_3.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(1, 3)
 
@@ -236,7 +234,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, curve = self.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -252,9 +250,9 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
             node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
             node_3 = model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
 
-            node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-            node_3.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+            node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+            node_3.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
             curve = NodeCurveGeometry3D(2, 3)
 
@@ -269,7 +267,7 @@ class IgaTrussElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, curve = self.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTest.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )

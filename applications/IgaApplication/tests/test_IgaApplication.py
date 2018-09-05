@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 from node_curve_geometry_3d_tests import NodeCurveGeometry3DTests
 from node_surface_geometry_3d_tests import NodeSurfaceGeometry3DTests
-from IgaTrussElementTest import IgaTrussElementTest
+from iga_truss_element_test import IgaTrussElementTest
 from shell_kl_discrete_element_test import ShellKLDiscreteElementTest
 
 def AssembleTestSuites():
