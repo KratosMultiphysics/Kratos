@@ -47,7 +47,7 @@ void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVa
             case TracedStressType::FX:
             {
                 std::vector< array_1d<double, 3 > > force_vector;
-                mpPrimalElement->GetValueOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
+                mpPrimalElement->CalculateOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
                 for(IndexType i = 0; i < GP_num ; ++i)
                     rOutput(i) = force_vector[i][0];
                 break;
@@ -55,7 +55,7 @@ void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVa
             case TracedStressType::PK2:
             {
                 std::vector<Vector> stress_vector;
-                mpPrimalElement->GetValueOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
+                mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
                 for(IndexType i = 0; i < GP_num ; ++i)
                     rOutput(i) = stress_vector[i][0];
                 break;

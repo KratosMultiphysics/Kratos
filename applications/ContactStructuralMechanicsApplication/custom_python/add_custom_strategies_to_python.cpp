@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -59,7 +59,6 @@ using namespace pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
-    typedef TableStreamUtility::Pointer TablePrinterPointerType;
     typedef ProcessFactoryUtility::Pointer ProcessesListType;
     typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
 
