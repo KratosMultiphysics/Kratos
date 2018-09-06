@@ -63,6 +63,7 @@ public:
     /// Pointer definition of PropertiesConfiguration
     KRATOS_CLASS_POINTER_DEFINITION(PropertiesConfiguration);
 
+    using PropertiesType = Properties;
     using NodeType = Node<3>;
     using GeometryType = Geometry<NodeType>;
 
@@ -77,28 +78,44 @@ public:
     {
     public:
 
-        ConfigurationParameters(const GeometryType& rGeom,
+        ConfigurationParameters(const PropertiesType& rProps,
+                                const GeometryType& rGeom,
                                 const DataValueContainer& rData) :
+                                mpProperties(&rProps),
                                 mpGeometry(&rGeom),
                                 mpData(&rData)
                                 {}
 
-        void SetShapeFunctionsValues (const Vector& rShapeFunctionsValues) {mpShapeFunctionsValues=&rShapeFunctionsValues;};
-        void SetGaussPointIndex      (const int GaussPointIndex)           {mGaussPointIndex=GaussPointIndex;};
-        void SetProcessInfo          (ProcessInfo& rProcessInfo)           {mpProcessInfo = &rProcessInfo;};
+        const PropertiesType& GetProperties() const
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(mpProperties) << "Properties is nullptr!" << std::endl;
+            return *mpProperties;
+        }
+
+        const GeometryType& GetGeometry() const
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(mpGeometry) << "Geometry is nullptr!" << std::endl;
+            return *mpGeometry;
+        }
+
+        const DataValueContainer& GetDataValueContainer() const
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(mpData) << "DataValueContainer is nullptr!" << std::endl;
+            return *mpData;
+        }
 
     private:
-        const Vector*               mpShapeFunctionsValues;
-        int                         mGaussPointIndex;
-        const ProcessInfo*          mpProcessInfo;
-        const GeometryType*         mpGeometry;
-        const DataValueContainer*   mpData;
+        const PropertiesType*     mpProperties;
+        const GeometryType*       mpGeometry;
+        const DataValueContainer* mpData;
     };
 
-    using DoubleFunction = std::function<double(const Properties&,
-                                                const ConfigurationParameters&)>;
-
+    using DoubleFunction = std::function<double(const ConfigurationParameters&)>;
     using DoubleConfiguration = std::map<DoubleVariableType, DoubleFunction>;
+
+    using DoubleFunctionGPs = std::function<double(const ConfigurationParameters&,
+                                      const Vector&,const int, const ProcessInfo&)>;
+    using DoubleConfigurationGPs = std::map<DoubleVariableType, DoubleFunctionGPs>;
 
     // std::function<void(int)>
 
@@ -109,8 +126,7 @@ public:
     ///@{
 
     /// Default constructor.
-    PropertiesConfiguration()
-        : mpParentProperties(nullptr) {}
+    PropertiesConfiguration() {}
 
     /// Destructor.
     virtual ~PropertiesConfiguration() {}
@@ -129,7 +145,7 @@ public:
     typename TVariableType::Type& GetValue(const TVariableType& rV,
                                            const ConfigurationParameters& rParams)
     {
-        mpParentProperties->GetValue(rV);
+        return rParams.GetProperties().GetValue(rV);
     }
 
 
@@ -137,17 +153,33 @@ public:
                     const ConfigurationParameters& rParams)
     {
         if(mConfigurationsDouble.find(rV) != mConfigurationsDouble.end())
-            return mConfigurationsDouble[rV](*mpParentProperties,
-                                             rParams);
+            return mConfigurationsDouble[rV](rParams);
         else
-            return mpParentProperties->GetValue(rV);
+            return rParams.GetProperties().GetValue(rV);
     }
 
-    void Configure(const DoubleVariableType& rV, std::function<double(
-                                                const Properties&,
-                                                const ConfigurationParameters&)> DoubleFunction)
+    double GetValueOnIntegrationPoint(const DoubleVariableType& rV,
+                                      const ConfigurationParameters& rParams,
+                                      const Vector& rShapeFunctionsValues,
+                                      const int GaussPointIndex,
+                                      const ProcessInfo& rProcessInfo)
     {
-        mConfigurationsDouble[rV] = DoubleFunction;
+        if(mConfigurationsDoubleGPs.find(rV) != mConfigurationsDoubleGPs.end())
+            return mConfigurationsDoubleGPs[rV](rParams, rShapeFunctionsValues, GaussPointIndex, rProcessInfo);
+        else if(mConfigurationsDouble.find(rV) != mConfigurationsDouble.end())
+            return mConfigurationsDouble[rV](rParams);
+        else
+            return rParams.GetProperties().GetValue(rV);
+    }
+
+    void Configure(const DoubleVariableType& rV, const DoubleFunction& DblFunction)
+    {
+        mConfigurationsDouble[rV] = DblFunction;
+    }
+
+    void Configure(const DoubleVariableType& rV, const DoubleFunctionGPs& DblFunction)
+    {
+        mConfigurationsDoubleGPs[rV] = DblFunction;
     }
 
 
@@ -234,8 +266,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    Properties* mpParentProperties;
     DoubleConfiguration mConfigurationsDouble;
+    DoubleConfigurationGPs mConfigurationsDoubleGPs;
 
     ///@}
     ///@name Private Operators
