@@ -13,12 +13,13 @@
 #if !defined(KRATOS_PYTHON_FUNCTION_CALLBACK_UTILITY_H_INCLUDED)
 #define  KRATOS_PYTHON_FUNCTION_CALLBACK_UTILITY_H_INCLUDED
 
+#include <pybind11/pybind11.h>
+#include <pybind11/eval.h>
+
 #include <cmath>
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-
-#include <pybind11/pybind11.h>
-#include <pybind11/eval.h>
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -129,8 +130,8 @@ public:
         main_namespace["y"] = y;
         main_namespace["z"] = z;
         main_namespace["t"] = t;
-        
-        
+
+
 
 //         #if PY_MAJOR_VERSION >= 3
 //         PyObject* res = PyEval_EvalCode(mbytecode.ptr(),main_namespace.ptr(),main_namespace.ptr());
