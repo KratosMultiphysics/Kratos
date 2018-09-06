@@ -329,7 +329,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         newton_parameters.AddValue("adaptative_strategy", self.contact_settings["adaptative_strategy"])
         newton_parameters.AddValue("split_factor", self.contact_settings["split_factor"])
         newton_parameters.AddValue("max_number_splits", self.contact_settings["max_number_splits"])
-        newton_parameters.AddValue("inner_loop_iterations", self.contact_settings["inner_loop_iterations"])
+        #newton_parameters.AddValue("inner_loop_iterations", self.contact_settings["inner_loop_iterations"])
         return CSMA.ResidualBasedNewtonRaphsonContactStrategy(computing_model_part,
                                                                 self.mechanical_scheme,
                                                                 self.linear_solver,
