@@ -366,11 +366,11 @@ int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_ERROR_IF(GetGeometry().Area() < std::numeric_limits<double>::epsilon()*1000)
         << "Element #" << Id() << " has an Area of zero!" << std::endl;
 
-    const auto& config = GetProperties()[PROPERTIES_CONFIGURATION]
+    const auto& config = GetProperties()[PROPERTIES_CONFIGURATION];
 
     PropertiesConfiguration::ConfigurationParameters params(GetProperties(), GetGeometry(), GetData());
 
-    double someVal = config.GetValue(THICKNESS, params);
+    double someVal = config->GetValue(THICKNESS, params);
 
     int u= 0;
 

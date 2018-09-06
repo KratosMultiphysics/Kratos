@@ -53,7 +53,6 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
 #include "utilities/variable_redistribution_utility.h"
-#include "utilities/properties_configuration.h"
 
 namespace Kratos
 {
@@ -591,11 +590,6 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
     ;
 
-
-    class_<PropertiesConfiguration, PropertiesConfiguration::Pointer>(m,"PropertiesConfiguration")
-    .def(init<Properties*>())
-    // All the functions
-    ;
 }
 
 } // namespace Python.
