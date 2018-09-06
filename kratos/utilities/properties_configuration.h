@@ -109,8 +109,8 @@ public:
     ///@{
 
     /// Default constructor.
-    PropertiesConfiguration(Properties* pParentProperties)
-        : mpParentProperties(pParentProperties) {}
+    PropertiesConfiguration()
+        : mpParentProperties(nullptr) {}
 
     /// Destructor.
     virtual ~PropertiesConfiguration() {}

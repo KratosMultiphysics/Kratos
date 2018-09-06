@@ -476,6 +476,7 @@ KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS)
 KRATOS_CREATE_VARIABLE(double, INTEGRATION_WEIGHT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
+KRATOS_CREATE_VARIABLE(PropertiesConfiguration::Pointer, PROPERTIES_CONFIGURATION )
 
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -498,7 +499,7 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mSurfaceCondition3D8N( 0, Element::GeometryType::Pointer(new Quadrilateral3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mSurfaceCondition3D9N( 0, Element::GeometryType::Pointer(new Quadrilateral3D9<NodeType >(Element::GeometryType::PointsArrayType(9)))),
 
-      // Master-Slave Constraint 
+      // Master-Slave Constraint
       mMasterSlaveConstraint(),
       mLinearMasterSlaveConstraint(),
 
@@ -986,6 +987,7 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 
     KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
+    KRATOS_REGISTER_VARIABLE(PROPERTIES_CONFIGURATION)
 
 
     //Register objects with general definition

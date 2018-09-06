@@ -33,6 +33,7 @@
 #include "containers/weak_pointer_vector.h"
 #include "containers/periodic_variables_container.h"
 #include "utilities/table_stream_utility.h"
+#include "utilities/properties_configuration.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -419,7 +420,7 @@ namespace Kratos
 
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
-    
+
     //for General kratos application:
 
     //for Structural application:
@@ -443,6 +444,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, INTEGRATION_WEIGHT )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
     KRATOS_DEFINE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
+    KRATOS_DEFINE_VARIABLE(PropertiesConfiguration::Pointer, PROPERTIES_CONFIGURATION )
 
 }  // namespace Kratos.
 
