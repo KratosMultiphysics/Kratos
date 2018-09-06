@@ -644,7 +644,7 @@ class GiDOutputProcess(Process):
 
                 end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
                 print_id   = end_parts[0] # you get "145"
-                
+
                 try:
                     label = int(print_id)
                     if label != 0:
