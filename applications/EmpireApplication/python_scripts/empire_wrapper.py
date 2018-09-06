@@ -355,7 +355,7 @@ class EmpireWrapper:
                     name_element = "Element2D2N"
                 elif num_nodes_element == 3:
                     name_element = "Element2D3N"
-                elif num_nodes_element == 4: # TODO how to distinguish from Tetras?
+                elif num_nodes_element == 4: # TODO how to distinguish from Tetras? => use DOMAIN_SIZE of ModelPart
                     name_element = "Element2D4N"
                 else:
                     raise Exception("Wrong number of nodes for creating the element")
@@ -377,6 +377,12 @@ class EmpireWrapper:
             sum_sizes = sum(sizes_of_variables)
 
             data_field = [0.0] * (num_nodes * sum_sizes) # preallocate
+
+            for var in kratos_variables:
+                if not model_part.HasNodalSolutionStepVariable(var):
+                    err_msg  = 'ModelPart "' + model_part.Name + '" does not have'
+                    err_msg += ' "' + var.Name() + '" as SolutionStepVariable!'
+                    raise Exception(err_msg)
 
             node_i = 0
             for node in model_part.Nodes:
