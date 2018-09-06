@@ -192,8 +192,8 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         if compound_assignment == "direct":
             return "direct"
         if compound_assignment == "addition":
-            return "substraction"
-        if compound_assignment == "substraction":
+            return "subtraction"
+        if compound_assignment == "subtraction":
             return "addition"
         if compound_assignment == "multiplication":
             return "division"

@@ -142,11 +142,12 @@ class Solution(object):
         if self.time_process is not None:
             self.time_process.Execute()
 
+        self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
+
         # Update time step
         self.time = self.time + self.delta_time
         self.step = self.step + 1
 
-        self.process_info[KratosMultiphysics.DELTA_TIME] = self.delta_time
         self.process_info[KratosMultiphysics.STEP] = self.step
 
         self.main_model_part.CloneTimeStep(self.time)

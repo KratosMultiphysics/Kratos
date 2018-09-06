@@ -279,6 +279,7 @@ class ProcessHandler(KratosMultiphysics.Process):
         factory_settings["Parameters"].AddValue("value", settings["value"])
         factory_settings["Parameters"].AddValue("constrained", settings["constrained"])
         factory_settings["Parameters"].AddValue("interval", settings["interval"])
+        factory_settings["Parameters"].AddValue("compound_assignment", settings["compound_assignment"])
 
         return factory_settings
 
@@ -325,5 +326,6 @@ class ProcessHandler(KratosMultiphysics.Process):
         factory_settings["Parameters"].AddValue("modulus", settings["modulus"])
         factory_settings["Parameters"].AddValue("direction", settings["direction"])
         factory_settings["Parameters"].AddValue("interval", settings["interval"])
+        factory_settings["Parameters"].AddValue("compound_assignment", settings["compound_assignment"])
 
         return factory_settings

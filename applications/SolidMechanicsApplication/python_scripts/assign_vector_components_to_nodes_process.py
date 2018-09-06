@@ -75,9 +75,6 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
         for process in self.AssignValueProcesses:
             process.ExecuteFinalizeSolutionStep()
 
-
-
-
     #
     def BuildComponentsProcesses(self):
 
@@ -97,6 +94,7 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
 
                 params.AddValue("interval",self.settings["interval"])
                 params.AddValue("constrained", self.settings["constrained"])
+                params.AddValue("compound_assignment", self.settings["compound_assignment"])
 
                 if( self.settings["value"][counter].IsNumber() ):
                     params.AddEmptyValue("value").SetDouble(self.settings["value"][counter].GetDouble())
