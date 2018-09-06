@@ -531,7 +531,7 @@ void ConstitutiveLaw::InitializeNonLinearIteration(const Properties& rMaterialPr
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR <<  "Calling virtual function for InitializeNonLinearIteration"<< std::endl;;
+
 }
 
 
@@ -549,7 +549,7 @@ void ConstitutiveLaw::FinalizeNonLinearIteration(const Properties& rMaterialProp
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR <<  "Calling virtual function for FinalizeNonLinearIteration"<< std::endl;;
+
 }
 
 /**
