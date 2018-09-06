@@ -186,6 +186,7 @@ public:
      * @param rMaterialProperties The properties of the material
      * @param rElementGeometry The geometry of the element
      * @param rCurrentProcessInfo The current process info instance
+     * @return 0 if OK, 1 otherwise
      */
     int Check(
         const Properties& rMaterialProperties,

@@ -21,7 +21,6 @@
 #include "custom_constitutive/hencky_plastic_UP_3d_law.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
-#include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 
 namespace Kratos
