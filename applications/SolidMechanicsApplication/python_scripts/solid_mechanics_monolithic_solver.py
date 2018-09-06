@@ -109,14 +109,6 @@ class MonolithicSolver(object):
         self.echo_level = 0
 
 
-    def GetMinimumBufferSize(self):
-        buffer_size = self.settings["time_integration_settings"]["buffer_size"].GetInt()
-        time_integration_order = self.settings["time_integration_settings"]["time_integration_order"].GetInt()
-        if( buffer_size <= time_integration_order ):
-            buffer_size = time_integration_order + 1
-        return buffer_size;
-
-
     def ExecuteInitialize(self):
 
         # Set model and info
@@ -124,7 +116,6 @@ class MonolithicSolver(object):
 
         # Configure model and solver
         self._set_integration_parameters()
-
 
     def ExecuteBeforeSolutionLoop(self):
 
@@ -165,10 +156,10 @@ class MonolithicSolver(object):
 
 
     #### Solve loop methods ####
-
+    
     def Solve(self):
         self.Clear()
-        self._get_mechanical_solver().Solve()
+        return self._get_mechanical_solver().Solve()
 
     # step by step:
 
@@ -177,8 +168,7 @@ class MonolithicSolver(object):
         self._get_mechanical_solver().InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        is_converged = self._get_mechanical_solver().SolveSolutionStep()
-        return is_converged
+        return self._get_mechanical_solver().SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         self._get_mechanical_solver().FinalizeSolutionStep()
@@ -262,8 +252,6 @@ class MonolithicSolver(object):
         # Process information
         self.process_info = self.main_model_part.ProcessInfo
 
-        #
-
     def _set_integration_parameters(self):
         # Add dofs
         if( self._is_not_restarted() ):
@@ -301,12 +289,18 @@ class MonolithicSolver(object):
             self._mechanical_solver = self._create_mechanical_solver()
         return self._mechanical_solver
 
-
+    def _get_minimum_buffer_size(self):
+        buffer_size = self.settings["time_integration_settings"]["buffer_size"].GetInt()
+        time_integration_order = self.settings["time_integration_settings"]["time_integration_order"].GetInt()
+        if( buffer_size <= time_integration_order ):
+            buffer_size = time_integration_order + 1
+        return buffer_size;
+    
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.GetMinimumBufferSize()
+        buffer_size = self._get_minimum_buffer_size()
         self.main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.

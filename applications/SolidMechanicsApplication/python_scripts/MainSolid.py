@@ -104,8 +104,8 @@ class Solution(object):
         while self.time < self.end_time:
 
             self.InitializeSolutionStep()
-            self.SolveSolutionStep()
-            self.FinalizeSolutionStep()
+            if self.SolveSolutionStep():
+                self.FinalizeSolutionStep()
 
             if self.echo_level >= 0:
                 sys.stdout.flush()
@@ -136,24 +136,31 @@ class Solution(object):
         print(self._class_prefix()+" Analysis -START- ")
 
         sys.stdout.flush()
+                 
+    def PredictTimeStep(self):
+        # Predict time step from time integration
+        if self.time_process is not None:
+            self.time_process.Execute()
 
-    def InitializeSolutionStep(self):
-
-        self.clock_time = self._start_time_measuring()
-
-        # Current time parameters
-        self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
-
+        # Update time step
         self.time = self.time + self.delta_time
         self.step = self.step + 1
 
+        self.process_info[KratosMultiphysics.DELTA_TIME] = self.delta_time
         self.process_info[KratosMultiphysics.STEP] = self.step
 
         self.main_model_part.CloneTimeStep(self.time)
-
+        
         if self.echo_level >= 0:
-            print("  [STEP:"+str(self.step)+" TIME:"+"{0:1.{1}f}".format(self.time, 5)+"]")
+            print("  [STEP:"+str(self.step)+" TIME:"+"{0:1.{1}f}".format(self.time, 5)+"]")       
+ 
+    def InitializeSolutionStep(self):
 
+        clock_time = self._start_time_measuring()
+
+        # Predict time step
+        self.PredictTimeStep()
+        
         # Processes to be executed at the begining of the solution step
         self.processes.ExecuteInitializeSolutionStep()
 
@@ -163,11 +170,11 @@ class Solution(object):
         # Execution at the begining of the solution step
         self.output.ExecuteInitializeSolutionStep()
 
-        self._stop_time_measuring(self.clock_time, "Initialize Step", self.report);
+        self._stop_time_measuring(clock_time, "Initialize Step", self.report);
 
     def SolveSolutionStep(self):
 
-        self.clock_time = self._start_time_measuring()
+        clock_time = self._start_time_measuring()
 
         # All steps included (1)(2)(3)
         self.solver.Solve()
@@ -182,39 +189,39 @@ class Solution(object):
         # self.solver.FinalizeSolutionStep()
 
         iterations = self.process_info[KratosMultiphysics.NL_ITERATION_NUMBER]
-        print("  (-ITER:"+str(iterations)+" CPU:%.2f" % round((timer.clock()-self.clock_time), 2)+"s-)")
+        print("  (-ITER:"+str(iterations)+" CPU:%.2f" % round((timer.clock()-clock_time), 2)+"s-)")
 
-        self._stop_time_measuring(self.clock_time, "Solve Step", self.report)
+        self._stop_time_measuring(clock_time, "Solve Step", self.report)
 
     def FinalizeSolutionStep(self):
 
-        self.clock_time = self._start_time_measuring()
-
+        clock_time = self._start_time_measuring()
+    
         # Execution at the end of the solution step
         self.output.ExecuteFinalizeSolutionStep()
-
+        
         # Processes to be executed at the end of the solution step
         self.processes.ExecuteFinalizeSolutionStep()
-
+        
         # Execution at the end of the solution step
         self.model.ExecuteFinalizeSolutionStep()
-
+        
         # Processes to be executed before witting the output
         self.processes.ExecuteBeforeOutputStep()
-
+        
         # Execution before witting the output
         self.model.ExecuteBeforeOutputStep()
-
+        
         # Write output results GiD: (frequency writing is controlled internally)
         self._print_output()
-
+        
         # Processes to be executed after witting the output
         self.processes.ExecuteAfterOutputStep()
-
+    
         # Execution before witting the output
         self.model.ExecuteAfterOutputStep()
 
-        self._stop_time_measuring(self.clock_time, "Finalize Step", self.report)
+        self._stop_time_measuring(clock_time, "Finalize Step", self.report)
 
 
     def Finalize(self):
@@ -274,7 +281,7 @@ class Solution(object):
                 self.ProjectParameters["model_settings"]["input_file_settings"]["name"].SetString(file_name)
             else:
                 self.ProjectParameters["model_settings"]["input_file_settings"].AddEmptyValue("name").SetString(file_name)
-
+                
     def _is_not_restarted(self):
         if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):
             if self.process_info[KratosMultiphysics.IS_RESTARTED]:
@@ -315,7 +322,7 @@ class Solution(object):
                 if self.ProjectParameters["time_settings"].Has("start_time"):
                     initial_time = time_settings["start_time"].GetDouble()
                     self.process_info.SetValue(KratosMultiphysics.TIME, initial_time)
-
+                    
         # Set time parameters
         self.step = self.process_info[KratosMultiphysics.STEP]
         self.time = self.process_info[KratosMultiphysics.TIME]
@@ -323,9 +330,15 @@ class Solution(object):
         self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
 
         self.end_time = self.time + self.delta_time
+        self.time_process = None
         if self.ProjectParameters.Has("time_settings"):
             if self.ProjectParameters["time_settings"].Has("end_time"):
                 self.end_time = self.ProjectParameters["time_settings"]["end_time"].GetDouble()
+            if self.ProjectParameters["time_settings"].Has("time_process"):
+                process = self.ProjectParameters["time_settings"]["time_process"]
+                kratos_module = __import__(process["kratos_module"].GetString())
+                python_module = __import__(process["python_module"].GetString())
+                self.time_process = python_module.Factory(process, self.GetModel())
 
     def _import_materials(self):
         # Assign material to model_parts (if Materials.json exists)

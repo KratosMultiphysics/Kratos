@@ -105,11 +105,15 @@ class SolutionStrategy : public Flags
     KRATOS_TRY
 
     this->InitializeSolutionStep();
-    this->SolveSolutionStep();
-    this->FinalizeSolutionStep();
-
-    return true;
-
+    if(this->SolveSolutionStep())
+    {
+      this->FinalizeSolutionStep();
+      return true;
+    }
+    else{
+      return false;
+    }
+    
     KRATOS_CATCH("")
   }
 
