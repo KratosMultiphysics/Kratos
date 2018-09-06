@@ -27,6 +27,8 @@ sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  li
 cd ${HOME}
 wget https://drive.google.com/uc\?export\=download\&id\=1ythlWTtOCqm2nSKQzvc6QLiFYeFgC1NX -O mmg.zip
 unzip mmg.zip
+wget https://drive.google.com/uc\?export\=download\&id\=15dTI6xoJE024qh2UjfdQa85nuEAdsab- -O eigen.tar.gz
+tar xzf eigen.tar.gz
 
 ## Step1: Prepare
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
