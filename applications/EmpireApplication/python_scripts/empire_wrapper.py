@@ -384,13 +384,9 @@ class EmpireWrapper:
 
             data_field = [0.0] * (num_nodes * sum_sizes) # preallocate
 
-            node_i = 0
-            for node in model_part.Nodes:
+            for node_i, node in enumerate(model_part.Nodes):
                 size_index = 0
-                for var_index in range(len(kratos_variables)):
-                    size_of_variable = sizes_of_variables[var_index]
-                    variable = kratos_variables[var_index]
-
+                for size_of_variable, variable in zip(sizes_of_variables, kratos_variables):
                     data_value = node.GetSolutionStepValue(variable)
 
                     if size_of_variable == 1:
@@ -400,7 +396,6 @@ class EmpireWrapper:
                         for k in range(size_of_variable):
                             data_field[node_i * sum_sizes + size_index] = data_value[k]
                             size_index += 1
-                node_i += 1
 
             return data_field
         # -------------------------------------------------------------------------------------------------
@@ -427,15 +422,10 @@ class EmpireWrapper:
 
             sum_sizes = sum(size_of_variables)
 
-            node_i = 0
             # assign values to nodes of interface for current time step
-            for node in model_part.Nodes:
+            for node_i, node in enumerate(model_part.Nodes):
                 size_index = 0
-                for var_index in range(len(kratos_variables)):
-                    size_of_variable = size_of_variables[var_index]
-                    variable = kratos_variables[var_index]
-                    value = values[var_index] # get the preallocated object
-
+                for size_of_variable, variable, value in zip(size_of_variables, kratos_variables, values):
                     if size_of_variable == 1:
                         value = data_field[sum_sizes * node_i + size_index]
                         size_index += 1
@@ -445,8 +435,6 @@ class EmpireWrapper:
                             size_index += 1
 
                     node.SetSolutionStepValue(variable, 0, value)
-
-                node_i =+ 1
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
