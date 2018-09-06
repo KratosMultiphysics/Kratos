@@ -47,7 +47,7 @@ for node in model_part.Nodes:
 print("Starting to initialize Empire")
 import empire_wrapper
 print("Import Successfull")
-empire = empire_wrapper.EmpireWrapper()
+empire = empire_wrapper.EmpireWrapper(echo_level=2)
 print("Wrapper Created")
 empire.Connect("kratos_client_1.xml")
 
