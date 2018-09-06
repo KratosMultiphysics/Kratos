@@ -203,7 +203,7 @@ class GiDOutputProcess(Process):
             self.__remove_post_results_files(label)
 
             # Restart .post.lst files
-            self.__restart_list_files(additional_list_files)
+            #self.__restart_list_files(additional_list_files) # FIXME
         else:
             # Create .post.lst files
             self.__initialize_list_files(additional_list_files)
