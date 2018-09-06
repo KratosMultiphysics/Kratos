@@ -21,6 +21,7 @@
             "materials_filename" : "StructuralMaterials.json"
         },
         "line_search"                        : false,
+        "move_mesh_flag":                     false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -53,7 +54,7 @@
         "Parameters"    : {
             "model_part_name" : "DISPLACEMENT_BC_DIRICHLET_Z",
             "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,false,true],
+            "constrained"     : [true,false,true],
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
@@ -68,7 +69,7 @@
         "Parameters"    : {
             "model_part_name" : "PointLoad2D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : "0.35*t",
+            "modulus"         : "0.4*t",
             "direction"       : [0.0,1.0,0.0],
             "interval"        : [0.0,"End"]
         }
@@ -91,7 +92,7 @@
             }
         }
     }],
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostAscii",

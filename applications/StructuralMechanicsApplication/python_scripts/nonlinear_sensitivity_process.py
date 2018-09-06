@@ -43,6 +43,7 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
             "sub_model_part_name"  : "",
             "check_for_flag"       : "",
             "historical_value"     : true,
+            "absolute_value"       : true,
             "time_frequency"       : 1.00
         }
         """)
@@ -87,6 +88,8 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
         self.gauss_points_check_variables = self.__generate_variable_list_from_input(self.params["gauss_points_check_variables"])
         self.frequency = self.params["time_frequency"].GetDouble()
         self.historical_value = self.params["historical_value"].GetBool()
+        self.absolute_value = self.params["absolute_value"].GetBool()
+        # Now called later
         #self.data =  read_external_json(input_file_name)
 
     def ExecuteBeforeSolutionLoop(self):
@@ -126,18 +129,16 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         self.data =  read_external_json(self.input_file_name)
-        #time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
-        #dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
-        step = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.STEP)
+        #step = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.STEP)
         input_time_list = self.data["TIME"]
 
         if len(input_time_list) is 3:
-            print("Hurra")
-
             # Nodal values
             for node in self.sub_model_part.Nodes:
                 compute = self.__check_flag(node)
-
+                curvature_array = KratosMultiphysics.Array3()
+                sen_first_array = KratosMultiphysics.Array3()
+                sen_second_array = KratosMultiphysics.Array3()
                 if (compute == True):
                     for i in range(self.params["check_variables"].size()):
                         out = self.params["check_variables"][i]
@@ -145,56 +146,51 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
                         variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
-                        #if (self.historical_value == True):
-                        #    value = node.GetSolutionStepValue(variable, 0)
-                        #else:
-                        #    value = node.GetValue(variable)
-
                         # Scalar variable
                         if (variable_type == "Double" or variable_type == "Component"):
                             values_json = self.data["NODE_" + str(node.Id)][variable_name]
-                            #value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                            curvature = self.__ComputeEFCurvature(values_json, input_time_list)
+                            sen_first = self.__ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
+                            sen_second = self.__ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                         # Array variable
                         elif variable_type == "Array":
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                                 # X-component
                                 values_json = self.data["NODE_" + str(node.Id)][variable_name + "_X"]
-                                curvature_x = self.__ComputeEFCurvature(values_json, input_time_list)
-                                sen_first_x, sen_second_x = self.__ComputeFirstAndSecondOrderNLSensitivityFactors(values_json, input_time_list)
-                                if variable_name == "DISPLACEMENT":
-                                    node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_X, curvature_x)
-                                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_X, sen_first_x)
-                                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_X, sen_second_x)
+                                curvature_array[0] = self.__ComputeEFCurvature(values_json, input_time_list)
+                                sen_first_array[0] = self.__ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
+                                sen_second_array[0] = self.__ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                                 # Y-component
                                 values_json = self.data["NODE_" + str(node.Id)][variable_name + "_Y"]
-                                curvature_y = self.__ComputeEFCurvature(values_json, input_time_list)
-                                sen_first_y, sen_second_y = self.__ComputeFirstAndSecondOrderNLSensitivityFactors(values_json, input_time_list)
-                                if variable_name == "DISPLACEMENT":
-                                    node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_Y, curvature_y)
-                                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Y, sen_first_y)
-                                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Y, sen_second_y)
+                                curvature_array[1] = self.__ComputeEFCurvature(values_json, input_time_list)
+                                sen_first_array[1] = self.__ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
+                                sen_second_array[1] = self.__ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                                 # Z-component
                                 values_json = self.data["NODE_" + str(node.Id)][variable_name + "_Z"]
-                                curvature_z = self.__ComputeEFCurvature(values_json, input_time_list)
-                                sen_first_z, sen_second_z = self.__ComputeFirstAndSecondOrderNLSensitivityFactors(values_json, input_time_list)
-                                if variable_name == "DISPLACEMENT":
-                                    node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_Z, curvature_z)
-                                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Z, sen_first_z)
-                                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Z, sen_second_z)
-                            else:
-                                values_json = self.data["NODE_"+str(node.Id)][variable_name][step - 1]
-                                for index in range(len(value)):
-                                    value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
+                                curvature_array[2] = self.__ComputeEFCurvature(values_json, input_time_list)
+                                sen_first_array[2] = self.__ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
+                                sen_second_array[2] = self.__ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
+                            #else:
+                            #    values_json = self.data["NODE_"+str(node.Id)][variable_name][step - 1]
+                            #    for index in range(len(value)):
+                            #        value_json = values_json[index]
                         # Vector variable
-                        elif variable_type == "Vector":
-                            values_json = self.data["NODE_"+str(node.Id)][variable_name][step - 1]
-                            for index in range(len(value)):
-                                value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
+                        #elif variable_type == "Vector":
+                        #    values_json = self.data["NODE_"+str(node.Id)][variable_name][step - 1]
+                        #    for index in range(len(value)):
+                        #        value_json = values_json[index]
+
+                if variable_name == "DISPLACEMENT":
+                    node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY, curvature_array)
+                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER, sen_first_array)
+                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER, sen_second_array)
 
             # Elemental values
             for elem in self.sub_model_part.Elements:
                 compute = self.__check_flag(elem)
-
+                curvature_array = KratosMultiphysics.Array3()
+                sen_first_array = KratosMultiphysics.Array3()
+                sen_second_array = KratosMultiphysics.Array3()
                 if (compute == True):
                     for i in range(self.params["gauss_points_check_variables"].size()):
                         out = self.params["gauss_points_check_variables"][i]
@@ -210,38 +206,45 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
                         if (variable_type == "Double" or variable_type == "Component"):
                             for gp in range(gauss_point_number):
                                 values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name][str(gp)]
-                                #value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                                curvature = self.__ComputeEFCurvature(values_json, input_time_list)
+                                sen_first = self.__ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
+                                sen_second = self.__ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                         # Array variable
                         elif variable_type == "Array":
                             if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                                 for gp in range(gauss_point_number):
                                     # X-component
                                     values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)]
-                                    print("************************************************************************")
-                                    curvature = self.__ComputeEFCurvature(values_json, input_time_list)
-                                    sen_first_x, sen_second_x = self.__ComputeFirstAndSecondOrderNLSensitivityFactors(values_json, input_time_list)
-                                    #print(curvature)
-                                    #print(sen_first_x)
-                                    #print(sen_second_x)
-                                    print("************************************************************************")
-                                    #value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                                    curvature_array[0] += self.__ComputeEFCurvature(values_json, input_time_list)
+                                    sen_first_array[0] += self.__ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
+                                    sen_second_array[0] += self.__ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                                     # Y-component
                                     values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Y"][str(gp)]
-                                    #value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                                    curvature_array[1] += self.__ComputeEFCurvature(values_json, input_time_list)
+                                    sen_first_array[1] += self.__ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
+                                    sen_second_array[1] += self.__ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
                                     # Z-component
                                     values_json = self.data["ELEMENT_"+str(elem.Id)][variable_name + "_Z"][str(gp)]
-                                    #value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                            else:
-                                for gp in range(gauss_point_number):
-                                    values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)][step - 1]
-                                    for index in range(len(value[gp])):
-                                        value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
+                                    curvature_array[2] += self.__ComputeEFCurvature(values_json, input_time_list)
+                                    sen_first_array[2] += self.__ComputeFirstOrderNLSensitivityFactors(values_json, input_time_list)
+                                    sen_second_array[2] += self.__ComputeSecondOrderNLSensitivityFactors(values_json, input_time_list)
+                            #else:
+                                #for gp in range(gauss_point_number):
+                                #    values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)][step - 1]
+                                #    for index in range(len(value[gp])):
+                                #        value_json = values_json[index]
+                            # Compute here mean value of Gauss-Point results
+                            curvature_array /= gauss_point_number
+                            sen_first_array /= gauss_point_number
+                            sen_second_array /= gauss_point_number
                         # Vector variable
-                        elif variable_type == "Vector":
-                            for gp in range(gauss_point_number):
-                                values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)][step - 1]
-                                for index in range(len(value[gp])):
-                                    value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
+                        #elif variable_type == "Vector":
+                        #    for gp in range(gauss_point_number):
+                        #        values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)][step - 1]
+                        #        for index in range(len(value[gp])):
+                        #            value_json = values_json[index]
+                if variable_name == "FORCE":
+                    elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY, curvature_array)
 
 
     def ExecuteAfterOutputStep(self):
@@ -309,15 +312,33 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
         return True
 
     def __ComputeEFCurvature(self, response_value_array, load_factor_array):
+        if self.absolute_value == True:
+            for i in range(len(response_value_array)):
+                response_value_array[i] = abs(response_value_array[i])
+
         polynom = np.polyfit(load_factor_array, response_value_array, 2)
         curvature = 2 * polynom[0]
         return curvature
 
-    def __ComputeFirstAndSecondOrderNLSensitivityFactors(self, response_value_array, load_factor_array):
+    def __ComputeFirstOrderNLSensitivityFactors(self, response_value_array, load_factor_array):
+        lambda_0 = load_factor_array[0]
+        lambda_1 = load_factor_array[1]
+        f_1 = lambda_1 / lambda_0
+
+        response_0 = response_value_array[0]
+        response_1 = response_value_array[1]
+
+        sensitivity_first_order = 0.0
+
+        if abs(response_0) > 1e-8:
+            sensitivity_first_order = response_1 / ( response_0 * f_1 )
+
+        return sensitivity_first_order
+
+    def __ComputeSecondOrderNLSensitivityFactors(self, response_value_array, load_factor_array):
         lambda_0 = load_factor_array[0]
         lambda_1 = load_factor_array[1]
         lambda_2 = load_factor_array[2]
-        f_1 = lambda_1 / lambda_0
         delta_10 = lambda_1 - lambda_0
         delta_20 = lambda_2 - lambda_0
 
@@ -325,13 +346,11 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
         response_1 = response_value_array[1]
         response_2 = response_value_array[2]
 
-        sensitivity_first_order = 0.0
         sensitivity_second_order = 0.0
 
         if abs(response_0) > 1e-8:
-            sensitivity_first_order = response_1 / ( response_0 * f_1 )
             slope_10 = (response_1 - response_0) / delta_10
-            slope_20 = (response_2 - response_1) / delta_20
+            slope_20 = (response_2 - response_0) / delta_20
             sensitivity_second_order = slope_20 / slope_10
 
-        return sensitivity_first_order, sensitivity_second_order
+        return sensitivity_second_order

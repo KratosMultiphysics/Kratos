@@ -21,6 +21,7 @@
             "materials_filename" : "StructuralMaterials.json"
         },
         "line_search"                        : false,
+        "move_mesh_flag":                     false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -54,6 +55,17 @@
             "variable_name"   : "DISPLACEMENT_Z",
             "interval"        : [0.0,"End"]
         }
+    },
+    {
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "DISPLACEMENT_BC_DIRICHLET_Z",
+            "variable_name"   : "DISPLACEMENT_X",
+            "interval"        : [0.0,"End"]
+        }
     }],
     "contact_process_list"     : [],
     "loads_process_list"       : [{
@@ -65,7 +77,7 @@
         "Parameters"    : {
             "model_part_name" : "PointLoad2D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : "0.35*t",
+            "modulus"         : "0.4*t",
             "direction"       : [0.0,1.0,0.0],
             "interval"        : [0.0,"End"]
         }
@@ -93,6 +105,7 @@
             "gauss_points_check_variables" : ["FORCE"],
             "input_file_name"  : "beam_test_local_stress_results.json",
             "model_part_name"  : "Structure",
+            "absolute_value"       : true,
             "time_frequency"   : 1.0
         }
     }
@@ -127,7 +140,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT"],
-            "gauss_point_results" : ["FORCE"],
+            "gauss_point_results" : ["FORCE", "FORCE_NL_SENSITIVITY"],
             "nodal_nonhistorical_results": ["DISPLACEMENT_NL_SENSITIVITY", "NL_SENSITIVITY_FIRST_ORDER", "NL_SENSITIVITY_SECOND_ORDER"]
         },
         "point_data_configuration"  : []
