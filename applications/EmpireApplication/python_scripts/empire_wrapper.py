@@ -370,6 +370,12 @@ class EmpireWrapper:
 
         # -------------------------------------------------------------------------------------------------
         def _get_data_field(self, model_part, kratos_variables):
+            for var in kratos_variables:
+                if not model_part.HasNodalSolutionStepVariable(var):
+                    err_msg  = 'ModelPart "' + model_part.Name + '" does not have'
+                    err_msg += ' "' + var.Name() + '" as SolutionStepVariable!'
+                    raise Exception(err_msg)
+
             sizes_of_variables = self._sizes_of_variables(model_part, kratos_variables)
             self._check_size_of_variables(sizes_of_variables)
 
@@ -377,12 +383,6 @@ class EmpireWrapper:
             sum_sizes = sum(sizes_of_variables)
 
             data_field = [0.0] * (num_nodes * sum_sizes) # preallocate
-
-            for var in kratos_variables:
-                if not model_part.HasNodalSolutionStepVariable(var):
-                    err_msg  = 'ModelPart "' + model_part.Name + '" does not have'
-                    err_msg += ' "' + var.Name() + '" as SolutionStepVariable!'
-                    raise Exception(err_msg)
 
             node_i = 0
             for node in model_part.Nodes:
@@ -410,6 +410,12 @@ class EmpireWrapper:
             # check if size of data field is correct
             if len(data_field) != model_part.NumberOfNodes() * sum(size_of_variables):
                 raise Exception("received data field has wrong size!")
+
+            for var in kratos_variables:
+                if not model_part.HasNodalSolutionStepVariable(var):
+                    err_msg  = 'ModelPart "' + model_part.Name + '" does not have'
+                    err_msg += ' "' + var.Name() + '" as SolutionStepVariable!'
+                    raise Exception(err_msg)
 
             # Preallocate values
             values = []
