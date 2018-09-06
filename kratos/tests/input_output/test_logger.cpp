@@ -145,7 +145,7 @@ namespace Kratos {
 			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
 			Logger::AddOutput(p_output);
 
-			KRATOS_INFO("TestWarning") << "Test warning message";
+			KRATOS_WARNING("TestWarning") << "Test warning message";
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: Test warning message");
         }
@@ -156,8 +156,8 @@ namespace Kratos {
 			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
 			Logger::AddOutput(p_output);
 
-            KRATOS_INFO_IF("TestWarning", true) << "Test warning message";
-            KRATOS_INFO_IF("TestWarning", false) << "This should not appear";
+            KRATOS_WARNING_IF("TestWarning", true) << "Test warning message";
+            KRATOS_WARNING_IF("TestWarning", false) << "This should not appear";
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: Test warning message");
         }
@@ -169,7 +169,7 @@ namespace Kratos {
 			Logger::AddOutput(p_output);
 
 			for(std::size_t i = 0; i < 10; i++) {
-                KRATOS_INFO_ONCE("TestWarning") << "Test warning message - " << i;
+                KRATOS_WARNING_ONCE("TestWarning") << "Test warning message - " << i;
             }
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: Test warning message - 0");
@@ -182,7 +182,7 @@ namespace Kratos {
 			Logger::AddOutput(p_output);
 
             for(std::size_t i = 0; i < 10; i++) {
-                KRATOS_INFO_FIRST_N("TestWarning", 4) << ".";
+                KRATOS_WARNING_FIRST_N("TestWarning", 4) << ".";
             }
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: .TestWarning: .TestWarning: .TestWarning: .");
