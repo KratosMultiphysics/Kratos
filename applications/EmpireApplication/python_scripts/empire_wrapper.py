@@ -1,11 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # import libraries
 from KratosMultiphysics import *
-from KratosMultiphysics.EmpireApplication import *
 import ctypes as ctp
-import os
 
-CheckForPreviousImport()
 
 class EmpireWrapper:
     # Source of Implementation: https://code.activestate.com/recipes/52558/
@@ -62,14 +59,14 @@ class EmpireWrapper:
             \param[in] nodeIDs IDs of all nodes
             \param[in] numNodesPerElem number of nodes per element
             \param[in] elems connectivity table of all elements
-            
+
             void EMPIRE_API_sendMesh(char *name, int numNodes, int numElems, double *nodes, int *nodeIDs,
                     int *numNodesPerElem, int *elems); '''
             # mesh_name: name of mesh in the emperor input
-            
+
             # Save the ModelPart for data-field exchange later
             self._save_model_part(mesh_name, model_part)
-            
+
             # extract interface mesh information
             numNodes = [];          numElems = []
             nodeCoors = [];         nodeIDs = []
@@ -85,13 +82,13 @@ class EmpireWrapper:
             c_elemTable = (ctp.c_int * len(elemTable))(*elemTable)
 
             # send mesh to Emperor
-            self.libempire_api.EMPIRE_API_sendMesh("mesh_name.encode()", 
-                                                c_numNodes[0], c_numElems[0], 
-                                                c_nodeCoors, c_nodeIDs, 
+            self.libempire_api.EMPIRE_API_sendMesh("mesh_name.encode()",
+                                                c_numNodes[0], c_numElems[0],
+                                                c_nodeCoors, c_nodeIDs,
                                                 c_numNodesPerElem, c_elemTable)
             print("::EMPIRE:: Sent Mesh")
         # -------------------------------------------------------------------------------------------------
-        
+
         # -------------------------------------------------------------------------------------------------
         def ReceiveMesh(self, mesh_name, model_part):
             ''' Recieve mesh from the server
@@ -102,7 +99,7 @@ class EmpireWrapper:
             \param[in] nodeIDs IDs of all nodes
             \param[in] numNodesPerElem number of nodes per element
             \param[in] elems connectivity table of all elements
-            
+
             void EMPIRE_API_recvMesh(char *name, int *numNodes, int *numElems, double **nodes, int **nodeIDs,
                     int **numNodesPerElem, int **elem); '''
             # mesh_name: name of mesh in the emperor input
@@ -116,10 +113,10 @@ class EmpireWrapper:
             c_nodeIDs = ctp.pointer(ctp.pointer(ctp.c_int(0)))
             c_numNodesPerElem = ctp.pointer(ctp.pointer(ctp.c_int(0)))
             c_elemTable = ctp.pointer(ctp.pointer(ctp.c_int(0)))
-            
-            self.libempire_api.EMPIRE_API_recvMesh(mesh_name.encode(), 
-                                                   c_numNodes, c_numElems, 
-                                                   c_nodeCoors, c_nodeIDs, 
+
+            self.libempire_api.EMPIRE_API_recvMesh(mesh_name.encode(),
+                                                   c_numNodes, c_numElems,
+                                                   c_nodeCoors, c_nodeIDs,
                                                    c_numNodesPerElem, c_elemTable)
 
             numNodes = c_numNodes.contents.value
@@ -128,7 +125,7 @@ class EmpireWrapper:
             nodeIDs = c_nodeIDs.contents
             numNodesPerElem = c_numNodesPerElem.contents
             elemTable = c_elemTable.contents
-            
+
             self._set_mesh(model_part, numNodes, numElems, nodeCoors, nodeIDs, numNodesPerElem, elemTable)
             print("::EMPIRE:: Received Mesh")
         # -------------------------------------------------------------------------------------------------
@@ -139,7 +136,7 @@ class EmpireWrapper:
             \param[in] name name of the field
             \param[in] sizeOfArray size of the array (data field)
             \param[in] dataField the data field to be sent
-            
+
             void EMPIRE_API_sendDataField(char *name, int sizeOfArray, double *dataField); '''
             # mesh_name: name of mesh in the emperor input
             # data_field_name: name of dataField in the emperor input
@@ -162,12 +159,12 @@ class EmpireWrapper:
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
-        def ReceiveDataField(self, mesh_name, data_field_name, kratos_variables):   
+        def ReceiveDataField(self, mesh_name, data_field_name, kratos_variables):
             ''' Receive data field from the server
             \param[in] name name of the field
             \param[in] sizeOfArray size of the array (data field)
             \param[out] dataField the data field to be received
-            
+
             void EMPIRE_API_recvDataField(char *name, int sizeOfArray, double *dataField); '''
             # mesh_name: name of mesh in the emperor input
             # data_field_name: name of dataField in the emperor input
@@ -192,14 +189,14 @@ class EmpireWrapper:
 
             self._set_data_field(model_part, kratos_variables, c_data_field, sizes_of_variables)
         # -------------------------------------------------------------------------------------------------
-        
+
         # -------------------------------------------------------------------------------------------------
         def SendArray(self, array_name, array_to_send):
             ''' Send signal to the server
             \param[in] name name of the signal
             \param[in] sizeOfArray size of the array (signal)
             \param[in] signal the signal
-            
+
             void EMPIRE_API_sendSignal_double(char *name, int sizeOfArray, double *signal); '''
             # array_name: name of signal in the emperor input
 
@@ -216,7 +213,7 @@ class EmpireWrapper:
             \param[in] name name of the signal
             \param[in] sizeOfArray size of the array (signal)
             \param[in] signal the signal
-            
+
             void EMPIRE_API_recvSignal_double(char *name, int sizeOfArray, double *signal); '''
             # array_name: name of signal in the emperor input
 
@@ -232,7 +229,7 @@ class EmpireWrapper:
         def ReceiveConvergenceSignal(self):
             '''Receive the convergence signal of an loop
             \return 1 means convergence, 0 means non-convergence
-            
+
             int EMPIRE_API_recvConvergenceSignal(); '''
 
             return self.libempire_api.EMPIRE_API_recvConvergenceSignal()
@@ -243,6 +240,8 @@ class EmpireWrapper:
         def _load_empire_library(self):
             if hasattr(self, 'libempire_api'): # the library has been loaded already
                 raise ImportError("The EMPIRE library must be loaded only once!")
+
+            import os
 
             if "EMPIRE_API_LIBSO_ON_MACHINE" not in os.environ:
                 raise ImportError("The EMPIRE environment is not set!")
@@ -259,13 +258,13 @@ class EmpireWrapper:
         def _get_mesh(self, model_part, num_nodes, num_elements, node_coords, node_IDs, num_nodes_per_element, element_table):
             num_nodes.append(model_part.NumberOfNodes())
             num_elements.append(model_part.NumberOfElements())
-            
+
             for node in model_part.Nodes:
                 node_coords.append(node.X)
                 node_coords.append(node.Y)
                 node_coords.append(node.Z)
                 node_IDs.append(node.Id)
-                
+
             for elem in model_part.Elements:
                 num_nodes_per_element.append(len(elem.GetNodes()))
                 for node in elem.GetNodes():
@@ -310,14 +309,14 @@ class EmpireWrapper:
                 for j in range(num_nodes_element):
                     element_nodes.append(int(element_table[element_table_counter]))
                     element_table_counter += 1
-                    
+
                 model_part.CreateNewElement(name_element, i+1, element_nodes, prop)
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
         def _get_data_field(self, model_part, kratos_variables):
             sizes_of_variables = self._sizes_of_variables(model_part, kratos_variables)
-            self._check_size_of_variables(sizes_of_variables)            
+            self._check_size_of_variables(sizes_of_variables)
 
             num_nodes = model_part.NumberOfNodes()
             sum_sizes = sum(sizes_of_variables)
@@ -341,7 +340,7 @@ class EmpireWrapper:
                             data_field[node_i * sum_sizes + size_index] = data_value[k]
                             size_index += 1
                 node_i += 1
-            
+
             return data_field
         # -------------------------------------------------------------------------------------------------
 
@@ -377,9 +376,9 @@ class EmpireWrapper:
                         for k in range(size_of_variable):
                             value[k] = data_field[sum_sizes * node_i + size_index]
                             size_index += 1
-                
+
                     node.SetSolutionStepValue(variable, 0, value)
-                
+
                 node_i =+ 1
         # -------------------------------------------------------------------------------------------------
 
@@ -398,7 +397,7 @@ class EmpireWrapper:
                     sizes_of_variables.append(size_of_variable)
                 except StopIteration:
                     raise TypeError("Size of Variable \"" + variable + "\" could not be determined")
-            
+
             return sizes_of_variables
         # -------------------------------------------------------------------------------------------------
 
@@ -417,7 +416,7 @@ class EmpireWrapper:
 
             for i in range(array_size):
                 converted_list[i] = c_signal[i]
-            
+
             return converted_list
         # -------------------------------------------------------------------------------------------------
 
