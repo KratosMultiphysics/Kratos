@@ -97,7 +97,7 @@ class EmpireWrapper:
                                                 c_nodeCoors, c_nodeIDs,
                                                 c_numNodesPerElem, c_elemTable)
             if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Sucessfully sent Mesh')
+                KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Sucessfully sent mesh')
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ class EmpireWrapper:
                                                    c_nodeCoors, c_nodeIDs,
                                                    c_numNodesPerElem, c_elemTable)
             if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Sucessfully received Mesh')
+                KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Sucessfully received mesh')
 
             numNodes = c_numNodes.contents.value
             numElems = c_numElems.contents.value
@@ -300,12 +300,14 @@ class EmpireWrapper:
             if "EMPIRE_API_LIBSO_ON_MACHINE" not in os.environ:
                 raise ImportError("The EMPIRE environment is not set!")
 
+            KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Attempting to load empire-api')
             try: # OpenMPI
                 self.libempire_api = ctp.CDLL(os.environ['EMPIRE_API_LIBSO_ON_MACHINE'], ctp.RTLD_GLOBAL)
-                KratosMuLogger.PrintInfo('EMPIRE-Wrapper', 'Using standard OpenMPI')
+                KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Using standard OpenMPI')
             except: # Intel MPI or OpenMPI compiled with "–disable-dlopen" option
                 self.libempire_api = ctp.cdll.LoadLibrary(os.environ['EMPIRE_API_LIBSO_ON_MACHINE'])
                 KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Using Intel MPI or OpenMPI compiled with "–disable-dlopen" option')
+            KratosMultiphysics.Logger.PrintInfo('EMPIRE-Wrapper', 'Successfully loaded empire-api')
         # -------------------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------------------
