@@ -115,6 +115,10 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue) override;
 
+    array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rValue) override;
+
     void CalculateMaterialResponse(
         const Vector& rStrainVector,const Matrix& rDeformationGradient,
         Vector& rStressVector,Matrix& rAlgorithmicTangent,
@@ -129,6 +133,10 @@ public:
                     const GeometryType& rElementGeometry,
                     const Vector& rShapeFunctionsValues,
                     const ProcessInfo& rCurrentProcessInfo) override {} ;
+
+    //this functions calculates the current stress based on an element given (set)
+    //strain
+    double CalculateStressElastic(ConstitutiveLaw::Parameters& rParameterValues) const;
 
 protected:
 
@@ -156,7 +164,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    double mStressState = 0.0; // The current stress state
     ///@}
     ///@name Private Operators
     ///@{
@@ -180,13 +187,11 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
-        rSerializer.save("StressState", this->mStressState);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
-        rSerializer.load("StressState", this->mStressState);
     }
 
 

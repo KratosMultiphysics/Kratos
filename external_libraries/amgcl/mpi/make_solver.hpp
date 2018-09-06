@@ -66,7 +66,7 @@ class make_solver {
 
             params() {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, precond),
                   AMGCL_PARAMS_IMPORT_CHILD(p, solver)
@@ -148,7 +148,7 @@ class make_solver {
             return P.system_matrix();
         }
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         void get_params(boost::property_tree::ptree &p) const {
             prm.get(p);
         }

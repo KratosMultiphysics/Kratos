@@ -85,7 +85,7 @@ class bicgstab {
                   abstol(std::numeric_limits<scalar_type>::min())
             {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, pside),
                   AMGCL_PARAMS_IMPORT_VALUE(p, maxiter),
@@ -228,8 +228,23 @@ class bicgstab {
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
+        size_t bytes() const {
+            return
+                backend::bytes(*r) +
+                backend::bytes(*p) +
+                backend::bytes(*v) +
+                backend::bytes(*s) +
+                backend::bytes(*t) +
+                backend::bytes(*rh) +
+                backend::bytes(*T);
+        }
+
         friend std::ostream& operator<<(std::ostream &os, const bicgstab &s) {
-            return os << "bicgstab: " << s.n << " unknowns";
+            return os
+                << "Type:             BiCGStab"
+                << "\nUnknowns:         " << s.n
+                << "\nMemory footprint: " << human_readable_memory(s.bytes())
+                << std::endl;
         }
     public:
         params prm;
@@ -254,6 +269,16 @@ class bicgstab {
 };
 
 } // namespace solver
+
+namespace backend {
+template <class B, class I>
+struct bytes_impl< solver::bicgstab<B, I> > {
+    static size_t get(const solver::bicgstab<B, I> &S) {
+        return S.bytes();
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 

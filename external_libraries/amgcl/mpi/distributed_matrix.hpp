@@ -1102,7 +1102,7 @@ spectral_radius(const mpi::distributed_matrix<Backend> &A, int power_iters = 0)
                 for(ptrdiff_t j = A_rem.ptr[i], e = A_rem.ptr[i+1]; j < e; ++j)
                     s += math::norm(A_rem.val[j]);
 
-                if (scale) s *= math::norm(math::inverse(dia)); 
+                if (scale) s *= math::norm(math::inverse(dia));
 
                 emax = std::max(emax, s);
             }

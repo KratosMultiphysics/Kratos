@@ -77,7 +77,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearElasticPlasticPlaneStress2DLaw();
+    ~LinearElasticPlasticPlaneStress2DLaw() override;
 
     /**
      * Operators
@@ -170,12 +170,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElasticPlasticPlaneStrain2DLaw )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElasticPlasticPlaneStrain2DLaw )
     }

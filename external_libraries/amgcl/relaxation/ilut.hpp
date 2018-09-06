@@ -79,7 +79,7 @@ struct ilut {
 
         params() : p(2), tau(1e-2f), damping(1) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, p)
             , AMGCL_PARAMS_IMPORT_VALUE(p, tau)
@@ -205,6 +205,10 @@ struct ilut {
     {
         backend::copy(rhs, x);
         ilu->solve(x);
+    }
+
+    size_t bytes() const {
+        return ilu->bytes();
     }
 
     private:
@@ -375,6 +379,17 @@ struct ilut {
 };
 
 } // namespace relaxation
+
+namespace backend {
+
+template <class Backend>
+struct bytes_impl< relaxation::ilut<Backend> > {
+    static size_t get(const relaxation::ilut<Backend> &R) {
+        return R.bytes();
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 #endif

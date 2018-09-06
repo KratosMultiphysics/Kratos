@@ -94,19 +94,28 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector 
-     * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator 
+     * @param rStressVector The stress vector
+     * @param rDeviator The deviatoric part of the stress vector
+     * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& rStressVector,
+        const Vector& rDeviator,
         const double J2,
-        Vector &rg,
-        const Properties &rMaterialProperties)
+        Vector& rGFlux,
+        const Properties& rMaterialProperties)
     {
+    }
+
+    /**
+     * @brief This method defines the check to be performed in the plastic potential
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        return 0;
     }
 
     ///@}

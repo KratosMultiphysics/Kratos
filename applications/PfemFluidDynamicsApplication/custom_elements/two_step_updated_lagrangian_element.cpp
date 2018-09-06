@@ -11,7 +11,7 @@
 // System includes
 
 // External includes
- 
+
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_element.h"
 #include "includes/cfd_variables.h"
@@ -39,19 +39,19 @@ namespace Kratos {
 
     TwoStepUpdatedLagrangianElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
     return Element::Pointer( new TwoStepUpdatedLagrangianElement(NewElement) );
-    
+
     KRATOS_CATCH("");
 
   }
 
-  
+
   template< unsigned int TDim >
   GeometryData::IntegrationMethod TwoStepUpdatedLagrangianElement<TDim>::GetIntegrationMethod() const
   {
     return GeometryData::GI_GAUSS_1;
   }
 
-  
+
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::EquationIdVector(EquationIdVectorType& rResult,
@@ -117,7 +117,7 @@ namespace Kratos {
     KRATOS_CATCH("");
   }
 
-  
+
 
   template<>
   void TwoStepUpdatedLagrangianElement<2>::VelocityEquationIdVector(EquationIdVectorType& rResult,
@@ -237,7 +237,7 @@ namespace Kratos {
       {
         rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PRESSURE);
       }
-	
+
   }
 
   template< unsigned int TDim >
@@ -285,12 +285,12 @@ namespace Kratos {
 								   const ShapeFunctionDerivativesType& rDN_DX,
 								   unsigned int g)
   {
-  
+
     double theta=this->GetThetaMomentum();
     // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
     bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
     return computeElement;
-  
+
   }
 
 
@@ -321,7 +321,7 @@ namespace Kratos {
     const SizeType NumNodes = rGeom.PointsNumber();
 
     //SizeType Index = 0;
-   
+
     double velX=0;
     double velY=0;
     double coeff=0.0;
@@ -349,7 +349,7 @@ namespace Kratos {
     const SizeType NumNodes = rGeom.PointsNumber();
 
     //SizeType Index = 0;
-   
+
     double velX=0;
     double velY=0;
     double velZ=0;
@@ -490,7 +490,7 @@ namespace Kratos {
     double count=0;
     for (SizeType i = 0; i < NumNodes; ++i)
       {
-	meanAcceleration+= 0.5/TimeStep*(rGeom[i].FastGetSolutionStepValue(VELOCITY,0)-rGeom[i].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[i].FastGetSolutionStepValue(ACCELERATION,1); 
+	meanAcceleration+= 0.5/TimeStep*(rGeom[i].FastGetSolutionStepValue(VELOCITY,0)-rGeom[i].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[i].FastGetSolutionStepValue(ACCELERATION,1);
 	// meanAcceleration+=rGeom[i].FastGetSolutionStepValue(ACCELERATION,step);
 	count+=1.0;
       }
@@ -605,7 +605,7 @@ namespace Kratos {
     	  count+=1.0;
         }
     }
-    ElemSize*=1.0/count; 
+    ElemSize*=1.0/count;
     return ElemSize;
 
     // // calculate minimum element length (used in stabilization Tau)
@@ -632,7 +632,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   bool TwoStepUpdatedLagrangianElement<2>::CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
 								  const ProcessInfo &rCurrentProcessInfo,
 								  const ShapeFunctionDerivativesType& rDN_DX,
@@ -647,7 +647,7 @@ namespace Kratos {
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType RHSVelocities = ZeroVector(LocalSize);
     this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
-    this->GetVelocityValues(RHSVelocities,0); 
+    this->GetVelocityValues(RHSVelocities,0);
     RHSVelocities*=theta;
     this->GetVelocityValues(VelocityValues,1);
     RHSVelocities+=VelocityValues*(1.0-theta);
@@ -669,14 +669,14 @@ namespace Kratos {
     //Inverse
     rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgrad=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad, 
-				    rElementalVariables.InvFgrad, 
+    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
+				    rElementalVariables.InvFgrad,
 				    rElementalVariables.DetFgrad);
 
     rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgradVel=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel, 
-				    rElementalVariables.InvFgradVel, 
+    MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
+				    rElementalVariables.InvFgradVel,
 				    rElementalVariables.DetFgradVel);
 
 
@@ -689,44 +689,44 @@ namespace Kratos {
       {
 	rElementalVariables.VolumetricDefRate+=rElementalVariables.SpatialVelocityGrad(i,i);
       }
-  
+
     // //it checks whether tr(l) == div(v)
     // CheckStrain1(rElementalVariables.VolumetricDefRate,rElementalVariables.SpatialVelocityGrad);
     // CheckStrain2(rElementalVariables.SpatialVelocityGrad,rElementalVariables.Fgrad,ElementalVariables.FgradVel);
     // //it computes Material time Derivative of Green Lagrange strain tensor in MATERIAL configuration --> [D(E)/Dt]
     // // x-component
-    // rElementalVariables.MDGreenLagrangeMaterial[0]=rElementalVariables.FgradVel(0,0)*rElementalVariables.Fgrad(0,0) + 
+    // rElementalVariables.MDGreenLagrangeMaterial[0]=rElementalVariables.FgradVel(0,0)*rElementalVariables.Fgrad(0,0) +
     //   rElementalVariables.FgradVel(1,0)*rElementalVariables.Fgrad(1,0);
     // // y-component
-    // rElementalVariables.MDGreenLagrangeMaterial[1]=rElementalVariables.FgradVel(1,1)*rElementalVariables.Fgrad(1,1) + 
+    // rElementalVariables.MDGreenLagrangeMaterial[1]=rElementalVariables.FgradVel(1,1)*rElementalVariables.Fgrad(1,1) +
     //   rElementalVariables.FgradVel(0,1)*rElementalVariables.Fgrad(0,1);
     // // xy-component
-    // rElementalVariables.MDGreenLagrangeMaterial[2]=(rElementalVariables.FgradVel(0,0)*rElementalVariables.Fgrad(0,1) + 
+    // rElementalVariables.MDGreenLagrangeMaterial[2]=(rElementalVariables.FgradVel(0,0)*rElementalVariables.Fgrad(0,1) +
     // 						  rElementalVariables.FgradVel(1,0)*rElementalVariables.Fgrad(1,1) +
-    // 						  rElementalVariables.FgradVel(0,1)*rElementalVariables.Fgrad(0,0) + 
+    // 						  rElementalVariables.FgradVel(0,1)*rElementalVariables.Fgrad(0,0) +
     // 						  rElementalVariables.FgradVel(1,1)*rElementalVariables.Fgrad(1,0))*0.5;
     // //it computes Material time Derivative of Green Lagrange strain tensor in SPATIAL configuration  --> [d]
     // // x-component
-    // rElementalVariables.SpatialDefRate[0]= rElementalVariables.InvFgrad(0,0)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,0) + 
+    // rElementalVariables.SpatialDefRate[0]= rElementalVariables.InvFgrad(0,0)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,0) +
     //   rElementalVariables.InvFgrad(1,0)*rElementalVariables.MDGreenLagrangeMaterial[2]*rElementalVariables.InvFgrad(0,0)*2 +
     //   rElementalVariables.InvFgrad(1,0)*rElementalVariables.MDGreenLagrangeMaterial[1]*rElementalVariables.InvFgrad(1,0);
     // // y-component
-    // rElementalVariables.SpatialDefRate[1]= rElementalVariables.InvFgrad(0,1)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,1) + 
+    // rElementalVariables.SpatialDefRate[1]= rElementalVariables.InvFgrad(0,1)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,1) +
     //   rElementalVariables.InvFgrad(0,1)*rElementalVariables.MDGreenLagrangeMaterial[2]*rElementalVariables.InvFgrad(1,1)*2 +
     //   rElementalVariables.InvFgrad(1,1)*rElementalVariables.MDGreenLagrangeMaterial[1]*rElementalVariables.InvFgrad(1,1);
     // // xy-component
-    // rElementalVariables.SpatialDefRate[2]=rElementalVariables.InvFgrad(0,0)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,1) + 
+    // rElementalVariables.SpatialDefRate[2]=rElementalVariables.InvFgrad(0,0)*rElementalVariables.MDGreenLagrangeMaterial[0]*rElementalVariables.InvFgrad(0,1) +
     //   rElementalVariables.InvFgrad(0,0)*rElementalVariables.MDGreenLagrangeMaterial[2]*rElementalVariables.InvFgrad(1,1) +
     //   rElementalVariables.InvFgrad(1,0)*rElementalVariables.MDGreenLagrangeMaterial[2]*rElementalVariables.InvFgrad(0,1) +
     //   rElementalVariables.InvFgrad(1,0)*rElementalVariables.MDGreenLagrangeMaterial[1]*rElementalVariables.InvFgrad(1,1);
- 
+
     // computeElement=CheckStrain3(rElementalVariables.SpatialDefRate,rElementalVariables.SpatialVelocityGrad);
 
 
     rElementalVariables.SpatialDefRate[0]=rElementalVariables.SpatialVelocityGrad(0,0);
     rElementalVariables.SpatialDefRate[1]=rElementalVariables.SpatialVelocityGrad(1,1);
     rElementalVariables.SpatialDefRate[2]=0.5*(rElementalVariables.SpatialVelocityGrad(1,0)+rElementalVariables.SpatialVelocityGrad(0,1));
-  
+
     double aThird=1.0/3.0;
     double dev_X=rElementalVariables.SpatialDefRate[0]-
       (rElementalVariables.SpatialDefRate[0]+rElementalVariables.SpatialDefRate[1])*aThird;
@@ -741,9 +741,9 @@ namespace Kratos {
 
     return computeElement;
 
-  }  
+  }
 
-  template < > 
+  template < >
   bool TwoStepUpdatedLagrangianElement<3>::CalcCompleteStrainRate(ElementalVariables & rElementalVariables,
 								  const ProcessInfo &rCurrentProcessInfo,
 								  const ShapeFunctionDerivativesType& rDN_DX,
@@ -759,7 +759,7 @@ namespace Kratos {
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType RHSVelocities = ZeroVector(LocalSize);
     this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
-    this->GetVelocityValues(RHSVelocities,0); 
+    this->GetVelocityValues(RHSVelocities,0);
     RHSVelocities*=theta;
     this->GetVelocityValues(VelocityValues,1);
     RHSVelocities+=VelocityValues*(1.0-theta);
@@ -781,31 +781,31 @@ namespace Kratos {
     //Inverse
     rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgrad=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad, 
-				    rElementalVariables.InvFgrad, 
+    MathUtils<double>::InvertMatrix(rElementalVariables.Fgrad,
+				    rElementalVariables.InvFgrad,
 				    rElementalVariables.DetFgrad);
 
     rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgradVel=1;
-    MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel, 
-				    rElementalVariables.InvFgradVel, 
+    MathUtils<double>::InvertMatrix(rElementalVariables.FgradVel,
+				    rElementalVariables.InvFgradVel,
 				    rElementalVariables.DetFgradVel);
 
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
     rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension);
     rElementalVariables.SpatialVelocityGrad=prod(rElementalVariables.FgradVel,rElementalVariables.InvFgrad);
-  
+
     rElementalVariables.VolumetricDefRate=0;
     for (SizeType i = 0; i < dimension; i++)
       {
 	rElementalVariables.VolumetricDefRate+=rElementalVariables.SpatialVelocityGrad(i,i);
       }
-  
+
     // //it checks whether tr(l) == div(v)
     // CheckStrain1(rElementalVariables.VolumetricDefRate,rElementalVariables.SpatialVelocityGrad);
     // CheckStrain2(rElementalVariables.SpatialVelocityGrad,rElementalVariables.Fgrad,ElementalVariables.FgradVel);
- 
+
     // //it computes Material time Derivative of Green Lagrange strain tensor in MATERIAL configuration --> [D(E)/Dt]
     // MatrixType MatrixA= ZeroMatrix(3,3);
     // MatrixType MatrixB= ZeroMatrix(3,3);
@@ -860,7 +860,7 @@ namespace Kratos {
 
     // noalias(Matrix1)=prod(MatrixB,rElementalVariables.InvFgrad);
     // noalias(Matrix2)=prod(MatrixA,Matrix1);
- 
+
     // rElementalVariables.SpatialDefRate[0]=Matrix2(0,0);
     // rElementalVariables.SpatialDefRate[1]=Matrix2(1,1);
     // rElementalVariables.SpatialDefRate[2]=Matrix2(2,2);
@@ -899,7 +899,7 @@ namespace Kratos {
 
     return computeElement;
 
-  }  
+  }
 
 
 
@@ -932,10 +932,10 @@ namespace Kratos {
     this->CalcSpatialVelocityGrad(rElementalVariables.InvFgrad,
 				  rElementalVariables.FgradVel,
 				  rElementalVariables.SpatialVelocityGrad);
-  
+
     this->CalcVolDefRateFromSpatialVelGrad(rElementalVariables.VolumetricDefRate,
 					   rElementalVariables.SpatialVelocityGrad);
-  
+
 
     // this->CalcVolumetricDefRate(rDN_DX,
     // 			      rElementalVariables.VolumetricDefRate,
@@ -945,16 +945,16 @@ namespace Kratos {
     // //it checks whether tr(l) == div(v)
     // CheckStrain1(rElementalVariables.VolumetricDefRate,
     // 	       rElementalVariables.SpatialVelocityGrad);
-      
+
     // CheckStrain2(rElementalVariables.SpatialVelocityGrad,
     // 	       rElementalVariables.Fgrad,
     // 	       rElementalVariables.FgradVel);
- 
+
     //it computes Material time Derivative of Green Lagrange strain tensor in MATERIAL configuration --> [D(E)/Dt]
     this->CalcMDGreenLagrangeMaterial(rElementalVariables.Fgrad,
 				      rElementalVariables.FgradVel,
 				      rElementalVariables.MDGreenLagrangeMaterial);
-      
+
     //it computes Material time Derivative of Green Lagrange strain tensor in SPATIAL configuration  --> [d]
     this->CalcSpatialDefRate(rElementalVariables.MDGreenLagrangeMaterial,
 			     rElementalVariables.InvFgrad,
@@ -972,12 +972,12 @@ namespace Kratos {
 				   rElementalVariables.EquivalentStrainRate);
     return computeElement;
 
-  }  
+  }
 
 
-  
 
-  template <unsigned int TDim > 
+
+  template <unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::CalcFGrad(const ShapeFunctionDerivativesType& rDN_DX,
 							MatrixType &Fgrad,
 							MatrixType &invFgrad,
@@ -1023,7 +1023,7 @@ namespace Kratos {
 
     // //Determinant of the material time derivative of the deformation gradient tensor
     // FJacobian= Fgrad(0,0)*Fgrad(1,1)-Fgrad(0,1)*Fgrad(1,0);
-   
+
     // //Inverse
     // invFgrad.resize(2,2);
     // if(FJacobian==0){
@@ -1032,7 +1032,7 @@ namespace Kratos {
     //   invFgrad(0,0)=  (Fgrad(1,1)/FJacobian);
     //   invFgrad(0,1)= -(Fgrad(0,1)/FJacobian);
     //   invFgrad(1,0)= -(Fgrad(1,0)/FJacobian);
-    //   invFgrad(1,1)=  (Fgrad(0,0)/FJacobian); 
+    //   invFgrad(1,1)=  (Fgrad(0,0)/FJacobian);
     // }
 
     // std::cout<<"             "<< FJacobian;
@@ -1048,9 +1048,9 @@ namespace Kratos {
 
   }
 
-  
 
-  template < unsigned int TDim> 
+
+  template < unsigned int TDim>
   void TwoStepUpdatedLagrangianElement<TDim>::CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
 							     MatrixType &FgradVel,
 							     MatrixType &invFgradVel,
@@ -1062,7 +1062,7 @@ namespace Kratos {
     const SizeType LocalSize = TDim*NumNodes;
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType RHSVelocities = ZeroVector(LocalSize);
-    this->GetVelocityValues(RHSVelocities,0); 
+    this->GetVelocityValues(RHSVelocities,0);
     RHSVelocities*=theta;
     this->GetVelocityValues(VelocityValues,1);
     RHSVelocities+=VelocityValues*(1.0-theta);
@@ -1093,7 +1093,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<2>::CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX,
 								 double &volumetricDefRate,
 								 MatrixType &invGradDef,
@@ -1106,7 +1106,7 @@ namespace Kratos {
     const SizeType LocalSize = 2*NumNodes;
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType RHSVelocities = ZeroVector(LocalSize);
-    this->GetVelocityValues(RHSVelocities,0); 
+    this->GetVelocityValues(RHSVelocities,0);
     RHSVelocities*=theta;
     this->GetVelocityValues(VelocityValues,1);
     RHSVelocities+=VelocityValues*(1.0-theta);
@@ -1132,13 +1132,13 @@ namespace Kratos {
 
   }
 
-  template < unsigned int TDim > 
+  template < unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::CalcSpatialVelocityGrad(MatrixType &invFgrad,
 								      MatrixType &VelDefgrad,
 								      MatrixType &SpatialVelocityGrad)
   {
     SpatialVelocityGrad.resize(TDim,TDim);
-  
+
     SpatialVelocityGrad=prod(VelDefgrad,invFgrad);
 
     // SpatialVelocityGrad(0,0)=VelDefgrad(0,0)*invFgrad(0,0) + VelDefgrad(0,1)*invFgrad(1,0);
@@ -1149,7 +1149,7 @@ namespace Kratos {
   }
 
 
-  template < unsigned int TDim > 
+  template < unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::CalcVolDefRateFromSpatialVelGrad(double &volumetricDefRate,
 									       MatrixType &SpatialVelocityGrad)
   {
@@ -1162,7 +1162,7 @@ namespace Kratos {
 
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<2>::CheckStrain1(double &VolumetricDefRate,
 							MatrixType &SpatialVelocityGrad)
   {
@@ -1174,9 +1174,9 @@ namespace Kratos {
     }
   }
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<2>::CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
-								       MatrixType &VelDefgrad, 
+								       MatrixType &VelDefgrad,
 								       VectorType &MDGreenLagrangeMaterial)
   {
 
@@ -1191,9 +1191,9 @@ namespace Kratos {
 
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<3>::CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
-								       MatrixType &VelDefgrad, 
+								       MatrixType &VelDefgrad,
 								       VectorType &MDGreenLagrangeMaterial)
   {
     MatrixType FgradTransp= ZeroMatrix(3,3);
@@ -1232,28 +1232,28 @@ namespace Kratos {
 
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<2>::CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
 							      MatrixType &invFgrad,
 							      VectorType &SpatialDefRate)
   {
     // x-component
-    SpatialDefRate[0]= invFgrad(0,0)*MDGreenLagrangeMaterial[0]*invFgrad(0,0) + 
+    SpatialDefRate[0]= invFgrad(0,0)*MDGreenLagrangeMaterial[0]*invFgrad(0,0) +
       invFgrad(1,0)*MDGreenLagrangeMaterial[2]*invFgrad(0,0)*2 +
       invFgrad(1,0)*MDGreenLagrangeMaterial[1]*invFgrad(1,0);
     // y-component
-    SpatialDefRate[1]= invFgrad(0,1)*MDGreenLagrangeMaterial[0]*invFgrad(0,1) + 
+    SpatialDefRate[1]= invFgrad(0,1)*MDGreenLagrangeMaterial[0]*invFgrad(0,1) +
       invFgrad(0,1)*MDGreenLagrangeMaterial[2]*invFgrad(1,1)*2 +
       invFgrad(1,1)*MDGreenLagrangeMaterial[1]*invFgrad(1,1);
     // xy-component
-    SpatialDefRate[2]=invFgrad(0,0)*MDGreenLagrangeMaterial[0]*invFgrad(0,1) + 
+    SpatialDefRate[2]=invFgrad(0,0)*MDGreenLagrangeMaterial[0]*invFgrad(0,1) +
       invFgrad(0,0)*MDGreenLagrangeMaterial[2]*invFgrad(1,1) +
       invFgrad(1,0)*MDGreenLagrangeMaterial[2]*invFgrad(0,1) +
       invFgrad(1,0)*MDGreenLagrangeMaterial[1]*invFgrad(1,1);
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<3>::CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
 							      MatrixType &invFgrad,
 							      VectorType &SpatialDefRate)
@@ -1284,7 +1284,7 @@ namespace Kratos {
     part1=prod(MDGLM,invFgrad);
 
     totalMatrix=prod(invFgradTransp,part1);
- 
+
     SpatialDefRate[0]=totalMatrix(0,0);
     SpatialDefRate[1]=totalMatrix(1,1);
     SpatialDefRate[2]=totalMatrix(2,2);
@@ -1295,7 +1295,7 @@ namespace Kratos {
 
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<2>::CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 								   double &DeviatoricInvariant)
   {
@@ -1307,7 +1307,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<2>::CalcEquivalentStrainRate(VectorType &SpatialDefRate,
 								    double &EquivalentStrainRate)
   {
@@ -1317,7 +1317,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<3>::CalcDeviatoricInvariant(VectorType &SpatialDefRate,
 								   double &DeviatoricInvariant)
   {
@@ -1332,7 +1332,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<3>::CalcEquivalentStrainRate(VectorType &SpatialDefRate,
 								    double &EquivalentStrainRate)
   {
@@ -1344,10 +1344,10 @@ namespace Kratos {
 				   2.0*SpatialDefRate[5]*SpatialDefRate[5]));
   }
 
-  template < > 
+  template < >
   double TwoStepUpdatedLagrangianElement<2>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)
   {
-  
+
     double NormalProjSpatialDefRate=0;
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -1381,7 +1381,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   double TwoStepUpdatedLagrangianElement<3>::CalcNormalProjectionDefRate(VectorType &SpatialDefRate)
   {
     double NormalProjSpatialDefRate=0;
@@ -1407,8 +1407,8 @@ namespace Kratos {
 
 
     // if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
-    //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) + 
-    // 		  rGeom[1].FastGetSolutionStepValue(NORMAL) + 
+    //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) +
+    // 		  rGeom[1].FastGetSolutionStepValue(NORMAL) +
     // 		  rGeom[2].FastGetSolutionStepValue(NORMAL))/3.0;
     // }else if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
     //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) +
@@ -1418,7 +1418,7 @@ namespace Kratos {
     //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) +
     // 		  rGeom[2].FastGetSolutionStepValue(NORMAL) +
     // 		  rGeom[3].FastGetSolutionStepValue(NORMAL))/3.0;
-    // }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){      
+    // }else if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
     //   NormalMean = (rGeom[1].FastGetSolutionStepValue(NORMAL) +
     // 		  rGeom[2].FastGetSolutionStepValue(NORMAL) +
     // 		  rGeom[3].FastGetSolutionStepValue(NORMAL))/3.0;
@@ -1436,7 +1436,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<2>::CheckStrain2(MatrixType &SpatialVelocityGrad,
 							MatrixType &Fgrad,
 							MatrixType &VelDefgrad)
@@ -1468,7 +1468,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   bool TwoStepUpdatedLagrangianElement<2>::CheckStrain3(VectorType &SpatialDefRate,
 							MatrixType &SpatialVelocityGrad)
   {
@@ -1491,7 +1491,7 @@ namespace Kratos {
     return computeElement;
   }
 
-  template < > 
+  template < >
   bool TwoStepUpdatedLagrangianElement<3>::CheckStrain3(VectorType &SpatialDefRate,
 							MatrixType &SpatialVelocityGrad)
   {
@@ -1530,7 +1530,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<3>::CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX,
 								 double &volumetricDefRate,
 								 MatrixType &invGradDef,
@@ -1541,7 +1541,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<3>::CheckStrain1(double &VolumetricDefRate,
 							MatrixType &SpatialVelocityGrad)
   {
@@ -1549,7 +1549,7 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianElement<3>::CheckStrain2(MatrixType &SpatialVelocityGrad,
 							MatrixType &Fgrad,
 							MatrixType &VelDefgrad)
@@ -1583,7 +1583,7 @@ namespace Kratos {
     return std::sqrt(2.0*NormS);
   }
 
-  
+
   // template< unsigned int TDim >
   // void TwoStepUpdatedLagrangianElement<TDim>::CalculateMassMatrix(Matrix& rMassMatrix,
   // 									    ProcessInfo& rCurrentProcessInfo)
@@ -1608,7 +1608,7 @@ namespace Kratos {
   //   const unsigned int NumGauss = GaussWeights.size();
   //   double totalVolume=0;
 
-  //   // double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
+  //   // double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;
 
   //   // Loop on integration points
   //   for (unsigned int g = 0; g < NumGauss; g++)
@@ -1624,13 +1624,13 @@ namespace Kratos {
   //   this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkCoeff);
   //   // this->ComputeBulkMatrixConsistent(BulkMatrix,lumpedBulkCoeff);
   //   rMassMatrix+=BulkMatrix;
-    
-  //   KRATOS_CATCH( "" ) 
+
+  //   KRATOS_CATCH( "" )
 
   //     }
 
 
-  
+
 
   // template< unsigned int TDim >
   // void TwoStepUpdatedLagrangianElement<TDim>::CalculateMassMatrixMomentum(Matrix& rMassMatrix,
@@ -1656,14 +1656,14 @@ namespace Kratos {
   //   this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
   //   const unsigned int NumGauss = GaussWeights.size();
   //   double totalVolume=0;
-    
+
   //   // Loop on integration points
   //   for (unsigned int g = 0; g < NumGauss; g++)
   //     {
   // 	const double GaussWeight = GaussWeights[g];
   // 	totalVolume+=GaussWeight;
   //     }
-    
+
   //   //the time step is not included, the rhs is defined consequently
   //   double  Weight=totalVolume*this->GetProperties()[DENSITY];
   //   //lumped
@@ -1704,7 +1704,7 @@ namespace Kratos {
   //   }
 
 
-  //   KRATOS_CATCH( "" ) 
+  //   KRATOS_CATCH( "" )
 
   //     }
 
@@ -1737,16 +1737,16 @@ namespace Kratos {
 
   //   ElementalVariables rElementalVariables;
   //   this->InitializeElementalVariables(rElementalVariables);
- 
-  //   // double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
+
+  //   // double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;
   //   // double Density = this->mMaterialDensity;
   //   // double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
   //   // double TimeStep=rCurrentProcessInfo[DELTA_TIME];
   //   // double Tau=0;
   //   // double ElemSize = this->ElementSize();
-	    
+
   //   double totalVolume=0;
-    
+
   //   // MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes,NumNodes);
 
   //   // Loop on integration points
@@ -1757,24 +1757,24 @@ namespace Kratos {
   // 	// const ShapeFunctionsType& N = row(NContainer,g);
   // 	// const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
   // 	// bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  //     }   
+  //     }
 
   //   MatrixType BulkMatrix = ZeroMatrix(NumNodes,NumNodes);
   //   // double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
   //   double lumpedBulkCoeff =totalVolume;
   //   // VectorType UpdatedPressure = ZeroVector(NumNodes);
   //   VectorType UpdatedDensity = ZeroVector(NumNodes);
-  
+
   //   // this->GetPressureValues(UpdatedPressure,0);
   //   this->GetDensityValues(UpdatedDensity,0);
   //   this->ComputeBulkMatrixRHS(BulkMatrix,lumpedBulkCoeff);
   //   rRightHandSideVector += prod(BulkMatrix,UpdatedDensity);
-   
+
 
   //   KRATOS_CATCH( "" )
   //     }
 
-  
+
 
   // template< unsigned int TDim >
   // void TwoStepUpdatedLagrangianElement<TDim>::CalculateRightHandSideMomentum( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
@@ -1816,7 +1816,7 @@ namespace Kratos {
   //     {
   // 	const double GaussWeight = GaussWeights[g];
   // 	const ShapeFunctionsType& N = row(NContainer,g);
-  // 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g]; 
+  // 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 
   // 	double Pressure=0;
   // 	// double OldPressure=0;
@@ -1830,7 +1830,7 @@ namespace Kratos {
   // 	this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,rCurrentProcessInfo,rElementalVariables);
 
   // 	this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-	
+
   // 	if(computeElement==true){
   // 	  // Add integration point contribution to the local mass matrix
   // 	  this->AddExternalForces(rRightHandSideVector,Density,N,GaussWeight);
@@ -1841,15 +1841,15 @@ namespace Kratos {
   //   KRATOS_CATCH( "" )
   //     }
 
-  
+
   // template< unsigned int TDim >
-  // void TwoStepUpdatedLagrangianElement<TDim>::AddExplicitContribution(const VectorType& rRHSVector, 
-  // 										const Variable<VectorType>& rRHSVariable, 
-  // 										Variable<array_1d<double,3> >& rDestinationVariable, 
+  // void TwoStepUpdatedLagrangianElement<TDim>::AddExplicitContribution(const VectorType& rRHSVector,
+  // 										const Variable<VectorType>& rRHSVariable,
+  // 										Variable<array_1d<double,3> >& rDestinationVariable,
   // 										const ProcessInfo& rCurrentProcessInfo)
   // {
   //   KRATOS_TRY
-    
+
   //     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
   //   const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
@@ -1917,13 +1917,13 @@ namespace Kratos {
 
 
   //   template< unsigned int TDim >
-  // void TwoStepUpdatedLagrangianElement<TDim>::AddExplicitContribution(const VectorType& rRHSVector, 
-  // 										const Variable<VectorType>& rRHSVariable, 
-  // 										Variable<double >& rDestinationVariable, 
+  // void TwoStepUpdatedLagrangianElement<TDim>::AddExplicitContribution(const VectorType& rRHSVector,
+  // 										const Variable<VectorType>& rRHSVariable,
+  // 										Variable<double >& rDestinationVariable,
   // 										const ProcessInfo& rCurrentProcessInfo)
   // {
   //   KRATOS_TRY
-    
+
   //     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
   //   if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == NODAL_ERROR )
@@ -1944,7 +1944,7 @@ namespace Kratos {
   //     }
 
 
-  
+
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::ComputeLumpedMassMatrix(Matrix& rMassMatrix,
@@ -2018,7 +2018,7 @@ namespace Kratos {
         for (SizeType j = 0; j < NumNodes; ++j)
 	  {
             const double Mij = Weight * rN[i] * rN[j];
-		
+
             for (SizeType d =  0; d < TDim; ++d){
 	      rMassMatrix(FirstRow+d,FirstCol+d) += Mij;
 	      MeanValue+=fabs(Mij);
@@ -2033,7 +2033,7 @@ namespace Kratos {
 
   }
 
- 
+
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::AddExternalForces(Vector& rRHSVector,
 								const double Density,
@@ -2044,23 +2044,25 @@ namespace Kratos {
 
     SizeType FirstRow = 0;
 
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
+    array_1d<double,3> VolumeAcceleration(3,0.0);
 
-	if( this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
-	  array_1d<double, 3 >& VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    this->EvaluateInPoint(VolumeAcceleration,VOLUME_ACCELERATION,rN);
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        if( this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
 	  // Build RHS
-	  for (SizeType d = 0; d < TDim; ++d)
+
+	        for (SizeType d = 0; d < TDim; ++d)
 	    {
-	      // Body force
+	      // Volume Acceleration
 	      rRHSVector[FirstRow+d] += Weight * Density * rN[i] * VolumeAcceleration[d];
 	    }
 
-	}
-
+    }
         FirstRow += TDim;
 
-      }
+    }
   }
 
 
@@ -2084,7 +2086,7 @@ namespace Kratos {
 
 	rRHSVector[FirstRow]   += -Weight*(lagDNXi*rElementalVariables.UpdatedTotalCauchyStress[0]+
 					   lagDNYi*rElementalVariables.UpdatedTotalCauchyStress[2]);
-	
+
 	rRHSVector[FirstRow+1] += -Weight*(lagDNYi*rElementalVariables.UpdatedTotalCauchyStress[1]+
 					   lagDNXi*rElementalVariables.UpdatedTotalCauchyStress[2]);
 
@@ -2139,16 +2141,16 @@ namespace Kratos {
   //   const unsigned int NumNodes = rGeom.PointsNumber();
 
   //   // Check sizes and initialize
-  //   if( rLeftHandSideMatrix.size1() != NumNodes ) 
+  //   if( rLeftHandSideMatrix.size1() != NumNodes )
   //     rLeftHandSideMatrix.resize(NumNodes,NumNodes);
 
   //   rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
- 
+
   //   if( rRightHandSideVector.size() != NumNodes )
   //     rRightHandSideVector.resize(NumNodes);
 
   //   rRightHandSideVector = ZeroVector(NumNodes);
-     
+
   //   // Shape functions and integration points
   //   ShapeFunctionDerivativesArrayType DN_DX;
   //   Matrix NContainer;
@@ -2161,16 +2163,16 @@ namespace Kratos {
 
   //   ElementalVariables rElementalVariables;
   //   this->InitializeElementalVariables(rElementalVariables);
- 
-  //   double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
+
+  //   double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;
   //   // double Density = this->mMaterialDensity;
   //   // double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
   //   // double TimeStep=rCurrentProcessInfo[DELTA_TIME];
   //   // double Tau=0;
   //   // double ElemSize = this->ElementSize();
-	    
+
   //   double totalVolume=0;
-    
+
   //   // MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes,NumNodes);
 
   //   // Loop on integration points
@@ -2184,7 +2186,7 @@ namespace Kratos {
   // 	bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
   // 	if(computeElement==true){
   // 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
-  // 	  // this->ComputeBulkMatrix(BulkMatrixConsistent,N,BulkCoeff);  
+  // 	  // this->ComputeBulkMatrix(BulkMatrixConsistent,N,BulkCoeff);
 
   // 	  // // if(this->Is(FLUID)){
   // 	  // this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
@@ -2197,7 +2199,7 @@ namespace Kratos {
   // 	  // double StabLaplacianWeight=Tau*GaussWeight;
   // 	  // this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix,rDN_DX,StabLaplacianWeight);
   // 	  // // }
-	    
+
   // 	  for (SizeType i = 0; i < NumNodes; ++i)
   // 	    {
   // 	      // RHS contribution
@@ -2210,7 +2212,7 @@ namespace Kratos {
 
   // 	}
 
-  //     }   
+  //     }
 
   //   // double timeStep=rCurrentProcessInfo[DELTA_TIME];
   //   MatrixType BulkMatrix = ZeroMatrix(NumNodes,NumNodes);
@@ -2227,7 +2229,7 @@ namespace Kratos {
   //   // rRightHandSideVector += prod(BulkMatrixConsistent,UpdatedPressure);
   // }
 
- 
+
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::ComputeBulkMatrix(Matrix& BulkMatrix,
 								const ShapeFunctionsType& rN,
@@ -2263,7 +2265,7 @@ namespace Kratos {
 	    BulkMatrix(i,j) +=  Mij;
 	  }
       }
-  
+
   }
 
   template< >
@@ -2283,9 +2285,9 @@ namespace Kratos {
 	    BulkMatrix(i,j) +=  Mij;
 	  }
       }
-  
+
   }
-  
+
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::ComputeBulkMatrixLump(Matrix& BulkMatrix,
@@ -2308,7 +2310,7 @@ namespace Kratos {
 
 
 
-  
+
   /*
    * Template class definition (this should allow us to compile the desired template instantiations)
    */

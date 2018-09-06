@@ -32,6 +32,7 @@ import test_gid_io_gauss_points
 import test_skin_detection_process
 import test_sparse_multiplication
 import test_variable_component
+import test_variable_redistribution
 
 
 def AssembleTestSuites():
@@ -75,8 +76,14 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_gid_io_gauss_points.TestGiDIOGaussPoints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_skin_detection_process.TestSkinDetectionProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixSum]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixTranspose]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixMultiplication]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_component.TestVariableComponent]))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testLinearFunction'))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testSharpCorners'))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testVector'))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testQuadratic'))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testNodalArea'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

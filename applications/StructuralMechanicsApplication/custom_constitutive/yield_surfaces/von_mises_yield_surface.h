@@ -15,6 +15,7 @@
 // System includes
 
 // Project includes
+#include "includes/checks.h"
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
@@ -42,13 +43,13 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
- * @tparam TPlasticPotentialType 
+ * @tparam TPlasticPotentialType
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesYieldSurface
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -91,7 +92,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesYieldSurface
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param StrainVector The StrainVector vector
      * @param rMaterialProperties The material properties
      */
@@ -135,22 +136,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesYieldSurface
         const double E = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential))
-        {
+        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
             KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        }
-        else
-        { // linear
+        } else { // linear
             AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf / CharacteristicLength);
         }
     }
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator 
+     * @param J2 The second invariant of the Deviator
      * @param rg The derivative of the plastic potential
      * @param rMaterialProperties The material properties
      */
@@ -169,9 +167,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesYieldSurface
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator 
+     * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
      * @param rMaterialProperties The material properties
      */
@@ -196,6 +194,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesYieldSurface
         noalias(rFFlux) = c1 * FirstVector + c2 * SecondVector + c3 * ThirdVector;
     }
 
+    /**
+     * @brief This method defines the check to be performed in the yield surface
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
+        KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
+        KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
+
+        return TPlasticPotentialType::Check(rMaterialProperties);
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -214,7 +231,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesYieldSurface
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -243,7 +260,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesYieldSurface
     ///@{
 
     ///@}
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 

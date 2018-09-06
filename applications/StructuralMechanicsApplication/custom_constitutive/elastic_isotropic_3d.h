@@ -176,9 +176,9 @@ public:
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
-     */ 
+     */
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -186,6 +186,7 @@ public:
      * @param rMaterialProperties The properties of the material
      * @param rElementGeometry The geometry of the element
      * @param rCurrentProcessInfo The current process info instance
+     * @return 0 if OK, 1 otherwise
      */
     int Check(
         const Properties& rMaterialProperties,
@@ -201,7 +202,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -292,4 +293,4 @@ private:
 
 }; // Class ElasticIsotropic3D
 }  // namespace Kratos.
-#endif // KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED  defined

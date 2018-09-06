@@ -647,6 +647,13 @@ namespace Kratos {
             {
                 auto itNode = rModelPart.NodesBegin() + k;
                 (itNode->FastGetSolutionStepValue(REACTION)).clear();
+
+                // calculating relaxed acceleration
+                const array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
+                const array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
+                const array_1d<double, 3> relaxed_acceleration = (1 - mAlphaBossak) * CurrentAcceleration
+                                                                    + mAlphaBossak * OldAcceleration;
+                (itNode)->SetValue(RELAXED_ACCELERATION, relaxed_acceleration);
             }
 
             //for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
@@ -876,7 +883,7 @@ namespace Kratos {
                                 const array_1d<double, 3 > & DeltaVel,
                                 const array_1d<double, 3 > & OldAcceleration)
         {
-            noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2*OldAcceleration;
+            noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2 * OldAcceleration;
         }
 
 

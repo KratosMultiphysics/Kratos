@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -48,7 +48,7 @@ class PythonGenericFunctionUtility
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PythonGenericFunctionUtility);
 
-    PythonGenericFunctionUtility(  const std::string& function_body,  Parameters local_system = Parameters({}) )
+    PythonGenericFunctionUtility(  const std::string& function_body,  Parameters local_system = Parameters{} )
     {
         //compile the function starting from the string function body
         try
@@ -91,7 +91,6 @@ public:
         {
             mdepends_on_space = false;
         }
-
     }
 
 //         PythonGenericFunctionUtility(  pybind11::object obj, const Matrix& R, const Vector& xc): mpy_obj(obj), muse_local_system(true), mR(R), mxc(xc)
@@ -113,7 +112,6 @@ public:
         return mdepends_on_space;
     }
 
-
     double RotateAndCallFunction(const double x, const double y, const double z, const double t)
     {
         array_1d<double,3> xglobal;
@@ -130,7 +128,6 @@ public:
         main_namespace["y"] = y;
         main_namespace["z"] = z;
         main_namespace["t"] = t;
-
 
 
 //         #if PY_MAJOR_VERSION >= 3
