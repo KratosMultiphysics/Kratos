@@ -1482,7 +1482,6 @@ private:
         )
     {
         // Get access to aux_K data
-        const double* aux_values = AuxK.value_data().begin();
         const IndexType* aux_K_index1 = AuxK.index1_data().begin();
 
         const IndexType row_begin = aux_K_index1[CurrentRow];
