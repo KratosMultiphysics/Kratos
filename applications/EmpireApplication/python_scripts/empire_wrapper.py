@@ -355,7 +355,7 @@ class EmpireWrapper:
                     name_element = "Element2D2N"
                 elif num_nodes_element == 3:
                     name_element = "Element2D3N"
-                elif num_nodes_element == 4: # TODO how to distinguish from Tetras? => use DOMAIN_SIZE of ModelPart
+                elif num_nodes_element == 4:
                     name_element = "Element2D4N"
                 else:
                     raise Exception("Wrong number of nodes for creating the element")
