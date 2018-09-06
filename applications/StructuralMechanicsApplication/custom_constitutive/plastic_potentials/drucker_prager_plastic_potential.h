@@ -15,6 +15,7 @@
 // System includes
 
 // Project includes
+#include "includes/checks.h"
 #include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
 
 namespace Kratos
@@ -96,10 +97,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
      * @param rMaterialProperties The material properties
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& StressVector,
+        const Vector& Deviator,
         const double J2,
-        Vector &rGFlux,
+        Vector& rGFlux,
         const Properties &rMaterialProperties)
     {
         Vector FirstVector, SecondVector, ThirdVector;
@@ -119,6 +120,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
         const double c2 = CFL;
 
         noalias(rGFlux) = c1 * FirstVector + c2 * SecondVector + c3 * ThirdVector;
+    }
+
+    /**
+     * @brief This method defines the check to be performed in the plastic potential
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        KRATOS_CHECK_VARIABLE_KEY(DILATANCY_ANGLE);
+
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DILATANCY_ANGLE)) << "DILATANCY_ANGLE is not a defined value" << std::endl;
+
+        return 0;
     }
 
     ///@}

@@ -41,10 +41,10 @@
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/Beam_structure"
+            "input_filename" : "Beam_structure"
         },
         "material_import_settings" :{
-            "materials_filename": "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/materials_beam.json"
+            "materials_filename": "materials_beam.json"
         }
     },
     "constraints_process_list" : [{
@@ -92,7 +92,7 @@
     }],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_input_process",
+        "python_module" : "single_mesh_temporal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -100,7 +100,7 @@
             "file_settings" : {
                 "file_access_mode" : "read_only"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
@@ -112,7 +112,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"  : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
-            "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_local_stress_results.json",
+            "input_file_name"  : "beam_test_local_stress_results.json",
             "model_part_name"  : "Structure",
             "tolerance"            : 1e-5,
             "time_frequency"   : -2.0
@@ -126,7 +126,7 @@
         "process_name"  : "JsonOutputProcess",
         "Parameters"    : {
             "output_variables" : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
-            "output_file_name" : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_local_stress_results.json",
+            "output_file_name" : "beam_test_local_stress_results.json",
             "model_part_name"  : "Structure",
             "time_frequency"   : -2.0
         }

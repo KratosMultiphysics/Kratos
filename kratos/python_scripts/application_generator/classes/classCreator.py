@@ -165,7 +165,8 @@ class ClassCreator(TemplateRule):
             return False, 0, 0
 
     def _GenerateCandidateFiles(self, files, name):
-        return [f for f in files if difflib.SequenceMatcher(None, name, f).ratio() > 0.4]
+        nocache = [f for f in files if (len(f.split('.')) < 1 or f.split('.')[-1] in ['h', 'hpp', 'cpp'])]
+        return [f for f in nocache if difflib.SequenceMatcher(None, name, f).ratio() > 0.4]
 
     def _CheckClassNameInDir(
         self, where, name,
