@@ -191,10 +191,11 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetail, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
 			Logger::AddOutput(p_output);
-
-			KRATOS_WARNING("TestDetail") << "Test detail message";
+            
+			KRATOS_DETAIL("TestDetail") << "Test detail message";
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestDetail: Test detail message");
         }
@@ -202,11 +203,12 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetailIf, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
 			Logger::AddOutput(p_output);
 
-            KRATOS_WARNING_IF("TestDetail", true) << "Test detail message";
-            KRATOS_WARNING_IF("TestDetail", false) << "This should not appear";
+            KRATOS_DETAIL_IF("TestDetail", true) << "Test detail message";
+            KRATOS_DETAIL_IF("TestDetail", false) << "This should not appear";
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestDetail: Test detail message");
         }
@@ -214,11 +216,12 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetailOnce, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
 			Logger::AddOutput(p_output);
 
 			for(std::size_t i = 0; i < 10; i++) {
-                KRATOS_WARNING_ONCE("TestDetail") << "Test detail message - " << i;
+                KRATOS_DETAIL_ONCE("TestDetail") << "Test detail message - " << i;
             }
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestDetail: Test detail message - 0");
@@ -227,11 +230,12 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetailFirst, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
 			Logger::AddOutput(p_output);
 
             for(std::size_t i = 0; i < 10; i++) {
-                KRATOS_WARNING_FIRST_N("TestDetail", 4) << ".";
+                KRATOS_DETAIL_FIRST_N("TestDetail", 4) << ".";
             }
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestDetail: .TestDetail: .TestDetail: .TestDetail: .");
