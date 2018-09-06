@@ -401,6 +401,16 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
 
     rOutput[0] = truss_forces;
   }
+  else if(this->Has(rVariable))
+  {
+      // Get result value for output
+      const auto& output_value = this->GetValue(rVariable);
+      // Resize Output
+      const SizeType  write_points_number = GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+      // Write the same result on all Gauss-Points
+      for(IndexType i = 0; i < write_points_number; ++i)
+          rOutput[i] = output_value;
+  }
 }
 
 void TrussElement3D2N::GetValueOnIntegrationPoints(
