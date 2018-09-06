@@ -74,7 +74,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     ///@name Life Cycle
     ///@{
 
-    PostprocessEigenvaluesProcess(ModelPart &rModelPart,
+    PostprocessEigenvaluesProcess(ModelPart& rModelPart,
                                   Parameters OutputParameters);
 
     ///@}
@@ -86,11 +86,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     ///@name Operations
     ///@{
 
-    void ExecuteInitialize() override;
-
-    void ExecuteBeforeSolutionLoop() override;
-
-    void ExecuteFinalize() override;
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -165,7 +161,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     ///@{
     ModelPart& mrModelPart;
     Parameters mOutputParameters;
-    GidEigenIO::Pointer mpGidEigenIO;
 
     ///@}
     ///@name Private Operators

@@ -13,8 +13,8 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Import the implicit solver (the explicit one is derived from it)
 import structural_mechanics_implicit_dynamic_solver
 
-def CreateSolver(main_model_part, custom_settings):
-    return ContactImplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return ContactImplicitMechanicalSolver(model, custom_settings)
 
 class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
     """The structural mechanics contact implicit dynamic solver.
@@ -27,9 +27,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
-
-        self.main_model_part = main_model_part
+    def __init__(self, model, custom_settings):
 
         ##settings string in json format
         contact_settings = KM.Parameters("""
@@ -81,7 +79,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
             self.linear_solver_settings = KM.Parameters("""{}""")
 
         # Construct the base solver.
-        super(ContactImplicitMechanicalSolver, self).__init__(self.main_model_part, self.settings)
+        super(ContactImplicitMechanicalSolver, self).__init__(model, self.settings)
 
         # Setting default configurations true by default
         if (self.settings["clear_storage"].GetBool() == False):
@@ -228,7 +226,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                     mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, self.contact_settings["mixed_ulm_solver_parameters"])
                     return mixed_ulm_solver
                 else:
-                    self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
+                    self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
                     return linear_solver
             else:
                 return linear_solver

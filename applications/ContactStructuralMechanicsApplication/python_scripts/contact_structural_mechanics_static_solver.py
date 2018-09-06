@@ -13,8 +13,8 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Import the implicit solver (the explicit one is derived from it)
 import structural_mechanics_static_solver
 
-def CreateSolver(main_model_part, custom_settings):
-    return ContactStaticMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return ContactStaticMechanicalSolver(model, custom_settings)
 
 class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
     """The structural mechanics contact static solver.
@@ -28,9 +28,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
-
-        self.main_model_part = main_model_part
+    def __init__(self, model, custom_settings):
 
         ##settings string in json format
         contact_settings = KM.Parameters("""
@@ -82,7 +80,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
             self.linear_solver_settings = KM.Parameters("""{}""")
 
         # Construct the base solver.
-        super(ContactStaticMechanicalSolver, self).__init__(self.main_model_part, self.settings)
+        super(ContactStaticMechanicalSolver, self).__init__(model, self.settings)
 
         # Setting default configurations true by default
         if (self.settings["clear_storage"].GetBool() == False):
