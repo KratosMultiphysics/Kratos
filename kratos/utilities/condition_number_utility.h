@@ -180,7 +180,10 @@ public:
         DenseMatrixType eigen_vectors;
 
         const SizeType size_matrix = InputMatrix.size1();
-        SparseMatrixType identity_matrix = boost::numeric::ublas::identity_matrix<double>(size_matrix);
+
+        SparseMatrixType identity_matrix(size_matrix, size_matrix);
+        for (IndexType i = 0; i < size_matrix; ++i)
+            identity_matrix.push_back(i, i, 1.0);
 
         pEigenSolverMax->Solve(InputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double max_lambda = eigen_values[0];
