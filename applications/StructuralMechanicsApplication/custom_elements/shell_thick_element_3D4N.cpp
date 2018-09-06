@@ -509,8 +509,8 @@ void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<double>&
     // Check if we are doing a non-linear analysis type. If not, print warning
 
     if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-    { // TODO should be KRATOS_WARNING_ONCE but this is currently not compiling
-        KRATOS_WARNING_FIRST_N("ShellThickElement3D4N", 1) << "Warning: Gauss point results have "
+    {
+        KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
             << "been requested for a linear analysis.\nThe membrane formulation used "
             << "requires iteration to accurately determine recovered "
             << "quantities (strain, stress, etc...)." << std::endl;
@@ -884,8 +884,8 @@ void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>&
     // Check if we are doing a non-linear analysis type. If not, print warning
 
     if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-    { // TODO should be KRATOS_WARNING_ONCE but this is currently not compiling
-        KRATOS_WARNING_FIRST_N("ShellThickElement3D4N", 1) << "Warning: Gauss point results have "
+    {
+        KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
             << "been requested for a linear analysis.\nThe membrane formulation used "
             << "requires iteration to accurately determine recovered "
             << "quantities (strain, stress, etc...)." << std::endl;
