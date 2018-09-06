@@ -71,5 +71,14 @@ HenckyBorjaCamClayPlasticPlaneStrain2DLaw::~HenckyBorjaCamClayPlasticPlaneStrain
 {
 }
 
+//*********************************CHECK**********************************************
+//************************************************************************************
+
+int HenckyBorjaCamClayPlasticPlaneStrain2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+{
+    HenckyElasticPlasticPlaneStrain2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
+
+    return 0;
+}
 
 } // Namespace Kratos

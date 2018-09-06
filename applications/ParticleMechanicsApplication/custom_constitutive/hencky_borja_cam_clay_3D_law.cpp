@@ -70,5 +70,14 @@ HenckyBorjaCamClayPlastic3DLaw::~HenckyBorjaCamClayPlastic3DLaw()
 {
 }
 
+//*********************************CHECK**********************************************
+//************************************************************************************
+
+int HenckyBorjaCamClayPlastic3DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+{
+    HenckyElasticPlastic3DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
+
+    return 0;
+}
 
 } // Namespace Kratos
