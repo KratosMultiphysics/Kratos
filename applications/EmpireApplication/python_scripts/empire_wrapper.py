@@ -1,6 +1,9 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# import libraries
-from KratosMultiphysics import *
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
+import KratosMultiphysics
+
+# Other imports
 import ctypes as ctp
 
 
@@ -289,7 +292,6 @@ class EmpireWrapper:
                 model_part.CreateNewNode(node_IDs[i], node_coords[3*i+0], node_coords[3*i+1], node_coords[3*i+2]) # Id, X, Y, Z
 
             # Create dummy Property for Element
-            model_part.AddProperties(Properties(1))
             prop = model_part.GetProperties()[1]
 
             element_table_counter = 0
@@ -354,7 +356,7 @@ class EmpireWrapper:
             values = []
             for size_of_variable in size_of_variables:
                 if size_of_variable > 1:
-                    values.append(Vector(size_of_variable))
+                    values.append(KratosMultiphysics.Vector(size_of_variable))
                 else:
                     values.append(0.0)
 
