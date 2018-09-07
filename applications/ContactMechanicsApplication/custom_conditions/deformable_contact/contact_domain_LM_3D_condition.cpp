@@ -394,7 +394,7 @@ namespace Kratos
   {
 
     // Covariant metric
-    Covariant.Metric.resize(3,3);
+    Covariant.Metric.resize(3,3,false);
     array_1d<double, 3> DirectionC;
     MathUtils<double>::CrossProduct(DirectionC,Covariant.DirectionA,Covariant.DirectionB);
     if( norm_2(DirectionC)!=0 )
@@ -413,7 +413,7 @@ namespace Kratos
     Covariant.Metric(2,2) = inner_prod(DirectionC, DirectionC);
 
     // Contravariant vectors and contravariant metric
-    Contravariant.Metric.resize(3,3);
+    Contravariant.Metric.resize(3,3,false);
     double MetricDet;
     MathUtils<double>::InvertMatrix3(Covariant.Metric,Contravariant.Metric, MetricDet);
 

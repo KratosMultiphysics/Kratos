@@ -196,7 +196,7 @@ class ElementUtilities
     if( rDeformationGradient.size1() != dimension || rDeformationGradient.size2() != dimension )
       rDeformationGradient.resize(dimension, dimension, false);
 
-    noalias(rDeformationGradient) = IdentityMatrix(dimension,dimension);
+    noalias(rDeformationGradient) = IdentityMatrix(dimension);
 
     if( dimension == 2 )
     {

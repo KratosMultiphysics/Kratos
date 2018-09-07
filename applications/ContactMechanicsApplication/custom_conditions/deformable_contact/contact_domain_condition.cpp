@@ -682,7 +682,7 @@ namespace Kratos
 
     //Get Current DeformationGradient
     std::vector<Matrix> DeformationGradientVector ( integration_points_number );
-    DeformationGradientVector[rPointNumber]=identity_matrix<double>( dimension );
+    DeformationGradientVector[rPointNumber]=IdentityMatrix(dimension);
     MasterElement.GetValueOnIntegrationPoints(DEFORMATION_GRADIENT,DeformationGradientVector,rCurrentProcessInfo);
     rVariables.F = DeformationGradientVector[rPointNumber];
 
@@ -1070,13 +1070,13 @@ namespace Kratos
       voigtsize  = 6;
 
 
-    rVariables.F.resize( dimension, dimension );
+    rVariables.F.resize(dimension, dimension, false);
 
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
+    rVariables.ConstitutiveMatrix.resize(voigtsize, voigtsize, false);
 
-    rVariables.StressVector.resize( voigtsize );
+    rVariables.StressVector.resize(voigtsize);
 
-    rVariables.DN_DX.resize( number_of_nodes, dimension );
+    rVariables.DN_DX.resize(number_of_nodes, dimension, false);
 
     //set variables including all integration points values
 
@@ -1111,7 +1111,7 @@ namespace Kratos
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+    rDeltaPosition = ZeroMatrix(number_of_nodes, dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {

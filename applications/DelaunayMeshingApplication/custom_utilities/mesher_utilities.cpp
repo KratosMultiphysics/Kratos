@@ -870,8 +870,8 @@ namespace Kratos
 
     if( dimension == 2 ){
 
-      bounded_matrix<double,2,2> mJ;    //local jacobian
-      bounded_matrix<double,2,2> mJinv; //inverse jacobian
+      BoundedMatrix<double,2,2> mJ;    //local jacobian
+      BoundedMatrix<double,2,2> mJinv; //inverse jacobian
 
       //calculation of the jacobian  //coordinate center point 0
       for(unsigned int i = 0; i < dimension; ++i)
@@ -919,9 +919,9 @@ namespace Kratos
     }
     else if( dimension == 3 ){
 
-      bounded_vector<double,3>   mRHS;  //center pos
-      bounded_matrix<double,3,3> mJ;    //local jacobian
-      bounded_matrix<double,3,3> mJinv; //inverse jacobian
+      BoundedVector<double,3>   mRHS;  //center pos
+      BoundedMatrix<double,3,3> mJ;    //local jacobian
+      BoundedMatrix<double,3,3> mJinv; //inverse jacobian
 
 
       //calculation of the jacobian  //coordinate center point 0

@@ -103,13 +103,13 @@ void AxisymContactDomainPenalty2DCondition::InitializeConditionVariables (Condit
 
     unsigned int voigtsize = 4;
 
-    rVariables.F.resize( dimension, dimension );
+    rVariables.F.resize(dimension, dimension, false);
 
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
+    rVariables.ConstitutiveMatrix.resize(voigtsize, voigtsize, false);
 
-    rVariables.StressVector.resize( voigtsize );
+    rVariables.StressVector.resize(voigtsize);
 
-    rVariables.DN_DX.resize( number_of_nodes, dimension );
+    rVariables.DN_DX.resize(number_of_nodes, dimension, false);
 
     //set variables including all integration points values
 
@@ -228,8 +228,8 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Get Current DeformationGradient
-    std::vector<Matrix> DeformationGradientVector ( integration_points_number );
-    DeformationGradientVector[rPointNumber]=identity_matrix<double>( dimension );
+    std::vector<Matrix> DeformationGradientVector(integration_points_number);
+    DeformationGradientVector[rPointNumber]=IdentityMatrix(dimension);
     MasterElement.GetValueOnIntegrationPoints(DEFORMATION_GRADIENT,DeformationGradientVector,rCurrentProcessInfo);
     rVariables.F = DeformationGradientVector[rPointNumber];
 

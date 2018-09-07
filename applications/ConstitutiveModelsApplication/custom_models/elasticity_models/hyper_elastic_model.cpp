@@ -20,7 +20,7 @@ namespace Kratos
 
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
-  const HyperElasticModel::MatrixType HyperElasticModel::msIdentityMatrix = identity_matrix<double>(3);
+  const HyperElasticModel::MatrixType HyperElasticModel::msIdentityMatrix = IdentityMatrix(3);
 
   HyperElasticModel::HyperElasticModel()
     : ConstitutiveModel()

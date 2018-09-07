@@ -668,7 +668,7 @@ public:
       std::vector<int> NodalPreIds;
       std::vector<int> PreservedElements;
 
-      std::vector<bounded_vector<double, 3> > Holes;
+      std::vector<BoundedVector<double, 3> > Holes;
 
       //Mesher pointers to the mesh structures
       MeshContainer       InMesh;
@@ -789,12 +789,12 @@ public:
 	mpReferenceCondition=&rCondition;
       };
 
-      void SetHoles(std::vector<bounded_vector<double, 3> >& rHoles)
+      void SetHoles(std::vector<BoundedVector<double, 3> >& rHoles)
       {
 	Holes = rHoles;
       }
 
-      std::vector<bounded_vector<double, 3> >& GetHoles()
+      std::vector<BoundedVector<double, 3> >& GetHoles()
       {
 	return Holes;
       }

@@ -199,9 +199,9 @@ protected:
 	  DeltaPosition.resize(number_of_nodes, dimension,false);
 
 	  noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-	  noalias(H)  = IdentityMatrix(dimension,dimension);
-	  noalias(F)  = IdentityMatrix(dimension,dimension);
-	  noalias(F0) = IdentityMatrix(dimension,dimension);
+	  noalias(H)  = IdentityMatrix(dimension);
+	  noalias(F)  = IdentityMatrix(dimension);
+	  noalias(F0) = IdentityMatrix(dimension);
 	  noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
 	  noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
 	  noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);

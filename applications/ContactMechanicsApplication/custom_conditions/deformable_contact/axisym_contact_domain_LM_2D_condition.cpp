@@ -105,13 +105,13 @@ void AxisymContactDomainLM2DCondition::InitializeConditionVariables (ConditionVa
 
     unsigned int voigtsize = 4;
 
-    rVariables.F.resize( dimension, dimension );
+    rVariables.F.resize(dimension, dimension, false);
 
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
+    rVariables.ConstitutiveMatrix.resize(voigtsize, voigtsize, false);
 
-    rVariables.StressVector.resize( voigtsize );
+    rVariables.StressVector.resize(voigtsize);
 
-    rVariables.DN_DX.resize( number_of_nodes, dimension );
+    rVariables.DN_DX.resize(number_of_nodes, dimension, false);
 
     //set variables including all integration points values
 
@@ -231,7 +231,7 @@ void AxisymContactDomainLM2DCondition::CalculateKinematics( ConditionVariables& 
 
     //Get Current DeformationGradient
     std::vector<Matrix> DeformationGradientVector ( integration_points_number );
-    DeformationGradientVector[rPointNumber]=identity_matrix<double>( dimension );
+    DeformationGradientVector[rPointNumber]=IdentityMatrix(dimension);
     MasterElement.GetValueOnIntegrationPoints(DEFORMATION_GRADIENT,DeformationGradientVector,rCurrentProcessInfo);
     rVariables.F = DeformationGradientVector[rPointNumber];
 

@@ -385,31 +385,35 @@ namespace Kratos
 
       double Area = this->CalculateSomeSortOfArea();
 
+
       if( fabs(TangentForceModulus) >= 1e-25 ){
 
-         if( rVariables.Slip ){
-            if ( mImplex ) {
-               noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * ( IdentityMatrix(3,3) - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) ) * rIntegrationWeight;
+        MatrixType Identity(3,3);
+        noalias(Identity) = IdentityMatrix(3);
 
-               noalias(rLeftHandSideMatrix) -= rVariables.Penalty.Tangent * ConstVariables.TangentTangentMatrix * ConstVariables.TangentForceRatio * ( IdentityMatrix(3,3) - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) - outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) ) * rIntegrationWeight;
+        if( rVariables.Slip ){
+          if ( mImplex ) {
+            noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * ( Identity - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) ) * rIntegrationWeight;
 
-            } else {
+            noalias(rLeftHandSideMatrix) -= rVariables.Penalty.Tangent * ConstVariables.TangentTangentMatrix * ConstVariables.TangentForceRatio * ( Identity - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) - outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) ) * rIntegrationWeight;
 
-
-               noalias(rLeftHandSideMatrix) -= ConstVariables.TangentTangentMatrix * outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) * rIntegrationWeight * Area;
-               noalias(rLeftHandSideMatrix) -= ConstVariables.NormalTangentMatrix * outer_prod( ConstVariables.ForceDirection, rVariables.Surface.Normal) * rVariables.Penalty.Normal * rIntegrationWeight;
-               noalias(rLeftHandSideMatrix) += ConstVariables.TangentForceRatio * rVariables.Penalty.Tangent * ( IdentityMatrix(3,3) - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) - outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) ) * rIntegrationWeight;
-            }
-
-         }
-         else {
+          } else {
 
 
-            //noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent); // aquest terme jo no el veig
+            noalias(rLeftHandSideMatrix) -= ConstVariables.TangentTangentMatrix * outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) * rIntegrationWeight * Area;
+            noalias(rLeftHandSideMatrix) -= ConstVariables.NormalTangentMatrix * outer_prod( ConstVariables.ForceDirection, rVariables.Surface.Normal) * rVariables.Penalty.Normal * rIntegrationWeight;
+            noalias(rLeftHandSideMatrix) += ConstVariables.TangentForceRatio * rVariables.Penalty.Tangent * ( Identity - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) - outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) ) * rIntegrationWeight;
+          }
 
-            noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+        }
+        else {
 
-         }
+
+          //noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent); // aquest terme jo no el veig
+
+          noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( Identity - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+
+        }
 
       }
 

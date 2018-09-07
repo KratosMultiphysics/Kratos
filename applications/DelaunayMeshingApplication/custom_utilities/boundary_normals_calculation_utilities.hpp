@@ -697,7 +697,7 @@ protected:
           const Element::GeometryType::ShapeFunctionsGradientsType& DN_De = rGeometry.ShapeFunctionsLocalGradients( mIntegrationMethod );
 
 
-          J.resize( dimension, dimension );
+          J.resize(dimension, dimension, false);
           J = rGeometry.Jacobian( J, PointNumber , mIntegrationMethod );
 
           InvJ.clear();
