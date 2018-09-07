@@ -23,6 +23,15 @@ cmake .. \
 -DFSI_APPLICATION=ON                                                                            \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                                 \
 -DMESHING_APPLICATION=ON                                                                        \
+-DINCLUDE_MMG=ON                                                                                \
+-DMMG_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include"                                       \
+-DMMG2D_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include/mmg/mmg2d/"                          \
+-DMMG3D_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include/mmg/mmg3d/"                          \
+-DMMGS_INCLUDE_DIR="${HOME}/MMGPrecompiled-master/include/mmg/mmgs/"                            \
+-DMMG_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmg.a"                                      \
+-DMMG2D_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmg2d.a"                                  \
+-DMMG3D_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmg3d.a"                                  \
+-DMMGS_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmgs.a"                                    \
 -DMULTISCALE_APPLICATION=OFF                                                                    \
 -DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
 -DPFEM_APPLICATION=OFF                                                                          \
