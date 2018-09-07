@@ -14,6 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 
 namespace Kratos {
     namespace Testing {
@@ -133,7 +134,7 @@ namespace Kratos {
             model_part.pGetElement(2)->Set(TO_ERASE, true);
 
             // Call method
-            model_part.RemoveElementsAndBelongingNodes(TO_ERASE);
+            AuxiliarModelPartUtilities(model_part).RemoveElementsAndBelongingNodes(TO_ERASE);
 
             // Check results
             KRATOS_CHECK(model_part.NumberOfNodes() == 4);

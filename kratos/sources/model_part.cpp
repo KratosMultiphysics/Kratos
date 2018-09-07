@@ -13,7 +13,10 @@
 
 // System includes
 
+
 // External includes
+#include "boost/make_shared.hpp"
+
 
 // Project includes
 #include "includes/define.h"
@@ -444,7 +447,7 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType::Pointer pThisNode, 
     RemoveNode(pThisNode, ThisIndex);
 }
 
-void ModelPart::RemoveNodes(Flags IdentifierFlag)
+void ModelPart::RemoveNodes(Flags identifier_flag)
 {
     // This method is optimized to free the memory
     //loop over all the meshes
@@ -459,7 +462,7 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
         {
             ModelPart::NodesContainerType::iterator i_node = i_mesh->NodesBegin() + i;
 
-            if( i_node->IsNot(IdentifierFlag) )
+            if( i_node->IsNot(identifier_flag) )
                 erase_count++;
         }
 
@@ -470,20 +473,20 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
 
         for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
         {
-            if( i_node->IsNot(IdentifierFlag) )
+            if( i_node->IsNot(identifier_flag) )
                 (i_mesh->Nodes()).push_back(std::move(*(i_node.base())));
         }
     }
 
     //now recursively remove the nodes in the submodelparts
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveNodes(IdentifierFlag);
+        i_sub_model_part->RemoveNodes(identifier_flag);
 }
 
-void ModelPart::RemoveNodesFromAllLevels(Flags IdentifierFlag)
+void ModelPart::RemoveNodesFromAllLevels(Flags identifier_flag)
 {
     ModelPart& root_model_part = GetRootModelPart();
-    root_model_part.RemoveNodes(IdentifierFlag);
+    root_model_part.RemoveNodes(identifier_flag);
 }
 
 ModelPart& ModelPart::GetRootModelPart()
@@ -809,7 +812,7 @@ void ModelPart::RemoveElementFromAllLevels(ModelPart::ElementType::Pointer pThis
     RemoveElement(pThisElement, ThisIndex);
 }
 
-void ModelPart::RemoveElements(Flags IdentifierFlag)
+void ModelPart::RemoveElements(Flags identifier_flag)
 {
     // This method is optimized to free the memory
     //loop over all the meshes
@@ -824,7 +827,7 @@ void ModelPart::RemoveElements(Flags IdentifierFlag)
         {
             auto i_elem = i_mesh->ElementsBegin() + i;
 
-            if( i_elem->IsNot(IdentifierFlag) )
+            if( i_elem->IsNot(identifier_flag) )
                 erase_count++;
         }
 
@@ -835,123 +838,22 @@ void ModelPart::RemoveElements(Flags IdentifierFlag)
 
         for(ModelPart::ElementsContainerType::iterator i_elem = temp_elements_container.begin() ; i_elem != temp_elements_container.end() ; i_elem++)
         {
-            if( i_elem->IsNot(IdentifierFlag) )
+            if( i_elem->IsNot(identifier_flag) )
                 (i_mesh->Elements()).push_back(std::move(*(i_elem.base())));
         }
     }
 
     //now recursively remove the elements in the submodelparts
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveElements(IdentifierFlag);
+        i_sub_model_part->RemoveElements(identifier_flag);
 }
 
-void ModelPart::RemoveElementsFromAllLevels(Flags IdentifierFlag)
+void ModelPart::RemoveElementsFromAllLevels(Flags identifier_flag)
 {
     ModelPart& root_model_part = GetRootModelPart();
-    root_model_part.RemoveElements(IdentifierFlag);
+    root_model_part.RemoveElements(identifier_flag);
 }
 
-/** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-*/
-void ModelPart::RemoveElementAndBelongingNodes(ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    auto& r_array_nodes = this->Nodes(ThisIndex);
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(r_array_nodes.size()); ++i) {
-        auto it_node = r_array_nodes.begin() + i;
-        it_node->Set(IdentifierFlag, true);
-    }
-
-    // TODO: Add OMP
-    for (auto& elem : this->Elements(ThisIndex)) {
-        if (elem.Id() != ElementId) {
-            for (auto& node : elem.GetGeometry()) {
-                node.Set(IdentifierFlag, false);
-            }
-        }
-    }
-
-    RemoveElement(ElementId, ThisIndex);
-
-    // TODO: Add OMP
-    for(std::size_t i=0; i<r_array_nodes.size(); ++i) {
-        auto it_node = r_array_nodes.begin() + i;
-        if (it_node->Is(IdentifierFlag)) {
-            RemoveNode(it_node->Id(), ThisIndex);
-        }
-    }
-}
-
-/** Remove given element from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-*/
-void ModelPart::RemoveElementAndBelongingNodes(ModelPart::ElementType& ThisElement, Flags IdentifierFlag , ModelPart::IndexType ThisIndex)
-{
-    RemoveElementAndBelongingNodes(ThisElement.Id(), IdentifierFlag, ThisIndex);
-}
-
-/** Remove given element from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-*/
-void ModelPart::RemoveElementAndBelongingNodes(ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    RemoveElementAndBelongingNodes(pThisElement->Id(), IdentifierFlag, ThisIndex);
-}
-
-/** Remove the element with given Id from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-*/
-void ModelPart::RemoveElementAndBelongingNodesFromAllLevels(ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    if (IsSubModelPart()) {
-        mpParentModelPart->RemoveElementAndBelongingNodes(ElementId, IdentifierFlag, ThisIndex);
-    } else {
-        RemoveElementAndBelongingNodes(ElementId, IdentifierFlag, ThisIndex);
-    }
-}
-
-/** Remove given element from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-*/
-void ModelPart::RemoveElementAndBelongingNodesFromAllLevels(ModelPart::ElementType& ThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    RemoveElementAndBelongingNodesFromAllLevels(ThisElement.Id(), IdentifierFlag, ThisIndex);
-}
-
-/** Remove given element from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-*/
-void ModelPart::RemoveElementAndBelongingNodesFromAllLevels(ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    RemoveElementAndBelongingNodesFromAllLevels(pThisElement->Id(), IdentifierFlag, ThisIndex);
-}
-
-void ModelPart::RemoveElementsAndBelongingNodes(Flags IdentifierFlag)
-{
-    //loop over all the meshes
-    auto& meshes = this->GetMeshes();
-    for(auto i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++) {
-        auto& r_array_nodes = i_mesh->Nodes();
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(r_array_nodes.size()); ++i) {
-            auto it_node = r_array_nodes.begin() + i;
-            it_node->Set(IdentifierFlag, true);
-        }
-
-        // TODO: Add OMP
-        for (auto& elem : i_mesh->Elements()) {
-            if (elem.IsNot(IdentifierFlag)) {
-                for (auto& node : elem.GetGeometry()) {
-                    node.Set(IdentifierFlag, false);
-                }
-            }
-        }
-    }
-
-    RemoveElements(IdentifierFlag);
-    RemoveNodes(IdentifierFlag);
-}
-
-void ModelPart::RemoveElementsAndBelongingNodesFromAllLevels(Flags IdentifierFlag)
-{
-    ModelPart& root_model_part = GetRootModelPart();
-    root_model_part.RemoveElementsAndBelongingNodes(IdentifierFlag);
-}
 
 /*
     Functions for Master-Slave Constraint
@@ -1430,7 +1332,7 @@ void ModelPart::RemoveConditionFromAllLevels(ModelPart::ConditionType::Pointer p
     RemoveCondition(pThisCondition, ThisIndex);
 }
 
-void ModelPart::RemoveConditions(Flags IdentifierFlag)
+void ModelPart::RemoveConditions(Flags identifier_flag)
 {
     // This method is optimized to free the memory
     //loop over all the meshes
@@ -1445,7 +1347,7 @@ void ModelPart::RemoveConditions(Flags IdentifierFlag)
         {
             auto i_cond = i_mesh->ConditionsBegin() + i;
 
-            if( i_cond->IsNot(IdentifierFlag) )
+            if( i_cond->IsNot(identifier_flag) )
                 erase_count++;
         }
 
@@ -1456,123 +1358,22 @@ void ModelPart::RemoveConditions(Flags IdentifierFlag)
 
         for(ModelPart::ConditionsContainerType::iterator i_cond = temp_conditions_container.begin() ; i_cond != temp_conditions_container.end() ; i_cond++)
         {
-            if( i_cond->IsNot(IdentifierFlag) )
+            if( i_cond->IsNot(identifier_flag) )
                 (i_mesh->Conditions()).push_back(std::move(*(i_cond.base())));
         }
     }
 
     //now recursively remove the conditions in the submodelparts
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveConditions(IdentifierFlag);
+        i_sub_model_part->RemoveConditions(identifier_flag);
 }
 
-void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
+void ModelPart::RemoveConditionsFromAllLevels(Flags identifier_flag)
 {
     ModelPart& root_model_part = GetRootModelPart();
-    root_model_part.RemoveConditions(IdentifierFlag);
+    root_model_part.RemoveConditions(identifier_flag);
 }
 
-/** Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-*/
-void ModelPart::RemoveConditionAndBelongingNodes(ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    auto& r_array_nodes = this->Nodes(ThisIndex);
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(r_array_nodes.size()); ++i) {
-        auto it_node = r_array_nodes.begin() + i;
-        it_node->Set(IdentifierFlag, true);
-    }
-
-    // TODO: Add OMP
-    for (auto& cond : this->Conditions(ThisIndex)) {
-        if (cond.Id() != ConditionId) {
-            for (auto& node : cond.GetGeometry()) {
-                node.Set(IdentifierFlag, false);
-            }
-        }
-    }
-
-    RemoveCondition(ConditionId, ThisIndex);
-
-    // TODO: Add OMP
-    for(std::size_t i=0; i<r_array_nodes.size(); ++i) {
-        auto it_node = r_array_nodes.begin() + i;
-        if (it_node->Is(IdentifierFlag)) {
-            RemoveNode(it_node->Id(), ThisIndex);
-        }
-    }
-}
-
-/** Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-*/
-void ModelPart::RemoveConditionAndBelongingNodes(ModelPart::ConditionType& ThisCondition, Flags IdentifierFlag , ModelPart::IndexType ThisIndex)
-{
-    RemoveConditionAndBelongingNodes(ThisCondition.Id(), IdentifierFlag, ThisIndex);
-}
-
-/** Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-*/
-void ModelPart::RemoveConditionAndBelongingNodes(ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    RemoveConditionAndBelongingNodes(pThisCondition->Id(), IdentifierFlag, ThisIndex);
-}
-
-/** Remove the condition with given Id from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-*/
-void ModelPart::RemoveConditionAndBelongingNodesFromAllLevels(ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    if (IsSubModelPart()) {
-        mpParentModelPart->RemoveConditionAndBelongingNodes(ConditionId, IdentifierFlag, ThisIndex);
-    } else {
-        RemoveConditionAndBelongingNodes(ConditionId, IdentifierFlag, ThisIndex);
-    }
-}
-
-/** Remove given condition from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-*/
-void ModelPart::RemoveConditionAndBelongingNodesFromAllLevels(ModelPart::ConditionType& ThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    RemoveConditionAndBelongingNodesFromAllLevels(ThisCondition.Id(), IdentifierFlag, ThisIndex);
-}
-
-/** Remove given condition from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-*/
-void ModelPart::RemoveConditionAndBelongingNodesFromAllLevels(ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
-{
-    RemoveConditionAndBelongingNodesFromAllLevels(pThisCondition->Id(), IdentifierFlag, ThisIndex);
-}
-
-void ModelPart::RemoveConditionsAndBelongingNodes(Flags IdentifierFlag)
-{
-    //loop over all the meshes
-    auto& meshes = this->GetMeshes();
-    for(auto i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++) {
-        auto& r_array_nodes = i_mesh->Nodes();
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(r_array_nodes.size()); ++i) {
-            auto it_node = r_array_nodes.begin() + i;
-            it_node->Set(IdentifierFlag, true);
-        }
-
-        // TODO: Add OMP
-        for (auto& cond : i_mesh->Conditions()) {
-            if (cond.IsNot(IdentifierFlag)) {
-                for (auto& node : cond.GetGeometry()) {
-                    node.Set(IdentifierFlag, false);
-                }
-            }
-        }
-    }
-
-    RemoveConditions(IdentifierFlag);
-    RemoveNodes(IdentifierFlag);
-}
-
-void ModelPart::RemoveConditionsAndBelongingNodesFromAllLevels(Flags IdentifierFlag)
-{
-    ModelPart& root_model_part = GetRootModelPart();
-    root_model_part.RemoveConditionsAndBelongingNodes(IdentifierFlag);
-}
 
 ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {

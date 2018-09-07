@@ -442,19 +442,19 @@ public:
     */
     void RemoveNodeFromAllLevels(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
-    /** erases all nodes identified by "IdentifierFlag" by removing the pointer.
+    /** erases all nodes identified by "identifier_flag" by removing the pointer.
      * Pointers are erased from this level downwards
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveNodes(Flags IdentifierFlag = TO_ERASE);
+    void RemoveNodes(Flags identifier_flag = TO_ERASE);
 
-    /** erases all nodes identified by "IdentifierFlag" by removing the pointer.
+    /** erases all nodes identified by "identifier_flag" by removing the pointer.
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+    void RemoveNodesFromAllLevels(Flags identifier_flag = TO_ERASE);
 
     /** this function gives back the "root" model part, that is the model_part that has no father */
     ModelPart& GetRootModelPart();
@@ -626,7 +626,7 @@ public:
         return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
 
-    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const 
     {
         return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
@@ -712,15 +712,15 @@ public:
      * //TODO: replace these 3 functions by one that perfectly forwards arguments, then just define these 3 interfaces on the pybind side
      */
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id,
+                                                                                    IndexType Id, 
                                                                                     DofsVectorType& rMasterDofsVector,
                                                                                     DofsVectorType& rSlaveDofsVector,
                                                                                     const MatrixType& RelationMatrix,
                                                                                     const VectorType& ConstantVector,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id,
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
+                                                                                    IndexType Id, 
                                                                                     NodeType& rMasterNode,
                                                                                     const DoubleVariableType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
@@ -729,8 +729,8 @@ public:
                                                                                     const double Constant,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id,
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
+                                                                                    IndexType Id, 
                                                                                     NodeType& rMasterNode,
                                                                                     const VariableComponentType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
@@ -1009,57 +1009,19 @@ public:
     */
     void RemoveElementFromAllLevels(ElementType::Pointer pThisElement, IndexType ThisIndex = 0);
 
-    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
+    /** erases all elements identified by "identifier_flag" by removing the pointer.
          * Pointers are erased from this level downwards
          * nodes will be automatically destructured
          * when no pointer is left to them
          */
-    void RemoveElements(Flags IdentifierFlag = TO_ERASE);
+    void RemoveElements(Flags identifier_flag = TO_ERASE);
 
-    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
+    /** erases all elements identified by "identifier_flag" by removing the pointer.
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveElementsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
-
-    /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-    */
-    void RemoveElementAndBelongingNodes(IndexType ElementId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove given element from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-    */
-    void RemoveElementAndBelongingNodes(ElementType& ThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove given element from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-    */
-    void RemoveElementAndBelongingNodes(ElementType::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove the element with given Id from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-    */
-    void RemoveElementAndBelongingNodesFromAllLevels(IndexType ElementId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove given element from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-    */
-    void RemoveElementAndBelongingNodesFromAllLevels(ElementType& ThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove given element from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-    */
-    void RemoveElementAndBelongingNodesFromAllLevels(ElementType::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** erases all elements identified by "IdentifierFlag" by removing the pointer. This method removes belong nodes too
-    * Pointers are erased from this level downwards
-    * nodes will be automatically destructured
-    * when no pointer is left to them
-    */
-    void RemoveElementsAndBelongingNodes(Flags IdentifierFlag = TO_ERASE);
-
-    /** erases all elements identified by "IdentifierFlag" by removing the pointer. This method removes belong nodes too
-     * Pointers will be erase from all levels
-     * nodes will be automatically destructured
-     * when no pointer is left to them
-     */
-    void RemoveElementsAndBelongingNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+    void RemoveElementsFromAllLevels(Flags identifier_flag = TO_ERASE);
 
     ElementIterator ElementsBegin(IndexType ThisIndex = 0)
     {
@@ -1225,57 +1187,19 @@ public:
     */
     void RemoveConditionFromAllLevels(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0);
 
-    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
+    /** erases all elements identified by "identifier_flag" by removing the pointer.
     * Pointers are erased from this level downwards
     * nodes will be automatically destructured
     * when no pointer is left to them
     */
-    void RemoveConditions(Flags IdentifierFlag = TO_ERASE);
+    void RemoveConditions(Flags identifier_flag = TO_ERASE);
 
-    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
+    /** erases all elements identified by "identifier_flag" by removing the pointer.
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveConditionsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
-
-    /** Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-    */
-    void RemoveConditionAndBelongingNodes(IndexType ConditionId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-    */
-    void RemoveConditionAndBelongingNodes(ConditionType& ThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
-    */
-    void RemoveConditionAndBelongingNodes(ConditionType::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove the condition with given Id from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-    */
-    void RemoveConditionAndBelongingNodesFromAllLevels(IndexType ConditionId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove given condition from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-    */
-    void RemoveConditionAndBelongingNodesFromAllLevels(ConditionType& ThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** Remove given condition from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
-    */
-    void RemoveConditionAndBelongingNodesFromAllLevels(ConditionType::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
-
-    /** erases all conditions identified by "IdentifierFlag" by removing the pointer. This method removes belong nodes too
-    * Pointers are erased from this level downwards
-    * nodes will be automatically destructured
-    * when no pointer is left to them
-    */
-    void RemoveConditionsAndBelongingNodes(Flags IdentifierFlag = TO_ERASE);
-
-    /** erases all conditions identified by "IdentifierFlag" by removing the pointer. This method removes belong nodes too
-     * Pointers will be erase from all levels
-     * nodes will be automatically destructured
-     * when no pointer is left to them
-     */
-    void RemoveConditionsAndBelongingNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+    void RemoveConditionsFromAllLevels(Flags identifier_flag = TO_ERASE);
 
     ConditionIterator ConditionsBegin(IndexType ThisIndex = 0)
     {
