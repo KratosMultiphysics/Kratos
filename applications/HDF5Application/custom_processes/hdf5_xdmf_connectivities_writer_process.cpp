@@ -30,7 +30,7 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
     mpFile->ReadDataSet(node_ids_path, node_ids, 0, num_points);
 
     // Set the parametric coordinate ids.
-    mKratosToXdmfIdTable.resize(num_points);
+    mKratosToXdmfIdTable.resize(*(std::max_element(node_ids.begin(), node_ids.end())));
 #pragma omp parallel for
     for (int i = 0; i < num_points; ++i)
     {
