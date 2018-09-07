@@ -301,7 +301,7 @@ namespace Kratos
 
 		double volume;
 		array_1d<double,4> N;
-		bounded_matrix<double,4,3> DN_DX;
+		BoundedMatrix<double,4,3> DN_DX;
 		GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, volume);
 
 		rNormal = ZeroVector(3);
