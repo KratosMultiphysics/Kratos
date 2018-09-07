@@ -211,7 +211,7 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
             AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
 
             // Create the sub elements
-            std::vector<NodeType::Pointer> sub_element_nodes(3);
+            PointerVector<NodeType> sub_element_nodes(3);
             for (int position = 0; position < 4; position++)
             {
                 sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
@@ -229,7 +229,7 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
             AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
 
             // Create the sub elements
-            std::vector<NodeType::Pointer> sub_element_nodes(4);
+            PointerVector<NodeType> sub_element_nodes(4);
             for (int position = 0; position < 4; position++)
             {
                 sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
@@ -265,7 +265,7 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
             AddNodeToSubModelParts(middle_node, mCondColorMap[id]);
 
             // Create the sub conditions
-            std::vector<NodeType::Pointer> sub_condition_nodes(2);
+            PointerVector<NodeType> sub_condition_nodes(2);
             for (int position = 0; position < 2; position++)
             {
                 sub_condition_nodes = GetSubLineNodes(position, geom, middle_node);
@@ -481,7 +481,7 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
 template<unsigned int TDim>
 void UniformRefineUtility<TDim>::CreateElement(
     Element::Pointer pOriginElement,
-    std::vector<NodeType::Pointer>& rThisNodes,
+    PointerVector<NodeType>& rThisNodes,
     const int& rNumberOfDivisions
     )
 {
@@ -519,7 +519,7 @@ void UniformRefineUtility<TDim>::CreateElement(
 template<unsigned int TDim>
 void UniformRefineUtility<TDim>::CreateCondition(
     Condition::Pointer pOriginCondition,
-    std::vector<NodeType::Pointer>& rThisNodes,
+    PointerVector<NodeType>& rThisNodes,
     const int& rNumberOfDivisions
     )
 {
@@ -552,25 +552,25 @@ void UniformRefineUtility<TDim>::CreateCondition(
 
 /// Return the nodes defining the i-subline
 template<unsigned int TDim>
-std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubLineNodes(
+PointerVector<NodeType> UniformRefineUtility<TDim>::GetSubLineNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     NodeType::Pointer& rMiddleNode
     )
 {
-    std::vector<NodeType::Pointer> sub_line_nodes(2);
+    PointerVector<NodeType> sub_line_nodes(2);
 
     if (Position == 0)
     {
         // First sub line
-        sub_line_nodes[0] = rGeom.pGetPoint(0);
-        sub_line_nodes[1] = rMiddleNode;
+        sub_line_nodes(0) = rGeom.pGetPoint(0);
+        sub_line_nodes(1) = rMiddleNode;
     }
     else if (Position == 1)
     {
         // second sub line
-        sub_line_nodes[0] = rMiddleNode;
-        sub_line_nodes[1] = rGeom.pGetPoint(1);
+        sub_line_nodes(0) = rMiddleNode;
+        sub_line_nodes(1) = rGeom.pGetPoint(1);
     }
     else
     {
@@ -583,41 +583,41 @@ std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubLineNo
 
 /// Return the nodes defining the i-subtriangle
 template<unsigned int TDim>
-std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubTriangleNodes(
+PointerVector<NodeType> UniformRefineUtility<TDim>::GetSubTriangleNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     std::vector<NodeType::Pointer>& rMiddleNodes
     )
 {
-    std::vector<NodeType::Pointer> sub_triangle_nodes(3);
+    PointerVector<NodeType> sub_triangle_nodes(3);
 
     if (Position == 0)
     {
         // First sub triangle
-        sub_triangle_nodes[0] = rGeom.pGetPoint(0);
-        sub_triangle_nodes[1] = rMiddleNodes[0];
-        sub_triangle_nodes[2] = rMiddleNodes[2];
+        sub_triangle_nodes(0) = rGeom.pGetPoint(0);
+        sub_triangle_nodes(1) = rMiddleNodes[0];
+        sub_triangle_nodes(2) = rMiddleNodes[2];
     }
     else if (Position == 1)
     {
         // Second sub triangle
-        sub_triangle_nodes[0] = rGeom.pGetPoint(1);
-        sub_triangle_nodes[1] = rMiddleNodes[1];
-        sub_triangle_nodes[2] = rMiddleNodes[0];
+        sub_triangle_nodes(0) = rGeom.pGetPoint(1);
+        sub_triangle_nodes(1) = rMiddleNodes[1];
+        sub_triangle_nodes(2) = rMiddleNodes[0];
     }
     else if (Position == 2)
     {
         // Third sub triangle
-        sub_triangle_nodes[0] = rGeom.pGetPoint(2);
-        sub_triangle_nodes[1] = rMiddleNodes[2];
-        sub_triangle_nodes[2] = rMiddleNodes[1];
+        sub_triangle_nodes(0) = rGeom.pGetPoint(2);
+        sub_triangle_nodes(1) = rMiddleNodes[2];
+        sub_triangle_nodes(2) = rMiddleNodes[1];
     }
     else if (Position == 3)
     {
         // Fourth sub triangle (inner triangle)
-        sub_triangle_nodes[0] = rMiddleNodes[0];
-        sub_triangle_nodes[1] = rMiddleNodes[1];
-        sub_triangle_nodes[2] = rMiddleNodes[2];
+        sub_triangle_nodes(0) = rMiddleNodes[0];
+        sub_triangle_nodes(1) = rMiddleNodes[1];
+        sub_triangle_nodes(2) = rMiddleNodes[2];
     }
     else
     {
@@ -629,52 +629,52 @@ std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubTriang
 
 /// Return the nodes defining the i-subquadrilateral
 template<unsigned int TDim>
-std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubQuadrilateralNodes(
+PointerVector<NodeType> UniformRefineUtility<TDim>::GetSubQuadrilateralNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     std::vector<NodeType::Pointer>& rMiddleNodes
     )
 {
-    std::vector<NodeType::Pointer> sub_triangle_nodes(4);
+    PointerVector<NodeType> sub_quadrilateral_nodes(4);
 
     if (Position == 0)
     {
         // First sub element
-        sub_triangle_nodes[0] = rGeom.pGetPoint(0);
-        sub_triangle_nodes[1] = rMiddleNodes[0];
-        sub_triangle_nodes[2] = rMiddleNodes[4];
-        sub_triangle_nodes[3] = rMiddleNodes[3];
+        sub_quadrilateral_nodes(0) = rGeom.pGetPoint(0);
+        sub_quadrilateral_nodes(1) = rMiddleNodes[0];
+        sub_quadrilateral_nodes(2) = rMiddleNodes[4];
+        sub_quadrilateral_nodes(3) = rMiddleNodes[3];
     }
     else if (Position == 1)
     {
         // Second sub element
-        sub_triangle_nodes[0] = rGeom.pGetPoint(1);
-        sub_triangle_nodes[1] = rMiddleNodes[1];
-        sub_triangle_nodes[2] = rMiddleNodes[4];
-        sub_triangle_nodes[3] = rMiddleNodes[0];
+        sub_quadrilateral_nodes(0) = rGeom.pGetPoint(1);
+        sub_quadrilateral_nodes(1) = rMiddleNodes[1];
+        sub_quadrilateral_nodes(2) = rMiddleNodes[4];
+        sub_quadrilateral_nodes(3) = rMiddleNodes[0];
     }
     else if (Position == 2)
     {
         // Third sub element
-        sub_triangle_nodes[0] = rGeom.pGetPoint(2);
-        sub_triangle_nodes[1] = rMiddleNodes[2];
-        sub_triangle_nodes[2] = rMiddleNodes[4];
-        sub_triangle_nodes[3] = rMiddleNodes[1];
+        sub_quadrilateral_nodes(0) = rGeom.pGetPoint(2);
+        sub_quadrilateral_nodes(1) = rMiddleNodes[2];
+        sub_quadrilateral_nodes(2) = rMiddleNodes[4];
+        sub_quadrilateral_nodes(3) = rMiddleNodes[1];
     }
     else if (Position == 3)
     {
         // Fourth sub element
-        sub_triangle_nodes[0] = rGeom.pGetPoint(3);
-        sub_triangle_nodes[1] = rMiddleNodes[3];
-        sub_triangle_nodes[2] = rMiddleNodes[4];
-        sub_triangle_nodes[3] = rMiddleNodes[2];
+        sub_quadrilateral_nodes(0) = rGeom.pGetPoint(3);
+        sub_quadrilateral_nodes(1) = rMiddleNodes[3];
+        sub_quadrilateral_nodes(2) = rMiddleNodes[4];
+        sub_quadrilateral_nodes(3) = rMiddleNodes[2];
     }
     else
     {
         KRATOS_ERROR << "Attempting to get " << Position << " sub-quadrilateral inside a quadrilateral" << std::endl;
     }
 
-    return sub_triangle_nodes;
+    return sub_quadrilateral_nodes;
 }
 
 

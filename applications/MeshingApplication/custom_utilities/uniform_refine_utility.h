@@ -313,7 +313,7 @@ private:
      */
     void CreateElement(
         Element::Pointer pOriginElement,
-        std::vector<NodeType::Pointer>& rThisNodes,
+        PointerVector<NodeType>& rThisNodes,
         const int& rNumberOfDivisions
         );
 
@@ -325,7 +325,7 @@ private:
      */
     void CreateCondition(
         Condition::Pointer pOriginCondition,
-        std::vector<NodeType::Pointer>& rThisNodes,
+        PointerVector<NodeType>& rThisNodes,
         const int& rNumberOfDivisions
         );
 
@@ -336,7 +336,7 @@ private:
      * @param rMiddleNode The node which divides the original geometry
      * @return The nodes defining the sub-line
      */
-    std::vector<typename NodeType::Pointer> GetSubLineNodes(
+    PointerVector<NodeType> GetSubLineNodes(
         const int Position,
         const Geometry<NodeType>& rGeom,
         NodeType::Pointer& rMiddleNode
@@ -349,7 +349,7 @@ private:
      * @param rMiddleNode The nodes which divides the original geometry
      * @return The nodes defining the sub-triangle
      */
-    std::vector<typename NodeType::Pointer> GetSubTriangleNodes(
+    PointerVector<NodeType> GetSubTriangleNodes(
         const int Position,
         const Geometry<NodeType>& rGeom,
         std::vector<NodeType::Pointer>& rMiddleNodes
@@ -362,7 +362,7 @@ private:
      * @param rMiddleNode The node which divides the original geometry
      * @return The nodes defining the sub-quadrilateral
      */
-    std::vector<typename NodeType::Pointer> GetSubQuadrilateralNodes(
+    PointerVector<NodeType> GetSubQuadrilateralNodes(
         const int Position,
         const Geometry<NodeType>& rGeom,
         std::vector<NodeType::Pointer>& rMiddleNodes
