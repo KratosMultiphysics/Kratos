@@ -629,11 +629,6 @@ void AddUtilitiesToPython(pybind11::module& m)
 //         rAuxiliarModelPartUtilities.RemoveElementAndBelongingNodesFromAllLevels(pThisElement, IdentifierFlag, ThisIndex);
 //     }
 //
-//     void ModelPartRemoveElementsAndBelongingNodesFromAllLevels(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, Flags IdentifierFlag)
-//     {
-//         rAuxiliarModelPartUtilities.RemoveElementsAndBelongingNodesFromAllLevels(IdentifierFlag);
-//     }
-//
 //     void ModelPartRemoveConditionAndBelongingNodes1(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag)
 //     {
 //         rAuxiliarModelPartUtilities.RemoveConditionAndBelongingNodes(ConditionId, IdentifierFlag);
@@ -673,11 +668,6 @@ void AddUtilitiesToPython(pybind11::module& m)
 //     {
 //         rAuxiliarModelPartUtilities.RemoveConditionAndBelongingNodesFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);
 //     }
-//
-//     void ModelPartRemoveConditionsAndBelongingNodesFromAllLevels(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, Flags IdentifierFlag)
-//     {
-//         rAuxiliarModelPartUtilities.RemoveConditionsAndBelongingNodesFromAllLevels(IdentifierFlag);
-//     }
 
     class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
     .def(init<ModelPart&>())
@@ -685,22 +675,22 @@ void AddUtilitiesToPython(pybind11::module& m)
 //     .def("RemoveElementAndBelongingNodes", ModelPartRemoveElementAndBelongingNodes2)
 //     .def("RemoveElementAndBelongingNodes", ModelPartRemoveElementAndBelongingNodes3)
 //     .def("RemoveElementAndBelongingNodes", ModelPartRemoveElementAndBelongingNodes4)
-//     .def("RemoveElementsAndBelongingNodes", &AuxiliarModelPartUtilities::RemoveElementsAndBelongingNodes)
+    .def("RemoveElementsAndBelongingNodes", &AuxiliarModelPartUtilities::RemoveElementsAndBelongingNodes)
 //     .def("RemoveElementAndBelongingNodesFromAllLevels", ModelPartRemoveElementAndBelongingNodesFromAllLevels1)
 //     .def("RemoveElementAndBelongingNodesFromAllLevels", ModelPartRemoveElementAndBelongingNodesFromAllLevels2)
 //     .def("RemoveElementAndBelongingNodesFromAllLevels", ModelPartRemoveElementAndBelongingNodesFromAllLevels3)
 //     .def("RemoveElementAndBelongingNodesFromAllLevels", ModelPartRemoveElementAndBelongingNodesFromAllLevels4)
-//     .def("RemoveElementsAndBelongingNodesFromAllLevels", ModelPartRemoveElementsAndBelongingNodesFromAllLevels)
+    .def("RemoveElementsAndBelongingNodesFromAllLevels", &AuxiliarModelPartUtilities::RemoveElementsAndBelongingNodesFromAllLevels)
 //     .def("RemoveConditionAndBelongingNodes", ModelPartRemoveConditionAndBelongingNodes1)
 //     .def("RemoveConditionAndBelongingNodes", ModelPartRemoveConditionAndBelongingNodes2)
 //     .def("RemoveConditionAndBelongingNodes", ModelPartRemoveConditionAndBelongingNodes3)
 //     .def("RemoveConditionAndBelongingNodes", ModelPartRemoveConditionAndBelongingNodes4)
-//     .def("RemoveConditionsAndBelongingNodes", &AuxiliarModelPartUtilities::RemoveConditionsAndBelongingNodes)
+    .def("RemoveConditionsAndBelongingNodes", &AuxiliarModelPartUtilities::RemoveConditionsAndBelongingNodes)
 //     .def("RemoveConditionAndBelongingNodesFromAllLevels", ModelPartRemoveConditionAndBelongingNodesFromAllLevels1)
 //     .def("RemoveConditionAndBelongingNodesFromAllLevels", ModelPartRemoveConditionAndBelongingNodesFromAllLevels2)
 //     .def("RemoveConditionAndBelongingNodesFromAllLevels", ModelPartRemoveConditionAndBelongingNodesFromAllLevels3)
 //     .def("RemoveConditionAndBelongingNodesFromAllLevels", ModelPartRemoveConditionAndBelongingNodesFromAllLevels4)
-//     .def("RemoveConditionsAndBelongingNodesFromAllLevels", ModelPartRemoveConditionsAndBelongingNodesFromAllLevels)
+    .def("RemoveConditionsAndBelongingNodesFromAllLevels", &AuxiliarModelPartUtilities::RemoveConditionsAndBelongingNodesFromAllLevels)
     ;
 }
 
