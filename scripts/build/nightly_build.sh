@@ -29,8 +29,9 @@ cd ${HOME}
 wget https://drive.google.com/uc\?export\=download\&id\=1ythlWTtOCqm2nSKQzvc6QLiFYeFgC1NX -O mmg.zip
 unzip mmg.zip
 # Eigen library
-wget https://drive.google.com/uc\?export\=download\&id\=15dTI6xoJE024qh2UjfdQa85nuEAdsab- -O eigen.tar.gz
+wget https://bitbucket.org/eigen/eigen/get/dbed8786ceed.tar.gz -O eigen.tar.gz
 tar xzf eigen.tar.gz
+mv ${HOME}/eigen-eigen-dbed8786ceed ${HOME}/eigen
 
 ## Step1: Prepare
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
