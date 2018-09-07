@@ -216,21 +216,16 @@ public:
     ModelPart& mrRefinedModelPart; /// Where the refinement is performed
     Parameters mParameters;
 
-    // std::string mOwnName;     /// The coarse sub model part
-    // std::string mRefinedName; /// Where the refinement is performed
     std::string mElementName;
     std::string mConditionName;
 
     unsigned int mEchoLevel;
     unsigned int mDivisionsAtLevel;
 
-    // ModelPart::Pointer mpOwnModelPart;     /// The coarse sub model part
-    // ModelPart::Pointer mpRefinedModelPart; /// Where the refinement is performed
-
     StringVectorType mModelPartsNames;  /// The names of the sub model parts hierarchy
 
-    IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from own to refined
-    IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to own
+    IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from coarse to refined
+    IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to coarse
 
     std::string mCoarseInterfaceName;
     std::string mRefinedInterfaceName;
@@ -273,22 +268,17 @@ public:
     ModelPart& RecursiveGetSubModelPart(ModelPart& rThisModelPart, std::string FullName);
 
     /**
-     * @brief InitializeOwnModelPart creates the own sub model part if does not exist. This sub model part is the coarse model par
+     * @brief InitializeCoarseModelPart
      * @param rNames Is the vector containing the sub model part names
      */
-    void InitializeOwnModelPart(const StringVectorType& rNames);
-
-    // /* TODO: remove this method */
-    // void InitializeOwnModelPart(const std::string& rOwnName, const StringVectorType& rNames);
+    void InitializeCoarseModelPart(const StringVectorType& rNames);
 
     /**
-     * @brief InitializeRefinedModelPart creates the refined sub model part. Inside it creates the own model part
+     * @brief InitializeRefinedModelPart creates the refined sub model part
+     * @detail The method copy the model part hierarchy from the coarse to the refined model part
      * @param rNames The vector containing the sub model part names
      */
     void InitializeRefinedModelPart(const StringVectorType& rNames);
-
-    // /* TODO: remove this method */
-    // void InitializeRefinedModelPart(const std::string& rRefinedName, const std::string& rOwnName, const StringVectorType& rNames);
 
     /**
      * @brief AddAllPropertiesToModelPart adds all properties from an origin model part to a destination model part

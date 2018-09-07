@@ -59,17 +59,13 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
-    // if (mrCoarseModelPart.HasSubModelPart(own_name))
-    //     sub_model_parts_names = mrCoarseModelPart.GetSubModelPart(own_name).GetSubModelPartNames();
-    //     // sub_model_parts_names = RecursiveGetSubModelPartNames(mrCoarseModelPart.GetSubModelPart(own_name));
-    // else
     sub_model_parts_names = mrCoarseModelPart.GetSubModelPartNames();
     // sub_model_parts_names = RecursiveGetSubModelPartNames(mrCoarseModelPart);
 
     Check();
 
-    // Clone the model part at the own level
-    InitializeOwnModelPart(sub_model_parts_names);
+    // Initialize the coarse model part
+    InitializeCoarseModelPart(sub_model_parts_names);
 
     // Initialize the refined model part
     InitializeRefinedModelPart(sub_model_parts_names);
@@ -173,7 +169,7 @@ ModelPart& MultiScaleRefiningProcess::RecursiveGetSubModelPart(ModelPart& rThisM
 }
 
 
-void MultiScaleRefiningProcess::InitializeOwnModelPart(const StringVectorType& rNames)
+void MultiScaleRefiningProcess::InitializeCoarseModelPart(const StringVectorType& rNames)
 {}
 
 
