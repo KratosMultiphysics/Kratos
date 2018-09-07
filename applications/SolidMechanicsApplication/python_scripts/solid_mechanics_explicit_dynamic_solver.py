@@ -91,11 +91,9 @@ class ExplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
 
     def _create_mechanical_solver(self):
-
         mechanical_solver = self._create_explicit_strategy()
-
         mechanical_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step
-
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
         return mechanical_solver
 
 

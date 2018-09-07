@@ -95,6 +95,10 @@ class Solution(object):
         self.output = self._get_graphical_output(output_model_part)
         self.output.ExecuteInitialize()
 
+        # Adaptive solution
+        if self.time_process is not None:
+            self.time_process.ExecuteInitialize()
+
     def Solve(self):
 
         # Initialize solution Loop
@@ -141,16 +145,15 @@ class Solution(object):
         # Predict time step from time integration
         if self.time_process is not None:
             self.time_process.Execute()
-
-        self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
-
-        # Update time step
-        self.time = self.time + self.delta_time
-        self.step = self.step + 1
-
-        self.process_info[KratosMultiphysics.STEP] = self.step
-
-        self.main_model_part.CloneTimeStep(self.time)
+            self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
+            self.time = self.process_info[KratosMultiphysics.TIME]
+            self.step = self.process_info[KratosMultiphysics.STEP]
+        else:
+            self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
+            self.time = self.time + self.delta_time
+            self.step = self.step + 1
+            self.process_info[KratosMultiphysics.STEP] = self.step
+            self.main_model_part.CloneTimeStep(self.time)
 
         if self.echo_level >= 0:
             print("  [STEP:"+str(self.step)+" TIME:"+"{0:1.{1}f}".format(self.time, 5)+"]")
@@ -193,6 +196,8 @@ class Solution(object):
         print("  (-ITER:"+str(iterations)+" CPU:%.2f" % round((timer.clock()-clock_time), 2)+"s-)")
 
         self._stop_time_measuring(clock_time, "Solve Step", self.report)
+
+        self.process_info[KratosSolid.CONVERGENCE_ACHIEVED] = converged
 
         return converged
 
@@ -339,6 +344,9 @@ class Solution(object):
                 self.end_time = self.ProjectParameters["time_settings"]["end_time"].GetDouble()
             if self.ProjectParameters["time_settings"].Has("time_process"):
                 process = self.ProjectParameters["time_settings"]["time_process"]
+                process["Parameters"].AddValue("end_time",self.end_time)
+                process["Parameters"].AddValue("start_time",self.time)
+                process["Parameters"].AddValue("time_step",self.delta_time)
                 kratos_module = __import__(process["kratos_module"].GetString())
                 python_module = __import__(process["python_module"].GetString())
                 self.time_process = python_module.Factory(process, self.GetModel())

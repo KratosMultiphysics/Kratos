@@ -58,7 +58,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
                 mechanical_solver = self._create_newton_raphson_strategy()
             else:
                 mechanical_solver = self._create_linear_strategy()
-
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
         return mechanical_solver
 
 

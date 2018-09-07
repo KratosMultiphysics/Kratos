@@ -98,9 +98,13 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         options = KratosMultiphysics.Flags()
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
 
-        return KratosSolid.EigensolverStrategy(self.model_part, eigen_scheme, builder_and_solver, options, self.compute_modal_contribution)
 
-        #return KratosSolid.EigensolverStrategy(self.model_part,
+        mechanical_solver = KratosSolid.EigensolverStrategy(self.model_part, eigen_scheme, builder_and_solver, options, self.compute_modal_contribution)
+
+        # mechanical_solver = KratosSolid.EigensolverStrategy(self.model_part,
         #                                       eigen_scheme,
         #                                       builder_and_solver,
         #                                       self.compute_modal_contribution)
+
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
+        return mechanical_solver

@@ -69,6 +69,7 @@ class MonolithicSolver(object):
                 "iterative_update": true,
                 "clear_storage": false,
                 "reform_dofs_at_each_step": false,
+                "adaptive_solution": false,
                 "max_iteration": 10
             },
             "linear_solver_settings":{

@@ -108,9 +108,10 @@ class SolutionStrategy : public Flags
 
     bool converged = this->SolveSolutionStep();
 
-    // implementation of the adaptive time reduction needed
-    converged = true;
-
+    // implementation of the adaptive time reduction
+    if( this->IsNot(LocalFlagType::ADAPTIVE_SOLUTION) )
+      converged = true;
+    
     if(converged)
       this->FinalizeSolutionStep();
 

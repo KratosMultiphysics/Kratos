@@ -93,10 +93,11 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
 
     def _create_mechanical_solver(self):
-        if(self.settings["solving_strategy_settings"]["line_search"].GetBool() == True):
+        if self.settings["solving_strategy_settings"]["line_search"].GetBool():
             mechanical_solver = self._create_line_search_strategy()
         else:
             mechanical_solver = self._create_newton_raphson_strategy()
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
         return mechanical_solver
 
 
