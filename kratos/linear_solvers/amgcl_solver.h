@@ -242,7 +242,10 @@ public:
             "scaling"                        : false,
             "block_size"                     : 1,
             "use_block_matrices_if_possible" : true,
-            "coarse_enough"                  : 1000
+            "coarse_enough"                  : 1000,
+            "max_levels"                     : -1,
+            "pre_sweeps"                     : 1,
+            "post_sweeps"                    : 1
         }  )" );
 
         // Now validate agains defaults -- this also ensures no type mismatch
@@ -280,21 +283,31 @@ public:
         mVerbosity=ThisParameters["verbosity"].GetInt();
         mGMRESSize = ThisParameters["gmres_krylov_space_dimension"].GetInt();
 
-        const std::string& solver_type = ThisParameters["solver_type"].GetString();
+        const std::string& solver_type = ThisParameters["krylov_type"].GetString();
+        KRATOS_WATCH(solver_type)
         if(solver_type == "gmres" || solver_type == "lgmres" || solver_type == "fgmres") {
+            //KRATOS_ERROR << "------------------------  aaaaaaa";
             mAMGCLParameters.put("solver.M",  mGMRESSize);
+            mAMGCLParameters.put("solver.type", solver_type);
         } else if(solver_type == "bicgstab_with_gmres_fallback") {
             mAMGCLParameters.put("solver.M",  mGMRESSize);
             mFallbackToGMRES = true;
             mAMGCLParameters.put("solver.type", "bicgstab");
         } else {
             mFallbackToGMRES = false;
-            mAMGCLParameters.put("solver.type", ThisParameters["krylov_type"].GetString());
+            mAMGCLParameters.put("solver.type", solver_type);
         }
         mAMGCLParameters.put("precond.relax.type", ThisParameters["smoother_type"].GetString());
         mAMGCLParameters.put("precond.coarsening.type",  ThisParameters["coarsening_type"].GetString());
 
         mUseBlockMatricesIfPossible = ThisParameters["use_block_matrices_if_possible"].GetBool();
+
+        int max_levels = ThisParameters["max_levels"].GetInt();
+        if(max_levels >= 0)
+            mAMGCLParameters.put("precond.max_levels",  max_levels); 
+
+        mAMGCLParameters.put("precond.npre",  ThisParameters["pre_sweeps"].GetInt());
+        mAMGCLParameters.put("precond.npost",  ThisParameters["post_sweeps"].GetInt());
 
         if(mProvideCoordinates && mUseBlockMatricesIfPossible) {
             KRATOS_WARNING("AMGCL Linear Solver") << "Sorry coordinates can not be provided when using block matrices, hence setting muse_block_matrices_if_possible to false" << std::endl;
