@@ -47,14 +47,11 @@ namespace Kratos
 ///@{
 
 /**
- * @class Serializer
- *
+ * @class VariableUtils
  * @ingroup KratosCore
- * 
  * @brief This class implements a set of auxiliar, already parallelized, methods to
  * perform some common tasks related with the variable values and fixity.
  * @details The methods are exported to python in order to add this improvements to the python interface
- * 
  * @author Riccardo Rossi
  * @author Ruben Zorrilla
  * @author Vicente Mataix Ferrandiz

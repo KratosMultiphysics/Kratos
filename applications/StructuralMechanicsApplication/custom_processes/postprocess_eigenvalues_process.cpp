@@ -24,9 +24,9 @@
 namespace Kratos
 {
 
-    PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart &rModelPart,
-                                                                 Parameters OutputParameters) 
-                                                                 : mrModelPart(rModelPart), 
+    PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPart,
+                                                                 Parameters OutputParameters)
+                                                                 : mrModelPart(rModelPart),
                                                                    mOutputParameters(OutputParameters)
     {
         Parameters default_parameters(R"(
@@ -42,43 +42,34 @@ namespace Kratos
         mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     }
 
-
-    void PostprocessEigenvaluesProcess::ExecuteInitialize()
+    void PostprocessEigenvaluesProcess::Execute()
     {
         std::string result_file_name = mOutputParameters["result_file_name"].GetString();
 
-        if (result_file_name == "") // use the name of the ModelPart in case nothing was assigned
+        if (result_file_name == "") { // use the name of the ModelPart in case nothing was assigned
             result_file_name = mrModelPart.Name();
-        
+        }
+
         result_file_name += "_EigenResults";
 
         auto post_mode = GiD_PostBinary;
-        if (mOutputParameters["result_file_format_use_ascii"].GetBool()) // this format is only needed for testing
+        if (mOutputParameters["result_file_format_use_ascii"].GetBool()) { // this format is only needed for testing
             post_mode = GiD_PostAscii;
+        }
 
-        mpGidEigenIO = GidEigenIO::Pointer (new GidEigenIO( 
-                            result_file_name,
-                            post_mode,
-                            MultiFileFlag::SingleFile,
-                            WriteDeformedMeshFlag::WriteUndeformed,
-                            WriteConditionsFlag::WriteConditions) );
+       const auto p_gid_eigen_io = Kratos::make_unique<GidEigenIO>(
+            result_file_name,
+            post_mode,
+            MultiFileFlag::SingleFile,
+            WriteDeformedMeshFlag::WriteUndeformed,
+            WriteConditionsFlag::WriteConditions);
 
-        KRATOS_ERROR_IF_NOT(mpGidEigenIO) << "EigenIO could not be initialized!" << std::endl;
-    }
+        KRATOS_ERROR_IF_NOT(p_gid_eigen_io) << "EigenIO could not be initialized!" << std::endl;
 
-    void PostprocessEigenvaluesProcess::ExecuteBeforeSolutionLoop()
-    {
-        KRATOS_ERROR_IF_NOT(mpGidEigenIO) << " EigenIO is uninitialized!" << std::endl;
-
-        mpGidEigenIO->InitializeMesh(0.0);
-        mpGidEigenIO->WriteMesh(mrModelPart.GetMesh());
-        mpGidEigenIO->WriteNodeMesh(mrModelPart.GetMesh());
-        mpGidEigenIO->FinalizeMesh();
-    }
-
-    void PostprocessEigenvaluesProcess::ExecuteFinalize()
-    {
-        KRATOS_ERROR_IF_NOT(mpGidEigenIO) << " EigenIO is uninitialized!" << std::endl;
+        p_gid_eigen_io->InitializeMesh(0.0);
+        p_gid_eigen_io->WriteMesh(mrModelPart.GetMesh());
+        p_gid_eigen_io->WriteNodeMesh(mrModelPart.GetMesh());
+        p_gid_eigen_io->FinalizeMesh();
 
         const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
         // Note: this is omega^2
@@ -92,7 +83,7 @@ namespace Kratos
         std::vector<Variable<array_1d<double,3>>> requested_vector_results;
         GetVariables(requested_double_results, requested_vector_results);
 
-        mpGidEigenIO->InitializeResults(0.0, mrModelPart.GetMesh());
+        p_gid_eigen_io->InitializeResults(0.0, mrModelPart.GetMesh());
 
         for (SizeType i=0; i < num_animation_steps; ++i)
         {
@@ -108,22 +99,24 @@ namespace Kratos
                     DofsContainerType& r_node_dofs = r_node.GetDofs();
                     Matrix& r_node_eigenvectors = r_node.GetValue(EIGENVECTOR_MATRIX);
 
-                    KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2()) 
+                    KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2())
                         << "Number of results on node " << r_node.Id() << " is wrong" << std::endl;
 
                     SizeType k = 0;
                     for (auto& r_dof : r_node_dofs)
                         r_dof.GetSolutionStepValue(0) = std::cos(angle) * r_node_eigenvectors(j,k++);
                 }
-                
-                for (const auto& variable : requested_double_results)
-                    mpGidEigenIO->WriteEigenResults(mrModelPart, variable, label, i);                
-            
-                for (const auto& variable : requested_vector_results)
-                    mpGidEigenIO->WriteEigenResults(mrModelPart, variable, label, i);               
+
+                for (const auto& variable : requested_double_results) {
+                    p_gid_eigen_io->WriteEigenResults(mrModelPart, variable, label, i);
+                }
+
+                for (const auto& variable : requested_vector_results) {
+                    p_gid_eigen_io->WriteEigenResults(mrModelPart, variable, label, i);
+                }
             }
         }
-        mpGidEigenIO->FinalizeResults();        
+        p_gid_eigen_io->FinalizeResults();
     }
 
     void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
@@ -139,8 +132,8 @@ namespace Kratos
             {
                 const Variable<double > variable = KratosComponents< Variable<double > >::Get(variable_name);
 
-                KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable )) 
-                    << "Requesting EigenResults for a Variable that is not in the ModelPart: " 
+                KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
+                    << "Requesting EigenResults for a Variable that is not in the ModelPart: "
                     << variable << std::endl;
 
                 rRequestedDoubleResults.push_back(variable);
@@ -149,11 +142,11 @@ namespace Kratos
             {
                 const Variable<array_1d<double,3> > variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
 
-                KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable )) 
-                    << "Requesting EigenResults for a Variable that is not in the ModelPart: " 
+                KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
+                    << "Requesting EigenResults for a Variable that is not in the ModelPart: "
                     << variable << std::endl;
 
-                rRequestedVectorResults.push_back(variable);       
+                rRequestedVectorResults.push_back(variable);
             }
             else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) //case of component variable
             {
@@ -170,11 +163,11 @@ namespace Kratos
                                                         const double EigenvalueSolution)
     {
         double label_number;
-        
+
         std::stringstream parser;
         parser << (NumberOfEigenvalue + 1);
         std::string label = parser.str();
-        
+
         const std::string lable_type = mOutputParameters["label_type"].GetString();
 
         if (lable_type == "angular_frequency")
@@ -189,7 +182,7 @@ namespace Kratos
         }
         else
         {
-            KRATOS_ERROR << "The requested label_type \"" << lable_type << "\" is not available!\n" 
+            KRATOS_ERROR << "The requested label_type \"" << lable_type << "\" is not available!\n"
                          << "Available options are: \"angular_frequency\", \"frequency\"" << std::endl;
         }
 
@@ -198,7 +191,7 @@ namespace Kratos
         parser.clear();
 
         parser << label_number;
-        return label + parser.str();   
+        return label + parser.str();
     }
 
 }  // namespace Kratos.

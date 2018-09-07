@@ -55,5 +55,46 @@ namespace Kratos {
 
 
 		}
-	}
+
+        KRATOS_TEST_CASE_IN_SUITE(Parameters_Constructor1, KratosCoreFastSuite)
+        {
+            Parameters p;
+            KRATOS_CHECK_EQUAL(p.WriteJsonString(), "{}");
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(Parameters_Swap1, KratosCoreFastSuite)
+        {
+            Parameters p1{R"({"foo": 1.0})"};
+            Parameters p2{R"({"bar": false})"};
+            p1.swap(p2);
+            KRATOS_CHECK(p1.Has("bar"));
+            KRATOS_CHECK(p1["bar"].GetBool() == false);
+            KRATOS_CHECK(p2.Has("foo"));
+            KRATOS_CHECK(p2["foo"].GetDouble() == 1.0);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(Parameters_Reset1, KratosCoreFastSuite)
+        {
+            Parameters p{R"({"foo": {"bar": 1.0}})"};
+            p.Reset();
+            KRATOS_CHECK_EQUAL(p.WriteJsonString(), "{}");
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(Parameters_MoveConstructor1, KratosCoreFastSuite)
+        {
+            Parameters p1{R"({"foo": {"bar": 1.0}})"};
+            Parameters p2{std::move(p1)};
+            KRATOS_CHECK_EQUAL(p1.WriteJsonString(), "{}");
+            KRATOS_CHECK_EQUAL(p2.WriteJsonString(), R"({"foo":{"bar":1.0}})");
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(Parameters_MoveAssignment1, KratosCoreFastSuite)
+        {
+            Parameters p1{R"({"foo": {"bar": 1.0}})"};
+            Parameters p2{};
+            p2 = std::move(p1);
+            KRATOS_CHECK_EQUAL(p1.WriteJsonString(), "{}");
+            KRATOS_CHECK_EQUAL(p2.WriteJsonString(), R"({"foo":{"bar":1.0}})");
+        }
+    }
 }  // namespace Kratos.

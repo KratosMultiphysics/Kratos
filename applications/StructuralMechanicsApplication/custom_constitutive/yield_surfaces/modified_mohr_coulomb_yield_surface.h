@@ -15,6 +15,7 @@
 // System includes
 
 // Project includes
+#include "includes/checks.h"
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
@@ -93,7 +94,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param StrainVector The StrainVector vector
      * @param rMaterialProperties The material properties
      */
@@ -101,21 +102,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         const Vector &StressVector,
         const Vector &StrainVector,
         double &rEqStress,
-        const Properties &rMaterialProperties)
+        const Properties &rMaterialProperties
+        )
     {
         const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
 
         // Check input variables
-        if (friction_angle < tolerance)
-        {
+        if (friction_angle < tolerance) {
             friction_angle = 32.0 * Globals::Pi / 180.0;
             KRATOS_WARNING("ModifiedMohrCoulombYieldSurface") << "Friction Angle not defined, assumed equal to 32 deg " << std::endl;
         }
-
-        KRATOS_ERROR_IF(yield_compression < tolerance) << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_COMPRESSION in .mdpa ";
-        KRATOS_ERROR_IF(yield_tension < tolerance) << " ERROR: Yield stress in tension not defined, include YIELD_STRESS_TENSION in .mdpa ";
 
         double K1, K2, K3, Rmorh, R, alpha_r, theta;
         R = std::abs(yield_compression / yield_tension);
@@ -134,12 +132,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         K3 = 0.5 * (1.0 + alpha_r) * sin_phi - 0.5 * (1.0 - alpha_r);
 
         // Check Modified Mohr-Coulomb criterion
-        if (I1 == 0.0)
-        {
+        if (I1 == 0.0) {
             rEqStress = 0.0;
-        }
-        else
-        {
+        } else {
             ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, theta);
             rEqStress = (2.0 * std::tan(Globals::Pi * 0.25 + friction_angle * 0.5) / std::cos(friction_angle)) * ((I1 * K3 / 3.0) +
                         std::sqrt(J2) * (K1 * std::cos(theta) - K2 * std::sin(theta) * sin_phi / std::sqrt(3.0)));
@@ -158,9 +153,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator 
+     * @param J2 The second invariant of the Deviator
      * @param rg The derivative of the plastic potential
      * @param rMaterialProperties The material properties
      */
@@ -191,13 +186,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential))
-        {
+        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        }
-        else
-        { // linear
+            KRATOS_DEBUG_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+        } else { // linear
             AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf * n * n / CharacteristicLength);
         }
     }
@@ -207,9 +199,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator 
+     * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
      * @param rMaterialProperties The material properties
      */
@@ -263,13 +255,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         else
             c1 = 0.0; // check
 
-        if (Checker < 29.0)
-        {
+        if (Checker < 29.0) {
             c2 = cos_theta * CFL * (K1 * (1 + tan_theta * tan_3theta) + K2 * sin_phi * (tan_3theta - tan_theta) / Root3);
             c3 = CFL * (K1 * Root3 * sin_theta + K2 * sin_phi * cos_theta) / (2.0 * J2 * cos_3theta);
-        }
-        else
-        {
+        } else {
             c3 = 0.0;
             double aux = 1.0;
             if (lode_angle > tolerance)
@@ -277,6 +266,31 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
             c2 = 0.5 * CFL * (K1 * Root3 + aux * K2 * sin_phi / Root3);
         }
         noalias(rFFlux) = c1 * FirstVector + c2 * SecondVector + c3 * ThirdVector;
+    }
+
+    /**
+     * @brief This method defines the check to be performed in the yield surface
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
+        KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
+        KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
+
+        const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+
+        KRATOS_ERROR_IF(yield_compression < tolerance) << "Yield stress in compression almost zero or negative, include YIELD_STRESS_COMPRESSION in definition";
+        KRATOS_ERROR_IF(yield_tension < tolerance) << "Yield stress in tension almost zero or negative, include YIELD_STRESS_TENSION in definition";
+
+        return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
     ///@}

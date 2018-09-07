@@ -195,4 +195,4 @@ private:
 
 }; // Class AxisymElasticIsotropic
 }  // namespace Kratos.
-#endif // KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED  defined

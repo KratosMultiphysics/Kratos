@@ -42,6 +42,8 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -99,7 +101,7 @@
 #include "custom_constitutive/linear_j2_plasticity_3d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
-// Custom Constitutive laws
+// Advanced Constitutive laws
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
 #include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
@@ -371,6 +373,8 @@ private:
     const AdjointFiniteDifferencingBaseElement mAdjointFiniteDifferencingBaseElement;
     const AdjointFiniteDifferencingShellElement mAdjointFiniteDifferencingShellElement;
     const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
+    const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussElement;
+    const AdjointFiniteDifferenceTrussElementLinear mAdjointFiniteDifferenceTrussLinearElement;
 
     /* CONDITIONS*/
     // Point load

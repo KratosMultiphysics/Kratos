@@ -48,7 +48,7 @@ namespace Kratos {
 ///@{
 
 /// Process to create the animated Eigenvectors
-/** This process takes the results of an Eigenvalue Analysis and creates the 
+/** This process takes the results of an Eigenvalue Analysis and creates the
  * animated Eigenvectors (Eigenmodes) for GiD using the GidEigenIO, which
  * is customized for this case
  * The Input should be the ComputingModelPart! (Otherwise nodal results migth be messed up)
@@ -69,12 +69,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     typedef std::size_t SizeType;
 
     typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    PostprocessEigenvaluesProcess(ModelPart &rModelPart,
+    PostprocessEigenvaluesProcess(ModelPart& rModelPart,
                                   Parameters OutputParameters);
 
     ///@}
@@ -86,11 +86,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     ///@name Operations
     ///@{
 
-    void ExecuteInitialize() override;
-
-    void ExecuteBeforeSolutionLoop() override;
-
-    void ExecuteFinalize() override;
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -165,7 +161,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     ///@{
     ModelPart& mrModelPart;
     Parameters mOutputParameters;
-    GidEigenIO::Pointer mpGidEigenIO;
 
     ///@}
     ///@name Private Operators
@@ -174,7 +169,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) PostprocessEigenvaluesProcess
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     std::string GetLabel(const int NumberOfEigenValue,
                          const double EigenValueSolution);
 

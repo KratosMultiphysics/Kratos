@@ -229,7 +229,7 @@ public:
             N_origin[1] = 0.5 * ( 1.0 + ResultingPoint[0]);
             
             array_1d<double,3> normal_xi = N_origin[0] * normals[0] + N_origin[1] * normals[1];
-            normal_xi = normal_xi/norm_2(normal_xi); 
+            normal_xi /= norm_2(normal_xi); 
             
             current_global_coords = ZeroVector(3);
             for( IndexType i_node = 0; i_node < 2; ++i_node )
@@ -245,7 +245,9 @@ public:
             noalias(DN) = prod(X,ShapeFunctionsGradients);
 
             noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
-            Vector RHS = prod(trans(DN),subrange(current_destiny_global_coords - current_global_coords,0,2));
+
+            const array_1d<double, 3>  temp = current_destiny_global_coords - current_global_coords;
+            Vector RHS = prod(trans(DN), subrange(temp,0,2));
             
             old_delta_xi = DeltaXi;
             DeltaXi = RHS[0]/J(0, 0);

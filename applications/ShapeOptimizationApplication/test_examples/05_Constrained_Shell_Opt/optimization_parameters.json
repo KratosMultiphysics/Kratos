@@ -1,0 +1,129 @@
+{
+    "optimization_settings" : {
+        "objectives" : [{
+            "identifier" : "eigenfrequency",
+            "type"       : "maximization",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"          : "eigenfrequency",
+                "primal_settings"        : "primal_parameters_eigenfrequency.json",
+                "gradient_mode"          : "semi_analytic",
+                "step_size"              : 1e-6,
+                "traced_eigenfrequencies"  : [1],
+                "consider_discretization": false
+            },
+            "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [{
+            "identifier" : "strain_energy",
+            "type"       : "=",
+            "reference"  : "initial_value",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"          : "strain_energy",
+                "primal_settings"        : "primal_parameters.json",
+                "gradient_mode"          : "semi_analytic",
+                "step_size"              : 1e-6,
+                "consider_discretization": false
+            },
+            "project_gradient_on_surface_normals" : false
+        },
+        {
+            "identifier" : "y_position_733",
+            "type"       : ">",
+            "reference"  : "specified_value",
+            "reference_value" : 10,
+            "use_kratos" : false,
+            "project_gradient_on_surface_normals" : false
+        },
+        {
+            "identifier" : "y_position_1048",
+            "type"       : ">",
+            "reference"  : "specified_value",
+            "reference_value" : 10,
+            "use_kratos" : false,
+            "project_gradient_on_surface_normals" : false
+        },
+        {
+            "identifier" : "mass",
+            "type"       : "<",
+            "reference"  : "specified_value",
+            "reference_value" : 2355000,
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"          : "mass",
+                "material_import_settings" :{
+                    "materials_filename": "materials_2D.json"
+                },
+                "gradient_mode"          : "finite_differencing",
+                "step_size"              : 1e-6,
+                "consider_discretization": false
+            },
+            "project_gradient_on_surface_normals" : false
+        }],
+        "design_variables" : {
+            "type"                               : "vertex_morphing",
+            "optimization_model_part_name"       : "3D_Shell",
+            "design_surface_sub_model_part_name" : "design_surface",
+            "domain_size"                        : 3,
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 5.0,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : false
+            },
+            "damping" : {
+                "perform_damping" : true,
+                "damping_regions" : [{
+                        "sub_model_part_name"   : "support_edges",
+                        "damp_X"                : false,
+                        "damp_Y"                : true,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "linear",
+                        "damping_radius"        : 3.0
+                    },{
+                        "sub_model_part_name"   : "side_edges",
+                        "damp_X"                : false,
+                        "damp_Y"                : false,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "linear",
+                        "damping_radius"        : 3.0
+                }]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "optimization_algorithm" : {
+            "name"                  : "trust_region",
+            "max_step_length"       : 0.075,
+            "max_iterations"        : 40
+        },
+        "output" : {
+            "output_directory"        : "Optimization_Results",
+            "design_history_filename" : "design_history",
+            "response_log_filename"   : "response_log",
+            "design_output_mode"      : "WriteDesignSurface",
+            "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
+                                          "DF1DX",
+                                          "DF1DX_MAPPED",
+                                          "DC1DX",
+                                          "DC1DX_MAPPED",
+                                          "CONTROL_POINT_UPDATE",
+                                          "CONTROL_POINT_CHANGE",
+                                          "SHAPE_UPDATE",
+                                          "SHAPE_CHANGE" ],
+            "output_format" : {
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
+            }
+        }
+    }
+}

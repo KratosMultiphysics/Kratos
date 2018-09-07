@@ -37,8 +37,8 @@
 namespace Kratos
 {
 template<class TSparseSpace,
-         class TDenseSpace, 
-         class TLinearSolver 
+         class TDenseSpace,
+         class TLinearSolver
          >
 class ResidualBasedArcLengthStrategy
     : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
@@ -88,7 +88,7 @@ public:
 
     /************************************* CONSTRUCTOR *********************************/
     /***********************************************************************************/
-    
+
     ResidualBasedArcLengthStrategy(
             ModelPart& model_part,
             typename TSchemeType::Pointer pScheme,
@@ -155,7 +155,7 @@ public:
 
     /************************************* DESTRUCTOR **********************************/
     /***********************************************************************************/
-    
+
     ~ResidualBasedArcLengthStrategy() override {}
 
     /************************************* OPERATIONS **********************************/
@@ -166,7 +166,7 @@ public:
     {
         mpScheme = pScheme;
     };
-    
+
     typename TSchemeType::Pointer GetScheme()
     {
         return mpScheme;
@@ -177,7 +177,7 @@ public:
     {
         mpBuilderAndSolver = pNewBuilderAndSolver;
     };
-    
+
     typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
     {
         return mpBuilderAndSolver;
@@ -206,7 +206,7 @@ public:
     {
         mMaxIterationNumber = MaxIterationNumber;
     }
-    
+
     unsigned int GetMaxIterationNumber()
     {
         return mMaxIterationNumber;
@@ -229,7 +229,7 @@ public:
         KRATOS_TRY;
 
         mlambda_old        = 0.00;
-        mlambda            = 1.00; 
+        mlambda            = 1.00;
         mdelta_lambda      = 1.00;
         meta               = 1.00;
 
@@ -243,11 +243,11 @@ public:
     * Operation to predict the solution ... if it is not called a trivial predictor is used in which the
     * values of the solution step of interest are assumed equal to the old values
     */
-    
+
     void Predict() override
     {
         KRATOS_TRY;
-        
+
         DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
         TSystemMatrixType& mA  = *mpA;
@@ -272,7 +272,7 @@ public:
     * It initialises the vector of auxiliar values
     * @return pAux: Vector with auxiliar values
     */
-    
+
     void InitializeAuxVectors(TSystemVectorPointerType& pAux)
     {
       if (pAux == NULL) // If the pointer is not initialized initialize it to an empty matrix
@@ -280,7 +280,7 @@ public:
           TSystemVectorPointerType pNewAux = TSystemVectorPointerType(new TSystemVectorType(0));
           pAux.swap(pNewAux);
       }
-      
+
       TSystemVectorType& Aux = *pAux;
       if(Aux.size() !=  GetBuilderAndSolver()->GetEquationSystemSize())
       {
@@ -294,7 +294,7 @@ public:
     /**
     * It solves the problem
     */
-    
+
     double Solve() override
     {
         KRATOS_TRY;
@@ -311,11 +311,11 @@ public:
         TSystemVectorPointerType  pSigma_q;         //  Displacement conditions
         TSystemVectorPointerType  pSigma_h;         //  Displacemenet produced due to the imbalance
         TSystemVectorPointerType  ph;	            //  Ortogonal component of h
-        TSystemVectorPointerType  pe;               //  Out of balance load  lambda*Fext - Fint  
+        TSystemVectorPointerType  pe;               //  Out of balance load  lambda*Fext - Fint
         TSystemVectorPointerType  pE;               //  Lamda_old + Delta_lambda) * Fext
-        TSystemVectorPointerType  pAux_q;              
-        TSystemVectorPointerType  pAux_h;              
-        TSystemVectorPointerType  pq_Inc_Aux;  
+        TSystemVectorPointerType  pAux_q;
+        TSystemVectorPointerType  pAux_h;
+        TSystemVectorPointerType  pq_Inc_Aux;
 
         // Initialize member variables
         mIterationNumber              = 0;
@@ -393,7 +393,7 @@ public:
             // Shaping correctly the system
             pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
         }
-        
+
         // Updates the database with a prediction of the solution
         Predict();
 
@@ -402,7 +402,7 @@ public:
         {
             InitializeSolutionStep();
         }
-        
+
         // Initializing the local variables
         InitializeAuxVectors(pSigma_q);
         InitializeAuxVectors(pSigma_h);
@@ -414,7 +414,7 @@ public:
         InitializeAuxVectors(pAux_q);
         InitializeAuxVectors(pAux_h);
         InitializeAuxVectors(pq_Inc_Aux);
-        
+
         // Main data
         TSystemVectorType& mDelta_p      = *mpDelta_p;    /// P  current change
         TSystemVectorType& mDelta_pold   = *mpDelta_pold; /// P  =  u_(step+1)-u_(step)
@@ -422,7 +422,7 @@ public:
         TSystemMatrixType& mA            = *mpA;
         TSystemVectorType& mDx           = *mpDx;
         TSystemVectorType& mb            = *mpb;
-        
+
         /// Local axiliareis cvector
         TSystemVectorType& Sigma_q       = *pSigma_q;
         TSystemVectorType& Sigma_h       = *pSigma_h;
@@ -433,7 +433,7 @@ public:
         TSystemVectorType& Aux_q         = *pAux_q;
         TSystemVectorType& Aux_h         = *pAux_h;
         TSystemVectorType& q_Inc_Aux     = *pq_Inc_Aux;
- 
+
         //// Do nothing. It is called in order to have an order sequence
         //pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
         //is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
@@ -443,8 +443,8 @@ public:
         {
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
-            TSparseSpace::SetToZero(mb);      
-            TSparseSpace::SetToZero(Sigma_q);  
+            TSparseSpace::SetToZero(mb);
+            TSparseSpace::SetToZero(Sigma_q);
             TSparseSpace::SetToZero(Sigma_h);
             TSparseSpace::SetToZero(h);
             TSparseSpace::SetToZero(E);
@@ -453,7 +453,7 @@ public:
             TSparseSpace::SetToZero(Aux_q);
             TSparseSpace::SetToZero(Aux_h);
             TSparseSpace::SetToZero(q_Inc_Aux);
-	    
+	
             pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb);
             pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart, q);
             TSparseSpace::Copy(q ,Aux_q); // Aux = q;
@@ -462,8 +462,8 @@ public:
         {
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
-            TSparseSpace::SetToZero(mb);      
-            TSparseSpace::SetToZero(Sigma_q);  
+            TSparseSpace::SetToZero(mb);
+            TSparseSpace::SetToZero(Sigma_q);
             TSparseSpace::SetToZero(Sigma_h);
             TSparseSpace::SetToZero(h);
             TSparseSpace::SetToZero(E);
@@ -472,7 +472,7 @@ public:
             TSparseSpace::SetToZero(Aux_q);
             TSparseSpace::SetToZero(Aux_h);
             TSparseSpace::SetToZero(q_Inc_Aux);
-	    
+	
             pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb);
             pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart, q);
             TSparseSpace::Copy(q ,Aux_q); // Aux = q;
@@ -489,7 +489,7 @@ public:
         pBuilderAndSolver->SystemSolve(mA, Sigma_q, q_Inc_Aux);
         TSparseSpace::Copy(Aux_q, q_Inc_Aux);
         //noalias(Sigma_q) += mDelta_pold; /// should be the total acumulated
-        
+
         //Iteration Cicle... performed only for NonLinearProblems
         do
         {
@@ -507,11 +507,11 @@ public:
                     std::cout<<"\n STEP NUMBER       = " << mstep <<"  ITERATIONS NUMBER = " << mIterationNumber << "  RECURSIVE NUMBER = " << recursive << std::endl;
                 }
                 BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = mIterationNumber;
-              
+
                 // Setting variables in the begining of the iteraction
                 pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
                 meta = 1.00;
-	      
+	
                 local_converged = false;
                 if(mIterationNumber == 1 && mInit == false)// mstep == 1)
                 {
@@ -780,11 +780,11 @@ public:
         // Finalisation of the solution step, operations to be done after achieving convergence, for example the
         // Final Residual Vector (mb) has to be saved in there
         FinalizeSolutionStep();
-	  
+	
         // Cleaning memory after the solution
         pScheme->Clean();
         mSolutionStepIsInitialized = false;
-	  
+	
         // Deallocate the systemvectors
         if (mReformDofSetAtEachStep == true)
         {
@@ -803,7 +803,7 @@ public:
     KRATOS_CATCH("");
 
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
 
@@ -835,7 +835,7 @@ public:
 
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
     * This operations should be called before printing the results when non trivial results (e.g. stresses)
     * need to be calculated given the solution of the step
@@ -858,7 +858,7 @@ public:
     /**
     * It clears the variables of the arc length
     */
-    
+
     void Clear() override
     {
         KRATOS_TRY;
@@ -921,7 +921,7 @@ public:
             )
     {
         KRATOS_TRY;
-       
+
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         DofsArrayType& rDofSet                                    = pBuilderAndSolver->GetDofSet();
         typename TSchemeType::Pointer pScheme                     = GetScheme();
@@ -940,7 +940,7 @@ public:
         RealType delta_lcr       = 0.00;
         RealType miu             = 0.00;
         bool  imag = false;
-        
+
         // Aux Variables
         TSystemVectorPointerType pAux_Vector;
         TSystemVectorPointerType pDelta_p;
@@ -977,14 +977,14 @@ public:
         // Constants needed for the Ublas operations
         RealType A = 1.00;
         //RealType B = 1.00;
- 
+
         // Calculate_Current_Delta(rDofSet, Delta_p);
 	
         a = Ao + TSparseSpace::Dot(Sigma_q, Sigma_q);
         TSparseSpace::ScaleAndAdd(A, mDelta_p, meta, Sigma_h, Aux_Vector); // Aux_Vector = A * mDelta_p + meta*Sigma_h
         b = 2.00 * (Ao * (mdelta_lambda-g) + TSparseSpace::Dot(Sigma_q, Aux_Vector));
         c = Ao * (mdelta_lambda-g) * (mdelta_lambda-g) - mdelta_l * mdelta_l + TSparseSpace::Dot(Aux_Vector, Aux_Vector);
-        
+
         //KRATOS_WATCH(Ao);
         //KRATOS_WATCH(meta);
         //KRATOS_WATCH(Sigma_q);
@@ -1005,35 +1005,35 @@ public:
 
             TSparseSpace::ScaleAndAdd(x_sol[0],Sigma_q,meta,Sigma_h,Delta_p1); //Delta_p1 = x_sol(0)*Sigma_q + meta*Sigma_h
             TSparseSpace::ScaleAndAdd(x_sol[1],Sigma_q,meta,Sigma_h,Delta_p2); //Delta_p2 = x_sol(1)*Sigma_q + meta*Sigma_h
-            
+
             if (this->GetEchoLevel() > 1)
             {
                 std::cout<<" Real roots found " << std::endl;
                 std::cout<<" First Solution  = " << x_sol[0] <<  std::endl;
                 std::cout<<" Second Solution = " << x_sol[1] <<  std::endl;
             }
-	    
+	
             // Choose the x value: the larges dot product
             // WARNING: The old code use the current incremental displacement
             // First roots
             noalias(Delta_p) = mDelta_p + Delta_p1;
             RealType a1        = TSparseSpace::Dot(Delta_p, mDelta_pold);
-	    
+	
             //KRATOS_WATCH(Delta_p1[0]);
             //KRATOS_WATCH(Delta_p2[0]);
             //KRATOS_WATCH(mDelta_pold);
             //KRATOS_WATCH(a1);
-	    
+	
             // Second roots
             TSparseSpace::SetToZero(Delta_p);
             noalias(Delta_p) = mDelta_p + Delta_p2;
             RealType a2        = TSparseSpace::Dot(Delta_p,mDelta_pold);
             //KRATOS_WATCH(a2);
-	    
+	
             if(a1 > a2)
             {
                 x = x_sol[0];
-                noalias(mDelta_p)+= Delta_p1; 
+                noalias(mDelta_p)+= Delta_p1;
                 TSparseSpace::Copy(Delta_p1, dx_aux);
             }
             else
@@ -1042,9 +1042,9 @@ public:
               noalias(mDelta_p)+= Delta_p2;
               TSparseSpace::Copy(Delta_p2, dx_aux);
             }
-	    
+	
             mdelta_lambda += - g + x;
-	    
+	
             if (this->GetEchoLevel() > 1)
             {
                 std::cout << " Solution Chosen = " << x <<  std::endl;
@@ -1080,7 +1080,7 @@ public:
                 noalias(Delta_pcr) = mDelta_p + Sigma_h;
 
                 //this->BackupDatabase(rDofSet,mX_old);
-                
+
                 TSparseSpace::Copy(Sigma_h, dx_aux);
 
                 // Update results
@@ -1091,7 +1091,7 @@ public:
                 }
 
                 TSparseSpace::SetToZero(mb);
-    
+
                 pBuilderAndSolver->BuildRHS(pScheme,mAuxElementModelPart,mb);
                 lambda_cr          = -TSparseSpace::Dot(mb,q)/TSparseSpace::Dot(q,q);
                 delta_lambda_cr    = lambda_cr - mlambda_old;
@@ -1104,7 +1104,7 @@ public:
                 noalias(mDelta_p) = miu * Delta_pcr;
                 mdelta_lambda     = miu * delta_lambda_cr;
                 mdelta_l          = delta_lcr;
-	    
+	
                 if (this->GetEchoLevel() > 1)
                 {
                     std::cout << "   Arc Length      = " << mdelta_l             << std::endl;
@@ -1123,7 +1123,7 @@ public:
 
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
 
@@ -1157,7 +1157,7 @@ private:
     TSystemVectorPointerType mpb;
     TSystemMatrixPointerType mpA;
     TSystemVectorPointerType mpRHS_cond;
-    TSystemVectorPointerType mpX_old;  
+    TSystemVectorPointerType mpX_old;
     TSystemVectorPointerType mpDelta_p;
     TSystemVectorPointerType mpDelta_pold;
 
@@ -1303,7 +1303,7 @@ private:
 
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
     * It finalises the arc length for the currrent step
     * @param mIterationNumber: The iteration number in the non-linear step
@@ -1326,7 +1326,7 @@ private:
         RealType factor     = 1.00;
         mdelta_lambda_old =  mdelta_lambda;
         mlambda_old       =  mlambda;
-	  
+	
         // KRATOS_WATCH(mlambda_old)
 	
         factor           = std::sqrt(RealType(mIde)/RealType(mIterationNumber));
@@ -1347,7 +1347,7 @@ private:
             mdelta_lold = mdelta_lmax;
             mdelta_l    = mdelta_lmax;
         }
-        
+
         mReduceArcLenght = false;
 
         pScheme->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
@@ -1422,7 +1422,7 @@ private:
         if(i_dof->IsFree())
             mDelta_p[i_dof->EquationId()] = i_dof->GetSolutionStepValue(0)-i_dof->GetSolutionStepValue(1);
         */
-        
+
         /// WARNING: Verify current mDelta_p
         //Calculate_Delta_pold(rDofSet,mDelta_p);
 	
@@ -1432,7 +1432,7 @@ private:
         RealType param_d = TSparseSpace::Dot(mDelta_p, Sigma_h);
         RealType param_e = TSparseSpace::Dot(mDelta_p, mDelta_p);
         RealType param_f = TSparseSpace::Dot(Sigma_q,  mDelta_p);
- 
+
         a_prima = (Ao + param_a) * param_b - param_c * param_c;
         b_prima = 2.00 * ( (Ao + param_a)*param_d - ((Ao * (mdelta_lambda-g) + param_f)) * param_c);
         c_prima = (Ao + param_a) * (param_e - mdelta_l*mdelta_l) - (2.00 * Ao * (mdelta_lambda - g) + param_f) * param_f + param_a * Ao * (mdelta_lambda-g) * (mdelta_lambda-g);
@@ -1503,13 +1503,13 @@ private:
 
       /***********************************************************************************/
       /***********************************************************************************/
-   
+
       /**
       * Computed the increment of displacements from the last converged point to the previous step  in the iteraction  i+1
       * @param rDofSet: Set of degrees of freedom
       * @return: Delta_pold: Increment of displacements
       */
-      
+
       void Calculate_Previous_Delta(
               DofsArrayType const & rDofSet,
               TSystemVectorType& Delta_pold
@@ -1536,7 +1536,7 @@ private:
     * @param rDofSet: Set of degrees of freedom
     * @return: Delta_pold: Increment of displacements
     */
-    
+
     void Calculate_Current_Delta(
         DofsArrayType const & rDofSet,
         TSystemVectorType& Delta_pold
@@ -1554,19 +1554,19 @@ private:
 
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
     * Set the values of the database to the corresponding to X_old
     * @return rDofSet: Set of degrees of freedom
     * @param X_old: The old displacements
     */
-    
+
     void SetDatabaseToValue(
-      DofsArrayType& rDofSet, 
-      const TSystemVectorType& X_old 
+      DofsArrayType& rDofSet,
+      const TSystemVectorType& X_old
     )
     {
         KRATOS_TRY;
@@ -1578,10 +1578,10 @@ private:
                 i_dof->GetSolutionStepValue() = X_old[i_dof->EquationId()];
             }
         }
-        
+
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
 

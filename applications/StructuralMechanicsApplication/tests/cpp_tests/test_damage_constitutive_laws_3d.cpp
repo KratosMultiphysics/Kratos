@@ -47,7 +47,7 @@ namespace Testing
 // We test the associated damage Constitutive laws...
 typedef Node<3> NodeType;
 
-/** 
+/**
     * Check the correct calculation of the integrated stress with the CL's
     */
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
@@ -96,6 +96,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(FRACTURE_ENERGY, 1000.0);
     material_properties.SetValue(SOFTENING_TYPE, 0);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
     cl_parameters.SetMaterialProperties(material_properties);
@@ -199,6 +205,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(FRACTURE_ENERGY, 1.0e5);
     material_properties.SetValue(SOFTENING_TYPE, 1);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
     cl_parameters.SetMaterialProperties(material_properties);

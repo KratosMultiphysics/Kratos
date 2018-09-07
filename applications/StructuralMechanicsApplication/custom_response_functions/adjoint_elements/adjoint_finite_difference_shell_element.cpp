@@ -24,7 +24,7 @@ namespace Kratos
 {
 
 AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(Element::Pointer pPrimalElement)
-                    : AdjointFiniteDifferencingBaseElement(pPrimalElement) {}
+                    : AdjointFiniteDifferencingBaseElement(pPrimalElement, true) {}
 
 AdjointFiniteDifferencingShellElement::~AdjointFiniteDifferencingShellElement() {}
 
@@ -169,9 +169,9 @@ void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Vector >& r
         }
 
         if(stress_is_moment)
-            mpPrimalElement->GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
+            mpPrimalElement->CalculateOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
         else
-            mpPrimalElement->GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
+            mpPrimalElement->CalculateOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
 
         rOutput.resize(num_gps);
         for(IndexType i = 0; i < num_gps; i++)
@@ -193,6 +193,8 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
 {
     KRATOS_TRY
 
+    int return_value = AdjointFiniteDifferencingBaseElement::Check(rCurrentProcessInfo);
+
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     //TODO: Check() of primal element should be called, but is not possible because of DOF check!
@@ -203,7 +205,7 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
     KRATOS_ERROR_IF(GetGeometry().Area() < std::numeric_limits<double>::epsilon()*1000)
         << "Element #" << Id() << " has an Area of zero!" << std::endl;
 
-    return 0;
+    return return_value;
 
     KRATOS_CATCH("")
 }
