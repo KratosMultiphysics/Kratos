@@ -23,10 +23,15 @@ done
 # Download additional dependencies
 sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
 
-# MMg
+# We move to home directory
 cd ${HOME}
+# mmg library
 wget https://drive.google.com/uc\?export\=download\&id\=1ythlWTtOCqm2nSKQzvc6QLiFYeFgC1NX -O mmg.zip
 unzip mmg.zip
+# Eigen library
+wget https://bitbucket.org/eigen/eigen/get/dbed8786ceed.tar.gz -O eigen.tar.gz
+tar xzf eigen.tar.gz
+mv ${HOME}/eigen-eigen-dbed8786ceed ${HOME}/eigen
 
 ## Step1: Prepare
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli

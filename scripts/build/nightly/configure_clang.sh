@@ -33,6 +33,9 @@ cmake .. \
 -DMMG3D_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmg3d.a"                                  \
 -DMMGS_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmgs.a"                                    \
 -DMULTISCALE_APPLICATION=OFF                                                                    \
+-DEIGEN_SOLVERS_APPLICATION=ON                                                                  \
+-DUSE_EIGEN_MKL=OFF                                                                             \
+-DEIGEN_ROOT="${HOME}/eigen/"                                                                   \
 -DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
 -DPFEM_APPLICATION=OFF                                                                          \
 -DCONTACT_MECHANICS_APPLICATION=OFF                                                             \
