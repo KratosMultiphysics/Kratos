@@ -34,7 +34,8 @@ class AnalyticsTestSolution(main_script.Solution):
             "PostTangentialImpactVelocity"          : true,
             "PostFaceNormalImpactVelocity"          : true,
             "PostFaceTangentialImpactVelocity"      : true,
-            "FinalTime"                             : 0.6,
+            "FinalTime"                             : 0.45,
+            "MaxTimeStep"                           : 1e-4,
             "OutputTimeStep"                        : 1e-2
         }
         """))
@@ -45,8 +46,6 @@ class AnalyticsTestSolution(main_script.Solution):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
-        #print("GetProblemNameWithPath in test_analytics")
-        #print(os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString()))
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeTimeStep(self, time):
@@ -60,55 +59,55 @@ class AnalyticsTestSolution(main_script.Solution):
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-                elif time > 0.04 and time < 0.28:
+                elif time > 0.045 and time < 0.28:
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
-                elif time > 0.29 and time < 0.41:
+                elif time > 0.29 and time < 0.37:
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 2.81939
+                    expected_value = 2.842938
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
                 elif time > 0.43:
-                    expected_value = 10.268
+                    expected_value = 14.4637
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                    expected_value = 7.1603
+                    expected_value = 7.9635188
                     self.CheckValueOfFaceNormalImpactVelocity(face_normal_impact_vel, expected_value, tolerance)
             if node.Id == 2:
                 if time < 0.03:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.04 and time < 0.13:
+                elif time > 0.045 and time < 0.13:
                     expected_value = 3.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.15 and time < 0.42:
-                    expected_value = 3.9602
+                elif time > 0.17 and time < 0.37:
+                    expected_value = 3.941702
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
                 elif time > 0.43:
-                    expected_value = 10.268
+                    expected_value = 14.4637
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
             if node.Id == 3:
                 if time < 0.13:
                     expected_value = 0.0
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
-                elif time > 0.15 and time < 0.32:
-                    expected_value = 3.9602
+                elif time > 0.17 and time < 0.32:
+                    expected_value = 3.941702
                     self.CheckValueOfNormalImpactVelocity(normal_impact_vel, expected_value, tolerance)
 
     @classmethod
     def CheckValueOfNormalImpactVelocity(self, normal_impact_vel, expected_value, tolerance):
         if normal_impact_vel > expected_value + tolerance or normal_impact_vel < expected_value - tolerance:
-            raise ValueError('Incorrect value for NORMAL_IMPACT_VELOCITY')
+            raise ValueError('Incorrect value for NORMAL_IMPACT_VELOCITY: expected value was '+ str(expected_value) + ' but received ' + str(normal_impact_vel))
 
     @classmethod
     def CheckValueOfFaceNormalImpactVelocity(self, face_normal_impact_vel, expected_value, tolerance):
         if face_normal_impact_vel > expected_value + tolerance or face_normal_impact_vel < expected_value - tolerance:
-            raise ValueError('Incorrect value for FACE_NORMAL_IMPACT_VELOCITY')
+            raise ValueError('Incorrect value for FACE_NORMAL_IMPACT_VELOCITY: expected value was '+ str(expected_value) + ' but received ' + str(face_normal_impact_vel))
 
     def Finalize(self):
         super(AnalyticsTestSolution, self).Finalize()
-        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+        #self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
 
 class GhostsTestSolution(main_script.Solution):
