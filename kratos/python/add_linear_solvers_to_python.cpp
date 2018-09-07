@@ -52,7 +52,7 @@ namespace Kratos
 namespace Python
 {
     template <class TDataType>
-    using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, DenseVector<TDataType>>;
+    using TSpaceType = UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
     template <class TDataType>
     using TLocalSpaceType = UblasSpace<TDataType, DenseMatrix<TDataType>, DenseVector<TDataType>>;
     template <class TDataType>
@@ -64,10 +64,11 @@ void  AddLinearSolversToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    typedef TUblasSparseSpace<double> SpaceType;
-    typedef TUblasDenseSpace<double> LocalSpaceType;
-    typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
-    typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef UblasSpace<std::complex<double>, CompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>> ComplexSpaceType;
+    typedef UblasSpace<std::complex<double>, Matrix, Vector> ComplexLocalSpaceType;
+  
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
     typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
     typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;

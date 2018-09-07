@@ -711,7 +711,7 @@ public:
     Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2 , false);
         noalias( rResult ) = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint[1] );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint[0] );
@@ -737,7 +737,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2 , false);
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint.Y() );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint.X() );
         rResult( 1, 0 ) =  0.25 * ( 1.0 - rPoint.Y() );
@@ -765,10 +765,10 @@ public:
             rResult.swap( temp );
         }
 
-        rResult[0].resize( 2, 2 );
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
-        rResult[3].resize( 2, 2 );
+        rResult[0].resize( 2, 2 , false);
+        rResult[1].resize( 2, 2 , false);
+        rResult[2].resize( 2, 2 , false);
+        rResult[3].resize( 2, 2 , false);
 
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.25;
@@ -820,7 +820,7 @@ public:
         {
             for ( unsigned int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 2, 2 );
+                rResult[i][j].resize( 2, 2 , false);
                 noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
             }
         }

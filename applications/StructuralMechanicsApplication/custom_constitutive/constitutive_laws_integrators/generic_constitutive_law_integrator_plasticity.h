@@ -308,6 +308,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
             r0 = sumb;
             r1 = sumc;
         }
+
+        // Final check
+        if ((std::abs(r0) + std::abs(r1)) < tolerance) {
+            r0 = 0.5;
+            r1 = 0.5;
+            return;
+        }
     }
 
     /**

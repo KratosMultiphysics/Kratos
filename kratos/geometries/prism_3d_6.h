@@ -455,7 +455,7 @@ public:
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         if ( rResult.size1() != 6 || rResult.size2() != 3 )
-            rResult.resize( 6, 3 );
+            rResult.resize( 6, 3 ,false);
 
         rResult( 0, 0 ) = 0.0;
         rResult( 0, 1 ) = 0.0;

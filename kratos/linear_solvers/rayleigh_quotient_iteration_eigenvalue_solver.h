@@ -156,7 +156,7 @@ public:
     ///@{
 
     static void Initialize(
-        DenseVectorType& R,
+        VectorType& R,
         SparseMatrixType& M
     )
     {
@@ -212,8 +212,8 @@ public:
         SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         double tolerance = BaseType::GetTolerance();
 
-        VectorType x = ZeroVector(size);
-        VectorType y = ZeroVector(size);
+        VectorType x = boost::numeric::ublas::zero_vector<double>(size);
+        VectorType y = boost::numeric::ublas::zero_vector<double>(size);
 
         Initialize(y,M);
 
@@ -294,7 +294,7 @@ public:
                     shift_value = ro;
                 }
 
-                noalias(shifted_k) = K - shift_value*M;
+                boost::numeric::ublas::noalias(shifted_k) = K - shift_value*M;
 
                 // Copy myMatrix into skyline format
                 my_factorization.copyFromCSRMatrix(shifted_k);
@@ -320,7 +320,7 @@ public:
                 while((smaller_eigenvalue_numbers > 1) && (max_shift_value-min_shift_value > epsilon) && (iteration_number++ < max_shift_number))
                 {
                     shift_value = (max_shift_value + min_shift_value) / 2.00;
-                    noalias(shifted_k) = K - shift_value*M;
+					boost::numeric::ublas::noalias(shifted_k) = K - shift_value*M;
 
                     // Copy myMatrix into skyline format
                     my_factorization.copyFromCSRMatrix(shifted_k);
