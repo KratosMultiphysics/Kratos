@@ -29,8 +29,8 @@ namespace Kratos
  * Defines a critical-state constitutive law for associative two-invariant Modified Cam Clay model formulated by (Borja, 1998)
  * With stress split in an volumetric and deviatoric parts
  * This material law is defined by the parameters needed by the yield criterion:
- * CRITICAL_STATE_LINE, PRE_CONSOLIDATION_STRESS, OVER_CONSOLIDATION_RATIO, INITIAL_SHEAR_MODULUS, NORMAL_COMPRESSION_SLOPE, 
- * SWELLING_SLOPE, ALPHA_SHEAR
+ * PRE_CONSOLIDATION_STRESS, OVER_CONSOLIDATION_RATIO, SWELLING_SLOPE, NORMAL_COMPRESSION_SLOPE, CRITICAL_STATE_LINE
+ * INITIAL_SHEAR_MODULUS, ALPHA_SHEAR
  * The functionality is designed for large displacements and considering linear ln(v) - ln(p_c) Cam Clay hardening
  * For reference, please refer to: (Borja, 1998)
 */
