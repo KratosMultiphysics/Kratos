@@ -315,8 +315,7 @@ public:
                     shift_value = ro;
                 }
 
-                boost::numeric::ublas::noalias(shifted_k) = K - shift_value*M;
-//                 SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(shifted_k, M, - shift_value);
+                SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(shifted_k, M, - shift_value);
 
                 // Copy myMatrix into skyline format
                 my_factorization.copyFromCSRMatrix(shifted_k);
@@ -337,10 +336,9 @@ public:
                 unsigned int max_shift_number = 4;
 
                 while((smaller_eigenvalue_numbers > 1) && (max_shift_value-min_shift_value > epsilon) && (iteration_number++ < max_shift_number)) {
-                    shift_value = (max_shift_value + min_shift_value) / 2.00;
-                    boost::numeric::ublas::noalias(shifted_k) = K - shift_value*M;
-//                     shifted_k(K);
-//                     SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(shifted_k, M, - shift_value);
+                    shift_value = (max_shift_value + min_shift_value) / 2.0;
+                    shifted_k = K;
+                    SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(shifted_k, M, - shift_value);
 
                     // Copy myMatrix into skyline format
                     my_factorization.copyFromCSRMatrix(shifted_k);
