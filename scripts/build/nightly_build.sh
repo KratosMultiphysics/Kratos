@@ -20,11 +20,15 @@ while fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
   echo "Waiting for apt-get to finish"
 done
 
-# Install dependencies
-sudo apt-get install -y python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
+# Download additional dependencies
+sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
+
+# MMg
+cd ${HOME}
+wget https://drive.google.com/uc\?export\=download\&id\=1ythlWTtOCqm2nSKQzvc6QLiFYeFgC1NX -O mmg.zip
+unzip mmg.zip
 
 ## Step1: Prepare
-cd ${HOME}
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
 chmod 777 smtp-cli
 
