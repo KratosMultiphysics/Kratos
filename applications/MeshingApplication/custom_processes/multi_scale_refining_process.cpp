@@ -50,14 +50,8 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     mEchoLevel = mParameters["echo_level"].GetInt();
     mDivisionsAtLevel = mParameters["number_of_divisions_at_level"].GetInt();
 
-    // mOwnName = mParameters["own_model_part_name"].GetString();
-    // mRefinedName = mParameters["refined_model_part_name"].GetString();
-
     mElementName = mParameters["element_name"].GetString();
     mConditionName = mParameters["condition_name"].GetString();
-
-    // std::string own_name = mParameters["own_model_part_name"].GetString();
-    // std::string refined_name = mParameters["refined_model_part_name"].GetString();
 
     mCoarseInterfaceName = mParameters["origin_refining_interface_name"].GetString();
     mRefinedInterfaceName = mParameters["destination_refining_interface_name"].GetString();
@@ -97,9 +91,6 @@ void MultiScaleRefiningProcess::Check()
 
 void MultiScaleRefiningProcess::ExecuteRefinement()
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-    // ModelPart& refined_model_part = mrRootModelPart.GetSubModelPart(mRefinedName).GetSubModelPart(mOwnName); //*mpRefinedModelPart.get();
-
     // Initialize the maps
     IndexIndexMapType node_tag, elem_tag, cond_tag;
     SubModelPartsListUtility model_part_collection(mrCoarseModelPart);
@@ -134,8 +125,6 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 
 void MultiScaleRefiningProcess::ExecuteCoarsening()
 {
-    // ModelPart& refined_model_part = mrRootModelPart.GetSubModelPart(mRefinedName).GetSubModelPart(mOwnName); //*mpRefinedModelPart.get();
-
     IdentifyParentNodesToErase();
     IdentifyElementsToErase();
     IdentifyConditionsToErase();
@@ -187,113 +176,9 @@ ModelPart& MultiScaleRefiningProcess::RecursiveGetSubModelPart(ModelPart& rThisM
 void MultiScaleRefiningProcess::InitializeOwnModelPart(const StringVectorType& rNames)
 {}
 
-// void MultiScaleRefiningProcess::InitializeOwnModelPart(const StringVectorType& rNames)
-// {
-//     ModelPart::Pointer mpOwnModelPart;
-
-//     // Get the own model part
-//     if (mrRootModelPart.HasSubModelPart(mOwnName))
-//         mpOwnModelPart = mrRootModelPart.pGetSubModelPart(mOwnName);
-//     else
-//     {
-//         mpOwnModelPart = mrRootModelPart.CreateSubModelPart(mOwnName);
-        
-//         // Copy all the tables and properties
-//         AddAllTablesToModelPart(mrRootModelPart, mpOwnModelPart);
-//         AddAllPropertiesToModelPart(mrRootModelPart, mpOwnModelPart);
-
-//         // Copy all the nodes, elements and conditions
-//         AddAllNodesToModelPart(mrRootModelPart, mpOwnModelPart);
-//         AddAllElementsToModelPart(mrRootModelPart, mpOwnModelPart);
-//         AddAllConditionsToModelPart(mrRootModelPart, mpOwnModelPart);
-    
-//         // Copy the hierarchy from the root model part to the own model part
-//         for (auto name : rNames)
-//         {
-//             ModelPart::Pointer p_sub_model_part;
-//             if (mpOwnModelPart->HasSubModelPart(name))
-//                 p_sub_model_part = mpOwnModelPart->pGetSubModelPart(name);
-//             else
-//                 p_sub_model_part = mpOwnModelPart->CreateSubModelPart(name);
-
-//             ModelPart& origin_model_part = mrRootModelPart.GetSubModelPart(name);
-
-//             // Copy all the tables and properties
-//             AddAllTablesToModelPart(origin_model_part, p_sub_model_part);
-//             AddAllPropertiesToModelPart(origin_model_part, p_sub_model_part);
-
-//             // Copy all the nodes, elements and conditions
-//             AddAllNodesToModelPart(origin_model_part, p_sub_model_part);
-//             AddAllElementsToModelPart(origin_model_part, p_sub_model_part);
-//             AddAllConditionsToModelPart(origin_model_part, p_sub_model_part);
-//         }
-
-//         // Create a model part to store the interface boundary conditions
-//         mpOwnModelPart->CreateSubModelPart(mInterfaceName);
-//     }
-// }
-
-
-// // TODO: remove this method
-// void MultiScaleRefiningProcess::InitializeOwnModelPart(
-//     const std::string& rOwnName,
-//     const StringVectorType& rNames
-//     )
-// {
-//     // Get the own model part
-//     if (mrRootModelPart.HasSubModelPart(rOwnName))
-//         mpOwnModelPart = mrRootModelPart.pGetSubModelPart(rOwnName);
-//     else
-//     {
-//         mpOwnModelPart = mrRootModelPart.CreateSubModelPart(rOwnName);
-
-//         // Copy all the tables and properties
-//         AddAllTablesToModelPart(mrRootModelPart, mpOwnModelPart);
-//         AddAllPropertiesToModelPart(mrRootModelPart, mpOwnModelPart);
-
-//         // Copy the nodes, elements and conditions
-//         AddAllNodesToModelPart(mrRootModelPart, mpOwnModelPart);
-//         AddAllElementsToModelPart(mrRootModelPart, mpOwnModelPart);
-//         AddAllConditionsToModelPart(mrRootModelPart, mpOwnModelPart);
-//     }
-
-//     // Copy the hierarchy from the root model part to the own model part
-//     for (auto full_name : rNames)
-//     {
-//         ModelPart::Pointer aux_model_part = mpOwnModelPart;
-//         std::istringstream iss(full_name);
-//         std::string token;
-//         while (std::getline(iss, token, '.'))
-//         {
-//             if (aux_model_part->HasSubModelPart(token))
-//                 aux_model_part = aux_model_part->pGetSubModelPart(token);
-//             else
-//                 aux_model_part = aux_model_part->CreateSubModelPart(token);
-//         }
-
-//         ModelPart& origin_model_part = RecursiveGetSubModelPart(mrRootModelPart, full_name);
-
-//         // Copy all the tables and properties
-//         AddAllTablesToModelPart(origin_model_part, aux_model_part);
-//         AddAllPropertiesToModelPart(origin_model_part, aux_model_part);
-
-//         // Copy the nodes, elements and conditions
-//         AddAllNodesToModelPart(origin_model_part, aux_model_part);
-//         AddAllElementsToModelPart(origin_model_part, aux_model_part);
-//         AddAllConditionsToModelPart(origin_model_part, aux_model_part);
-//     }
-// }
-
 
 void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorType& rNames)
 {
-    // ModelPart::Pointer mpRefinedModelPart;
-
-    // // Create the refined sub model part
-    // KRATOS_ERROR_IF(mrRootModelPart.HasSubModelPart(mRefinedName)) << "MultiScaleRefiningProcess: a refined model part with name : " << mRefinedName << " is already present in the model part : " << mrRootModelPart.Name() << std::endl;
-    // ModelPart::Pointer refined_model_part = mrRootModelPart.CreateSubModelPart(mRefinedName);
-    // mrRefinedModelPart = refined_model_part.CreateSubModelPart(mOwnName);
-
     // Increase the refinement level
     int subscale_index = mrCoarseModelPart.GetValue(SUBSCALE_INDEX);
     mrRefinedModelPart.SetValue(SUBSCALE_INDEX, ++subscale_index);
@@ -324,36 +209,6 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
     mMinElemId = (subscale_index + 1) * 1e8;
     mMinCondId = (subscale_index + 1) * 1e8;
 }
-
-
-// // TODO: remove this method
-// void MultiScaleRefiningProcess::InitializeRefinedModelPart(
-//     const std::string& rRefinedName,
-//     const std::string& rOwnName,
-//     const StringVectorType& rNames
-//     )
-// {
-//     // Create the refined sub model part
-//     ModelPart::Pointer refined_model_part = mrRootModelPart.CreateSubModelPart(rRefinedName);
-//     mpRefinedModelPart = refined_model_part->CreateSubModelPart(rOwnName);
-
-//     // Copy the hierarchy to the refined model part
-//     for (auto full_name : rNames)
-//     {
-//         ModelPart::Pointer aux_model_part = mpRefinedModelPart;
-//         std::istringstream iss(full_name);
-//         std::string token;
-//         while (std::getline(iss, token, '.'))
-//         {
-//             if (aux_model_part->HasSubModelPart(token))
-//                 aux_model_part = aux_model_part->pGetSubModelPart(token);
-//             else
-//             {
-//                 aux_model_part = aux_model_part->CreateSubModelPart(token);
-//             }
-//         }
-//     }
-// }
 
 
 void MultiScaleRefiningProcess::AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
@@ -431,8 +286,6 @@ void MultiScaleRefiningProcess::AddAllConditionsToModelPart(ModelPart& rOriginMo
 
 void MultiScaleRefiningProcess::MarkElementsFromNodalFlag()
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-
     const int nelems = static_cast<int>(mrCoarseModelPart.Elements().size());
     ModelPart::ElementsContainerType::iterator elem_begin = mrCoarseModelPart.ElementsBegin();
 
@@ -461,8 +314,6 @@ void MultiScaleRefiningProcess::MarkElementsFromNodalFlag()
 
 void MultiScaleRefiningProcess::MarkConditionsFromNodalFlag()
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-
     const int nconds = static_cast<int>(mrCoarseModelPart.Conditions().size());
     ModelPart::ConditionsContainerType::iterator cond_begin = mrCoarseModelPart.ConditionsBegin();
 
@@ -490,9 +341,6 @@ void MultiScaleRefiningProcess::MarkConditionsFromNodalFlag()
 
 void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-    // ModelPart& refined_model_part = mrRootModelPart.GetSubModelPart(mRefinedName).GetSubModelPart(mOwnName); //*mpRefinedModelPart.get();
-
     const int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
 
@@ -535,8 +383,6 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 
 void MultiScaleRefiningProcess::IdentifyParentNodesToErase()
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-
     const int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
 
@@ -560,9 +406,6 @@ void MultiScaleRefiningProcess::IdentifyParentNodesToErase()
 
 void MultiScaleRefiningProcess::IdentifyElementsToErase()
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-    // ModelPart& refined_model_part = mrRootModelPart.GetSubModelPart(mRefinedName).GetSubModelPart(mOwnName); //*mpRefinedModelPart.get();
-
     // Identify the parent elements to coarse
     const int nelems_coarse = static_cast<int>(mrCoarseModelPart.Elements().size());
     ModelPart::ElementsContainerType::iterator coarse_elem_begin = mrCoarseModelPart.ElementsBegin();
@@ -600,9 +443,6 @@ void MultiScaleRefiningProcess::IdentifyElementsToErase()
 
 void MultiScaleRefiningProcess::IdentifyConditionsToErase()
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-    // ModelPart& refined_model_part = mrRootModelPart.GetSubModelPart(mRefinedName).GetSubModelPart(mOwnName); //*mpRefinedModelPart.get();
-
     // Identify the parent conditions  to coarse
     const int nconds_coarse = static_cast<int>(mrCoarseModelPart.Conditions().size());
     ModelPart::ConditionsContainerType::iterator coarse_cond_begin = mrCoarseModelPart.ConditionsBegin();
@@ -640,8 +480,6 @@ void MultiScaleRefiningProcess::IdentifyConditionsToErase()
 
 void MultiScaleRefiningProcess::IdentifyRefinedNodesToErase()
 {
-    // ModelPart& refined_model_part = mrRootModelPart.GetSubModelPart(mRefinedName).GetSubModelPart(mOwnName); //*mpRefinedModelPart.get();
-
     ModelPart::ElementsContainerType::iterator element_begin = mrRefinedModelPart.ElementsBegin();
     const IndexType element_nodes = element_begin->GetGeometry().size();
     const IndexType nelems = mrRefinedModelPart.Elements().size();
@@ -663,9 +501,6 @@ void MultiScaleRefiningProcess::IdentifyRefinedNodesToErase()
 
 void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, IndexIndexMapType& rElemTag)
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-    // ModelPart& refined_model_part = mrRootModelPart.GetSubModelPart(mRefinedName).GetSubModelPart(mOwnName); //*mpRefinedModelPart.get();
-
     const int nelems = static_cast<int>(mrCoarseModelPart.Elements().size());
     ModelPart::ElementsContainerType::iterator elements_begin = mrCoarseModelPart.ElementsBegin();
 
@@ -719,9 +554,6 @@ void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
 
 void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag)
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-    // ModelPart& refined_model_part = mrRootModelPart.GetSubModelPart(mRefinedName).GetSubModelPart(mOwnName); //*mpRefinedModelPart.get();
-
     const int nconds = static_cast<int>(mrCoarseModelPart.Conditions().size());
     ModelPart::ConditionsContainerType::iterator conditions_begin = mrCoarseModelPart.ConditionsBegin();
 
@@ -775,8 +607,6 @@ void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
 
 void MultiScaleRefiningProcess::FinalizeRefinement()
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-
     int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
 
@@ -805,8 +635,6 @@ void MultiScaleRefiningProcess::FinalizeRefinement()
 
 void MultiScaleRefiningProcess::IdentifyRefiningInterface()
 {
-    // ModelPart& coarse_model_part = mrRootModelPart.GetSubModelPart(mOwnName); //*mpOwnModelPart.get();
-    // ModelPart& refined_model_part = mrRootModelPart.GetSubModelPart(mRefinedName).GetSubModelPart(mOwnName); //*mpRefinedModelPart.get();
     // 0. Reset the flags
     
     // 1. Identify the nodes which define the boundary
