@@ -36,16 +36,15 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process):
         settings.RemoveValue("help")
 
         KratosMultiphysics.Process.__init__(self)
-        model_part = Model[settings["computing_model_part_name"].GetString()]
+        self.model_part = Model[settings["computing_model_part_name"].GetString()]
         settings.RemoveValue("computing_model_part_name")
-        self.post_eigen_process = StructuralMechanicsApplication.PostprocessEigenvaluesProcess(
-                                    model_part, settings)
+        self.settings = settings
 
     def ExecuteInitialize(self):
-        self.post_eigen_process.ExecuteInitialize()
+        pass
 
     def ExecuteBeforeSolutionLoop(self):
-        self.post_eigen_process.ExecuteBeforeSolutionLoop()
+        pass
 
     def ExecuteInitializeSolutionStep(self):
         pass
@@ -60,4 +59,5 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalize(self):
-        self.post_eigen_process.ExecuteFinalize()
+        StructuralMechanicsApplication.PostprocessEigenvaluesProcess(
+            self.model_part, self.settings).Execute()
