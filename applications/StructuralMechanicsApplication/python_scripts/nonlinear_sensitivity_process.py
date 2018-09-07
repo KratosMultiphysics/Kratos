@@ -245,7 +245,8 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
                         #            value_json = values_json[index]
                 if variable_name == "FORCE":
                     elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY, curvature_array)
-
+                    elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY_FIRST_ORDER, sen_first_array)
+                    elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY_SECOND_ORDER, sen_second_array)
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation

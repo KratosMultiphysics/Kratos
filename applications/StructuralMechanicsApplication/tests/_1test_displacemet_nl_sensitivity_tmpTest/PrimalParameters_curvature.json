@@ -140,7 +140,7 @@
             "skin_output"         : false,
             "plane_output"        : [],
             "nodal_results"       : ["DISPLACEMENT"],
-            "gauss_point_results" : ["FORCE", "FORCE_NL_SENSITIVITY"],
+            "gauss_point_results" : ["FORCE", "FORCE_NL_SENSITIVITY", "FORCE_NL_SENSITIVITY_FIRST_ORDER", "FORCE_NL_SENSITIVITY_SECOND_ORDER"],
             "nodal_nonhistorical_results": ["DISPLACEMENT_NL_SENSITIVITY", "DISPLACEMENT_NL_SENSITIVITY_FIRST_ORDER", "DISPLACEMENT_NL_SENSITIVITY_SECOND_ORDER"]
         },
         "point_data_configuration"  : []
