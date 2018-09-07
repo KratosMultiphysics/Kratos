@@ -38,24 +38,26 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
         "element_name"                        : "Element2D3N",
         "condition_name"                      : "Condition2D2N",
         "echo_level"                          : 0,
-        "number_of_divisions_at_level"        : 2,
-        "origin_refining_interface_name"      : "coarse_interface",
-        "destination_refining_interface_name" : "refined_interface",
-        "refining_boundary_condition"         : "Condition2D2N"
+        "number_of_divisions_at_subscale"     : 2,
+        "origin_interface_name"               : "coarse_interface",
+        "subscale_interface_name"             : "refined_interface",
+        "subscale_boundary_condition"         : "Condition2D2N"
     }
     )");
 
     mParameters.ValidateAndAssignDefaults(DefaultParameters);
 
     mEchoLevel = mParameters["echo_level"].GetInt();
-    mDivisionsAtLevel = mParameters["number_of_divisions_at_level"].GetInt();
+    mDivisionsAtSubscale = mParameters["number_of_divisions_at_subscale"].GetInt();
 
     mElementName = mParameters["element_name"].GetString();
     mConditionName = mParameters["condition_name"].GetString();
 
-    mCoarseInterfaceName = mParameters["origin_refining_interface_name"].GetString();
-    mRefinedInterfaceName = mParameters["destination_refining_interface_name"].GetString();
-    mInterfaceConditionName = mParameters["refining_boundary_condition"].GetString();
+    mCoarseInterfaceName = mParameters["origin_interface_name"].GetString();
+    mRefinedInterfaceName = mParameters["subscale_interface_name"].GetString();
+    mInterfaceConditionName = mParameters["subscale_boundary_condition"].GetString();
+
+    if (mEchoLevel > 1) KRATOS_WATCH(mParameters);
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
@@ -79,7 +81,7 @@ void MultiScaleRefiningProcess::Check()
     KRATOS_CHECK(KratosComponents<Element>::Has(mElementName));
     KRATOS_CHECK(KratosComponents<Condition>::Has(mConditionName));
 
-    KRATOS_CHECK_NOT_EQUAL(mDivisionsAtLevel, 0);
+    KRATOS_CHECK_NOT_EQUAL(mDivisionsAtSubscale, 0);
 
     KRATOS_CATCH("")
 }
@@ -110,7 +112,7 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     CreateConditionsToRefine(elem_id, cond_tag);
     
     // Execute the refinement
-    int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtLevel;
+    int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtSubscale;
     auto uniform_refining = UniformRefineUtility<2>(mrRefinedModelPart, divisions);
     uniform_refining.Refine(node_id, elem_id, cond_id);
 

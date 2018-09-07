@@ -220,7 +220,7 @@ public:
     std::string mConditionName;
 
     unsigned int mEchoLevel;
-    unsigned int mDivisionsAtLevel;
+    unsigned int mDivisionsAtSubscale;
 
     StringVectorType mModelPartsNames;  /// The names of the sub model parts hierarchy
 

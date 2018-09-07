@@ -18,11 +18,14 @@ class MultiscaleProcess(KratosMultiphysics.Process):
         {
             "main_model_part_name"            : "MainModelPart",
             "current_subscale"                : 0,
-            "maximum_number_of_subscales      : 4,    
+            "maximum_number_of_subscales"     : 4,    
             "echo_level"                      : 0,
-            "number_of_divisions_at_subscale" : 2,
-            "refining_interface_model_part"   : "refining_interface",      
-            "refining_boundary_condition"     : "Condition2D2N"
+            "advanced_configuration"          : {
+                "echo_level"                      : 0,
+                "number_of_divisions_at_subscale" : 2,
+                "subscale_interface_name"         : "refined_interface",      
+                "subscale_boundary_condition"     : "Condition2D2N"
+            }
         }
         """)
 
@@ -34,7 +37,6 @@ class MultiscaleProcess(KratosMultiphysics.Process):
 
         self.current_subscale = self.settings['current_subscale'].GetInt()
         self.maximum_number_of_subscales = self.settings['maximum_number_of_subscales'].GetInt()
-        self.number_of_divisions_at_subscale = self.settings['number_of_divisions_at_subscale'].GetInt()
 
         self.coarse_model_part_name = self.settings['main_model_part_name'].GetString()
         if (self.current_subscale > 0):
@@ -46,8 +48,8 @@ class MultiscaleProcess(KratosMultiphysics.Process):
     def _InitializeRefinedModelPart(self):
         self.refined_model_part_name = self.settings['main_model_part_name'].GetString() + '_' + str(self.current_subscale + 1)
         coarse_model_part = self.model[self.coarse_model_part_name]
-        refined_model_part = KratosMultiphysics.ModelPart(self.model_parts_names[i+1])
+        refined_model_part = KratosMultiphysics.ModelPart(self.refined_model_part_name)
         self.model.AddModelPart(refined_model_part)
 
         # Create the new subscale process
-        # self.subscales_utility = MultiScaleRefiningProcess(coarse_model_part, refined_model_part)
+        self.subscales_utility = MeshingApplication.MultiScaleRefiningProcess(coarse_model_part, refined_model_part, self.settings["advanced_configuration"])
