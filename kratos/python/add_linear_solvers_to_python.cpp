@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
-//,typename TPreconditionerType::Pointer pNewPreconditioner
+//
 //  Main authors:    Riccardo Rossi
 //
 //
@@ -68,7 +68,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef UblasSpace<std::complex<double>, CompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>> ComplexSpaceType;
     typedef UblasSpace<std::complex<double>, Matrix, Vector> ComplexLocalSpaceType;
-  
+
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
     typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
     typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
