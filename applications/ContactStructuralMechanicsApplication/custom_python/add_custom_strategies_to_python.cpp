@@ -262,11 +262,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 
     // Contact block builder and solver
-    class_< ContactResidualBasedBlockBuilderAndSolverType, typename ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
+    class_< ContactResidualBasedBlockBuilderAndSolverType, ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
     .def(init< LinearSolverType::Pointer > ());
 
     // Contact block buiklder and sokver with constraints
-    class_< ContactResidualBasedBlockBuilderAndSolverWithConstraintsType, typename ContactResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolverWithConstraints")
+    class_< ContactResidualBasedBlockBuilderAndSolverWithConstraintsType, ContactResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolverWithConstraints")
     .def(init< LinearSolverType::Pointer > ());
 }
 
