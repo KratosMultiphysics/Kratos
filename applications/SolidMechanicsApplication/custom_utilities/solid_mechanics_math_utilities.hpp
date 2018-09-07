@@ -53,7 +53,7 @@ public:
 
     typedef DenseVector<DenseVector<Matrix> > Fourth_Order_Tensor;
 
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor;
+    typedef DenseMatrix<Second_Order_Tensor> Matrix_Second_Tensor;
 
 
     /**
@@ -1199,7 +1199,7 @@ public:
     {
         if(Stress.size()==6)
         {
-            Tensor.resize(3,3);
+           Tensor.resize(3,3,false);
             Tensor(0,0)= Stress(0);
             Tensor(0,1)= Stress(3);
             Tensor(0,2)= Stress(5);
@@ -1212,7 +1212,7 @@ public:
         }
         if(Stress.size()==3)
         {
-            Tensor.resize(2,2);
+            Tensor.resize(2,2,false);
             Tensor(0,0)= Stress(0);
             Tensor(0,1)= Stress(2);
             Tensor(1,0)= Stress(2);

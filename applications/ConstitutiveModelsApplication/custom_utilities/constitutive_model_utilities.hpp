@@ -1141,10 +1141,10 @@ namespace Kratos
 							  const unsigned int& a, const unsigned int& b,
 							  const unsigned int& c, const unsigned int& d )
     {
-      MatrixType IdentityMatrix;
-      noalias(IdentityMatrix) = identity_matrix<double>(3);
+      MatrixType Identity;
+      noalias(Identity) = IdentityMatrix(3);
 
-      rValue = CalculateFourthOrderUnitTensor(IdentityMatrix,rValue,a,b,c,d);
+      rValue = CalculateFourthOrderUnitTensor(Identity,rValue,a,b,c,d);
 
       return rValue;
     }
@@ -1209,10 +1209,10 @@ namespace Kratos
 							   const unsigned int& a, const unsigned int& b,
 							   const unsigned int& c, const unsigned int& d )
     {
-      MatrixType IdentityMatrix;
-      noalias(IdentityMatrix) = identity_matrix<double>(3);
+      MatrixType Identity;
+      noalias(Identity) = IdentityMatrix(3);
 
-      rValue = CalculateSquareTensorDerivative(rMatrix,IdentityMatrix,rValue,a,b,c,d);
+      rValue = CalculateSquareTensorDerivative(rMatrix,Identity,rValue,a,b,c,d);
 
       return rValue;
     }

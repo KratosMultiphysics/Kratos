@@ -409,7 +409,7 @@ namespace Kratos
       else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
 
 	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
-	  rVariables.StrainMatrix = identity_matrix<double>(3);
+	  rVariables.StrainMatrix = IdentityMatrix(3);
 	}
 	else{
 	  KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
@@ -772,7 +772,7 @@ namespace Kratos
       const MatrixType&   rIsochoricStressMatrix = rModelData.GetStressMatrix(); //isochoric stress stored as StressMatrix
 
       //1.-Identity build
-      MatrixType Identity = identity_matrix<double> (3);
+      MatrixType Identity = IdentityMatrix(3);
 
       //2.-Auxiliar matrices
       rFactors.Normal = rIsochoricStressMatrix * ( 1.0 / rVariables.StressNorm );

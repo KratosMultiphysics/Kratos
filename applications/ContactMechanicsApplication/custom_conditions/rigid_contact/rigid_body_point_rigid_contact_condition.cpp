@@ -468,15 +468,18 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
 
   if( fabs(TangentForceModulus) >= 1e-25 ){
 
+    MatrixType Identity(3,3);
+    noalias(Identity) = IdentityMatrix(3);
+
     if ( rVariables.Slip ) {
       //simpler expression:
       noalias(ForceMatrix) = rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
 
-      noalias(ForceMatrix) += rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + (rVariables.Gap.Normal/rVariables.Gap.Tangent) *( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) ));
+      noalias(ForceMatrix) += rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + (rVariables.Gap.Normal/rVariables.Gap.Tangent) *( Identity - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) ));
 
       //extra term (2D)
       //if( dimension == 2 )
-	//noalias(ForceMatrix) -= rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
+      //noalias(ForceMatrix) -= rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
 
 
     }
@@ -484,11 +487,11 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
 
       noalias(ForceMatrix) = rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 
-      noalias(ForceMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+      noalias(ForceMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( Identity - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
       //extra term (2D)
       //if( dimension == 2 )
-        //noalias(ForceMatrix) -= rVariables.Penalty.Tangent * rIntegrationWeight * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
+      //noalias(ForceMatrix) -= rVariables.Penalty.Tangent * rIntegrationWeight * (outer_prod(rVariables.Surface.Tangent, VectorType( rVariables.Surface.Tangent - ( inner_prod(rVariables.RelativeDisplacement,rVariables.Surface.Normal) * rVariables.Surface.Tangent ) - ( inner_prod(rVariables.Surface.Normal,rVariables.RelativeDisplacement) * rVariables.Surface.Normal) ) ) );
 
     }
 

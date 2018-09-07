@@ -94,23 +94,6 @@ void AdjointFiniteDifferenceTrussElementLinear::CalculateStressDisplacementDeriv
     KRATOS_CATCH("")
 }
 
-double AdjointFiniteDifferenceTrussElementLinear::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if(rDesignVariable == SHAPE)
-    {
-        const double L = this->GetGeometry().DomainSize();
-        KRATOS_DEBUG_ERROR_IF(L <= std::numeric_limits<double>::epsilon())
-            << "Pertubation size for shape derivatives of element" << this->Id() << "~ 0" << std::endl;
-        return L;
-    }
-    else
-        return 1.0;
-
-    KRATOS_CATCH("")
-}
-
 void AdjointFiniteDifferenceTrussElementLinear::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, AdjointFiniteDifferenceTrussElement);

@@ -28,7 +28,7 @@ namespace Kratos
     //member variables initialization
     mTotalDeformationDet = 1.0;
 
-    MatrixType Identity = identity_matrix<double>(3);
+    MatrixType Identity = IdentityMatrix(3);
     noalias(mInverseTotalDeformationMatrix) = Identity;
 
 
@@ -49,7 +49,7 @@ namespace Kratos
     //member variables initialization
     mTotalDeformationDet = 1.0;
 
-    MatrixType Identity = identity_matrix<double>(3);
+    MatrixType Identity = IdentityMatrix(3);
     noalias(mInverseTotalDeformationMatrix) = Identity;
 
     KRATOS_CATCH(" ")
@@ -195,7 +195,7 @@ namespace Kratos
     //member variables initialization
     mTotalDeformationDet = 1.0;
 
-    MatrixType Identity = identity_matrix<double>(3);
+    MatrixType Identity = IdentityMatrix(3);
     noalias(mInverseTotalDeformationMatrix) = Identity;
 
     mpModel->InitializeMaterial(rMaterialProperties);

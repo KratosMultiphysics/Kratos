@@ -153,7 +153,7 @@ namespace Kratos
 	Array1DVariable.clear();
 	VectorVariable.resize(voigt_size);
 	noalias(VectorVariable) = ZeroVector(voigt_size);
-	MatrixVariable.resize(dimension, dimension);
+	MatrixVariable.resize(dimension, dimension,false);
 	noalias(MatrixVariable) = IdentityMatrix(dimension);
       }
 

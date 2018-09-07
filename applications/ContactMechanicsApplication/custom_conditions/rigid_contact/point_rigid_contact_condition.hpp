@@ -147,7 +147,7 @@ protected:
 	Surface.Tangent.resize(3);
 	noalias(Surface.Tangent) = ZeroVector(3);
 
-	SkewSymDistance.resize(3,3);
+	SkewSymDistance.resize(3,3,false);
 	noalias(SkewSymDistance) =  ZeroMatrix(3,3);
 
 	TangentMatrix.Normal = 0;

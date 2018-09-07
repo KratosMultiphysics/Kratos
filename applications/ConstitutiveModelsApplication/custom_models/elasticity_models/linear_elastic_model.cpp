@@ -216,7 +216,7 @@ namespace Kratos
     double MeanPressure = 0;
     for (unsigned int i = 0; i < 3; i++)
        MeanPressure += rStressMatrix(i,i)/3.0;
-    rStressMatrix = identity_matrix<double>(3);
+    rStressMatrix = IdentityMatrix(3);
     rStressMatrix *= MeanPressure;
 
 

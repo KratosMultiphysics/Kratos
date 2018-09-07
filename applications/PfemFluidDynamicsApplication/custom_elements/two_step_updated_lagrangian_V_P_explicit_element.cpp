@@ -183,7 +183,7 @@ namespace Kratos {
     const unsigned int NumNodes = rGeom.PointsNumber();
 
     if(rMassMatrix.size1() != NumNodes )
-      rMassMatrix.resize(NumNodes,NumNodes);
+      rMassMatrix.resize(NumNodes,NumNodes,false);
 
     noalias(rMassMatrix)= ZeroMatrix(NumNodes,NumNodes);
 
@@ -234,7 +234,7 @@ namespace Kratos {
     const unsigned int LocalSize = TDim * NumNodes;
 
     if(rMassMatrix.size1() != LocalSize )
-      rMassMatrix.resize(LocalSize,LocalSize);
+      rMassMatrix.resize(LocalSize,LocalSize,false);
 
     noalias(rMassMatrix)= ZeroMatrix(LocalSize,LocalSize);
 
@@ -542,7 +542,7 @@ namespace Kratos {
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes )
-      rLeftHandSideMatrix.resize(NumNodes,NumNodes);
+      rLeftHandSideMatrix.resize(NumNodes,NumNodes,false);
 
     rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
 

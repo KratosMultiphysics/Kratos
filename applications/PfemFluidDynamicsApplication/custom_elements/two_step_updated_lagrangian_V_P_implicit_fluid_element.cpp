@@ -1608,7 +1608,7 @@ namespace Kratos {
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes )
-      rLeftHandSideMatrix.resize(NumNodes,NumNodes);
+      rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
     rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
 

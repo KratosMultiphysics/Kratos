@@ -315,40 +315,44 @@ namespace Kratos
       Matrix  LHSMatrix = ZeroMatrix(dimension, dimension);
       double Area = this->CalculateSomeSortOfArea();
 
+
       if( fabs(TangentForceModulus) >= 1e-25 ){
 
-         if( rVariables.Slip ){
+        MatrixType Identity(3,3);
+        noalias(Identity) = IdentityMatrix(3);
 
-            noalias(LHSMatrix) += ConstVariables.TangentTangentMatrix * outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) * rIntegrationWeight * Area;
-            noalias(LHSMatrix) -= ConstVariables.NormalTangentMatrix * outer_prod( ConstVariables.ForceDirection, rVariables.Surface.Normal) * rVariables.Penalty.Normal * rIntegrationWeight;
-            noalias(LHSMatrix) += ConstVariables.TangentForceRatio * rVariables.Penalty.Tangent * ( IdentityMatrix(3,3) - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) - outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) ) * rIntegrationWeight ;
+        if( rVariables.Slip ){
 
-         }
-         else {
+          noalias(LHSMatrix) += ConstVariables.TangentTangentMatrix * outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) * rIntegrationWeight * Area;
+          noalias(LHSMatrix) -= ConstVariables.NormalTangentMatrix * outer_prod( ConstVariables.ForceDirection, rVariables.Surface.Normal) * rVariables.Penalty.Normal * rIntegrationWeight;
+          noalias(LHSMatrix) += ConstVariables.TangentForceRatio * rVariables.Penalty.Tangent * ( Identity - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) - outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) ) * rIntegrationWeight ;
+
+        }
+        else {
 
 
-            noalias(LHSMatrix) = rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent); // aquest terme jo no el veig
+          noalias(LHSMatrix) = rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent); // aquest terme jo no el veig
 
-            noalias(LHSMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+          noalias(LHSMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( Identity - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
-         }
+        }
 
       }
 
 
       // ensamble all togheter
       for (unsigned int i = 0; i < dimension; i++) {
-         for (unsigned int j = 0; j < dimension; j++) {
-            rLeftHandSideMatrix(i,j) += LHSMatrix(i,j);
-         }
+        for (unsigned int j = 0; j < dimension; j++) {
+          rLeftHandSideMatrix(i,j) += LHSMatrix(i,j);
+        }
       }
 
       if ( rVariables.Slip && ( fabs(TangentForceModulus) >= 1e-25)) {
-         Vector LHSVector = ZeroVector(3);
-         noalias( LHSVector ) = ConstVariables.NormalTangentMatrix * ConstVariables.ForceDirection * rIntegrationWeight * Area ;
-         for (unsigned int i = 0; i < dimension; i++) {
-            rLeftHandSideMatrix(i, dimension) += LHSVector(i);
-         }
+        Vector LHSVector = ZeroVector(3);
+        noalias( LHSVector ) = ConstVariables.NormalTangentMatrix * ConstVariables.ForceDirection * rIntegrationWeight * Area ;
+        for (unsigned int i = 0; i < dimension; i++) {
+          rLeftHandSideMatrix(i, dimension) += LHSVector(i);
+        }
       }
 
       KRATOS_CATCH("")

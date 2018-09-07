@@ -380,7 +380,7 @@ namespace Kratos {
       const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+    rDeltaPosition = ZeroMatrix( number_of_nodes , dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -681,7 +681,7 @@ namespace Kratos {
 
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
-    rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension);
+    rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension,false);
     rElementalVariables.SpatialVelocityGrad=prod(rElementalVariables.FgradVel,rElementalVariables.InvFgrad);
 
     rElementalVariables.VolumetricDefRate=0;
@@ -793,7 +793,7 @@ namespace Kratos {
 
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
-    rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension);
+    rElementalVariables.SpatialVelocityGrad.resize(dimension,dimension,false);
     rElementalVariables.SpatialVelocityGrad=prod(rElementalVariables.FgradVel,rElementalVariables.InvFgrad);
 
     rElementalVariables.VolumetricDefRate=0;
@@ -991,7 +991,7 @@ namespace Kratos {
     VectorType  NodePosition= ZeroVector(LocalSize);
     this->GetPositions(NodePosition,rCurrentProcessInfo,theta);
 
-    Fgrad.resize(TDim,TDim);
+    Fgrad.resize(TDim,TDim,false);
 
     Fgrad=ZeroMatrix(TDim,TDim);
     for (SizeType i = 0; i < TDim; i++)
@@ -1007,7 +1007,7 @@ namespace Kratos {
 
 
     //Inverse
-    invFgrad.resize(TDim,TDim);
+    invFgrad.resize(TDim,TDim,false);
     invFgrad=ZeroMatrix(TDim,TDim);
     FJacobian=1;
 
@@ -1067,7 +1067,7 @@ namespace Kratos {
     this->GetVelocityValues(VelocityValues,1);
     RHSVelocities+=VelocityValues*(1.0-theta);
 
-    FgradVel.resize(TDim,TDim);
+    FgradVel.resize(TDim,TDim,false);
 
     FgradVel=ZeroMatrix(TDim,TDim);
     for (SizeType i = 0; i < TDim; i++)
@@ -1083,7 +1083,7 @@ namespace Kratos {
 
 
     //Inverse
-    invFgradVel.resize(TDim,TDim);
+    invFgradVel.resize(TDim,TDim,false);
     invFgradVel=ZeroMatrix(TDim,TDim);
     FVelJacobian=1;
 
@@ -1137,7 +1137,7 @@ namespace Kratos {
 								      MatrixType &VelDefgrad,
 								      MatrixType &SpatialVelocityGrad)
   {
-    SpatialVelocityGrad.resize(TDim,TDim);
+    SpatialVelocityGrad.resize(TDim,TDim,false);
 
     SpatialVelocityGrad=prod(VelDefgrad,invFgrad);
 

@@ -223,8 +223,10 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     //Get previous mechanics stored in the master node/condition
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix StressMatrix =zero_matrix<double> (dimension);
-    Matrix F =zero_matrix<double> (dimension);
+    Matrix StressMatrix(dimension,dimension);
+    noalias(StressMatrix)= ZeroMatrix(dimension,dimension);
+    Matrix F(dimension,dimension);
+    noalias(F)= ZeroMatrix(dimension,dimension);
 
     Vector StressVector;
     StressVector = MasterCondition->GetValue(CAUCHY_STRESS_VECTOR);  //it means that has been stored
@@ -249,7 +251,8 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     //Compute the tension (or traction) vector T=P*N (in the Reference configuration)
 
     //c.- Transform to 3 components
-    Matrix StressMatrix3D= zero_matrix<double> ( 3 );
+    Matrix StressMatrix3D(3,3);
+    noalias(StressMatrix3D) = ZeroMatrix(3,3);
     for(unsigned int i=0; i<2; i++)
     {
 	for(unsigned int j=0; j<2; j++)
@@ -467,7 +470,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rV
     // std::cout<<" Master Nodes ID  "<<(*mpMasterGeometry)[0].Id()<<" "<<(*mpMasterGeometry)[1].Id()<<" "<<(*mpMasterGeometry)[2].Id()<<std::endl;
 
     //1.- Compute tension vector:  (must be updated each iteration)
-    Matrix StressMatrix ( dimension, dimension );
+    Matrix StressMatrix(dimension,dimension);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
     StressMatrix=MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
@@ -483,7 +486,8 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rV
     //StressMatrix=prod(rVariables.F,StressMatrix);
 
     //b.- Transform to 3 components
-    Matrix StressMatrix3D= zero_matrix<double> ( 3 );
+    Matrix StressMatrix3D(3,3);
+    noalias(StressMatrix3D) = ZeroMatrix(3,3);
     for(unsigned int i=0; i<2; i++)
       {
 	for(unsigned int j=0; j<2; j++)

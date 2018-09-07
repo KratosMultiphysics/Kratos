@@ -278,11 +278,14 @@ namespace Kratos
 
     if( fabs(TangentForceModulus) >= 1e-25 ){
 
+      MatrixType Identity(3,3);
+      noalias(Identity) = IdentityMatrix(3);
+
       if( rVariables.Slip ){
 
 	noalias(rLeftHandSideMatrix) += rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
 
-	noalias(rLeftHandSideMatrix) += rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+	noalias(rLeftHandSideMatrix) += rVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * (rVariables.Gap.Normal/rVariables.Gap.Tangent) * ( Identity - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
 	//extra term (2D)
         if( dimension == 2 ) {
@@ -299,7 +302,7 @@ namespace Kratos
 
 	noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 
-	noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( IdentityMatrix(3,3) - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+	noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * rIntegrationWeight * ( Identity - outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
 	//extra term (2D)
 	if( dimension == 2 )
