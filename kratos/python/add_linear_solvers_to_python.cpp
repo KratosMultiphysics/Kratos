@@ -66,8 +66,8 @@ void  AddLinearSolversToPython(pybind11::module& m)
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef UblasSpace<std::complex<double>, CompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>> ComplexSpaceType;
-    typedef UblasSpace<std::complex<double>, Matrix, Vector> ComplexLocalSpaceType;
+    typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
+    typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
 
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
     typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
