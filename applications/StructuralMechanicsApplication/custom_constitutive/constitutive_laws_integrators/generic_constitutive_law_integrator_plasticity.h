@@ -443,7 +443,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param r1 The compressive indicator
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(
         const double PlasticDissipation,
@@ -451,9 +451,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const double r1,
         double& rEquivalentStressThreshold,
         double& rSlope,
-        const Properties& rMaterialProperties
+        ConstitutiveLaw::Parameters& rValues
         )
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         double initial_threshold;
         GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
@@ -468,7 +470,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param r1 The compressive indicator
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressThresholdHardeningCurveExponentialSoftening(
         const double PlasticDissipation,
@@ -476,8 +478,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const double r1,
         double& rEquivalentStressThreshold,
         double& rSlope,
-        const Properties& rMaterialProperties)
+        ConstitutiveLaw::Parameters& rValues)
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         double initial_threshold;
         GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
@@ -492,7 +496,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param r1 The compressive indicator
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressThresholdHardeningCurveInitialHardeningExponentialSoftening(
         const double PlasticDissipation,
@@ -500,9 +504,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const double r1,
         double& rEquivalentStressThreshold,
         double& rSlope,
-        const Properties& rMaterialProperties
+        ConstitutiveLaw::Parameters& rValues
         )
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         double initial_threshold;
         GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
         const double ultimate_stress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
@@ -529,7 +535,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param r1 The compressive indicator
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStressThresholdHardeningCurvePerfectPlasticity(
         const double PlasticDissipation,
@@ -537,9 +543,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const double r1,
         double& rEquivalentStressThreshold,
         double& rSlope,
-        const Properties& rMaterialProperties
+        ConstitutiveLaw::Parameters& rValues
         )
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         double initial_threshold;
         GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
@@ -550,10 +558,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     /**
      * @brief This method returns the initial uniaxial stress threshold
      * @param rThreshold The uniaxial stress threshold
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    static void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold)
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, rThreshold);
     }
 

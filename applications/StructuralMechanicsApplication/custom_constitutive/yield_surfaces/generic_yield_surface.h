@@ -104,29 +104,29 @@ public:
      * @brief This method the uniaxial equivalent stress
      * @param StressVector The stress vector
      * @param StrainVector The StrainVector vector
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
-    static void CalculateEquivalentStress(const Vector &StressVector, double &rEqStress, const Properties &rMaterialProperties)
+    static void CalculateEquivalentStress(const Vector &StressVector, double &rEqStress, ConstitutiveLaw::Parameters& rValues)
     {
     }
 
     /**
      * @brief This method returns the initial uniaxial stress threshold
      * @param rThreshold The uniaxial stress threshold
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
+    static void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double &rThreshold)
     {
     }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
      * @param AParameter The damage parameter
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties &rMaterialProperties,
+        ConstitutiveLaw::Parameters& rValues,
         double &AParameter,
         const double CharacteristicLength)
     {
@@ -138,15 +138,17 @@ public:
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rg The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
         const Vector &StressVector,
         const Vector &Deviator,
         const double &J2,
         Vector &rg,
-        const Properties &rMaterialProperties)
+        ConstitutiveLaw::Parameters& rValues)
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
     }
 
@@ -159,14 +161,14 @@ public:
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
         const Vector &StressVector,
         const Vector &Deviator,
         const double J2,
         Vector &rFFlux,
-        const Properties &rMaterialProperties)
+        ConstitutiveLaw::Parameters& rValues)
     {
     }
 

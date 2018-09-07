@@ -96,15 +96,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
      * @brief This method the uniaxial equivalent stress
      * @param StressVector The stress vector
      * @param StrainVector The StrainVector vector
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
         const Vector &StressVector,
         const Vector &StrainVector,
         double &rEqStress,
-        const Properties &rMaterialProperties
+        ConstitutiveLaw::Parameters& rValues
         )
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
@@ -144,10 +146,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
     /**
      * @brief This method returns the initial uniaxial stress threshold
      * @param rThreshold The uniaxial stress threshold
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
+    static void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double &rThreshold)
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_COMPRESSION]);
     }
 
@@ -157,29 +161,33 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rg The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
         const Vector &StressVector,
         const Vector &Deviator,
         const double J2,
         Vector &GFlux,
-        const Properties &rMaterialProperties)
+        ConstitutiveLaw::Parameters& rValues)
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, GFlux, rMaterialProperties);
     }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
      * @param AParameter The damage parameter
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties &rMaterialProperties,
+        ConstitutiveLaw::Parameters& rValues,
         double &AParameter,
         const double CharacteristicLength)
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
         const double E = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
@@ -203,15 +211,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
         const Vector &StressVector,
         const Vector &Deviator,
         const double J2,
         Vector &rFFlux,
-        const Properties &rMaterialProperties)
+        ConstitutiveLaw::Parameters& rValues)
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         Vector FirstVector, SecondVector, ThirdVector;
 
         ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);

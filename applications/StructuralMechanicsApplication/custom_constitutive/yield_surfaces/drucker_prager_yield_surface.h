@@ -97,15 +97,17 @@ public:
      * @brief This method the uniaxial equivalent stress
      * @param rStressVector The stress vector
      * @param rStrainVector The StrainVector vector
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
         const Vector& rStressVector,
         const Vector& rStrainVector,
         double& rEqStress,
-        const Properties& rMaterialProperties
+        ConstitutiveLaw::Parameters& rValues
         )
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double sin_phi = std::sin(friction_angle);
         const double root_3 = std::sqrt(3.0);
@@ -133,13 +135,15 @@ public:
     /**
      * @brief This method returns the initial uniaxial stress threshold
      * @param rThreshold The uniaxial stress threshold
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void GetInitialUniaxialThreshold(
-        const Properties& rMaterialProperties,
+        ConstitutiveLaw::Parameters& rValues,
         double& rThreshold
         )
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double sin_phi = std::sin(friction_angle);
@@ -149,14 +153,16 @@ public:
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
      * @param rAParameter The damage parameter
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties& rMaterialProperties,
+        ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
         const double CharacteristicLength)
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
         const double E = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
@@ -177,15 +183,17 @@ public:
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
         const Vector& rStressVector,
         const Vector& rDeviator,
         const double J2,
         Vector& rGFlux,
-        const Properties &rMaterialProperties)
+        ConstitutiveLaw::Parameters& rValues)
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rGFlux, rMaterialProperties);
     }
 
@@ -198,16 +206,18 @@ public:
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
         const Vector& rStressVector,
         const Vector& rDeviator,
         const double J2,
         Vector& rFFlux,
-        const Properties& rMaterialProperties
+        ConstitutiveLaw::Parameters& rValues
         )
     {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
         Vector first_vector, second_vector, third_vector;
         ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
         ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
