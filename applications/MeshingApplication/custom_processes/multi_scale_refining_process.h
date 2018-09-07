@@ -50,17 +50,10 @@ namespace Kratos {
 
 /// This class provides a refining utility to perform multi scale analysis
 /**
- * The process creates a nested model part with the origin model part and
- * another nested model part with the refined mesh
- * This process can be called within the refined sub model part
- * The origin model part is stored under a new sub model part (own):
- * MainModelPart
- *     Own
- *     RefinedSubModelPart
- *         Own
- *         RefinedSubModelPart
- *             Own
- *             ...
+ * This process manages two model parts, the origin or the coarse model part
+ * and the refined or the subscale model part
+ * This process can be constructed again with the subscale as the origin model part
+ * to get several subscales levels
  */
 class MultiScaleRefiningProcess : public Process
 {
@@ -111,7 +104,8 @@ public:
     ///@{
 
     MultiScaleRefiningProcess(
-        ModelPart& rThisModelPart,
+        ModelPart& rThisCoarseModelPart,
+        ModelPart& rThisRefinedModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
@@ -218,11 +212,12 @@ public:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrRootModelPart;
+    ModelPart& mrCoarseModelPart;  /// The coarse sub model part
+    ModelPart& mrRefinedModelPart; /// Where the refinement is performed
     Parameters mParameters;
 
-    std::string mOwnName;     /// The coarse sub model part
-    std::string mRefinedName; /// Where the refinement is performed
+    // std::string mOwnName;     /// The coarse sub model part
+    // std::string mRefinedName; /// Where the refinement is performed
     std::string mElementName;
     std::string mConditionName;
 
@@ -237,10 +232,15 @@ public:
     IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from own to refined
     IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to own
 
-    std::string mInterfaceName;
+    std::string mCoarseInterfaceName;
+    std::string mRefinedInterfaceName;
     std::string mInterfaceConditionName;
 
     IndexStringMapType mCollections;  /// For AssignUniqueModelCollectionTagUtility
+
+    IndexType mMinNodeId;
+    IndexType mMinElemId;
+    IndexType mMinCondId;
 
     ///@}
     ///@name Private Operators
@@ -295,35 +295,35 @@ public:
      * @param rOriginModelPart
      * @param pDestinationModelPart
      */
-    void AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+    void AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
 
     /**
      * @brief AddAllTablesToModelPart adds all tables from an origin model part to a destination model part
      * @param rOriginModelPart
      * @param pDestinationModelPart
      */
-    void AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+    void AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
 
     /**
      * @brief AddAllNodesToModelPart adds all nodes from an origin model part to a destination model part
      * @param rOriginModelPart
      * @param pDestinationModelPart
      */
-    void AddAllNodesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+    void AddAllNodesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
 
     /**
      * @brief AddAllElementsToModelPart adds all elements from an origin model part to a destination model part
      * @param rOriginModelPart
      * @param pDestinationModelPart
      */
-    void AddAllElementsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+    void AddAllElementsToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
 
     /**
      * @brief AddAllConditionsToModelPart adds all conditions from an origin model part to a destination model part
      * @param rOriginModelPart
      * @param pDestinationModelPart
      */
-    void AddAllConditionsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+    void AddAllConditionsToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
 
     /**
      * @brief This function sets the elements TO_REFINE depending on the nodal flags

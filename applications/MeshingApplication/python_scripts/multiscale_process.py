@@ -16,7 +16,8 @@ class MultiscaleProcess(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
-            "model_part_name"                 : "MainModelPart",
+            "main_model_part_name"            : "MainModelPart",
+            "current_subscale"                : 0,
             "maximum_number_of_subscales      : 4,    
             "echo_level"                      : 0,
             "number_of_divisions_at_subscale" : 2,
@@ -31,5 +32,22 @@ class MultiscaleProcess(KratosMultiphysics.Process):
 
         self.model = Model
 
+        self.current_subscale = self.settings['current_subscale'].GetInt()
         self.maximum_number_of_subscales = self.settings['maximum_number_of_subscales'].GetInt()
         self.number_of_divisions_at_subscale = self.settings['number_of_divisions_at_subscale'].GetInt()
+
+        self.coarse_model_part_name = self.settings['main_model_part_name'].GetString()
+        if (self.current_subscale > 0):
+            self.coarse_model_part_name += '_' + str(self.current_subscale)
+
+        if (self.current_subscale < self.maximum_number_of_subscales):
+            self._InitializeRefinedModelPart()
+
+    def _InitializeRefinedModelPart(self):
+        self.refined_model_part_name = self.settings['main_model_part_name'].GetString() + '_' + str(self.current_subscale + 1)
+        coarse_model_part = self.model[self.coarse_model_part_name]
+        refined_model_part = KratosMultiphysics.ModelPart(self.model_parts_names[i+1])
+        self.model.AddModelPart(refined_model_part)
+
+        # Create the new subscale process
+        # self.subscales_utility = MultiScaleRefiningProcess(coarse_model_part, refined_model_part)

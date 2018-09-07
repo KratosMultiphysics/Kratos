@@ -135,8 +135,8 @@ void  AddProcessesToPython(pybind11::module& m)
 
         /* MULTI SCALE PROCESS */
         class_<MultiScaleRefiningProcess, MultiScaleRefiningProcess::Pointer, Process>(m, "MultiScaleRefiningProcess")
-        .def(init<ModelPart&>())
-        .def(init<ModelPart&, Parameters>())
+        .def(init<ModelPart&, ModelPart&>())
+        .def(init<ModelPart&, ModelPart&, Parameters>())
         .def("ExecuteRefinement", &MultiScaleRefiningProcess::ExecuteRefinement)
         .def("ExecuteCoarsening", &MultiScaleRefiningProcess::ExecuteCoarsening)
         ;
