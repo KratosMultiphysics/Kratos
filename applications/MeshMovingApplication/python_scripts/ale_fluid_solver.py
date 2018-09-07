@@ -78,8 +78,9 @@ class ALEFluidSolver(PythonSolver):
 
         # Getting the min_buffer_size from both solvers
         # and assigning it to the fluid_solver, bcs this one handles the model_part
-        self.fluid_solver.min_buffer_size = max(self.fluid_solver.GetMinimumBufferSize(),
-                                                self.mesh_motion_solver.GetMinimumBufferSize())
+        ## TODO check and reenable
+        # self.fluid_solver.min_buffer_size = max(self.fluid_solver.GetMinimumBufferSize(),
+        #                                         self.mesh_motion_solver.GetMinimumBufferSize())
 
         self.is_printing_rank = self.fluid_solver._IsPrintingRank()
 
