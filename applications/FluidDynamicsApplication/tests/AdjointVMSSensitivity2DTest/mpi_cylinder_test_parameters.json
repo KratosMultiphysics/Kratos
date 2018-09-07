@@ -126,10 +126,10 @@
                 "file_driver" : "mpio"
             },
             "model_part_output_settings" : {},
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
             },
-            "element_results_settings" : {
+            "element_data_value_settings" : {
                 "list_of_variables": []
             },
             "output_time_settings" : {

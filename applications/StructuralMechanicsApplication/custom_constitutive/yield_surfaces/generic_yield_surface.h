@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/checks.h"
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
@@ -54,7 +55,7 @@ namespace Kratos
 template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -101,7 +102,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param StrainVector The StrainVector vector
      * @param rMaterialProperties The material properties
      */
@@ -133,9 +134,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator 
+     * @param J2 The second invariant of the Deviator
      * @param rg The derivative of the plastic potential
      * @param rMaterialProperties The material properties
      */
@@ -154,9 +155,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator 
+     * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
      * @param rMaterialProperties The material properties
      */
@@ -167,6 +168,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
         Vector &rFFlux,
         const Properties &rMaterialProperties)
     {
+    }
+
+    /**
+     * @brief This method defines the check to be performed in the yield surface
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
     ///@}
@@ -187,7 +197,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -216,7 +226,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
     ///@{
 
     ///@}
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
