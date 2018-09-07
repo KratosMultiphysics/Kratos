@@ -42,7 +42,9 @@ KRATOS_CREATE_VARIABLE(Vector,
     AUXILIAR_HESSIAN);  // An auxiliar hessian needed to compute the metric
 KRATOS_CREATE_VARIABLE(Vector,
     MMG_METRIC);  // The condensed metric used to remesh with MMG utility
-    
+
+KRATOS_CREATE_VARIABLE(int, NUMBER_OF_DIVISIONS)   
+KRATOS_CREATE_VARIABLE(int, SUBSCALE_INDEX)
 KRATOS_CREATE_VARIABLE(Element::Pointer, FATHER_ELEMENT)
 KRATOS_CREATE_VARIABLE(Condition::Pointer, FATHER_CONDITION)
 
@@ -75,6 +77,8 @@ void KratosMeshingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(
         MMG_METRIC);  // The condensed metric used to remesh with MMG utility
     
+    KRATOS_REGISTER_VARIABLE(NUMBER_OF_DIVISIONS)
+    KRATOS_REGISTER_VARIABLE(SUBSCALE_INDEX)
     KRATOS_REGISTER_VARIABLE(FATHER_ELEMENT)
     KRATOS_REGISTER_VARIABLE(FATHER_CONDITION)
     
