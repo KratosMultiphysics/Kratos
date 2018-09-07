@@ -242,10 +242,13 @@ public:
             if (k != j)
                 ia2(j_sub++) = k;
 
-        boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
-        const TDataType first_minor = DetMat(sub_mat);
-
-        return ((i + j) % 2) ? -first_minor : first_minor;
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+		PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+#else
+		boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+#endif // KRATOS_USE_AMATRIX
+		const TDataType first_minor = DetMat(sub_mat);
+		return ((i + j) % 2) ? -first_minor : first_minor;
     }
 
     template<class TMatrixType>
@@ -413,14 +416,20 @@ public:
         )
     {
         const SizeType size1 = A.size1();
-
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+		AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+		double determinant = lu_factorization.determinant();
+		KRATOS_ERROR_IF(std::abs(determinant) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << A << std::endl;
+		rX = lu_factorization.solve(rB);
+#else
         rX = rB;
         typedef permutation_matrix<SizeType> pmatrix;
         pmatrix pm(size1);
         int singular = lu_factorize(A,pm);
         KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
-    }
+#endif // ifdef KRATOS_USE_AMATRIX
+	}
 
     /**
      * It inverts matrices of order 2, 3 and 4
@@ -455,6 +464,14 @@ public:
             if(InvertedMatrix.size1() != size1 || InvertedMatrix.size2() != size2) {
                 InvertedMatrix.resize(size1, size2,false);
             }
+            
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+            Matrix temp(InputMatrix);
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+            InputMatrixDet = lu_factorization.determinant();
+            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
+			InvertedMatrix = lu_factorization.inverse();
+#else
 
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix A(InputMatrix);
@@ -471,7 +488,9 @@ public:
                 IndexType ki = pm[i] == i ? 0 : 1;
                 InputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
-        }
+            
+ #endif // ifdef KRATOS_USE_AMATRIX
+       }
     }
 
     /**
@@ -629,6 +648,11 @@ public:
         }
         else
         {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+            Matrix temp(A);
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+            Det = lu_factorization.determinant();
+#else
             using namespace boost::numeric::ublas;
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix Aux(A);
@@ -647,7 +671,8 @@ public:
                 unsigned int ki = pm[i] == i ? 0 : 1;
                 Det *= std::pow(-1.0, ki) * Aux(i,i);
             }
-        }
+#endif // ifdef KRATOS_USE_AMATRIX
+       }
 
         return Det;
     }
@@ -825,6 +850,47 @@ public:
             i++;
         }
         return std::sqrt(temp);
+    }
+
+    /**
+     * Calculates the norm of vector "a" while avoiding underflow and overflow.
+     * @param a Input vector
+     * @return The resulting norm
+     * @see http://www.netlib.org/lapack/explore-html/da/d7f/dnrm2_8f_source.html
+     */
+
+    static inline TDataType StableNorm(const Vector& a)
+    {
+        if (a.size() == 0) {
+            return 0;
+        }
+
+        if (a.size() == 1) {
+            return a[0];
+        }
+
+        TDataType scale {0};
+
+        TDataType sqr_sum_scaled {1};
+
+        for (auto it = a.begin(); it != a.end(); ++it) {
+            TDataType x = *it;
+
+            if (x != 0) {
+                const TDataType abs_x = std::abs(x);
+
+                if (scale < abs_x) {
+                    const TDataType f = scale / abs_x;
+                    sqr_sum_scaled = sqr_sum_scaled * (f * f) + 1.0;
+                    scale = abs_x;
+                } else {
+                    x = abs_x / scale;
+                    sqr_sum_scaled += x * x;
+                }
+            }
+        }
+
+        return scale * std::sqrt(sqr_sum_scaled);
     }
 
     /**
@@ -1509,7 +1575,7 @@ public:
         BoundedMatrix<TDataType, TDim, TDim> TempMat = A;
         BoundedMatrix<TDataType, TDim, TDim> AuxA;
 
-        const BoundedMatrix<TDataType, TDim, TDim> Indentity = IdentityMatrix(TDim, TDim);
+        const BoundedMatrix<TDataType, TDim, TDim> Indentity = IdentityMatrix(TDim);
         BoundedMatrix<TDataType, TDim, TDim> V = Indentity;
         BoundedMatrix<TDataType, TDim, TDim> Vaux;
         BoundedMatrix<TDataType, TDim, TDim> Rotation;

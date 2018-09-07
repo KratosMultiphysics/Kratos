@@ -782,7 +782,7 @@ public:
 
         ModelPart::ElementsContainerType& pElements = mrFluidModelPart.Elements();
 
-        vector<unsigned int> Element_partition;
+        DenseVector<unsigned int> Element_partition;
         CreatePartition(number_of_threads, pElements.size(), Element_partition);
 
 #pragma omp parallel for
@@ -2770,7 +2770,7 @@ private:
     }
 
 
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;

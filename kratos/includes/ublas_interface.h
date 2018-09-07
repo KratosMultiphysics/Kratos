@@ -44,12 +44,13 @@
     #include <boost/numeric/ublas/hermitian.hpp>
     #include <boost/numeric/ublas/banded.hpp>
     #include <boost/numeric/ublas/triangular.hpp>
-    #include <boost/numeric/ublas/io.hpp>
-    #include <boost/numeric/ublas/operation.hpp>
-    #include <boost/numeric/ublas/lu.hpp>
+	#include <boost/numeric/ublas/lu.hpp>
 #endif // ifdef KRATOS_USE_AMATRIX
 
+
+#include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
+#include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/operation_sparse.hpp>
 
 // Project includes

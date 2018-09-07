@@ -30,76 +30,77 @@ namespace Python
 {
 using namespace pybind11;
 
+typedef Node<3> NodeType;
 
 template<class TVariableType> inline
-void NodeFix(Node<3>& rThisNode, TVariableType const& rThisVariable)
+void NodeFix(NodeType& rThisNode, TVariableType const& rThisVariable)
 {
     rThisNode.Fix(rThisVariable);
 }
 
 template<class TVariableType> inline
-void NodeFree(Node<3>& rThisNode, TVariableType const& rThisVariable)
+void NodeFree(NodeType& rThisNode, TVariableType const& rThisVariable)
 {
     rThisNode.Free(rThisVariable);
 }
 
 template<class TVariableType> inline
-bool NodeIsFixed(Node<3>& rThisNode, TVariableType const& rThisVariable)
+bool NodeIsFixed(NodeType& rThisNode, TVariableType const& rThisVariable)
 {
     return rThisNode.IsFixed(rThisVariable);
 }
 
 template<class TVariableType> inline
-bool NodeHasDofFor(Node<3>& rThisNode, TVariableType const& rThisVariable)
+bool NodeHasDofFor(NodeType& rThisNode, TVariableType const& rThisVariable)
 {
     return rThisNode.HasDofFor(rThisVariable);
 }
 
 template<class TVariableType> inline
-void NodeAddDof(Node<3>& rThisNode, TVariableType const& rThisVariable)
+void NodeAddDof(NodeType& rThisNode, TVariableType const& rThisVariable)
 {
     rThisNode.pAddDof(rThisVariable);
 }
 
 template<class TVariableType> inline
-void NodeAddDofwithReaction(Node<3>& rThisNode, TVariableType const& rThisVariable,  TVariableType const& rReactionVariable)
+void NodeAddDofwithReaction(NodeType& rThisNode, TVariableType const& rThisVariable,  TVariableType const& rReactionVariable)
 {
 // 	      KRATOS_WATCH(rReactionVariable);
     rThisNode.pAddDof(rThisVariable, rReactionVariable);
 }
 
 template<class TVariableType>
-bool NodeSolutionStepsDataHas(Node<3>& rThisNode, const TVariableType& rThisVariable)
+bool NodeSolutionStepsDataHas(NodeType& rThisNode, const TVariableType& rThisVariable)
 {
     return rThisNode.SolutionStepsDataHas(rThisVariable);
 }
 
-void PointSetX0(Node<3>& ThisPoint, double Value)
+void PointSetX0(NodeType& ThisPoint, double Value)
 {
     ThisPoint.X0() = Value;
 }
 
-void PointSetY0(Node<3>& ThisPoint, double Value)
+void PointSetY0(NodeType& ThisPoint, double Value)
 {
     ThisPoint.Y0() = Value;
 }
 
-void PointSetZ0(Node<3>& ThisPoint, double Value)
+void PointSetZ0(NodeType& ThisPoint, double Value)
 {
     ThisPoint.Z0() = Value;
 }
 
-double PointGetX0(Node<3>& ThisPoint)
+double PointGetX0(NodeType& ThisPoint)
 {
     return ThisPoint.X0();
 }
 
-double PointGetY0(Node<3>& ThisPoint)
+double PointGetY0(NodeType& ThisPoint)
 {
     return ThisPoint.Y0();
 }
 
-double PointGetZ0(Node<3>& ThisPoint)
+double PointGetZ0(NodeType& ThisPoint)
 {
     return ThisPoint.Z0();
 }
@@ -129,7 +130,7 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 
 void  AddNodeToPython(pybind11::module& m)
 {
-    typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+    typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
 
     typedef MeshType::NodeType NodeType;
 
@@ -138,7 +139,6 @@ void  AddNodeToPython(pybind11::module& m)
     .def_property("Id", &IndexedObject::GetId, &IndexedObject::SetId)
     .def("__repr__", &IndexedObject::Info)
     ;
-
 
     class_<Dof<double>, Dof<double>::Pointer, IndexedObject >(m,"Dof")
     ;    
@@ -152,33 +152,72 @@ void  AddNodeToPython(pybind11::module& m)
     IndexingUtility<NodeBinderType,NodeType,Variable<int> >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<double> >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 3> > >(node_binder);
+    IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 4> > >(node_binder);
+    IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 6> > >(node_binder);
+    IndexingUtility<NodeBinderType,NodeType,Variable<array_1d<double, 9> > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(node_binder);
+    IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >(node_binder);
+    IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >(node_binder);
+    IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<Vector > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<Matrix > >(node_binder);
-    node_binder.def("SetValue", [](Node<3>& node, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,3>(rValue));} );
-    node_binder.def("SetSolutionStepValue", [](Node<3>& node, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,3>(rValue);} );
-    node_binder.def("SetSolutionStepValue", [](Node<3>& node, const Variable<array_1d<double, 3> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,3>(rValue);} );
+    node_binder.def("SetValue", [](NodeType& node, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,3>(rValue));} );
+    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,3>(rValue);} );
+    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 3> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,3>(rValue);} );
+    node_binder.def("SetValue", [](NodeType& node, const Variable<array_1d<double, 4> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,4>(rValue));} );
+    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 4> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,4>(rValue);} );
+    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 4> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,4>(rValue);} );
+    node_binder.def("SetValue", [](NodeType& node, const Variable<array_1d<double, 6> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,6>(rValue));} );
+    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 6> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,6>(rValue);} );
+    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 6> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,6>(rValue);} );
+    node_binder.def("SetValue", [](NodeType& node, const Variable<array_1d<double, 9> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,9>(rValue));} );
+    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 9> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,9>(rValue);} );
+    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 9> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,9>(rValue);} );
    
     node_binder.def("GetBufferSize", &NodeType::GetBufferSize);
     node_binder.def("AddDof", NodeAddDof<Variable<double> >);
     node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
+    node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
+    node_binder.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("AddDof", NodeAddDofwithReaction<Variable<double> >);
     node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
+    node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
+    node_binder.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("Fix", NodeFix<Variable<double> >);
     node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
+    node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
+    node_binder.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("Free", NodeFree<Variable<double> >);
     node_binder.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
+    node_binder.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
+    node_binder.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("IsFixed", NodeIsFixed<Variable<double> >);
     node_binder.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
+    node_binder.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
+    node_binder.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("HasDofFor", NodeHasDofFor<Variable<double> >);
     node_binder.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
+    node_binder.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
+    node_binder.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<bool> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<int> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<double> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 3> > >);
-    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<vector<double> > >);
+    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 4> > >);
+    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 6> > >);
+    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 9> > >);
+    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<Vector> >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<DenseMatrix<double> > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >);
+    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
+    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
+    node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
     node_binder.def("__repr__", &NodeType::Info);
     node_binder.def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData);
     node_binder.def_property("X0", PointGetX0, PointSetX0);
