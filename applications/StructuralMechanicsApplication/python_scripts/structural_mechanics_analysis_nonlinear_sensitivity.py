@@ -99,18 +99,18 @@ class StructuralMechanicsAnalysisNLSensitivity(StructuralMechanicsAnalysis):
     #        # X
     #        disp_x = np.array([disp_1_x, disp_2_x, disp_3_x])
     #        sen_first_x, sen_second_x = self._ComputeFirstAndSecondOrderNLSensitivityFactors(disp_x, load_factor_array)
-    #        node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_X, sen_first_x)
-    #        node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_X, sen_second_x)
+    #        node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_FIRST_ORDER_X, sen_first_x)
+    #        node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_SECOND_ORDER_X, sen_second_x)
     #        # Y
     #        disp_y = np.array([disp_1_y, disp_2_y, disp_3_y])
     #        sen_first_y, sen_second_y = self._ComputeFirstAndSecondOrderNLSensitivityFactors(disp_y, load_factor_array)
-    #        node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Y, sen_first_y)
-    #        node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Y, sen_second_y)
+    #        node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_FIRST_ORDER_Y, sen_first_y)
+    #        node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_SECOND_ORDER_Y, sen_second_y)
     #        # Z
     #        disp_z = np.array([disp_1_z, disp_2_z, disp_3_z])
     #        sen_first_z, sen_second_z = self._ComputeFirstAndSecondOrderNLSensitivityFactors(disp_z, load_factor_array)
-    #        node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER_Z, sen_first_z)
-    #        node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER_Z, sen_second_z)
+    #        node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_FIRST_ORDER_Z, sen_first_z)
+    #        node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_SECOND_ORDER_Z, sen_second_z)
 #
 #
     #def _ComputeFirstAndSecondOrderNLSensitivityFactors(self, response_value_array, load_factor_array):

@@ -182,8 +182,8 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
 
                 if variable_name == "DISPLACEMENT":
                     node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY, curvature_array)
-                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_FIRST_ORDER, sen_first_array)
-                    node.SetValue(StructuralMechanicsApplication.NL_SENSITIVITY_SECOND_ORDER, sen_second_array)
+                    node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_FIRST_ORDER, sen_first_array)
+                    node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_SECOND_ORDER, sen_second_array)
 
             # Elemental values
             for elem in self.sub_model_part.Elements:
