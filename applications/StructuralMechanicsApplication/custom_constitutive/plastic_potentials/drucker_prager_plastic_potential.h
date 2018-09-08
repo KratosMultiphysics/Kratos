@@ -103,7 +103,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
         Vector& rGFlux,
         ConstitutiveLaw::Parameters& rValues)
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
         Vector FirstVector, SecondVector, ThirdVector;
 
@@ -113,7 +113,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
 
         const double c3 = 0.0;
 
-        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+        const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         const double sin_dil = std::sin(dilatancy);
         const double Root3 = std::sqrt(3.0);
 

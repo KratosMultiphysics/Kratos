@@ -103,8 +103,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-
         Vector first_vector, second_vector, third_vector;
 
         ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
