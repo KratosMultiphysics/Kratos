@@ -201,7 +201,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
     // Initiate iterator variable
     unsigned int counter = 0;
     unsigned int maxcounter = 20;
-    double InitialNormResidual, NormRatio;
+    double InitialNormResidual;
     const double tolerance = 5e-03;
     const double norm_tolerance = 5e-012;
 
@@ -251,7 +251,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
         // Calculate RHS Norm (Residual Norm)
         if (counter == 0) InitialNormResidual = norm_2(RHSVector);
         double CurrentNormResidual = norm_2(RHSVector);
-        NormRatio = CurrentNormResidual/InitialNormResidual;
+        double NormRatio = CurrentNormResidual/InitialNormResidual;
 
         // Calculate LHS Matrix
         this->CalculateLHSMatrix(LHSMatrix, PrincipalStressVector, UnknownVector, K_p);
@@ -368,7 +368,7 @@ void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const Vector& rPrinci
     Matrix b = ZeroMatrix(2,2);
     Vector c = ZeroVector(2);
     Vector d = ZeroVector(2);
-    double e = 0.0;
+    double e;
 
     // Compute Hessian Matrix H
     Matrix HessianMatrixH = ZeroMatrix(2,2);
