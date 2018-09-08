@@ -93,21 +93,22 @@ public:
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param StressVector The stress vector
-     * @param StrainVector The StrainVector vector
+     * @param rStressVector The stress vector
+     * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const Vector &StressVector,
-        const Vector &StrainVector,
+        const Vector& rStressVector,
+        const Vector& rStrainVector,
         double& rEqStress,
-        ConstitutiveLaw::Parameters& rValues)
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
         double I1, J2, J3, lode_angle;
         Vector deviator = ZeroVector(6);
 
-        ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
-        ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, deviator, J2);
+        ConstitutiveLawUtilities::CalculateI1Invariant(rStressVector, I1);
+        ConstitutiveLawUtilities::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
         ConstitutiveLawUtilities::CalculateJ3Invariant(deviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
@@ -119,11 +120,14 @@ public:
      * @param rThreshold The uniaxial stress threshold
      * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold)
+    static void GetInitialUniaxialThreshold(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold
+        )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_TENSION]); // TODO Check
+        rThreshold = std::abs(r_material_properties[YIELD_STRESS_TENSION]); // TODO Check
     }
 
     /**
@@ -135,19 +139,20 @@ public:
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
         double& AParameter,
-        const double CharacteristicLength)
+        const double CharacteristicLength
+        )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double E = rMaterialProperties[YOUNG_MODULUS];
-        const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double Gf = r_material_properties[FRACTURE_ENERGY];
+        const double E = r_material_properties[YOUNG_MODULUS];
+        const double sigma_c = r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double sigma_t = r_material_properties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
+        if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
             AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf * n * n / CharacteristicLength);
         }
@@ -155,22 +160,21 @@ public:
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param StressVector The stress vector
-     * @param Deviator The deviatoric part of the stress vector
+     * @param rStressVector The stress vector
+     * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rg The derivative of the plastic potential
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& rStressVector,
+        const Vector& rDeviator,
         const double J2,
-        Vector &rg,
-        ConstitutiveLaw::Parameters& rValues)
+        Vector& rDerivativePlasticPotential,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -178,29 +182,28 @@ public:
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector
-     * @param Deviator The deviatoric part of the stress vector
+     * @param rStressVector The stress vector
+     * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& rStressVector,
+        const Vector& rDeviator,
         const double J2,
-        Vector &rFFlux,
-        ConstitutiveLaw::Parameters& rValues)
+        Vector& rFFlux,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-
         Vector first_vector, second_vector, third_vector;
 
         ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, third_vector);
+        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
 
         double J3, lode_angle;
-        ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
+        ConstitutiveLawUtilities::CalculateJ3Invariant(rDeviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
         const double checker = std::abs(lode_angle * 180 / Globals::Pi);

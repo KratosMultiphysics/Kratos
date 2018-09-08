@@ -106,9 +106,9 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double sin_phi = std::sin(friction_angle);
         const double root_3 = std::sqrt(3.0);
 
@@ -142,10 +142,10 @@ public:
         double& rThreshold
         )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
-        const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        const double yield_tension = r_material_properties[YIELD_STRESS_TENSION];
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double sin_phi = std::sin(friction_angle);
         rThreshold = std::abs(yield_tension * (3.0 + sin_phi) / (3.0 * sin_phi - 3.0));
     }
@@ -161,15 +161,15 @@ public:
         double& rAParameter,
         const double CharacteristicLength)
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double E = rMaterialProperties[YOUNG_MODULUS];
-        const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double Gf = r_material_properties[FRACTURE_ENERGY];
+        const double E = r_material_properties[YOUNG_MODULUS];
+        const double sigma_c = r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double sigma_t = r_material_properties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
+        if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             rAParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
             KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
@@ -190,11 +190,10 @@ public:
         const Vector& rDeviator,
         const double J2,
         Vector& rGFlux,
-        ConstitutiveLaw::Parameters& rValues)
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rGFlux, rMaterialProperties);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rGFlux, rValues);
     }
 
     /**
@@ -216,7 +215,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
         Vector first_vector, second_vector, third_vector;
         ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
@@ -226,7 +225,7 @@ public:
         double c1, c2, c3;
         c3 = 0.0;
 
-        const double friction_angle = rMaterialProperties[FRICTION_ANGLE];
+        const double friction_angle = r_material_properties[FRICTION_ANGLE];
         const double sin_phi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
