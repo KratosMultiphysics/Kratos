@@ -216,7 +216,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
 
     // Constant direction of deviatoric strain vector -- with check if TrialDeviatoricStrain == 0
     Vector DirectionStrainVector = ZeroVector(3);
-    if(fabs(TrialDeviatoricStrain) > 1.e-10) 
+    if(fabs(TrialDeviatoricStrain) > 1.e-9) 
         DirectionStrainVector = sqrt(2.0/3.0) * TrialDeviatoricStrainVector / TrialDeviatoricStrain;
 
     // Initialize additional temporary Matrices and Vectors;
@@ -406,7 +406,7 @@ void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const Vector& rPrinci
     a(1) = sqrt(2.0/3.0) * ( d(1) * b(0,0) - d(0) * b(0,1) );
     
     // Check if e == 0
-    if (fabs(e) < 1.e-9 && fabs(a(0)) < 1.e-9 && fabs(a(1)) < 1.e-9){ a(0) = 0.0; a(1) = 0.0; }
+    if (fabs(e) < 1.e-9){ a *= 1.0 / 1.e-9; }
     else{ a *= 1.0 / e; }
 
     // Arrange rPlasticMatrix from all the constructed variables
@@ -547,7 +547,7 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     this->CalculateStrainInvariantsFromPrincipalStrain(mElasticPrincipalStrain, VolumetricStrain, DeviatoricStrain, DeviatoricStrainVector);
     
     Vector DirectionVector = ZeroVector(3);
-    if (fabs(DeviatoricStrain) > 1.e-10)
+    if (fabs(DeviatoricStrain) > 1.e-9)
         DirectionVector = sqrt(2.0/3.0) * DeviatoricStrainVector / DeviatoricStrain;
 
     // Compute ElasticMatrix (2x2) D^e
@@ -610,9 +610,9 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     } 
 
     // Perform check in case DeviatoricStrain == 0
-    double DeviatoricQ_by_DeviatoricStrain = DeviatoricQ / DeviatoricStrain; 
-    if (fabs(DeviatoricStrain) < 1.e-10 && fabs(DeviatoricQ) < 1.e-10 )
-        DeviatoricQ_by_DeviatoricStrain = 0.0;
+    double DeviatoricQ_by_DeviatoricStrain; 
+    if (fabs(DeviatoricStrain) < 1.e-9 ) {DeviatoricQ_by_DeviatoricStrain = DeviatoricQ / 1.e-9;}
+    else{DeviatoricQ_by_DeviatoricStrain = DeviatoricQ / DeviatoricStrain;}  
 
     // Compute Consistent Tangent Stiffness matrix in principal space
     Matrix DepcP = ZeroMatrix(6,6);
