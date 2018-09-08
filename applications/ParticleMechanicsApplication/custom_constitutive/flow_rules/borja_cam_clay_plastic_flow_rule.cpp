@@ -197,12 +197,11 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
     Vector RHSVector = ZeroVector(3);
     Matrix LHSMatrix = ZeroMatrix(3,3);
     Matrix InverseLHSMatrix = ZeroMatrix(3,3);
-    double detLHS;
-
+    
     // Initiate iterator variable
     unsigned int counter = 0;
     unsigned int maxcounter = 20;
-    double InitialNormResidual, CurrentNormResidual, NormRatio;
+    double InitialNormResidual, NormRatio;
     const double tolerance = 5e-03;
     const double norm_tolerance = 5e-012;
 
@@ -251,14 +250,14 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
 
         // Calculate RHS Norm (Residual Norm)
         if (counter == 0) InitialNormResidual = norm_2(RHSVector);
-        CurrentNormResidual = norm_2(RHSVector);
+        double CurrentNormResidual = norm_2(RHSVector);
         NormRatio = CurrentNormResidual/InitialNormResidual;
 
         // Calculate LHS Matrix
         this->CalculateLHSMatrix(LHSMatrix, PrincipalStressVector, UnknownVector, K_p);
 
         // Compute Inverse LHS Matrix
-        detLHS = MathUtils<double>::Det(LHSMatrix);
+        double detLHS = MathUtils<double>::Det(LHSMatrix);
         MathUtils<double>::InvertMatrix( LHSMatrix, InverseLHSMatrix, detLHS);
 
         // Update DeltaUnknownVector
@@ -399,8 +398,8 @@ void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const Vector& rPrinci
     d(1) = rElasticMatrix(0,1) * mStateFunctionFirstDerivative(0) + rElasticMatrix(1,1) * mStateFunctionFirstDerivative(1);
 
     // Construct Coefficient e
-    e  = d(0) * ( b(1,1) * mStateFunctionFirstDerivative(0) - b(0,1) * mStateFunctionFirstDerivative(1) ); 
-    e += d(1) * ( b(0,0) * mStateFunctionFirstDerivative(1) - b(1,0) * mStateFunctionFirstDerivative(0) );
+    e  = d(0) * ( b(1,1) * mStateFunctionFirstDerivative(0) - b(0,1) * mStateFunctionFirstDerivative(1) ) 
+       + d(1) * ( b(0,0) * mStateFunctionFirstDerivative(1) - b(1,0) * mStateFunctionFirstDerivative(0) );
 
     // Construct Vector a
     a(0) = ( d(0) * (b(1,1) * c(0) - b(0,1) * c(1)) + d(1) * (b(0,0) * c(1) - b(1,0) * c(0)) + detb * K_ptrial * mStateFunctionFirstDerivative(2) );
