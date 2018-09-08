@@ -115,19 +115,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const double CharacteristicLength
         )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const int softening_type = rMaterialProperties[SOFTENING_TYPE];
+        const int softening_type = r_material_properties[SOFTENING_TYPE];
         double damage_parameter;
-        TYieldSurfaceType::CalculateDamageParameter(rMaterialProperties, damage_parameter, CharacteristicLength);
+        TYieldSurfaceType::CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
 
         switch (softening_type)
         {
         case static_cast<int>(SofteningType::Linear):
-            CalculateLinearDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rMaterialProperties, rDamage);
+            CalculateLinearDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
             break;
         case static_cast<int>(SofteningType::Exponential):
-            CalculateExponentialDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rMaterialProperties, rDamage);
+            CalculateExponentialDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
             break;
         default:
             KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
@@ -150,12 +150,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const double DamageParameter,
         const double CharacteristicLength,
         ConstitutiveLaw::Parameters& rValues,
-        double& rDamage)
+        double& rDamage
+        )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-
         double initial_threshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
         rDamage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter * (1.0 - UniaxialStress / initial_threshold));
     }
 
@@ -173,12 +172,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const double DamageParameter,
         const double CharacteristicLength,
         ConstitutiveLaw::Parameters& rValues,
-        double& rDamage)
+        double& rDamage
+        )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-
         double initial_threshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
         rDamage = (1.0 - initial_threshold / UniaxialStress) / (1.0 + DamageParameter);
     }
 
@@ -187,11 +185,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param rThreshold The uniaxial stress threshold
      * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold)
+    static void GetInitialUniaxialThreshold(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold
+        )
     {
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, rThreshold);
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, rThreshold);
     }
 
     /**
