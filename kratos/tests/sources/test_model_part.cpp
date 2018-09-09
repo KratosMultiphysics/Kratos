@@ -157,11 +157,51 @@ namespace Kratos {
             model_part.pGetElement(2)->Set(TO_ERASE, true);
 
             // Call method
-            AuxiliarModelPartUtilities(model_part).RemoveElementsAndBelongingNodes(TO_ERASE);
+            auto aux_util = AuxiliarModelPartUtilities(model_part);
+            aux_util.RemoveElementsAndBelongingNodes(TO_ERASE);
 
             // Check results
             KRATOS_CHECK(model_part.NumberOfNodes() == 4);
             KRATOS_CHECK(model_part.NumberOfElements() == 2);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveConditions, KratosCoreFastSuite)
+        {
+            ModelPart model_part("Main");
+
+            // Fill model part
+            GenerateGenericModelPart(model_part);
+
+            // Set flags
+            model_part.pGetCondition(1)->Set(TO_ERASE, true);
+            model_part.pGetCondition(2)->Set(TO_ERASE, true);
+
+            // Call method
+            model_part.RemoveConditions(TO_ERASE);
+
+            // Check results
+            KRATOS_CHECK(model_part.NumberOfNodes() == 6);
+            KRATOS_CHECK(model_part.NumberOfConditions() == 2);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveConditionsAndBelongingNodes, KratosCoreFastSuite)
+        {
+            ModelPart model_part("Main");
+
+            // Fill model part
+            GenerateGenericModelPart(model_part);
+
+            // Set flags
+            model_part.pGetCondition(1)->Set(TO_ERASE, true);
+            model_part.pGetCondition(2)->Set(TO_ERASE, true);
+
+            // Call method
+            auto aux_util = AuxiliarModelPartUtilities(model_part);
+            aux_util.RemoveConditionsAndBelongingNodes(TO_ERASE);
+
+            // Check results
+            //KRATOS_CHECK(model_part.NumberOfNodes() == 4);
+            KRATOS_CHECK(model_part.NumberOfConditions() == 2);
         }
 
     }
