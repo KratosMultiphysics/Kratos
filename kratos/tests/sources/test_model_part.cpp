@@ -143,9 +143,10 @@ namespace Kratos {
             // Check results
             KRATOS_CHECK(model_part.NumberOfNodes() == 6);
             KRATOS_CHECK(model_part.NumberOfElements() == 2);
+            KRATOS_CHECK(model_part.NumberOfConditions() == 4);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElementsAndBelongingNodes, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElementsAndBelongings, KratosCoreFastSuite)
         {
             ModelPart model_part("Main");
 
@@ -158,11 +159,12 @@ namespace Kratos {
 
             // Call method
             auto aux_util = AuxiliarModelPartUtilities(model_part);
-            aux_util.RemoveElementsAndBelongingNodes(TO_ERASE);
+            aux_util.RemoveElementsAndBelongings(TO_ERASE);
 
             // Check results
             KRATOS_CHECK(model_part.NumberOfNodes() == 4);
             KRATOS_CHECK(model_part.NumberOfElements() == 2);
+            KRATOS_CHECK(model_part.NumberOfConditions() == 2);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveConditions, KratosCoreFastSuite)
@@ -182,9 +184,10 @@ namespace Kratos {
             // Check results
             KRATOS_CHECK(model_part.NumberOfNodes() == 6);
             KRATOS_CHECK(model_part.NumberOfConditions() == 2);
+            KRATOS_CHECK(model_part.NumberOfElements() == 4);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveConditionsAndBelongingNodes, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveConditionsAndBelongings, KratosCoreFastSuite)
         {
             ModelPart model_part("Main");
 
@@ -197,11 +200,12 @@ namespace Kratos {
 
             // Call method
             auto aux_util = AuxiliarModelPartUtilities(model_part);
-            aux_util.RemoveConditionsAndBelongingNodes(TO_ERASE);
+            aux_util.RemoveConditionsAndBelongings(TO_ERASE);
 
             // Check results
-            //KRATOS_CHECK(model_part.NumberOfNodes() == 4);
+            KRATOS_CHECK(model_part.NumberOfNodes() == 3);
             KRATOS_CHECK(model_part.NumberOfConditions() == 2);
+            KRATOS_CHECK(model_part.NumberOfElements() == 2);
         }
 
     }

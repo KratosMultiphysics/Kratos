@@ -91,81 +91,81 @@ public:
     ///@name Operations
     ///@{
 
-    /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
+    /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs. This method removes belonging entities too
     */
-    void RemoveElementAndBelongingNodes(IndexType ElementId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongings(IndexType ElementId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove given element from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
+    /** Remove given element from mesh with ThisIndex in this modelpart and all its subs. This method removes belonging entities too
     */
-    void RemoveElementAndBelongingNodes(Element& ThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongings(Element& ThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove given element from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
+    /** Remove given element from mesh with ThisIndex in this modelpart and all its subs. This method removes belonging entities too
     */
-    void RemoveElementAndBelongingNodes(Element::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongings(Element::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove the element with given Id from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
+    /** Remove the element with given Id from mesh with ThisIndex in parents, itself and children. This method removes belonging entities too
     */
-    void RemoveElementAndBelongingNodesFromAllLevels(IndexType ElementId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongingsFromAllLevels(IndexType ElementId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove given element from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
+    /** Remove given element from mesh with ThisIndex in parents, itself and children. This method removes belonging entities too
     */
-    void RemoveElementAndBelongingNodesFromAllLevels(Element& ThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongingsFromAllLevels(Element& ThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove given element from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
+    /** Remove given element from mesh with ThisIndex in parents, itself and children. This method removes belonging entities too
     */
-    void RemoveElementAndBelongingNodesFromAllLevels(Element::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveElementAndBelongingsFromAllLevels(Element::Pointer pThisElement, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** erases all elements identified by "IdentifierFlag" by removing the pointer. This method removes belong nodes too
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer. This method removes belonging entities too
     * Pointers are erased from this level downwards
     * nodes will be automatically destructured
     * when no pointer is left to them
     */
-    void RemoveElementsAndBelongingNodes(Flags IdentifierFlag = TO_ERASE);
+    void RemoveElementsAndBelongings(Flags IdentifierFlag = TO_ERASE);
 
-    /** erases all elements identified by "IdentifierFlag" by removing the pointer. This method removes belong nodes too
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer. This method removes belonging entities too
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveElementsAndBelongingNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+    void RemoveElementsAndBelongingsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
-    /** Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
+    /** Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs. This method removes belonging entities too
     */
-    void RemoveConditionAndBelongingNodes(IndexType ConditionId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongings(IndexType ConditionId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
+    /** Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belonging entities too
     */
-    void RemoveConditionAndBelongingNodes(Condition& ThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongings(Condition& ThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belong nodes too
+    /** Remove given condition from mesh with ThisIndex in this modelpart and all its subs. This method removes belonging entities too
     */
-    void RemoveConditionAndBelongingNodes(Condition::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongings(Condition::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove the condition with given Id from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
+    /** Remove the condition with given Id from mesh with ThisIndex in parents, itself and children. This method removes belonging entities too
     */
-    void RemoveConditionAndBelongingNodesFromAllLevels(IndexType ConditionId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongingsFromAllLevels(IndexType ConditionId, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove given condition from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
+    /** Remove given condition from mesh with ThisIndex in parents, itself and children. This method removes belonging entities too
     */
-    void RemoveConditionAndBelongingNodesFromAllLevels(Condition& ThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongingsFromAllLevels(Condition& ThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** Remove given condition from mesh with ThisIndex in parents, itself and children. This method removes belong nodes too
+    /** Remove given condition from mesh with ThisIndex in parents, itself and children. This method removes belonging entities too
     */
-    void RemoveConditionAndBelongingNodesFromAllLevels(Condition::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
+    void RemoveConditionAndBelongingsFromAllLevels(Condition::Pointer pThisCondition, Flags IdentifierFlag = TO_ERASE, IndexType ThisIndex = 0);
 
-    /** erases all conditions identified by "IdentifierFlag" by removing the pointer. This method removes belong nodes too
+    /** erases all conditions identified by "IdentifierFlag" by removing the pointer. This method removes belonging entities too
     * Pointers are erased from this level downwards
     * nodes will be automatically destructured
     * when no pointer is left to them
     */
-    void RemoveConditionsAndBelongingNodes(Flags IdentifierFlag = TO_ERASE);
+    void RemoveConditionsAndBelongings(Flags IdentifierFlag = TO_ERASE);
 
-    /** erases all conditions identified by "IdentifierFlag" by removing the pointer. This method removes belong nodes too
+    /** erases all conditions identified by "IdentifierFlag" by removing the pointer. This method removes belonging entities too
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveConditionsAndBelongingNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+    void RemoveConditionsAndBelongingsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
     /// Turn back information as a string.
     virtual std::string Info() const

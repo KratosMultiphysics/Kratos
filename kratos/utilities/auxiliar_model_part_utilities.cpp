@@ -20,7 +20,7 @@
 
 namespace Kratos
 {
-void AuxiliarModelPartUtilities::RemoveElementAndBelongingNodes(
+void AuxiliarModelPartUtilities::RemoveElementAndBelongings(
     IndexType ElementId, Flags IdentifierFlag, IndexType ThisIndex)
 {
     auto& r_array_nodes = mrModelPart.Nodes(ThisIndex);
@@ -38,8 +38,20 @@ void AuxiliarModelPartUtilities::RemoveElementAndBelongingNodes(
             }
         }
     }
+    bool condition_to_remove;
+    for (auto& cond : mrModelPart.Conditions(ThisIndex)) {
+        condition_to_remove = true;
+        for (auto& node : cond.GetGeometry()) {
+            if (node.IsNot(IdentifierFlag)) {
+                condition_to_remove = false;
+                break;
+            }
+            if (condition_to_remove) cond.Set(IdentifierFlag);
+        }
+    }
 
     mrModelPart.RemoveElement(ElementId, ThisIndex);
+    mrModelPart.RemoveConditions(IdentifierFlag);
 
     // TODO: Add OMP
     for(std::size_t i=0; i<r_array_nodes.size(); ++i) {
@@ -53,52 +65,52 @@ void AuxiliarModelPartUtilities::RemoveElementAndBelongingNodes(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveElementAndBelongingNodes(Element& ThisElement, Flags IdentifierFlag , IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveElementAndBelongings(Element& ThisElement, Flags IdentifierFlag , IndexType ThisIndex)
 {
-    RemoveElementAndBelongingNodes(ThisElement.Id(), IdentifierFlag, ThisIndex);
+    RemoveElementAndBelongings(ThisElement.Id(), IdentifierFlag, ThisIndex);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveElementAndBelongingNodes(Element::Pointer pThisElement, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveElementAndBelongings(Element::Pointer pThisElement, Flags IdentifierFlag, IndexType ThisIndex)
 {
-    RemoveElementAndBelongingNodes(pThisElement->Id(), IdentifierFlag, ThisIndex);
+    RemoveElementAndBelongings(pThisElement->Id(), IdentifierFlag, ThisIndex);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveElementAndBelongingNodesFromAllLevels(IndexType ElementId, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(IndexType ElementId, Flags IdentifierFlag, IndexType ThisIndex)
 {
     if (mrModelPart.IsSubModelPart()) {
         AuxiliarModelPartUtilities aux_utility = AuxiliarModelPartUtilities(*(mrModelPart.GetParentModelPart()));
-        aux_utility.RemoveElementAndBelongingNodes(ElementId, IdentifierFlag, ThisIndex);
+        aux_utility.RemoveElementAndBelongings(ElementId, IdentifierFlag, ThisIndex);
     } else {
-        RemoveElementAndBelongingNodes(ElementId, IdentifierFlag, ThisIndex);
+        RemoveElementAndBelongings(ElementId, IdentifierFlag, ThisIndex);
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveElementAndBelongingNodesFromAllLevels(Element& ThisElement, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(Element& ThisElement, Flags IdentifierFlag, IndexType ThisIndex)
 {
-    RemoveElementAndBelongingNodesFromAllLevels(ThisElement.Id(), IdentifierFlag, ThisIndex);
+    RemoveElementAndBelongingsFromAllLevels(ThisElement.Id(), IdentifierFlag, ThisIndex);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveElementAndBelongingNodesFromAllLevels(Element::Pointer pThisElement, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveElementAndBelongingsFromAllLevels(Element::Pointer pThisElement, Flags IdentifierFlag, IndexType ThisIndex)
 {
-    RemoveElementAndBelongingNodesFromAllLevels(pThisElement->Id(), IdentifierFlag, ThisIndex);
+    RemoveElementAndBelongingsFromAllLevels(pThisElement->Id(), IdentifierFlag, ThisIndex);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveElementsAndBelongingNodes(Flags IdentifierFlag)
+void AuxiliarModelPartUtilities::RemoveElementsAndBelongings(Flags IdentifierFlag)
 {
     //loop over all the meshes
     auto& meshes = mrModelPart.GetMeshes();
@@ -118,26 +130,39 @@ void AuxiliarModelPartUtilities::RemoveElementsAndBelongingNodes(Flags Identifie
                 }
             }
         }
+        
+        bool condition_to_remove;
+        for (auto& cond : i_mesh->Conditions()) {
+            condition_to_remove = true;
+            for (auto& node : cond.GetGeometry()) {
+                if (node.IsNot(IdentifierFlag)) {
+                    condition_to_remove = false;
+                    break;
+                }
+                if (condition_to_remove) cond.Set(IdentifierFlag);
+            }
+        }
     }
 
     mrModelPart.RemoveElements(IdentifierFlag);
+    mrModelPart.RemoveConditions(IdentifierFlag);
     mrModelPart.RemoveNodes(IdentifierFlag);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveElementsAndBelongingNodesFromAllLevels(Flags IdentifierFlag)
+void AuxiliarModelPartUtilities::RemoveElementsAndBelongingsFromAllLevels(Flags IdentifierFlag)
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
     AuxiliarModelPartUtilities aux_utility = AuxiliarModelPartUtilities(root_model_part);
-    aux_utility.RemoveElementsAndBelongingNodes(IdentifierFlag);
+    aux_utility.RemoveElementsAndBelongings(IdentifierFlag);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveConditionAndBelongingNodes(IndexType ConditionId, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveConditionAndBelongings(IndexType ConditionId, Flags IdentifierFlag, IndexType ThisIndex)
 {
     auto& r_array_nodes = mrModelPart.Nodes(ThisIndex);
     #pragma omp parallel for
@@ -154,8 +179,20 @@ void AuxiliarModelPartUtilities::RemoveConditionAndBelongingNodes(IndexType Cond
             }
         }
     }
+    bool element_to_remove;
+    for (auto& elem : mrModelPart.Elements(ThisIndex)) {
+        element_to_remove = true;
+        for (auto& node : elem.GetGeometry()) {
+            if (node.IsNot(IdentifierFlag)) {
+                element_to_remove = false;
+                break;
+            }
+            if (element_to_remove) elem.Set(IdentifierFlag);
+        }
+    }
 
     mrModelPart.RemoveCondition(ConditionId, ThisIndex);
+    mrModelPart.RemoveElements(IdentifierFlag);
 
     // TODO: Add OMP
     for(std::size_t i=0; i<r_array_nodes.size(); ++i) {
@@ -169,52 +206,52 @@ void AuxiliarModelPartUtilities::RemoveConditionAndBelongingNodes(IndexType Cond
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveConditionAndBelongingNodes(Condition& ThisCondition, Flags IdentifierFlag , IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveConditionAndBelongings(Condition& ThisCondition, Flags IdentifierFlag , IndexType ThisIndex)
 {
-    RemoveConditionAndBelongingNodes(ThisCondition.Id(), IdentifierFlag, ThisIndex);
+    RemoveConditionAndBelongings(ThisCondition.Id(), IdentifierFlag, ThisIndex);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveConditionAndBelongingNodes(Condition::Pointer pThisCondition, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveConditionAndBelongings(Condition::Pointer pThisCondition, Flags IdentifierFlag, IndexType ThisIndex)
 {
-    RemoveConditionAndBelongingNodes(pThisCondition->Id(), IdentifierFlag, ThisIndex);
+    RemoveConditionAndBelongings(pThisCondition->Id(), IdentifierFlag, ThisIndex);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveConditionAndBelongingNodesFromAllLevels(IndexType ConditionId, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(IndexType ConditionId, Flags IdentifierFlag, IndexType ThisIndex)
 {
     if (mrModelPart.IsSubModelPart()) {
         AuxiliarModelPartUtilities aux_utility = AuxiliarModelPartUtilities(*(mrModelPart.GetParentModelPart()));
-        aux_utility.RemoveConditionAndBelongingNodes(ConditionId, IdentifierFlag, ThisIndex);
+        aux_utility.RemoveConditionAndBelongings(ConditionId, IdentifierFlag, ThisIndex);
     } else {
-        RemoveConditionAndBelongingNodes(ConditionId, IdentifierFlag, ThisIndex);
+        RemoveConditionAndBelongings(ConditionId, IdentifierFlag, ThisIndex);
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveConditionAndBelongingNodesFromAllLevels(Condition& ThisCondition, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(Condition& ThisCondition, Flags IdentifierFlag, IndexType ThisIndex)
 {
-    RemoveConditionAndBelongingNodesFromAllLevels(ThisCondition.Id(), IdentifierFlag, ThisIndex);
+    RemoveConditionAndBelongingsFromAllLevels(ThisCondition.Id(), IdentifierFlag, ThisIndex);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveConditionAndBelongingNodesFromAllLevels(Condition::Pointer pThisCondition, Flags IdentifierFlag, IndexType ThisIndex)
+void AuxiliarModelPartUtilities::RemoveConditionAndBelongingsFromAllLevels(Condition::Pointer pThisCondition, Flags IdentifierFlag, IndexType ThisIndex)
 {
-    RemoveConditionAndBelongingNodesFromAllLevels(pThisCondition->Id(), IdentifierFlag, ThisIndex);
+    RemoveConditionAndBelongingsFromAllLevels(pThisCondition->Id(), IdentifierFlag, ThisIndex);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveConditionsAndBelongingNodes(Flags IdentifierFlag)
+void AuxiliarModelPartUtilities::RemoveConditionsAndBelongings(Flags IdentifierFlag)
 {
     //loop over all the meshes
     auto& meshes = mrModelPart.GetMeshes();
@@ -234,20 +271,33 @@ void AuxiliarModelPartUtilities::RemoveConditionsAndBelongingNodes(Flags Identif
                 }
             }
         }
+        
+        bool element_to_remove;
+        for (auto& elem : i_mesh->Elements()) {
+            element_to_remove = true;
+            for (auto& node : elem.GetGeometry()) {
+                if (node.IsNot(IdentifierFlag)) {
+                    element_to_remove = false;
+                    break;
+                }
+                if (element_to_remove) elem.Set(IdentifierFlag);
+            }
+        }
     }
 
     mrModelPart.RemoveConditions(IdentifierFlag);
+    mrModelPart.RemoveElements(IdentifierFlag);
     mrModelPart.RemoveNodes(IdentifierFlag);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::RemoveConditionsAndBelongingNodesFromAllLevels(Flags IdentifierFlag)
+void AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels(Flags IdentifierFlag)
 {
     ModelPart& root_model_part = mrModelPart.GetRootModelPart();
     AuxiliarModelPartUtilities aux_utility = AuxiliarModelPartUtilities(root_model_part);
-    aux_utility.RemoveConditionsAndBelongingNodes(IdentifierFlag);
+    aux_utility.RemoveConditionsAndBelongings(IdentifierFlag);
 }
 
 }  // namespace Kratos.
