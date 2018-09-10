@@ -46,7 +46,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         ZeroVector[5] = 0.0
 
         for node in main_model_part.Nodes:
-            node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
+            node.SetValue(MeshingApplication.METRIC_TENSOR_3D, ZeroVector)
 
         # We define a metric using the ComputeLevelSetSolMetricProcess
         MetricParameters = KratosMultiphysics.Parameters("""
