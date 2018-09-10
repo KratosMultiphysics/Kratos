@@ -1,0 +1,34 @@
+# Adding the current directory to the path such that the modules can be imported with __import__ in the factory
+import sys, os
+sys.path.append(os.path.dirname(__file__))
+
+"""
+    This is a map of the name of coupled solver to be specified in
+    JSON file and their python module (file) name
+"""
+available_coupled_solvers = {
+    "gauss_seidel"  : "gauss_seidel_iterative_strong_coupled_solver",
+    "jacobi"        : "jacobi_iterative_strong_coupled_solver",
+    "staggered"     : "staggered_loose_coupled_solver",
+}
+
+
+def CreateCoupledSolver(settings, solvers, level):
+    """
+        This function creates and returns the coupled solver used for CoSimulation
+        One can register the a new coupled solver by adding them to the above map "available_coupled_solvers"
+    """
+    if (type(settings) != dict):
+        raise Exception("Input is expected to be provided as a python dictionary")
+
+    coupled_solver_type = settings["type"]
+
+    if coupled_solver_type in available_coupled_solvers:
+        coupled_solver_module = __import__(available_coupled_solvers[coupled_solver_type])
+        return accelerator_module.Create(settings, solvers, level)
+    else:
+        err_msg  = 'The requested coupled solver "' + coupled_solver_type + '" is not available!\n'
+        err_msg += 'Available coupled solvers are :\n'
+        for available_coupled_solver in available_coupled_solvers:
+            err_msg += "\t" + available_coupled_solver + "\n"
+        raise NameError(err_msg)
