@@ -207,7 +207,7 @@ public:
      * @return The matrix containing the delta normals
      * @note Not the mean, look in the contact utilities
      */
-    static inline array_1d<array_1d<double, 3>, TDim * TNumNodes> GPDeltaNormal(
+    static inline array_1d<array_1d<double, 3>, TDim * TNumNodes> GPDeltaNormalSlave(
         const Matrix& rJacobian,
         const Matrix& rDNDe
         )
@@ -263,6 +263,69 @@ public:
     }
 
     /**
+     * @brief This method is used to compute the local increment of the normal
+     * @param rJacobian The jacobian on the GP
+     * @param rDNDe The local gradient
+     * @return The matrix containing the delta normals
+     * @note Not the mean, look in the contact utilities
+     * @note Hardcopied for performance
+     */
+    static inline array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> GPDeltaNormalMaster(
+        const Matrix& rJacobian,
+        const Matrix& rDNDe
+        )
+    {
+        // Tangent directions
+        array_1d<double,3> j0 = ZeroVector(3), j1 = ZeroVector(3);
+
+        // Using the Jacobian tangent directions
+        if (TDim == 2) {
+            j1[2] = 1.0;
+            for (IndexType i_dim = 0; i_dim < 2; ++i_dim)
+                j0[i_dim]  = rJacobian(i_dim, 0);
+        } else {
+            for (IndexType i_dim = 0; i_dim < 3; ++i_dim) {
+                j0[i_dim] = rJacobian(i_dim, 0);
+                j1[i_dim] = rJacobian(i_dim, 1);
+            }
+        }
+
+        array_1d<double, 3> normal;;
+        MathUtils<double>::CrossProduct(normal, j0, j1);
+        const double area_normal_norm = norm_2(normal);
+
+        KRATOS_DEBUG_ERROR_IF(area_normal_norm < ZeroTolerance) << "ZERO NORMAL: " << area_normal_norm << std::endl;
+
+        const array_1d<double, 3> unit_normal = normal/area_normal_norm;
+
+        array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal;
+        array_1d<double,3> delta_j0, delta_j1;
+        const array_1d<double, 3> zero_array(3, 0.0);
+        for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node ) {
+            for(IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
+                const IndexType i_dof = i_node * TDim + i_dim;
+
+                delta_j0 = zero_array;
+                delta_j1 = zero_array;
+
+                delta_j0[i_dim] += rDNDe(i_node, 0);
+                if (TDim == 3)
+                    delta_j1[i_dim] += rDNDe(i_node, 1);
+
+                array_1d<double, 3> aux_delta_normal0, aux_delta_normal1;
+                MathUtils<double>::CrossProduct(aux_delta_normal0, j0, delta_j1);
+                MathUtils<double>::CrossProduct(aux_delta_normal1, delta_j0, j1);
+                const array_1d<double, 3> aux_delta_normal = aux_delta_normal0 + aux_delta_normal1;
+                const double delta_norm = inner_prod(aux_delta_normal, normal);
+
+                delta_normal[i_dof] = (aux_delta_normal + unit_normal * delta_norm)/area_normal_norm;
+            }
+        }
+
+        return delta_normal;
+    }
+
+    /**
      * @brief It computes the delta normal of the center of the geometry
      * @param rThisGeometry The geometry where the delta normal is computed
      */
@@ -281,7 +344,7 @@ public:
 
         // Now we compute the normal + DeltaNormal
         array_1d<double, 3> aux_delta_normal0 = ZeroVector(3);
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes> aux_delta_normal_0 = GPDeltaNormal(jacobian, gradient);
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes> aux_delta_normal_0 = GPDeltaNormalSlave(jacobian, gradient);
 
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
@@ -333,7 +396,7 @@ public:
             rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
 
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormalSlave(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
@@ -367,7 +430,7 @@ public:
             array_1d<double, TDim> aux_delta_normal;
 
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormalSlave(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                     array_1d<double, TDim> aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
@@ -401,7 +464,7 @@ public:
             rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
 
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            const array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node = GPDeltaNormalMaster(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
                 const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
@@ -435,7 +498,7 @@ public:
             array_1d<double, TDim> aux_delta_normal;
 
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            const array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node = GPDeltaNormalMaster(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                     array_1d<double, TDim> aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
