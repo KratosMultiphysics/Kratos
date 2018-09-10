@@ -41,8 +41,9 @@ namespace Kratos
 /**
  * @class RankineYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a yield surface according to Rankine theory
+ * @details The Rankine yield surface is formally similar to Mohr-Coulomb but limits the allowed  maximum principal stress. It is formed bt a tetrahedron
+ * @see https://books.google.fr/books?id=zArcAwAAQBAJ&pg=PA42&lpg=PA42&dq=rankine+yield+surface&source=bl&ots=8nB5XPh-Tw&sig=xFhJ-F6cCj3b5ByDXWGRosSkGFQ&hl=es&sa=X&ved=2ahUKEwinr6bZ1rDdAhVG-YUKHRRADv4Q6AEwFnoECAcQAQ#v=onepage&q=rankine%20yield%20surface&f=false
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu

@@ -46,8 +46,8 @@ namespace Kratos
 /**
  * @class GenericYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a generic yield surface
+ * @details This is a static "template" to use as main reference to define the rest of yield surfaces
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu & Vicente Mataix

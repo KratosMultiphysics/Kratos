@@ -41,8 +41,9 @@ namespace Kratos
 /**
  * @class DruckerPragerYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a yield surface according to Drucker-Prager theory
+ * @details The Drucker–Prager yield criterion is similar to the von Mises yield criterion, with provisions for handling materials with differing tensile and compressive yield strengths. This criterion is most often used for concrete where both normal and shear stresses can determine failure.
+ * @see https://en.wikipedia.org/wiki/Drucker%E2%80%93Prager_yield_criterion
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu

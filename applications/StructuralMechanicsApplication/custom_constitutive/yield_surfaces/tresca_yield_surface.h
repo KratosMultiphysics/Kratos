@@ -41,8 +41,9 @@ namespace Kratos
 /**
  * @class TrescaYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a yield surface according to Tresca theory
+ * @details The Tresca yield criterion is taken to be the work of Henri Tresca. It is also known as the maximum shear stress theory (MSST) and the Tresca–Guest (TG) criterion. 
+ * @see https://en.wikipedia.org/wiki/Yield_surface#Tresca_yield_surface
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu

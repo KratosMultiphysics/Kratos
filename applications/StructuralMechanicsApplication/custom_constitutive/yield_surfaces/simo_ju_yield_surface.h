@@ -41,8 +41,7 @@ namespace Kratos
 /**
  * @class SimoJuYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a yield surface according to Simo-Ju theory
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu

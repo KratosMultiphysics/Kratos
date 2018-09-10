@@ -41,9 +41,11 @@ namespace Kratos
 /**
  * @class VonMisesYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
- * @tparam TPlasticPotentialType
+ * @brief This class defines a yield surface according to Von-Mises theory
+ * @details The von Mises yield criterion (also known as the maximum distortion energy criterion) suggests that yielding of a ductile material begins when the second deviatoric stress invariant J2 reaches a critical value. It is part of plasticity theory that applies best to ductile materials, such as some metals. Prior to yield, material response can be assumed to be of a nonlinear elastic, viscoelastic, or linear elastic behavior. 
+ * @see https://en.wikipedia.org/wiki/Von_Mises_yield_criterion
+ * @tparam TPlasticPotentialType The plastic potential considered
+ * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
