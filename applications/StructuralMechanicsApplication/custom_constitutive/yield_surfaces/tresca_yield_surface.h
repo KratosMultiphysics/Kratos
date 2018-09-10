@@ -59,6 +59,8 @@ public:
 
     /// Counted pointer of TrescaYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(TrescaYieldSurface);
+    
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -127,18 +129,19 @@ public:
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        rThreshold = std::abs(r_material_properties[YIELD_STRESS_TENSION]); // TODO Check
+        const double sigma_t = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        rThreshold = std::abs(sigma_t); // TODO Check
     }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
-     * @param AParameter The damage parameter
+     * @param rAParameter The damage parameter
      * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
-        double& AParameter,
+        double& rAParameter,
         const double CharacteristicLength
         )
     {
@@ -146,15 +149,16 @@ public:
 
         const double Gf = r_material_properties[FRACTURE_ENERGY];
         const double E = r_material_properties[YOUNG_MODULUS];
-        const double sigma_c = r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double sigma_t = r_material_properties[YIELD_STRESS_TENSION];
+        const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
+        const double sigma_c = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double sigma_t = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            AParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
+            rAParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
-            AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf * n * n / CharacteristicLength);
+            rAParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf * n * n / CharacteristicLength);
         }
     }
 
@@ -208,8 +212,8 @@ public:
 
         const double checker = std::abs(lode_angle * 180 / Globals::Pi);
 
-        double c1, c2, c3;
-        c1 = 0.0;
+        double c2, c3;
+        const double c1 = 0.0;
 
         if (checker < 29.0) {
             c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
@@ -228,13 +232,26 @@ public:
      */
     static int Check(const Properties& rMaterialProperties)
     {
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
         KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
 
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+        if (!rMaterialProperties.Has(YIELD_STRESS)) {
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+            
+            const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+            const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+
+            KRATOS_ERROR_IF(yield_compression < tolerance) << "Yield stress in compression almost zero or negative, include YIELD_STRESS_COMPRESSION in definition";
+            KRATOS_ERROR_IF(yield_tension < tolerance) << "Yield stress in tension almost zero or negative, include YIELD_STRESS_TENSION in definition";
+        } else {
+            const double yield_stress = rMaterialProperties[YIELD_STRESS];
+
+            KRATOS_ERROR_IF(yield_stress < tolerance) << "Yield stress almost zero or negative, include YIELD_STRESS in definition";
+        }
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
 
