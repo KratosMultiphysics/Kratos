@@ -88,14 +88,10 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
     const std::string variable_name = GetProperties().Has(TYING_VARIABLE) ? GetProperties().GetValue(TYING_VARIABLE) : "DISPLACEMENT";
     if (KratosComponents<Variable<double>>::Has(variable_name)) {
         mDoubleVariables.push_back(KratosComponents<Variable<double>>::Get(variable_name));
-    } else if (KratosComponents<Array1DComponentsType>::Has(variable_name)) {
-        mArray1DVariables.push_back(Array1DComponentsType(KratosComponents<Array1DComponentsType>::Get(variable_name)));
     } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)) {
-        mArray1DVariables.push_back(Array1DComponentsType(KratosComponents<Array1DComponentsType>::Get(variable_name+"_X")));
-        mArray1DVariables.push_back(Array1DComponentsType(KratosComponents<Array1DComponentsType>::Get(variable_name+"_Y")));
-        if (TDim == 3) mArray1DVariables.push_back(Array1DComponentsType(KratosComponents<Array1DComponentsType>::Get(variable_name+"_Z")));
+        mArray1DVariables.push_back(KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name));
     } else {
-        KRATOS_ERROR << "Compatible variables are: double, array_1d<double, 3> or components of the former" << std::endl;
+        KRATOS_ERROR << "Compatible variables are: double or array_1d<double, 3> " << std::endl;
     }
 
     // We define the integration method
@@ -6239,10 +6235,15 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
             rResult[index++] = r_current_master[i_master].GetDof( mDoubleVariables[0] ).EquationId( );
         }
     } else {
+        const std::string& variable_name = (mArray1DVariables[0]).Name();
+        const Array1DComponentsType& var_x = KratosComponents<Array1DComponentsType>::Get(variable_name+"_X");
+        const Array1DComponentsType& var_y = KratosComponents<Array1DComponentsType>::Get(variable_name+"_Y");
+        const Array1DComponentsType& var_z = KratosComponents<Array1DComponentsType>::Get(variable_name+"_Z");
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
             NodeType& r_master_node = r_current_master[i_master];
-            for (IndexType i_dof = 0; i_dof < mArray1DVariables.size(); i_dof++)
-                rResult[index++] = r_master_node.GetDof( mArray1DVariables[i_dof] ).EquationId( );
+            rResult[index++] = r_master_node.GetDof( var_x ).EquationId( );
+            rResult[index++] = r_master_node.GetDof( var_y ).EquationId( );
+            if (TDim == 3) rResult[index++] = r_master_node.GetDof( var_z ).EquationId( );
         }
     }
 
@@ -6252,10 +6253,15 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
             rResult[index++] = this->GetGeometry()[i_slave].GetDof( mDoubleVariables[0] ).EquationId( );
         }
     } else {
+        const std::string& variable_name = (mArray1DVariables[0]).Name();
+        const Array1DComponentsType& var_x = KratosComponents<Array1DComponentsType>::Get(variable_name+"_X");
+        const Array1DComponentsType& var_y = KratosComponents<Array1DComponentsType>::Get(variable_name+"_Y");
+        const Array1DComponentsType& var_z = KratosComponents<Array1DComponentsType>::Get(variable_name+"_Z");
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
             NodeType& slave_node = this->GetGeometry()[i_slave];
-            for (IndexType i_dof = 0; i_dof < mArray1DVariables.size(); i_dof++)
-                rResult[index++] = slave_node.GetDof( mArray1DVariables[i_dof] ).EquationId( );
+            rResult[index++] = slave_node.GetDof( var_x ).EquationId( );
+            rResult[index++] = slave_node.GetDof( var_y ).EquationId( );
+            if (TDim == 3) rResult[index++] = slave_node.GetDof( var_z ).EquationId( );
         }
     }
 
@@ -6269,8 +6275,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
             NodeType& slave_node = this->GetGeometry()[i_slave];
             rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
-            if (mArray1DVariables.size() > 1) rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
-            if (mArray1DVariables.size() > 2) rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
+            rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
+            if (TDim == 3) rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
         }
     }
 
@@ -6284,7 +6290,7 @@ template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
     ProcessInfo& rCurrentProcessInfo
-)
+    )
 {
     KRATOS_TRY;
 
@@ -6306,10 +6312,15 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
             rConditionalDofList[index++] = current_master[i_master].pGetDof( mDoubleVariables[0] );
         }
     } else {
+        const std::string& variable_name = (mArray1DVariables[0]).Name();
+        const Array1DComponentsType& var_x = KratosComponents< Array1DComponentsType>::Get(variable_name+"_X");
+        const Array1DComponentsType& var_y = KratosComponents< Array1DComponentsType>::Get(variable_name+"_Y");
+        const Array1DComponentsType& var_z = KratosComponents< Array1DComponentsType>::Get(variable_name+"_Z");
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
             NodeType& master_node = current_master[i_master];
-            for (IndexType i_dof = 0; i_dof < mArray1DVariables.size(); i_dof++)
-                rConditionalDofList[index++] = master_node.pGetDof( mArray1DVariables[i_dof] );
+            rConditionalDofList[index++] = master_node.pGetDof( var_x );
+            rConditionalDofList[index++] = master_node.pGetDof( var_y );
+            if (TDim == 3) rConditionalDofList[index++] = master_node.pGetDof( var_z );
         }
     }
 
@@ -6319,10 +6330,15 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
             rConditionalDofList[index++] = this->GetGeometry()[i_slave].pGetDof( mDoubleVariables[0] );
         }
     } else {
+        const std::string& variable_name = (mArray1DVariables[0]).Name();
+        const Array1DComponentsType& var_x = KratosComponents< Array1DComponentsType>::Get(variable_name+"_X");
+        const Array1DComponentsType& var_y = KratosComponents< Array1DComponentsType>::Get(variable_name+"_Y");
+        const Array1DComponentsType& var_z = KratosComponents< Array1DComponentsType>::Get(variable_name+"_Z");
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
             NodeType& slave_node = this->GetGeometry()[i_slave];
-            for (IndexType i_dof = 0; i_dof < mArray1DVariables.size(); i_dof++)
-                rConditionalDofList[index++] = slave_node.pGetDof( mArray1DVariables[i_dof] );
+            rConditionalDofList[index++] = slave_node.pGetDof( var_x );
+            rConditionalDofList[index++] = slave_node.pGetDof( var_y );
+            if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( var_z );
         }
     }
 
@@ -6336,8 +6352,8 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
             NodeType& slave_node = this->GetGeometry()[i_slave];
             rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
-            if (mArray1DVariables.size() > 1) rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
-            if (mArray1DVariables.size() > 2) rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
+            rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
+            if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
         }
     }
 

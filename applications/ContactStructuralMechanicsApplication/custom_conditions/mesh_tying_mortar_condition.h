@@ -432,7 +432,7 @@ protected:
         void UpdateMasterPair(
             const GeometryType& rGeometryInput,
             std::vector<Variable<double>>& rDoubleVariables,
-            std::vector<Array1DComponentsType>& rArray1DVariables
+            std::vector<Variable<array_1d<double, 3>>>& rArray1DVariables
             )
         {
             /* DoF */
@@ -442,8 +442,9 @@ protected:
                 }
             } else {
                 for (IndexType i_node = 0; i_node < NumNodesMaster; ++i_node) {
+                    const array_1d<double, 3>& value = rGeometryInput[i_node].FastGetSolutionStepValue(rArray1DVariables[0]);
                     for (IndexType i_dof = 0; i_dof < TTensor; ++i_dof) {
-                        u2(i_node, i_dof) =  rGeometryInput[i_node].FastGetSolutionStepValue(rArray1DVariables[i_dof]);
+                        u2(i_node, i_dof) = value[i_dof];
                     }
                 }
             }
@@ -455,15 +456,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Flags  mCalculationFlags;                              /// Calculation flags
+    Flags  mCalculationFlags;                                      /// Calculation flags
 
-    MortarConditionMatrices mrThisMortarConditionMatrices; /// The mortar operators
+    MortarConditionMatrices mrThisMortarConditionMatrices;         /// The mortar operators
 
-    IndexType mIntegrationOrder;                           /// The integration order to consider
+    IndexType mIntegrationOrder;                                   /// The integration order to consider
 
-    std::vector<Variable<double>> mDoubleVariables;        /// The list of double variables
+    std::vector<Variable<double>> mDoubleVariables;                /// The list of double variables
 
-    std::vector<Array1DComponentsType> mArray1DVariables;  /// The list of components array1d
+    std::vector<Variable<array_1d<double, 3>>> mArray1DVariables;  /// The list of components array1d
 
     ///@}
     ///@name Protected Operators
@@ -540,9 +541,10 @@ protected:
             }
         } else {
             for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
+                const array_1d<double, 3>& value = GetGeometry()[i_node].FastGetSolutionStepValue(mArray1DVariables[0]);
                 const array_1d<double, 3>& lm = GetGeometry()[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                for (IndexType i_dof = 0; i_dof < mArray1DVariables.size(); i_dof++) {
-                    rDofData.u1(i_node, i_dof) = GetGeometry()[i_node].FastGetSolutionStepValue(mArray1DVariables[i_dof]);
+                for (IndexType i_dof = 0; i_dof < TDim; i_dof++) {
+                    rDofData.u1(i_node, i_dof) = value[i_dof];
                     rDofData.LagrangeMultipliers(i_node, i_dof) = lm[i_dof];
                 }
             }
