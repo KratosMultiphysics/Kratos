@@ -89,11 +89,11 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
     if (KratosComponents<Variable<double>>::Has(variable_name)) {
         mDoubleVariables.push_back(KratosComponents<Variable<double>>::Get(variable_name));
     } else if (KratosComponents<Array1DComponentsType>::Has(variable_name)) {
-        mArray1DVariables.push_back(KratosComponents<Array1DComponentsType>::Get(variable_name));
+        mArray1DVariables.push_back(Array1DComponentsType(KratosComponents<Array1DComponentsType>::Get(variable_name)));
     } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name)) {
-        mArray1DVariables.push_back(KratosComponents<Array1DComponentsType>::Get(variable_name+"_X"));
-        mArray1DVariables.push_back(KratosComponents<Array1DComponentsType>::Get(variable_name+"_Y"));
-        if (TDim == 3) mArray1DVariables.push_back(KratosComponents<Array1DComponentsType>::Get(variable_name+"_Z"));
+        mArray1DVariables.push_back(Array1DComponentsType(KratosComponents<Array1DComponentsType>::Get(variable_name+"_X")));
+        mArray1DVariables.push_back(Array1DComponentsType(KratosComponents<Array1DComponentsType>::Get(variable_name+"_Y")));
+        if (TDim == 3) mArray1DVariables.push_back(Array1DComponentsType(KratosComponents<Array1DComponentsType>::Get(variable_name+"_Z")));
     } else {
         KRATOS_ERROR << "Compatible variables are: double, array_1d<double, 3> or components of the former" << std::endl;
     }
