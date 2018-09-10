@@ -94,7 +94,7 @@ public:
         unsigned int NewRequiredEigenvalueNumber,
         typename TLinearSolverType::Pointer pLinearSolver,
         double ShiftingConvergence = 0.25
-    ): BaseType(NewMaxTolerance, NewMaxIterationsNumber),          
+    ): BaseType(NewMaxTolerance, NewMaxIterationsNumber),
        mRequiredEigenvalueNumber(NewRequiredEigenvalueNumber),
        mpLinearSolver(pLinearSolver),
        mShiftingConvergence(ShiftingConvergence)
@@ -156,7 +156,7 @@ public:
     ///@{
 
     static void Initialize(
-        DenseVectorType& R,
+        VectorType& R,
         SparseMatrixType& M
     )
     {
@@ -206,16 +206,14 @@ public:
         SparseMatrixType& M,
         DenseVectorType& Eigenvalues,
         DenseMatrixType& Eigenvectors
-    )
+    ) override
     {
-        using boost::numeric::ublas::trans;
-
         SizeType size = K.size1();
         SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         double tolerance = BaseType::GetTolerance();
 
-        VectorType x = ZeroVector(size);
-        VectorType y = ZeroVector(size);
+        VectorType x = boost::numeric::ublas::zero_vector<double>(size);
+        VectorType y = boost::numeric::ublas::zero_vector<double>(size);
 
         Initialize(y,M);
 
@@ -296,7 +294,7 @@ public:
                     shift_value = ro;
                 }
 
-                noalias(shifted_k) = K - shift_value*M;
+                boost::numeric::ublas::noalias(shifted_k) = K - shift_value*M;
 
                 // Copy myMatrix into skyline format
                 my_factorization.copyFromCSRMatrix(shifted_k);
@@ -322,7 +320,7 @@ public:
                 while((smaller_eigenvalue_numbers > 1) && (max_shift_value-min_shift_value > epsilon) && (iteration_number++ < max_shift_number))
                 {
                     shift_value = (max_shift_value + min_shift_value) / 2.00;
-                    noalias(shifted_k) = K - shift_value*M;
+					boost::numeric::ublas::noalias(shifted_k) = K - shift_value*M;
 
                     // Copy myMatrix into skyline format
                     my_factorization.copyFromCSRMatrix(shifted_k);
@@ -396,25 +394,6 @@ public:
         }
     }
 
-    /**
-     * This method returns directly the first eigen value obtained
-     * @param K: The stiffness matrix
-     * @param M: The mass matrix
-     * @return The first eigenvalue
-     */
-    double GetEigenValue(
-        SparseMatrixType& K,
-        SparseMatrixType& M
-        )
-    {
-        DenseVectorType eigen_values;
-        DenseMatrixType eigen_vectors;
-        
-        Solve(K, M, eigen_values, eigen_vectors);
-        
-        return eigen_values[0];
-    }
-    
     ///@}
     ///@name Access
     ///@{
@@ -430,7 +409,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Power iteration eigenvalue solver with " << BaseType::GetPreconditioner()->Info();
@@ -438,13 +417,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
     }
@@ -583,7 +562,7 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RAYLEIGH_QUOTIENT_ITERATION_EIGENVALUE_SOLVER_H_INCLUDED defined 
+#endif // KRATOS_RAYLEIGH_QUOTIENT_ITERATION_EIGENVALUE_SOLVER_H_INCLUDED defined
 
 
 

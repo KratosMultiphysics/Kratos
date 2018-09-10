@@ -411,15 +411,15 @@ namespace Kratos
 
         void CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix,
                                                     VectorType& rRightHandSideVector,
-                                                    ProcessInfo& rCurrentProcessInfo);
+                                                    const ProcessInfo& rCurrentProcessInfo);
 
         virtual void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo);
+                                          const ProcessInfo& rCurrentProcessInfo);
 
         void CalculateEndOfStepSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo);
 
         void VelocityEquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo);

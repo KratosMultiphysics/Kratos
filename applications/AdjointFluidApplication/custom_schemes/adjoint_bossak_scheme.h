@@ -166,6 +166,8 @@ public:
 
         mpResponseFunction->Initialize();
 
+        InitializeNodeNeighbourCount(rModelPart.Nodes());
+
         KRATOS_CATCH("");
     }
 
@@ -192,7 +194,7 @@ public:
             ModelPart::NodeIterator nodes_end;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
             for (auto it = nodes_begin; it != nodes_end; ++it)
-                it->GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) = 0.0;
+                it->SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
         }
 
 #pragma omp parallel
@@ -297,7 +299,7 @@ public:
 //                 // Calculate transposed gradient of response function on condition w.r.t. acceleration.
 //                 mpResponseFunction->CalculateSecondDerivativesGradient(
 //                     *it, mAdjointMassMatrix[k], mResponseGradient[k], r_current_process_info);
-                
+
 //                 if (mResponseGradient[k].size() == 0)
 //                     continue;
 
@@ -356,7 +358,7 @@ public:
                         TSparseSpace::GetValue(rDx, it->EquationId());
             }
 
-            // Assign contributions to adjoint second derivatives that don't 
+            // Assign contributions to adjoint second derivatives that don't
             // require assembly.
             #pragma omp parallel
             {
@@ -395,7 +397,7 @@ public:
             // reduce communication here.
             r_comm.SynchronizeNodalSolutionStepsData();
 
-            // Assign contributions to adjoint second derivatives that don't 
+            // Assign contributions to adjoint second derivatives that don't
             // require assembly.
             #pragma omp parallel
             {
@@ -451,7 +453,7 @@ public:
 
                 mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma * mInvDt *
                     (prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k]);
-                
+
                 // Assemble contributions to adjoint acceleration.
                 unsigned int local_index = 0;
                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
@@ -491,7 +493,7 @@ public:
 
 //                 mAdjointAcceleration[k] = (mGammaNewmark - 1.0) * mInvGamma * mInvDt *
 //                     (prod(mAdjointMassMatrix[k], mAdjointValues[k]) + mResponseGradient[k]);
-                
+
 //                 // Assemble contributions to adjoint acceleration.
 //                 unsigned int local_index = 0;
 //                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
@@ -530,10 +532,10 @@ public:
 
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_VELOCITY) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_VELOCITY << std::endl;
-        
+
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_PRESSURE) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_PRESSURE << std::endl;
-        
+
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ACCELERATION) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_ACCELERATION << std::endl;
 
@@ -745,6 +747,14 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void InitializeNodeNeighbourCount(ModelPart::NodesContainerType& rNodes)
+    {
+        // This must be done once outside of omp parallel region.
+        for (auto& r_node : rNodes)
+            r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) =
+                NUMBER_OF_NEIGHBOUR_ELEMENTS.Zero();
+    }
 
     ///@}
     ///@name Private  Access

@@ -1,6 +1,6 @@
 proc AppendGroupNames {String CondName} {
     upvar $String MyString
-    
+
     set Groups [GiD_Info conditions $CondName groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         append MyString \" [lindex [lindex $Groups $i] 1] \" ,
@@ -12,7 +12,7 @@ proc AppendGroupNames {String CondName} {
 proc AppendGroupNamesWithNum {String GroupNum CondName} {
     upvar $String MyString
     upvar $GroupNum MyGroupNum
-    
+
     set Groups [GiD_Info conditions $CondName groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
@@ -24,7 +24,7 @@ proc AppendGroupNamesWithNum {String GroupNum CondName} {
 
 proc AppendGroupVariables {String CondName VarName} {
     upvar $String MyString
-    
+
     set Groups [GiD_Info conditions $CondName groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         append MyString \" $VarName \" ,
@@ -36,7 +36,7 @@ proc AppendGroupVariables {String CondName VarName} {
 proc AppendOutputVariables {String GroupNum QuestionName VarName} {
     upvar $String MyString
     upvar $GroupNum MyGroupNum
-    
+
     if {[GiD_AccessValue get gendata $QuestionName] eq true} {
         incr MyGroupNum
         append MyString \" $VarName \" ,
@@ -53,11 +53,10 @@ proc WriteConstraintVectorProcess {FileVar GroupNum Groups EntityType VarName Ta
         set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] $EntityType]
         if {[llength $Entities] > 0} {
             incr MyGroupNum
-            puts $MyFileVar "        \"python_module\": \"apply_constraint_vector_table_process\","
+            puts $MyFileVar "        \"python_module\": \"apply_vector_constraint_table_process\","
             puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $MyFileVar "        \"process_name\":  \"ApplyConstraintVectorTableProcess\","
+            puts $MyFileVar "        \"process_name\":  \"ApplyVectorConstraintTableProcess\","
             puts $MyFileVar "        \"Parameters\":    \{"
-            puts $MyFileVar "            \"mesh_id\":         0,"
             puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "            \"variable_name\":   \"$VarName\","
             puts $MyFileVar "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 13]\],"
@@ -84,11 +83,10 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
         set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] $EntityType]
         if {[llength $Entities] > 0} {
             incr MyGroupNum
-            puts $MyFileVar "        \"python_module\": \"apply_pore_pressure_table_process\","
+            puts $MyFileVar "        \"python_module\": \"apply_scalar_constraint_table_process\","
             puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-            puts $MyFileVar "        \"process_name\":  \"ApplyPorePressureTableProcess\","
+            puts $MyFileVar "        \"process_name\":  \"ApplyScalarConstraintTableProcess\","
             puts $MyFileVar "        \"Parameters\":    \{"
-            puts $MyFileVar "            \"mesh_id\":              0,"
             puts $MyFileVar "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "            \"variable_name\":        \"$VarName\","
             puts $MyFileVar "            \"is_fixed\":             [lindex [lindex $Groups $i] 8],"
@@ -128,16 +126,15 @@ proc WriteLoadVectorProcess {FileVar GroupNum Groups VarName TableDict NumGroups
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
-        puts $MyFileVar "        \"python_module\": \"apply_load_vector_table_process\","
+        puts $MyFileVar "        \"python_module\": \"apply_vector_constraint_table_process\","
         puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-        puts $MyFileVar "        \"process_name\":  \"ApplyLoadVectorTableProcess\","
+        puts $MyFileVar "        \"process_name\":  \"ApplyVectorConstraintTableProcess\","
         puts $MyFileVar "        \"Parameters\":    \{"
-        puts $MyFileVar "            \"mesh_id\":         0,"
         puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
         puts $MyFileVar "            \"variable_name\":   \"$VarName\","
         puts $MyFileVar "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 7],[lindex [lindex $Groups $i] 11]\],"
         puts $MyFileVar "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 12]\],"
-        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+        if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
             puts $MyFileVar "            \"table\":           \[0,0,0\]"
         } else {
             puts $MyFileVar "            \"table\":           \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table2]\]"
@@ -163,12 +160,11 @@ proc WriteNormalLoadProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
         puts $MyFileVar "        \"process_name\":  \"ApplyNormalLoadTableProcess\","
         puts $MyFileVar "        \"Parameters\":    \{"
-        puts $MyFileVar "            \"mesh_id\":              0,"
         puts $MyFileVar "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
         puts $MyFileVar "            \"variable_name\":        \"$VarName\","
         puts $MyFileVar "            \"active\":               \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 11]\],"
         puts $MyFileVar "            \"value\":                \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 12]\],"
-        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+        if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
             puts $MyFileVar "            \"table\":                \[0,0\],"
         } else {
             puts $MyFileVar "            \"table\":                \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1]\],"
@@ -206,15 +202,14 @@ proc WriteLoadScalarProcess {FileVar GroupNum Groups VarName TableDict NumGroups
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
-        puts $MyFileVar "        \"python_module\": \"apply_load_scalar_table_process\","
+        puts $MyFileVar "        \"python_module\": \"apply_scalar_constraint_table_process\","
         puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
-        puts $MyFileVar "        \"process_name\":  \"ApplyLoadScalarTableProcess\","
+        puts $MyFileVar "        \"process_name\":  \"ApplyScalarConstraintTableProcess\","
         puts $MyFileVar "        \"Parameters\":    \{"
-        puts $MyFileVar "            \"mesh_id\":         0,"
         puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
         puts $MyFileVar "            \"variable_name\":   \"$VarName\","
         puts $MyFileVar "            \"value\":           [lindex [lindex $Groups $i] 3],"
-        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+        if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
             puts $MyFileVar "            \"table\":           0"
         } else {
             puts $MyFileVar "            \"table\":           [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0]"
@@ -241,10 +236,9 @@ proc WritePeriodicInterfaceProcess {FileVar GroupNum Groups NumGroups} {
             puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.PoromechanicsApplication\","
             puts $MyFileVar "        \"process_name\":  \"PeriodicInterfaceActivationProcess\","
             puts $MyFileVar "        \"Parameters\":    \{"
-            puts $MyFileVar "            \"mesh_id\":         0,"
             puts $MyFileVar "            \"model_part_name\": \"Periodic_Bars_[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "            \"dimension\":       [GiD_AccessValue get gendata Domain_Size],"
-            puts $MyFileVar "            \"von_mises_limit\": [lindex [lindex $Groups $i] 21]"
+            puts $MyFileVar "            \"stress_limit\": [lindex [lindex $Groups $i] 21]"
             puts $MyFileVar "        \}"
             if {$MyGroupNum < $NumGroups} {
                 puts $MyFileVar "    \},\{"

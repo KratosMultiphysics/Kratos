@@ -14,11 +14,11 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "hdf5_application.h"
 #include "hdf5_application_variables.h"
 #include "custom_python/add_custom_io_to_python.h"
@@ -30,24 +30,20 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace pybind11;
 
+PYBIND11_MODULE(KratosHDF5Application,m)
+{
+    class_<KratosHDF5Application,
+           KratosHDF5Application::Pointer,
+           KratosApplication >(m,"KratosHDF5Application")
+           .def(init<>())
+           ;
 
-
-  BOOST_PYTHON_MODULE(KratosHDF5Application)
-  {
-
-	  class_<KratosHDF5Application,
-			  KratosHDF5Application::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("KratosHDF5Application")
-			;
-
-	AddCustomIOToPython();
-	AddCustomProcessesToPython();
+	AddCustomIOToPython(m);
+	AddCustomProcessesToPython(m);
 
 	//registering variables in python
-
-
   }
 
 

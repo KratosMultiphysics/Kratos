@@ -11,7 +11,7 @@ class Pouliot2012GradientRecoverer(L2_projection_recoverer.L2ProjectionGradientR
         self.element_type = "ComputeGradientPouliot20123D"
         self.condition_type = "ComputeLaplacianSimplexCondition3D"
         self.FillUpModelPart(self.element_type, self.condition_type)
-        self.DOFs = (VELOCITY_Z_GRADIENT_X, VELOCITY_Z_GRADIENT_Y, VELOCITY_Z_GRADIENT_Z)
+        self.DOFs = (VELOCITY_COMPONENT_GRADIENT_X, VELOCITY_COMPONENT_GRADIENT_Y, VELOCITY_COMPONENT_GRADIENT_Z)
         self.AddDofs(self.DOFs)
         self.calculate_vorticity = self.pp.CFD_DEM["lift_force_type"].GetInt()
 
@@ -53,7 +53,7 @@ class Pouliot2012LaplacianRecoverer(L2_projection_recoverer.L2ProjectionDerivati
     def Solve(self):
         print("\nSolving for the fluid acceleration...")
         sys.stdout.flush()
-        self.SetToZero(VELOCITY_Z_GRADIENT)
+        self.SetToZero(VELOCITY_COMPONENT_GRADIENT)
         if self.do_pre_recovery:
             self.aux_recovery_strategy.Solve()
         self.recovery_strategy.Solve()

@@ -15,10 +15,10 @@ namespace Kratos
 {
 
 template < class TBaseElement >
-SphericSwimmingParticle<TBaseElement>& SphericSwimmingParticle<TBaseElement>::operator=(const SphericSwimmingParticle<TBaseElement>& rOther) {    
+SphericSwimmingParticle<TBaseElement>& SphericSwimmingParticle<TBaseElement>::operator=(const SphericSwimmingParticle<TBaseElement>& rOther) {
 
     TBaseElement::operator=(rOther);
-    
+
     mNeighbourNodes = rOther.mNeighbourNodes;
     mNeighbourNodesDistances = rOther.mNeighbourNodesDistances;
     mHasHydroMomentNodalVar = rOther.mHasHydroMomentNodalVar;
@@ -52,7 +52,7 @@ SphericSwimmingParticle<TBaseElement>& SphericSwimmingParticle<TBaseElement>::op
     mLastVirtualMassAddedMass = rOther.mLastVirtualMassAddedMass;
     mLastBassetForceAddedMass = rOther.mLastBassetForceAddedMass;
     noalias(mSlipVel) = rOther.mSlipVel;
-    noalias(mOldBassetTerm) = rOther.mOldBassetTerm;   
+    noalias(mOldBassetTerm) = rOther.mOldBassetTerm;
 
     return *this;
 }
@@ -480,7 +480,7 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative,
                                                                                   double& present_coefficient,
-                                                                                  vector<double>& historic_integrands,
+                                                                                  DenseVector<double>& historic_integrands,
                                                                                   const double last_h_over_h,
                                                                                   const int n_steps_per_quad_step)
 {
@@ -524,7 +524,7 @@ double SphericSwimmingParticle<TBaseElement>::Ki(const double alpha, const doubl
 //**************************************************************************************************************************************************
 
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double alpha, const double beta, const double phi, const double dt, const vector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand)
+void SphericSwimmingParticle<TBaseElement>::AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double alpha, const double beta, const double phi, const double dt, const DenseVector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand)
 {
     if (order == 1){
         const double beta_dt = beta * dt;
@@ -600,9 +600,9 @@ void SphericSwimmingParticle<TBaseElement>::AddFre(array_1d<double, 3>& old_Fi, 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContribution(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double quadrature_delta_time, const double last_h_over_h, vector<double>& historic_integrands)
+void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContribution(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double quadrature_delta_time, const double last_h_over_h, DenseVector<double>& historic_integrands)
 {
-    vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+    DenseVector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
     int m = hinsberg_tail_contributions.size() / 3 - 1; // number of exponentials: the last three slots hold the components of the oldest historic integrand
     const double t_win = SphericSwimmingParticle<TBaseElement>::mTimeWindow;
 
@@ -645,9 +645,9 @@ void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContribution(NodeType
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContributionStrict(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double quadrature_delta_time, const double last_h_over_h, vector<double>& historic_integrands)
+void SphericSwimmingParticle<TBaseElement>::AddHinsbergTailContributionStrict(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double quadrature_delta_time, const double last_h_over_h, DenseVector<double>& historic_integrands)
 {
-    vector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
+    DenseVector<double>& hinsberg_tail_contributions = node.GetValue(HINSBERG_TAIL_CONTRIBUTIONS);
     int m = hinsberg_tail_contributions.size() / 3 - 1; // number of exponentials: the last three slots hold the components of the oldest historic integrand
 
     if (m < 1){ // trivial, 0-exponentials case (there is no tail contribution)
@@ -723,7 +723,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(NodeType& node, a
         const double quadrature_delta_time = n_steps_per_quad_step * delta_time;
 
         if (r_current_process_info[TIME_STEPS] >= r_current_process_info[NUMBER_OF_INIT_BASSET_STEPS]){
-            vector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
+            DenseVector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);
             const double time = r_current_process_info[TIME];
             const double latest_quadrature_time_step = time + delta_time - r_current_process_info[LAST_TIME_APPENDING];
             array_1d<double, 3> fractional_derivative_of_slip_vel;
@@ -876,12 +876,13 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(NodeType& nod
 
     else if (mMagnusForceType == 3){ // Loth, 2008 (Re_p < 2000; nondimensional_slip_rot_vel < 20)
         // calculate as in Rubinow and Keller, 1963
-        lift_force = Globals::Pi * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
+        noalias(lift_force) = Globals::Pi * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
         // correct coefficient
         double reynolds;
         ComputeParticleReynoldsNumber(reynolds);
         const double nondimensional_slip_rot_vel = ComputeNondimensionalRotVelocity(slip_rot);
         const double coeff = 1 - (0.675 + 0.15 * (1 + std::tanh(0.28 * (nondimensional_slip_rot_vel - 2)))) * std::tanh(0.18 * std::sqrt(reynolds));
+
         noalias(lift_force) = coeff * lift_force;
     }
 
@@ -982,7 +983,13 @@ void SphericSwimmingParticle<TBaseElement>::ComputePowerLawParticleReynoldsNumbe
 template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity)
 {
-    return 2.0 * mRadius * mNormOfSlipVel / std::sqrt(SWIMMING_INNER_PRODUCT_3(slip_rot_velocity, slip_rot_velocity));
+    if (mNormOfSlipVel > 0){
+        return 2.0 * mRadius * SWIMMING_MODULUS_3(slip_rot_velocity) / mNormOfSlipVel;
+    }
+
+    else {
+        return 0.0;
+    }
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -1703,19 +1710,21 @@ template <typename T> std::vector<double> SphericSwimmingParticle<T>::mTs;
 template <typename T> std::vector<double> SphericSwimmingParticle<T>::mAlphas;
 template <typename T> std::vector<double> SphericSwimmingParticle<T>::mBetas;
 template <typename T> double SphericSwimmingParticle<T>::mTimeWindow;
+template <typename T> bool SphericSwimmingParticle<T>::mDaitcheVectorsAreFull;
 
 // Instantiation
-#define INSTANTIATE_SPHERIC_SWIMMING(_T)                          \
-template std::vector<double> SphericSwimmingParticle<_T>::mAjs;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mBns;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mCns;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mDns;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mEns;   \
-template std::vector<double> SphericSwimmingParticle<_T>::mAs;    \
-template std::vector<double> SphericSwimmingParticle<_T>::mTs;    \
-template std::vector<double> SphericSwimmingParticle<_T>::mAlphas;\
-template std::vector<double> SphericSwimmingParticle<_T>::mBetas; \
-template double SphericSwimmingParticle<_T>::mTimeWindow;
+#define INSTANTIATE_SPHERIC_SWIMMING(_T)                            \
+template std::vector<double> SphericSwimmingParticle<_T>::mAjs;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mBns;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mCns;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mDns;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mEns;     \
+template std::vector<double> SphericSwimmingParticle<_T>::mAs;      \
+template std::vector<double> SphericSwimmingParticle<_T>::mTs;      \
+template std::vector<double> SphericSwimmingParticle<_T>::mAlphas;  \
+template std::vector<double> SphericSwimmingParticle<_T>::mBetas;   \
+template double SphericSwimmingParticle<_T>::mTimeWindow;           \
+template bool SphericSwimmingParticle<_T>::mDaitcheVectorsAreFull;
 
 INSTANTIATE_SPHERIC_SWIMMING(SphericParticle)
 INSTANTIATE_SPHERIC_SWIMMING(NanoParticle)

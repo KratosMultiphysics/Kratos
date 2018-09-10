@@ -5,7 +5,7 @@
     "solver_settings" :{
 	"Parameters": {
 	    "time_integration_settings":{
-		"time_integration": "Simo"
+		"integration_method": "Simo"
 	    }
 	}
     },
@@ -16,8 +16,8 @@
         "Parameters"      : {
             "output_variables" : ["DISPLACEMENT_Y"],
             "output_file_name" : "dynamic_tests/solid_elements/dynamic_simo_TL3D_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto2",
-            "time_frequency"   : 0.5
+            "model_part_name"  : "Parts_Parts_Auto1",
+            "time_frequency"   : 0.01
         }
     }
     ],
@@ -28,8 +28,8 @@
         "Parameters"      : {
             "check_variables" : ["DISPLACEMENT_Y"],
             "input_file_name" : "dynamic_tests/solid_elements/dynamic_simo_TL3D_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto2",
-            "time_frequency"   : 0.5
+            "model_part_name"  : "Parts_Parts_Auto1",
+            "time_frequency"   : 0.01
         }
     }
     ]

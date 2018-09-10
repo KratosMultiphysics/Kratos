@@ -49,9 +49,9 @@ namespace Kratos
   protected:
 
     constexpr static std::size_t VarSize = 3;
-    
+
   public:
-    
+
     typedef InternalVariables<VarSize>   InternalVariablesType;
     typedef PlasticModelData<VarSize>          PlasticDataType;
 
@@ -72,10 +72,10 @@ namespace Kratos
     CamClayHardeningRule& operator=(CamClayHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningRule::Pointer Clone() const override;
+    HardeningRule::Pointer Clone() const override;
 
     /// Destructor.
-    ~CamClayHardeningRule();
+    ~CamClayHardeningRule() override;
 
     ///@}
     ///@name Operators
@@ -115,7 +115,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "CamClayHardeningRule" ;
@@ -123,16 +123,16 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "CamClayHardeningRule";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "CamClayHardeningRule Data";
-    }    
+    }
 
 
     ///@}
@@ -188,6 +188,9 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
+    using HardeningRule::CalculateHardening;
+    using HardeningRule::CalculateDeltaHardening;
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -198,12 +201,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }
@@ -239,6 +242,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED  defined 
+#endif // KRATOS_CAM_CLAY_HARDENING_RULE_H_INCLUDED  defined
 
 

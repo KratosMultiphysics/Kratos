@@ -46,7 +46,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SmallStrainUmatModel : public ConstitutiveModel
+   class KRATOS_API(UMAT_APPLICATION) SmallStrainUmatModel : public ConstitutiveModel
    {
       protected:
 
@@ -320,7 +320,7 @@ namespace Kratos
          {
 
             VectorType StrainVector;
-            StrainVector = ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
+            ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
 
             rpStrain = new double[6];
             rpIncrementalStrain = new double[6];
@@ -353,7 +353,7 @@ namespace Kratos
          virtual void UpdateVariables( UmatDataType & rVariables, double* & rpStressVector, double* & rpStateVariables, double Pressure = 0.0)
          {
             VectorType StrainVector;
-            StrainVector = ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
+            ConstitutiveModelUtilities::StrainTensorToVector( rVariables.TotalStrainMatrix, StrainVector);
             mStrainVectorFinalized = StrainVector;
 
 

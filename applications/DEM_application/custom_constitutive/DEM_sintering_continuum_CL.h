@@ -12,7 +12,7 @@
 
 namespace Kratos {
 
-	class DEM_sintering_continuum : public DEM_KDEM {
+	class KRATOS_API(DEM_APPLICATION) DEM_sintering_continuum : public DEM_KDEM {
 	public:
 
 		KRATOS_CLASS_POINTER_DEFINITION(DEM_sintering_continuum);
@@ -28,13 +28,13 @@ namespace Kratos {
 		}
 
 		DEMContinuumConstitutiveLaw::Pointer Clone() const override;
-                
-                void GetContactArea(const double radius, 
-                                    const double other_radius, 
-                                    const Vector& vector_of_initial_areas, 
-                                    const int neighbour_position, 
+
+                void GetContactArea(const double radius,
+                                    const double other_radius,
+                                    const Vector& vector_of_initial_areas,
+                                    const int neighbour_position,
                                     double& calculation_area) override;
-                
+
                 void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                              double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
@@ -87,7 +87,7 @@ namespace Kratos {
                                     int time_steps,
                                     bool& sliding,
                                     int search_control,
-                                    vector<int>& search_control_vector,
+                                    DenseVector<int>& search_control_vector,
                                     double &equiv_visco_damp_coeff_normal,
                                     double &equiv_visco_damp_coeff_tangential,
                                     double LocalRelVel[3],
@@ -104,7 +104,7 @@ namespace Kratos {
 		void InitializeContact(SphericContinuumParticle* const element1, SphericContinuumParticle* const element2, double& indentation,
 		     double& minimal_radius, double& kn, double sintering_displ);
 
-                
+
                 void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
                                                     double equiv_young,
@@ -114,9 +114,9 @@ namespace Kratos {
                                                     double ElasticLocalRotationalMoment[3],
                                                     double ViscoLocalRotationalMoment[3],
                                                     double equiv_poisson,
-                                                    double indentation) override;		
+                                                    double indentation) override;
 
-		
+
 
 	private:
 

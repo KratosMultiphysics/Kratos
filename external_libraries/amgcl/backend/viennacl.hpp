@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ THE SOFTWARE.
  * \brief  ViennaCL backend.
  */
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 #include <viennacl/vector.hpp>
 #include <viennacl/compressed_matrix.hpp>
@@ -98,7 +98,7 @@ struct viennacl {
     typedef ::viennacl::vector<value_type>             matrix_diagonal;
     typedef DirectSolver                               direct_solver;
 
-    struct provides_row_iterator : boost::false_type {};
+    struct provides_row_iterator : std::false_type {};
 
     /// Backend parameters.
     typedef amgcl::detail::empty_params params;
@@ -106,30 +106,30 @@ struct viennacl {
     static std::string name() { return "viennacl"; }
 
     /// Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
+    static std::shared_ptr<matrix>
     copy_matrix(
-            boost::shared_ptr< typename builtin<value_type>::matrix > A,
+            std::shared_ptr< typename builtin<value_type>::matrix > A,
             const params&
             )
     {
-        boost::shared_ptr<matrix> m = boost::make_shared<matrix>();
+        auto m = std::make_shared<matrix>();
         ::viennacl::copy(viennacl_matrix_adapter(*A), *m);
         return m;
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(typename builtin<value_type>::vector const &x, const params&)
     {
-        boost::shared_ptr<vector> v = boost::make_shared<vector>(x.size());
+        auto v = std::make_shared<vector>(x.size());
         ::viennacl::fast_copy(x.data(), x.data() + x.size(), v->begin());
         return v;
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(
-            boost::shared_ptr< typename builtin<value_type>::vector > x,
+            std::shared_ptr< typename builtin<value_type>::vector > x,
             const params &prm
             )
     {
@@ -137,17 +137,17 @@ struct viennacl {
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
     /// Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr< typename builtin<value_type>::matrix > A, const params &prm)
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr< typename builtin<value_type>::matrix > A, const params &prm)
     {
-        return boost::make_shared<direct_solver>(A, prm);
+        return std::make_shared<direct_solver>(A, prm);
     }
 
     private:
@@ -264,24 +264,24 @@ struct viennacl {
 };
 
 template <class T>
-struct is_viennacl_matrix : boost::false_type {};
+struct is_viennacl_matrix : std::false_type {};
 
 template <class V>
-struct is_viennacl_matrix< ::viennacl::compressed_matrix<V> > : boost::true_type
+struct is_viennacl_matrix< ::viennacl::compressed_matrix<V> > : std::true_type
 {};
 
 template <class V>
-struct is_viennacl_matrix< ::viennacl::hyb_matrix<V> > : boost::true_type
+struct is_viennacl_matrix< ::viennacl::hyb_matrix<V> > : std::true_type
 {};
 
 template <class V>
-struct is_viennacl_matrix< ::viennacl::ell_matrix<V> > : boost::true_type
+struct is_viennacl_matrix< ::viennacl::ell_matrix<V> > : std::true_type
 {};
 
 template <class M>
 struct value_type<
     M,
-    typename boost::enable_if< typename is_viennacl_matrix<M>::type >::type
+    typename std::enable_if< is_viennacl_matrix<M>::value >::type
     >
 {
     typedef typename M::value_type::value_type type;
@@ -296,7 +296,7 @@ struct value_type< ::viennacl::vector<V> >
 template <class M>
 struct rows_impl<
     M,
-    typename boost::enable_if< typename is_viennacl_matrix<M>::type >::type
+    typename std::enable_if< is_viennacl_matrix<M>::value >::type
     >
 {
     static size_t get(const M &A) {
@@ -307,7 +307,7 @@ struct rows_impl<
 template <class M>
 struct cols_impl<
     M,
-    typename boost::enable_if< typename is_viennacl_matrix<M>::type >::type
+    typename std::enable_if< is_viennacl_matrix<M>::value >::type
     >
 {
     static size_t get(const M &A) {
@@ -339,7 +339,7 @@ struct nonzeros_impl< ::viennacl::hyb_matrix<V> > {
 template <class Alpha, class Mtx, class Beta, class Vec>
 struct spmv_impl<
     Alpha, Mtx, Vec, Beta, Vec,
-    typename boost::enable_if< typename is_viennacl_matrix<Mtx>::type >::type
+    typename std::enable_if< is_viennacl_matrix<Mtx>::value >::type
     >
 {
     static void apply(Alpha alpha, const Mtx &A, const Vec &x, Beta beta, Vec &y)
@@ -354,7 +354,7 @@ struct spmv_impl<
 template <class Mtx, class Vec>
 struct residual_impl<
     Mtx, Vec, Vec, Vec,
-    typename boost::enable_if< typename is_viennacl_matrix<Mtx>::type >::type
+    typename std::enable_if< is_viennacl_matrix<Mtx>::value >::type
     >
 {
     typedef typename value_type<Mtx>::type V;

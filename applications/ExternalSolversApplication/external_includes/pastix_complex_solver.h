@@ -111,7 +111,7 @@ public:
 
 		if (m_perm.size() != static_cast<unsigned int>(m_nrows))
 			m_perm.resize(m_nrows);
-			
+
 		if (m_invp.size() != static_cast<unsigned int>(m_nrows))
 			m_invp.resize(m_nrows);
 
@@ -159,7 +159,7 @@ public:
 			1, m_iparm, m_dparm);
     }
 
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
 		if (mp_pastix_data == NULL)
 			KRATOS_ERROR << "pastix_data == NULL upon entering Solve." << std::endl;
@@ -176,8 +176,15 @@ public:
 			static_cast<pastix_int_t*>(&m_invp[0]),
 			static_cast<std::complex<double>*>(&rX[0]),
 			1, m_iparm, m_dparm);
+    }
 
-		return true;
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+		InitializeSolutionStep(rA, rX, rB);
+        PerformSolutionStep(rA, rX, rB);
+        FinalizeSolutionStep(rA, rX, rB);
+
+        return true;
     }
 
 	void FinalizeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
@@ -223,7 +230,7 @@ public:
 private:
 	///@name Member Variables
     ///@{
-    
+
 	pastix_data_t* mp_pastix_data;
 	pastix_int_t m_nrows;
 	std::vector<pastix_int_t> m_rowptr;

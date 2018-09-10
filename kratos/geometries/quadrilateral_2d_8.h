@@ -30,11 +30,22 @@
 namespace Kratos
 {
 /**
- * A four node quadrilateral geometry. While the shape functions are only define in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Quadrilateral2D8
+ * @ingroup KratosCore
+ * @brief A eight node 2D quadrilateral geometry with quadratic shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *      3-----6-----2 
+ *      |           |  
+ *      |           |          
+ *      7           5         
+ *      |           |    
+ *      |           |  
+ *      0-----4-----1 
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Quadrilateral2D8
     : public Geometry<TPointType>
 {
@@ -603,14 +614,14 @@ public:
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
         //setting up size of jacobian matrix
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2 , false);
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        vector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 8 );
+        DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 8 );
         ShapeFunctionsValuesInIntegrationPoint =
             row( CalculateShapeFunctionsIntegrationPointsValues(
                      ThisMethod ), IntegrationPointIndex );
@@ -651,7 +662,7 @@ public:
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         //setting up size of jacobian matrix
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2 , false);
         //derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients(
@@ -842,7 +853,7 @@ public:
         }
 
         // Setting up result matrix
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2 , false);
 
         // Filling matrix
         rResult( 0, 0 ) = ( tempMatrix( 1, 1 ) ) / ( det_j );
@@ -887,7 +898,7 @@ public:
         }
 
         //setting up result matrix
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2 , false);
 
         //filling matrix
         rResult( 0, 0 ) = ( tempMatrix( 1, 1 ) ) / ( det_j );
@@ -1082,7 +1093,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 4, 2 );
+            rResult[pnt].resize( 4, 2, false );
 
             for ( unsigned int i = 0; i < 4; i++ )
             {
@@ -1197,7 +1208,7 @@ public:
         ) const override
     {
         // Setting up result matrix
-        rResult.resize( 8, 2 );
+        rResult.resize( 8, 2 , false);
         noalias( rResult ) = ZeroMatrix( 8, 2 );
 
         // Primary nodes
@@ -1236,7 +1247,7 @@ public:
      */
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
-        rResult.resize( 8, 2 );
+        rResult.resize( 8, 2 , false);
         noalias( rResult ) = ZeroMatrix( 8, 2 );
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
@@ -1267,7 +1278,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 8, 2 );
+        rResult.resize( 8, 2 , false);
         noalias( rResult ) = ZeroMatrix( 8, 2 );
 
         const CoordinatesArrayType& Coords = rPoint.Coordinates();
@@ -1295,7 +1306,7 @@ public:
 
         for ( unsigned  int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult[i].resize( 2, 2 );
+            rResult[i].resize( 2, 2 , false);
             noalias( rResult[i] ) = ZeroMatrix( 2, 2 );
         }
 
@@ -1375,7 +1386,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1383,8 +1394,8 @@ public:
         {
             for ( int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 2, 2 );
-                noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
+                rResult[i][j].resize( 2, 2 , false);
+                noalias( rResult[i][j] ) = ZeroMatrix( 2, 2);
             }
         }
 
@@ -1523,41 +1534,41 @@ private:
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             // Primary nodes
-            row( shape_function_values, pnt )( 0 ) =
+            row( shape_function_values, pnt )[0] =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() )
                   * ( 1.0 + integration_points[pnt].X()
                       + integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 1 ) =
+            row( shape_function_values, pnt )[1] =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0
                           - integration_points[pnt].X()
                           + integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 2 ) =
+            row( shape_function_values, pnt )[2] =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0
                           - integration_points[pnt].X()
                           - integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 3 ) =
+            row( shape_function_values, pnt )[3] =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0
                         + integration_points[pnt].Y() ) * ( 1.0 ) * ( 1.0
                         + integration_points[pnt].X()
                         - integration_points[pnt].Y() ) ) / 4.0;
             
             // Secondary nodes
-            row( shape_function_values, pnt )( 4 ) =
+            row( shape_function_values, pnt )[4] =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) ) / 2.0;
-            row( shape_function_values, pnt )( 5 ) =
+            row( shape_function_values, pnt )[5] =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y()
                      * integration_points[pnt].Y() ) ) / 2.0 ;
-            row( shape_function_values, pnt )( 6 ) =
+            row( shape_function_values, pnt )[6] =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() )
                  * ( 1.0 + integration_points[pnt].Y() ) ) / 2.0 ;
-            row( shape_function_values, pnt )( 7 ) =
+            row( shape_function_values, pnt )[7] =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y()
                      * integration_points[pnt].Y() ) ) / 2.0 ;

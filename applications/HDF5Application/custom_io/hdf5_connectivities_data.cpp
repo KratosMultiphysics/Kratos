@@ -3,6 +3,7 @@
 #include "includes/kratos_components.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
@@ -250,9 +251,9 @@ void ConnectivitiesData::SetData(const std::string& rName, ConditionsContainerTy
 void ConnectivitiesData::Clear()
 {
     mName = "";
-    mIds.clear();
-    mPropertiesIds.clear();
-    mConnectivities.clear();
+    mIds.resize(0);
+    mPropertiesIds.resize(0);
+    mConnectivities.resize(0,0);
 }
 } // namespace Internals.
 } // namespace HDF5.

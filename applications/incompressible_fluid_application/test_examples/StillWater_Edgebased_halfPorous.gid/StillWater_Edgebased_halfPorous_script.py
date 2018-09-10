@@ -135,8 +135,6 @@ fluid_solver.assume_constant_pressure = edgebased_levelset_var.assume_constant_p
 fluid_solver.compute_porous_resistance_law = int(
     edgebased_levelset_var.compute_porous_resistance_law)
 # print "compute_porous_resistance_law   ", fluid_solver.compute_porous_resistance_law
-# using MKLPardisosolver ----> it has to be compiled in kratos!!
-# fluid_solver.pressure_linear_solver = MKLPardisoSolver()
 
 fluid_solver.dynamic_tau = 1.0
 

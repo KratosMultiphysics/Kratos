@@ -5,7 +5,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // Project includes
 #include "includes/define.h"
@@ -26,34 +26,34 @@
 namespace Kratos
 {
     class Element;
-    class Cluster3D : public RigidBodyElement3D {
-        
+    class KRATOS_API(DEM_APPLICATION) Cluster3D : public RigidBodyElement3D {
+
     public:
         /// Pointer definition of Cluster3D
         KRATOS_CLASS_POINTER_DEFINITION(Cluster3D);
-       
+
         Cluster3D();
         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry);
         Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes);
         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;      
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
         /// Destructor
         virtual ~Cluster3D();
-      
+
         using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info) override;
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
         virtual void GetClustersForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromSpheres();
         unsigned int GetNumberOfSpheres() { return mListOfSphericParticles.size(); };
-        std::vector<SphericParticle*>  GetSpheres() { return mListOfSphericParticles; }; 
+        std::vector<SphericParticle*>  GetSpheres() { return mListOfSphericParticles; };
         virtual void SetContinuumGroupToBreakableClusterSpheres(const int Id);
         virtual void SetInitialConditionsToSpheres(const array_1d<double,3>& velocity);
         virtual void SetInitialNeighbours(const double search_increment);
         virtual void CreateContinuumConstitutiveLaws();
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
-        
+
         virtual double SlowGetDensity();
         virtual int SlowGetParticleMaterial();
 
@@ -63,32 +63,32 @@ namespace Kratos
 	    buffer << "Discrete Element #" << Id();
 	    return buffer.str();
         }
-      
+
         /// Print information about this object.
         virtual void PrintInfo(std::ostream& rOStream) const override
         {
 	    rOStream << "Discrete Element #" << Id();
         }
-      
+
         /// Print object's data.
         virtual void PrintData(std::ostream& rOStream) const override
         {
 	    //mpGeometry->PrintData(rOStream);
         }
- 
+
     protected:
-       
+
         std::vector<double>               mListOfRadii;
         std::vector<SphericParticle*>     mListOfSphericParticles;
-      
+
     private:
-       
+
         friend class Serializer;
         virtual void save(Serializer& rSerializer) const override { KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RigidBodyElement3D); }
         virtual void load(Serializer& rSerializer) override { KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RigidBodyElement3D); }
 
     }; // Class Cluster3D
-   
+
     /// input stream function
     inline std::istream& operator >> (std::istream& rIStream, Cluster3D& rThis);
 
@@ -100,7 +100,7 @@ namespace Kratos
         rThis.PrintData(rOStream);
         return rOStream;
     }
- 
+
 }  // namespace Kratos
 
 #endif // KRATOS_CLUSTER3D_INCLUDED  defined

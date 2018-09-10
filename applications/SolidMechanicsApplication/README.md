@@ -28,16 +28,18 @@ Auxiliar external libraries can be added for the solvers: (recommended)
 when frequency analysis is needed, this module has to be activated:
 
 ``` cmake
--DINCLUDE_FEAST=ON 
+-DINCLUDE_FEAST=ON
 ```
 
 ## Theory
 
-Classical FE method theory for small and large displacements. 
+Classical FE method theory for small and large displacements.
 
 [original wiki web page](http://kratos-wiki.cimne.upc.edu/index.php/Solid_Mechanics_Application)
 
 ## Solid Elements
+
+![Open cylinder pullout animation](tests/tests_data/dynamic_3d_beam.gif)
 
 ### Displacement based formulations:
 
@@ -47,7 +49,7 @@ Bbar element for second order elements and infinitessimal theory.
 
 ### Mixed elements:
 
-U-P formulation for linear triangles and linear tetrahedra. Monolitich aproach with Bochev stabilization.
+U-P formulation for linear triangles and linear tetrahedra. Monolitich approach with Bochev stabilization.
 
 ## Structural Elements:
 
@@ -55,9 +57,13 @@ U-P formulation for linear triangles and linear tetrahedra. Monolitich aproach w
 
 Co-rotational thick and thin 3D shells theory. Large displacements and large rotations.
 
+![Open cylinder pullout animation](tests/tests_data/shell_roll_up.gif)
+
 ### Beams
 
 Geometrically exact theory for 3D beams. Large displacements and large rotations.
+
+![Open cylinder pullout animation](tests/tests_data/beam_roll_down.gif)
 
 ### Material Laws
 

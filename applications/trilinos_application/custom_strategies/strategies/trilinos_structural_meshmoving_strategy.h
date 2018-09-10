@@ -20,14 +20,13 @@
 
 /* Project includes */
 #include "includes/model_part.h"
-#include "includes/ale_variables.h"
+#include "includes/mesh_moving_variables.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
 namespace Kratos
@@ -91,6 +90,7 @@ public:
                                          int TimeOrder = 2,
                                          bool ReformDofSetAtEachStep = false,
                                          bool ComputeReactions = false,
+                                         bool CalculateMeshVelocities = true,
                                          int EchoLevel = 0)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
     {
@@ -99,6 +99,7 @@ public:
         // Passed variables
         m_reform_dof_set_at_each_step = ReformDofSetAtEachStep;
         m_compute_reactions = ComputeReactions;
+        m_calculate_mesh_velocities = CalculateMeshVelocities;
         m_echo_level = EchoLevel;
         m_time_order = TimeOrder;
         bool calculate_norm_dx_flag = false;
@@ -111,7 +112,7 @@ public:
         GenerateMeshPart();
 
         typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
-            new TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
+            new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
 
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
         BuilderSolverTypePointer builderSolver = BuilderSolverTypePointer(
@@ -163,7 +164,9 @@ public:
         mstrategy->Solve();
 
         // Update FEM database
-        CalculateMeshVelocities();
+        if (m_calculate_mesh_velocities == true)
+            CalculateMeshVelocities();
+
         MoveMesh();
 
         // Clearing the system if needed
@@ -299,7 +302,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    ModelPart::Pointer mpmesh_model_part;
+    Kratos::unique_ptr<ModelPart> mpmesh_model_part;
 
     typename BaseType::Pointer mstrategy;
 
@@ -307,6 +310,7 @@ private:
     int m_time_order;
     bool m_reform_dof_set_at_each_step;
     bool m_compute_reactions;
+    bool m_calculate_mesh_velocities;
 
     /*@} */
     /**@name Private Operators*/
@@ -319,7 +323,8 @@ private:
     void GenerateMeshPart()
     {
         // Initialize auxiliary model part storing the mesh elements
-        mpmesh_model_part = ModelPart::Pointer(new ModelPart("MeshPart", 1));
+        auto tmp = Kratos::make_unique<ModelPart>("MeshPart", 1);
+        mpmesh_model_part.swap(tmp);
 
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();

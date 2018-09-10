@@ -104,14 +104,14 @@ public:
 
     struct ConditionDataStruct
     {
-        // double charVel;                // Problem characteristic velocity (used in the outlet inflow prevention)
-        // double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
+        double charVel;                // Problem characteristic velocity (used in the outlet inflow prevention)
+        double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
 
         // Data required in the RHS and LHS calculation
         double wGauss;                              // Gauss point weight
         array_1d<double, 3> Normal;                 // Condition normal
         array_1d<double, TNumNodes> N;              // Gauss point shape functions values
-        bounded_matrix<double, TNumNodes, TDim> v;  // Current step velocity
+        BoundedMatrix<double, TNumNodes, TDim> v;  // Current step velocity
 
         // Data containers for no-split faces
         MatrixType N_container;
@@ -141,7 +141,7 @@ public:
 
     /// Default constructor.
     /** Admits an Id as a parameter.
-     @param NewId Index for the new         
+     @param NewId Index for the new
      */
     EmbeddedAusasNavierStokesWallCondition(IndexType NewId = 0) : Condition(NewId) {}
 
@@ -229,7 +229,7 @@ public:
 
     /**
      * If the condition is split, finds the condition parent element.
-     * Note that this needs to be done at each time step for that cases 
+     * Note that this needs to be done at each time step for that cases
      * in where the distance function varies.
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override {
@@ -262,11 +262,11 @@ public:
             }
 
             // Check that the condition has candidate parent elements
-            KRATOS_ERROR_IF(element_candidates.size() == 0) << 
-                "Condition " << this->Id() << " has no candidate parent elements.\n" << 
+            KRATOS_ERROR_IF(element_candidates.size() == 0) <<
+                "Condition " << this->Id() << " has no candidate parent elements.\n" <<
                 "Check that the FindNodalNeighboursProcess has been executed.";
 
-            // Get a sort array with the current condition nodal ids 
+            // Get a sort array with the current condition nodal ids
             std::vector<unsigned int> node_ids(TNumNodes), element_nodes_ids;
 
             for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -286,7 +286,7 @@ public:
                 }
                 std::sort(element_nodes_ids.begin(), element_nodes_ids.end());
 
-                // Check if the current condition ids are included in the iterated candidate element nodal ids 
+                // Check if the current condition ids are included in the iterated candidate element nodal ids
                 if (std::includes(element_nodes_ids.begin(), element_nodes_ids.end(), node_ids.begin(), node_ids.end())) {
                     // Save a pointer to the parent element
                     mpParentElement = element_candidates(i_candidate);
@@ -343,16 +343,16 @@ public:
 
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_gauss;
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_gauss;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_gauss;
 
         // LHS and RHS contributions initialization
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Store the outlet inflow prevention constants in the data structure
-        // data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        // const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Loop on gauss points
         if (data.n_pos != 0 && data.n_neg != 0){
@@ -360,7 +360,7 @@ public:
             // Positive side Gauss pts. loop
             const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
             for (unsigned int i_gauss = 0; i_gauss < n_gauss_pos; ++i_gauss) {
-                
+
                 Vector aux_N = row(data.N_pos_face, i_gauss);
                 for (unsigned int i = 0; i < TNumNodes; ++i) {
                     data.N(i) = aux_N(mParentElementIds[i]);
@@ -379,7 +379,7 @@ public:
             // Negative side Gauss pts. loop
             const unsigned int n_gauss_neg = (data.w_gauss_neg_face).size();
             for (unsigned int i_gauss = 0; i_gauss < n_gauss_neg; ++i_gauss) {
-                
+
                 Vector aux_N = row(data.N_neg_face, i_gauss);
                 for (unsigned int i = 0; i < TNumNodes; ++i) {
                     data.N(i) = aux_N(mParentElementIds[i]);
@@ -435,7 +435,7 @@ public:
         this->FillConditionData(data);
 
         // Allocate memory needed
-        bounded_matrix<double, MatrixSize, MatrixSize> lhs_gauss;
+        BoundedMatrix<double, MatrixSize, MatrixSize> lhs_gauss;
 
         // LHS contributions initialization
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
@@ -521,9 +521,9 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Store the outlet inflow prevention constants in the data structure
-        // data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        // const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Loop on gauss points
         if (data.n_pos != 0 && data.n_neg != 0){
@@ -558,7 +558,7 @@ public:
                 data.Normal /= norm_2(data.Normal); // Normalize the area normal
 
                 ComputeGaussPointRHSContribution(rhs_gauss, data);
-                
+
                 noalias(rRightHandSideVector) += rhs_gauss;
             }
         } else {
@@ -713,11 +713,11 @@ protected:
         return mParentElementIds;
     }
 
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
-    
+
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
-    // void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
+    void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& rData);
 
     // Auxiliar function to fill the element data structure
     void FillConditionData(ConditionDataStruct &rData)
@@ -761,8 +761,8 @@ protected:
             }
             std::sort(cond_ids.begin(), cond_ids.end());
 
-            matrix<unsigned int> elem_face_loc_ids;
-            vector<unsigned int> elem_nodes_in_face;
+            DenseMatrix<unsigned int> elem_face_loc_ids;
+            DenseVector<unsigned int> elem_nodes_in_face;
             p_parent_geometry->NodesInFaces(elem_face_loc_ids);
             p_parent_geometry->NumberNodesInFaces(elem_nodes_in_face);
             const unsigned int n_elem_faces = elem_face_loc_ids.size2();
@@ -779,7 +779,7 @@ protected:
                 for (unsigned int i_node = 0; i_node < n_face_nodes; ++i_node) {
                     face_loc_ids[i_node] = elem_face_loc_ids(i_node + 1, i_face);
                 }
-                
+
                 // Get the element face global nodal ids
                 std::vector<unsigned int> face_glob_ids(n_face_nodes);
                 for (unsigned int i_node = 0; i_node < n_face_nodes; ++i_node) {
@@ -795,7 +795,7 @@ protected:
                 }
             }
 
-            KRATOS_ERROR_IF(face_id == n_elem_faces + 1) << 
+            KRATOS_ERROR_IF(face_id == n_elem_faces + 1) <<
                 "No parent element face found for condition " << this->Id() << " and parent element " << p_parent_element->Id();
 
             // Call the positive and negative sides modified shape functions face utilities
@@ -822,7 +822,7 @@ protected:
                 rData.neg_face_area_normals,
                 face_id,
                 GeometryData::GI_GAUSS_2);
-            
+
         } else {
             // If the condition is not split, take the geometry shape function values
             GeometryType::IntegrationPointsArrayType integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
@@ -882,7 +882,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ElementWeakPointerType mpParentElement;
     std::vector<unsigned int> mParentElementIds;
 

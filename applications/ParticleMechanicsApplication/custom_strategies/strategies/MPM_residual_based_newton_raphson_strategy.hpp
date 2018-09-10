@@ -24,6 +24,7 @@
 #include "includes/kratos_flags.h"
 
 //default builder and solver
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
 namespace Kratos
@@ -58,28 +59,12 @@ namespace Kratos
 
 /**   Detail class definition.
 
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 
  */
 template<class TSparseSpace,
-         class TDenseSpace, // = DenseSpace<double>,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+         class TDenseSpace, 
+         class TLinearSolver 
          >
 class MPMResidualBasedNewtonRaphsonStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -169,7 +154,8 @@ public:
         //setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
                              (
-                                 new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
+                                //new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
+                                new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
                              );
 
         //set flags to start correcty the calculations
@@ -217,7 +203,6 @@ public:
         //set flags to default values
         SetMaxIterationNumber(MaxIterations);
         mCalculateReactionsFlag = CalculateReactions;
-
 
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
@@ -330,7 +315,6 @@ public:
         return mMaxIterationNumber;
     }
 
-
     void SetFinalizeSolutionStepFlag(bool FinalizeSolutionStepFlag = true)
     {
         mFinalizeSolutionStep = FinalizeSolutionStepFlag;
@@ -348,7 +332,7 @@ public:
     // 3 -> Print of debug informations:
     //		Echo of stiffness matrix, Dx, b...
 
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -362,7 +346,7 @@ public:
     operation to predict the solution ... if it is not called a trivial predictor is used in which the
     values of the solution step of interest are assumed equal to the old values
      */
-    void Predict()
+    void Predict() override
     {
         KRATOS_TRY
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
@@ -397,7 +381,7 @@ public:
     //**********************************************************************
 
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -405,36 +389,31 @@ public:
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
-        //int solstep = pCurrentProcessInfo.GetCurrentSolutionStep();
-        //DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
-
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
         {
-            std::cout<<"in Initialize of solver"<<std::endl;
+            KRATOS_INFO("MPM_Strategy") << "Initializing solving strategy" << std::endl;
             if(mInitializeWasPerformed == true)
-                KRATOS_THROW_ERROR( std::logic_error, " Initialize was already performed ", mInitializeWasPerformed );
-
+                KRATOS_THROW_ERROR( std::logic_error, " Initialization was already performed ", mInitializeWasPerformed );
 
             //pointers needed in the solution
-            //typename TSchemeType::Pointer pScheme = GetScheme();
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
-            std::cout<<"initialize the scheme"<<std::endl;
+            KRATOS_INFO("MPM_Strategy") << "Initializing scheme" << std::endl;
             //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
             if (pScheme->SchemeIsInitialized() == false)
                 pScheme->Initialize(BaseType::GetModelPart());
-            std::cout<<"initialize the the elements"<<std::endl;
+            KRATOS_INFO("MPM_Strategy") << "Initializing elements" << std::endl;
             //Initialize The Elements - OPERATIONS TO BE DONE ONCE
             if (pScheme->ElementsAreInitialized() == false)
                 pScheme->InitializeElements(BaseType::GetModelPart());
-            std::cout<<"initialize the conditions"<<std::endl;
+            KRATOS_INFO("MPM_Strategy") << "Initializing conditions" << std::endl;
             //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
             if (pScheme->ConditionsAreInitialized() == false)
                 pScheme->InitializeConditions(BaseType::GetModelPart());
-            std::cout<<"initialize the convergence criteria"<<std::endl;
+            KRATOS_INFO("MPM_Strategy") << "Initializing convergence criteria"<<std::endl;
             //initialisation of the convergence criteria
-            if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+            if (mpConvergenceCriteria->IsInitialized() == false)
                 mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
 
 
@@ -447,17 +426,16 @@ public:
         {
             //setting up the list of the DOFs to be solved
             pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
-            //std::cout<<"set the dofs"<<std::endl;
+
             //shaping correctly the system
             pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
-            //std::cout<<"set up the system"<<std::endl;
+
         }
 
         //prints informations about the current time
         if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
-            std::cout << " " << std::endl;
-            std::cout << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
+            KRATOS_INFO("MPM_Strategy") << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
         }
 
 
@@ -470,7 +448,7 @@ public:
     the problem of interest is solved
      */
     //**********************************************************************
-    virtual bool SolveSolutionStep()
+    bool SolveSolutionStep() override
     {
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
@@ -482,7 +460,7 @@ public:
         unsigned int iteration_number = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         //std::cout<<"initializing the parameters of the Newton-Raphson cicle"<<std::endl;
-        //			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
+        //BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
         bool is_converged = false;
         //bool ResidualIsUpdated = false;
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
@@ -509,16 +487,16 @@ public:
             TSparseSpace::SetToZero(mb);
 
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-            std::cout<<"BuildRHSAndSolve"<<std::endl;
+            KRATOS_INFO("MPM_Strategy") << "BuildRHSAndSolve"<<std::endl;
         }
 
 
         if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {
-            // 				std::cout << "After first system solution" << std::endl;
-            std::cout << "SystemMatrix = " << mA << std::endl;
-            std::cout << "solution obtained = " << mDx << std::endl;
-            std::cout << "RHS  = " << mb << std::endl;
+            //std::cout << "After first system solution" << std::endl;
+            KRATOS_INFO("MPM_Strategy") << "SystemMatrix = " << mA << std::endl;
+            KRATOS_INFO("MPM_Strategy") << "solution obtained = " << mDx << std::endl;
+            KRATOS_INFO("MPM_Strategy") << "RHS  = " << mb << std::endl;
         }
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {
@@ -604,7 +582,7 @@ public:
             }
             else
             {
-                std::cout << "ATTENTION: no free DOFs!! " << std::endl;
+                KRATOS_INFO("MPM_Strategy") << "ATTENTION: no free DOFs!! " << std::endl;
             }
 
 
@@ -644,12 +622,6 @@ public:
                 MaxIterationsExceeded();
         }
 
-
-
-
-
-
-
         return true;
     }
     //*********************************************************************************
@@ -657,7 +629,7 @@ public:
     the problem of interest is solved
      */
     //**********************************************************************
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY
 
@@ -689,8 +661,8 @@ public:
         //prints informations about the current time
         if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
-            std::cout << " " << std::endl;
-            std::cout << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
+            KRATOS_INFO("MPM_Strategy") << " " << std::endl;
+            KRATOS_INFO("MPM_Strategy") << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
         }
 
         //updates the database with a prediction of the solution
@@ -716,7 +688,7 @@ public:
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
         //std::cout<<"InitializeNonLinIteration"<<std::endl;
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        std::cout<<"PreCriteria"<<std::endl;
+        KRATOS_INFO("MPM_Strategy") << "PreCriteria" <<std::endl;
         //function to perform the building and the solving phase.
         //std::cout<<"mRebuildLevel"<<BaseType::mRebuildLevel<<std::endl;
         //std::cout<<"mStiffnessMatrixIsBuilt"<<BaseType::mStiffnessMatrixIsBuilt<<std::endl;
@@ -736,16 +708,16 @@ public:
             TSparseSpace::SetToZero(mb);
 
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
-            std::cout<<"BuildRHSAndSolve"<<std::endl;
+            KRATOS_INFO("MPM_Strategy") << "BuildRHSAndSolve"<<std::endl;
         }
 
 
         if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {
             // 				std::cout << "After first system solution" << std::endl;
-            std::cout << "SystemMatrix = " << mA << std::endl;
-            std::cout << "solution obtained = " << mDx << std::endl;
-            std::cout << "RHS  = " << mb << std::endl;
+            KRATOS_INFO("MPM_Strategy") << "SystemMatrix = " << mA << std::endl;
+            KRATOS_INFO("MPM_Strategy") << "solution obtained = " << mDx << std::endl;
+            KRATOS_INFO("MPM_Strategy") << "RHS  = " << mb << std::endl;
         }
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {
@@ -831,9 +803,8 @@ public:
             }
             else
             {
-                std::cout << "ATTENTION: no free DOFs!! " << std::endl;
+                KRATOS_INFO("MPM_Strategy") << "ATTENTION: no free DOFs!! " << std::endl;
             }
-
 
             //Updating the results stored in the database
             rDofSet = pBuilderAndSolver->GetDofSet();
@@ -845,24 +816,18 @@ public:
             //move the mesh if needed
             if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
-            //ResidualIsUpdated = false;
-
             if (is_converged == true)
             {
 
                 if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
                 {
                     TSparseSpace::SetToZero(mb);
-
                     pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
-                    //ResidualIsUpdated = true;
-                    //std::cout << "mb is calculated" << std::endl;
                 }
 
                 is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
             }
         }
-
 
         //plots a warning if the maximum number of iterations is exceeded
         if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
@@ -877,12 +842,6 @@ public:
         // The following part will be commented because it is time consuming
         // and there is no obvious reason to be here. If someone need this
         // part please notify the community via mailing list before uncommenting it.
-        //if (ResidualIsUpdated == false)
-        //{
-        //    TSparseSpace::SetToZero(mb);
-
-        //    pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
-        //}
 
         //calculate reactions if required
         if (mCalculateReactionsFlag == true)
@@ -931,7 +890,7 @@ public:
      */
     //**********************************************************************
 
-    bool IsConverged()
+    bool IsConverged() override
     {
         KRATOS_TRY
 
@@ -939,8 +898,7 @@ public:
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
-
-        if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
+        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
         {
             GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), mb);
         }
@@ -960,7 +918,7 @@ public:
 
     This operations should be called only when needed, before printing as it can involve a non negligible cost
      */
-    void CalculateOutputData()
+    void CalculateOutputData() override
     {
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -973,18 +931,14 @@ public:
     //**********************************************************************
     //**********************************************************************
 
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY
 
         if (this->GetEchoLevel() > 1) //if it is needed to print info
             //std::cout << "Newton Raphson strategy Clear function used" << std::endl;
 
-
-
-
-
-            SparseSpaceType::Clear(mpA);
+        SparseSpaceType::Clear(mpA);
         TSystemMatrixType& mA = *mpA;
         SparseSpaceType::Resize(mA, 0, 0);
 
@@ -1150,7 +1104,7 @@ protected:
     //**********************************************************************
     //**********************************************************************
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -1163,7 +1117,7 @@ protected:
             //std::cout<<"in InitializeSolution Step of strategy"<<std::endl;
             //std::cout<<"ResizeAndInitializeVectors"<<std::endl;
             //setting up the Vectors involved to the correct size
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
 
             TSystemMatrixType& mA = *mpA;
             TSystemVectorType& mDx = *mpDx;
@@ -1187,7 +1141,7 @@ protected:
 
     //**********************************************************************
     //**********************************************************************
-    void FinalizeSolutionStep()
+    void FinalizeSolutionStep() override
     {
         KRATOS_TRY
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
@@ -1245,7 +1199,7 @@ protected:
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    int Check()
+    int Check() override
     {
         KRATOS_TRY
 

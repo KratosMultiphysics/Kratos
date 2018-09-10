@@ -41,7 +41,6 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
                 "value" : 1.0,
@@ -57,7 +56,6 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mmesh_id = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
         mis_fixed = rParameters["is_fixed"].GetBool();
         minitial_value = rParameters["value"].GetDouble();
@@ -72,29 +70,29 @@ public:
     ///------------------------------------------------------------------------------------
     
     /// Destructor
-    virtual ~ApplyComponentTableProcess() {}
+    ~ApplyComponentTableProcess() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Execute method is used to execute the ApplyComponentTableProcess algorithms.
-    void Execute()
+    void Execute() override
     {
     }
     
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
         
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
@@ -114,7 +112,7 @@ public:
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
         
@@ -124,11 +122,11 @@ public:
         const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
         double value = mpTable->GetValue(Time);
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
@@ -143,19 +141,19 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "ApplyComponentTableProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ApplyComponentTableProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -166,7 +164,6 @@ protected:
     /// Member Variables
 
     ModelPart& mr_model_part;
-    std::size_t mmesh_id;
     std::string mvariable_name;
     bool mis_fixed;
     double minitial_value;

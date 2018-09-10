@@ -1,4 +1,4 @@
-#ifdef KRATOS_DEBUG
+#if defined(KRATOS_DEBUG) && ! defined(EXCLUDE_EMBEDDED_PYTHON_DEBUG)
   #include <Python.h>
 #else
   #ifdef _DEBUG

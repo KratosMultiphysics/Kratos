@@ -18,7 +18,6 @@
 /* #include <omp.h> */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "boost/timer.hpp"
 
 
@@ -567,6 +566,22 @@ public:
         if (BaseType::mDofSet.size()==0)
             KRATOS_ERROR << "No degrees of freedom!";
 
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        {
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        }
+    }
+    #endif
+
         BaseType::mDofSetIsInitialized = true;
 
         KRATOS_CATCH("")
@@ -734,9 +749,7 @@ public:
       TSystemMatrixPointerType& pA,
       TSystemVectorPointerType& pDx,
       TSystemVectorPointerType& pb,
-      ElementsArrayType& rElements,
-      ConditionsArrayType& rConditions,
-      ProcessInfo& CurrentProcessInfo
+      ModelPart& rModelPart
     ) override
     {
         KRATOS_TRY
@@ -753,6 +766,8 @@ public:
             if(temp_size <1000) temp_size = 1000;
             int* temp = new int[temp_size]; //
 
+            auto& rElements = rModelPart.Elements();
+            auto& rConditions = rModelPart.Conditions();
 
             //generate map - use the "temp" array here
             for(unsigned int i=0; i!=number_of_local_dofs; i++)
@@ -761,8 +776,10 @@ public:
 
             //create and fill the graph of the matrix --> the temp array is reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mguess_row_size);
-            //int ierr;
+
             Element::EquationIdVectorType EquationId;
+            ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {
@@ -945,13 +962,10 @@ public:
         {
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
-            if (dof_iterator->IsFixed())
-            {
-                const int i = (dof_iterator)->EquationId();
-                // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
-                const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
-                (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
-            }
+            const int i = (dof_iterator)->EquationId();
+            // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
+            const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
+            (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
         }
     }
 
@@ -1214,16 +1228,6 @@ public:
         ModelPart& r_model_part,
         TSystemVectorType& b) override
     {}
-
-    /**
-    this function is intended to be called at the end of the solution step to clean up memory
-    storage not needed
-    */
-    void Clear() override
-    {
-        this->mDofSet = DofsArrayType();
-        //this->mReactionsVector = TSystemVectorType();
-    }
 
 
     /*@} */

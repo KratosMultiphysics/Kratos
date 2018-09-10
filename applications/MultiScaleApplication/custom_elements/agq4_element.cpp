@@ -44,15 +44,15 @@
 namespace Kratos
 {
 
-    AGQ4Element::AGQ4Element(IndexType NewId, 
+    AGQ4Element::AGQ4Element(IndexType NewId,
                                    GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
 		mThisIntegrationMethod = AGQ4_DEF_INTEGRATION_METHOD;
-		
+
 		mErrorCode   = 0.0;
 		mInitialized = false;
-		
+
 		m_Q           = ZeroVector(AGQ4_NQ);
 		m_Q_converged = ZeroVector(AGQ4_NQ);
 		m_U           = ZeroVector(AGQ4_NU);
@@ -61,24 +61,24 @@ namespace Kratos
 		m_KQQ_inv     = ZeroMatrix(AGQ4_NQ, AGQ4_NQ);
 		m_KQU         = ZeroMatrix(AGQ4_NQ, AGQ4_NU);
 		m_KUQ         = ZeroMatrix(AGQ4_NU, AGQ4_NQ);
-		
+
 #ifdef AGQ4_DRILLING_DOF
 		mG0                    = 0.0;
-		m_first_step_finalized = false;  
+		m_first_step_finalized = false;
 #endif // AGQ4_DRILLING_DOF
 
     }
-    
-    AGQ4Element::AGQ4Element(IndexType NewId, 
-                                   GeometryType::Pointer pGeometry, 
+
+    AGQ4Element::AGQ4Element(IndexType NewId,
+                                   GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
 		mThisIntegrationMethod = AGQ4_DEF_INTEGRATION_METHOD;
-		
+
 		mErrorCode   = 0.0;
 		mInitialized = false;
-		
+
 		m_Q           = ZeroVector(AGQ4_NQ);
 		m_Q_converged = ZeroVector(AGQ4_NQ);
 		m_U           = ZeroVector(AGQ4_NU);
@@ -87,10 +87,10 @@ namespace Kratos
 		m_KQQ_inv     = ZeroMatrix(AGQ4_NQ, AGQ4_NQ);
 		m_KQU         = ZeroMatrix(AGQ4_NQ, AGQ4_NU);
 		m_KUQ         = ZeroMatrix(AGQ4_NU, AGQ4_NQ);
-		
+
 #ifdef AGQ4_DRILLING_DOF
 		mG0                    = 0.0;
-		m_first_step_finalized = false;  
+		m_first_step_finalized = false;
 #endif // AGQ4_DRILLING_DOF
     }
 
@@ -107,7 +107,7 @@ namespace Kratos
     void AGQ4Element::Initialize()
     {
 		KRATOS_TRY
-		
+
 		// NOTE:
 		// This is the standard (previous) implementation:
 		// If we are here, it means that no one already set up the constitutive law vector
@@ -115,7 +115,7 @@ namespace Kratos
 
 		const GeometryType & geom = GetGeometry();
 		const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints( mThisIntegrationMethod );
-		
+
 		// initialization for internal dofs members ===================================================
 		if(!mInitialized)
 		{
@@ -131,15 +131,15 @@ namespace Kratos
 				m_U(ii + 1) = initialDispl(1);
 				m_U(ii + 2) = initialRot(2);
 				m_U_converged(ii    ) = initialDispl(0);
-				m_U_converged(ii + 1) = initialDispl(1); 
-				m_U_converged(ii + 2) = initialRot(2); 
+				m_U_converged(ii + 1) = initialDispl(1);
+				m_U_converged(ii + 2) = initialRot(2);
 #else
 				unsigned int ii = i * 2;
 				const array_1d<double, 3>& initialDispl = geom[i].FastGetSolutionStepValue(DISPLACEMENT);
 				m_U(ii    ) = initialDispl(0);
 				m_U(ii + 1) = initialDispl(1);
 				m_U_converged(ii    ) = initialDispl(0);
-				m_U_converged(ii + 1) = initialDispl(1); 
+				m_U_converged(ii + 1) = initialDispl(1);
 #endif // AGQ4_DRILLING_DOF
 			}
 			mInitialized = true;
@@ -150,7 +150,7 @@ namespace Kratos
 		mG0 = 0.0;
 		m_first_step_finalized = false;
 #endif
-		
+
 		//Constitutive Law initialization ===============================================================
 		if ( mConstitutiveLawVector.size() != integration_points.size() )
 		{
@@ -196,7 +196,7 @@ namespace Kratos
 			KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
 		}
 
-		KRATOS_CATCH( "" ) 
+		KRATOS_CATCH( "" )
     }
 
     void AGQ4Element::ResetConstitutiveLaw()
@@ -237,7 +237,7 @@ namespace Kratos
 			int index = i * 2;
 			NodeType & iNode = geom[i];
 			rResult[index]     = iNode.GetDof(DISPLACEMENT_X).EquationId();
-			rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId(); 
+			rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId();
 #endif // AGQ4_DRILLING_DOF
         }
     }
@@ -265,7 +265,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& geom = GetGeometry(); 
+        GeometryType& geom = GetGeometry();
 
         // verify that the variables are correctly initialized
         if(DISPLACEMENT.Key() == 0)
@@ -334,26 +334,26 @@ namespace Kratos
         for (int i = 0; i < geom.PointsNumber(); i++)
         {
             const NodeType & iNode = geom[i];
-           
+
 #ifdef AGQ4_DRILLING_DOF
 			int index = i*3;
 			const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
 			const array_1d<double,3>& roto = iNode.FastGetSolutionStepValue(ROTATION, Step);
 			values[index]     = disp[0];
-			values[index + 1] = disp[1]; 
-			values[index + 2] = roto[2]; 
+			values[index + 1] = disp[1];
+			values[index + 2] = roto[2];
 #else
 			int index = i*2;
 			const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
 			values[index]     = disp[0];
-			values[index + 1] = disp[1]; 
+			values[index + 1] = disp[1];
 #endif // AGQ4_DRILLING_DOF
         }
     }
 
     void AGQ4Element::GetFirstDerivativesVector(Vector& values, int Step)
     {
-        if(values.size() != AGQ4_NU)   
+        if(values.size() != AGQ4_NU)
             values.resize(AGQ4_NU,false);
 
         const GeometryType & geom = GetGeometry();
@@ -366,7 +366,7 @@ namespace Kratos
 #ifdef AGQ4_DRILLING_DOF
 			int index = i * 3;
 			values[index]        = vel[0];
-			values[index + 1]    = vel[1]; 
+			values[index + 1]    = vel[1];
 			values[index + 2]    = 0.0;
 #else
 			int index = i * 2;
@@ -379,7 +379,7 @@ namespace Kratos
 
     void AGQ4Element::GetSecondDerivativesVector(Vector& values, int Step)
     {
-        if(values.size() != AGQ4_NU)   
+        if(values.size() != AGQ4_NU)
             values.resize(AGQ4_NU,false);
 
         const GeometryType & geom = GetGeometry();
@@ -392,8 +392,8 @@ namespace Kratos
 #ifdef AGQ4_DRILLING_DOF
 			int index = i * 3;
 			values[index]        = acc[0];
-			values[index + 1]    = acc[1]; 
-			values[index + 2]    = 0.0; 
+			values[index + 1]    = acc[1];
+			values[index + 2]    = 0.0;
 #else
 			int index = i * 2;
             values[index]        = acc[0];
@@ -440,13 +440,13 @@ namespace Kratos
 		const PropertiesType& props = GetProperties();
         const GeometryType& geom = GetGeometry();
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-		
+
         for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
             mConstitutiveLawVector[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
 
         m_U_converged = m_U;
 		m_Q_converged = m_Q;
-		
+
 #ifdef AGQ4_DRILLING_DOF
 		if(!m_first_step_finalized)
 			m_first_step_finalized = true;
@@ -479,7 +479,7 @@ namespace Kratos
 			mean_rt += i_rt*dV;
 			mean_rc += i_rc*dV;
 		}
-		
+
 		double tau = 0.25;
 		mean_rt /= total_volume;
 		mean_rc /= total_volume;
@@ -512,7 +512,7 @@ namespace Kratos
 #ifdef AGQ4_DRILLING_DOF
 			size_t index = i * 3;
 			rMassMatrix(index, index)            = lumped_mass;
-			rMassMatrix(index + 1, index + 1)    = lumped_mass; 
+			rMassMatrix(index + 1, index + 1)    = lumped_mass;
 			rMassMatrix(index + 2, index + 2)    = 0.0;
 #else
 			size_t index = i * 2;
@@ -535,7 +535,7 @@ namespace Kratos
                                                      VectorType& rRightHandSideVector,
                                                      ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true); 
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
     }
 
     void AGQ4Element::CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -550,9 +550,9 @@ namespace Kratos
     // Class AGQ4Element - Results on Gauss Points
     //
     // =====================================================================================
-    
-	void AGQ4Element::SetValueOnIntegrationPoints(const Variable<double>& rVariable, 
-													   std::vector<double>& rValues, 
+
+	void AGQ4Element::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+													   std::vector<double>& rValues,
 													   const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rValues.size() == mConstitutiveLawVector.size())
@@ -560,8 +560,8 @@ namespace Kratos
 				mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
 	}
 
-    void AGQ4Element::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, 
-													   std::vector<Vector>& rValues, 
+    void AGQ4Element::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+													   std::vector<Vector>& rValues,
 													   const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rValues.size() == mConstitutiveLawVector.size())
@@ -569,8 +569,8 @@ namespace Kratos
 				mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
 	}
 
-    void AGQ4Element::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, 
-													   std::vector<Matrix>& rValues, 
+    void AGQ4Element::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+													   std::vector<Matrix>& rValues,
 													   const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rValues.size() == mConstitutiveLawVector.size())
@@ -599,7 +599,7 @@ namespace Kratos
 		unsigned int numgp = mConstitutiveLawVector.size();
         if(rValues.size() != numgp)
             rValues.resize(numgp);
-		
+
 		std::fill(rValues.begin(), rValues.end(), 0.0);
 
 		if(mErrorCode != 0.0)
@@ -641,30 +641,30 @@ namespace Kratos
 		   rVariable == PK2_STRESS_TENSOR ||
 		   rVariable == CAUCHY_STRESS_TENSOR)
 		{
-			
+
 
 
 			// =============================================================
 			// Get some references.
 			PropertiesType & props = GetProperties();
 			GeometryType & geom = GetGeometry();
-		
+
 			const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(mThisIntegrationMethod);
 			unsigned int ngauss = integration_points.size();
-		
+
 			const GeometryType::ShapeFunctionsGradientsType& local_gradients = geom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 			const Matrix & shapeFunctions = geom.ShapeFunctionsValues(mThisIntegrationMethod);
 			Vector iN(shapeFunctions.size2());
 			// =============================================================
-		
-		
+
+
 			// =============================================================
 			// Get the current displacements in global coordinate system
 			Vector U(AGQ4_NU);
 			GetValuesVector(U, 0);
 			// =============================================================
-		
-		
+
+
 			// =============================================================
 			// Initialize parameters for the material calculation
 			Matrix D(3, 3, 0.0);         // material tangent matrix.
@@ -683,8 +683,8 @@ namespace Kratos
 			parameters.SetDeterminantF(detF);
 			parameters.SetDeformationGradientF(F);
 			// =============================================================
-		
-		
+
+
 			// =============================================================
 			// extract the x and y coordinates
 			// and compute bi = yj-yk, and ci = xk-xj
@@ -695,14 +695,14 @@ namespace Kratos
 				Y(i) = geom[i].Y0();
 			}
 			for(unsigned int i=0; i<4; i++) {
-				unsigned int j = i+1; if(j>3) j=0; 
+				unsigned int j = i+1; if(j>3) j=0;
 				unsigned int k = j+1; if(k>3) k=0;
 				b(i) = Y(j)-Y(k);
 				c(i) = X(k)-X(j);
 			}
 			// =============================================================
-		
-		
+
+
 			// =============================================================
 			// areas of sub-triangles
 			double A1, A2, A3, A;
@@ -713,18 +713,18 @@ namespace Kratos
 			// characteristic parameters of a quadrilateral
 			// Eq 4
 			array_1d<double, 4> g;
-			g(0) = A1/A; g(1) = A2/A; g(2)=1.0-g(0); g(3) = 1.0-g(1); 
+			g(0) = A1/A; g(1) = A2/A; g(2)=1.0-g(0); g(3) = 1.0-g(1);
 			// =============================================================
-		
-		
+
+
 			// =============================================================
 			// iso-parametric coordinates of the nodes
 			array_1d<double,4> KSAI, EITA;
 			KSAI(0)=-1.0; KSAI(1)=1.0; KSAI(2)=1.0; KSAI(3)=-1.0;
 			EITA(0)=-1.0; EITA(1)=-1.0; EITA(2)=1.0; EITA(3)=1.0;
 			// =============================================================
-		
-		
+
+
 			// =============================================================
 			// set to zero vectors and matrices for the static condensation
 			// before proceding with gauss integration
@@ -733,11 +733,11 @@ namespace Kratos
 			m_KQQ_inv.clear();
 			m_Q_residual.clear();
 			// =============================================================
-		
-		
+
+
 			// =============================================================
 			// perform the gauss integration loop
-		
+
 			array_1d<double,4> L; // area coordinates
 			Matrix BU(3, AGQ4_NU); // B matrix for external dofs
 			Matrix BQ(3, AGQ4_NQ); // B matrix for internal dofs
@@ -776,7 +776,7 @@ namespace Kratos
 				// strain matrix for internal dofs
 				for(unsigned int i=0; i<2; i++)
 				{ // begin: LOOP 5
-					unsigned int j = i+1; if(j>3) j=0; 
+					unsigned int j = i+1; if(j>3) j=0;
 					unsigned int k = j+1; if(k>3) k=0;
 					NQX(i)=(b(i)*L(k)+b(k)*L(i))/A/2.0;
 					NQY(i)=(c(i)*L(k)+c(k)*L(i))/A/2.0;
@@ -803,23 +803,23 @@ namespace Kratos
 				double gpy = ip.Y();
 				double gpw = ip.Weight();
 				noalias( iN ) = row( shapeFunctions, igauss );
-			
+
 				// area coordinates of the gauss point (Eq 7)
 				L(0) = 0.25*(1.0-gpx)*(g(1)*(1.0-gpy)+g(2)*(1.0+gpy));
 				L(1) = 0.25*(1.0-gpy)*(g(3)*(1.0-gpx)+g(2)*(1.0+gpx));
 				L(2) = 0.25*(1.0+gpx)*(g(0)*(1.0-gpy)+g(3)*(1.0+gpy));
 				L(3) = 0.25*(1.0+gpy)*(g(0)*(1.0-gpx)+g(1)*(1.0+gpx));
-			
+
 				// strain matrix for external dofs
-				for(unsigned int i=0; i<4; i++) 
+				for(unsigned int i=0; i<4; i++)
 				{ // begin: LOOP 3
-					unsigned int j = i+1; if(j>3) j=0; 
+					unsigned int j = i+1; if(j>3) j=0;
 					unsigned int k = j+1; if(k>3) k=0;
 					double SX(0.0);
 					double SY(0.0);
 					for(unsigned int ii=0; ii<4; ii++)
 					{ // begin: LOOP 4
-						unsigned int jj = ii+1; if(jj>3) jj=0; 
+						unsigned int jj = ii+1; if(jj>3) jj=0;
 						unsigned int kk = jj+1; if(kk>3) kk=0;
 						unsigned int mm = kk+1; if(mm>3) mm=0;
 						// begin: select formulation
@@ -855,11 +855,11 @@ namespace Kratos
 					NUXY(i,0)=NUX(i);
 					NUXY(i,1)=NUY(i);
 				} // end: LOOP 3
-			
+
 				// strain matrix for internal dofs
 				for(unsigned int i=0; i<2; i++)
 				{ // begin: LOOP 5
-					unsigned int j = i+1; if(j>3) j=0; 
+					unsigned int j = i+1; if(j>3) j=0;
 					unsigned int k = j+1; if(k>3) k=0;
 					NQX(i)=(b(i)*L(k)+b(k)*L(i))/A/2.0;
 					NQY(i)=(c(i)*L(k)+c(k)*L(i))/A/2.0;
@@ -872,7 +872,7 @@ namespace Kratos
 #ifdef AGQ4_INCOPATIBLE_MODES_CORRECTION_MTX
 				BQ -= BQ_mean;
 #endif // AGQ4_INCOPATIBLE_MODES_CORRECTION_MTX
-			
+
 				// compute strain vector (compatible + enhanced)
 				noalias(E)  = prod(BU, U);
 #ifndef AGQ4_SUPPRESS_ENHANCEMENT
@@ -900,8 +900,8 @@ namespace Kratos
 				parameters.SetShapeFunctionsValues( iN );
 				parameters.SetShapeFunctionsDerivatives( NUXY );
 				mat->CalculateMaterialResponseCauchy( parameters );
-			
-				
+
+
 			} // and for : igauss
 			// =============================================================
 
@@ -924,7 +924,7 @@ namespace Kratos
 		for(unsigned int i=0; i<rValues.size(); i++)
 			rValues[i] = mConstitutiveLawVector[i];
 	}
-    
+
 
     // =====================================================================================
     //
@@ -974,7 +974,7 @@ namespace Kratos
 		if((rLeftHandSideMatrix.size1() != AGQ4_NU) || (rLeftHandSideMatrix.size2() != AGQ4_NU))
 			rLeftHandSideMatrix.resize(AGQ4_NU, AGQ4_NU, false);
 		noalias(rLeftHandSideMatrix) = ZeroMatrix(AGQ4_NU, AGQ4_NU);
-		
+
 		// Resize the Right Hand Side if necessary,
 		// and initialize it to Zero
 		if(rRightHandSideVector.size() != AGQ4_NU)
@@ -983,25 +983,25 @@ namespace Kratos
 
 		// set no error
 		mErrorCode = 0.0;
-		
-		
+
+
 		// =============================================================
 		// Get some references.
 		PropertiesType & props = GetProperties();
 		GeometryType & geom = GetGeometry();
-		
+
 		const GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints(mThisIntegrationMethod);
 		unsigned int ngauss = integration_points.size();
-		
+
 		const GeometryType::ShapeFunctionsGradientsType& local_gradients = geom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
         const Matrix & shapeFunctions = geom.ShapeFunctionsValues(mThisIntegrationMethod);
 		Vector iN(shapeFunctions.size2());
-		
+
 		// thickness
 		double th = props[THICKNESS];
 		// =============================================================
-		
-		
+
+
 		// =============================================================
 		// Get the current displacements in global coordinate system
 		Vector U(AGQ4_NU);
@@ -1011,8 +1011,8 @@ namespace Kratos
 		GeometryType::JacobiansType all_jacobians;
 		all_jacobians = geom.Jacobian(all_jacobians, mThisIntegrationMethod, delta_position);
 		// =============================================================
-		
-		
+
+
 		// =============================================================
 		// Initialize parameters for the material calculation
 		Matrix D(3, 3, 0.0);         // material tangent matrix.
@@ -1031,8 +1031,8 @@ namespace Kratos
 		parameters.SetDeterminantF(detF);
 		parameters.SetDeformationGradientF(F);
 		// =============================================================
-		
-		
+
+
 		// =============================================================
 		// extract the x and y coordinates
 		// and compute bi = yj-yk, and ci = xk-xj
@@ -1043,14 +1043,14 @@ namespace Kratos
 			Y(i) = geom[i].Y0();
 		}
 		for(unsigned int i=0; i<4; i++) {
-			unsigned int j = i+1; if(j>3) j=0; 
+			unsigned int j = i+1; if(j>3) j=0;
 			unsigned int k = j+1; if(k>3) k=0;
 			b(i) = Y(j)-Y(k);
 			c(i) = X(k)-X(j);
 		}
 		// =============================================================
-		
-		
+
+
 		// =============================================================
 		// areas of sub-triangles
 		double A1, A2, A3, A;
@@ -1061,18 +1061,18 @@ namespace Kratos
 		// characteristic parameters of a quadrilateral
 		// Eq 4
 		array_1d<double, 4> g;
-		g(0) = A1/A; g(1) = A2/A; g(2)=1.0-g(0); g(3) = 1.0-g(1); 
+		g(0) = A1/A; g(1) = A2/A; g(2)=1.0-g(0); g(3) = 1.0-g(1);
 		// =============================================================
-		
-		
+
+
 		// =============================================================
 		// iso-parametric coordinates of the nodes
 		array_1d<double,4> KSAI, EITA;
 		KSAI(0)=-1.0; KSAI(1)=1.0; KSAI(2)=1.0; KSAI(3)=-1.0;
 		EITA(0)=-1.0; EITA(1)=-1.0; EITA(2)=1.0; EITA(3)=1.0;
 		// =============================================================
-		
-		
+
+
 		// =============================================================
 		// set to zero vectors and matrices for the static condensation
 		// before proceding with gauss integration
@@ -1081,11 +1081,11 @@ namespace Kratos
 		m_KQQ_inv.clear();
 		m_Q_residual.clear();
 		// =============================================================
-		
-		
+
+
 		// =============================================================
 		// perform the gauss integration loop
-		
+
 		array_1d<double,4> L; // area coordinates
 		Matrix BU(3, AGQ4_NU); // B matrix for external dofs
 		Matrix BQ(3, AGQ4_NQ); // B matrix for internal dofs
@@ -1096,7 +1096,7 @@ namespace Kratos
 		Matrix BUT_D(AGQ4_NU, 3);
 		Matrix BQT_D(AGQ4_NQ, 3);
 		Matrix D_BQ(3, AGQ4_NQ);
-		
+
 #ifdef AGQ4_INCOPATIBLE_MODES_CORRECTION_MTX
 		Matrix BQ_mean(3, AGQ4_NQ, 0.0);
 		double total_volume = 0.0;
@@ -1121,7 +1121,7 @@ namespace Kratos
 			// strain matrix for internal dofs
 			for(unsigned int i=0; i<2; i++)
 			{ // begin: LOOP 5
-				unsigned int j = i+1; if(j>3) j=0; 
+				unsigned int j = i+1; if(j>3) j=0;
 				unsigned int k = j+1; if(k>3) k=0;
 				NQX(i)=(b(i)*L(k)+b(k)*L(i))/A/2.0;
 				NQY(i)=(c(i)*L(k)+c(k)*L(i))/A/2.0;
@@ -1144,23 +1144,23 @@ namespace Kratos
 			double gpy = ip.Y();
 			double gpw = ip.Weight();
 			noalias( iN ) = row( shapeFunctions, igauss );
-			
+
 			// area coordinates of the gauss point (Eq 7)
 			L(0) = 0.25*(1.0-gpx)*(g(1)*(1.0-gpy)+g(2)*(1.0+gpy));
 			L(1) = 0.25*(1.0-gpy)*(g(3)*(1.0-gpx)+g(2)*(1.0+gpx));
 			L(2) = 0.25*(1.0+gpx)*(g(0)*(1.0-gpy)+g(3)*(1.0+gpy));
 			L(3) = 0.25*(1.0+gpy)*(g(0)*(1.0-gpx)+g(1)*(1.0+gpx));
-			
+
 			// strain matrix for external dofs
-			for(unsigned int i=0; i<4; i++) 
+			for(unsigned int i=0; i<4; i++)
 			{ // begin: LOOP 3
-				unsigned int j = i+1; if(j>3) j=0; 
+				unsigned int j = i+1; if(j>3) j=0;
 				unsigned int k = j+1; if(k>3) k=0;
 				double SX(0.0);
 				double SY(0.0);
 				for(unsigned int ii=0; ii<4; ii++)
 				{ // begin: LOOP 4
-					unsigned int jj = ii+1; if(jj>3) jj=0; 
+					unsigned int jj = ii+1; if(jj>3) jj=0;
 					unsigned int kk = jj+1; if(kk>3) kk=0;
 					unsigned int mm = kk+1; if(mm>3) mm=0;
 					// begin: select formulation
@@ -1196,11 +1196,11 @@ namespace Kratos
 				NUXY(i,0)=NUX(i);
 				NUXY(i,1)=NUY(i);
 			} // end: LOOP 3
-			
+
 			// strain matrix for internal dofs
 			for(unsigned int i=0; i<2; i++)
 			{ // begin: LOOP 5
-				unsigned int j = i+1; if(j>3) j=0; 
+				unsigned int j = i+1; if(j>3) j=0;
 				unsigned int k = j+1; if(k>3) k=0;
 				NQX(i)=(b(i)*L(k)+b(k)*L(i))/A/2.0;
 				NQY(i)=(c(i)*L(k)+c(k)*L(i))/A/2.0;
@@ -1228,19 +1228,19 @@ namespace Kratos
 			parameters.SetShapeFunctionsValues( iN );
 			parameters.SetShapeFunctionsDerivatives( NUXY );
 			mat->CalculateMaterialResponseCauchy( parameters );
-			
+
 			// integration weight
 			//double det_jacobian = geom.DeterminantOfJacobian(igauss, mThisIntegrationMethod);
 			double det_jacobian = MathUtils<double>::Det2(all_jacobians[igauss]);
 			double dV = det_jacobian*gpw*th;
 			S *= dV;
 			D *= dV;
-			
+
 			// assemble matrix and vectors for external dofs
 			noalias( BUT_D )                 = prod( trans( BU ), D );
 			noalias( rLeftHandSideMatrix )  += prod( BUT_D, BU );
 			noalias( rRightHandSideVector ) -= prod( trans( BU ), S );
-			
+
 			// assemble matrix and vectors for internal dofs
 			noalias( BQT_D )         = prod( trans( BQ ), D );
 			noalias( D_BQ )          = prod( D, BQ );
@@ -1250,8 +1250,8 @@ namespace Kratos
 			noalias( m_KUQ )        += prod( trans( BU ), D_BQ );
 		} // and for : igauss
 		// =============================================================
-		
-		
+
+
 		// =============================================================
 		// perform the static condensation
 		Matrix KQQ_copy( m_KQQ_inv ); // aux
@@ -1268,18 +1268,18 @@ namespace Kratos
 		// for the static condensation of the incompatible modes
 #ifndef AGQ4_SUPPRESS_ENHANCEMENT
 		noalias( rRightHandSideVector ) -= prod( KUQ_KQQ_inv, m_Q_residual );   // R_mod = R - L' * H^-1 * residual
-		noalias( rLeftHandSideMatrix  ) -= prod( KUQ_KQQ_inv, m_KQU );          // K_mod = K - L' * H^-1 * L  
+		noalias( rLeftHandSideMatrix  ) -= prod( KUQ_KQQ_inv, m_KQU );          // K_mod = K - L' * H^-1 * L
 #endif // !AGQ4_SUPPRESS_ENHANCEMENT
 		//eas_error = (lu_res != 0);
 		// =============================================================
-		
-		
+
+
 		// =============================================================
 		// Add body forces contributions. This doesn't depend on the coordinate system
 		AddBodyForces(rRightHandSideVector);
 		// =============================================================
-		
-		
+
+
 		// set error code
 		//if(eas_error) mErrorCode = -1.0;
     }
@@ -1293,7 +1293,7 @@ namespace Kratos
 
 		double rho = GetProperties()[DENSITY];
 		double th = GetProperties()[THICKNESS];
-		
+
 		// auxiliary
 		array_1d<double, 3> bf;
 

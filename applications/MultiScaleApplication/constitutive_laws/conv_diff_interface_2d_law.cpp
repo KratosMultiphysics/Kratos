@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    ConvDiffInterface2DLaw::ConvDiffInterface2DLaw() 
+    ConvDiffInterface2DLaw::ConvDiffInterface2DLaw()
         : ConstitutiveLaw()
 		, mInitialized(false)
 		, m_init_gradT()
@@ -61,7 +61,7 @@ namespace Kratos
 		, m_gap_interface()
 	{
     }
- 
+
     ConstitutiveLaw::Pointer ConvDiffInterface2DLaw::Clone() const
     {
         return ConstitutiveLaw::Pointer( new ConvDiffInterface2DLaw() );
@@ -87,7 +87,7 @@ namespace Kratos
 			return true;
         return false;
     }
-    
+
     bool ConvDiffInterface2DLaw::Has(const Variable<Vector>& rThisVariable)
     {
 		if(rThisVariable == YIELD_SURFACE_DATA_2D_X || rThisVariable == YIELD_SURFACE_DATA_2D_Y)
@@ -106,7 +106,7 @@ namespace Kratos
     {
         return false;
     }
-    
+
     bool ConvDiffInterface2DLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
     {
         return false;
@@ -216,7 +216,7 @@ namespace Kratos
     {
         return ConstitutiveLaw::StrainMeasure_Infinitesimal;
     }
-    
+
     ConvDiffInterface2DLaw::StressMeasure ConvDiffInterface2DLaw::GetStressMeasure()
     {
         return ConstitutiveLaw::StressMeasure_Cauchy;
@@ -301,7 +301,7 @@ namespace Kratos
 
 		SizeType size = GetStrainSize();
 
-		if(compute_stress) 
+		if(compute_stress)
 			if(stressVector.size() != size)
 				stressVector.resize(size, false);
 		if(compute_constitutive_tensor)
@@ -309,13 +309,13 @@ namespace Kratos
 				constitutiveMatrix.resize(size, size, false);
 
 		CalculationData data;
-				
+
 		InitializeCalculationData( props, rValues.GetElementGeometry(), strainVector, rValues.GetProcessInfo(), data );
-		
+
 		std::stringstream ss;
 		//std::cout << "CalculateMaterialResponseCauchy -  strainVector = " << strainVector << std::endl;
 		//std::cout << "CalculateMaterialResponseCauchy -  constitutiveMatrix = " << constitutiveMatrix << std::endl;
-		
+
 		if (data.ExpCurveTypeFlag)
 		{
 			CalculateElasticStressVector(data, strainVector);
@@ -332,7 +332,7 @@ namespace Kratos
 		}
 
 		mD1 = data.D1; // Update the mK1 to the current value
-		
+
 		if( compute_stress )
 		{
 			CalculateStress(data, strainVector, stressVector);
@@ -364,7 +364,7 @@ namespace Kratos
 
     void ConvDiffInterface2DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     {
-        
+
     }
 
     void ConvDiffInterface2DLaw::ResetMaterial(const Properties& rMaterialProperties,
@@ -462,7 +462,7 @@ namespace Kratos
 
 			data.ElasticStressVector.clear();
 		}
-		else 
+		else
 		{
 			// Leggo le prop meccaniche
 			data.Kn_compression_multiplier = props[NORMAL_STIFFNESS_COMPRESSION_MULTIPLIER];
@@ -489,7 +489,7 @@ namespace Kratos
 
 			CalculateCriticalOpening(data);
 		}
-		
+
 		data.ForceSecant = false;
 		if(props.Has(DAMAGE_SECANT_MATRIX))
 			data.ForceSecant = props[DAMAGE_SECANT_MATRIX] != 0;
@@ -504,7 +504,7 @@ namespace Kratos
 		double gn = std::abs(m_gap_interface(1))*(m_gap_interface(1)); // ? 0 : 1);
 		//std::cout << MathHelpers::VectorToString(m_gap_interface, 4, std::scientific);
 		data.Kc = (aux1 + aux2)*(1 / (ro_1 + ro_2))*data.Kn_compression_multiplier*data.m_exp*pow(gn,data.m_exp - 1);
-		
+
 		//std::stringstream ss;
 		//ss << "--------  ro_1 = " << ro_1 << ", " << std::endl;
 		//ss << "--------  ro_2 = " << ro_2 << ", " << std::endl;
@@ -531,12 +531,12 @@ namespace Kratos
 	void ConvDiffInterface2DLaw::CalculateEffectiveOpening(CalculationData& data)
 	{
 		data.effDispl = std::sqrt(pow(data.beta, 2)*pow(m_gap_interface(0), 2) + pow(m_gap_interface(1), 2));
-		
+
 		//std::stringstream ss;
 		//ss << "--------  effDispl = " << data.effDispl << ", " << std::endl;
 		//std::cout << ss.str();
 	}
-	
+
 	void ConvDiffInterface2DLaw::UpdateDamage(CalculationData& data)
 	{
 		if (data.ExpCurveTypeFlag)
@@ -553,7 +553,7 @@ namespace Kratos
 				data.D1 = std::max(std::min(data.D1, 1.0), 0.0);
 			}
 		}
-		else 
+		else
 		{
 			data.D1 = data.effDispl / data.crticalDispl;
 			data.D1 = std::max(std::min(data.D1, 1.0), 0.0);
@@ -615,7 +615,7 @@ namespace Kratos
 		mStressVector(0) = sigma_n;
 		mStressVector(1) = sigma_t;
 		noalias(stressVector) = mStressVector;
-		
+
 		/*std::stringstream ss;
 		ss << "--------  data.Kc = " << data.Kc << ", " << std::endl;
 		ss << "--------  data.D1 = " << data.D1 << ", " << std::endl;
@@ -624,15 +624,15 @@ namespace Kratos
 		std::cout << ss.str();*/
 	}
 
-	void ConvDiffInterface2DLaw::CalculateConstitutiveMatrix(CalculationData& data, 
+	void ConvDiffInterface2DLaw::CalculateConstitutiveMatrix(CalculationData& data,
 		                                                         const Vector& strainVector,
-		                                                         const Vector& stressVector, 
+		                                                         const Vector& stressVector,
 																 Matrix& constitutiveMatrix)
 	{
 		//std::stringstream ss;
 
 		size_t n = GetStrainSize();
-		
+
 		double perturbation = 1.0E-6;
 		Vector perturbedStrainVector(n);
 		Vector stressPerturbation(n);

@@ -63,7 +63,7 @@ public:
 
     typedef IntegrationPoint<3>                                                                     IntegrationPointType;
     typedef std::vector<IntegrationPointType>                                                       IntegrationPointsArrayType;
-    typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -73,7 +73,7 @@ public:
     ModifiedShapeFunctions(const GeometryPointerType pInputGeometry, const Vector& rNodalDistances);
 
     /// Destructor
-    ~ModifiedShapeFunctions();
+    virtual ~ModifiedShapeFunctions();
 
     ///@}
     ///@name Access
@@ -200,7 +200,7 @@ public:
         Vector &rNegativeExteriorFaceWeightsValues,
         const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod) = 0;
-        
+
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
     * @return rPositiveSideInterfaceAreaNormal: Outwards area normal vector list.
@@ -218,7 +218,7 @@ public:
     virtual void ComputeNegativeSideInterfaceAreaNormals(
         std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod) = 0;
-        
+
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
     * @return rPositiveExteriorFaceAreaNormal: Outwards area normal vector list.
@@ -243,7 +243,7 @@ public:
 
     /**
     * Returns the positive side edge intersections shape function values.
-    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes,
     * containing the positive side edge intersection shape function values.
     */
     virtual void ComputeShapeFunctionsOnPositiveEdgeIntersections(
@@ -251,7 +251,7 @@ public:
 
     /**
     * Returns the negative side edge intersections shape function values.
-    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes,
     * containing the negative side edge intersection shape function values.
     */
     virtual void ComputeShapeFunctionsOnNegativeEdgeIntersections(

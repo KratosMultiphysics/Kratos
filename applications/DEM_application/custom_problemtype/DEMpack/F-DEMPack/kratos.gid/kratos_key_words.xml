@@ -230,10 +230,11 @@
       <Item id="VelocityDeviation" kkword="MAX_RAND_DEVIATION_ANGLE" />
       <Item id="StandardDeviation" kkword="STANDARD_DEVIATION" />
       <Item id="ParticleSphericity" kkword="PARTICLE_SPHERICITY" />
-      <Item id="ParticleFrictionAngle" kkword="PARTICLE_FRICTION" />
+      <Item id="ParticleFrictionAngle" kkword="FRICTION" />
       <Item id="CoefficientOfRestitution" kkword="COEFFICIENT_OF_RESTITUTION" />
       <Item id="ParticleCohesion" kkword="PARTICLE_COHESION" />
       <Item id="RollingFriction" kkword="ROLLING_FRICTION" />
+      <Item id="RollingFrictionWithWalls" kkword="ROLLING_FRICTION_WITH_WALLS" />
       <Item id="RotationalDampingRatio" kkword="PARTICLE_ROTATION_DAMP_RATIO" />
       <Item id="Color" kkword="PARTICLE_MATERIAL" />
       <Item id="NumberOfParticles" kkword="INLET_NUMBER_OF_PARTICLES" />
@@ -252,14 +253,16 @@
       <Item id="VelocityBC-Ax" kkword="IMPOSED_VELOCITY_X" />
       <Item id="VelocityBC-Ay" kkword="IMPOSED_VELOCITY_Y" />
       <Item id="VelocityBC-Az" kkword="IMPOSED_VELOCITY_Z" />
+      <Item id="LinearStartTime" kkword="VELOCITY_START_TIME" />
+      <Item id="LinearEndTime" kkword="VELOCITY_STOP_TIME" />
       <Item id="AngularVelocityBC-AVx" kkword="IMPOSED_ANGULAR_VELOCITY_X_VALUE" />
       <Item id="AngularVelocityBC-AVy" kkword="IMPOSED_ANGULAR_VELOCITY_Y_VALUE" />
       <Item id="AngularVelocityBC-AVz" kkword="IMPOSED_ANGULAR_VELOCITY_Z_VALUE" />
       <Item id="AngularVelocityBC-Bx" kkword="IMPOSED_ANGULAR_VELOCITY_X" />
       <Item id="AngularVelocityBC-By" kkword="IMPOSED_ANGULAR_VELOCITY_Y" />
       <Item id="AngularVelocityBC-Bz" kkword="IMPOSED_ANGULAR_VELOCITY_Z" />
-      <Item id="VelocityStartTime" kkword="VELOCITY_START_TIME" />
-      <Item id="VelocityEndTime" kkword="VELOCITY_STOP_TIME" />
+      <Item id="AngularStartTime" kkword="ANGULAR_VELOCITY_START_TIME" />
+      <Item id="AngularEndTime" kkword="ANGULAR_VELOCITY_STOP_TIME" />
       <Item id="ForceIntegrationGroup" kkword="FORCE_INTEGRATION_GROUP" />
       <Item id="ContactSigma" kkword="PostContactSigma" />
       <Item id="ContactTau" kkword="PostContactTau" />

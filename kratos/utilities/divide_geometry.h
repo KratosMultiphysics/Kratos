@@ -201,7 +201,7 @@ public:
     DivideGeometry(const GeometryType& rInputGeometry, const Vector& rNodalDistances);
 
     /// Destructor
-    ~DivideGeometry();
+    virtual ~DivideGeometry();
 
     ///@}
     ///@name Access

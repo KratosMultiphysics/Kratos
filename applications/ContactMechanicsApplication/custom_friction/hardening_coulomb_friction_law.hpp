@@ -51,38 +51,35 @@ namespace Kratos
     : public CoulombAdhesionFrictionLaw
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of HardeningCoulombFrictionLaw
     KRATOS_CLASS_POINTER_DEFINITION( HardeningCoulombFrictionLaw );
 
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /// Default constructor.
     HardeningCoulombFrictionLaw();
-    
+
     /// Destructor.
     virtual ~HardeningCoulombFrictionLaw();
 
 
     /**
      * Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this constitutive law
-     * NOTE: implementation scheme:
-     *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
-     *      return p_clone;
+     * @return a pointer to a new instance of this friction law
      */
-    virtual FrictionLaw::Pointer Clone() const;
+    FrictionLaw::Pointer Clone() const override;
 
     ///@}
     ///@name Operators
     ///@{
-    
-    
+
+
     ///@}
     ///@name Operations
     ///@{
@@ -91,26 +88,26 @@ namespace Kratos
     ///@}
     ///@name Access
     ///@{
-    
-    
+
+
     ///@}
     ///@name Inquiry
     ///@{
-    
-    
+
+
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
-    //virtual std::string Info() const;
+    //std::string Info() const override;
 
     /// Print information about this object.
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-    
+    //void PrintInfo(std::ostream& rOStream) const override;
+
     /// Print object's data.
-    //virtual void PrintData(std::ostream& rOStream) const;
-    
+    //void PrintData(std::ostream& rOStream) const override;
+
 
     ///@}
     ///@name Friends
@@ -122,13 +119,13 @@ namespace Kratos
   protected:
     ///@name Protected static Member Variables
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -137,23 +134,23 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    virtual double EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables);
 
-    virtual double EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables);
+    double EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) override;
 
-    virtual void EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& Gamma, FrictionLawVariables& rTangentVariables);
+    double EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) override;
+
+    void EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& Gamma, FrictionLawVariables& rTangentVariables) override;
 
 
     ///@}
     ///@name Protected  Access
     ///@{
-    
+
 
     ///@}
     ///@name Protected Inquiry
     ///@{
-    
+
 
     ///@}
     ///@name Protected LifeCycle
@@ -167,39 +164,39 @@ namespace Kratos
     ///@name Static Member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
+
 
     ///@}
     ///@name Private Operators
     ///@{
-    
+
 
     ///@}
     ///@name Private Operations
     ///@{
-    
-    
+
+
     ///@}
     ///@name Private  Access
     ///@{
-    
-    
+
+
     ///@}
     ///@name Private Inquiry
     ///@{
-    
-    
+
+
     ///@}
     ///@name Un accessible methods
     ///@{
-    
+
     /// Assignment operator.
     //HardeningCoulombFrictionLaw& operator=(HardeningCoulombFrictionLaw const& rOther);
-    
+
     /// Copy constructor.
     //HardeningCoulombFrictionLaw(HardeningCoulombFrictionLaw const& rOther);
 
@@ -209,12 +206,12 @@ namespace Kratos
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, CoulombAdhesionFrictionLaw )
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, CoulombAdhesionFrictionLaw )
     }

@@ -45,7 +45,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer SurfaceLoadCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new SurfaceLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<SurfaceLoadCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -58,8 +58,7 @@ namespace Kratos
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new SurfaceLoadCondition(NewCondition) );
+    return Kratos::make_shared<SurfaceLoadCondition>(NewCondition);
   }
 
 
@@ -76,9 +75,9 @@ namespace Kratos
   void SurfaceLoadCondition::InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-      
+
     LoadCondition::InitializeConditionVariables(rVariables, rCurrentProcessInfo);
-  
+
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
@@ -94,10 +93,10 @@ namespace Kratos
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_0/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
-    KRATOS_CATCH( "" )   
+    KRATOS_CATCH( "" )
   }
 
-  
+
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
@@ -112,7 +111,7 @@ namespace Kratos
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
-    
+
     //get first vector of the plane
     rVariables.Tangent1[0] = rVariables.J[rPointNumber](0, 0);
     rVariables.Tangent1[1] = rVariables.J[rPointNumber](1, 0);
@@ -181,14 +180,14 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
     //noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
-    
+
     //PRESSURE CONDITION:
     rVariables.ExternalVectorValue = rVariables.Normal;
     rVariables.ExternalScalarValue = 0.0;
@@ -196,13 +195,13 @@ namespace Kratos
     //defined on condition
     if( this->Has( NEGATIVE_FACE_PRESSURE ) ){
       double& NegativeFacePressure = this->GetValue( NEGATIVE_FACE_PRESSURE );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	rVariables.ExternalScalarValue += rVariables.N[i] * NegativeFacePressure;
     }
 
     if( this->Has( POSITIVE_FACE_PRESSURE ) ){
       double& PositiveFacePressure = this->GetValue( POSITIVE_FACE_PRESSURE );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	rVariables.ExternalScalarValue -= rVariables.N[i] * PositiveFacePressure;
     }
 
@@ -210,64 +209,64 @@ namespace Kratos
     //defined on condition nodes
     if( this->Has( NEGATIVE_FACE_PRESSURE_VECTOR ) ){
       Vector& Pressures = this->GetValue( NEGATIVE_FACE_PRESSURE_VECTOR );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	{	  
-	  rVariables.ExternalScalarValue += rVariables.N[i] * Pressures[i]; 
-	}
-    }
-    
-    if( this->Has( POSITIVE_FACE_PRESSURE_VECTOR ) ){
-      Vector& Pressures = this->GetValue( POSITIVE_FACE_PRESSURE_VECTOR );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	{	  
-	  rVariables.ExternalScalarValue -= rVariables.N[i] * Pressures[i]; 
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+	{
+	  rVariables.ExternalScalarValue += rVariables.N[i] * Pressures[i];
 	}
     }
 
-    
-    //defined on geometry nodes
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE ) ) 
-	  rVariables.ExternalScalarValue += rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
-	if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE ) ) 
-	  rVariables.ExternalScalarValue -= rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );     
-      }
-    
-    rVariables.ExternalVectorValue *= rVariables.ExternalScalarValue;
-   
-    //FORCE CONDITION:
-    
-    //defined on condition
-    if( this->Has( SURFACE_LOAD ) ){
-      array_1d<double, 3 > & SurfaceLoad = this->GetValue( SURFACE_LOAD );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    if( this->Has( POSITIVE_FACE_PRESSURE_VECTOR ) ){
+      Vector& Pressures = this->GetValue( POSITIVE_FACE_PRESSURE_VECTOR );
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  rVariables.ExternalScalarValue -= rVariables.N[i] * Pressures[i];
+	}
+    }
+
+
+    //defined on geometry nodes
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+	if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE ) )
+	  rVariables.ExternalScalarValue += rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
+	if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE ) )
+	  rVariables.ExternalScalarValue -= rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
+      }
+
+    rVariables.ExternalVectorValue *= rVariables.ExternalScalarValue;
+
+    //FORCE CONDITION:
+
+    //defined on condition
+    if( this->Has( FORCE_LOAD ) ){
+      array_1d<double, 3 > & SurfaceLoad = this->GetValue( FORCE_LOAD );
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+	{
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceLoad[k];
 	}
     }
 
     //defined on condition nodes
-    if( this->Has( SURFACE_LOAD_VECTOR ) ){
-      Vector& SurfaceLoads = this->GetValue( SURFACE_LOAD_VECTOR );
+    if( this->Has( FORCE_LOAD_VECTOR ) ){
+      Vector& SurfaceLoads = this->GetValue( FORCE_LOAD_VECTOR );
       unsigned int counter = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    {
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceLoads[counter];
 	      counter++;
 	    }
 	}
     }
-        
+
     //defined on geometry nodes
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_LOAD ) ){
-	  array_1d<double, 3 > & SurfaceLoad = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_LOAD );
-	  for( unsigned int k = 0; k < dimension; k++ )
+	if( GetGeometry()[i].SolutionStepsDataHas( FORCE_LOAD ) ){
+	  array_1d<double, 3 > & SurfaceLoad = GetGeometry()[i].FastGetSolutionStepValue( FORCE_LOAD );
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceLoad[k];
 	}
       }
@@ -287,22 +286,20 @@ namespace Kratos
 
       if( rVariables.ExternalScalarValue == 0 )
 	{
-
-	  unsigned int MatSize = this->GetDofsSize();
-	  if(rLeftHandSideMatrix.size1() != MatSize )
-	    rLeftHandSideMatrix.resize(MatSize,MatSize,false);
-	  
-	  noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
-
-	}
+          unsigned int MatSize = this->GetDofsSize();
+          if(rLeftHandSideMatrix.size1() != MatSize ){
+            rLeftHandSideMatrix.resize(MatSize,MatSize,false);
+            noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
+          }
+        }
       else
 	{
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
+	  BoundedMatrix<double, 3, 3 > Kij;
+	  BoundedMatrix<double, 3, 3 > Cross_ge;
+	  BoundedMatrix<double, 3, 3 > Cross_gn;
 
 	  double coeff;
-	  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	  const SizeType number_of_nodes = GetGeometry().PointsNumber();
 
 	  BeamMathUtils<double>::VectorToSkewSymmetricTensor(rVariables.Tangent1,Cross_ge);
 	  BeamMathUtils<double>::VectorToSkewSymmetricTensor(rVariables.Tangent2,Cross_gn);
@@ -310,10 +307,10 @@ namespace Kratos
 	  unsigned int RowIndex = 0;
 	  unsigned int ColIndex = 0;
 
-	  for (unsigned int i = 0; i < number_of_nodes; i++)
+	  for (SizeType i = 0; i < number_of_nodes; i++)
 	    {
 	      RowIndex = i * 3;
-	      for (unsigned int j = 0; j < number_of_nodes; j++)
+	      for (SizeType j = 0; j < number_of_nodes; j++)
 		{
 		  ColIndex = j * 3;
 
@@ -321,7 +318,7 @@ namespace Kratos
 		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 0) * rIntegrationWeight;
 
 		  noalias(Kij) = coeff * Cross_gn;
-		  
+
 		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
 		  noalias(Kij) -= coeff * Cross_ge;
 
@@ -353,12 +350,12 @@ namespace Kratos
 
     KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE);
     KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE_VECTOR);
-    
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_LOAD_VECTOR);
-        
+
+    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD_VECTOR);
+
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

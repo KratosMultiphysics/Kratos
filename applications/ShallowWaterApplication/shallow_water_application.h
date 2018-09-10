@@ -17,16 +17,16 @@
 ///@brief Basic set of tools to solve the shallow water equations.
 /// The Shallow Water Application implements a basic set of tools to
 /// solve shallow water problems. This applications contains a basic FEM
-/// implementation of common thechniques using both explicit pfem2 and 
+/// implementation of common thechniques using both explicit pfem2 and
 /// eulerian shemes.
 
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -38,6 +38,7 @@
 
 // Shallow water includes
 #include "shallow_water_application_variables.h"
+#include "custom_elements/shallow_element.h"
 #include "custom_elements/primitive_var_element.hpp"
 #include "custom_elements/conserved_var_element.hpp"
 #include "custom_elements/euler_prim_var_element.hpp"
@@ -49,18 +50,18 @@ namespace Kratos
 {
 
     ///@name Kratos Globals
-    ///@{ 
+    ///@{
 
-    ///@} 
+    ///@}
     ///@name Type Definitions
-    ///@{ 
+    ///@{
 
-    ///@} 
+    ///@}
     ///@name  Enum's
     ///@{
 
     ///@}
-    ///@name  Functions 
+    ///@name  Functions
     ///@{
 
     ///@}
@@ -75,14 +76,14 @@ namespace Kratos
     public:
         ///@name Type Definitions
         ///@{
-        
+
 
         /// Pointer definition of KratosShallowWaterApplication
         KRATOS_CLASS_POINTER_DEFINITION(KratosShallowWaterApplication);
 
         ///@}
-        ///@name Life Cycle 
-        ///@{ 
+        ///@name Life Cycle
+        ///@{
 
         /// Default constructor.
         KratosShallowWaterApplication();
@@ -92,7 +93,7 @@ namespace Kratos
 
 
         ///@}
-        ///@name Operators 
+        ///@name Operators
         ///@{
 
 
@@ -100,13 +101,13 @@ namespace Kratos
         ///@name Operations
         ///@{
 
-        virtual void Register();
+        virtual void Register() override;
 
 
 
         ///@}
         ///@name Access
-        ///@{ 
+        ///@{
 
 
         ///@}
@@ -114,27 +115,27 @@ namespace Kratos
         ///@{
 
 
-        ///@}      
+        ///@}
         ///@name Input and output
         ///@{
 
         /// Turn back information as a string.
-        virtual std::string Info() const
+        virtual std::string Info() const override
         {
             return "KratosShallowWaterApplication";
         }
 
         /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const
+        virtual void PrintInfo(std::ostream& rOStream) const override
         {
             rOStream << Info();
             PrintData(rOStream);
         }
 
         ///// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const
+        virtual void PrintData(std::ostream& rOStream) const override
         {
-            KRATOS_WATCH("in my application");
+            KRATOS_WATCH("in Shallow Water Application");
             KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
             rOStream << "Variables:" << std::endl;
             KratosComponents<VariableData>().PrintData(rOStream);
@@ -147,7 +148,7 @@ namespace Kratos
         }
 
 
-        ///@}      
+        ///@}
         ///@name Friends
         ///@{
 
@@ -155,51 +156,52 @@ namespace Kratos
         ///@}
 
     protected:
-        ///@name Protected static Member Variables 
-        ///@{ 
+        ///@name Protected static Member Variables
+        ///@{
 
 
-        ///@} 
-        ///@name Protected member Variables 
-        ///@{ 
+        ///@}
+        ///@name Protected member Variables
+        ///@{
 
 
-        ///@} 
+        ///@}
         ///@name Protected Operators
-        ///@{ 
+        ///@{
 
 
-        ///@} 
+        ///@}
         ///@name Protected Operations
-        ///@{ 
+        ///@{
 
 
-        ///@} 
-        ///@name Protected  Access 
-        ///@{ 
+        ///@}
+        ///@name Protected  Access
+        ///@{
 
 
-        ///@}      
-        ///@name Protected Inquiry 
-        ///@{ 
+        ///@}
+        ///@name Protected Inquiry
+        ///@{
 
 
-        ///@}    
-        ///@name Protected LifeCycle 
-        ///@{ 
+        ///@}
+        ///@name Protected LifeCycle
+        ///@{
 
 
         ///@}
 
     private:
-        ///@name Static Member Variables 
-        ///@{ 
-
-
-        ///@} 
-        ///@name Member Variables 
+        ///@name Static Member Variables
         ///@{
-        // Lagrangian elements 
+
+
+        ///@}
+        ///@name Member Variables
+        ///@{
+        // Lagrangian elements
+        const ShallowElement mShallowElement2D3N;
         const PrimitiveVarElement<3> mPrimitiveVarElement2D3N;
         const PrimitiveVarElement<4> mPrimitiveVarElement2D4N;
         const ConservedVarElement<3> mConservedVarElement2D3N;
@@ -213,29 +215,29 @@ namespace Kratos
         const NothingCondition<2> mNothingCondition2D2N;
 
 
-        ///@} 
+        ///@}
         ///@name Private Operators
-        ///@{ 
+        ///@{
 
 
-        ///@} 
+        ///@}
         ///@name Private Operations
-        ///@{ 
+        ///@{
 
 
-        ///@} 
-        ///@name Private  Access 
-        ///@{ 
+        ///@}
+        ///@name Private  Access
+        ///@{
 
 
-        ///@}    
-        ///@name Private Inquiry 
-        ///@{ 
+        ///@}
+        ///@name Private Inquiry
+        ///@{
 
 
-        ///@}    
-        ///@name Un accessible methods 
-        ///@{ 
+        ///@}
+        ///@name Un accessible methods
+        ///@{
 
         /// Assignment operator.
         KratosShallowWaterApplication& operator=(KratosShallowWaterApplication const& rOther);
@@ -244,24 +246,24 @@ namespace Kratos
         KratosShallowWaterApplication(KratosShallowWaterApplication const& rOther);
 
 
-        ///@}    
+        ///@}
 
-    }; // Class KratosShallowWaterApplication 
+    }; // Class KratosShallowWaterApplication
 
-    ///@} 
-
-
-    ///@name Type Definitions       
-    ///@{ 
+    ///@}
 
 
-    ///@} 
-    ///@name Input and output 
-    ///@{ 
+    ///@name Type Definitions
+    ///@{
 
-    ///@} 
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED  defined

@@ -29,20 +29,22 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/// Short class definition.
-// This process assigns as master/slave the conditions
-/** Detail class definition.
+
+/**
+ * @class MasterSlaveProcess
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief This process assigns as master/slave the conditions
+ * @author Vicente Mataix Ferrandiz
 */
-class MasterSlaveProcess
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) MasterSlaveProcess
     : public Process
 {
 public:
@@ -51,8 +53,11 @@ public:
 
     /// Pointer definition of MasterSlaveProcess
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveProcess);
-    
-    // General type definitions
+
+    /// Index type definition
+    typedef std::size_t IndexType;
+
+    /// General type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
     typedef ModelPart::NodesContainerType              NodesArrayType;
@@ -63,11 +68,12 @@ public:
     ///@{
 
     /// Default constructor.
-    MasterSlaveProcess( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
+    MasterSlaveProcess( ModelPart& rThisModelPart)
+        :mrThisModelPart(rThisModelPart)
     {
         KRATOS_TRY;
-        
-        KRATOS_CATCH(""); 
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -89,7 +95,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -98,13 +104,13 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
-    void Execute();
-    
+
+    void Execute() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -188,7 +194,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mrThisModelPart;
+
+    ModelPart& mrThisModelPart; /// The model part where to mcompute the master/slave flags
 
     ///@}
     ///@name Private Operators
@@ -237,7 +244,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   MasterSlaveProcess& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const MasterSlaveProcess& rThis)
@@ -245,7 +252,7 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 

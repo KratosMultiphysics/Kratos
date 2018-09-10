@@ -60,10 +60,8 @@ namespace Kratos
     #define SWIMMING_POW_5(a)                                (a * a * a * a * a)
     #define SWIMMING_POW_6(a)                                (a * a * a * a * a * a)
     #define SWIMMING_POW_7(a)                                (a * a * a * a * a * a * a)
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
-  
 
-class KratosSwimmingDEMApplication : public KratosApplication
+class KRATOS_API(SWIMMING_DEM_APPLICATION) KratosSwimmingDEMApplication : public KratosApplication
 {
 public:
 
@@ -77,23 +75,23 @@ public:
     virtual ~KratosSwimmingDEMApplication() {}
 
 
-    virtual void Register();
+    void Register() override;
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosSwimmingDEMApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -164,6 +162,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SWIMMING_DEM_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_SWIMMING_DEM_APPLICATION_H_INCLUDED  defined
 
 

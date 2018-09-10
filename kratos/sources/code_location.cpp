@@ -81,7 +81,7 @@ namespace Kratos
 		ReplaceAll(clean_function_name, "basic_string<char,...>", "string");
 		ReduceTemplateArgumentsToFirstN(clean_function_name, "compressed_matrix", 0);
 		ReplaceAll(clean_function_name, "ublas::vector<double,...>", "Vector");
-		ReplaceAll(clean_function_name, "ublas::matrix<double,...>", "Matrix");
+		ReplaceAll(clean_function_name, "ublas::DenseMatrix<double,...>", "Matrix");
 		ReduceTemplateArgumentsToFirstN(clean_function_name, "ResidualBasedBlockBuilderAndSolver", 1);
 		ReduceTemplateArgumentsToFirstN(clean_function_name, "ResidualBasedLinearStrategy", 1);
 		ReplaceAll(clean_function_name, "Dof<double>", "Dof");

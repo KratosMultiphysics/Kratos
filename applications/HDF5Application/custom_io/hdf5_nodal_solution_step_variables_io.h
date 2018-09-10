@@ -29,12 +29,14 @@
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
+
+class File;
+
 namespace Internals
 {
 ///@addtogroup HDF5Application

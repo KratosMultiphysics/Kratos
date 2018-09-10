@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_BOUNDARY_CONDITION_H_INCLUDED )
+#if !defined(KRATOS_BOUNDARY_CONDITION_H_INCLUDED)
 #define  KRATOS_BOUNDARY_CONDITION_H_INCLUDED
 
 // System includes
@@ -38,7 +38,7 @@ namespace Kratos
 ///@{
 
 /// General Boundary Condition base type for 3D and 2D geometries.
-  
+
 /**
  * Implements a General definitions for a boundary neumann or mixed condition.
  * This works for arbitrary geometries in 3D and 2D (base class)
@@ -50,6 +50,13 @@ public:
 
     ///@name Type Definitions
     ///@{
+
+    typedef Variable<array_1d<double,3>>      VariableVectorType;
+    typedef Variable<double>                  VariableScalarType;
+
+    ///Type for size
+    typedef GeometryData::SizeType                      SizeType;
+
     // Counted pointer of BoundaryCondition
     KRATOS_CLASS_POINTER_DEFINITION( BoundaryCondition );
     ///@}
@@ -62,12 +69,9 @@ protected:
 
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
-
 
     /**
-     * Parameters to be used in the Condition as they are. 
+     * Parameters to be used in the Condition as they are.
      */
 
     struct ConditionVariables
@@ -184,22 +188,11 @@ protected:
     struct LocalSystemComponents
     {
     private:
-      
-      //for calculation local system with compacted LHS and RHS 
+
+      //for calculation local system with compacted LHS and RHS
       MatrixType *mpLeftHandSideMatrix;
       VectorType *mpRightHandSideVector;
 
-      //for calculation local system with LHS and RHS components 
-      std::vector<MatrixType> *mpLeftHandSideMatrices;
-      std::vector<VectorType> *mpRightHandSideVectors;
-
-      //LHS variable components 
-      const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
-
-      //RHS variable components 
-      const std::vector< Variable< VectorType > > *mpRightHandSideVariables;
-
-    
     public:
 
       //calculation flags
@@ -209,24 +202,15 @@ protected:
        * sets the value of a specified pointer variable
        */
       void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
-      void SetLeftHandSideMatrices( std::vector<MatrixType>& rLeftHandSideMatrices ) { mpLeftHandSideMatrices = &rLeftHandSideMatrices; };
-      void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; }; 
 
       void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
-      void SetRightHandSideVectors( std::vector<VectorType>& rRightHandSideVectors ) { mpRightHandSideVectors = &rRightHandSideVectors; };
-      void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; }; 
 
- 
       /**
        * returns the value of a specified pointer variable
        */
       MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
-      std::vector<MatrixType>& GetLeftHandSideMatrices() { return *mpLeftHandSideMatrices; };
-      const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; }; 
 
       VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
-      std::vector<VectorType>& GetRightHandSideVectors() { return *mpRightHandSideVectors; };
-      const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; }; 
 
     };
 
@@ -239,7 +223,7 @@ public:
 
     /// Empty constructor needed for serialization
     BoundaryCondition();
-  
+
     /// Default constructor.
     BoundaryCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
@@ -249,7 +233,7 @@ public:
     BoundaryCondition( BoundaryCondition const& rOther);
 
     /// Destructor
-    virtual ~BoundaryCondition();
+    ~BoundaryCondition() override;
 
     ///@}
     ///@name Operators
@@ -279,7 +263,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
 
@@ -349,22 +333,6 @@ public:
 			      VectorType& rRightHandSideVector,
 			      ProcessInfo& rCurrentProcessInfo ) override;
 
-
-    /**
-     * this function provides a more general interface to the condition.
-     * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
-     * thus telling what is the desired output
-     * @param rLeftHandSideMatrices: container with the output left hand side matrices
-     * @param rLHSVariables: paramter describing the expected LHSs
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
-     */
-    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-			      const std::vector< Variable< MatrixType > >& rLHSVariables,
-			      std::vector< VectorType >& rRightHandSideVectors,
-			      const std::vector< Variable< VectorType > >& rRHSVariables,
-			      ProcessInfo& rCurrentProcessInfo) override;
-
     /**
       * this is called during the assembling process in order
       * to calculate the condition right hand side vector only
@@ -374,25 +342,13 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
 				ProcessInfo& rCurrentProcessInfo ) override;
 
-
-    /**
-     * this function provides a more general interface to the condition.
-     * it is designed so that rRHSvariables are passed TO the condition
-     * thus telling what is the desired output
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
-     */
-    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-				const std::vector< Variable< VectorType > >& rRHSVariables,
-				ProcessInfo& rCurrentProcessInfo) override;
-
     /**
      * this is called during the assembling process in order
      * to calculate the condition left hand side matrix only
      * @param rLeftHandSideMatrix: the condition left hand side matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 			       ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -420,27 +376,27 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */      
-    virtual void AddExplicitContribution(const VectorType& rRHS, 
-					 const Variable<VectorType>& rRHSVariable, 
-					 Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    void AddExplicitContribution(const VectorType& rRHS,
+					 const Variable<VectorType>& rRHSVariable,
+					 Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Get on rVariable a double Value
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, 
-				     std::vector<double>& rValues, 
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+				     std::vector<double>& rValues,
 				     const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Calculate a double Variable
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
-				      std::vector<double>& rOutput, 
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+				      std::vector<double>& rOutput,
 				      const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -454,7 +410,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -476,12 +432,12 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     /**
      * Currently selected integration methods
      */
     IntegrationMethod mThisIntegrationMethod;
-   
+
 
     ///@}
     ///@name Protected Operators
@@ -497,15 +453,21 @@ protected:
 
 
     /**
-     * Check condition rotation dofs
-     */    
-    virtual bool HasRotationDofs();
+     * Check dof for a vector variable
+     */
+    virtual bool HasVariableDof(VariableVectorType& rVariable);
+
+    /**
+     * Check dof for a double variable
+     */
+    virtual bool HasVariableDof(VariableScalarType& rVariable);
+
 
     /**
      * Get condition size from the dofs
-     */    
+     */
     virtual unsigned int GetDofsSize();
-    
+
     /**
      * Initialize System Matrices
      */
@@ -516,13 +478,13 @@ protected:
     /**
      * Initialize General Variables
      */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables, 
+    virtual void CalculateKinematics(ConditionVariables& rVariables,
 				     const double& rPointNumber);
 
 
@@ -557,14 +519,14 @@ protected:
 
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
 					       double& rIntegrationWeight);
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
 						  ConditionVariables& rVariables,
@@ -584,15 +546,15 @@ protected:
      * Calculation of the Total Position Increment
      */
     virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
-    
+
     /**
      * Get Current Value, buffer 0 with FastGetSolutionStepValue
-     */    
+     */
     Vector& GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
 
    /**
      * Get Previous Value, buffer 1 with FastGetSolutionStepValue
-     */    
+     */
     Vector& GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
 
 
@@ -647,13 +609,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class BoundaryCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_BOUNDARY_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_BOUNDARY_CONDITION_H_INCLUDED defined

@@ -136,7 +136,7 @@ public:
 
         typedef ublas::compressed_matrix<double, ublas::row_major, 0,
                 ublas::unbounded_array<int>, ublas::unbounded_array<double> > cm_t;
-        typedef ublas::matrix<double, ublas::row_major> m_t;
+        typedef DenseMatrix<double, ublas::row_major> m_t;
 
         if(IsNotConsistent(rA, rX, rB))
             return false;

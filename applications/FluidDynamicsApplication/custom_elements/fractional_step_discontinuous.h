@@ -278,7 +278,7 @@ protected:
     ///@{
     void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
     void AddMomentumSystemTerms(Matrix& rLHSMatrix,
                                         Vector& rRHSVector,

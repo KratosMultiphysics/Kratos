@@ -129,8 +129,6 @@ Y5 = problem_settings.Y5
 Xtol = problem_settings.Xtol
 Ytol = problem_settings.Ytol
 # print "compute_porous_resistance_law   ", fluid_solver.compute_porous_resistance_law
-# using MKLPardisosolver ----> it has to be compiled in kratos!!
-# fluid_solver.pressure_linear_solver = MKLPardisoSolver()
 
 if(pressure_fixed == "ON"):
     node_list = []

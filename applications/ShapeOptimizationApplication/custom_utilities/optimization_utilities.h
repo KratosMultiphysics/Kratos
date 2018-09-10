@@ -19,23 +19,10 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
-#include "utilities/timer.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 
@@ -107,7 +94,7 @@ public:
 
     ///@}
     ///@name Operations
-    ///@{     
+    ///@{
 
     // ==============================================================================
     // General optimization operations
@@ -116,8 +103,8 @@ public:
     {
         KRATOS_TRY;
 
-        double step_size = mOptimizationSettings["line_search"]["step_size"].GetDouble();
-        bool normalize_search_direction = mOptimizationSettings["line_search"]["normalize_search_direction"].GetBool();
+        double step_size = mOptimizationSettings["optimization_algorithm"]["line_search"]["step_size"].GetDouble();
+        bool normalize_search_direction = mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool();
 
 
         // Computation of update of design variable. Normalization is applied if specified.
@@ -129,11 +116,11 @@ public:
             {
                 array_3d& search_dir = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
                 double squared_length = inner_prod(search_dir,search_dir);
-                
+
                 if(squared_length>max_norm_search_dir)
                     max_norm_search_dir = squared_length;
             }
-            max_norm_search_dir = sqrt(max_norm_search_dir);
+            max_norm_search_dir = std::sqrt(max_norm_search_dir);
 
             // Normalize by max norm
             if(max_norm_search_dir>1e-10)
@@ -175,7 +162,7 @@ public:
         // search direction is negative of filtered gradient
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i.FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
+            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
         }
 
         KRATOS_CATCH("");
@@ -195,25 +182,29 @@ public:
         double norm_2_dCds_i = 0.0;
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
             norm_2_dCds_i += inner_prod(dCds_i,dCds_i);
         }
-       norm_2_dCds_i = sqrt(norm_2_dCds_i);
+        norm_2_dCds_i = std::sqrt(norm_2_dCds_i);
+
+        // Avoid division by zero
+        if(std::abs(norm_2_dCds_i)<1e-12)
+            norm_2_dCds_i = 1.0;
 
         // Compute dot product of objective gradient and normalized constraint gradient
         double dot_dFds_dCds = 0.0;
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d dFds_i = node_i.FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
-        	array_3d dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d dFds_i = node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
+        	array_3d dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
             dot_dFds_dCds += inner_prod(dFds_i,(dCds_i / norm_2_dCds_i));
         }
 
         // Compute and assign projected search direction
         for (auto & node_i : mrDesignSurface.Nodes())
         {
-        	array_3d& dFds_i = node_i.FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
-        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+        	array_3d& dFds_i = node_i.FastGetSolutionStepValue(DF1DX_MAPPED);
+        	array_3d& dCds_i = node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
 
         	array_3d projection_term = dot_dFds_dCds * (dCds_i / norm_2_dCds_i);
 
@@ -236,7 +227,7 @@ public:
         double correction_factor = ComputeCorrectionFactor();
     	for (auto & node_i : mrDesignSurface.Nodes())
     	{
-    		array_3d correction_term = correction_factor * mConstraintValue * node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+    		array_3d correction_term = correction_factor * mConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
     		node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) -= correction_term;
     	}
 
@@ -251,14 +242,14 @@ public:
     	double norm_search_direction = 0.0;
     	for (auto & node_i : mrDesignSurface.Nodes())
     	{
-    		array_3d correction_term = mConstraintValue * node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+    		array_3d correction_term = mConstraintValue * node_i.FastGetSolutionStepValue(DC1DX_MAPPED);
     		norm_correction_term += inner_prod(correction_term,correction_term);
 
     		array_3d ds = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
     		norm_search_direction += inner_prod(ds,ds);
     	}
-    	norm_correction_term = sqrt(norm_correction_term);
-    	norm_search_direction = sqrt(norm_search_direction);
+    	norm_correction_term = std::sqrt(norm_correction_term);
+    	norm_search_direction = std::sqrt(norm_search_direction);
         double correction_scaling = GetCorrectionScaling();
 
     	return correction_scaling * norm_search_direction / norm_correction_term;
@@ -267,7 +258,7 @@ public:
     // --------------------------------------------------------------------------
     double GetCorrectionScaling()
     {
-        double correction_scaling = mOptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble(); 
+        double correction_scaling = mOptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble();
         if(mOptimizationSettings["optimization_algorithm"]["use_adaptive_correction"].GetBool())
         {
             correction_scaling = AdaptCorrectionScaling( correction_scaling );

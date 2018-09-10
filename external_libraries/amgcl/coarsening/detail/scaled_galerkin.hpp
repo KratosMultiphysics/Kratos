@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ THE SOFTWARE.
  * \brief  Scaled Galerkin operator.
  */
 
-#include <boost/foreach.hpp>
 #include <amgcl/coarsening/detail/galerkin.hpp>
 
 namespace amgcl {
@@ -39,18 +38,15 @@ namespace coarsening {
 namespace detail {
 
 template <class Matrix>
-boost::shared_ptr<Matrix> scaled_galerkin(
+std::shared_ptr<Matrix> scaled_galerkin(
         const Matrix &A,
         const Matrix &P,
         const Matrix &R,
-        float scale
+        float s
         )
 {
-        boost::shared_ptr<Matrix> a = galerkin(A, P, R);
-
-        for(size_t i = 0; i < a->nnz; ++i)
-            a->val[i] *= scale;
-
+        auto a = galerkin(A, P, R);
+        scale(*a, s);
         return a;
 }
 

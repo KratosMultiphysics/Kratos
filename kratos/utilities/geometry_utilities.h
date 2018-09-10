@@ -47,7 +47,7 @@ public:
      */
     static inline void CalculateGeometryData(
         Element::GeometryType& geom,
-        boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,
+        BoundedMatrix<double,4,3>& DN_DX,
         array_1d<double,4>& N,
         double& Volume)
     {
@@ -120,7 +120,7 @@ public:
      */
     static inline void CalculateGeometryData(
         Element::GeometryType& geom,
-        boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+        BoundedMatrix<double,3,2>& DN_DX,
         array_1d<double,3>& N,
         double& Area)
     {
@@ -204,7 +204,7 @@ public:
 
     static inline void CalculateGeometryData(
         Element::GeometryType& geom,
-        boost::numeric::ublas::bounded_matrix<double,2,1>& DN_DX,
+        BoundedMatrix<double,2,1>& DN_DX,
         array_1d<double,2>& N,
         double& Area)
     {
@@ -765,8 +765,52 @@ public:
         return std::sqrt(square_distance);
     }
 
+    /**
+     * @brief Calculate the gradients of shape functions.
+     * @param rDN_De local gradient of shape functions.
+     * @param rInvJ inverse of the element Jacobian.
+     * @param rDN_DX gradient of shape functions.
+     */
+    static void ShapeFunctionsGradients(Matrix const& rDN_De, Matrix const& rInvJ, Matrix& rDN_DX)
+    {
+        if (rDN_DX.size1() != rDN_De.size1() || rDN_DX.size2() != rInvJ.size2())
+            rDN_DX.resize(rDN_De.size1(), rInvJ.size2(), false);
+        noalias(rDN_DX) = prod(rDN_De, rInvJ);
+    }
 
+    /**
+     * @brief Calculate the deformation gradient.
+     * 
+     * See, e.g., P. Wriggers, Nonlinear Finite Element Methods, Springer, 2008.
+     * @param rJ element Jacobian.
+     * @param rInvJ0 inverse of the element Jacobian of the initial configuration.
+     * @param rF deformation gradient.
+     */
+    static void DeformationGradient(Matrix const& rJ, Matrix const& rInvJ0, Matrix& rF)
+    {
+        if (rF.size1() != rJ.size1() || rF.size2() != rInvJ0.size2())
+            rF.resize(rJ.size1(), rInvJ0.size2(), false);
+        noalias(rF) = prod(rJ, rInvJ0);
+    }
 
+    /**
+     * @brief Calculate the Jacobian on the initial configuration.
+     * 
+     * @param rGeom element geometry.
+     * @param rCoords local coordinates of the current integration point.
+     * @param rJ0 Jacobian on the initial configuration.
+     */
+    static void JacobianOnInitialConfiguration(Element::GeometryType const& rGeom,
+                                               Element::GeometryType::CoordinatesArrayType const& rCoords,
+                                               Matrix& rJ0)
+    {
+        Matrix delta_position(rGeom.PointsNumber(), rGeom.WorkingSpaceDimension());
+        for (std::size_t i = 0; i < rGeom.PointsNumber(); ++i)
+            for (std::size_t j = 0; j < rGeom.WorkingSpaceDimension(); ++j)
+                delta_position(i, j) = rGeom[i].Coordinates()[j] -
+                                       rGeom[i].GetInitialPosition().Coordinates()[j];
+        rGeom.Jacobian(rJ0, rCoords, delta_position);
+    }
 };
 
 }  // namespace Kratos.

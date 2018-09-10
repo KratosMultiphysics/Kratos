@@ -158,6 +158,7 @@ public:
     */
     virtual void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
     }
 
     /** This function is designed to be called at the end of the solve step.
@@ -189,6 +190,7 @@ public:
     */
     virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
     }
 
@@ -202,10 +204,11 @@ public:
     */
     virtual bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
     }
 
-    /** Eigenvalue and eigenvector solve method for derived eigensolvers 
+    /** Eigenvalue and eigenvector solve method for derived eigensolvers
      * @param K The stiffness matrix
      * @param M The mass matrix
      * @param Eigenvalues The vector containing the eigen values
@@ -215,8 +218,10 @@ public:
                         SparseMatrixType& M,
                         DenseVectorType& Eigenvalues,
                         DenseMatrixType& Eigenvectors)
-    {}
-    
+    {
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
+    }
+
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
      * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
      * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
@@ -448,7 +453,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINEAR_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_SOLVER_H_INCLUDED  defined
 
 
 

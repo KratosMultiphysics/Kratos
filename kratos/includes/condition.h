@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -264,8 +264,11 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	std::cout<<" Call base class condition Clone "<<std::endl;
-        return Condition::Pointer(new Condition(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+	KRATOS_WARNING("Condition") << " Call base class condition Clone " << std::endl;
+        Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+	p_new_cond->SetData(this->GetData());
+	p_new_cond->Set(Flags(*this));
+	return p_new_cond;
         KRATOS_CATCH("");
     }
 
@@ -927,6 +930,28 @@ public:
 	  rDampingMatrix.resize(0, 0, false);
     }
 
+    /**
+     * Calculate the transposed gradient of the condition's residual w.r.t. design variable.
+     */
+    virtual void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rOutput.size1() != 0)
+            rOutput.resize(0, 0, false);
+    }
+
+    /**
+     * Calculate the transposed gradient of the condition's residual w.r.t. design variable.
+     */
+    virtual void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rOutput.size1() != 0)
+            rOutput.resize(0, 0, false);
+    }
+
     //METHODS TO BE CLEANED: DEPRECATED end
 
     ///@}
@@ -986,12 +1011,12 @@ public:
     {
       return mData;
     }
-    
+
     void SetData(DataValueContainer const& rThisData)
     {
       mData = rThisData;
     }
-    
+
     /**
      * Check if the Data exists with Has(..) methods:
      */
@@ -1033,22 +1058,22 @@ public:
     ///@}
     ///@name Flags
     ///@{
-    
+
     Flags& GetFlags()
       {
 	return *this;
       }
-    
+
     Flags const& GetFlags() const
     {
       return *this;
     }
-    
+
     void SetFlags(Flags const& rThisFlags)
     {
       Flags::operator=(rThisFlags);
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{

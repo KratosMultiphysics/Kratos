@@ -16,7 +16,7 @@ namespace backend {
 template <class Alpha, class Matrix, class Vector1, class Beta, class Vector2>
 struct spmv_impl<
     Alpha, Matrix, Vector1, Beta, Vector2,
-    typename boost::enable_if_c<
+    typename std::enable_if<
             detail::use_builtin_matrix_ops<Matrix>::value && (
             math::static_rows<typename value_type<Matrix>::type>::value != math::static_rows<typename value_type<Vector1>::type>::value ||
             math::static_rows<typename value_type<Matrix>::type>::value != math::static_rows<typename value_type<Vector2>::type>::value)
@@ -67,19 +67,12 @@ class make_block_solver {
                 const backend_params &bprm = backend_params()
                 )
         {
-            S = boost::make_shared<Solver>(adapter::block_matrix<value_type>(A), prm, bprm);
+            S = std::make_shared<Solver>(adapter::block_matrix<value_type>(A), prm, bprm);
         }
 
         template <class Matrix, class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
-                Matrix  const &A,
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
+        std::tuple<size_t, scalar_type> operator()(
+                const Matrix &A, const Vec1 &rhs, Vec2 &&x) const
         {
             const size_t n = backend::rows(system_matrix());
 
@@ -93,15 +86,8 @@ class make_block_solver {
         }
 
         template <class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
-        {
+        std::tuple<size_t, scalar_type>
+        operator()(const Vec1 &rhs, Vec2 &&x) const {
             const size_t n = backend::rows(system_matrix());
 
             rhs_type const * fptr = reinterpret_cast<rhs_type const *>(&rhs[0]);
@@ -113,6 +99,10 @@ class make_block_solver {
             return (*S)(frng, xrng);
         }
 
+        std::shared_ptr<typename Precond::matrix> system_matrix_ptr() const {
+            return S->system_matrix_ptr();
+        }
+
         typename Precond::matrix const& system_matrix() const {
             return S->system_matrix();
         }
@@ -122,7 +112,7 @@ class make_block_solver {
         }
     private:
         typedef make_solver<Precond, IterativeSolver> Solver;
-        boost::shared_ptr<Solver> S;
+        std::shared_ptr<Solver> S;
 };
 
 } // namespace amgcl

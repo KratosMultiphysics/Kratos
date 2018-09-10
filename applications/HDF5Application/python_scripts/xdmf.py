@@ -100,7 +100,7 @@ class Geometry(XdmfItem):
 
 class TopologyCellType:
     """A helper class for identifying the cell/element topology type.
-    
+
     Attributes:
 
     _topologies(dimension, num_points) -> str -- dictionary of XDMF cell types.
@@ -112,7 +112,8 @@ class TopologyCellType:
         (2,4): "Quadrilateral",
         (3,2): "Polyline_2",
         (3,3): "Triangle",
-        (3,4): "Tetrahedron"
+        (3,4): "Tetrahedron",
+        (3,8): "Hexahedron"
         }
 
     def __init__(self, dim, num_points):
@@ -175,15 +176,15 @@ class HDF5UniformDataItem(DataItem):
         return attribs
 
 
-class NodalSolutionStepData(Attribute):
-    """Represents nodal solution step data."""
+class NodalData(Attribute):
+    """Represents nodal solution step and data value container data."""
 
     def __init__(self, name, data):
         #assert isinstance(name, str)
         #assert isinstance(data, DataItem)
         self._name = name
         self._data = data
-    
+
     def create_xml_element(self):
         e = ET.Element(self.xml_tag())
         e.set("Name", self.name())
@@ -197,6 +198,37 @@ class NodalSolutionStepData(Attribute):
 
     def center(self):
         return "Node"
+
+    def attribute_type(self):
+        if len(self._data.dimensions()) == 1:
+            return "Scalar"
+        elif len(self._data.dimensions()) == 2:
+            return "Vector"
+        else:
+            raise Exception("Invalid dimensions.")
+
+class ElementSolutionStepData(Attribute):
+    """Represents element solution step data."""
+
+    def __init__(self, name, data):
+        #assert isinstance(name, str)
+        #assert isinstance(data, DataItem)
+        self._name = name
+        self._data = data
+
+    def create_xml_element(self):
+        e = ET.Element(self.xml_tag())
+        e.set("Name", self.name())
+        e.set("Center", "Cell")
+        e.set("AttributeType", self.attribute_type())
+        e.append(self._data.create_xml_element())
+        return e
+
+    def name(self):
+        return self._name
+
+    def center(self):
+        return "Cell"
 
     def attribute_type(self):
         if len(self._data.dimensions()) == 1:
@@ -298,7 +330,7 @@ class Domain(XdmfItem):
     def __init__(self, grid):
         #assert isinstance(grid, Grid)
         self._grid = grid
-    
+
     def xml_tag(self):
         return "Domain"
 
@@ -313,7 +345,7 @@ class Xdmf(XdmfItem):
     def __init__(self, domain):
         #assert isinstance(domain, Domain)
         self._domain = domain
-    
+
     def xml_tag(self):
         return "Xdmf"
 

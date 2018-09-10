@@ -95,7 +95,7 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
 	set kwlist [list]
 	set vplist [list]
 	#if {$NonNewtonianFluid eq "Yes"} {
-	    lappend plist "BinghamSmoother" "YieldStress" "PowerLawN" "PowerLawK" "GelStrength"
+	#    lappend plist "BinghamSmoother" "YieldStress" "PowerLawN" "PowerLawK" "GelStrength"
 	#}
 	# wa "plist:$plist"
 	# update temporal list 
@@ -103,17 +103,17 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
 	    lappend kwlist [::xmlutils::getKKWord $kxpath $pid "kkword"]
 	    lappend vplist [dict get $matdict $pid]
 	}
-	if {$NonNewtonianFluid eq "Yes"} {
+	#if {$NonNewtonianFluid eq "Yes"} {
 	    # Replace viscosity value by the plastic viscosity value
-	    lset vplist 0 [dict get $matdict "PlasticViscosity"]
-	} else {
+	    #lset vplist 0 [dict get $matdict "PlasticViscosity"]
+	#} else {
 	    # Replace power law N with 1.0
-	    lset vplist 4 1.0
+	    #lset vplist 4 1.0
 	    #Replace YieldStress with 0.0
-	    lset vplist 3 0.0
+	    #lset vplist 3 0.0
 	    #Replace GelStrength with 0.0
-	    lset vplist 6 0.0
-	}
+	    #lset vplist 6 0.0
+	#}
 	# wa "kwlist:$kwlist\nvplist:$vplist"
 
 	set cpropid "0"        
@@ -214,60 +214,60 @@ proc ::wkcf::GetFluidMaterialProperties {AppId {what All} {key ""}} {
     # wa "flag:$flag"
     
     if {$flag} {
-        # Create the material properties dictionary
-        set pdict [dict create]
-        set cproplist [list "NonNewtonianFluid" "Density" "Viscosity" "BulkModulus" "PlasticViscosity" "BinghamSmoother" "YieldStress" "PowerLawN" "PowerLawK" "GelStrength"]
-        set dfvcproplist [list No 0.0 0.0 0.0 0.0 0.0 0.0]
-        # Init the dictionary
-        foreach pid $cproplist dfv $dfvcproplist {
-            dict set pdict $pid $dfv
-        }
-        # wa "pdict:$pdict"
-        # foreach PropertyId $dprops($AppId,GKProps,AllPropertyId)         
-        foreach PropertyId $dprops($AppId,AllKPropertyId) {   
-            # wa "PropertyId:$PropertyId"
-            # Get the material identifier for this property 
-            set MatId $dprops($AppId,Property,$PropertyId,MatId) 
-            # Get the group identifier
-            set GroupId $dprops($AppId,Property,$PropertyId,GroupId)
-            # Get all material properties
-            set mpxpath "[::KMat::findMaterialParent $MatId]//m.[list ${MatId}]"
-            # WarnWinText "mpxpath:$mpxpath"
-            # Get the material properties
-            foreach pid $cproplist {
-                if {$pid =="Density"} {
-                    set xpath "c.General"
-                } else {
-                    set xpath "c.Fluid"
-                }
-                # Get the current value for this properties
-                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
-                # Format some properties
-                if {$pid ne "NonNewtonianFluid"} {
-                    set $pid [GiD_FormatReal "%10.5e" $cvalue]
-                } else {
-                    set $pid $cvalue 
-                }
-                # Create/update the fluid material properties dictionary
-                dict set pdict $pid [set $pid]
-            }
-            # Only the first property
-            break 
-        }
-        # Update cprop
-        if {[llength [dict keys $pdict]]} {
-            switch -exact -- $what {
-            "All" {
-                set cprop $pdict
-            }
-            "PropertyId" {
-                if {[dict exists $pdict $key]} {
-                  set cprop [dict get $pdict $key]
-                } 
-            }
-            }
-            unset pdict
-        }
+	# Create the material properties dictionary
+	set pdict [dict create]
+	set cproplist [list "NonNewtonianFluid" "Density" "Viscosity" "BinghamSmoother" "YieldStress" "PowerLawN" "PowerLawK" "GelStrength"]
+	set dfvcproplist [list No 0.0 0.0 0.0 0.0]
+	# Init the dictionary
+	foreach pid $cproplist dfv $dfvcproplist {
+	    dict set pdict $pid $dfv
+	}
+	# wa "pdict:$pdict"
+	# foreach PropertyId $dprops($AppId,GKProps,AllPropertyId)         
+	foreach PropertyId $dprops($AppId,AllKPropertyId) {   
+	    # wa "PropertyId:$PropertyId"
+	    # Get the material identifier for this property 
+	    set MatId $dprops($AppId,Property,$PropertyId,MatId) 
+	    # Get the group identifier
+	    set GroupId $dprops($AppId,Property,$PropertyId,GroupId)
+	    # Get all material properties
+	    set mpxpath "[::KMat::findMaterialParent $MatId]//m.[list ${MatId}]"
+	    # WarnWinText "mpxpath:$mpxpath"
+	    # Get the material properties
+	    foreach pid $cproplist {
+		if {$pid =="Density"} {
+		    set xpath "c.General"
+		} else {
+		    set xpath "c.Fluid"
+		}
+		# Get the current value for this properties
+		set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
+		# Format some properties
+		if {$pid ne "NonNewtonianFluid"} {
+		    set $pid [GiD_FormatReal "%10.5e" $cvalue]
+		} else {
+		    set $pid $cvalue 
+		}
+		# Create/update the fluid material properties dictionary
+		dict set pdict $pid [set $pid]
+	    }
+	    # Only the first property
+	    break 
+	}
+	# Update cprop
+	if {[llength [dict keys $pdict]]} {
+	    switch -exact -- $what {
+	    "All" {
+		set cprop $pdict
+	    }
+	    "PropertyId" {
+		if {[dict exists $pdict $key]} {
+		  set cprop [dict get $pdict $key]
+		} 
+	    }
+	    }
+	    unset pdict
+	}
     }
     # wa "cprop:$cprop"
     return $cprop

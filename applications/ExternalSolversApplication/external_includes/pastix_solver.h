@@ -2,7 +2,6 @@
 #define  KRATOS_PastixSolver
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 #include "includes/ublas_interface.h"
 // #include "external_includes/superlu/superlu.hpp"

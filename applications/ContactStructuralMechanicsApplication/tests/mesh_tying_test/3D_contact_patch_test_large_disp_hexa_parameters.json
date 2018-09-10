@@ -11,12 +11,11 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "mesh_tying_test/3D_contact_patch_test_large_disp_hexa",
-            "input_file_label" : 0
+            "input_filename"   : "mesh_tying_test/3D_contact_patch_test_large_disp_hexa"
         },
         "material_import_settings"           : {
             "materials_filename" : "mesh_tying_test/3D_contact_patch_test_large_disp_materials.json"
@@ -68,19 +67,13 @@
     "contact_process_list" :[
     {
         "python_module"   : "mesh_tying_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module"   : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto2",
-            "mesh_tying_model_part"       : "Contact_Part",
-            "assume_master_slave"         : "Parts_Parts_Auto1",
-            "geometry_element"            : "Hexahedron",
-            "search_factor"               : 1.0,
-            "max_number_results"          : 100,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 3
+            "mesh_tying_model_part"       : {"0":["Contact_Part"]},
+            "assume_master_slave"         : {"0":["Parts_Parts_Auto1"]}
         }
     }
     ],

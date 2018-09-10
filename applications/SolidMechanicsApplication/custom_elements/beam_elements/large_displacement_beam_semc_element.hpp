@@ -5,9 +5,9 @@
 //   Date:                $Date:              August 2017 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_BEAM_SEMC_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_LARGE_DISPLACEMENT_BEAM_SEMC_ELEMENT_H_INCLUDED)
 #define  KRATOS_LARGE_DISPLACEMENT_BEAM_SEMC_ELEMENT_H_INCLUDED
 
 // System includes
@@ -44,7 +44,7 @@ namespace Kratos
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
-class LargeDisplacementBeamSEMCElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LargeDisplacementBeamSEMCElement
     :public LargeDisplacementBeamElement
 {
 public:
@@ -61,9 +61,12 @@ public:
     typedef GeometryData::IntegrationMethod           IntegrationMethod;
     ///Type definition for beam utilities
     typedef BeamMathUtils<double>                     BeamMathUtilsType;
-    ///Type definition for quaternion 
+    ///Type definition for quaternion
     typedef Quaternion<double>                           QuaternionType;
-
+    ///Type for size
+    typedef GeometryData::SizeType                             SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementBeamElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementBeamSEMCElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementBeamSEMCElement );
@@ -81,7 +84,7 @@ public:
     LargeDisplacementBeamSEMCElement(LargeDisplacementBeamSEMCElement const& rOther);
 
     /// Destructor.
-    virtual ~LargeDisplacementBeamSEMCElement();
+    ~LargeDisplacementBeamSEMCElement() override;
 
 
     ///@}
@@ -97,9 +100,9 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
- 
 
- 
+
+
     /**
      * this is called during the assembling process in order
      * to calculate the elemental mass matrix
@@ -118,7 +121,7 @@ public:
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
     void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
@@ -136,7 +139,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -148,7 +151,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Large Displacement Beam SEMC Element #" << Id();
@@ -156,13 +159,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Large Displacement Beam SEMC Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -187,33 +190,33 @@ protected:
     ///@name Protected Operations
     ///@{
 
- 
-    /**   
+
+    /**
      * Calculate Element Strain Resultants
-     */ 
-    virtual void CalculateStrainResultants(Vector& rStrainResultants, ElementVariables& rVariables, double alpha);
+     */
+    virtual void CalculateStrainResultants(Vector& rStrainResultants, ElementDataType& rVariables, double alpha);
 
-    /**   
+    /**
      * Calculate Element Strain Couples
-     */ 
-    virtual void CalculateStrainCouples(Vector& rStrainCouples, ElementVariables& rVariables, double alpha);
+     */
+    virtual void CalculateStrainCouples(Vector& rStrainCouples, ElementDataType& rVariables, double alpha);
 
-    /**   
+    /**
      * Calculate Element Stress Resultants and Couples
-     */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
+     */
+    void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
-    /**   
+    /**
      * Calculate current curvature
      */
-    virtual void CalculateCurrentCurvature(ElementVariables& rVariables, const Variable<array_1d<double, 3 > >& rVariable) override;
+    void CalculateCurrentCurvature(ElementDataType& rVariables, const Variable<array_1d<double, 3 > >& rVariable) override;
 
 
     /**
       * Calculation of the Tangent Intertia Matrix
       */
-    virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementVariables& rVariables,
+    void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
+					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
@@ -221,8 +224,8 @@ protected:
     /**
       * Calculation of the Inertial Forces Vector
       */
-    virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   ElementVariables& rVariables,
+    void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
+					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
@@ -231,7 +234,7 @@ protected:
     /**
      * Get Element Strain/Stress for energy computation
      */
-    virtual void CalculateStrainEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
+    void CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
 
     ///@}
     ///@name Protected  Access
@@ -270,9 +273,9 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

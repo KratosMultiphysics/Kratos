@@ -96,20 +96,10 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void ImportApplication(KratosApplication::Pointer pNewApplication);
 
-    /// Assign sequential key to the registered variables.
-    /** This method assigns a sequential key to all registerd variables in kratos and all added applications.
-        It is very important to call this function after adding ALL necessary applications using ImportApplication
-        methods before calling this function. Otherwise it leads to uninitialized variables with key 0!
-        @see ImportApplication
-        @see InitializeApplication
+    /// To be deprecated becuase variables have their own hash key.
+    /** The keys of Variables are not sequencial anymore, so this method will be deprecated
     */
-    void Initialize() {
-        unsigned int j = 0;
-        for (KratosComponents<VariableData>::ComponentsContainerType::iterator
-                 i = KratosComponents<VariableData>::GetComponents().begin();
-             i != KratosComponents<VariableData>::GetComponents().end(); i++)
-            i->second->SetKey(++j);
-    }
+    void Initialize() { }
 
     /// Initializes and synchronizes the list of variables, elements and conditions in each application.
     /** This method gives the application the list of all variables, elements and condition which is registered
@@ -136,6 +126,10 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::unordered_set<std::string>&
     GetApplicationsList();
+
+    static std::string Version();
+
+    static std::string BuildType();
 
     ///@}
    protected:

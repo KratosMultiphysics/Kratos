@@ -23,7 +23,6 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysice.MetisApplication import *
 kernel = Kernel()  # defining kernel

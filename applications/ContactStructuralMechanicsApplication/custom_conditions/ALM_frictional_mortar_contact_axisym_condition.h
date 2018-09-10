@@ -19,7 +19,7 @@
 // Project includes
 #include "custom_conditions/ALM_frictional_mortar_contact_condition.h"
 
-namespace Kratos 
+namespace Kratos
 {
 
 ///@name Kratos Globals
@@ -28,89 +28,94 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
     typedef Point                                     PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
     typedef Geometry<PointType>               GeometryPointType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod   IntegrationMethod;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** \brief AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition
- * TODO: Complete this
+
+/**
+ * @class AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition
+ * @todo Complete this
+ * @author Vicente Mataix Ferrandiz
  */
-template< unsigned int TNumNodes, bool TNormalVariation >
-class AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition: public AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation> 
+template< std::size_t TNumNodes, bool TNormalVariation >
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition
+    : public AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>
 {
 public:
     ///@name Type Definitions
     ///@{
-        
+
     /// Counted pointer of AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<2, TNumNodes, true, TNormalVariation> MortarBaseType;
-    
-    typedef AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>   BaseType;
-    
-    typedef typename MortarBaseType::MortarConditionMatrices                             MortarConditionMatrices;
+    typedef AugmentedLagrangianMethodMortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation> MortarBaseType;
 
-    typedef typename MortarBaseType::GeneralVariables                                           GeneralVariables;
-    
-    typedef typename MortarBaseType::AeData                                                               AeData;
-        
-    typedef Condition                                                                          ConditionBaseType;
-    
-    typedef typename ConditionBaseType::VectorType                                                    VectorType;
+    typedef AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
 
-    typedef typename ConditionBaseType::MatrixType                                                    MatrixType;
+    typedef typename MortarBaseType::MortarConditionMatrices                                                   MortarConditionMatrices;
 
-    typedef typename ConditionBaseType::IndexType                                                      IndexType;
+    typedef typename MortarBaseType::GeneralVariables                                                                 GeneralVariables;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                                GeometryPointerType;
+    typedef typename MortarBaseType::AeData                                                                                     AeData;
 
-    typedef typename ConditionBaseType::NodesArrayType                                            NodesArrayType;
+    typedef Condition                                                                                                ConditionBaseType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer                            PropertiesPointerType;
-    
-    typedef typename ConditionBaseType::EquationIdVectorType                                EquationIdVectorType;
-    
-    typedef typename ConditionBaseType::DofsVectorType                                            DofsVectorType;
-    
-    typedef typename std::vector<array_1d<PointType,2>>                                   ConditionArrayListType;
-    
-    typedef Line2D2<Point>                                                                     DecompositionType;
-    
-    typedef DerivativeDataFrictional<2, TNumNodes, TNormalVariation>                          DerivativeDataType;
-    
-    static constexpr unsigned int MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
-         
+    typedef typename ConditionBaseType::VectorType                                                                          VectorType;
+
+    typedef typename ConditionBaseType::MatrixType                                                                          MatrixType;
+
+    typedef typename ConditionBaseType::IndexType                                                                            IndexType;
+
+    typedef typename ConditionBaseType::GeometryType::Pointer                                                      GeometryPointerType;
+
+    typedef typename ConditionBaseType::NodesArrayType                                                                  NodesArrayType;
+
+    typedef typename ConditionBaseType::PropertiesType::Pointer                                                  PropertiesPointerType;
+
+    typedef typename ConditionBaseType::EquationIdVectorType                                                      EquationIdVectorType;
+
+    typedef typename ConditionBaseType::DofsVectorType                                                                  DofsVectorType;
+
+    typedef typename std::vector<array_1d<PointType,2>>                                                         ConditionArrayListType;
+
+    typedef Line2D2<Point>                                                                                           DecompositionType;
+
+    typedef DerivativeDataFrictional<2, TNumNodes, TNormalVariation>                                                DerivativeDataType;
+
+    static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition(): BaseType() 
+    AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition(): BaseType()
     {
     }
-    
+
     // Constructor 1
     AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry):BaseType(NewId, pGeometry)
     {
     }
-    
+
     // Constructor 2
     AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties):BaseType( NewId, pGeometry, pProperties )
     {
@@ -132,21 +137,21 @@ public:
     ///@}
     ///@name Operations
     ///@{
-   
+
     /**
      * Creates a new element pointer from an arry of nodes
      * @param NewId The ID of the new element
-     * @param ThisNodes The nodes of the new element
+     * @param rThisNodes The nodes of the new element
      * @param pProperties The properties assigned to the new element
      * @return a Pointer to the new element
      */
-    
-    Condition::Pointer Create( 
+
+    Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& rThisNodes,
-        PropertiesPointerType pProperties 
+        PropertiesPointerType pProperties
         ) const override;
-    
+
     /**
      * Creates a new element pointer from an existing geometry
      * @param NewId The ID of the new element
@@ -154,13 +159,13 @@ public:
      * @param pProperties The properties assigned to the new element
      * @return a Pointer to the new element
      */
-    
+
     Condition::Pointer Create(
         IndexType NewId,
         GeometryPointerType pGeom,
         PropertiesPointerType pProperties
         ) const override;
-        
+
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
@@ -170,15 +175,15 @@ public:
      * @param rVariables The kinematic variables
      */
     double GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const override;
-    
+
     /**
      * Calculates the radius of axisymmetry
      * @param rVariables Internal values
      * @return Radius The radius of axisymmetry
      */
-    
+
     double CalculateRadius(const GeneralVariables& rVariables) const;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -204,7 +209,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -212,7 +217,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-        
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -233,7 +238,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -254,18 +259,18 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    // Serialization 
-    
+    // Serialization
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
 
     ///@}
@@ -285,4 +290,4 @@ private:
 
 }// namespace Kratos.
 
-#endif // KRATOS_ALM_FRICTIONAL_MORTAR_CONTACT_AXISYM_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_ALM_FRICTIONAL_MORTAR_CONTACT_AXISYM_CONDITION_H_INCLUDED  defined

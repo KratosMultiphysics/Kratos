@@ -112,6 +112,7 @@ protected:
         Matrix  F;
         Matrix  FT;
         Matrix  F0;
+        Matrix  F0Inverse;
         Matrix  DN_DX;
         Matrix  DN_De;
         Matrix  ConstitutiveMatrix;
@@ -416,7 +417,6 @@ public:
     void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                    array_1d<double, 3 > & Output,
                    const ProcessInfo& rCurrentProcessInfo) override;
-    void IterativeExtrapolation(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
@@ -606,6 +606,9 @@ protected:
      * Container for the total deformation gradient determinants
      */
     double mDeterminantF0;
+    /* Container for inverse of total deformation gradient
+     */
+    Matrix mInverseDeformationGradientF0;
     /**
      * Container for historical inverse of Jacobian at reference configuration invJ0
      */
@@ -706,6 +709,11 @@ protected:
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues);
 
+    /**
+     * Update Variables of the Element to the Parameters of the Constitutive Law if needed
+     */
+    virtual void UpdateGeneralVariables(GeneralVariables& rVariables,
+                                     ConstitutiveLaw::Parameters& rValues);
 
 
     /**

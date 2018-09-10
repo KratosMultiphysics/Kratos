@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED )
+#if !defined(KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED)
 #define  KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED
 
 // System includes
@@ -72,7 +72,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
 
 
         /// Destructor.
-        virtual ~ModifiedMisesYieldCriterion();
+        ~ModifiedMisesYieldCriterion() override;
 
 
         ///@}
@@ -83,24 +83,24 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
 	 * Clone function (has to be implemented by any derived class)
 	 * @return a pointer to a new instance of this yield criterion
 	 */
-        virtual YieldCriterion::Pointer Clone() const;
+        YieldCriterion::Pointer Clone() const override;
 
         ///@}
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables);
-        
-        
-        double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables);
+        double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables) override;
 
 
-        double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rVariables);
+        double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables) override;
+
+
+        double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rVariables) override;
 
         ///@}
         ///@name Access
         ///@{
-        
+
 
         ///@}
         ///@name Inquiry
@@ -126,8 +126,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
         ///@}
         ///@name Protected member Variables
         ///@{
-	
-	
+
+
         ///@}
         ///@name Protected Operators
         ///@{
@@ -136,7 +136,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
         ///@}
         ///@name Protected Operations
         ///@{
-        
+
         ///@}
         ///@name Protected  Access
         ///@{
@@ -178,7 +178,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
         ///@name Private  Access
         ///@{
 
-	
+
 	///@}
 	///@name Serialization
 	///@{
@@ -186,9 +186,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
 
 	// A private default constructor necessary for serialization
 
-	virtual void save(Serializer& rSerializer) const;
+	void save(Serializer& rSerializer) const override;
 
-	virtual void load(Serializer& rSerializer);
+	void load(Serializer& rSerializer) override;
 
         ///@}
         ///@name Private Inquiry
@@ -219,4 +219,4 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_MODIFIED_MISES_YIELD_CRITERION_H_INCLUDED  defined

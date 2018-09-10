@@ -8,12 +8,11 @@
 //
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <pybind11/pybind11.h>
+//#include <pybind11/st1.h>
 #include <cstring>
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -31,20 +30,19 @@
 //Application includes
 #include "custom_python/add_custom_conditions_to_python.h"
 
-
 namespace Kratos
 {
 
     namespace Python
     {
-	using namespace boost::python;
+	using namespace pybind11;
 
 	typedef Condition                            ConditionBaseType;
 	typedef Geometry<Node<3> >                        GeometryType;
 	typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 	typedef GeometryType::PointsArrayType           NodesArrayType;
 
-	void  AddCustomConditionsToPython()
+	void  AddCustomConditionsToPython(pybind11::module& m)
 	{
 	    // class_< FaceForce3D, FaceForce3D::Pointer, bases< ConditionBaseType > >
 	    // ("FaceForce3D",

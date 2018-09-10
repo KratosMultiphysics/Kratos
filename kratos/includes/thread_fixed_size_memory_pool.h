@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
+//
 //
 
 
@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <list>
+#include <algorithm>
 
 #include "includes/chunk.h"
 
@@ -32,12 +33,12 @@ namespace Kratos
   /** The memory management of Kratos is implemented based on the design
 	  given in Modern C++ Design by A. Alexandrescu and ThreadFixedSizeMemoryPool is the second
 	  layer of it "Called FixedAllocator" holding chunks.
-	  This class is the owner of the chunks of this thread and the only one who can 
-	  allocate in them. The rest of the threads would only deallocate objects. 
+	  This class is the owner of the chunks of this thread and the only one who can
+	  allocate in them. The rest of the threads would only deallocate objects.
   */
   class ThreadFixedSizeMemoryPool : public LockObject
     {
-    public:    
+    public:
 	  ///@name Type Definitions
 	  ///@{
 
@@ -75,7 +76,7 @@ namespace Kratos
 	  {
 	  }
 
-      /// Destructor 
+      /// Destructor
 	  virtual ~ThreadFixedSizeMemoryPool() {
 
 	  }
@@ -102,7 +103,7 @@ namespace Kratos
 			  r_available_chunk.Initialize();
 		  KRATOS_CHECK_IS_FALSE(r_available_chunk.IsFull());
 		  p_result = r_available_chunk.Allocate();
-		  KRATOS_DEBUG_CHECK_NOT_EQUAL(p_result, nullptr); 
+		  KRATOS_DEBUG_CHECK_NOT_EQUAL(p_result, nullptr);
 		  if (r_available_chunk.IsFull())
 			  mAvailableChunks.pop_front();
 		  return p_result;
@@ -208,9 +209,9 @@ namespace Kratos
 			  overhead_percentage = static_cast<double>(memory_overhead)/(memory_used - memory_overhead);
 		  overhead_percentage *= 100.00;
 
-		  rOStream << GetNumberOfChunks() << " Chunks of " 
-			  << SizeInBytesToString(ChunkSize()) << " bytes each. Total memory usage: " 
-			  << SizeInBytesToString(MemoryUsed()) << " bytes and memory overhead " 
+		  rOStream << GetNumberOfChunks() << " Chunks of "
+			  << SizeInBytesToString(ChunkSize()) << " bytes each. Total memory usage: "
+			  << SizeInBytesToString(MemoryUsed()) << " bytes and memory overhead "
 			  << SizeInBytesToString(MemoryOverhead()) << "(" << overhead_percentage << "%)" << std::endl;
 	  }
 
@@ -237,7 +238,7 @@ namespace Kratos
 		void AddChunk() {
 			if (mThreadNumber != static_cast<std::size_t>(GetThreadNumber()))
                 KRATOS_ERROR;
-                
+
 			KRATOS_DEBUG_CHECK_EQUAL(mThreadNumber, static_cast<std::size_t>(GetThreadNumber()));
 
             mChunks.emplace_back(mBlockSizeInBytes, mChunkSize);

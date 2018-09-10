@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
 #define  KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
@@ -55,6 +55,10 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of UpdatedLagrangianElement
     KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianElement );
@@ -71,7 +75,7 @@ public:
     UpdatedLagrangianElement(UpdatedLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~UpdatedLagrangianElement();
+    ~UpdatedLagrangianElement() override;
 
     ///@}
     ///@name Operators
@@ -106,7 +110,7 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-  
+
     // //************* GETTING METHODS
 
     //SET
@@ -156,7 +160,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Updated Lagrangian Element #" << Id();
@@ -164,13 +168,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Updated Lagrangian Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -207,7 +211,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables& rVariables, 
+    void InitializeElementData(ElementDataType& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -215,49 +219,43 @@ protected:
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementVariables & rVariables, 
+    void FinalizeStepVariables(ElementDataType & rVariables,
 				       const double& rPointNumber ) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const double& rPointNumber) override;
 
 
     /**
      * Calculate Element Jacobian
      */
-    void CalculateKinetics(ElementVariables& rVariables,
+    void CalculateKinetics(ElementDataType& rVariables,
 			   const double& rPointNumber) override;
-    
 
-    
+
+
     /**
      * Calculation of the Deformation Gradient F
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition);
+    void CalculateDeformationGradient(Matrix& rF,
+                                      const Matrix& rDN_DX,
+                                      const Matrix& rDeltaPosition);
 
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB,
-				    Matrix& rF,
-				    Matrix& rDN_DX);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementVariables& rVariables, 
+    void GetHistoricalVariables( ElementDataType& rVariables,
 				 const double& rPointNumber ) override;
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables) override;
+    double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     ///@}
     ///@name Protected  Access
@@ -293,9 +291,9 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
@@ -315,4 +313,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined

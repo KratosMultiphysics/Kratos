@@ -18,11 +18,6 @@
 #include <string>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "shape_optimization_application.h"
@@ -62,6 +57,9 @@ public:
   ///@name Type Definitions
   ///@{
 
+    // Type definitions for better reading later
+    typedef array_1d<double,3> array_3d;
+
   /// Pointer definition of Mapper
   KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
@@ -88,10 +86,16 @@ public:
   ///@{
 
   // --------------------------------------------------------------------------
-  virtual void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace ) = 0;
+  virtual void InitializeMapping(){};
 
   // --------------------------------------------------------------------------
-  virtual void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace ) = 0;
+  virtual void MapToDesignSpace(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace) = 0;
+
+  // --------------------------------------------------------------------------
+  virtual void MapToGeometrySpace(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace) = 0;
+
+  // --------------------------------------------------------------------------
+  virtual void FinalizeMapping(){};
 
   // --------------------------------------------------------------------------
 

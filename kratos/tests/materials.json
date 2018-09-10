@@ -1,11 +1,11 @@
-{  
+{
 	"properties": [{
 		"model_part_name": "Inlets",
 		"properties_id": 1,
 		"Material": {
 			"name": "steel",
 			"constitutive_law": {
-				"name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+				"name": "LinearElastic3DLaw"
 			},
 			"Variables": {
 				"KratosMultiphysics.YOUNG_MODULUS": 200.0,
@@ -31,7 +31,7 @@
 		"Material": {
 			"name": "steel",
 			"constitutive_law": {
-				"name": "KratosMultiphysics.ConstitutiveLaw"
+				"name": "KratosMultiphysics.FluidDynamicsApplication.Newtonian2DLaw"
 			},
 			"Variables": {
 				"YOUNG_MODULUS": 100.0,
@@ -40,7 +40,7 @@
                 "HTC" : 0.3,
                 "TIME_STEPS" : 159,
                 "CAUCHY_STRESS_VECTOR" : [1.5,0.3,-2.58],
-                "KratosMultiphysics.LOCAL_INERTIA_TENSOR" : [[1.27,-22.5],[2.01,0.257]],
+                "LOCAL_INERTIA_TENSOR" : [[1.27,-22.5],[2.01,0.257]],
                 "UPDATE_SENSITIVITIES" : true,
                 "IDENTIFIER" : "MyTestString"
 			},

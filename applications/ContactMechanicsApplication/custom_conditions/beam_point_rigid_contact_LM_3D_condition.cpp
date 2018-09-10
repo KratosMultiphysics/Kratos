@@ -58,7 +58,7 @@ namespace Kratos
   Condition::Pointer BeamPointRigidContactLM3DCondition::Create(IndexType NewId, NodesArrayType
 								 const& ThisNodes,  PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new BeamPointRigidContactLM3DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<BeamPointRigidContactLM3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -75,7 +75,7 @@ namespace Kratos
 
   //***********************************************************************************
   //***********************************************************************************
-  
+
   void BeamPointRigidContactLM3DCondition::GetDofList(DofsVectorType& rConditionDofList,
 						      ProcessInfo& rCurrentProcessInfo)
   {
@@ -92,10 +92,10 @@ namespace Kratos
 
 	if( dimension == 3 ){
 	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X)); 
+	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
 	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
 	}
-	
+
         rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 
         rConditionDofList.push_back(GetGeometry()[i].pGetDof(LAGRANGE_MULTIPLIER_NORMAL));
@@ -131,7 +131,7 @@ namespace Kratos
 	  rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
           rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
 	}
-	
+
 	rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
 
 	rResult[index + 6] = GetGeometry()[i].GetDof(LAGRANGE_MULTIPLIER_NORMAL).EquationId();
@@ -152,7 +152,7 @@ namespace Kratos
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       condition_size  = number_of_nodes * ((dimension * (dimension-1))+1);
 
-    if ( rValues.size() != condition_size ) 
+    if ( rValues.size() != condition_size )
       rValues.resize( condition_size, false );
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -166,7 +166,7 @@ namespace Kratos
 	  rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
 	  rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
 	}
-	
+
 	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
 	rValues[index + 6] = GetGeometry()[i].GetSolutionStepValue( LAGRANGE_MULTIPLIER_NORMAL, Step );
       }
@@ -233,7 +233,7 @@ namespace Kratos
 	  rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
 
 	}
-	
+
 	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
 	rValues[index + 5] = 0;
       }
@@ -244,21 +244,21 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
- 
+
   void BeamPointRigidContactLM3DCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
   {
       KRATOS_TRY
 
-       
+
        ConditionVariables ContactVariables;
 
-       SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);           
+       SpatialBoundingBox::BoundingBoxParameters BoxParameters(this->GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactVariables.RelativeDisplacement);
 
        //to perform contact with a tube radius must be set
        BoxParameters.SetRadius(GetGeometry()[0].GetValue(CROSS_SECTION_AREA));
-       
+
        if ( this->mpRigidWall->IsInside( BoxParameters, rCurrentProcessInfo ) ) {
-       
+
   	   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   	   array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
@@ -274,12 +274,12 @@ namespace Kratos
         }
         else {
            mTangentialVariables.PreviousTangentForceModulus = 0.0;
-        } 
- 
+        }
+
        mTangentialVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
        mTangentialVariables.Sign = 1;
-       
+
        mTangentialVariables.FrictionCoefficient        =  GetProperties()[FRICTION_COEFFICIENT];//0.3;
        mTangentialVariables.DynamicFrictionCoefficient =  GetProperties()[MU_DYNAMIC];//0.2;
        mTangentialVariables.StaticFrictionCoefficient  =  GetProperties()[MU_STATIC];//0.3;
@@ -298,7 +298,7 @@ namespace Kratos
   //************************************************************************************
 
   void BeamPointRigidContactLM3DCondition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-  {  
+  {
     //added to control force evolution per step:
     // array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
     // mTangentialVariables.PreviousTangentForceModulus = norm_2(ContactForce);
@@ -308,7 +308,7 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-    
+
   void BeamPointRigidContactLM3DCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 								    VectorType& rRightHandSideVector,
 								    Flags& rCalculationFlags)
@@ -334,16 +334,16 @@ namespace Kratos
       {
         if ( rRightHandSideVector.size() != MatSize )
 	  rRightHandSideVector.resize( MatSize, false );
-      
+
 	rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
-	  
+
       }
   }
 
   //************************************************************************************
   //************************************************************************************
 
-  void BeamPointRigidContactLM3DCondition::InitializeConditionVariables (ConditionVariables& rVariables, 
+  void BeamPointRigidContactLM3DCondition::InitializeConditionVariables (ConditionVariables& rVariables,
 									const ProcessInfo& rCurrentProcessInfo)
   {
 
@@ -353,7 +353,7 @@ namespace Kratos
 
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
-  
+
   void BeamPointRigidContactLM3DCondition::CalculateKinematics(ConditionVariables& rVariables,
 							       const ProcessInfo& rCurrentProcessInfo,
 							       const double& rPointNumber)
@@ -370,7 +370,7 @@ namespace Kratos
       rVariables.Options.Set(ACTIVE,true);
 
       //double& NormalLM = GetGeometry()[0].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_NORMAL);
-      
+
       //check previous normal reaction from the lagrange multiplier
       // if( NormalLM > 0 )
       // 	rVariables.Options.Set(ACTIVE,false);
@@ -380,12 +380,12 @@ namespace Kratos
 
     }
     else{
-      
+
       rVariables.Options.Set(ACTIVE,false);
-      
+
     }
 
-  
+
     KRATOS_CATCH( "" )
       }
 
@@ -398,7 +398,7 @@ namespace Kratos
   {
 
     KRATOS_TRY
-      
+
     WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
@@ -410,11 +410,11 @@ namespace Kratos
     for(unsigned int i = 0; i < rN.size(); i++)
       {
 	if(rN[i].Is(BOUNDARY)){
-	    
+
 	  Neighb_Point[0] = rN[i].X();
 	  Neighb_Point[1] = rN[i].Y();
 	  Neighb_Point[2] = rN[i].Z();
-	    
+
 	  distance += norm_2(Contact_Point-Neighb_Point);
 
 	  counter ++;
@@ -426,7 +426,7 @@ namespace Kratos
 
     if( distance == 0 )
       distance = 1;
-    
+
     //get contact properties and parameters
     double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
     double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
@@ -441,16 +441,16 @@ namespace Kratos
     PenaltyParameter *= 1e-8;
 
     rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
-    rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
-    
+    rVariables.Penalty.Tangent = rVariables.Penalty.Normal;
+
 
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
-    
+
     // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" Penalty.Tangent "<<rVariables.Penalty.Tangent<<std::endl;
 
     KRATOS_CATCH( "" )
   }
-  
+
 
   //***********************************************************************************
   //***********************************************************************************
@@ -464,9 +464,9 @@ namespace Kratos
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    
+
     if( rVariables.Options.Is(ACTIVE)){
-      
+
       unsigned int size = dimension*2+1;
       MatrixType Kuug = ZeroMatrix(size,size);
 
@@ -478,7 +478,7 @@ namespace Kratos
 
       //Stabilization term
       double penalty = 1;
-      double stab_LM = -rVariables.Gap.Normal * rVariables.Gap.Normal * penalty; 
+      double stab_LM = -rVariables.Gap.Normal * rVariables.Gap.Normal * penalty;
 
       Kuug(dimension*2, dimension*2) = stab_LM;
 
@@ -498,7 +498,7 @@ namespace Kratos
     else{
 
       unsigned int size = dimension*2+1;
-      rLeftHandSideMatrix= ZeroMatrix(size,size);   
+      rLeftHandSideMatrix= ZeroMatrix(size,size);
 
       //to avoid system with a zero row and column
       MatrixType Kuug = ZeroMatrix(size,size);
@@ -510,7 +510,7 @@ namespace Kratos
 
 
     }
- 
+
 
     KRATOS_CATCH( "" )
   }
@@ -522,7 +522,7 @@ namespace Kratos
    {
        KRATOS_TRY
 
-       
+
        KRATOS_CATCH( "" )
 
    }
@@ -549,7 +549,7 @@ namespace Kratos
     else{
 
       rRightHandSideVector = ZeroVector(dimension * 2 + 1 );
-    
+
     }
 
 
@@ -563,11 +563,11 @@ namespace Kratos
 									      ConditionVariables& rVariables,
 									      double& rIntegrationWeight)
   {
-      
+
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       double& NormalLM = GetGeometry()[0].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_NORMAL);
-      
+
       double penalty = 1;
 
       rRightHandSideVector[dimension*2] = rVariables.Gap.Normal * (1.0 + NormalLM * rVariables.Gap.Normal * penalty);
@@ -577,7 +577,7 @@ namespace Kratos
 
       array_1d<double, 3 >& ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
-      
+
       for(unsigned int j = 0; j < dimension; j++)
 	{
 	  ContactForce[j] = NormalLM * rVariables.Surface.Normal[j];
@@ -592,7 +592,7 @@ namespace Kratos
 
 
       //std::cout<<"[ID: "<<GetGeometry()[0].Id()<<"]:  Normal "<<rVariables.Surface.Normal<<" Gap "<<rVariables.Gap.Normal<<" LM_N "<<NormalLM<<std::endl;
-      
+
 
   }
 
@@ -606,7 +606,7 @@ namespace Kratos
 
       KRATOS_TRY
 
-       
+
       KRATOS_CATCH( "" )
 
 
@@ -636,7 +636,7 @@ namespace Kratos
 	 {
 	   RadiusVector[i] =  SectionMeanRadius * rVariables.Surface.Normal[i];
 	 }
-       
+
        array_1d<double, 3 > DeltaRotationDisplacement;
        MathUtils<double>::CrossProduct( DeltaRotationDisplacement, DeltaRotation, RadiusVector );
 
@@ -650,18 +650,18 @@ namespace Kratos
        // 	 array_1d<double, 3 > NeighbDeltaDisplacement;
 
        // 	 double counter = 0;
-       
+
        // 	 for(unsigned int i = 0; i < rN.size(); i++)
        // 	   {
        // 	     if(rN[i].Is(BOUNDARY)){
-	          
+
        // 	       const array_1d<double, 3> & NeighbCurrentDisplacement  =  GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
        // 	       const array_1d<double, 3> & NeighbPreviousDisplacement =  GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
 
        // 	       array_1d<double, 3 > NeighbDeltaDisplacement           =  NeighbCurrentDisplacement-NeighbPreviousDisplacement;
 
        // 	       DeltaDisplacement += NeighbDeltaDisplacement;
-     
+
        // 	       counter ++;
        // 	     }
        // 	   }
@@ -671,7 +671,7 @@ namespace Kratos
        // }
 
        VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->GetVelocity();
-       
+
        rTangentRelativeMovement = 0.0;
        VectorType TotalTangentRelativeMovement = ZeroVector(dimension);
 
@@ -700,14 +700,14 @@ namespace Kratos
   {
        mTangentialVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement);
 
- 
-       double TangentForceModulus = rVariables.Penalty.Tangent * rVariables.Gap.Tangent; //+ mTangentialVariables.PreviousTangentForceModulus; 
-     
 
- 
+       double TangentForceModulus = rVariables.Penalty.Tangent * rVariables.Gap.Tangent; //+ mTangentialVariables.PreviousTangentForceModulus;
+
+
+
        if ( fabs(TangentForceModulus) >  mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) && fabs(rVariables.Gap.Tangent) > 1e-200) {
 
-	 mTangentialVariables.Sign =  rVariables.Gap.Tangent/ fabs( rVariables.Gap.Tangent ) ; 
+	 mTangentialVariables.Sign =  rVariables.Gap.Tangent/ fabs( rVariables.Gap.Tangent ) ;
 
 	 TangentForceModulus =  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ;
 	 mTangentialVariables.Slip = true;
@@ -721,7 +721,7 @@ namespace Kratos
        return TangentForceModulus;
   }
 
-  
+
 
   //**************************** Check friction coefficient ***************************
   //***********************************************************************************
@@ -734,7 +734,7 @@ namespace Kratos
        double Velocity = 0;
        Velocity = rTangentRelativeMovement / mTangentialVariables.DeltaTime;
 
- 
+
        //Addicional constitutive parameter  C
        //which describes how fast the static coefficient approaches the dynamic:
        double C=0.1;
@@ -749,7 +749,7 @@ namespace Kratos
 
        //Square root regularization
        FrictionCoefficient *= fabs(Velocity)/sqrt( ( Velocity * Velocity ) + ( E * E ) );
-       
+
        //Hyperbolic regularization
        //FrictionCoefficient *= tanh( fabs(Velocity)/E );
 
@@ -759,6 +759,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-
-

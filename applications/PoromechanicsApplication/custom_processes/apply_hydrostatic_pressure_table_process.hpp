@@ -45,17 +45,17 @@ public:
     ///------------------------------------------------------------------------------------
     
     /// Destructor
-    virtual ~ApplyHydrostaticPressureTableProcess() {}
+    ~ApplyHydrostaticPressureTableProcess() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Execute method is used to execute the ApplyHydrostaticPressureTableProcess algorithms.
-    void Execute()
+    void Execute() override
     {
     }
     
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
         
@@ -64,11 +64,11 @@ public:
         const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
         double reference_coordinate = mpTable->GetValue(Time);
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
 
             array_1d<double,3> Coordinates;
 
@@ -96,19 +96,19 @@ public:
     }
     
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "ApplyHydrostaticPressureTableProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ApplyHydrostaticPressureTableProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

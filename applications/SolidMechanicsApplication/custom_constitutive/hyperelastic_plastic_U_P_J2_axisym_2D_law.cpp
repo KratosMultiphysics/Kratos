@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
@@ -61,8 +58,7 @@ HyperElasticPlasticUPJ2Axisym2DLaw::HyperElasticPlasticUPJ2Axisym2DLaw(const Hyp
 
 ConstitutiveLaw::Pointer HyperElasticPlasticUPJ2Axisym2DLaw::Clone() const
 {
-    HyperElasticPlasticUPJ2Axisym2DLaw::Pointer p_clone(new HyperElasticPlasticUPJ2Axisym2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticUPJ2Axisym2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

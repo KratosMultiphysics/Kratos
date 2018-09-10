@@ -37,7 +37,6 @@ public:
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
                 "gravity_direction" : 2,
@@ -55,7 +54,6 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         
-        mmesh_id = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
         mis_fixed = rParameters["is_fixed"].GetBool();
         mgravity_direction = rParameters["gravity_direction"].GetInt();
@@ -68,28 +66,28 @@ public:
     ///------------------------------------------------------------------------------------
     
     /// Destructor
-    virtual ~ApplyConstantHydrostaticPressureProcess() {}
+    ~ApplyConstantHydrostaticPressureProcess() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Execute method is used to execute the ApplyConstantHydrostaticPressureProcess algorithms.
-    void Execute()
+    void Execute() override
     {
     }
     
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
         
         Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
         
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
         
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
             
             array_1d<double,3> Coordinates;
 
@@ -122,19 +120,19 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "ApplyConstantHydrostaticPressureProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "ApplyConstantHydrostaticPressureProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -145,7 +143,6 @@ protected:
     /// Member Variables
 
     ModelPart& mr_model_part;
-    std::size_t mmesh_id;
     std::string mvariable_name;
     bool mis_fixed;
     unsigned int mgravity_direction;

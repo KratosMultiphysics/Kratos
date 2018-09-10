@@ -1,23 +1,35 @@
-#include <boost/python.hpp>
-//#include <boost/python/init.hpp>
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//                   Michael Andre
+//                   Philipp Bucher
+//
 
+// System includes
+
+// External includes
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h> // required for the automatic conversion std::vector <=> python-list, see below
+
+// Project includes
 #include "mpi_python.h"
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(mpipython, m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
-
-using namespace boost::python;
-
-boost::python::list (PythonMPI::*gather_list)(PythonMPIComm&,
-	        boost::python::list, int) = &PythonMPI::gather;
-
-BOOST_PYTHON_MODULE(mpipython)
-{
-    class_<PythonMPIComm,boost::noncopyable>("PythonMPIComm")
-    .def(init<>())
+    py::class_<PythonMPIComm>(m,"PythonMPIComm")
+    .def(py::init<>())
     .def("barrier",&PythonMPIComm::barrier)
     ;
 
@@ -26,20 +38,23 @@ BOOST_PYTHON_MODULE(mpipython)
     RankFuncType FRank = &PythonMPI::rank;
     SizeFuncType FSize = &PythonMPI::size;
 
-    class_<PythonMPI,boost::noncopyable>("PythonMPI",no_init) //  init<boost::python::list>())
-    .add_property("rank",FRank)
-    .add_property("size",FSize)
-    .def("gather",&PythonMPI::gather<double>)
-    .def("gather",&PythonMPI::gather<int>)
-    .def("gather", gather_list)
+    // note that for the functions returning a vector the conversion to a python-list is automatically
+    // done by pybind, see https://github.com/pybind/pybind11/blob/master/docs/advanced/cast/stl.rst
+
+    py::class_<PythonMPI>(m,"PythonMPI")
+    .def_property_readonly("rank",FRank)
+    .def_property_readonly("size",FSize)
+    .def("gather", &PythonMPI::gather<double>)
+    .def("gather", &PythonMPI::gather<int>)
+    .def("gatherv", &PythonMPI::gatherv<double>)
+    .def("gatherv", &PythonMPI::gatherv<int>)
     .def("allgather",&PythonMPI::allgather<double>)
     .def("allgather",&PythonMPI::allgather<int>)
-    .add_property("world",make_function(&PythonMPI::GetWorld,return_internal_reference<1,with_custodian_and_ward_postcall<1,0> >() ) )
+    .def_property_readonly("world",&PythonMPI::GetWorld,py::return_value_policy::reference_internal )
     ;
 
-    def("GetMPIInterface",&GetMPIInterface,return_value_policy<reference_existing_object>());
+    m.def("GetMPIInterface",&GetMPIInterface,py::return_value_policy::reference);
 }
 
 } // Namespace Python
-
 } // Namespace Kratos

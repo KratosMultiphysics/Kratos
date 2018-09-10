@@ -1,5 +1,7 @@
 #include "hdf5_file_parallel.h"
 
+#include "includes/kratos_parameters.h"
+
 namespace Kratos
 {
 namespace HDF5

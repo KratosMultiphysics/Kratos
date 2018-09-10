@@ -16,7 +16,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "custom_utilities/mapper_flags.h"
@@ -31,11 +30,8 @@
 #include "custom_mappers/nearest_element_mapper.h"
 
 
-namespace Kratos
-{
-
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
 // Wrapper functions for taking a default argument for the flags // TODO inline? Jordi
 inline void UpdateInterfaceWithoutArgs(Mapper& dummy)
@@ -89,9 +85,9 @@ inline void InverseMapWithoutOptionsVector(Mapper& dummy,
     dummy.InverseMap(origin_variable, destination_variable, dummy_flags);
 }
 
-void  AddCustomMappersToPython()
+void  AddCustomMappersToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    namespace py = pybind11;
 
     void (Mapper::*pMapScalarOptions)(const Variable<double> &,
             const Variable<double> &,
@@ -112,25 +108,24 @@ void  AddCustomMappersToPython()
             const Variable< array_1d<double, 3> > &,
             Kratos::Flags)
         = &Mapper::InverseMap;
-    
-    // Exposing the base class of the Mappers to Python, but without constructor
-    class_< Mapper, Mapper::Pointer, boost::noncopyable > mapper 
-        = class_< Mapper, Mapper::Pointer, boost::noncopyable >("Mapper", no_init)
-            .def("UpdateInterface",  UpdateInterfaceWithoutArgs)
-            .def("UpdateInterface",  UpdateInterfaceWithOptions)
-            .def("UpdateInterface",  UpdateInterfaceWithSearchRadius)
-            .def("Map",              MapWithoutOptionsScalar)
-            .def("Map",              MapWithoutOptionsVector)
-            .def("InverseMap",       InverseMapWithoutOptionsScalar)
-            .def("InverseMap",       InverseMapWithoutOptionsVector)
 
-            .def("UpdateInterface",  &Mapper::UpdateInterface)
-            .def("Map",              pMapScalarOptions)
-            .def("Map",              pMapVectorOptions)
-            .def("InverseMap",       pInverseMapScalarOptions)
-            .def("InverseMap",       pInverseMapVectorOptions)
-            ;
-    
+    // Exposing the base class of the Mappers to Python, but without constructor
+    auto mapper = py::class_< Mapper, Mapper::Pointer >(m, "Mapper")
+        .def("UpdateInterface",  UpdateInterfaceWithoutArgs)
+        .def("UpdateInterface",  UpdateInterfaceWithOptions)
+        .def("UpdateInterface",  UpdateInterfaceWithSearchRadius)
+        .def("Map",              MapWithoutOptionsScalar)
+        .def("Map",              MapWithoutOptionsVector)
+        .def("InverseMap",       InverseMapWithoutOptionsScalar)
+        .def("InverseMap",       InverseMapWithoutOptionsVector)
+
+        .def("UpdateInterface",  &Mapper::UpdateInterface)
+        .def("Map",              pMapScalarOptions)
+        .def("Map",              pMapVectorOptions)
+        .def("InverseMap",       pInverseMapScalarOptions)
+        .def("InverseMap",       pInverseMapVectorOptions)
+        ;
+
     // Adding the flags that can be used while mapping
     mapper.attr("SWAP_SIGN")        = MapperFlags::SWAP_SIGN;
     mapper.attr("ADD_VALUES")       = MapperFlags::ADD_VALUES;
@@ -140,19 +135,10 @@ void  AddCustomMappersToPython()
     // Jordi is it possible to expose the mappers without a constructor and use them only through the factory?
     // This would circumvent problems with the wrong space being selected
 
-    // Exposing the Mappers
-    class_< NearestNeighborMapper, bases<Mapper>, boost::noncopyable>
-    ("NearestNeighborMapper", init<ModelPart&, ModelPart&, Parameters>());
-    class_< NearestElementMapper, bases<Mapper>, boost::noncopyable>
-    ("NearestElementMapper", init<ModelPart&, ModelPart&, Parameters>());
-
     // Exposing the MapperFactory
-    class_< MapperFactory, boost::noncopyable>("MapperFactory", no_init)
-    .def("CreateMapper", &MapperFactory::CreateMapper)
-    .staticmethod("CreateMapper")
-    ;
+    py::class_< MapperFactory, MapperFactory::Pointer>(m, "MapperFactory")
+        .def_static("CreateMapper", &MapperFactory::CreateMapper);
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos

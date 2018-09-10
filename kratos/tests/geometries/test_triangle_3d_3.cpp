@@ -19,6 +19,8 @@
 #include "testing/testing.h"
 #include "geometries/triangle_3d_3.h"
 #include "tests/geometries/test_geometry.h"
+#include "tests/geometries/test_shape_function_derivatives.h"
+#include "tests/geometries/cross_check_shape_functions_values.h"
 
 // Utility includes
 #include "utilities/geometry_utilities.h"
@@ -498,6 +500,23 @@ namespace Testing
         Point point_1( 0.4, 0.5, 0.6);
         Point point_2( 1.0, 1.0, 1.0);
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+      auto geom = GenerateEquilateralTriangle3D3<Node<3>>();
+      array_1d<double, 3> coord(3);
+      coord[0] = 1.0 / 2.0;
+      coord[1] = 1.0 / 8.0;
+      coord[2] = 0.0;
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.375, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.125, TOLERANCE);
+      CrossCheckShapeFunctionsValues(*geom);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateEquilateralTriangle3D3<Node<3>>();
+        TestAllShapeFunctionsLocalGradients(*geom);
     }
 
 } // namespace Testing.

@@ -10,16 +10,13 @@
 //
 
 #if !defined(KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_CONTACT_CRITERIA_H)
-#define	KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_CONTACT_CRITERIA_H
+#define KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_CONTACT_CRITERIA_H
 
 /* System includes */
 
 /* External includes */
 
 /* Project includes */
-#include "utilities/openmp_utils.h"
-#include "includes/model_part.h"
-#include "includes/define.h"
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
@@ -43,19 +40,22 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@name Kratos Classes
 ///@{
 
 /**
+ * @class DisplacementLagrangeMultiplierContactCriteria
+ * @ingroup ContactStructuralMechanicsApplication
  * @brief Convergence criteria for contact problems
- * This class implements a convergence control based on nodal displacement and
+ * @details This class implements a convergence control based on nodal displacement and
  * lagrange multiplier values. The error is evaluated separately for each of them, and
  * relative and absolute tolerances for both must be specified.
+ * @author Vicente Mataix Ferrandiz
  */
 template<   class TSparseSpace,
             class TDenseSpace >
-class DisplacementLagrangeMultiplierContactCriteria 
+class DisplacementLagrangeMultiplierContactCriteria
     : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
@@ -63,25 +63,27 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of DisplacementLagrangeMultiplierContactCriteria
     KRATOS_CLASS_POINTER_DEFINITION( DisplacementLagrangeMultiplierContactCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >     BaseType;
- 
-    typedef TSparseSpace                                  SparseSpaceType;
+    /// The base class definition (and it subclasses)
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    typedef typename BaseType::TDataType                    TDataType;
+    typedef typename BaseType::DofsArrayType            DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
 
-    typedef typename BaseType::TDataType                        TDataType;
+    /// The sparse space used
+    typedef TSparseSpace                              SparseSpaceType;
 
-    typedef typename BaseType::DofsArrayType                DofsArrayType;
+    /// The table stream definition TODO: Replace by logger
+    typedef TableStreamUtility::Pointer       TablePrinterPointerType;
 
-    typedef typename BaseType::TSystemMatrixType        TSystemMatrixType;
+    /// The index type definition
+    typedef std::size_t                                     IndexType;
 
-    typedef typename BaseType::TSystemVectorType        TSystemVectorType;
-
-    typedef OpenMPUtils::PartitionVector                  PartitionVector;
-
-    typedef std::size_t                                           KeyType;
-    
-    typedef TableStreamUtility::Pointer           TablePrinterPointerType;
+    /// The key type definition
+    typedef std::size_t                                       KeyType;
 
     ///@}
     ///@name Life Cycle
@@ -97,43 +99,74 @@ public:
      * @param pTable The pointer to the output table
      * @param PrintingOutput If the output is going to be printed in a txt file
      */
-    
-    DisplacementLagrangeMultiplierContactCriteria(  
-        TDataType DispRatioTolerance,
-        TDataType DispAbsTolerance,
-        TDataType LMRatioTolerance,
-        TDataType LMAbsTolerance,
-        bool EnsureContact = false,
-        TablePrinterPointerType pTable = nullptr,
+    explicit DisplacementLagrangeMultiplierContactCriteria(
+        const TDataType DispRatioTolerance,
+        const TDataType DispAbsTolerance,
+        const TDataType LMRatioTolerance,
+        const TDataType LMAbsTolerance,
+        const bool EnsureContact = false,
         const bool PrintingOutput = false
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
         mEnsureContact(EnsureContact),
-        mpTable(pTable),
         mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
+        // The displacement solution
         mDispRatioTolerance = DispRatioTolerance;
         mDispAbsTolerance = DispAbsTolerance;
 
+        // The contact solution
         mLMRatioTolerance = LMRatioTolerance;
         mLMAbsTolerance = LMAbsTolerance;
     }
 
-    //* Copy constructor.
-    
+    /**
+     * @brief Default constructor (parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit DisplacementLagrangeMultiplierContactCriteria( Parameters ThisParameters = Parameters(R"({})"))
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+          mTableIsInitialized(false)
+    {
+        // The default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "ensure_contact"                                     : false,
+            "print_convergence_criterion"                        : false,
+            "displacement_relative_tolerance"                    : 1.0e-4,
+            "displacement_absolute_tolerance"                    : 1.0e-9,
+            "contact_displacement_relative_tolerance"            : 1.0e-4,
+            "contact_displacement_absolute_tolerance"            : 1.0e-9
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // The displacement solution
+        mDispRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
+        mDispAbsTolerance = ThisParameters["displacement_absolute_tolerance"].GetDouble();
+
+        // The contact solution
+        mLMRatioTolerance =  ThisParameters["contact_displacement_relative_tolerance"].GetDouble();
+        mLMAbsTolerance =  ThisParameters["contact_displacement_absolute_tolerance"].GetDouble();
+
+        // Additional flags -> NOTE: Replace for a ral flag?¿
+        mEnsureContact = ThisParameters["ensure_contact"].GetBool();
+        mPrintingOutput = ThisParameters["print_convergence_criterion"].GetBool();
+    }
+
+    // Copy constructor.
     DisplacementLagrangeMultiplierContactCriteria( DisplacementLagrangeMultiplierContactCriteria const& rOther )
-      :BaseType(rOther) 
+      :BaseType(rOther)
       ,mDispRatioTolerance(rOther.mDispRatioTolerance)
       ,mDispAbsTolerance(rOther.mDispAbsTolerance)
       ,mLMRatioTolerance(rOther.mLMRatioTolerance)
       ,mLMAbsTolerance(rOther.mLMAbsTolerance)
-      ,mpTable(rOther.mpTable)
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
     }
-    
+
     /// Destructor.
     ~DisplacementLagrangeMultiplierContactCriteria() override = default;
 
@@ -142,70 +175,49 @@ public:
     ///@{
 
     /**
-     * Compute relative and absolute error.
+     * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-    
-    bool PostCriteria(  
+    bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b 
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
-        {
+        if (SparseSpaceType::Size(rDx) != 0) { //if we are solving for something
             // Initialize
-            TDataType disp_solution_norm = 0.0;
-            TDataType lm_solution_norm = 0.0;
-            TDataType disp_increase_norm = 0.0;
-            TDataType lm_increase_norm = 0.0;
-            unsigned int disp_dof_num(0),lm_dof_num(0);
-
-            // Set a partition for OpenMP
-            const int num_dofs = rDofSet.size();
-            PartitionVector DofPartition;
-            const int num_threads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::DivideInPartitions(num_dofs,num_threads,DofPartition);
+            TDataType disp_solution_norm = 0.0, lm_solution_norm = 0.0, disp_increase_norm = 0.0, lm_increase_norm = 0.0;
+            IndexType disp_dof_num(0),lm_dof_num(0);
 
             // Loop over Dofs
-            #pragma omp parallel reduction(+:disp_solution_norm,lm_solution_norm,disp_increase_norm,lm_increase_norm,disp_dof_num,lm_dof_num)
-            {
-                const int k = OpenMPUtils::ThisThread();
-                typename DofsArrayType::iterator dof_begin = rDofSet.begin() + DofPartition[k];
-                typename DofsArrayType::iterator dof_end   = rDofSet.begin() + DofPartition[k + 1];
+            #pragma omp parallel for reduction(+:disp_solution_norm,lm_solution_norm,disp_increase_norm,lm_increase_norm,disp_dof_num,lm_dof_num)
+            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                auto it_dof = rDofSet.begin() + i;
 
                 std::size_t dof_id;
-                TDataType dof_value;
-                TDataType dof_incr;
+                TDataType dof_value, dof_incr;
 
-                for (typename DofsArrayType::iterator it_dof = dof_begin; it_dof != dof_end; ++it_dof)
-                {
-                    if (it_dof->IsFree())
-                    {
-                        dof_id = it_dof->EquationId();
-                        dof_value = it_dof->GetSolutionStepValue(0);
-                        dof_incr = Dx[dof_id];
+                if (it_dof->IsFree()) {
+                    dof_id = it_dof->EquationId();
+                    dof_value = it_dof->GetSolutionStepValue(0);
+                    dof_incr = rDx[dof_id];
 
-                        const KeyType curr_var = it_dof->GetVariable().Key();
-                        if ((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))
-                        {
-                            disp_solution_norm += dof_value * dof_value;
-                            disp_increase_norm += dof_incr * dof_incr;
-                            ++disp_dof_num;
-                        }
-                        else
-                        {
-                            lm_solution_norm += dof_value * dof_value;
-                            lm_increase_norm += dof_incr * dof_incr;
-                            ++lm_dof_num;
-                        }
+                    const auto curr_var = it_dof->GetVariable();
+                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
+                        lm_solution_norm += dof_value * dof_value;
+                        lm_increase_norm += dof_incr * dof_incr;
+                        lm_dof_num++;
+                    } else {
+                        disp_solution_norm += dof_value * dof_value;
+                        disp_increase_norm += dof_incr * dof_incr;
+                        disp_dof_num++;
                     }
                 }
             }
@@ -214,105 +226,94 @@ public:
             if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;
             if(disp_solution_norm == 0.0) disp_solution_norm = 1.0;
 
-            KRATOS_ERROR_IF(mEnsureContact == true && lm_solution_norm == 0.0) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
-            
-            TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
-            TDataType lm_ratio = std::sqrt(lm_increase_norm/lm_solution_norm);
+            KRATOS_ERROR_IF(mEnsureContact && lm_solution_norm == 0.0) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
-            TDataType disp_abs = std::sqrt(disp_increase_norm)/ static_cast<TDataType>(disp_dof_num);
-            TDataType lm_abs = std::sqrt(lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
+            const TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
+            const TDataType lm_ratio = std::sqrt(lm_increase_norm/lm_solution_norm);
 
-            // We print the results
-            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            {
-                if (mpTable != nullptr)
-                {
+            const TDataType disp_abs = std::sqrt(disp_increase_norm)/ static_cast<TDataType>(disp_dof_num);
+            const TDataType lm_abs = std::sqrt(lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
+
+            // The process info of the model part
+            ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+            // We print the results  // TODO: Replace for the new log
+            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
+                if (r_process_info.Has(TABLE_UTILITY)) {
                     std::cout.precision(4);
-                    auto& Table = mpTable->GetTable();
+                    TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                    auto& Table = p_table->GetTable();
                     Table  << disp_ratio  << mDispRatioTolerance  << disp_abs  << mDispAbsTolerance  << lm_ratio  << mLMRatioTolerance  << lm_abs  << mLMAbsTolerance;
-                }
-                else
-                {
+                } else {
                     std::cout.precision(4);
-                    if (mPrintingOutput == false)
-                    {
-                        std::cout << BOLDFONT("DoF ONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
-                        std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-                        std::cout << BOLDFONT(" LAGRANGE MUL:\tRATIO = ") << lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << "DoF ONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
-                        std::cout << "\tDISPLACEMENT: RATIO = " << disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
-                        std::cout << " LAGRANGE MUL:\tRATIO = " << lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
+                    if (mPrintingOutput == false) {
+                        KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << BOLDFONT("DoF ONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << BOLDFONT(" LAGRANGE MUL:\tRATIO = ") << lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+                    } else {
+                        KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << "DoF ONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << "\tDISPLACEMENT: RATIO = " << disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << " LAGRANGE MUL:\tRATIO = " << lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
                     }
                 }
             }
 
-            if ((disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance) &&
-                    (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance) )
-            {
-                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-                {
-                    if (mpTable != nullptr)
-                    {
-                        auto& table = mpTable->GetTable();
+            // We check if converged
+            const bool disp_converged = (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
+            const bool lm_converged = (!mEnsureContact && lm_solution_norm == 0.0) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
+
+            if (disp_converged && lm_converged) {
+                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
+                    if (r_process_info.Has(TABLE_UTILITY)) {
+                        TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                        auto& table = p_table->GetTable();
                         if (mPrintingOutput == false)
                             table << BOLDFONT(FGRN("       Achieved"));
                         else
                             table << "Achieved";
-                    }
-                    else
-                    {
+                    } else {
                         if (mPrintingOutput == false)
-                            std::cout << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                            KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                         else
-                            std::cout << "\tDoF convergence is achieved" << std::endl;
+                            KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << "\tDoF convergence is achieved" << std::endl;
                     }
                 }
                 return true;
-            }
-            else
-            {
-                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-                {
-                    if (mpTable != nullptr)
-                    {
-                        auto& table = mpTable->GetTable();
+            } else {
+                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
+                    if (r_process_info.Has(TABLE_UTILITY)) {
+                        TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                        auto& table = p_table->GetTable();
                         if (mPrintingOutput == false)
                             table << BOLDFONT(FRED("   Not achieved"));
                         else
                             table << "Not achieved";
-                    }
-                    else
-                    {
+                    } else {
                         if (mPrintingOutput == false)
-                            std::cout << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
+                            KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << BOLDFONT("\tDoF") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
                         else
-                            std::cout << "\tDoF convergence is not achieved" << std::endl;
+                            KRATOS_INFO("DisplacementLagrangeMultiplierContactCriteria") << "\tDoF convergence is not achieved" << std::endl;
                     }
                 }
                 return false;
             }
         }
         else // In this case all the displacements are imposed!
-        {
             return true;
-        }
     }
 
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the contact problem. (unused)
      */
-    
     void Initialize( ModelPart& rModelPart ) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
-        
-        if (mpTable != nullptr && mTableIsInitialized == false)
-        {
-            auto& table = mpTable->GetTable();
+
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+            auto& table = p_table->GetTable();
             table.AddColumn("DP RATIO", 10);
             table.AddColumn("EXP. RAT", 10);
             table.AddColumn("ABS", 10);
@@ -343,7 +344,7 @@ public:
     ///@{
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -375,23 +376,22 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
-    const bool mEnsureContact;
-    
-    TablePrinterPointerType mpTable; // Pointer to the fancy table 
-    bool mPrintingOutput;            // If the colors and bold are printed
-    bool mTableIsInitialized;        // If the table is already initialized
-    
-    TDataType mDispRatioTolerance;
-    TDataType mDispAbsTolerance;
 
-    TDataType mLMRatioTolerance;
-    TDataType mLMAbsTolerance;
-    
+    bool mEnsureContact; /// This "flag" is used to check that the norm of the LM is always greater than 0 (no contact)
+
+    bool mPrintingOutput;          /// If the colors and bold are printed
+    bool mTableIsInitialized;      /// If the table is already initialized
+
+    TDataType mDispRatioTolerance; /// The ratio threshold for the norm of the displacement
+    TDataType mDispAbsTolerance;   /// The absolute value threshold for the norm of the displacement
+
+    TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
+    TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
+
     ///@}
     ///@name Private Operators
     ///@{

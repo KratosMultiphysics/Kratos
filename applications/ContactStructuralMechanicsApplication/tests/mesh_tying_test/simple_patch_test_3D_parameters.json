@@ -11,7 +11,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -35,7 +35,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver"
+            "solver_type" : "SkylineLUFactorizationSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Part_foundation","Parts_Part_punch"],
         "processes_sub_model_part_list"      : ["Tying_Part",
@@ -150,20 +150,13 @@
     }],
     "contact_process_list" :[{
         "python_module"   : "mesh_tying_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Part_foundation",
-            "mesh_tying_model_part"       : "Tying_Part",
-            "type_variable"               : "Components",
-            "geometry_element"            : "Hexahedron",
-            "search_factor"               : 10.0,
-            "active_check_factor"         : 1.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "assume_master_slave"         : {"0":["Parts_Part_foundation"]},
+            "mesh_tying_model_part"       : {"0":["Tying_Part"]}
         }
     }
     ],

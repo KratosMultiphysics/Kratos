@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    ScalarDamageInterface2DLaw::ScalarDamageInterface2DLaw() 
+    ScalarDamageInterface2DLaw::ScalarDamageInterface2DLaw()
         : ConstitutiveLaw()
 		, mInitialized(false)
 		, m_initial_strain()
@@ -66,7 +66,7 @@ namespace Kratos
 #endif // INTERF_DAM_2D_IMPLEX
 	{
     }
- 
+
     ConstitutiveLaw::Pointer ScalarDamageInterface2DLaw::Clone() const
     {
         return ConstitutiveLaw::Pointer( new ScalarDamageInterface2DLaw() );
@@ -92,7 +92,7 @@ namespace Kratos
 			return true;
         return false;
     }
-    
+
     bool ScalarDamageInterface2DLaw::Has(const Variable<Vector>& rThisVariable)
     {
 		if(rThisVariable == YIELD_SURFACE_DATA_2D_X || rThisVariable == YIELD_SURFACE_DATA_2D_Y)
@@ -111,7 +111,7 @@ namespace Kratos
     {
         return false;
     }
-    
+
     bool ScalarDamageInterface2DLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
     {
         return false;
@@ -232,7 +232,7 @@ namespace Kratos
     {
         return ConstitutiveLaw::StrainMeasure_Infinitesimal;
     }
-    
+
     ScalarDamageInterface2DLaw::StressMeasure ScalarDamageInterface2DLaw::GetStressMeasure()
     {
         return ConstitutiveLaw::StressMeasure_Cauchy;
@@ -371,7 +371,7 @@ namespace Kratos
 #endif // INTERF_DAM_2D_IMPLEX
 
 		SizeType size = GetStrainSize();
-		if(compute_stress) 
+		if(compute_stress)
 			if(stressVector.size() != size)
 				stressVector.resize(size, false);
 		if(compute_constitutive_tensor)
@@ -413,7 +413,7 @@ namespace Kratos
 
 		mD1 = data.D1;
 		mD2 = data.D2;
-		
+
 		if( compute_stress )
 			CalculateStress( data, stressVector );
 
@@ -423,7 +423,7 @@ namespace Kratos
 		double C0_d = (1.0 - mD2)*data.C0;
 		mYieldValue = sig_n*data.Fs + sig_t - C0_d;
 		//**********************************************
-		
+
 		if( compute_constitutive_tensor )
 		{
 			if(data.ForceSecant) {
@@ -457,7 +457,7 @@ namespace Kratos
 
     void ScalarDamageInterface2DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     {
-        
+
     }
 
     void ScalarDamageInterface2DLaw::ResetMaterial(const Properties& rMaterialProperties,
@@ -511,7 +511,7 @@ namespace Kratos
 
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_II) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_II", "");
-		
+
 		if( !rMaterialProperties.Has(INITIAL_COHESION) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INITIAL_COHESION", "");
 
@@ -523,8 +523,8 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-	void ScalarDamageInterface2DLaw::InitializeCalculationData(const Properties& props, 
-		                                                       const GeometryType& geom, 
+	void ScalarDamageInterface2DLaw::InitializeCalculationData(const Properties& props,
+		                                                       const GeometryType& geom,
 															   const Vector& strainVector,
 															   const ProcessInfo& pinfo,
 															   CalculationData& data)
@@ -720,12 +720,12 @@ namespace Kratos
 		mK2 = mK2_converged;
 		mD2_bar = mD2_bar_converged;
 
-		if(data.K1 > mK1) 
+		if(data.K1 > mK1)
 		{
 			//mK1 = data.K1;
 			mK1 = data.rate_coeff_1*mK1 + data.rate_coeff_2*data.K1;
 		}
-		if(data.K2 > mK2) 
+		if(data.K2 > mK2)
 		{
 			//mK2 = data.K2;
 			mK2 = data.rate_coeff_1*mK2 + data.rate_coeff_2*data.K2;
@@ -784,7 +784,7 @@ namespace Kratos
 		}
 	}
 
-	void ScalarDamageInterface2DLaw::CalculateStress(CalculationData& data, 
+	void ScalarDamageInterface2DLaw::CalculateStress(CalculationData& data,
 		                                             Vector& stressVector)
 	{
 		double sigma_n = data.ElasticStressVector(1);
@@ -797,9 +797,9 @@ namespace Kratos
 		//stressVector(0) = (1.0 - data.D2) * sigma_t;
 	}
 
-	void ScalarDamageInterface2DLaw::CalculateConstitutiveMatrix(CalculationData& data, 
+	void ScalarDamageInterface2DLaw::CalculateConstitutiveMatrix(CalculationData& data,
 		                                                         const Vector& strainVector,
-		                                                         const Vector& stressVector, 
+		                                                         const Vector& stressVector,
 																 Matrix& constitutiveMatrix)
 	{
 		// elastic case
@@ -814,8 +814,8 @@ namespace Kratos
 		for(int j = 0; j < 2; j++)
 		{
 			// save internal variables
-			double save_k1 = mK1; 
-			double save_k2 = mK2; 
+			double save_k1 = mK1;
+			double save_k2 = mK2;
 			double save_d2_bar = mD2_bar;
 
 			// FORWARD difference
@@ -836,7 +836,7 @@ namespace Kratos
 			constitutiveMatrix(1, j) = stressPerturbation(1) / delta_strain;
 
 			// restore internal variables
-			mK1 = save_k1; 
+			mK1 = save_k1;
 			mK2 = save_k2;
 			mD2_bar = save_d2_bar;
 		}

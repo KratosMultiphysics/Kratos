@@ -69,14 +69,10 @@ void PairedCondition::Initialize( )
     
     BaseType::Initialize();
     
-    if (mpPairedGeometry == nullptr) 
-    {
-        if (this->Has(PAIRED_GEOMETRY))
-        {
+    if (mpPairedGeometry == nullptr) {
+        if (this->Has(PAIRED_GEOMETRY)) {
             mpPairedGeometry = this->GetValue(PAIRED_GEOMETRY);
-        }
-        else
-        {
+        } else {
             KRATOS_ERROR << "WARNING:: PAIRED GEOMETRY NOT DEFINED" << std::endl;
         }
     }

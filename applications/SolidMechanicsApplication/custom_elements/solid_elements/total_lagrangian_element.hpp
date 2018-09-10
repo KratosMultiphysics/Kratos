@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED)
 #define  KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
@@ -55,6 +55,10 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of TotalLagrangianElement
     KRATOS_CLASS_POINTER_DEFINITION( TotalLagrangianElement );
@@ -71,7 +75,7 @@ public:
     TotalLagrangianElement(TotalLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~TotalLagrangianElement();
+    ~TotalLagrangianElement() override;
 
     ///@}
     ///@name Operators
@@ -174,28 +178,28 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementVariables& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                              const double& rPointNumber) override;
 
     /**
      * Calculate Element Jacobian
      */
-    void CalculateKinetics(ElementVariables& rVariables,
+    void CalculateKinetics(ElementDataType& rVariables,
 			   const double& rPointNumber) override;
-    
+
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     void CalculateDeformationMatrix(Matrix& rB,
-                                    Matrix& rF,
-                                    Matrix& rDN_DX);
+                                    const Matrix& rF,
+                                    const Matrix& rDN_DX);
 
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementVariables& rVariables, 
+    void GetHistoricalVariables( ElementDataType& rVariables,
 				 const double& rPointNumber ) override;
 
 
@@ -208,7 +212,7 @@ protected:
     /**
      * Calculation of the Volume Change of the Element
      */
-    double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables) override;
+    double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
 
     ///@}
@@ -246,9 +250,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
@@ -268,4 +272,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED  defined

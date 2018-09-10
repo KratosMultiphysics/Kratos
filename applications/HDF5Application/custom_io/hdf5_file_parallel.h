@@ -16,6 +16,9 @@
 // System includes
 
 // External includes
+#ifdef KRATOS_USING_MPI
+#include "mpi.h"
+#endif
 
 // Project includes
 #include "utilities/builtin_timer.h"

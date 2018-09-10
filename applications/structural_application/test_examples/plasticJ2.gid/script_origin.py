@@ -21,8 +21,8 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 if(Kratos_Structural_Application_var.LinearSolver == "SuperLUSolver"):
     from KratosMultiphysics.ExternalSolversApplication import *
 
-if(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
-    from KratosMultiphysics.MKLSolversApplication import *
+# if(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
+#     from KratosMultiphysics.MKLSolversApplication import *
 
 
 # defining a model part for the fluid and one for the structure

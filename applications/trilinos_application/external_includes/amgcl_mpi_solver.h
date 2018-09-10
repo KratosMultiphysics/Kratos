@@ -23,7 +23,6 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -36,23 +35,18 @@
 //#include "Teuchos_ParameterList.hpp"
 
 
+#include <boost/range/iterator_range.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #include <amgcl/amg.hpp>
 #include <amgcl/adapter/epetra.hpp>
-// #include <amgcl/coarsening/plain_aggregates.hpp>
-// #include <amgcl/coarsening/pointwise_aggregates.hpp>
-// #include <amgcl/coarsening/smoothed_aggregation.hpp>
-// #include <amgcl/coarsening/ruge_stuben.hpp>
-// //#include <amgcl/relaxation/spai0.hpp>
-// #include <amgcl/relaxation/ilu0.hpp>
-// #include <amgcl/solver/bicgstabl.hpp>
-#include <amgcl/profiler.hpp>
-
 #include <amgcl/make_solver.hpp>
-#include <amgcl/runtime.hpp>
-#include <amgcl/mpi/direct_solver.hpp>
+#include <amgcl/coarsening/runtime.hpp>
+#include <amgcl/relaxation/runtime.hpp>
+#include <amgcl/solver/runtime.hpp>
+#include <amgcl/mpi/direct_solver/runtime.hpp>
 #include <amgcl/mpi/subdomain_deflation.hpp>
-
-#include <boost/property_tree/json_parser.hpp> //needed to print AMGCL internal settings
+#include <amgcl/profiler.hpp>
 
 namespace amgcl {
     profiler<> prof;
@@ -163,8 +157,8 @@ public:
     typedef typename TSparseSpaceType::VectorType VectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-    
-    
+
+
     AmgclMPISolver(Parameters rParameters)
     {
 
@@ -193,7 +187,7 @@ public:
 
         //now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
-        
+
         mverbosity = rParameters["verbosity"].GetInt();
 
         //validate if values are admissible
@@ -202,8 +196,8 @@ public:
         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
         std::set<std::string> available_direct = {"skyline_lu","pastix"};
         std::stringstream msg;
-        
-        
+
+
         //////////////////////////////////////////////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////////////////////////////////////////
         //define the LOCAL SOLVER
@@ -240,23 +234,23 @@ public:
         mprm.put("isolver.maxiter", rParameters["max_iteration"].GetInt());
         //TODO: here is global
 
-        if(rParameters["krylov_type"].GetString() == "gmres" || 
-            rParameters["krylov_type"].GetString() == "lgmres" || 
+        if(rParameters["krylov_type"].GetString() == "gmres" ||
+            rParameters["krylov_type"].GetString() == "lgmres" ||
             rParameters["krylov_type"].GetString() == "fgmres")
         {
             mprm.put("isolver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
         }
-        
-        
+
+
         //setting the direct_solver
         mprm.put("dsolver.type",  rParameters["direct_solver"].GetString());
-        
+
         mprm.put("local.relax.type", rParameters["local_solver"]["smoother_type"].GetString());
         mprm.put("local.coarsening.type",  rParameters["local_solver"]["coarsening_type"].GetString());
 
 //         muse_block_matrices_if_possible = rParameters["local_solver"]["use_block_matrices_if_possible"].GetBool();
 
-        
+
 
         if(mprovide_coordinates==true && muse_block_matrices_if_possible==true)
         {
@@ -268,7 +262,7 @@ public:
 
     }
 
- 
+
     //put("solver.M", 100) --> to set the size of the gmres search space
     //put("amg.ncycle", 2) --> to do more swipes...
     void SetDoubleParameter(std::string param_name, const double value)
@@ -294,14 +288,14 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         KRATOS_TRY
 
         using amgcl::prof;
         prof.reset();
-        
-          
+
+
         amgcl::mpi::communicator world(MPI_COMM_WORLD);
         if (mverbosity >=0 && world.rank == 0) std::cout << "World size: " << world.size << std::endl;
 
@@ -312,14 +306,14 @@ public:
         //set block size
         mprm.put("local.coarsening.aggr.block_size",mndof);
 
-        boost::function<double(ptrdiff_t, unsigned)> dv;
+        std::function<double(ptrdiff_t, unsigned)> dv;
         if(muse_linear_deflation == false )
         {
             if(mpconstant_def_space == nullptr)
             {
                 //this is in case of emergency if we were not able to compute the deflation step in another way
                 std::size_t dim = 1;
-                mpconstant_def_space = boost::make_shared<constant_deflation_space>(rA.NumMyRows(), mndof,dim);
+                mpconstant_def_space = Kratos::make_shared<constant_deflation_space>(rA.NumMyRows(), mndof,dim);
             }
             dv = *mpconstant_def_space;;
         }
@@ -331,57 +325,52 @@ public:
             }
             dv = *mplinear_def_space;;
         }
-        
+
         mprm.put("num_def_vec", mpconstant_def_space->mdim);
         mprm.put("def_vec", &dv);
-        
+
         if(mverbosity > 1 && world.rank == 0)
             write_json(std::cout, mprm);
-  
+
+        typedef amgcl::backend::builtin<double> Backend;
         typedef
-//             amgcl::mpi::subdomain_deflation<
-//                 amgcl::runtime::relaxation::as_preconditioner< amgcl::backend::builtin<double> >,
-//                 amgcl::runtime::iterative_solver,
-//                 amgcl::runtime::mpi::direct_solver<double>
-//             > SDD;
-            
             amgcl::mpi::subdomain_deflation<
-                amgcl::runtime::amg< amgcl::backend::builtin<double> >,
-                amgcl::runtime::iterative_solver,
-                amgcl::runtime::mpi::direct_solver<double>
+                amgcl::amg<Backend, amgcl::runtime::coarsening::wrapper, amgcl::runtime::relaxation::wrapper>,
+                amgcl::runtime::solver::wrapper,
+                amgcl::runtime::mpi::direct::solver<double>
             > SDD;
 
-            prof.tic("setup");
-            SDD solve(world, amgcl::backend::map(rA), mprm);
-            double tm_setup = prof.toc("setup");
+        prof.tic("setup");
+        SDD solve(world, amgcl::backend::map(rA), mprm);
+        double tm_setup = prof.toc("setup");
 
-            prof.tic("Solve");
-            size_t iters;
-            double resid;
-            boost::tie(iters, resid) = solve(frange, xrange);
-            double solve_tm = prof.toc("Solve");
+        prof.tic("Solve");
+        size_t iters;
+        double resid;
+        std::tie(iters, resid) = solve(frange, xrange);
+        double solve_tm = prof.toc("Solve");
 
 
 
-            if (rA.Comm().MyPID() == 0)
+        if (rA.Comm().MyPID() == 0)
+        {
+            if(mverbosity > 0)
             {
-                if(mverbosity > 0)
-                {
-                std::cout
-                        << "------- AMGCL -------\n" << std::endl
-                        << "Iterations      : " << iters   << std::endl
-                        << "Error           : " << resid   << std::endl
-                        << "amgcl setup time: " << tm_setup   << std::endl
-                        << "amgcl solve time: " << solve_tm   << std::endl;
-                }
-                        
-                if(mverbosity > 1)
-                       std::cout << prof  << std::endl;
+            std::cout
+                    << "------- AMGCL -------\n" << std::endl
+                    << "Iterations      : " << iters   << std::endl
+                    << "Error           : " << resid   << std::endl
+                    << "amgcl setup time: " << tm_setup   << std::endl
+                    << "amgcl solve time: " << solve_tm   << std::endl;
             }
 
+            if(mverbosity > 1)
+                   std::cout << prof  << std::endl;
+        }
 
 
-            return true;
+
+        return true;
 
 
 
@@ -398,7 +387,7 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
 
         return false;
@@ -410,7 +399,7 @@ public:
     * which require knowledge on the spatial position of the nodes associated to a given dof.
     * This function tells if the solver requires such data
     */
-    virtual bool AdditionalPhysicalDataIsNeeded()
+    bool AdditionalPhysicalDataIsNeeded() override
     {
         return true;
     }
@@ -427,7 +416,7 @@ public:
         VectorType& rB,
         typename ModelPart::DofsArrayType& rdof_set,
         ModelPart& r_model_part
-    )
+    ) override
     {
         int my_pid = rA.Comm().MyPID();
         int old_ndof = -1;
@@ -470,7 +459,7 @@ public:
 
         if(muse_linear_deflation == true)
         {
-            mplinear_def_space = boost::make_shared<deflation_space>(chunk, mndof,dim);
+            mplinear_def_space = Kratos::make_shared<deflation_space>(chunk, mndof,dim);
 
             unsigned int i=0;
             for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
@@ -499,13 +488,13 @@ public:
             {
                 if (it->GetSolutionStepValue(PARTITION_INDEX) == my_pid)
                 {
-                   
+
                     ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(it->Id());
 
 
 
                     unsigned int compressed_index;
-                    if( i%mndof == 0 )  
+                    if( i%mndof == 0 )
                     {
                         double xx = inode->X();
                         double yy = inode->Y();
@@ -514,7 +503,7 @@ public:
                         xg += xx;
                         yg += yy;
                         zg += zz;
-                        
+
                         if(xx > xmax) xmax = xx;
                         if(xx < xmin) xmin = xx;
                         if(yy > ymax) ymax = yy;
@@ -522,12 +511,12 @@ public:
                         if(zz > zmax) zmax = zz;
                         if(zz < zmin) zmin = zz;
                         compressed_index = i/mndof;
-                                    
+
                         mplinear_def_space->mxx[compressed_index] = xx;
                         mplinear_def_space->myy[compressed_index] = yy;
                         mplinear_def_space->mzz[compressed_index] = zz;
                     }
- 
+
                     i++;
                 }
             }
@@ -539,7 +528,7 @@ public:
             const double dx = xmax - xmin;
             const double dy = ymax - ymin;
             const double dz = zmax - zmin;
-            
+
             double zgmax = fabs(zmax-zmin);
             r_model_part.GetCommunicator().MaxAll(zgmax);
             if(zgmax <1e-20) //2d problem!! - change the dimension of the space
@@ -554,7 +543,7 @@ public:
                 mplinear_def_space->mxx[i] -= xg;
                 mplinear_def_space->myy[i] -= yg;
                 mplinear_def_space->mzz[i] -= zg;
-  
+
                 mplinear_def_space->mxx[i] /= dx;
                 mplinear_def_space->myy[i] /= dy;
                 mplinear_def_space->mzz[i] /= dz;
@@ -564,7 +553,7 @@ public:
         }
         else
         {
-            mpconstant_def_space = boost::make_shared<constant_deflation_space>(chunk, mndof,dim);
+            mpconstant_def_space = Kratos::make_shared<constant_deflation_space>(chunk, mndof,dim);
 
             unsigned int i=0;
             for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
@@ -585,7 +574,7 @@ public:
     /**
      * Print information about this object.
      */
-    void  PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "AMGCL_MPI solver finished.";
     }
@@ -593,7 +582,7 @@ public:
     /**
      * Print object's data.
      */
-    void  PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -607,8 +596,8 @@ private:
     bool mprovide_coordinates = false;
     bool muse_block_matrices_if_possible = false;
 
-    boost::shared_ptr< deflation_space    > mplinear_def_space = nullptr;
-    boost::shared_ptr< constant_deflation_space    > mpconstant_def_space = nullptr;
+    Kratos::shared_ptr< deflation_space    > mplinear_def_space = nullptr;
+    Kratos::shared_ptr< constant_deflation_space    > mpconstant_def_space = nullptr;
 
 //     amgcl::runtime::coarsening::type mcoarsening;
 //     amgcl::runtime::relaxation::type mrelaxation;
@@ -628,7 +617,7 @@ private:
      */
     AmgclMPISolver(const AmgclMPISolver& Other);
 
-}; 
+};
 
 
 /**
@@ -659,6 +648,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED  defined
 
 

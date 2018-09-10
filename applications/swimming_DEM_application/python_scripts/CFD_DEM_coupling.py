@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import math
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
+#from KratosMultiphysics.IncompressibleFluidApplication import *
 #from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
@@ -9,37 +9,48 @@ import sys
 
 class ProjectionModule:
 
-    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, pp, flow_field = None):
+    def __init__(self,
+                fluid_model_part,
+                balls_model_part,
+                FEM_DEM_model_part,
+                pp,
+                flow_field = None):
 
         self.fluid_model_part            = fluid_model_part
         self.particles_model_part        = balls_model_part
         self.FEM_DEM_model_part          = FEM_DEM_model_part
+        self.pp                          = pp
         self.dimension                   = pp.domain_size
-        self.min_fluid_fraction          = pp.CFD_DEM["min_fluid_fraction"].GetDouble()
         self.coupling_type               = pp.CFD_DEM["coupling_weighing_type"].GetInt()
-        self.time_averaging_type         = pp.CFD_DEM["time_averaging_type"].GetInt()
-        self.viscosity_modification_type = pp.CFD_DEM["viscosity_modification_type"].GetInt()
-        self.n_particles_in_depth        = pp.CFD_DEM.n_particles_in_depth
         self.meso_scale_length           = pp.CFD_DEM["meso_scale_length"].GetDouble()
         self.shape_factor                = pp.CFD_DEM["shape_factor"].GetDouble()
         self.do_impose_flow_from_field   = pp.CFD_DEM["do_impose_flow_from_field_option"].GetBool()
         self.flow_field                  = flow_field
 
+        # Create projector_parameters
+        self.projector_parameters = Parameters("{}")
+        self.projector_parameters.AddValue("min_fluid_fraction",pp.CFD_DEM["min_fluid_fraction"])
+        self.projector_parameters.AddValue("coupling_type",pp.CFD_DEM["coupling_weighing_type"])
+        self.projector_parameters.AddValue("time_averaging_type",pp.CFD_DEM["time_averaging_type"])
+        self.projector_parameters.AddValue("viscosity_modification_type",pp.CFD_DEM["viscosity_modification_type"])
+        self.projector_parameters.AddValue("n_particles_per_depth_distance",pp.CFD_DEM["n_particles_in_depth"])
+        self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name",pp.CFD_DEM["body_force_per_unit_mass_variable_name"])
+
         if self.dimension == 3:
 
             if pp.CFD_DEM["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type)
+                self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters)
 
             else:
-                self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type)
+                self.projector = BinBasedDEMFluidCoupledMapping3D(self.projector_parameters)
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
             if pp.CFD_DEM["ElementType"].GetString() == "SwimmingNanoParticle":
-                self.projector = BinBasedNanoDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type, self.n_particles_in_depth)
+                self.projector = BinBasedNanoDEMFluidCoupledMapping2D(self.projector_parameters)
 
             else:
-                self.projector = BinBasedDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.time_averaging_type , self.viscosity_modification_type, self.n_particles_in_depth)
+                self.projector = BinBasedDEMFluidCoupledMapping2D(self.projector_parameters)
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
 
         # telling the projector which variables we are interested in modifying
@@ -88,7 +99,11 @@ class ProjectionModule:
             self.InterpolateVelocityOnSlipVelocity()
 
     def ProjectFromFluid(self, alpha):
-        self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
+        self.projector.InterpolateFromFluidMesh(self.fluid_model_part,
+                                                self.particles_model_part,
+                                                self.pp.CFD_DEM,
+                                                self.bin_of_objects_fluid,
+                                                alpha)
 
     def ProjectFromNewestFluid(self):
         self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)

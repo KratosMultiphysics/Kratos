@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_RAMM_ARC_LENGTH_STRATEGY)
 #define KRATOS_POROMECHANICS_RAMM_ARC_LENGTH_STRATEGY
@@ -76,11 +83,11 @@ public:
     //------------------------------------------------------------------------------------
 
     ///Destructor
-    virtual ~PoromechanicsRammArcLengthStrategy() {}
+    ~PoromechanicsRammArcLengthStrategy() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -99,8 +106,7 @@ public:
             }
             
             // Compute initial radius (mRadius_0)
-            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(),
-                                                            BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
             TSystemMatrixType& mA = *mpA;
             TSystemVectorType& mDx = *mpDx;
             TSystemVectorType& mb = *mpb;
@@ -127,7 +133,7 @@ public:
             // Initialize Norm of solution
             mNormxEquilibrium = 0.0;
             
-            std::cout << "Ramm's Arc Length Strategy Initialized" << std::endl;
+            KRATOS_INFO("Ramm's Arc Length Strategy") << "Strategy Initialized" << std::endl;
         }
 
         KRATOS_CATCH( "" )
@@ -135,7 +141,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -155,11 +161,11 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	bool SolveSolutionStep()
+	bool SolveSolutionStep() override
 	{
         // ********** Prediction phase **********
                 
-        std::cout << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
+        KRATOS_INFO("Ramm's Arc Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
         
         // Initialize variables
 		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
@@ -293,7 +299,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	void FinalizeSolutionStep()
+	void FinalizeSolutionStep() override
 	{
 		KRATOS_TRY
         
@@ -355,7 +361,7 @@ public:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY
         
@@ -384,7 +390,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    bool IsConverged()
+    bool IsConverged() override
     {
         KRATOS_TRY
         
@@ -442,7 +448,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check()
+    int Check() override
     {
         KRATOS_TRY
         

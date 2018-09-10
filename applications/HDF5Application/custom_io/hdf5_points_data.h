@@ -24,12 +24,15 @@
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
+
+class File;
+class WriteInfo;
+
 namespace Internals
 {
 ///@addtogroup HDF5Application
@@ -52,15 +55,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    inline Vector<int> const& GetIds() const
-    {
-        return mIds;
-    }
-
-    inline Vector<array_1d<double, 3>> const& GetCoordinates() const
-    {
-        return mCoords;
-    }
 
     inline unsigned size() const
     {

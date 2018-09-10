@@ -22,26 +22,16 @@
 #include "geometries/geometry_data.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
+#include "includes/key_hash.h"
 
 #include <string>
 #include <iostream>
 #include <sstream>
-
-#include <boost/functional/hash.hpp> //TODO: remove this dependence when Kratos has en internal one
-#include <boost/unordered_map.hpp> //TODO: remove this dependence when Kratos has en internal one
+#include <unordered_map>
 #include <utility>
 
 namespace Kratos
 {
-
-
-
-
-
-
-
-
-
 
 /** This function verifies that the skin has no holes nor overlapped geometries
  * this is accomplished by storing all of the edges in the model in a hash map and
@@ -55,31 +45,6 @@ class CheckSkinProcess: public Process
 public:
     ///@name Type Definitions
     ///@{
-
-    struct KeyComparor
-    {
-        bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
-        {
-            if(lhs.size() != rhs.size())
-                return false;
-
-            for(unsigned int i=0; i<lhs.size(); i++)
-            {
-                if(lhs[i] != rhs[i]) return false;
-            }
-
-            return true;
-        }
-    };
-
-    struct KeyHasher
-    {
-        std::size_t operator()(const vector<int>& k) const
-        {
-            return boost::hash_range(k.begin(), k.end());
-        }
-    };
-
 
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(CheckSkinProcess);
@@ -139,10 +104,10 @@ public:
         if(mrModelPart.Conditions().size() == 0 && mrModelPart.Elements().size() != 0)
             KRATOS_THROW_ERROR(std::invalid_argument, "the number of conditions is zero and the number of elements is not, hence the skin can not envelope the domain","")
 
-        typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef std::unordered_map<DenseVector<unsigned int>, unsigned int, KeyHasherRange<DenseVector<unsigned int>>, KeyComparorRange<DenseVector<unsigned int>> > hashmap;
         hashmap edge_map;
 
-        vector<unsigned int> ids(2);
+        DenseVector<unsigned int> ids(2);
 
         //add 1 to the counter for every edge find in the model part
         for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
@@ -169,7 +134,7 @@ public:
         //if that is not the case throw an error
         std::stringstream buffer;
 
-        for(hashmap::const_iterator it=edge_map.begin(); it!=edge_map.end(); it++)
+        for(auto it=edge_map.begin(); it!=edge_map.end(); it++)
         {
 //             std::cout << it->first << " " << it->second << std::endl;
             if(it->second > 2)

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ The code is ported from PETSC BCGSL [1] and is based on [2].
 [2] Fokkema, Diederik R. Enhanced implementation of BiCGstab (l) for solving
     linear systems of equations. Universiteit Utrecht. Mathematisch Instituut,
     1996.
- 
+
 The original code came with the following license:
 
 \verbatim
@@ -65,20 +65,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  \endverbatim
  */
 
-#include <boost/tuple/tuple.hpp>
-#include <boost/multi_array.hpp>
+#include <tuple>
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
 #include <amgcl/solver/precond_side.hpp>
 #include <amgcl/detail/qr.hpp>
 #include <amgcl/util.hpp>
-
-// std::real is not overloaded for scalar arguments pre c++11:
-namespace std {
-inline float real(float x) { return x; }
-inline double real(double x) { return x; }
-}
 
 namespace amgcl {
 namespace solver {
@@ -138,6 +131,7 @@ class bicgstabl {
             {
             }
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, L),
                   AMGCL_PARAMS_IMPORT_VALUE(p, delta),
@@ -147,7 +141,7 @@ class bicgstabl {
                   AMGCL_PARAMS_IMPORT_VALUE(p, tol),
                   AMGCL_PARAMS_IMPORT_VALUE(p, abstol)
             {
-                AMGCL_PARAMS_CHECK(p, (L)(delta)(convex)(pside)(maxiter)(tol)(abstol));
+                check_params(p, {"L", "delta", "convex", "pside", "maxiter", "tol", "abstol"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -159,6 +153,7 @@ class bicgstabl {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, tol);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, abstol);
             }
+#endif
         };
 
         /// Preallocates necessary data structures for the system of size \p n.
@@ -174,8 +169,8 @@ class bicgstabl {
               B ( Backend::create_vector(n, backend_prm) ),
               T ( Backend::create_vector(n, backend_prm) ),
               R(prm.L + 1), U(prm.L + 1),
-              MZa(boost::extents[prm.L + 1][prm.L + 1]),
-              MZb(boost::extents[prm.L + 1][prm.L + 1]),
+              MZa(prm.L + 1, prm.L + 1),
+              MZb(prm.L + 1, prm.L + 1),
               Y0(prm.L + 1), YL(prm.L + 1),
               inner_product(inner_product)
         {
@@ -189,7 +184,7 @@ class bicgstabl {
 
         /* Computes the solution for the given system matrix \p A and the
          * right-hand side \p rhs.  Returns the number of iterations made and
-         * the achieved residual as a ``boost::tuple``. The solution vector
+         * the achieved residual as a ``std::tuple``. The solution vector
          * \p x provides initial approximation in input and holds the computed
          * solution on output.
          *
@@ -200,16 +195,8 @@ class bicgstabl {
          * good preconditioner for several subsequent time steps [DeSh12]_.
          */
         template <class Matrix, class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
-                Matrix  const &A,
-                Precond const &P,
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
+        std::tuple<size_t, scalar_type> operator()(
+                const Matrix &A, const Precond &P, const Vec1 &rhs, Vec2 &&x) const
         {
             namespace side = preconditioner::side;
 
@@ -223,7 +210,7 @@ class bicgstabl {
             // Check if there is a trivial solution
             if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
                 backend::clear(x);
-                return boost::make_tuple(0, norm_rhs);
+                return std::make_tuple(0, norm_rhs);
             }
 
             if (prm.pside == side::left) {
@@ -295,34 +282,34 @@ class bicgstabl {
                 // Polynomial part
                 for(int i = 0; i <= L; ++i) {
                     for(int j = 0; j <= i; ++j) {
-                        MZa[i][j] = inner_product(*R[i], *R[j]);
+                        MZa(i, j) = inner_product(*R[i], *R[j]);
                     }
                 }
 
                 // Symmetrize MZa
                 for (int i = 0; i <= L; ++i) {
                     for (int j = i+1; j <= L; ++j) {
-                        MZa[i][j] = MZa[j][i] = math::adjoint(MZa[j][i]);
+                        MZa(i, j) = MZa(j, i) = math::adjoint(MZa(j, i));
                     }
                 }
 
-                MZb = MZa;
+                std::copy(MZa.data(), MZa.data() + MZa.size(), MZb.data());
 
                 if (prm.convex || L == 1) {
                     Y0[0] = -one;
 
-                    qr.solve(L, L, MZa.strides()[0], MZa.strides()[1],
-                            &MZa[1][1], &MZb[0][1], &Y0[1]);
+                    qr.solve(L, L, MZa.stride(0), MZa.stride(1),
+                            &MZa(1, 1), &MZb(0, 1), &Y0[1]);
                 } else {
                     Y0[0] = -one;
                     Y0[L] = zero;
-                    qr.solve(L-1, L-1, MZa.strides()[0], MZa.strides()[1],
-                            &MZa[1][1], &MZb[0][1], &Y0[1]);
+                    qr.solve(L-1, L-1, MZa.stride(0), MZa.stride(1),
+                            &MZa(1, 1), &MZb(0, 1), &Y0[1]);
 
                     YL[0] = zero;
                     YL[L] = -one;
-                    qr.solve(L-1, L-1, MZa.strides()[0], MZa.strides()[1],
-                            &MZa[1][1], &MZb[L][1], &YL[1], /*computed=*/true);
+                    qr.solve(L-1, L-1, MZa.stride(0), MZa.stride(1),
+                            &MZa(1, 1), &MZb(L, 1), &YL[1], /*computed=*/true);
 
                     coef_type dot0 = zero;
                     coef_type dot1 = zero;
@@ -332,7 +319,7 @@ class bicgstabl {
                         coef_type sL = zero;
 
                         for(int j = 0; j <= L; ++j) {
-                            coef_type M = MZb[i][j];
+                            coef_type M = MZb(i, j);
                             s0 += M * Y0[j];
                             sL += M * YL[j];
                         }
@@ -411,33 +398,51 @@ done:
                 backend::axpby(one, *T, one, x);
             }
 
-            return boost::make_tuple(iter, zeta / norm_rhs);
+            return std::make_tuple(iter, zeta / norm_rhs);
         }
 
         /* Computes the solution for the given right-hand side \p rhs. The
          * system matrix is the same that was used for the setup of the
          * preconditioner \p P.  Returns the number of iterations made and the
-         * achieved residual as a ``boost::tuple``. The solution vector \p x
+         * achieved residual as a ``std::tuple``. The solution vector \p x
          * provides initial approximation in input and holds the computed
          * solution on output.
          */
         template <class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
-                Precond const &P,
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
+        std::tuple<size_t, scalar_type> operator()(
+                const Precond &P, const Vec1 &rhs, Vec2 &&x) const
         {
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
+        size_t bytes() const {
+            size_t b = 0;
+
+            b += backend::bytes(*Rt);
+            b += backend::bytes(*X);
+            b += backend::bytes(*B);
+            b += backend::bytes(*T);
+
+            for(const auto &v : R) b += backend::bytes(*v);
+            for(const auto &v : U) b += backend::bytes(*v);
+
+            b += MZa.size() * sizeof(coef_type);
+            b += MZb.size() * sizeof(coef_type);
+
+            b += backend::bytes(Y0);
+            b += backend::bytes(YL);
+
+            b += qr.bytes();
+
+            return b;
+        }
 
         friend std::ostream& operator<<(std::ostream &os, const bicgstabl &s) {
-            return os << "bicgstab(" << s.prm.L << "): " << s.n << " unknowns";
+            return os
+                << "Type:             BiCGStab(" << s.prm.L << ")"
+                << "\nUnknowns:         " << s.n
+                << "\nMemory footprint: " << human_readable_memory(s.bytes())
+                << std::endl;
         }
     public:
         params prm;
@@ -445,15 +450,15 @@ done:
     private:
         size_t n;
 
-        mutable boost::shared_ptr< vector > Rt;
-        mutable boost::shared_ptr< vector > X;
-        mutable boost::shared_ptr< vector > B;
-        mutable boost::shared_ptr< vector > T;
+        mutable std::shared_ptr< vector > Rt;
+        mutable std::shared_ptr< vector > X;
+        mutable std::shared_ptr< vector > B;
+        mutable std::shared_ptr< vector > T;
 
-        mutable std::vector< boost::shared_ptr< vector > > R;
-        mutable std::vector< boost::shared_ptr< vector > > U;
+        mutable std::vector< std::shared_ptr< vector > > R;
+        mutable std::vector< std::shared_ptr< vector > > U;
 
-        mutable boost::multi_array<coef_type, 2> MZa, MZb;
+        mutable multi_array<coef_type, 2> MZa, MZb;
         mutable std::vector<coef_type> Y0, YL;
         mutable amgcl::detail::QR<coef_type> qr;
 

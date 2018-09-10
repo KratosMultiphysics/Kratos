@@ -13,7 +13,7 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Hertz_viscous_Coulomb2D : public DEM_D_Hertz_viscous_Coulomb {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_viscous_Coulomb2D : public DEM_D_Hertz_viscous_Coulomb {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_viscous_Coulomb2D);
@@ -32,7 +32,7 @@ namespace Kratos {
         
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) override;  
         
-        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0) override;
+        void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
                 
                             
     private:

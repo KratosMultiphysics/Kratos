@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -20,33 +21,35 @@
 #include "testing/testing.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "tests/geometries/test_geometry.h"
+#include "tests/geometries/test_shape_function_derivatives.h"
+#include "tests/geometries/cross_check_shape_functions_values.h"
 
 namespace Kratos {
 	namespace Testing {
 
     typedef Node<3>                   PointType;
     typedef Node<3>::Pointer          PointPtrType;
-    typedef Tetrahedra3D4<PointType>  GeometryType;
-    typedef GeometryType::Pointer     GeometryPtrType;
+    typedef Tetrahedra3D4<PointType>  TetGeometryType;
+    typedef TetGeometryType::Pointer  TetGeometryPtrType;
 
     /** Generates a sample Tetrahedra3D4.
      * Generates a tetrahedra defined by three random points in the space.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateTetrahedra3D4(
+    TetGeometryPtrType GenerateTetrahedra3D4(
         PointPtrType PointA = GeneratePoint<PointType>(),
         PointPtrType PointB = GeneratePoint<PointType>(),
         PointPtrType PointC = GeneratePoint<PointType>(),
         PointPtrType PointD = GeneratePoint<PointType>()) {
-      return GeometryPtrType(new GeometryType(PointA, PointB, PointC, PointD));
+      return TetGeometryPtrType(new TetGeometryType(PointA, PointB, PointC, PointD));
     }
 
     /** Generates a sample Tetrahedra3D4.
      * Generates a trirectangular tetrahedra on the origin with positive volume and side 1.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateTriRectangularTetrahedra3D4() {
-      return GeometryPtrType(new GeometryType(
+    TetGeometryPtrType GenerateTriRectangularTetrahedra3D4() {
+      return TetGeometryPtrType(new TetGeometryType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0),
         GeneratePoint<PointType>(1.0, 0.0, 0.0),
         GeneratePoint<PointType>(0.0, 1.0, 0.0),
@@ -58,8 +61,8 @@ namespace Kratos {
      * Generates a regular tetrahedra with positive volume and side 1.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateRegInvtLen1Tetrahedra3D4() {
-      return GeometryPtrType(new GeometryType(
+    TetGeometryPtrType GenerateRegInvtLen1Tetrahedra3D4() {
+      return TetGeometryPtrType(new TetGeometryType(
         GeneratePoint<PointType>(0.0, 1.0, 1.0),
         GeneratePoint<PointType>(1.0, 0.0, 1.0),
         GeneratePoint<PointType>(1.0, 1.0, 0.0),
@@ -71,8 +74,8 @@ namespace Kratos {
      * Generates a regular tetrahedra with negative volume and side 1.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateRegularLen1Tetrahedra3D4() {
-      return GeometryPtrType(new GeometryType(
+    TetGeometryPtrType GenerateRegularLen1Tetrahedra3D4() {
+      return TetGeometryPtrType(new TetGeometryType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0),
         GeneratePoint<PointType>(0.0, 1.0, 1.0),
         GeneratePoint<PointType>(1.0, 0.0, 1.0),
@@ -84,8 +87,8 @@ namespace Kratos {
      * Generates a regular tetrahedra with positive volume with side 2.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateRegularLen2Tetrahedra3D4() {
-      return GeometryPtrType(new GeometryType(
+    TetGeometryPtrType GenerateRegularLen2Tetrahedra3D4() {
+      return TetGeometryPtrType(new TetGeometryType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0),
         GeneratePoint<PointType>(0.0, 2.0, 2.0),
         GeneratePoint<PointType>(2.0, 0.0, 2.0),
@@ -257,7 +260,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS;
+      auto criteria = TetGeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
@@ -276,7 +279,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::INRADIUS_TO_LONGEST_EDGE;
+      auto criteria = TetGeometryType::QualityCriteria::INRADIUS_TO_LONGEST_EDGE;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
@@ -295,7 +298,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
+      auto criteria = TetGeometryType::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
@@ -314,7 +317,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::REGULARITY;
+      auto criteria = TetGeometryType::QualityCriteria::REGULARITY;
 
       // KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
       // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
@@ -337,7 +340,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_SURFACE_AREA;
+      auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_SURFACE_AREA;
 
       // KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
       // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
@@ -360,7 +363,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
+      auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
@@ -379,7 +382,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
+      auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
@@ -398,7 +401,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH;
+      auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
@@ -406,7 +409,9 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.769800, TOLERANCE);
     }
 
-
+    /**
+     * This test performs the check of the box intersection method
+     */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4BoxIntersection, KratosCoreGeometriesFastSuite) {
       auto tetrahedron = GenerateTriRectangularTetrahedra3D4();
 
@@ -422,7 +427,120 @@ namespace Kratos {
       //tetrahedron not intersects the box
       KRATOS_CHECK_IS_FALSE(tetrahedron->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.2)));
     }
+    
+    /** Checks the inside test for a given point respect to the tetrahedra
+    * Checks the inside test for a given point respect to the tetrahedra
+    * It performs 4 tests:
+    * A Point inside the tetrahedra: Expected result TRUE
+    * A Point outside the tetrahedra: Expected result FALSE
+    * A Point over a vertex of the tetrahedra: Expected result TRUE
+    * A Point over an edge of the tetrahedra: Expected result TRUE
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4IsInside, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateTriRectangularTetrahedra3D4();
 
+        Point PointInside(0.1666, 0.1666, 0.1666);
+        Point PointOutside(0.66, 0.66, 0.66);
+        Point PointInVertex(0.0, 0.0, 0.0);
+        Point PointInEdge(0.33, 0.33, 0.33);
 
+        Point LocalCoords;
+        
+        KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
+        KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+        KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+        KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+    }
+
+    /** Checks the point local coordinates for a given point respect to the
+    * tetrahedra. The baricentre of the tetrahedra is selected due to its known
+    * solution.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateTriRectangularTetrahedra3D4();
+
+        // Compute the global coordinates of the baricentre
+        auto points = geom->Points();
+        Point baricentre = points[0] + points[1] + points[2] + points[3];
+        baricentre /= 3.0;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> baricentre_local_coords;
+        geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
+
+        KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords(2), 1.0/3.0, TOLERANCE);
+        
+        Point baricentre_face_1;
+        baricentre_face_1.Coordinates()[0] = 0.5;
+        baricentre_face_1.Coordinates()[1] = 0.5;
+        baricentre_face_1.Coordinates()[2] = 0.0;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> baricentre_local_coords_face_1;
+        geom->PointLocalCoordinates(baricentre_local_coords_face_1, baricentre_face_1);
+        
+        KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(0), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(1), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords_face_1(2), 0.0, TOLERANCE);
+        
+        Point baricentre_face_2;
+        baricentre_face_2.Coordinates()[0] = 0.5;
+        baricentre_face_2.Coordinates()[1] = 0.0;
+        baricentre_face_2.Coordinates()[2] = 0.5;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> baricentre_local_coords_face_2;
+        geom->PointLocalCoordinates(baricentre_local_coords_face_2, baricentre_face_2);
+        
+        KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(0), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(1), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords_face_2(2), 0.5, TOLERANCE);
+        
+        Point baricentre_face_3;
+        baricentre_face_3.Coordinates()[0] = 0.0;
+        baricentre_face_3.Coordinates()[1] = 0.5;
+        baricentre_face_3.Coordinates()[2] = 0.5;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> baricentre_local_coords_face_3;
+        geom->PointLocalCoordinates(baricentre_local_coords_face_3, baricentre_face_3);
+
+        KRATOS_CHECK_NEAR(baricentre_local_coords_face_3(0), 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords_face_3(1), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords_face_3(2), 0.5, TOLERANCE);
+
+        Point outside_point;
+        outside_point.Coordinates()[0] = 0.5;
+        outside_point.Coordinates()[1] = 0.5;
+        outside_point.Coordinates()[2] = 0.5;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> local_coords_outside_point;
+        geom->PointLocalCoordinates(local_coords_outside_point, outside_point);
+
+        KRATOS_CHECK_NEAR(local_coords_outside_point(0), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(local_coords_outside_point(1), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(local_coords_outside_point(2), 0.5, TOLERANCE);
+    }
+
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+      auto geom = GenerateTriRectangularTetrahedra3D4();
+      array_1d<double, 3> coord(3);
+      coord[0] = 1.0 / 2.0;
+      coord[1] = 1.0 / 4.0;
+      coord[2] = 1.0 / 16.0;
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.1875, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.25, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.0625, TOLERANCE);
+      CrossCheckShapeFunctionsValues(*geom);
+  }
+
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+      auto geom = GenerateTriRectangularTetrahedra3D4();
+      TestAllShapeFunctionsLocalGradients(*geom);
+  }
 	}
 }  // namespace Kratos.

@@ -12,19 +12,15 @@
 
 // System includes 
 
+
 // External includes 
-#include <boost/python.hpp>
 
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
+#include "includes/define_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/move_shallow_water_particle_utility.h"
 #include "custom_utilities/shallow_water_variables_utility.h"
-
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
 
 
 namespace Kratos
@@ -33,15 +29,16 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddCustomUtilitiesToPython()
+  void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
-    using namespace boost::python;
+    using namespace pybind11;
 
     //~ typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     //~ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     //~ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_< MoveShallowWaterParticleUtility<2> > ("MoveShallowWaterParticleUtility", init<ModelPart& , Parameters >())
+    class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
+        .def(init<ModelPart& , Parameters >())
         .def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
         .def("MoveParticles", &MoveShallowWaterParticleUtility<2>::MoveParticles)
         .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
@@ -56,13 +53,20 @@ namespace Python
         .def("ExecuteParticlesPrintingTool", &MoveShallowWaterParticleUtility<2>::ExecuteParticlesPrintingTool)
         ;
 
-    class_< ShallowWaterVariablesUtility > ("ShallowWaterVariablesUtility", init<ModelPart&>())
+    class_< ShallowWaterVariablesUtility > (m, "ShallowWaterVariablesUtility")
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&, double&>())
         .def("ComputeFreeSurfaceElevation", &ShallowWaterVariablesUtility::ComputeFreeSurfaceElevation)
-        .def("ComputeHeightFromInitialFreeSurface", &ShallowWaterVariablesUtility::ComputeHeightFromInitialFreeSurface)
+        .def("ComputeHeightFromFreeSurface", &ShallowWaterVariablesUtility::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterVariablesUtility::ComputeVelocity)
         .def("CheckDryConservedVariables", &ShallowWaterVariablesUtility::CheckDryConservedVariables)
         .def("CheckDryPrimitiveVariables", &ShallowWaterVariablesUtility::CheckDryPrimitiveVariables)
         .def("SetDryWetState", &ShallowWaterVariablesUtility::SetDryWetState)
+        .def("DefineDryProperties", &ShallowWaterVariablesUtility::DefineDryProperties)
+        .def("AssignDryWetProperties", &ShallowWaterVariablesUtility::AssignDryWetProperties)
+        .def("ResetMeshPosition", &ShallowWaterVariablesUtility::ResetMeshPosition)
+        .def("SetMeshPosition", &ShallowWaterVariablesUtility::SetMeshPosition)
+        .def("SetElementsActive", &ShallowWaterVariablesUtility::SetElementsActive)
         ;
   }
 
