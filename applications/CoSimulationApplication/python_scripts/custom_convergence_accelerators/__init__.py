@@ -24,7 +24,7 @@ def CreateConvergenceAccelerator(settings, solvers, level):
         return accelerator_module.Create(settings, solvers, level)
     else:
         err_msg  = 'The requested convergence accelerator "' + accelerator_type + '" is not available!\n'
-        err_msg += 'The following convergence accelerators are available:\n'
-        for avail_accelerator in available_convergence_accelerators:
-            err_msg += "\t" + avail_accelerator + "\n"
+        err_msg += 'The available convergence accelerators are:\n'
+        for available_accelerator in available_convergence_accelerators:
+            err_msg += "\t" + available_accelerator + "\n"
         raise NameError(err_msg)
