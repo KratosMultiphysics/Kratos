@@ -675,7 +675,7 @@ protected:
 
         const double original_delta_time = r_process_info[DELTA_TIME]; // We save the delta time to restore later
         
-        IndexType split_number = 0;
+        int split_number = 0;
         
         // We iterate until we reach the convergence or we split more than desired
         while (is_converged == false && split_number <= mThisParameters["max_number_splits"].GetInt()) {
