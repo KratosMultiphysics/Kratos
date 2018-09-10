@@ -41,8 +41,9 @@ namespace Kratos
 /**
  * @class ModifiedMohrCoulombYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a yield surface according to Modified Mohr-Coulumb theory
+ * @details The Mohr–Coulomb yield (failure) criterion is similar to the Tresca criterion, with additional provisions for materials with different tensile and compressive yield strengths. This model is often used to model concrete, soil or granular materials. This is a modified version of the criteria
+ * @see https://en.wikipedia.org/wiki/Mohr%E2%80%93Coulomb_theory
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
