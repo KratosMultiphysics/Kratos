@@ -277,7 +277,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
             linear_solver = self.get_linear_solver()
             if self.settings["block_builder"].GetBool():
                 if self.settings["multi_point_constraints_used"].GetBool():
-                    raise Exception("MPCs not compatible with contact")
+                    builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolverWithConstraints(linear_solver)
                 else:
                     builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
