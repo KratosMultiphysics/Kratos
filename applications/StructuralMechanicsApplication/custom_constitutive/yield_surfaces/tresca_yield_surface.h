@@ -15,6 +15,7 @@
 // System includes
 
 // Project includes
+#include "includes/checks.h"
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
@@ -49,7 +50,7 @@ namespace Kratos
 template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -92,21 +93,22 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param StressVector The stress vector
-     * @param StrainVector The StrainVector vector
-     * @param rMaterialProperties The material properties
+     * @param rStressVector The stress vector
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const Vector &StressVector,
-        const Vector &StrainVector,
-        double &rEqStress,
-        const Properties &rMaterialProperties)
+        const Vector& rStressVector,
+        const Vector& rStrainVector,
+        double& rEqStress,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
         double I1, J2, J3, lode_angle;
         Vector deviator = ZeroVector(6);
 
-        ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
-        ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, deviator, J2);
+        ConstitutiveLawUtilities::CalculateI1Invariant(rStressVector, I1);
+        ConstitutiveLawUtilities::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
         ConstitutiveLawUtilities::CalculateJ3Invariant(deviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
@@ -116,57 +118,63 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
     /**
      * @brief This method returns the initial uniaxial stress threshold
      * @param rThreshold The uniaxial stress threshold
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
+    static void GetInitialUniaxialThreshold(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold
+        )
     {
-        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_TENSION]); // TODO Check
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        rThreshold = std::abs(r_material_properties[YIELD_STRESS_TENSION]); // TODO Check
     }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
      * @param AParameter The damage parameter
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties &rMaterialProperties,
-        double &AParameter,
-        const double CharacteristicLength)
+        ConstitutiveLaw::Parameters& rValues,
+        double& AParameter,
+        const double CharacteristicLength
+        )
     {
-        const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double E = rMaterialProperties[YOUNG_MODULUS];
-        const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        const double Gf = r_material_properties[FRACTURE_ENERGY];
+        const double E = r_material_properties[YOUNG_MODULUS];
+        const double sigma_c = r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double sigma_t = r_material_properties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential))
-        {
+        if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        }
-        else
-        { // linear
+            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
+        } else { // linear
             AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf * n * n / CharacteristicLength);
         }
     }
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param StressVector The stress vector
-     * @param Deviator The deviatoric part of the stress vector
+     * @param rStressVector The stress vector
+     * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rg The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& rStressVector,
+        const Vector& rDeviator,
         const double J2,
-        Vector &rg,
-        const Properties &rMaterialProperties)
+        Vector& rDerivativePlasticPotential,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -174,27 +182,28 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector
-     * @param Deviator The deviatoric part of the stress vector
+     * @param rStressVector The stress vector
+     * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& rStressVector,
+        const Vector& rDeviator,
         const double J2,
-        Vector &rFFlux,
-        const Properties &rMaterialProperties)
+        Vector& rFFlux,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
         Vector first_vector, second_vector, third_vector;
 
         ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, third_vector);
+        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
 
         double J3, lode_angle;
-        ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
+        ConstitutiveLawUtilities::CalculateJ3Invariant(rDeviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
         const double checker = std::abs(lode_angle * 180 / Globals::Pi);
@@ -202,18 +211,34 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
         double c1, c2, c3;
         c1 = 0.0;
 
-        if (checker < 29.0)
-        {
+        if (checker < 29.0) {
             c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
             c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
-        }
-        else
-        {
+        } else {
             c2 = std::sqrt(3.0);
             c3 = 0.0;
         }
 
         noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+    }
+
+    /**
+     * @brief This method defines the check to be performed in the yield surface
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
+        KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
+        KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
+
+        return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
     ///@}
@@ -234,7 +259,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -263,7 +288,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
     ///@{
 
     ///@}
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 

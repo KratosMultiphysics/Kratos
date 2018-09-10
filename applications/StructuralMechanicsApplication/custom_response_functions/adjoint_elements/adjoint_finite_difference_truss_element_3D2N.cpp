@@ -47,7 +47,7 @@ void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVa
             case TracedStressType::FX:
             {
                 std::vector< array_1d<double, 3 > > force_vector;
-                mpPrimalElement->GetValueOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
+                mpPrimalElement->CalculateOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
                 for(IndexType i = 0; i < GP_num ; ++i)
                     rOutput(i) = force_vector[i][0];
                 break;
@@ -55,7 +55,7 @@ void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVa
             case TracedStressType::PK2:
             {
                 std::vector<Vector> stress_vector;
-                mpPrimalElement->GetValueOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
+                mpPrimalElement->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
                 for(IndexType i = 0; i < GP_num ; ++i)
                     rOutput(i) = stress_vector[i][0];
                 break;
@@ -176,18 +176,6 @@ void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCu
     KRATOS_ERROR_IF(cl == nullptr)
     << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
     cl->Check(r_properties ,this->GetGeometry(),rCurrentProcessInfo);
-}
-
-double AdjointFiniteDifferenceTrussElement::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if(rDesignVariable == SHAPE)
-        return this->CalculateReferenceLength();
-    else
-        return 1.0;
-
-    KRATOS_CATCH("")
 }
 
 double AdjointFiniteDifferenceTrussElement::CalculateReferenceLength()
