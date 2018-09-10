@@ -161,16 +161,16 @@ void  AddContainersToPython(pybind11::module& m)
     .def( "__repr__", &Variable<int>::Info )
     ;
 
-    class_<Variable<vector<int> >,VariableData>(m, "IntegerVectorVariable")
-    .def( "__repr__", &Variable<vector<int>>::Info )
+    class_<Variable<DenseVector<int> >,VariableData>(m, "IntegerVectorVariable")
+    .def( "__repr__", &Variable<DenseVector<int>>::Info )
     ;
 
     class_<Variable<double>,VariableData>(m, "DoubleVariable")
     .def( "__repr__", &Variable<double>::Info )
     ;
 
-    class_<Variable<vector<double> >,VariableData>(m, "VectorVariable")
-    .def( "__repr__", &Variable<vector<double> >::Info )
+    class_<Variable<Vector >,VariableData>(m, "VectorVariable")
+    .def( "__repr__", &Variable<Vector >::Info )
     ;
 
     class_<Variable<array_1d<double, 3> >,VariableData>(m, "Array1DVariable3")
@@ -204,9 +204,9 @@ void  AddContainersToPython(pybind11::module& m)
     class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
     .def( "__repr__", &Variable<RadiationSettings::Pointer >::Info )
     ;
-    class_<VariableComponent<VectorComponentAdaptor<vector<double> > >,VariableData>(m, "VectorComponentVariable")
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<vector<double> > >::Info )
-    // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<vector<double> > >::GetSourceVariable ) // components for vector are not yet fully supported
+    class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
+    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<Vector > >::Info )
+    // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")

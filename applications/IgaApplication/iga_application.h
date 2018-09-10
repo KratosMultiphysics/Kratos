@@ -66,7 +66,7 @@ public:
     KratosIgaApplication();
 
     /// Destructor.
-    virtual ~KratosIgaApplication(){}
+    ~KratosIgaApplication() override {}
 
     ///@}
     ///@name Operators

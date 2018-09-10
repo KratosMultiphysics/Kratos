@@ -94,20 +94,22 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param StressVector The stress vector
-     * @param StrainVector The StrainVector vector
-     * @param rMaterialProperties The material properties
+     * @param rStressVector The stress vector
+     * @param rStrainVector The StrainVector vector
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const Vector &StressVector,
-        const Vector &StrainVector,
-        double &rEqStress,
-        const Properties &rMaterialProperties
+        const Vector& rStressVector,
+        const Vector& rStrainVector,
+        double& rEqStress,
+        ConstitutiveLaw::Parameters& rValues
         )
     {
-        const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
-        double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        const double yield_compression = r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = r_material_properties[YIELD_STRESS_TENSION];
+        double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
 
         // Check input variables
         if (friction_angle < tolerance) {
@@ -122,9 +124,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         double sin_phi = std::sin(friction_angle);
 
         double I1, J2, J3;
-        ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
+        ConstitutiveLawUtilities::CalculateI1Invariant(rStressVector, I1);
         Vector Deviator = ZeroVector(6);
-        ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, Deviator, J2);
+        ConstitutiveLawUtilities::CalculateJ2Invariant(rStressVector, I1, Deviator, J2);
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
 
         K1 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) * sin_phi;
@@ -144,11 +146,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
     /**
      * @brief This method returns the initial uniaxial stress threshold
      * @param rThreshold The uniaxial stress threshold
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
+    static void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold)
     {
-        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_COMPRESSION]);
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        rThreshold = std::abs(r_material_properties[YIELD_STRESS_COMPRESSION]);
     }
 
     /**
@@ -157,36 +161,39 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rg The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& StressVector,
+        const Vector& Deviator,
         const double J2,
-        Vector &GFlux,
-        const Properties &rMaterialProperties)
+        Vector& GFlux,
+        ConstitutiveLaw::Parameters& rValues)
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, GFlux, rMaterialProperties);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, GFlux, rValues);
     }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
      * @param AParameter The damage parameter
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties &rMaterialProperties,
-        double &AParameter,
-        const double CharacteristicLength)
+        ConstitutiveLaw::Parameters& rValues,
+        double& AParameter,
+        const double CharacteristicLength
+        )
     {
-        const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double E = rMaterialProperties[YOUNG_MODULUS];
-        const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        const double Gf = r_material_properties[FRACTURE_ENERGY];
+        const double E = r_material_properties[YOUNG_MODULUS];
+        const double sigma_c = r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double sigma_t = r_material_properties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
+        if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
             KRATOS_DEBUG_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
@@ -203,20 +210,22 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& StressVector,
+        const Vector& Deviator,
         const double J2,
-        Vector &rFFlux,
-        const Properties &rMaterialProperties)
+        Vector& rFFlux,
+        ConstitutiveLaw::Parameters& rValues)
     {
-        Vector FirstVector, SecondVector, ThirdVector;
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
-        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
-        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
+        Vector first_vector, second_vector, third_vector;
+
+        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, second_vector);
+        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, third_vector);
 
         double J3, lode_angle;
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
@@ -225,7 +234,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         const double Checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         double c1, c2, c3;
-        const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0;
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
         const double sin_phi = std::sin(friction_angle);
         const double cons_phi = std::cos(friction_angle);
         const double sin_theta = std::sin(lode_angle);
@@ -235,11 +244,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         const double tan_3theta = std::tan(3.0 * lode_angle);
         const double Root3 = std::sqrt(3.0);
 
-        const double compr_yield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double tens_yield = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double compr_yield = r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double tens_yield = r_material_properties[YIELD_STRESS_TENSION];
         const double n = compr_yield / tens_yield;
 
-        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+        const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         ;
         const double angle_phi = (Globals::Pi * 0.25) + dilatancy * 0.5;
         const double alpha = n / (std::tan(angle_phi) * std::tan(angle_phi));
@@ -265,7 +274,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
                 aux = -1.0;
             c2 = 0.5 * CFL * (K1 * Root3 + aux * K2 * sin_phi / Root3);
         }
-        noalias(rFFlux) = c1 * FirstVector + c2 * SecondVector + c3 * ThirdVector;
+        noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**
