@@ -659,6 +659,7 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<DenseMatrix<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 
+
     .def("Initialize", &Condition::Initialize)
     .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
