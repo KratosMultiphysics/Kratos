@@ -70,7 +70,7 @@ public:
 	KratosCoSimulationApplication();
 
 	/// Destructor.
-	virtual ~KratosCoSimulationApplication(){}
+	virtual ~KratosCoSimulationApplication() override {}
 
 
 	///@}
@@ -81,11 +81,8 @@ public:
 	///@}
 	///@name Operations
 	///@{
-
-	virtual void Register();
-
-
-
+	///@{
+  		void Register() override;
 	///@}
 	///@name Access
 	///@{
@@ -101,29 +98,21 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const {
+	virtual std::string Info() const override {
 		return "KratosCoSimulationApplication";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const {
+	virtual void PrintInfo(std::ostream& rOStream) const override {
 		rOStream << Info();
 		PrintData(rOStream);
 	}
 
 	///// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const {
-  		KRATOS_WATCH("in my application");
-  		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
+	virtual void PrintData(std::ostream& rOStream) const override {
+			rOStream << "in KratosCoSimulationApplication" << std::endl;
+			KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
+			KratosApplication::PrintData(rOStream);
     }
 
 
@@ -180,9 +169,6 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-
-	// const Elem2D   mElem2D;
-	// const Elem3D   mElem3D;
 
 	///@}
 	///@name Private Operators

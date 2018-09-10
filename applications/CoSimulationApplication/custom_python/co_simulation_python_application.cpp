@@ -37,7 +37,7 @@ PYBIND11_MODULE(KratosCoSimulationApplication,m)
     pybind11::class_<KratosCoSimulationApplication,
            KratosCoSimulationApplication::Pointer,
            KratosApplication >(m,"KratosCoSimulationApplication")
-           .def(init<>())
+           .def(pybind11::init<>())
            ;
 
 }
