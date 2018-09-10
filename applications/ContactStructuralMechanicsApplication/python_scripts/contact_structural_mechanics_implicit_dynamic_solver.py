@@ -198,7 +198,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         mortar_type = self.contact_settings["mortar_type"].GetString()
         if (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
             if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
-                self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
+                self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
                 name_mixed_solver = self.contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
                 if (name_mixed_solver == "mixed_ulm_linear_solver"):
                     linear_solver_name = self.settings["linear_solver_settings"]["solver_type"].GetString()
@@ -326,7 +326,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         newton_parameters.AddValue("adaptative_strategy", self.contact_settings["adaptative_strategy"])
         newton_parameters.AddValue("split_factor", self.contact_settings["split_factor"])
         newton_parameters.AddValue("max_number_splits", self.contact_settings["max_number_splits"])
-        #newton_parameters.AddValue("inner_loop_iterations", self.contact_settings["inner_loop_iterations"])
+        newton_parameters.AddValue("inner_loop_iterations", self.contact_settings["inner_loop_iterations"])
         return CSMA.ResidualBasedNewtonRaphsonContactStrategy(computing_model_part,
                                                                 self.mechanical_scheme,
                                                                 self.linear_solver,
