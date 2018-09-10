@@ -90,7 +90,7 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
     typedef CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> RotationToolType;
     typedef typename CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double>::Pointer RotationToolPointerType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{

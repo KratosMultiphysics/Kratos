@@ -89,6 +89,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticity, KratosStruct
     material_properties.SetValue(FRACTURE_ENERGY, 1000.0);
     material_properties.SetValue(HARDENING_CURVE, 0);
 
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
     cl_parameters.SetElementGeometry(Geom);
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);

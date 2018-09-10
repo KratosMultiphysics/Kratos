@@ -204,6 +204,7 @@ protected:
      * @brief This functions updates the kinematics variables
      * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
+     * @param rIntegrationMethod The integration method considered
      */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,

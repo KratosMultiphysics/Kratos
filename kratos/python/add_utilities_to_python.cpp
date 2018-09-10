@@ -77,7 +77,7 @@ void AddUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
@@ -108,7 +108,6 @@ void AddUtilitiesToPython(pybind11::module& m)
     ;
 
     // This is required to recognize the different overloads of ConditionNumberUtility::GetConditionNumber
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef double (ConditionNumberUtility::*InputGetConditionNumber)(SparseSpaceType::MatrixType&, LinearSolverType::Pointer, LinearSolverType::Pointer);
     typedef double (ConditionNumberUtility::*DirectGetConditionNumber)(SparseSpaceType::MatrixType&);
 
@@ -491,13 +490,18 @@ void AddUtilitiesToPython(pybind11::module& m)
     // Exact integration (for testing)
     class_<ExactMortarIntegrationUtility<2,2>>(m,"ExactMortarIntegrationUtility2D2N")
     .def(init<>())
-    .def(init<const unsigned int>())
+    .def(init<const std::size_t>())
+    .def(init<const std::size_t, const double>())
+    .def(init<const std::size_t, const double, const std::size_t>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
     ;
+
     class_<ExactMortarIntegrationUtility<3,3>>(m,"ExactMortarIntegrationUtility3D3N")
     .def(init<>())
-    .def(init<const unsigned int>())
+    .def(init<const std::size_t>())
+    .def(init<const std::size_t, const double>())
+    .def(init<const std::size_t, const double, const std::size_t>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
     .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3>::TestGiDDebug)
@@ -505,10 +509,32 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
     .def(init<>())
-    .def(init<const unsigned int>())
+    .def(init<const std::size_t>())
+    .def(init<const std::size_t, const double>())
+    .def(init<const std::size_t, const double, const std::size_t>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
     .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4>::TestGiDDebug)
+    ;
+
+    class_<ExactMortarIntegrationUtility<3,3,false,4>>(m,"ExactMortarIntegrationUtility3D3N4N")
+    .def(init<>())
+    .def(init<const std::size_t>())
+    .def(init<const std::size_t, const double>())
+    .def(init<const std::size_t, const double, const std::size_t>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestGiDDebug)
+    ;
+
+    class_<ExactMortarIntegrationUtility<3,4,false,3>>(m,"ExactMortarIntegrationUtility3D4N3N")
+    .def(init<>())
+    .def(init<const std::size_t>())
+    .def(init<const std::size_t, const double>())
+    .def(init<const std::size_t, const double, const std::size_t>())
+    .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactIntegration)
+    .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestGiDDebug)
     ;
 
     // Sparse matrix multiplication utility
@@ -518,6 +544,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
+    .def("TransposeMatrix",&SparseMatrixMultiplicationUtility::TransposeMatrix<CompressedMatrix, CompressedMatrix>)
     ;
 
     // Mortar utilities

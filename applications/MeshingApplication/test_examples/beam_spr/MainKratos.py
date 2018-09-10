@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.MeshingApplication as MA
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
-import adaptative_structural_mechanics_analysis as Analysis
+import adaptative_remeshing_structural_mechanics_analysis as Analysis
 
 ## Import define_output
 with open("ProjectParameters.json",'r') as parameter_file:
@@ -13,6 +13,6 @@ with open("ProjectParameters.json",'r') as parameter_file:
 
 # Creating the test
 model = KM.Model()
-analysis = Analysis.AdaptativeStructuralMechanicsAnalysis(model, ProjectParameters)
+analysis = Analysis.AdaptativeRemeshingStructuralMechanicsAnalysis(model, ProjectParameters)
 KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.INFO)
 analysis.Run()

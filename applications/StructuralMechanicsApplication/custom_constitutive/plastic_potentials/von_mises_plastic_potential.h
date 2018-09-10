@@ -46,7 +46,7 @@ namespace Kratos
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -89,30 +89,40 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector
-     * @param Deviator The deviatoric part of the stress vector
+     * @param rStressVector The stress vector
+     * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& rStressVector,
+        const Vector& rDeviator,
         const double J2,
-        Vector &rGFlux,
-        const Properties &rMaterialProperties)
+        Vector& rGFlux,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
-        Vector FirstVector, SecondVector, ThirdVector;
+        Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
-        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
-        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
+        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
 
         const double c1 = 0.0;
         const double c2 = std::sqrt(3.0);
         const double c3 = 0.0;
 
-        noalias(rGFlux) = c1 * FirstVector + c2 * SecondVector + c3 * ThirdVector;
+        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+    }
+
+    /**
+     * @brief This method defines the check to be performed in the plastic potential
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        return 0;
     }
 
     ///@}
@@ -133,7 +143,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -163,7 +173,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 

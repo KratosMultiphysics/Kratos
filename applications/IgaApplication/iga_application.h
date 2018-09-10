@@ -23,6 +23,7 @@
 #include "includes/variables.h"
 
 #include "custom_elements/truss_discrete_element.h"
+#include "custom_elements/shell_kl_discrete_element.h"
 
 namespace Kratos {
 
@@ -65,7 +66,7 @@ public:
     KratosIgaApplication();
 
     /// Destructor.
-    virtual ~KratosIgaApplication(){}
+    ~KratosIgaApplication() override {}
 
     ///@}
     ///@name Operators
@@ -160,6 +161,7 @@ private:
     ///@{
 
     const TrussDiscreteElement mTrussDiscreteElement;
+    const ShellKLDiscreteElement mShellKLDiscreteElement;
 
     ///@}
     ///@name Private Operators

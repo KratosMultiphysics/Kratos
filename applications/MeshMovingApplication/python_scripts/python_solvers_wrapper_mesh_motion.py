@@ -2,10 +2,10 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 
-def CreateSolver(main_model_part, custom_settings):
+def CreateSolver(model, custom_settings):
 
-    if (not isinstance(custom_settings, KratosMultiphysics.Parameters)):
-        raise Exception("input is expected to be provided as a Kratos ModelPart object")
+    if (not isinstance(model, KratosMultiphysics.Model)):
+        raise Exception("input is expected to be provided as a Kratos Model object")
 
     if (not isinstance(custom_settings, KratosMultiphysics.Parameters)):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
@@ -47,6 +47,6 @@ def CreateSolver(main_model_part, custom_settings):
         raise Exception(err_msg)
 
     solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(main_model_part, custom_settings["solver_settings"])
+    solver = solver_module.CreateSolver(model, custom_settings["solver_settings"])
 
     return solver

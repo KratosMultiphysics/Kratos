@@ -3,6 +3,14 @@ import os
 from KratosMultiphysics import *
 CheckForPreviousImport()
 
+def Factory(settings, Model):
+    if(type(settings) != Parameters):
+        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+    model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
+    output_name = settings["Parameters"]["output_name"].GetString()
+    postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
+    return GiDOutputProcess(model_part, output_name, postprocess_parameters)
+
 class GiDOutputProcess(Process):
 
     defaults = Parameters('''{
@@ -195,7 +203,7 @@ class GiDOutputProcess(Process):
             self.__remove_post_results_files(label)
 
             # Restart .post.lst files
-            self.__restart_list_files(additional_list_files)
+            self.__restart_list_files(additional_list_files) # FIXME
         else:
             # Create .post.lst files
             self.__initialize_list_files(additional_list_files)
@@ -637,8 +645,13 @@ class GiDOutputProcess(Process):
                 end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
                 print_id   = end_parts[0] # you get "145"
 
-                if( print_id != "0" ):
-                    file_id.append(int(print_id))
+                try:
+                    label = int(print_id)
+                    if label != 0:
+                        file_id.append(label)
+                except ValueError:
+                    # Whatever we got was not convertible to int, probably the input file has a different format
+                    pass
 
             file_id.sort()
 
