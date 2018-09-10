@@ -8,17 +8,23 @@ sys.path.append(current_dir_name)
 for dirName, subdirList, fileList in os.walk(current_dir_name):
     sys.path.append(dirName)
 
+"""
+This is a map of the name of the available solver interfaces to be specified in
+JSON file and their python module (file) name. New solver interfaces should be registered
+here with an additional entry.
+eg : "name_in_JSON" : "python module(file) name"
+"""
 available_solver_interfaces = {
-    "kratos"  : "convergence_accelerator_constant",
-    "dummy"               : "convergence_accelerator_aitken",
-    "su2"               : "convergence_accelerator_iqnils",
-    ""                 : "convergence_accelerator_mvqn"
+    "kratos"                : "convergence_accelerator_constant",
+    "dummy"                 : "convergence_accelerator_aitken",
+    "su2"                   : "convergence_accelerator_iqnils",
+    ""                      : "convergence_accelerator_mvqn"
     }
 
 def CreateSolverInterface(settings, solvers, level):
     """
-        This function creates and returns the solver interface used for CoSimulation
-        New solver interface have to be registered by adding them to "available_convergence_accelerators"
+    This function creates and returns the solver interface used for CoSimulation
+    New solver interface have to be registered by adding them to "available_convergence_accelerators"
     """
     if (type(settings) != dict):
         raise Exception("Input is expected to be provided as a python dictionary")

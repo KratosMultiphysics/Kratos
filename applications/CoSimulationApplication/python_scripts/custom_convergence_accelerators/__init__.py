@@ -2,7 +2,12 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 import sys, os
 sys.path.append(os.path.dirname(__file__))
-
+"""
+This is a map of the name of available convergence accelerators to be specified in
+JSON file and their python module (file) name. New accelerators should be registered here by an
+additional entry
+eg : "name_in_JSON" : "python module(file) name"
+"""
 available_convergence_accelerators = {
     "constant_relaxation"  : "convergence_accelerator_constant",
     "aitken"               : "convergence_accelerator_aitken",
@@ -11,7 +16,8 @@ available_convergence_accelerators = {
     }
 
 def CreateConvergenceAccelerator(settings, solvers, level):
-    """This function creates and returns the convergence accelerator used for CoSimulation
+    """
+    This function creates and returns the convergence accelerator used for CoSimulation
     New convergence accelerators have to be registered by adding them to "available_convergence_accelerators"
     """
     if (type(settings) != dict):

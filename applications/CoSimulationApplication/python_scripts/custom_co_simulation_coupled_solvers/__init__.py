@@ -3,8 +3,10 @@ import sys, os
 sys.path.append(os.path.dirname(__file__))
 
 """
-    This is a map of the name of coupled solver to be specified in
-    JSON file and their python module (file) name
+This is a map of the name of coupled solver to be specified in
+JSON file and their python module (file) name. New coupled solvers should
+be registered by an additional entry here.
+eg : "name_in_JSON" : "python module(file) name"
 """
 available_coupled_solvers = {
     "gauss_seidel"  : "gauss_seidel_iterative_strong_coupled_solver",
@@ -15,8 +17,8 @@ available_coupled_solvers = {
 
 def CreateCoupledSolver(settings, solvers, level):
     """
-        This function creates and returns the coupled solver used for CoSimulation
-        One can register the a new coupled solver by adding them to the above map "available_coupled_solvers"
+    This function creates and returns the coupled solver used for CoSimulation
+    One can register the a new coupled solver by adding them to the above map "available_coupled_solvers"
     """
     if (type(settings) != dict):
         raise Exception("Input is expected to be provided as a python dictionary")
