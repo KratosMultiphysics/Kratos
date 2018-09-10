@@ -260,7 +260,7 @@ namespace Kratos
             array_1d<double, 3> ref_metric;
             ref_metric[0] = 1.0;
             ref_metric[1] = 1.0;
-            ref_metric[2] = 0;
+            ref_metric[2] = 0.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->SetValue(METRIC_TENSOR_2D, ref_metric);
