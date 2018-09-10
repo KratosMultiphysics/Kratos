@@ -34,6 +34,7 @@
     "co_simulation_solver_settings": {
         "type": "gauss_seidel_iterative_strong_coupling_solver",
         "echo_level": 1,
+        "max_iteration_per_step": 10,
         "convergence_acceleration": {
             "type": "constant",
             "settings": {
@@ -42,7 +43,6 @@
         },
         "residual_relative_tolerance": 0.001,
         "residual_absolute_tolerance": 1e-6,
-        "max_iteration_per_step": 10,
         "participants": [
             {
                 "name": "dummy1",

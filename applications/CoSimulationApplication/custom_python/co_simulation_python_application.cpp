@@ -7,8 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname 
+//  Main authors:    Aditya Ghantasala
 //
 
 
@@ -16,18 +15,13 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
 #include "includes/define.h"
 #include "co_simulation_application.h"
 #include "co_simulation_application_variables.h"
-#include "custom_python/add_base_classes_to_python.h"
-#include "custom_python/add_custom_application_interfaces_to_python.h"
-#include "custom_python/add_custom_coupling_strategies_to_python.h"
-#include "custom_python/add_custom_io_to_python.h"
-#include "custom_python/add_custom_relaxation_schemes_to_python.h"
 //#include "custom_python/"
 
 
@@ -37,30 +31,17 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+PYBIND11_MODULE(KratosCoSimulationApplication,m)
+{
 
+    pybind11::class_<KratosCoSimulationApplication,
+           KratosCoSimulationApplication::Pointer,
+           KratosApplication >(m,"KratosCoSimulationApplication")
+           .def(init<>())
+           ;
 
-
-  BOOST_PYTHON_MODULE(KratosCoSimulationApplication)
-  {
-
-	  class_<KratosCoSimulationApplication,
-			  KratosCoSimulationApplication::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("KratosCoSimulationApplication")
-			;
-
-    AddCustomBaseClassesToPython();
-    AddCustomApplicationIterfacesToPython();            
-	AddCustomCouplingStrategiesToPython();
-    AddCustomIoToPython();
-    AddCustomRelaxationSchemesToPython();
-    
-	//registering variables in python
-
-  }
-
-  // We can add a second module for stand alone users.
-
+}
+    // We can add a second module for stand alone users.
 }  // namespace Python.
 
 }  // namespace Kratos.

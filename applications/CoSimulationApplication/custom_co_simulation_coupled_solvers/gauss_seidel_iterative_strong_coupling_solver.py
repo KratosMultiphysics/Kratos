@@ -1,49 +1,27 @@
-import KratosMultiphysics
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("CoSimulationApplication")
-import KratosMultiphysics.CoSimulationApplication as CoSimApp
+# co simulation imports
 import tools
 
 # Other imports
 import os
 
-def CreateSolver(custom_settings):
+def Create(custom_settings):
     return GaussSeidelIterativeStrongCouplingSolver(custom_settings)
 
 class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCouplingStrategy):
     def __init__(self, custom_settings):
 
         ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                    "problem_data": {
-                        "problem_name": "CoupledProblem",
-                        "domain_size": 3,
-                        "time_step": 0.1,
-                        "start_time": 0.0,
-                        "end_time": 1.0,
-                        "echo_level": 0
-                    },
-                    "solvers": [],
-                    "co_simulation_solver_settings": {
-                        "type": "gauss_seidel_iterative_strong_coupling_solver",
-                        "echo_level": 1,
-                        "convergence_acceleration": {
-                            "type": "constant",
-                            "settings": {
-                                "factor": 0.1
-                            }
-                        },
-                        "residual_relative_tolerance": 0.001,
-                        "residual_absolute_tolerance": 1e-6,
-                        "max_iteration_per_step": 10,
-                        "participants": []
-                    }
-            }""")
+        # default values for all available settings
+        # for mandatory settings, the type is defined
+        defaultSettings = {}
+        defaultSettings["echo_level"] = 1
+        defaultSettings["convergence_acceleration"] = dict    #MANDATORY
+        defaultSettings["convergence_criteria"] = dict    #MANDATORY
+        defaultSettings["max_iteration_per_step"] = 10
+        defaultSettings["participants"] = list
+        self.settings = ValidateAndAssignInputParameters(defaultSettings, custom_settings)
 
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-        self.number_of_participants = ( self.settings["co_simulation_solver_settings"]['participants'] ).size()
+        self.number_of_participants = ( self.settings['participants'] ).size()
         print('Number of participants :: ', self.number_of_participants)
         if(self.number_of_participants <= 1):
             raise RuntimeError('Number of participants in a Co-Simulation strategy cannot be less than 2. \nPlease check the input ... !')
