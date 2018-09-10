@@ -48,7 +48,7 @@ namespace Kratos
  * @brief This uility includes auxiliar methods not included in the model part to avoid increase more than necessary the API
  * @author Vicente Mataix Ferrandiz
  */
-class AuxiliarModelPartUtilities
+class KRATOS_API(KRATOS_CORE) AuxiliarModelPartUtilities
 {
 public:
     ///@name Type Definitions
