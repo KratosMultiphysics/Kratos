@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -53,11 +53,11 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_GRADIENT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_HESSIAN)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MMG_METRIC)
-        
+
     //for ULF (surface_tension) application:
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TRIPLE_POINT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONTACT_ANGLE)
-        
+
     //KRATOS_REGISTER_IN_PYTHON_VARIABLE(COUNTER)
 
     //KRATOS_REGISTER_IN_PYTHON_VARIABLE(WEIGHT_FATHER_NODES) //used in the cutting planes app

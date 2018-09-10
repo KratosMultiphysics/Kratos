@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED )
@@ -38,7 +38,7 @@ namespace Kratos
 ///@{
 
 typedef array_1d<double,3> Vector3;
-    
+
 // Variables definition
 //KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES ) // Moved to variables.h so trilinos application can use it too
 // KRATOS_DEFINE_VARIABLE(double, COUNTER)              // Already put on variables.h (warning was appearing on Windows)
@@ -255,6 +255,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED  defined
 
 

@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -30,7 +30,7 @@ void MetricFastInit<TDim>::Execute()
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
         (nodes_array.begin() + i)->SetValue(MMG_METRIC, ZeroVector(size));
 
     KRATOS_CATCH("");

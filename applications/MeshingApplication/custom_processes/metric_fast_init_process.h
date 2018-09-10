@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_METRIC_FAST_INIT_PROCESS)
@@ -43,11 +43,11 @@ namespace Kratos
  * @class MetricFastInit
  *
  * @ingroup MeshingApplication
- * 
+ *
  * @brief This process initializes the variables related with the ALM
- * 
+ *
  * @author Vicente Mataix Ferrandiz
- * 
+ *
  * @todo Replace with VariableUtils() when updated for nonhistorical
  */
 template<unsigned int TDim>
@@ -191,7 +191,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart;
 
     ///@}

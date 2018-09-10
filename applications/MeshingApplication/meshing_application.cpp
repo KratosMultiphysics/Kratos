@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -42,7 +42,7 @@ KRATOS_CREATE_VARIABLE(Vector,
     AUXILIAR_HESSIAN);  // An auxiliar hessian needed to compute the metric
 KRATOS_CREATE_VARIABLE(Vector,
     MMG_METRIC);  // The condensed metric used to remesh with MMG utility
-    
+
 //for ULF (surface_tension) application:
 KRATOS_CREATE_VARIABLE(double, TRIPLE_POINT)
 KRATOS_CREATE_VARIABLE(double, CONTACT_ANGLE)
@@ -71,7 +71,7 @@ void KratosMeshingApplication::Register() {
         AUXILIAR_HESSIAN);  // An auxiliar hessian needed to compute the metric
     KRATOS_REGISTER_VARIABLE(
         MMG_METRIC);  // The condensed metric used to remesh with MMG utility
-    
+
     //--------------- ULF Application (surface_tension) -------------------//
     KRATOS_REGISTER_VARIABLE(TRIPLE_POINT)
     KRATOS_REGISTER_VARIABLE(CONTACT_ANGLE)
