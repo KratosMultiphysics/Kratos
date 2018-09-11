@@ -23,9 +23,7 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
         this_file_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos")
-        matrix_file_path = os.path.join(matrix_file_path, "tests")
-        matrix_file_path = os.path.join(matrix_file_path, "A.mm")
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "A.mm")
 
         KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
 
