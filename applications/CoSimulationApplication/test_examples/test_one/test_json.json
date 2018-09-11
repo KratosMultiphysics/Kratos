@@ -1,0 +1,127 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 15.0,
+        "echo_level" : 4
+    },
+    "coupled_solver_settings" :
+    {
+        "solver_type" : "gauss_seidel_strong_coupling",
+        "echo_level" : 4,
+        "max_coupling_iterations" : 12,
+        "start_coupling_time" : 0.0,
+        "convergence_accelerator_settings" :
+        {
+            "type"          : "aitken",
+            "data_list" :
+            [
+                {
+                    "solver"   : "dummy_one",
+                    "data_name"     : "disp"
+                }
+            ],
+            "settings":{
+                "initial_alpha" : 0.2
+            }
+        },
+        "convergence_criteria_settings" :
+        {
+            "data_list" :
+            [
+                {
+                    "solver"   : "dummy_one",
+                    "data_name"     : "disp",
+                    "abs_tolerance" : 1e-5,
+                    "rel_tolerance" : 1e-5
+                }
+            ]
+        },
+        "participants":
+        [
+        {
+            "name": "dummy_one",
+            "input_data_list"  : [
+                {
+                    "from_solver" : "dummy_two",
+                    "data_name"   : "disp",
+                    "io_settings"   : {
+                    }
+
+                }
+            ],
+            "output_data_list" : [
+                {
+                    "data_name"   : "force",
+                    "io_settings"   : {
+                    }
+
+                }
+            ]
+        },
+        {
+            "name": "dummy_two",
+            "input_data_list": [
+                {
+                    "from_solver" : "dummy_one",
+                    "data_name"   : "force",
+                    "io_settings"   : {
+                    }
+
+                }
+            ],
+            "output_data_list": [
+                {
+                    "to_solver" : "fluid",
+                    "data_name"   : "disp",
+                    "io_settings"   : {
+                    }
+                }
+            ]
+        }
+        ]
+    },
+    "solvers" :
+    [
+        {
+            "name" : "dummy_one",
+            "solver_type" : "dummy",
+            "settings":{
+                "working_directory" : "dummy_two",
+                "input_file"  : "dummy_two_input"
+            },
+            "data" : {
+                "disp" : {
+                    "geometry_name"   : "dummy_geo_one",
+                    "data_identifier" : "disp_one",
+                    "data_format"     : "array"
+                },
+                "force" : {
+                    "geometry_name"   : "dummy_geo_one",
+                    "data_identifier" : "force_one",
+                    "data_format"     : "array"
+                }
+            }
+        },
+        {
+            "name" : "dummy_two",
+            "solver_type" : "dummy",
+            "settings":{
+                "working_directory" : "dummy_two",
+                "input_file"  : "dummy_two_input"
+            },
+            "data" : {
+                "disp" : {
+                    "geometry_name"   : "dummy_geo_two",
+                    "data_identifier" : "disp_two",
+                    "data_format"     : "array"
+                },
+                "force" : {
+                    "geometry_name"   : "dummy_geo_two",
+                    "data_identifier" : "force_two",
+                    "data_format"     : "array"
+                }
+            }
+        }
+    ]
+}
