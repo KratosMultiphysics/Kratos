@@ -40,7 +40,7 @@ namespace Python
 void  AddAMGCLSolverToPython(pybind11::module& m)
 {
 #ifndef KRATOS_DISABLE_AMGCL
-    typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+	typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
 
@@ -48,6 +48,7 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
 
     enum_<AMGCLSmoother>(m,"AMGCLSmoother")
     .value("SPAI0", SPAI0)
+    .value("SPAI1", SPAI1)
     .value("ILU0", ILU0)
     .value("DAMPED_JACOBI",DAMPED_JACOBI)
     .value("GAUSS_SEIDEL",GAUSS_SEIDEL)
@@ -56,6 +57,8 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
 
     enum_<AMGCLIterativeSolverType>(m,"AMGCLIterativeSolverType")
     .value("GMRES", GMRES)
+    .value("LGMRES", LGMRES)
+    .value("FGMRES", FGMRES)
     .value("BICGSTAB", BICGSTAB)
     .value("CG",CG)
     .value("BICGSTAB_WITH_GMRES_FALLBACK",BICGSTAB_WITH_GMRES_FALLBACK)
@@ -74,6 +77,7 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     (m, "AMGCLSolver")
     .def(init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
     .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int, bool>())
+    .def(init<>())
     .def(init<Parameters>())
     .def( "GetResidualNorm",&AMGCLSolverType::GetResidualNorm)
     .def( "GetIterationsNumber",&AMGCLSolverType::GetIterationsNumber)

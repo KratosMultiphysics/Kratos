@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -31,9 +31,12 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 //yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
+//hardening laws
+#include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
 //flow rules
 #include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
 
@@ -45,6 +48,9 @@
 
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
+
+#include "custom_constitutive/hencky_mc_strain_softening_3D_law.hpp"
+#include "custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.hpp"
 
 namespace Kratos
 {
@@ -109,6 +115,19 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     class_< HenckyMCPlasticPlaneStrainUP2DLaw, typename HenckyMCPlasticPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlasticPlaneStrainUP2DLaw")
+    .def(init<>() )
+    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+
+    // Hencky Mohr Coulomb Strain Softening
+    class_< HenckyMCStrainSofteningPlasticPlaneStrain2DLaw, typename HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "HenckyMCStrainSofteningPlasticPlaneStrain2DLaw")
+    .def(init<>() )
+    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+
+    class_< HenckyMCStrainSofteningPlastic3DLaw, typename HenckyMCStrainSofteningPlastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HenckyMCStrainSofteningPlastic3DLaw")
     .def(init<>() )
     .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;

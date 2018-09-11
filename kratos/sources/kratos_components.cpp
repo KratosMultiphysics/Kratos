@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -61,6 +61,21 @@ void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 3> > 
     KratosComponents<Variable<array_1d<double, 3> > >::Add(Name, ThisComponent);
 }
 
+void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 4> > const& ThisComponent)
+{
+    KratosComponents<Variable<array_1d<double, 4> > >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 6> > const& ThisComponent)
+{
+    KratosComponents<Variable<array_1d<double, 6> > >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, Variable<array_1d<double, 9> > const& ThisComponent)
+{
+    KratosComponents<Variable<array_1d<double, 9> > >::Add(Name, ThisComponent);
+}
+
 void AddKratosComponent(std::string const& Name, Variable<Quaternion<double> > const& ThisComponent)
 {
     KratosComponents<Variable<Quaternion<double> > >::Add(Name, ThisComponent);
@@ -84,6 +99,21 @@ void AddKratosComponent(std::string const& Name, Variable<std::string> const& Th
 void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& ThisComponent)
 {
     KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > const& ThisComponent)
+{
+    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > const& ThisComponent)
+{
+    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >::Add(Name, ThisComponent);
+}
+
+void AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > const& ThisComponent)
+{
+    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >::Add(Name, ThisComponent);
 }
 
 void AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent)

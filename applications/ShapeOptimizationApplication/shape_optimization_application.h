@@ -122,7 +122,7 @@ namespace Kratos
 		KratosShapeOptimizationApplication();
 
 		/// Destructor.
-		virtual ~KratosShapeOptimizationApplication(){}
+		~KratosShapeOptimizationApplication() override {}
 
 
 		///@}
