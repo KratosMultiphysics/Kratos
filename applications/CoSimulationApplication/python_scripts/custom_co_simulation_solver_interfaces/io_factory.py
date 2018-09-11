@@ -7,7 +7,7 @@ eg : "name_in_JSON" : "python module(file) name"
 """
 available_ios = {
     "kratos" : "kratos_io",
-    "sdof"   : "su2_io"
+    "sdof"   : "su2_io",
     "dummy"  : "dummy_io"
 }
 
