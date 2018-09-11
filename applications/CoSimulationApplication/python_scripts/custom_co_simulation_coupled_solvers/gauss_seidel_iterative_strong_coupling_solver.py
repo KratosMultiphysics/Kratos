@@ -27,7 +27,6 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         for p in range(0,self.number_of_participants) :
             self.participating_solver_names.append(self.participants_setting_dict[p]['name'])
 
-        print(self.participating_solver_names)
         solvers = tools.GetSolvers(self.full_settings['solvers'])
 
         ### Making the convergence accelerator for this strategy
@@ -58,33 +57,33 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         #self.convergence_criteria.InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        max_iter = self.settings["co_simulation_solver_settings"]['max_iteration_per_step'].GetInt()
-        iter = 0
-        while(iter < max_iter):
-        #while(iter < maxIter and not self.conv_criterion.IsConverged(self.appOne.GetModelPart(), DISPLACEMENT)):
-            print('\t############## ')
-            print('\tCoupling iteration :: ', iter)
-            for i in range (0,len(self.participating_solver_names)): #prevent systems to be solved in random order
-                solver_name = self.participating_solver_names[i]
-                solver = self.participating_solvers[solver_name]
-                print('\tSolving :: ', solver_name)
-                self.__SynchronizeInputData(solver)
-                solver.SolveTimeStep()
-                self.__SynchronizeOutputData(solver)
+        pass
 
-            iter = iter + 1
+        """
+        for iteration in range(self.num_coupling_iterations):
+            if self.echo_level > 0:
+                couplingsolverprint(self.lvl, self._Name(),
+                                    cyan("Coupling iteration:"), bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 
-    ###############################
-    def __SynchronizeInputData(self, solver):
-        input_data_list = self.solver_cosim_details[solver.name]['input_data_list'] #.Name()
-        for i in range(0, input_data_list.size()):
-            from_solver  = self.participating_solvers[ input_data_list[i]['from_solver'].GetString() ]
-            self.participating_solvers[solver.name].ImportData(input_data_list[i]['data_name'].GetString(), from_solver)
+            self.convergence_accelerator.InitializeNonLinearIteration()
+            self.convergence_criteria.InitializeNonLinearIteration()
 
-    def __SynchronizeOutputData(self, solver):
-        output_data_list = self.solver_cosim_details[solver.name]['output_data_list']   #.Name()
-        for i in range(0, output_data_list.size()):
-            to_solver  = self.participating_solvers[ output_data_list[i]['to_solver'].GetString() ]
-            self.participating_solvers[solver.name].ExportData(output_data_list[i]['data_name'].GetString(), to_solver)
+            for solver_name, solver in self.participating_solvers.items():
+                self._SynchronizeInputData(solver, solver_name)
+                solver.SolveSolutionStep()
+                self._SynchronizeOutputData(solver, solver_name)
 
+            self.convergence_accelerator.FinalizeNonLinearIteration()
+            self.convergence_criteria.FinalizeNonLinearIteration()
+
+            if self.convergence_criteria.IsConverged():
+                if self.echo_level > 0:
+                    couplingsolverprint(self.lvl, self._Name(), green("### CONVERGENCE WAS ACHIEVED ###"))
+                break
+            else:
+                self.convergence_accelerator.ComputeUpdate()
+
+            if iteration+1 >= self.num_coupling_iterations and self.echo_level > 0:
+                couplingsolverprint(self.lvl, self._Name(), red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+        """
 

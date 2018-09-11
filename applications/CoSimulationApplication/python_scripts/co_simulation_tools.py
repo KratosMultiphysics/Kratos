@@ -49,7 +49,6 @@ def GetSolvers(SolversDataList):
 
     return solvers_map
 
-
 def GetSolverCoSimulationDetails(co_simulation_solver_settings):
     num_solvers = len(co_simulation_solver_settings)
     solver_cosim_details = {}
