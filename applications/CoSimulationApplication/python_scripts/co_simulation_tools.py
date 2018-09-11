@@ -52,3 +52,33 @@ def GetSolvers(SolversDataList):
         solvers_map[solver_name] = solver
 
     return solvers_map
+
+
+def GetSolverCoSimulationDetails(co_simulation_solver_settings):
+    num_solvers = len(co_simulation_solver_settings)
+    solver_cosim_details = {}
+    for solver_settings in co_simulation_solver_settings:
+        solver_name = solver_settings["name"]
+        solver_cosim_details[solver_name] = solver_settings
+    # TODO: check if the data is consitently defined! => maybe do at another place though...
+    # - input in one is output in another
+    # - one IO is defined for each data_name
+    # - if the same data is defined multiple times
+    # - check if data format has been specified
+    return solver_cosim_details
+
+
+## Class contains definition of colors. This is to be used as a struct
+#
+# Example usage print(bcolors.HEADER + "This is a header in header color" + bcolor.ENDC)
+# IMPORTANT : The end of the print statement should always containt bcolor.ENDC
+class bcolors:
+    HEADER = '\033[95m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    MEGENTA = '\033[96m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
