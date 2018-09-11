@@ -42,6 +42,15 @@ void AssignTimeActivation(
 }
 
 inline
+void AssignInitialTemperature(
+        ConstructionUtility& rThisUtil,
+        std::string ThermalSubModelPartName,
+        int phase, double initial_temperature)
+{
+    rThisUtil.AssignInitialTemperature(ThermalSubModelPartName, phase, initial_temperature);
+}
+
+inline
 void InitializeSolutionStep(
         ConstructionUtility& rThisUtil,
         std::string ThermalSubModelPartName,
@@ -96,6 +105,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, TableType&, Parameters&>())
     .def("Initialize",&ConstructionUtility::Initialize)
     .def("AssignTimeActivation", AssignTimeActivation)
+    .def("AssignInitialTemperature", AssignInitialTemperature)
     .def("InitializeSolutionStep",InitializeSolutionStep)
     .def("SearchingFluxes",&ConstructionUtility::SearchingFluxes)
     .def("ActiveHeatFluxNoorzai",ActiveHeatFluxNoorzai)

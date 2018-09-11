@@ -53,9 +53,14 @@ class ConstructionUtility
         mSourceType = rParameters["source_type"].GetString();
         mAging = rParameters["aging"].GetBool();
         mH0 = rParameters["h_0"].GetDouble();
+        mActivateExistingPart = rParameters["activate_existing_part"].GetBool();
         mTimeUnitConverter = mrMechanicalModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
-        mMechanicalSoilPart = rParameters["mechanical_soil_part"].GetString();
-        mThermalSoilPart = rParameters["thermal_soil_part"].GetString();
+
+        if (mActivateExistingPart == true)
+        {
+            mMechanicalExistingPart = rParameters["mechanical_existing_part"].GetString();
+            mThermalExistingPart = rParameters["thermal_existing_part"].GetString();
+        }
 
         if (mSourceType == "NonAdiabatic")
             mAlphaInitial = rParameters["alpha_initial"].GetDouble();
@@ -109,33 +114,36 @@ class ConstructionUtility
             }
         }
 
-        // Activation of the soil ( User must specify the soil part through the interface)
-        const int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();
-        const int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
-
-        if (soil_nelements != 0)
+        // Activation of the existing elements, soil plus already built dam ( User must specify the complete part through the interface)
+        if (mActivateExistingPart == true)
         {
-            ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).ElementsBegin();
-            ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).ElementsBegin();
-            mNumNode = el_begin->GetGeometry().PointsNumber();
+            const int existing_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalExistingPart).Elements().size();
+            const int existing_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalExistingPart).Nodes().size();
 
-#pragma omp parallel for
-            for (int k = 0; k < soil_nelements; ++k)
+            if (existing_nelements != 0)
             {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
-                it->Set(ACTIVE, true);
-                it_thermal->Set(ACTIVE, true);
-            }
+                ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart(mMechanicalExistingPart).ElementsBegin();
+                ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(mThermalExistingPart).ElementsBegin();
+                mNumNode = el_begin->GetGeometry().PointsNumber();
 
-            // Same nodes for both computing model part
-            ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).NodesBegin();
-#pragma omp parallel for
-            for (int i = 0; i < soil_nnodes; ++i)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->Set(ACTIVE, true);
-                it->Set(SOLID, true);
+    #pragma omp parallel for
+                for (int k = 0; k < existing_nelements; ++k)
+                {
+                    ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                    ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
+                    it->Set(ACTIVE, true);
+                    it_thermal->Set(ACTIVE, true);
+                }
+
+                // Same nodes for both computing model part
+                ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalExistingPart).NodesBegin();
+    #pragma omp parallel for
+                for (int i = 0; i < existing_nnodes; ++i)
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+                    it->Set(ACTIVE, true);
+                    it->Set(SOLID, true);
+                }
             }
         }
 
@@ -207,6 +215,57 @@ class ConstructionUtility
             }
         }
 
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void AssignInitialTemperature(std::string ThermalSubModelPartName, int phase, double initial_temperature)
+    {
+        KRATOS_TRY;
+
+//         const int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
+        const int nnodes = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).GetMesh(0).Nodes().size();
+
+        int direction;
+        if (mGravityDirection == "X")
+            direction = 0;
+        else if (mGravityDirection == "Y")
+            direction = 1;
+        else
+            direction = 2;
+
+        if (nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).GetMesh(0).NodesBegin();
+
+            double current_height = mReferenceCoordinate + (mHeight / mPhases) * (phase);
+            double previous_height = mReferenceCoordinate + (mHeight / mPhases) * (phase - 1);
+
+            for (int i = 0; i < nnodes; ++i)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                double coordinate_gravity_direction = it->Coordinates()[direction];
+
+                if ((coordinate_gravity_direction >= previous_height) && (coordinate_gravity_direction < current_height))
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = initial_temperature;
+                }
+
+
+//                 ModelPart::NodesContainerType::iterator it = it_begin + i;
+//                 double Y = model_part.Nodes()[i].Y()
+//
+//                 array_1d<double, 1> nodal_heigth = it_begin+i->Y();
+
+//                 ModelPart::NodesContainerType::iterator it = it_begin + i;
+//
+//                 array_1d<double, 1> nodal_heigth = it.Y();
+//                 double nodal_heigth = it.Y();
+
+
+            }
+        }
         KRATOS_CATCH("");
     }
 
@@ -518,7 +577,7 @@ class ConstructionUtility
             double c_coef = AzenhaParameters["C"].GetDouble();
             double d_coef = AzenhaParameters["D"].GetDouble();
 
-            // Tempotal variables
+            // Temporal variables
             double time = mrThermalModelPart.GetProcessInfo()[TIME];
             double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
@@ -568,9 +627,10 @@ class ConstructionUtility
     ModelPart &mrThermalModelPart;
     int mNumNode;
     std::string mGravityDirection;
-    std::string mMechanicalSoilPart;
-    std::string mThermalSoilPart;
+    std::string mMechanicalExistingPart;
+    std::string mThermalExistingPart;
     std::string mSourceType;
+    bool mActivateExistingPart;
     double mReferenceCoordinate;
     double mHeight;
     int mPhases;
