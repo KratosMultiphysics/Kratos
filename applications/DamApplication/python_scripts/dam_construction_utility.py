@@ -36,12 +36,18 @@ class DamConstructionUtility:
             self.heat_source_parameters.AddValue("C",parameters["C"])
             self.heat_source_parameters.AddValue("D",parameters["D"])
 
-        # If there is a part alreadey existent (actived from the beginning of the model) getting this part for its activation in the initialize. This part must correspond to the soil plus the already built part of the dam.
+        # If there are parts alreadey existent (actived from the beginning of the model) getting these parts for its activation in the initialize. This parts can correspond to either the soil or the already built part of the dam.
+        if (parameters["activate_soil_part"].GetBool()):
+            name_soil_part = parameters["name_soil_part"].GetString()
+            parameters.RemoveValue("name_soil_part")
+            parameters.AddEmptyValue("mechanical_soil_part").SetString("sub_Parts_"+name_soil_part)
+            parameters.AddEmptyValue("thermal_soil_part").SetString("sub_Thermal_"+name_soil_part)
+
         if (parameters["activate_existing_part"].GetBool()):
             name_existing_part = parameters["name_existing_part"].GetString()
             parameters.RemoveValue("name_existing_part")
-            parameters.AddEmptyValue("mechanical_soil_part").SetString("Parts_"+name_existing_part)
-            parameters.AddEmptyValue("thermal_soil_part").SetString("Thermal_"+name_existing_part)
+            parameters.AddEmptyValue("mechanical_existing_part").SetString("sub_Parts_"+name_existing_part)
+            parameters.AddEmptyValue("thermal_existing_part").SetString("sub_Thermal_"+name_existing_part)
 
         self.table_ambient = PiecewiseLinearTable()
         with open(ambient_input_file_name,'r') as file_name1:
@@ -59,8 +65,10 @@ class DamConstructionUtility:
         # The function recieves the mame of submodel Part, the number of phase and the activation time
         print("Assigning time activation for each node")
         with open(self.construction_input_file_name,'r') as file_name2:
-            for j, line in enumerate(file_name2):
+            #for line in reversed(list((file_name2))):
+            for line in enumerate(file_name2):
                 file_2 = line.split(" ")
+                print("LINEA: " + file_2[0])
                 if (len(file_2)) > 1:
                     self.name_sub_thermal_part = "sub_Thermal_" + file_2[1]
                     self.Construction.AssignTimeActivation(self.name_sub_thermal_part,int(file_2[2]),float(file_2[0]))
@@ -95,6 +103,4 @@ class DamConstructionUtility:
 
 
     def AfterOutputStep(self):
-        print("TURURU 6a")
         self.Construction.AfterOutputStep()
-        print("TURURU 6b")
