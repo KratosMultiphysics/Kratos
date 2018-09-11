@@ -7,36 +7,43 @@ def CreateSolver(cosim_solver_settings, level):
     return CoSimulationBaseSolver(cosim_solver_settings, level)
 
 class CoSimulationBaseSolver(object):
-    """
-    The base class for the CoSimulation Solver interfaces
-    """
-    def __init__(self, cosim_solver_settings, level):
-        """
-        Constructor of the Base-Solver interface
-        Deriving classes should call it in their constructors
-        """
+    ## Constructor :  The base class for the CoSimulation Solver interfaces
+    #                  Constructor of the Base-Solver interface
+    #                  Deriving classes should call it in their constructors
+    #
+    #  @param self                      The object pointer.
+    #  @param cosim_solver_settings     python dictionary : with the solver settings.
+    def __init__(self, cosim_solver_settings):
         self.cosim_solver_settings = cosim_solver_settings
-        self.lvl = leve
         self.echo_level = 0
         if "echo_level" in self.cosim_solver_settings:
             self.echo_level = self.cosim_solver_settings["echo_level"]
         self.io_is_initialized = False
 
+    ## Initialize : Initialize function for the solver class. Necessary
+    #               initialization of the variables and objects to be done here.
+    #  @param self                      The object pointer.
     def Initialize(self):
         pass
 
-    def InitializeIO(self, solvers, io_echo_level):
+    ## InitializeIO : Initialize the IO class for this solver.
+    #                   usually a particular type of solver has a particular default IO type
+    #  @param self                      The object pointer.
+    #  @param io_echo_level             int : echo level for the io to be initialized.
+    def InitializeIO(self, io_echo_level):
         solver_name = self.cosim_solver_settings["name"]
         if self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is already initialized!')
 
         self.io = io_factory.CreateIO(self._GetIOName(),
                                       solvers,
-                                      solver_name,
-                                      self.lvl)
+                                      solver_name)
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 
+    ## Finalize :  Initialize function for the solver class.
+    #               finalization of the variables and objects to be done here.
+    #  @param self                      The object pointer.
     def Finalize(self):
         pass
 
