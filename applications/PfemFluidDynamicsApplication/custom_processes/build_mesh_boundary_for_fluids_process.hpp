@@ -110,7 +110,7 @@ namespace Kratos
       if( mEchoLevel > 0 )
 	std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
 
-      success=this->UniqueSkinSearch(mrModelPart);
+      success=UniqueSkinSearch(mrModelPart);
 
       if(!success)
 	{
@@ -184,11 +184,55 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    bool BuildCompositeConditions( ModelPart& rModelPart, ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& rPreservedConditions, unsigned int& rConditionId ) override
+
+
+     
+    bool UniqueSkinSearch( ModelPart& rModelPart ) 
+    { 
+ 
+      KRATOS_TRY 
+ 
+  if( mEchoLevel > 0 ){ 
+    std::cout<<" [ Initial Conditions : "<<rModelPart.Conditions().size()<<std::endl; 
+  } 
+ 
+      if( !rModelPart.Elements().size() || (rModelPart.Is(ACTIVE)) ){ 
+  if( mEchoLevel > 0 ){ 
+    std::cout<<" [ Final Conditions   : "<<rModelPart.Conditions().size()<<std::endl; 
+  } 
+  return true; 
+      } 
+       
+      //reset the boundary flag in all nodes and check if a remesh process has been performed 
+      bool any_node_to_erase = false; 
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); in++) 
+  { 
+    in->Reset(BOUNDARY); 
+    in->Reset(FREE_SURFACE); 
+ 
+    if( any_node_to_erase == false ) 
+      if( in->Is(TO_ERASE) ) 
+        any_node_to_erase = true; 
+       
+  } 
+      SetBoundaryAndFreeSurface(rModelPart);
+
+      return true; 
+ 
+      KRATOS_CATCH( "" ) 
+	} 
+     
+
+
+
+      
+    // bool SetBoundaryAndFreeSurface( ModelPart& rModelPart, ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& rPreservedConditions, unsigned int& rConditionId )
+    bool SetBoundaryAndFreeSurface( ModelPart& rModelPart)
     {
 
       KRATOS_TRY
 
+	
       //properties to be used in the generation
       int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
       Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties-1);

@@ -77,7 +77,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
             else:
                 #mesher_flags = "rQYYCCJF"
                 #mesher_flags = "nQMu0"
-                mesher_flags ="nJFu0";
+                mesher_flags ="nJQF";
                 #mesher_flags ="VJFu0"; #PSOLID
                 #mesher_flags ="rMfjYYaq2.5nQ";
                 #mesher_flags = "nJFMQO4/4"

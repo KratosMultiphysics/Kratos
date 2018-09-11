@@ -322,8 +322,8 @@ public:
 
       this->CalculateDisplacements();
       BaseType::MoveMesh();
-      BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
+      /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
+      /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
 
       KRATOS_CATCH("");
 

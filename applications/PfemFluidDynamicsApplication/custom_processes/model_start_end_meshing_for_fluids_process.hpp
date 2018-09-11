@@ -269,6 +269,7 @@ namespace Kratos
 		  else{
 
 		    i_node->Set(ISOLATED);
+		    i_node->Reset(BOUNDARY);
 		    i_node->Reset(NEW_ENTITY); //reset if was new
 		    i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
 		    i_node->Reset(BLOCKED);
@@ -293,8 +294,6 @@ namespace Kratos
 		}
 
 	    }
-
-	    // //i_mp->Nodes().Sort();
 
 	    // for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
 	    //   {
@@ -414,7 +413,7 @@ namespace Kratos
 
       rComputingModelPart.Nodes().clear();
       rComputingModelPart.Elements().clear();
-      rComputingModelPart.Conditions().clear();
+      // rComputingModelPart.Conditions().clear();
 
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
