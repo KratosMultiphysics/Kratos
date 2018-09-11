@@ -16,7 +16,7 @@ available_convergence_criteria = {
 def CreateConvergenceCriteria(settings, solvers, level):
     """
     This function creates and returns the convergence criteria used for CoSimulation
-    New convergence criteria have to be registered by adding them to "available_convergence_criteria"
+    New convergence criteria have to be registered by adding them to "availabcle_convergence_criteria"
     """
     if (type(settings) != dict):
         raise Exception("Input is expected to be provided as a python dictionary")
