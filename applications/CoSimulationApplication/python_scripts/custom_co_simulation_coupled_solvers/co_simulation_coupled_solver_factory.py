@@ -24,7 +24,7 @@ def CreateCoupledSolver(settings, solvers, level):
 
     if coupled_solver_type in available_coupled_solvers:
         coupled_solver_module = __import__(available_coupled_solvers[coupled_solver_type])
-        return accelerator_module.Create(settings, solvers, level)
+        return coupled_solver_module.Create(settings, solvers, level)
     else:
         err_msg  = 'The requested coupled solver "' + coupled_solver_type + '" is not available!\n'
         err_msg += 'Available coupled solvers are :\n'
