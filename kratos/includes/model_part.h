@@ -515,11 +515,6 @@ public:
                 << "\" to the model part with name \"" << this->Name() << "\" which is not empty" << std::endl;
 
             mpVariablesList->Add(ThisVariable);
-
-            for(auto it = this->NodesBegin(); it!= this->NodesEnd(); ++it)
-            {
-                (it->SolutionStepData()).pGetVariablesList()->Add(ThisVariable);
-            }
         }
     }
 
