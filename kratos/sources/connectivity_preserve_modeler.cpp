@@ -61,25 +61,13 @@ void ConnectivityPreserveModeler::CheckVariableLists(ModelPart &rOriginModelPart
     auto& rdestination_variable_list = rDestinationModelPart.GetNodalSolutionStepVariablesList();
     auto& rorigin_variable_list = rOriginModelPart.GetNodalSolutionStepVariablesList();
 
-std::cout << "destination"  << &rdestination_variable_list << rDestinationModelPart << std::endl;
-        for(const auto& var : rdestination_variable_list)
-        {
-          std::cout << var << std::endl;
-        }
-
-std::cout << "origin" << &rorigin_variable_list << rOriginModelPart << std::endl;
-        for(const auto& var : rorigin_variable_list)
-        {
-          std::cout << var << std::endl;
-        }
-
     for(const auto& var : rdestination_variable_list)
         if(rorigin_variable_list.Has(var) == false)
-            KRATOS_ERROR << "Variable: " << var << " is in rDestinationModelPart variables but not in the rOriginModelPart variables" << std::endl;
+            KRATOS_WARNING("VARIABLE LIST MISMATCH - ") << "Variable: " << var << " is in rDestinationModelPart variables but not in the rOriginModelPart variables" << std::endl;
 
     for(const auto& var : rorigin_variable_list)
         if(rdestination_variable_list.Has(var) == false)
-            KRATOS_ERROR << "Variable: " << var << " is in rOriginModelPart variables but not in the rDestinationModelPart variables" << std::endl;
+            KRATOS_WARNING("VARIABLE LIST MISMATCH - ") << "Variable: " << var << " is in rOriginModelPart variables but not in the rDestinationModelPart variables" << std::endl;
 
 }
 
