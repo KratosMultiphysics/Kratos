@@ -57,7 +57,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
     ///@{
 
     /// We define the dimension
-    static constexpr SizeType TDim = TVoigtSize == 6 ? 3 : 2;
+    static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
       
     /// The define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;

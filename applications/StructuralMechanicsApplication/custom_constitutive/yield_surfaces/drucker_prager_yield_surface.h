@@ -62,6 +62,9 @@ public:
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
     
+    /// The Plastic potential already defines the working simension size
+    static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
+    
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
 
