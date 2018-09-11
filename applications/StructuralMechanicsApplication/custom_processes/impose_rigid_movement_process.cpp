@@ -142,7 +142,7 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
 
     #pragma omp parallel
     {
-        const int id = OpenMPUtils::ThisThread();
+        const int thread_id = OpenMPUtils::ThisThread();
 
         // If we master node ID is zero then we get the first node of the model part
         NodeType::Pointer p_master_node = (master_node_id == 0) ? *(rigid_model_part.Nodes().begin()).base() : root_model_part.pGetNode(master_node_id);
@@ -152,11 +152,11 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
             if (it_node->Id() != p_master_node->Id()) {
                 for (IndexType i_var = 0; i_var < number_of_double_variables; ++i_var) {
                     auto constraint = r_clone_constraint.Create(constraint_id + (i * number_of_double_variables + i_var) + 1, *p_master_node, master_double_list_variables[i_var], *it_node, slave_double_list_variables[i_var], 1.0, 0.0);
-                    (constraints_buffer[id]).insert((constraints_buffer[id]).begin(), constraint);
+                    (constraints_buffer[thread_id]).insert((constraints_buffer[thread_id]).begin(), constraint);
                 }
                 for (IndexType i_var = 0; i_var < number_of_components_variables; ++i_var) {
                     auto constraint = r_clone_constraint.Create(constraint_id + (i * number_of_components_variables + i_var) + 1, *p_master_node, master_components_list_variables[i_var], *it_node, slave_components_list_variables[i_var], 1.0, 0.0);
-                    (constraints_buffer[id]).insert((constraints_buffer[id]).begin(), constraint);
+                    (constraints_buffer[thread_id]).insert((constraints_buffer[thread_id]).begin(), constraint);
                 }
             }
         }

@@ -74,7 +74,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         rigid_parameters.AddValue("master_node_id", settings["master_node_id"])
         self.rigid_movement_process = StructuralMechanicsApplication.ImposeRigidMovementProcess(self.computing_model_part, rigid_parameters)
 
-        # Trasfering the
+        # Trasfering the entities
         transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.rigid_model_part, self.model_part, KratosMultiphysics.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES)
         transfer_process.Execute()
 
