@@ -82,47 +82,45 @@ class ConstitutiveLawUtilities
 
     /**
      * @brief This method computes the first invariant from a given stress vector
-     * @param StressVector The stress vector on Voigt notation
+     * @param rStressVector The stress vector on Voigt notation
      * @param rI1 The first invariant
-     * @todo Adapt for 2D dimension
      */
     static void CalculateI1Invariant(
-        const Vector& StressVector,
+        const Vector& rStressVector,
         double& rI1
         );
 
     /**
      * @brief This method computes the second invariant from a given stress vector
-     * @param StressVector The stress vector on Voigt notation
+     * @param rStressVector The stress vector on Voigt notation
      * @param rI2 The second invariant
      * @todo Adapt for 2D dimension
      */
     static void CalculateI2Invariant(
-        const Vector& StressVector,
+        const Vector& rStressVector,
         double& rI2
         );
 
     /**
      * @brief This method computes the third invariant from a given stress vector
-     * @param StressVector The stress vector on Voigt notation
+     * @param rStressVector The stress vector on Voigt notation
      * @param rI3 The third invariant
      * @todo Adapt for 2D dimension
      */
     static void CalculateI3Invariant(
-        const Vector& StressVector,
+        const Vector& rStressVector,
         double& rI3
         );
 
     /**
      * @brief This method computes the second invariant of J
-     * @param StressVector The stress vector on Voigt notation
+     * @param rStressVector The stress vector on Voigt notation
      * @param I1 The first invariant
-     * @param Deviator The deviator of the stress
+     * @param rDeviator The deviator of the stress
      * @param rJ2 The second invariant of J
-     * @todo Adapt for 2D dimension
      */
     static void CalculateJ2Invariant(
-        const Vector& StressVector,
+        const Vector& rStressVector,
         const double I1,
         Vector& rDeviator,
         double& rJ2
@@ -130,56 +128,55 @@ class ConstitutiveLawUtilities
 
     /**
      * @brief This method computes the third invariant of J
-     * @param Deviator The deviator of the stress
+     * @param rDeviator The deviator of the stress
      * @param rJ3 The third invariant of J
      */
     static void CalculateJ3Invariant(
-        const Vector& Deviator,
+        const Vector& rDeviator,
         double& rJ3
         );
 
     /**
      * @brief This method computes the first vector
-     * @param FirstVector The first vector
+     * @param rFirstVector The first vector
      */
-    static void CalculateFirstVector(Vector& FirstVector);
+    static void CalculateFirstVector(Vector& rFirstVector);
 
     /**
      * @brief This method computes the second vector
-     * @param Deviator The deviator of the stress
+     * @param rDeviator The deviator of the stress
      * @param J2 The resultant J2 stress
-     * @param SecondVector The second vector
+     * @param rSecondVector The second vector
      */
     static void CalculateSecondVector(
-        const Vector& Deviator,
+        const Vector& rDeviator,
         const double J2,
-        Vector& SecondVector
+        Vector& rSecondVector
         );
 
     /**
      * @brief This method computes the third vector
-     * @param Deviator The deviator of the stress
+     * @param rDeviator The deviator of the stress
      * @param J2 The resultant J2 stress
-     * @param ThirdVector The third vector
+     * @param rThirdVector The third vector
      * @todo Adapt for 2D dimension
      */
     static void CalculateThirdVector(
-        const Vector& Deviator,
+        const Vector& rDeviator,
         const double J2,
-        Vector& ThirdVector
+        Vector& rThirdVector
         );
 
     /**
      * @brief This method computes the lode angle
      * @param J2 The resultant J2 stress
      * @param J3 The resultant J3 stress
-     * @param LodeAngle The lode angle
-     * @todo Adapt for 2D dimension
+     * @param rLodeAngle The lode angle
      */
     static void CalculateLodeAngle(
         const double J2,
         const double J3,
-        double& LodeAngle
+        double& rLodeAngle
         );
 
     /**

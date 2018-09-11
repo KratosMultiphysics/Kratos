@@ -23,13 +23,13 @@ namespace Kratos
 {
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
-    const Vector& StressVector,
+    const Vector& rStressVector,
     double& rI1
     )
 {
-    rI1 = StressVector[0];
+    rI1 = rStressVector[0];
     for (IndexType i = 1; i < Dimension; ++i) 
-        rI1 += StressVector[i];
+        rI1 += rStressVector[i];
 }
 
 /***********************************************************************************/
@@ -37,12 +37,12 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateI2Invariant(
-    const Vector& StressVector,
+    const Vector& rStressVector,
     double& rI2
     )
 {
-    rI2 = (StressVector[0] + StressVector[2]) * StressVector[1] + StressVector[0] * StressVector[2] +
-            -StressVector[3] * StressVector[3] - StressVector[4] * StressVector[4] - StressVector[5] * StressVector[5];
+    rI2 = (rStressVector[0] + rStressVector[2]) * rStressVector[1] + rStressVector[0] * rStressVector[2] +
+            -rStressVector[3] * rStressVector[3] - rStressVector[4] * rStressVector[4] - rStressVector[5] * rStressVector[5];
 }
 
 /***********************************************************************************/
@@ -50,13 +50,13 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateI2Invariant(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateI3Invariant(
-    const Vector& StressVector,
+    const Vector& rStressVector,
     double& rI3
     )
 {
-    rI3 = (StressVector[1] * StressVector[2] - StressVector[4] * StressVector[4]) * StressVector[0] -
-            StressVector[1] * StressVector[5] * StressVector[5] - StressVector[2] * StressVector[3] * StressVector[3] +
-            2.0 * StressVector[3] * StressVector[4] * StressVector[5];
+    rI3 = (rStressVector[1] * rStressVector[2] - rStressVector[4] * rStressVector[4]) * rStressVector[0] -
+            rStressVector[1] * rStressVector[5] * rStressVector[5] - rStressVector[2] * rStressVector[3] * rStressVector[3] +
+            2.0 * rStressVector[3] * rStressVector[4] * rStressVector[5];
 }
 
 /***********************************************************************************/
@@ -64,13 +64,13 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateI3Invariant(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(
-    const Vector& StressVector,
+    const Vector& rStressVector,
     const double I1,
     Vector& rDeviator,
     double& rJ2
     )
 {
-    rDeviator = StressVector;
+    rDeviator = rStressVector;
     const double p_mean = I1 / static_cast<double>(Dimension);
 
     for (IndexType i = 0; i < Dimension; ++i) 
@@ -88,24 +88,24 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(
-    const Vector& Deviator,
+    const Vector& rDeviator,
     double& rJ3
     )
 {
-    rJ3 = Deviator[0] * (Deviator[1] * Deviator[2] - Deviator[4] * Deviator[4]) +
-            Deviator[3] * (-Deviator[3] * Deviator[2] + Deviator[5] * Deviator[4]) +
-            Deviator[5] * (Deviator[3] * Deviator[4] - Deviator[5] * Deviator[1]);
+    rJ3 = rDeviator[0] * (rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4]) +
+            rDeviator[3] * (-rDeviator[3] * rDeviator[2] + rDeviator[5] * rDeviator[4]) +
+            rDeviator[5] * (rDeviator[3] * rDeviator[4] - rDeviator[5] * rDeviator[1]);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(Vector& FirstVector)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(Vector& rSecondVector)
 {
-    FirstVector = ZeroVector(TVoigtSize);
+    rSecondVector = ZeroVector(TVoigtSize);
     for (IndexType i = 0; i < Dimension; ++i) 
-        FirstVector[i] = 1.0;
+        rSecondVector[i] = 1.0;
 }
 
 /***********************************************************************************/
@@ -113,20 +113,20 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(Vector& FirstVec
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(
-    const Vector& Deviator,
+    const Vector& rDeviator,
     const double J2,
-    Vector& SecondVector
+    Vector& rSecondVector
     )
 {
-    if (SecondVector.size() != TVoigtSize)
-        SecondVector.resize(TVoigtSize);
+    if (rSecondVector.size() != TVoigtSize)
+        rSecondVector.resize(TVoigtSize);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
     for (IndexType i = 0; i < TVoigtSize; ++i) {
-        SecondVector[i] = Deviator[i] / (twosqrtJ2);
+        rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
     }
 
     for (IndexType i = Dimension; i < TVoigtSize; ++i)
-        SecondVector[i] *= 2.0;
+        rSecondVector[i] *= 2.0;
 }
 
 /***********************************************************************************/
@@ -134,22 +134,22 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(
-    const Vector& Deviator,
+    const Vector& rDeviator,
     const double J2,
-    Vector& ThirdVector
+    Vector& rThirdVector
     )
 {
-    if (ThirdVector.size() != TVoigtSize)
-        ThirdVector.resize(TVoigtSize);
+    if (rThirdVector.size() != TVoigtSize)
+        rThirdVector.resize(TVoigtSize);
 
     const double J2thirds = J2 / 3.0; // static_cast<double>(Dimension);
 
-    ThirdVector[0] = Deviator[1] * Deviator[2] - Deviator[4] * Deviator[4] + J2thirds;
-    ThirdVector[1] = Deviator[0] * Deviator[2] - Deviator[5] * Deviator[5] + J2thirds;
-    ThirdVector[2] = Deviator[0] * Deviator[1] - Deviator[3] * Deviator[3] + J2thirds;
-    ThirdVector[3] = 2.0 * (Deviator[4] * Deviator[5] - Deviator[3] * Deviator[2]);
-    ThirdVector[4] = 2.0 * (Deviator[3] * Deviator[4] - Deviator[1] * Deviator[5]);
-    ThirdVector[5] = 2.0 * (Deviator[5] * Deviator[3] - Deviator[0] * Deviator[4]);
+    rThirdVector[0] = rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4] + J2thirds;
+    rThirdVector[1] = rDeviator[0] * rDeviator[2] - rDeviator[5] * rDeviator[5] + J2thirds;
+    rThirdVector[2] = rDeviator[0] * rDeviator[1] - rDeviator[3] * rDeviator[3] + J2thirds;
+    rThirdVector[3] = 2.0 * (rDeviator[4] * rDeviator[5] - rDeviator[3] * rDeviator[2]);
+    rThirdVector[4] = 2.0 * (rDeviator[3] * rDeviator[4] - rDeviator[1] * rDeviator[5]);
+    rThirdVector[5] = 2.0 * (rDeviator[5] * rDeviator[3] - rDeviator[0] * rDeviator[4]);
 }
 
 /***********************************************************************************/
@@ -159,7 +159,7 @@ template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
     const double J2,
     const double J3,
-    double& LodeAngle
+    double& rLodeAngle
     )
 {
     double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
@@ -167,7 +167,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
         sint3 = -1.0;
     if (sint3 > 0.95)
         sint3 = 1.0;
-    LodeAngle = std::asin(sint3) / 3.0;
+    rLodeAngle = std::asin(sint3) / 3.0;
 }
 
 /***********************************************************************************/
