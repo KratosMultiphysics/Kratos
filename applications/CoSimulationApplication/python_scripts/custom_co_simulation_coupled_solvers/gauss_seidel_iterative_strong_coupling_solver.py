@@ -10,84 +10,54 @@ def Create(custom_settings):
 
 class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, custom_settings):
+        default_settings = {}
+        super(GaussSeidelIterativeStrongCouplingSolver, self).__init__(custom_settings)
+        default_settings["convergence_accelerator_settings"] = dict    #MANDATORY
+        default_settings["convergence_criteria_settings"] = dict    #MANDATORY
+        self.settings = tools.ValidateAndAssignInputParameters(default_settings, self.settings, False)
+        self.number_of_participants = len( self.settings['participants'] )
 
-        ##settings string in json format
-        # default values for all available settings
-        # for mandatory settings, the type is defined
-        defaultSettings = {}
-        defaultSettings["echo_level"] = 1
-        defaultSettings["convergence_acceleration"] = dict    #MANDATORY
-        defaultSettings["convergence_criteria"] = dict    #MANDATORY
-        defaultSettings["max_iteration_per_step"] = 10
-        defaultSettings["participants"] = list
-        self.settings = ValidateAndAssignInputParameters(defaultSettings, custom_settings)
-
-        self.number_of_participants = ( self.settings['participants'] ).size()
-        print('Number of participants :: ', self.number_of_participants)
-        if(self.number_of_participants <= 1):
-            raise RuntimeError('Number of participants in a Co-Simulation strategy cannot be less than 2. \nPlease check the input ... !')
-        if(self.number_of_participants > 2):
-            raise RuntimeError('Number of participants in a Co-Simulation strategy cannot be more than 2. \nPlease check the input ... !')
+        if not self.number_of_participants == 2:
+            raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
         ### Importing the Participant modules
-        self.participants = self.settings["co_simulation_solver_settings"]["participants"]
+        self.participants_setting_dict = self.full_settings["coupled_solver_settings"]["participants"]
         self.participating_solver_names = []
 
         for p in range(0,self.number_of_participants) :
-            self.participating_solver_names.append(self.participants[p]['name'].GetString())
+            self.participating_solver_names.append(self.participants_setting_dict[p]['name'])
 
-        solvers = tools.GetSolvers(self.settings['solvers'])
-
-        ### obtaining the participants
-        self.participating_solvers = tools.Extract(solvers, self.participating_solver_names)
-
-        ### obtaining participants co sim details
-        self.solver_cosim_details = tools.GetSolverCoSimulationDetails(self.participants)
+        print(self.participating_solver_names)
+        solvers = tools.GetSolvers(self.full_settings['solvers'])
 
         ### Making the convergence accelerator for this strategy
-        self.convAccelerator = None
+        self.convergence_accelerator = None
 
         ### Creating the convergence criterion
-        #self.conv_criterion = CoSimApp.CoSimulationBaseConvergenceCriterion(self.settings['residual_relative_tolerance'].GetDouble(), self.settings['residual_relative_tolerance'].GetDouble())
+        #self.convergence_criteria = CoSimApp.CoSimulationBaseConvergenceCriterion(self.settings['residual_relative_tolerance'].GetDouble(), self.settings['residual_relative_tolerance'].GetDouble())
 
     def Initialize(self):
-        for solver_name, solver in self.participating_solvers.items():
-            print('Initializing solver :: ', solver_name)
-            solver.Initialize()
+        super(GaussSeidelIterativeStrongCouplingSolver, self).Initialize()
+        #self.convergence_accelerator.Initialize()
+        #self.convergence_criteria.Initialize()
 
     def Finalize(self):
-        for solver_name, solver in self.participating_solvers.items():
-            print('Finalizing solver :: ', solver_name)
-            solver.Finalize()
+        super(GaussSeidelIterativeStrongCouplingSolver, self).Finalize()
+        #self.convergence_accelerator.Finalize()
+        #self.convergence_criteria.Finalize()
 
 
-    def InitializeTimeStep(self):
-        for solver_name, solver in self.participating_solvers.items():
-            print('InitializeSolutionStep for solver :: ', solver_name)
-            solver.InitializeTimeStep()
+    def InitializeSolutionStep(self):
+        super(GaussSeidelIterativeStrongCouplingSolver, self).InitializeSolutionStep()
+        #self.convergence_accelerator.InitializeSolutionStep()
+        #self.convergence_criteria.InitializeSolutionStep()
 
-    def FinalizeTimeStep(self):
-        for solver_name, solver in self.participating_solvers.items():
-            print('FinalizeTimeStep for solver :: ', solver_name)
-            solver.FinalizeTimeStep()
+    def FinalizeSolutionStep(self):
+        super(GaussSeidelIterativeStrongCouplingSolver, self).InitializeSolutionStep()
+        #self.convergence_accelerator.InitializeSolutionStep()
+        #self.convergence_criteria.InitializeSolutionStep()
 
-    def ImportData(self, DataName, FromClient):
-        pass
-    def ImportMesh(self, MeshName, FromClient):
-        pass
-
-    def ExportData(self, DataName, ToClient):
-        pass
-    def ExportMesh(self, MeshName, ToClient):
-        pass
-
-    def MakeDataAvailable(self, DataName, ToClient):
-        pass
-    def MakeMeshAvailable(self, MeshName, ToClient):
-        pass
-
-
-    def SolveTimeStep(self):
+    def SolveSolutionStep(self):
         max_iter = self.settings["co_simulation_solver_settings"]['max_iteration_per_step'].GetInt()
         iter = 0
         while(iter < max_iter):
