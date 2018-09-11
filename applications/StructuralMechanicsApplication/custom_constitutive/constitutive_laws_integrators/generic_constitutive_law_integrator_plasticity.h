@@ -69,9 +69,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     /// Definition of index
     typedef std::size_t IndexType;
 
-    /// Definition of size type
-    typedef std::size_t SizeType;
-
     /// The type of yield surface
     typedef TYieldSurfaceType YieldSurfaceType;
 
