@@ -99,21 +99,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector
-     * @param Deviator The deviatoric part of the stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rGFlux,
+        array_1d<double, VoigtSize>& rGFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        Vector first_vector, second_vector, third_vector;
+        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
 
         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);

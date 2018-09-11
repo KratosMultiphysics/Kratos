@@ -106,12 +106,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param StressVector The stress vector
-     * @param StrainVector The StrainVector vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const Vector& rStressVector,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
@@ -120,26 +121,26 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
         // It compares with fc / sqrt(E)
-        Vector PrincipalStressVector;
-        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(PrincipalStressVector, rStressVector);
+        array_1d<double, Dimension> principal_stress_vector;
+        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
 
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-        const double sigma_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double sigma_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        const double n = std::abs(sigma_compression / sigma_tension);
+        const double yield_compressionompression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double yield_tensionension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        const double n = std::abs(yield_compressionompression / yield_tensionension);
 
         double SumA = 0.0, SumB = 0.0, SumC = 0.0, ere0, ere1;
         for (std::size_t cont = 0; cont < 2; ++cont) {
-            SumA += std::abs(PrincipalStressVector[cont]);
-            SumB += 0.5 * (PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
-            SumC += 0.5 * (-PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
+            SumA += std::abs(principal_stress_vector[cont]);
+            SumB += 0.5 * (principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
+            SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
         }
         ere0 = SumB / SumA;
         ere1 = SumC / SumA;
 
         double auxf = 0.0;
         for (std::size_t cont = 0; cont < 6; ++cont) {
-            auxf += rStrainVector[cont] * rStressVector[cont]; // E:S
+            auxf += rStrainVector[cont] * rPredictiveStressVector[cont]; // E:S
         }
         rEquivalentStress = std::sqrt(auxf);
         rEquivalentStress *= (ere0 * n + ere1);
@@ -157,8 +158,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double sigma_c = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        rThreshold = std::abs(sigma_c / std::sqrt(r_material_properties[YOUNG_MODULUS]));
+        const double yield_compression = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        rThreshold = std::abs(yield_compression / std::sqrt(r_material_properties[YOUNG_MODULUS]));
     }
 
     /**
@@ -170,41 +171,42 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength)
+        const double CharacteristicLength
+        )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double Gf = r_material_properties[FRACTURE_ENERGY];
+        const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-        const double sigma_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double sigma_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        const double n = sigma_compression / sigma_tension;
+        const double yield_compressionompression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double yield_tensionension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        const double n = yield_compressionompression / yield_tensionension;
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            rAParameter = 1.0 / (Gf * n * n / (CharacteristicLength * std::pow(sigma_compression, 2)) - 0.5);
+            rAParameter = 1.0 / (fracture_energy * n * n / (CharacteristicLength * std::pow(yield_compressionompression, 2)) - 0.5);
             KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
-            rAParameter = -std::pow(sigma_compression, 2) / (2.0 * Gf * n * n / CharacteristicLength);
+            rAParameter = -std::pow(yield_compressionompression, 2) / (2.0 * fracture_energy * n * n / CharacteristicLength);
         }
     }
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param StressVector The stress vector
+     * @param rPredictiveStressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rDerivativePlasticPotential,
+        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -212,17 +214,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector
+     * @param rPredictiveStressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& StressVector,
-        const Vector& Deviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& Deviator,
         const double J2,
-        Vector& rFFlux,
+        array_1d<double, VoigtSize>& rFFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {

@@ -374,11 +374,11 @@ protected:
 
     void SetThreshold(const double Threshold) { mThreshold = Threshold; }
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
-    void SetPlasticStrain(const Vector& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
+    void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
 
     void SetNonConvThreshold(const double NonConvThreshold) { mNonConvThreshold = NonConvThreshold; }
     void SetNonConvPlasticDissipation(const double NonConvPlasticDissipation) { mNonConvPlasticDissipation = NonConvPlasticDissipation; }
-    void SetNonConvPlasticStrain(const Vector& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
+    void SetNonConvPlasticStrain(const array_1d<double, VoigtSize>& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
 
     ///@}
     ///@name Protected Operations
@@ -408,12 +408,12 @@ protected:
     // Converged values
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
-    Vector mPlasticStrain = ZeroVector(6);
+    Vector mPlasticStrain = ZeroVector(VoigtSize);
 
     // Non Converged values
     double mNonConvPlasticDissipation = 0.0;
     double mNonConvThreshold = 0.0;
-    Vector mNonConvPlasticStrain = ZeroVector(6);
+    Vector mNonConvPlasticStrain = ZeroVector(VoigtSize);
 
     // Auxiliar to print (NOTE: Alejandro do we need this now?)
     double mUniaxialStress = 0.0;

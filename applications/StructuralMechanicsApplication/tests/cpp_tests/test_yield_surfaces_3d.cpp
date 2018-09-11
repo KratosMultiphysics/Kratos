@@ -42,7 +42,7 @@ typedef TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> T;
 typedef SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> SJ;
 
 void GenerateTestVariables(
-    Vector &rStressVector,
+    array_1d<double, 6> &rStressVector,
     Vector &rStrainVector,
     Properties &rMaterialProperties)
 {
@@ -77,7 +77,8 @@ void GenerateTestVariables(
 */
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanicsFastSuite)
 {
-    Vector Strain, Stress;
+    Vector Strain;
+    array_1d<double, 6> Stress;
     Properties material_properties;
     GenerateTestVariables(Stress, Strain, material_properties);
 
@@ -118,8 +119,9 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanics
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFastSuite)
 {
     double I1, J2;
-    Vector Strain, Stress;
-    Vector Deviator = ZeroVector(6);
+    Vector Strain;
+    array_1d<double, 6> Stress;
+    array_1d<double, 6> Deviator = ZeroVector(6);
     Properties material_properties;
 
     GenerateTestVariables(Stress, Strain, material_properties);
@@ -133,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFas
     DPres = {0.244142, 0.244142, 1.9703, 1.72615, 1.72615, 0.0};
     Tres = {-0.369513, -0.364032, 0.733545, 1.08113, 1.10671, 0.0073077};
 
-    Vector TestMC = ZeroVector(6), TestVM = ZeroVector(6), TestDP = ZeroVector(6), TestT = ZeroVector(6);
+    array_1d<double, 6> TestMC = ZeroVector(6), TestVM = ZeroVector(6), TestDP = ZeroVector(6), TestT = ZeroVector(6);
 
     ProcessInfo dummy_process_info;
     Geometry<NodeType> dummy_geometry;
@@ -160,7 +162,8 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFas
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructuralMechanicsFastSuite)
 {
     Properties material_properties;
-    Vector Strain, Stress;
+    Vector Strain;
+    array_1d<double, 6> Stress;
     GenerateTestVariables(Stress, Strain, material_properties);
 
     // Analytical solutions of the initial threshold
@@ -199,7 +202,8 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructura
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosStructuralMechanicsFastSuite)
 {
     Properties material_properties;
-    Vector Strain, Stress;
+    Vector Strain;
+    array_1d<double, 6> Stress;
     GenerateTestVariables(Stress, Strain, material_properties);
     double characteristic_length = 0.1;
 
@@ -239,7 +243,8 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosStructuralM
 KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterExponential, KratosStructuralMechanicsFastSuite)
 {
     Properties material_properties;
-    Vector Strain, Stress;
+    Vector Strain;
+    array_1d<double, 6> Stress;
     GenerateTestVariables(Stress, Strain, material_properties);
     double characteristic_length = 0.1;
 

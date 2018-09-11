@@ -70,6 +70,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
 {
     // Integrate Stress Damage
     Vector& integrated_stress_vector = rValues.GetStressVector();
+    array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = integrated_stress_vector;
     Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -98,7 +99,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
         double& damage = this->GetDamage();
 
         // S0 = C:(E-Ep)
-        Vector predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
+        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
 
         // Initialize Plastic Parameters
         double uniaxial_stress;
@@ -109,14 +110,16 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
         if (F <= 0.0) { // Elastic case
             this->SetNonConvDamage(damage);
             this->SetNonConvThreshold(threshold);
-            noalias(integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
+            noalias(auxiliar_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
 
-                TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+                TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(auxiliar_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
                 this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
+                
+                noalias(integrated_stress_vector) = auxiliar_integrated_stress_vector;
             }
         } else { // Damage case
             const double characteristic_length = rValues.GetElementGeometry().Length();
@@ -124,7 +127,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
             TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
 
             // Updated Values
-            noalias(integrated_stress_vector) = predictive_stress_vector;
+            noalias(auxiliar_integrated_stress_vector) = predictive_stress_vector;
             this->SetNonConvDamage(damage);
             this->SetNonConvThreshold(uniaxial_stress);
 
@@ -132,10 +135,12 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
                 this->CalculateTangentTensor(rValues);
                 noalias(r_tangent_tensor) = rValues.GetConstitutiveMatrix();
 
-                TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+                TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(auxiliar_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
                 this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
+            
+            noalias(integrated_stress_vector) = auxiliar_integrated_stress_vector;
         }
     }
 } // End CalculateMaterialResponseCauchy

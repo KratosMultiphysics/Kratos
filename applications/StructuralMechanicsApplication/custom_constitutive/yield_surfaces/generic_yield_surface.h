@@ -111,13 +111,13 @@ public:
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param rStressVector The stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector
      * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const Vector& rStressVector,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
@@ -160,14 +160,14 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double& J2,
-        Vector& rDerivativePlasticPotential,
+        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -182,10 +182,10 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& StressVector,
-        const Vector& Deviator,
+        const array_1d<double, VoigtSize>& StressVector,
+        const array_1d<double, VoigtSize>& Deviator,
         const double J2,
-        Vector& rFFlux,
+        array_1d<double, VoigtSize>& rFFlux,
         ConstitutiveLaw::Parameters& rValues)
     {
     }

@@ -118,7 +118,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void IntegrateStressVector(
-        Vector& rPredictiveStressVector,
+        array_1d<double, VoigtSize>& rPredictiveStressVector,
         const double UniaxialStress,
         double& rDamage,
         double& rThreshold,

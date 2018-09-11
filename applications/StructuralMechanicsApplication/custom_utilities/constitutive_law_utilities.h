@@ -50,7 +50,7 @@ namespace Kratos
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Vicente Mataix Ferrandiz
  * @author Alejandro Cornejo
- * @todo Adapt for 2D dimension
+ * @todo Finish adapt for 2D dimension
  */
 template <SizeType TVoigtSize = 6>
 class ConstitutiveLawUtilities
@@ -64,6 +64,9 @@ class ConstitutiveLawUtilities
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
+    
+    /// We define the Voigt size
+    static constexpr SizeType VoigtSize = TVoigtSize;
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -86,7 +89,7 @@ class ConstitutiveLawUtilities
      * @param rI1 The first invariant
      */
     static void CalculateI1Invariant(
-        const Vector& rStressVector,
+        const array_1d<double, VoigtSize>& rStressVector,
         double& rI1
         );
 
@@ -97,7 +100,7 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculateI2Invariant(
-        const Vector& rStressVector,
+        const array_1d<double, VoigtSize>& rStressVector,
         double& rI2
         );
 
@@ -108,7 +111,7 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculateI3Invariant(
-        const Vector& rStressVector,
+        const array_1d<double, VoigtSize>& rStressVector,
         double& rI3
         );
 
@@ -120,9 +123,9 @@ class ConstitutiveLawUtilities
      * @param rJ2 The second invariant of J
      */
     static void CalculateJ2Invariant(
-        const Vector& rStressVector,
+        const array_1d<double, VoigtSize>& rStressVector,
         const double I1,
-        Vector& rDeviator,
+        array_1d<double, VoigtSize>& rDeviator,
         double& rJ2
         );
 
@@ -132,7 +135,7 @@ class ConstitutiveLawUtilities
      * @param rJ3 The third invariant of J
      */
     static void CalculateJ3Invariant(
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rDeviator,
         double& rJ3
         );
 
@@ -140,7 +143,7 @@ class ConstitutiveLawUtilities
      * @brief This method computes the first vector
      * @param rFirstVector The first vector
      */
-    static void CalculateFirstVector(Vector& rFirstVector);
+    static void CalculateFirstVector(array_1d<double, VoigtSize>& rFirstVector);
 
     /**
      * @brief This method computes the second vector
@@ -149,9 +152,9 @@ class ConstitutiveLawUtilities
      * @param rSecondVector The second vector
      */
     static void CalculateSecondVector(
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rSecondVector
+        array_1d<double, VoigtSize>& rSecondVector
         );
 
     /**
@@ -162,9 +165,9 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculateThirdVector(
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rThirdVector
+        array_1d<double, VoigtSize>& rThirdVector
         );
 
     /**
@@ -186,8 +189,8 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculatePrincipalStresses(
-        Vector& rPrincipalStressVector,
-        const Vector& rStressVector
+        array_1d<double, Dimension>& rPrincipalStressVector,
+        const array_1d<double, VoigtSize>& rStressVector
         );
 
   private:

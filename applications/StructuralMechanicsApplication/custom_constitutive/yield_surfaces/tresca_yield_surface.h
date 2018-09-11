@@ -109,23 +109,23 @@ public:
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param rStressVector The stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
      * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
      */
     static void CalculateEquivalentStress(
-        const Vector& rStressVector,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
         )
     {
         double I1, J2, J3, lode_angle;
-        Vector deviator = ZeroVector(6);
+        array_1d<double, VoigtSize> deviator(6, 0.0);
 
-        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
         ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
@@ -144,8 +144,8 @@ public:
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double sigma_t = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        rThreshold = std::abs(sigma_t); // TODO Check
+        const double yield_tension = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        rThreshold = std::abs(yield_tension); // TODO Check
     }
 
     /**
@@ -162,38 +162,38 @@ public:
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double Gf = r_material_properties[FRACTURE_ENERGY];
-        const double E = r_material_properties[YOUNG_MODULUS];
+        const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
+        const double young_modulus = r_material_properties[YOUNG_MODULUS];
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-        const double sigma_c = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double sigma_t = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        const double n = sigma_c / sigma_t;
+        const double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        const double n = yield_compression / yield_tension;
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            rAParameter = 1.00 / (Gf * n * n * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+            rAParameter = 1.00 / (fracture_energy * n * n * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
             KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
-            rAParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf * n * n / CharacteristicLength);
+            rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy * n * n / CharacteristicLength);
         }
     }
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param rStressVector The stress vector
+     * @param rPredictiveStressVector The stress vector
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rDerivativePlasticPotential,
+        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -201,21 +201,21 @@ public:
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param rStressVector The stress vector
+     * @param rPredictiveStressVector The stress vector
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rFFlux,
+        array_1d<double, VoigtSize>& rFFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        Vector first_vector, second_vector, third_vector;
+        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
 
         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);

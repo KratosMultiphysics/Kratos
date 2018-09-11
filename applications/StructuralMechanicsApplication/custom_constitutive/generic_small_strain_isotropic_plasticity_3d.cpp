@@ -99,12 +99,13 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         Vector& r_plastic_strain = this->GetPlasticStrain();
 
         // S0 = r_constitutive_matrix:(E-Ep)
-        Vector predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
+        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        Vector f_flux = ZeroVector(VoigtSize), g_flux = ZeroVector(VoigtSize); // DF/DS & DG/DS
-        Vector plastic_strain_increment = ZeroVector(VoigtSize);
+        array_1d<double, VoigtSize> f_flux(VoigtSize, 0.0); // DF/DS
+        array_1d<double, VoigtSize> g_flux(VoigtSize, 0.0); // DG/DS
+        array_1d<double, VoigtSize> plastic_strain_increment(VoigtSize, 0.0);
 
         TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, r_strain_vector,
                                                         uniaxial_stress, r_threshold, plastic_denominator, f_flux, g_flux, r_plastic_dissipation,
