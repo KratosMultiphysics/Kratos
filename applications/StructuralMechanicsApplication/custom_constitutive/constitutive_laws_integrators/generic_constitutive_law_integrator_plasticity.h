@@ -31,6 +31,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -49,10 +52,11 @@ namespace Kratos
  * linear/exponential softening or hardening + softening evolution laws
  * @details The definitions of these classes is completely static, the derivation is done in a static way
  * @tparam TYieldSurfaceType The yield surface considered
- * @tparam TVoigtSize The size of the strain/stress vector size once condensed
+ * The plasticity integrator requires the definition of the following properties:
+ * - SOFTENING_TYPE: The fosftening behaviour considered (linear, exponential,etc...)
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TYieldSurfaceType>
+template<class TYieldSurfaceType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorPlasticity
 {
   public:
@@ -71,6 +75,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     /// The type of yield surface
     typedef TYieldSurfaceType YieldSurfaceType;
 
+    /// The define the working dimension size, already defined in the yield surface
+    static constexpr SizeType Dimension = YieldSurfaceType::Dimension;
+
+    /// The define the Voigt size, already defined in the yield surface
+    static constexpr SizeType VoigtSize = YieldSurfaceType::VoigtSize;
+    
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
@@ -221,7 +231,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
         YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
         const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
-        ConstitutiveLawUtilities::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rValues);
         CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rValues);
         CalculateRFactors(rPredictiveStressVector, r0, r1);
@@ -290,7 +300,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
         // We proceed as usual
         Vector principal_stresses = ZeroVector(3);
-        ConstitutiveLawUtilities::CalculatePrincipalStresses(principal_stresses, rStressVector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses, rStressVector);
 
         double suma = 0.0, sumb = 0.0, sumc = 0.0;
         double aux_sa;

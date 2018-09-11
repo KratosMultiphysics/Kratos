@@ -26,6 +26,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
