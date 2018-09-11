@@ -62,6 +62,9 @@ public:
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
 
+    /// The Plastic potential already defines the Voigt size
+    static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
+    
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericYieldSurface);
 
@@ -103,11 +106,13 @@ public:
     /**
      * @brief This method the uniaxial equivalent stress
      * @param rStressVector The stress vector
-     * @param rEquivalentStress The equivalent stress
+     * @param rStrainVector The StrainVector vector
+     * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
         const Vector& rStressVector,
+        const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
         )
@@ -128,13 +133,13 @@ public:
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
-     * @param AParameter The damage parameter
+     * @param rAParameter The damage parameter
      * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
-        double& AParameter,
+        double& rAParameter,
         const double CharacteristicLength
         )
     {

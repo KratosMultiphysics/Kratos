@@ -43,13 +43,16 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Drucker-Prager theory
  * @details The Drucker–Prager yield criterion is similar to the von Mises yield criterion, with provisions for handling materials with differing tensile and compressive yield strengths. This criterion is most often used for concrete where both normal and shear stresses can determine failure.
+ * The yield surface requires the definition of the following properties:
+ * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
+ * - FRICTION_ANGLE:  Its definition is derived from the Mohr-Coulomb failure criterion and it is used to describe the friction shear resistance of soils together with the normal effective stress.
+ * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
+ * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
  * @see https://en.wikipedia.org/wiki/Drucker%E2%80%93Prager_yield_criterion
  * @tparam TPlasticPotentialType The plastic potential considered
- * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
-//template <class TPlasticPotentialType , std::size_t TVoigtSize>
-template <class TPlasticPotentialType>
+template<class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerYieldSurface
 {
 public:
@@ -58,10 +61,14 @@ public:
 
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
+    
+    /// The Plastic potential already defines the Voigt size
+    static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
 
     /// Counted pointer of DruckerPragerYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(DruckerPragerYieldSurface);
 
+    /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -99,11 +106,12 @@ public:
      * @param rStressVector The stress vector
      * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
+     * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
      */
     static void CalculateEquivalentStress(
         const Vector& rStressVector,
         const Vector& rStrainVector,
-        double& rEqStress,
+        double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -120,16 +128,16 @@ public:
         }
 
         double I1, J2;
-        ConstitutiveLawUtilities::CalculateI1Invariant(rStressVector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
         Vector Deviator = ZeroVector(6);
-        ConstitutiveLawUtilities::CalculateJ2Invariant(rStressVector, I1, Deviator, J2);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, Deviator, J2);
 
         if (I1 == 0.0) {
-            rEqStress = 0.0;
+            rEquivalentStress = 0.0;
         } else {
             const double CFL = -root_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
             const double TEN0 = 2.0 * I1 * sin_phi / (root_3 * (3.0 - sin_phi)) + std::sqrt(J2);
-            rEqStress = std::abs(CFL * TEN0);
+            rEquivalentStress = std::abs(CFL * TEN0);
         }
     }
 
@@ -221,9 +229,9 @@ public:
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
         Vector first_vector, second_vector, third_vector;
-        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         const double c3 = 0.0;
 

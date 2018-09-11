@@ -43,9 +43,12 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Tresca theory
  * @details The Tresca yield criterion is taken to be the work of Henri Tresca. It is also known as the maximum shear stress theory (MSST) and the Tresca–Guest (TG) criterion. 
+ * The yield surface requires the definition of the following properties:
+ * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
+ * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
+ * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
  * @see https://en.wikipedia.org/wiki/Yield_surface#Tresca_yield_surface
  * @tparam TPlasticPotentialType The plastic potential considered
- * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
@@ -58,9 +61,13 @@ public:
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
 
+    /// The Plastic potential already defines the Voigt size
+    static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
+    
     /// Counted pointer of TrescaYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(TrescaYieldSurface);
     
+    /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -99,23 +106,24 @@ public:
      * @param rStressVector The stress vector
      * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
+     * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
      */
     static void CalculateEquivalentStress(
         const Vector& rStressVector,
         const Vector& rStrainVector,
-        double& rEqStress,
+        double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
         )
     {
         double I1, J2, J3, lode_angle;
         Vector deviator = ZeroVector(6);
 
-        ConstitutiveLawUtilities::CalculateI1Invariant(rStressVector, I1);
-        ConstitutiveLawUtilities::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
-        ConstitutiveLawUtilities::CalculateJ3Invariant(deviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
-        rEqStress = 2.0 * std::cos(lode_angle) * std::sqrt(J2);
+        rEquivalentStress = 2.0 * std::cos(lode_angle) * std::sqrt(J2);
     }
 
     /**
@@ -203,13 +211,13 @@ public:
     {
         Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         double J3, lode_angle;
-        ConstitutiveLawUtilities::CalculateJ3Invariant(rDeviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
         const double checker = std::abs(lode_angle * 180 / Globals::Pi);
 

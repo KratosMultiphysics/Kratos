@@ -43,9 +43,12 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Rankine theory
  * @details The Rankine yield surface is formally similar to Mohr-Coulomb but limits the allowed  maximum principal stress. It is formed bt a tetrahedron
+ * The yield surface requires the definition of the following properties:
+ * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
+ * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
+ * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
  * @see https://books.google.fr/books?id=zArcAwAAQBAJ&pg=PA42&lpg=PA42&dq=rankine+yield+surface&source=bl&ots=8nB5XPh-Tw&sig=xFhJ-F6cCj3b5ByDXWGRosSkGFQ&hl=es&sa=X&ved=2ahUKEwinr6bZ1rDdAhVG-YUKHRRADv4Q6AEwFnoECAcQAQ#v=onepage&q=rankine%20yield%20surface&f=false
  * @tparam TPlasticPotentialType The plastic potential considered
- * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
@@ -58,9 +61,13 @@ public:
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
 
+    /// The Plastic potential already defines the Voigt size
+    static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
+    
     /// Counted pointer of RankineYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(RankineYieldSurface);
     
+    /// The zero tolerance definition
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -102,14 +109,14 @@ public:
     static void CalculateEquivalentStress(
         const Vector& rStressVector,
         const Vector& rStrainVector,
-        double& rEqStress,
+        double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
         )
     {
         Vector principal_stress_vector = ZeroVector(3);
-        ConstitutiveLawUtilities::CalculatePrincipalStresses(principal_stress_vector, rStressVector);
-        // the rEqStress is the maximum principal stress
-        rEqStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
+        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rStressVector);
+        // The rEquivalentStress is the maximum principal stress
+        rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
     }
 
     /**
@@ -127,13 +134,13 @@ public:
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
-     * @param AParameter The damage parameter
+     * @param rAParameter The damage parameter
      * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
-        double& AParameter,
+        double& rAParameter,
         const double CharacteristicLength)
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -143,10 +150,10 @@ public:
         const double sigma_c = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            AParameter = 1.00 / (Gf * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture enerPlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
+            rAParameter = 1.00 / (Gf * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture enerPlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
-            AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf / CharacteristicLength);
+            rAParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf / CharacteristicLength);
         }
     }
 

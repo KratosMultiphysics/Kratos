@@ -42,8 +42,11 @@ namespace Kratos
  * @class SimoJuYieldSurface
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Simo-Ju theory
+ * @details The yield surface requires the definition of the following properties:
+ * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
+ * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
+ * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
  * @tparam TPlasticPotentialType The plastic potential considered
- * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
@@ -56,9 +59,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
 
+    /// The Plastic potential already defines the Voigt size
+    static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
+    
     /// Counted pointer of SimoJuYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(SimoJuYieldSurface);
 
+    /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -100,7 +107,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
     static void CalculateEquivalentStress(
         const Vector& rStressVector,
         const Vector& rStrainVector,
-        double& rEqStress,
+        double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -108,7 +115,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
 
         // It compares with fc / sqrt(E)
         Vector PrincipalStressVector;
-        ConstitutiveLawUtilities::CalculatePrincipalStresses(PrincipalStressVector, rStressVector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(PrincipalStressVector, rStressVector);
 
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
         const double sigma_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
@@ -128,8 +135,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
         for (std::size_t cont = 0; cont < 6; ++cont) {
             auxf += rStrainVector[cont] * rStressVector[cont]; // E:S
         }
-        rEqStress = std::sqrt(auxf);
-        rEqStress *= (ere0 * n + ere1);
+        rEquivalentStress = std::sqrt(auxf);
+        rEquivalentStress *= (ere0 * n + ere1);
     }
 
     /**
