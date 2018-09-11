@@ -12,17 +12,33 @@ from fluid_dynamics_analysis import FluidDynamicsAnalysis
 class ALEFluidAnalysis(FluidDynamicsAnalysis):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
+    def __init__(self, model, project_parameters):
+
+        if solver_settings.Has("ale_interface_parts")
+            print("Info, not automatized! ....")
+        else:
+            # Here the ale-boundary-conditions are extracted from the processes
+            # and assigned to the solver such that the VELOCITY can be set to the
+            # MESH_VELOCITY during solving
+            solver_settings = project_parameters["solver_settings"]
+            ale_bc_settings = project_parameters["processes"]["ale_boundary_conditions"]
+
+            ale_interface_parts = KratosMultiphysics.Parameters("""{ [ [] , [] , [] ] }""")
+
+            for i_proc in range(ale_bc_settings.size()):
+                model_part_name = ale_bc_settings[i_proc]["model_part_name"].GetString()
+                for i_comp in range(3):
+                    is_constrained = ale_bc_settings[i_proc]["constrained"][i].GetBool()
+                    if is_constrained:
+                        ale_interface_parts[i_comp].Append(model_part_name)
+
+            solver_settings.AddValue("ale_interface_parts", ale_interface_parts)
+
+        super(ALEFluidAnalysis, self).__init__(model, project_parameters)
+
     def _CreateSolver(self):
         import ale_fluid_solver
         return ale_fluid_solver.CreateSolver(self.model, self.project_parameters)
-
-    def _CreateProcesses(self, parameter_name, initialization_order):
-        """Create a list of Processes
-        This method is TEMPORARY to not break existing code
-        It will be removed in the future
-        """
-        list_of_processes = super(ALEFluidAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
-        ## TODO call base-analysis, no deprecated settings are allowed!!!
 
     def _GetSimulationName(self):
         return "ALE Fluid Analysis"

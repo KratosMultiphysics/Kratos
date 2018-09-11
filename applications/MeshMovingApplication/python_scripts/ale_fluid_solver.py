@@ -66,11 +66,13 @@ class ALEFluidSolver(PythonSolver):
 
         # Get the names of the interface-parts for which the MESH_VELOCITY should be
         # applied to the Fluid-VELOCITY
-        self.ale_interface_part_names = []
+        self.ale_interface_parts_by_components = [ [] , [] , [] ]
         if mesh_motion_solver_settings.Has("ale_interface_parts"):
-            for i in range(mesh_motion_solver_settings["ale_interface_parts"].size()):
-                self.ale_interface_part_names.append(
-                    mesh_motion_solver_settings["ale_interface_parts"][i].GetString())
+            ale_parts = mesh_motion_solver_settings["ale_interface_parts"]
+            for i_comp in range(3):
+                for i_name in range(ale_parts[i_comp].size()):
+                    model_part_name = ale_parts[i_comp][i_name].GetString()
+                    self.ale_interface_parts_by_components[i_comp].append(model[model_part_name])
             mesh_motion_solver_settings.RemoveValue("ale_interface_parts")
 
         import python_solvers_wrapper_mesh_motion
@@ -147,11 +149,23 @@ class ALEFluidSolver(PythonSolver):
         self.mesh_motion_solver.SolveSolutionStep()
 
         # Copy the MESH_VELOCITY to the VELOCITY (ALE) on the interface
-        for smp_name in self.ale_interface_part_names:
-            part_nodes = self.GetComputingModelPart().GetSubModelPart(smp_name).Nodes
-            KratosMultiphysics.VariableUtils().CopyVectorVar(KratosMultiphysics.MESH_VELOCITY,
-                                                             KratosMultiphysics.VELOCITY,
-                                                             part_nodes)
+        mesh_vel_components = [
+            KratosMultiphysics.MESH_VELOCITY_X,
+            KratosMultiphysics.MESH_VELOCITY_Y,
+            KratosMultiphysics.MESH_VELOCITY_Z
+        ]
+        vel_components = [
+            KratosMultiphysics.VELOCITY_X,
+            KratosMultiphysics.VELOCITY_Y,
+            KratosMultiphysics.VELOCITY_Z
+        ]
+
+        for i in range(3):
+            for mp in self.ale_interface_parts_by_components[i]:
+                KratosMultiphysics.VariableUtils().CopyScalarVar(
+                    mesh_vel_components[i],
+                    vel_components[i],
+                    mp.Nodes)
 
         self.fluid_solver.SolveSolutionStep()
 
