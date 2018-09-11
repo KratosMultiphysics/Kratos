@@ -380,6 +380,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         rPlasticDissipation += dplastic_dissipation;
         if (rPlasticDissipation >= 1.0)
             rPlasticDissipation = 0.9999;
+        else if (rPlasticDissipation < 0.0)
+            rPlasticDissipation = 0.0;
     }
 
     /**
