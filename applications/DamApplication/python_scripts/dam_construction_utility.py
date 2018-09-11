@@ -68,7 +68,6 @@ class DamConstructionUtility:
             #for line in reversed(list((file_name2))):
             for j, line in enumerate(file_name2):
                 file_2 = line.split(" ")
-                print("LINEA: " + file_2[0])
                 if (len(file_2)) > 1:
                     self.name_sub_thermal_part = "sub_Thermal_" + file_2[1]
                     self.Construction.AssignTimeActivation(self.name_sub_thermal_part,int(file_2[2]),float(file_2[0]))
