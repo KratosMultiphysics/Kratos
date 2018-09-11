@@ -29,7 +29,7 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
+  ///@addtogroup KratosCore
   ///@{
 
   ///@name Kratos Globals
