@@ -116,6 +116,8 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
+    int return_value = AdjointFiniteDifferencingBaseElement::Check(rCurrentProcessInfo);
+
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     //TODO: Check() of primal element should be called, but is not possible because of DOF check!
@@ -168,25 +170,7 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
     KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
     << "I33 not provided for this element" << this->Id() << std::endl;
 
-    return 0;
-
-    KRATOS_CATCH("")
-}
-
-double AdjointFiniteDifferenceCrBeamElement::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if(rDesignVariable == SHAPE)
-    {
-        double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-        double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-        double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-        double L = std::sqrt(dx*dx + dy*dy + dz*dz);
-        return L;
-    }
-    else
-        return 1.0;
+    return return_value;
 
     KRATOS_CATCH("")
 }

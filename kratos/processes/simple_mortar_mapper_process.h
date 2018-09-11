@@ -178,7 +178,11 @@ public:
      */
     void UpdatePoint()
     {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+#else
         noalias(this->Coordinates()) = mpOriginCond->GetGeometry().Center().Coordinates();
+#endif // ifdef KRATOS_USE_AMATRIX
     }
 
 private:

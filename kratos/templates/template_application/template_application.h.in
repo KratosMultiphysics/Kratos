@@ -70,7 +70,7 @@ public:
 	Kratos@{APP_NAME_CAMEL}Application();
 
 	/// Destructor.
-	virtual ~Kratos@{APP_NAME_CAMEL}Application(){}
+	~Kratos@{APP_NAME_CAMEL}Application() override {}
 
 
 	///@}

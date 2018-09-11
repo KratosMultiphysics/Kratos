@@ -72,7 +72,7 @@ public:
   KratosMeshMovingApplication();
 
   /// Destructor.
-  virtual ~KratosMeshMovingApplication() {}
+  ~KratosMeshMovingApplication() override {}
 
   ///@}
   ///@name Operators

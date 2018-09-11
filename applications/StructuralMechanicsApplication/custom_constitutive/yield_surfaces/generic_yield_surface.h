@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/checks.h"
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
@@ -45,8 +46,8 @@ namespace Kratos
 /**
  * @class GenericYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a generic yield surface
+ * @details This is a static "template" to use as main reference to define the rest of yield surfaces
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu & Vicente Mataix
@@ -54,7 +55,7 @@ namespace Kratos
 template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -101,52 +102,61 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param StressVector The stress vector 
-     * @param StrainVector The StrainVector vector
-     * @param rMaterialProperties The material properties
+     * @param rStressVector The stress vector
+     * @param rEquivalentStress The equivalent stress
+     * @param rValues Parameters of the constitutive law
      */
-    static void CalculateEquivalentStress(const Vector &StressVector, double &rEqStress, const Properties &rMaterialProperties)
+    static void CalculateEquivalentStress(
+        const Vector& rStressVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
     }
 
     /**
      * @brief This method returns the initial uniaxial stress threshold
      * @param rThreshold The uniaxial stress threshold
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
+    static void GetInitialUniaxialThreshold(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold
+        )
     {
     }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
      * @param AParameter The damage parameter
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties &rMaterialProperties,
-        double &AParameter,
-        const double CharacteristicLength)
+        ConstitutiveLaw::Parameters& rValues,
+        double& AParameter,
+        const double CharacteristicLength
+        )
     {
     }
 
     /**
      * @brief This method calculates the derivative of the plastic potential DG/DS
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator 
-     * @param rg The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param J2 The second invariant of the Deviator
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
-        const double &J2,
-        Vector &rg,
-        const Properties &rMaterialProperties)
+        const Vector& rStressVector,
+        const Vector& rDeviator,
+        const double& J2,
+        Vector& rDerivativePlasticPotential,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -154,19 +164,28 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector 
+     * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator 
+     * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& StressVector,
+        const Vector& Deviator,
         const double J2,
-        Vector &rFFlux,
-        const Properties &rMaterialProperties)
+        Vector& rFFlux,
+        ConstitutiveLaw::Parameters& rValues)
     {
+    }
+
+    /**
+     * @brief This method defines the check to be performed in the yield surface
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
     ///@}
@@ -187,7 +206,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -216,7 +235,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
     ///@{
 
     ///@}
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 

@@ -66,7 +66,7 @@ class KratosTrilinosApplication : public KratosApplication {
     KratosTrilinosApplication() : KratosApplication("TrilinosApplication") {}
 
     /// Destructor.
-    virtual ~KratosTrilinosApplication() {}
+    ~KratosTrilinosApplication() override {}
 
     ///@}
     ///@name Operators

@@ -102,7 +102,7 @@
 #include "custom_constitutive/linear_j2_plasticity_3d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
-// Custom Constitutive laws
+// Advanced Constitutive laws
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
 #include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
