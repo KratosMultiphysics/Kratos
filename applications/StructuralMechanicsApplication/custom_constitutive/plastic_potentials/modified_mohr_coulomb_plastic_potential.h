@@ -42,10 +42,11 @@ namespace Kratos
 /**
  * @class ModifiedMohrCoulombPlasticPotential
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a plastic potential following the theory of Mohr-Coulomb (modified)
+ * @details Working from the conventional assumption that the strength is related to the difference between major and minor principal stresses results in the Tresca model for effective stress. This gives a cone form of the potential in the principal stress space
  * @author Alejandro Cornejo & Lucia Barbu
  */
+template <SizeType TVoigtSize = 6>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPotential
 {
   public:
@@ -55,6 +56,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
     /// Counted pointer of ModifiedMohrCoulombPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(ModifiedMohrCoulombPlasticPotential);
 
+    /// The zero tolerance definition
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -109,13 +111,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
 
         Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         double J3, lode_angle;
-        ConstitutiveLawUtilities::CalculateJ3Invariant(rDeviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 

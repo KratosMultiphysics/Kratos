@@ -40,10 +40,11 @@ namespace Kratos
 /**
  * @class TrescaPlasticPotential
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a plastic potential following the theory of Tresca
+ * @details Working from the conventional assumption that the strength is related to the difference between major and minor principal stresses results in the Tresca model for total stress. This gives a hexagonal form of the potential in the principal stress space
  * @author Alejandro Cornejo & Lucia Barbu
  */
+template <SizeType TVoigtSize = 6>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
 {
   public:
@@ -105,13 +106,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
     {
         Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         double J3, lode_angle;
-        ConstitutiveLawUtilities::CalculateJ3Invariant(rDeviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 

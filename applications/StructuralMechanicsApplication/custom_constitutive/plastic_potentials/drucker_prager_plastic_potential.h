@@ -41,10 +41,11 @@ namespace Kratos
 /**
  * @class DruckerPragerPlasticPotential
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a plastic potential following the theory of Drucker-Prager
+ * @details When the yield and plastic potential surfaces are plotted in principal stress space the resulting surface will be a circular cone for Drucker-Prager. This means that both yield and strength are dependent on intermediate principal stress, sigma_2
  * @author Alejandro Cornejo & Lucia Barbu
  */
+template <SizeType TVoigtSize = 6>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
 {
   public:
@@ -90,26 +91,26 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector
-     * @param Deviator The deviatoric part of the stress vector
-     * @param J2 The second invariant of the Deviator
+     * @param rStressVector The stress vector
+     * @param rDeviator The deviatoric part of the stress vector
+     * @param J2 The second invariant of the rDeviator
      * @param rGFlux The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector,
-        const Vector& Deviator,
+        const Vector& rStressVector,
+        const Vector& rDeviator,
         const double J2,
         Vector& rGFlux,
         ConstitutiveLaw::Parameters& rValues)
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        Vector FirstVector, SecondVector, ThirdVector;
+        Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
-        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
-        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         const double c3 = 0.0;
 
@@ -121,7 +122,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
         const double c1 = CFL * 2.0 * sin_dil / (Root3 * (3.0 - sin_dil));
         const double c2 = CFL;
 
-        noalias(rGFlux) = c1 * FirstVector + c2 * SecondVector + c3 * ThirdVector;
+        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**

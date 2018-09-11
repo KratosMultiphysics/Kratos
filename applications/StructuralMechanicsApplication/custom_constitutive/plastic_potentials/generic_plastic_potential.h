@@ -45,10 +45,13 @@ namespace Kratos
 /**
  * @class GenericPlasticPotential
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief If the plastic potential is of the same type as the yield surface we talk about associated flow rules, if a
+different function is used, it is non-associated. For metals associated flow rules work great, while frictional materials typically need non-associated flow rules
+ * @details This is a "template" plastic potential, please define properly your plastic potential 
+ * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
+template <SizeType TVoigtSize = 6>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
 {
   public:
@@ -136,7 +139,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -166,7 +169,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 

@@ -42,9 +42,12 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This class includes several utilities necessaries for the computation of the constitutive law
  * @details The methods are static, so it can be called without constructing the class
- * @author Vicente Mataix Ferrandiz & Alejandro Cornejo
+ *  @tparam TVoigtSize The number of components on the Voigt notation
+ * @author Vicente Mataix Ferrandiz
+ * @author Alejandro Cornejo
  * @todo Adapt for 2D dimension
  */
+template <SizeType TVoigtSize = 6>
 class ConstitutiveLawUtilities
 {
   public:
@@ -54,11 +57,8 @@ class ConstitutiveLawUtilities
     /// The index type definition
     typedef std::size_t IndexType;
 
-    /// We define the dimension (TODO: Implement a template for 2D/3D)
-    static constexpr SizeType TDim = 3;
-
-    /// The Voight size
-    static constexpr SizeType VoigtSize = TDim == 3 ? 6 : 3;
+    /// We define the dimension
+    static constexpr SizeType TDim = TVoigtSize == 6 ? 3 : 2;
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -185,10 +185,10 @@ class ConstitutiveLawUtilities
         Vector& SecondVector
         )
     {
-        if (SecondVector.size() != VoigtSize)
-            SecondVector.resize(VoigtSize);
+        if (SecondVector.size() != TVoigtSize)
+            SecondVector.resize(TVoigtSize);
         const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-        for (IndexType i = 0; i < VoigtSize; ++i) {
+        for (IndexType i = 0; i < TVoigtSize; ++i) {
             SecondVector[i] = Deviator[i] / (twosqrtJ2);
         }
 
@@ -209,8 +209,8 @@ class ConstitutiveLawUtilities
         const double J2,
         Vector& ThirdVector)
     {
-        if (ThirdVector.size() != VoigtSize)
-            ThirdVector.resize(VoigtSize);
+        if (ThirdVector.size() != TVoigtSize)
+            ThirdVector.resize(TVoigtSize);
 
         const double J2thirds = J2 / 3.0;
 

@@ -40,10 +40,12 @@ namespace Kratos
 /**
  * @class VonMisesPlasticPotential
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a plastic potential following the theory of Von Mises
+ * @details If the plastic potential is of vonMises (cylinder) type, on can see that the plastic strain increment tensor is in principle the scaled deviatoric stress tensor, hence principal directions coincide. When the yield and plastic potential surfaces are plotted in principal stress space the resulting surface will be a circular cylinder for Von-Mises. This means that both yield and strength are dependent on intermediate principal stress, sigma_2
+ * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
+template <SizeType TVoigtSize = 6>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
 {
 public:
@@ -105,9 +107,9 @@ public:
     {
         Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         const double c1 = 0.0;
         const double c2 = std::sqrt(3.0);
