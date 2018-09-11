@@ -109,22 +109,22 @@ namespace Kratos
 
     void BoussinesqForceProcess::AssignBoussinesqForce()
     {
-        const double AmbientTemperature = mrModelPart.GetProcessInfo().GetValue(AMBIENT_TEMPERATURE);
-        KRATOS_ERROR_IF( AmbientTemperature <= 0.0 ) <<
+        const double ambient_temperature = mrModelPart.GetProcessInfo().GetValue(AMBIENT_TEMPERATURE);
+        KRATOS_ERROR_IF( ambient_temperature <= 0.0 ) <<
         "In Boussinesq Force Process: \'AMBIENT_TEMPERATURE\' obtained from ProcessInfo is incorrect." << std::endl <<
-        "Expected a positive double, got " << AmbientTemperature << std::endl;
+        "Expected a positive double, got " << ambient_temperature << std::endl;
 
         // Note: the default value of 1/AMBIENT_TEMPERATURE is the usual assumption for perfect gases.
-        const double Alpha = (mUseAmbientTemperature) ? 1.0 / AmbientTemperature : mThermalExpansionCoefficient;
+        const double alpha = (mUseAmbientTemperature) ? 1.0 / ambient_temperature : mThermalExpansionCoefficient;
 
-        int NumNodes = mrModelPart.NumberOfNodes();
-        #pragma omp parallel for firstprivate(NumNodes,AmbientTemperature)
-        for (int i = 0; i < NumNodes; ++i)
+        int num_nodes = mrModelPart.NumberOfNodes();
+        #pragma omp parallel for firstprivate(num_nodes,ambient_temperature)
+        for (int i = 0; i < num_nodes; ++i)
         {
             ModelPart::NodeIterator iNode = mrModelPart.NodesBegin() + i;
-            double Temperature = iNode->FastGetSolutionStepValue(TEMPERATURE);
+            double temperature = iNode->FastGetSolutionStepValue(TEMPERATURE);
 
-            iNode->FastGetSolutionStepValue(BODY_FORCE) = (1. - Alpha*(Temperature-AmbientTemperature))*mrGravity;
+            iNode->FastGetSolutionStepValue(BODY_FORCE) = (1. - alpha*(temperature-ambient_temperature))*mrGravity;
         }
 
     }
