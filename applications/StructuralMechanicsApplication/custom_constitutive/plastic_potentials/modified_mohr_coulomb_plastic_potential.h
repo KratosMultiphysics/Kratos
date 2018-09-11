@@ -44,6 +44,9 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a plastic potential following the theory of Mohr-Coulomb (modified)
  * @details Working from the conventional assumption that the strength is related to the difference between major and minor principal stresses results in the Tresca model for effective stress. This gives a cone form of the potential in the principal stress space
+ * The plastic potential requires the definition of the following properties:
+ * - DILATANCY_ANGLE: The angle of dilation controls an amount of plastic volumetric strain developed during plastic shearing and is assumed constant during plastic yielding. The value of DILATANCY_ANGLE=0 corresponds to the volume preserving deformation while in shear.
+ * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
@@ -53,6 +56,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
     ///@name Type Definitions
     ///@{
 
+    /// We define the dimension
+    static constexpr SizeType TDim = TVoigtSize == 6 ? 3 : 2;
+      
+    /// The define the Voigt size
+    static constexpr SizeType VoigtSize = TVoigtSize;
+      
     /// Counted pointer of ModifiedMohrCoulombPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(ModifiedMohrCoulombPlasticPotential);
 
@@ -111,13 +120,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
 
         Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         double J3, lode_angle;
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(rDeviator, J3);
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
@@ -131,8 +140,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
         const double tan_3theta = std::tan(3.0 * lode_angle);
         const double Root3 = std::sqrt(3.0);
 
-        const double compr_yield = r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double tensi_yield = r_material_properties[YIELD_STRESS_TENSION];
+        const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
+        const double compr_yield = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double tensi_yield = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
         const double n = compr_yield / tensi_yield;
 
         const double angle_phi = (Globals::Pi * 0.25) + dilatancy * 0.5;
@@ -171,12 +181,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
     static int Check(const Properties& rMaterialProperties)
     {
         KRATOS_CHECK_VARIABLE_KEY(DILATANCY_ANGLE);
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
 
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DILATANCY_ANGLE)) << "DILATANCY_ANGLE is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+        if (!rMaterialProperties.Has(YIELD_STRESS)) {
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+
+            const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+            const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+
+            KRATOS_ERROR_IF(yield_compression < tolerance) << "Yield stress in compression almost zero or negative, include YIELD_STRESS_COMPRESSION in definition";
+            KRATOS_ERROR_IF(yield_tension < tolerance) << "Yield stress in tension almost zero or negative, include YIELD_STRESS_TENSION in definition";
+        } else {
+            const double yield_stress = rMaterialProperties[YIELD_STRESS];
+
+            KRATOS_ERROR_IF(yield_stress < tolerance) << "Yield stress almost zero or negative, include YIELD_STRESS in definition";
+        }
 
         return 0;
     }

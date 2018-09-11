@@ -51,6 +51,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
     ///@name Type Definitions
     ///@{
 
+    /// The define the Voigt size
+    static constexpr SizeType VoigtSize = TVoigtSize;
+      
     /// Counted pointer of TrescaPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(TrescaPlasticPotential);
 
@@ -106,13 +109,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
     {
         Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         double J3, lode_angle;
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(rDeviator, J3);
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 

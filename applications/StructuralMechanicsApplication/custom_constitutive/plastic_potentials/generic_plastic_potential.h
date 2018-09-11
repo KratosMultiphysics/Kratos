@@ -58,6 +58,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
     ///@name Type Definitions
     ///@{
 
+    /// We define the dimension
+    static constexpr SizeType TDim = TVoigtSize == 6 ? 3 : 2;
+      
+    /// The define the Voigt size
+    static constexpr SizeType VoigtSize = TVoigtSize;
+      
     /// Counted pointer of GenericPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(GenericPlasticPotential);
 

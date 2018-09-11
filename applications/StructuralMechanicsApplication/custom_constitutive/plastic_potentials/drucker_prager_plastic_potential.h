@@ -43,6 +43,8 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a plastic potential following the theory of Drucker-Prager
  * @details When the yield and plastic potential surfaces are plotted in principal stress space the resulting surface will be a circular cone for Drucker-Prager. This means that both yield and strength are dependent on intermediate principal stress, sigma_2
+ * The plastic potential requires the definition of the following properties:
+ * - DILATANCY_ANGLE: The angle of dilation controls an amount of plastic volumetric strain developed during plastic shearing and is assumed constant during plastic yielding. The value of DILATANCY_ANGLE=0 corresponds to the volume preserving deformation while in shear.
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
@@ -52,6 +54,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
     ///@name Type Definitions
     ///@{
 
+    /// We define the dimension
+    static constexpr SizeType TDim = TVoigtSize == 6 ? 3 : 2;
+      
+    /// The define the Voigt size
+    static constexpr SizeType VoigtSize = TVoigtSize;
+      
     /// Counted pointer of DruckerPragerPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(DruckerPragerPlasticPotential);
 
@@ -108,9 +116,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
 
         Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         const double c3 = 0.0;
 
