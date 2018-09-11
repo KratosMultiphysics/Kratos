@@ -89,27 +89,15 @@ namespace Kratos
         auto& list1 = model_part1.GetNodalSolutionStepVariablesList();
         auto& list2 = model_part2.GetNodalSolutionStepVariablesList();
 
-        std::cout << "list 1" << &list1 << std::endl;
         for(const auto& var : list1)
         {
-          std::cout << var << std::endl;
             model_part2.GetNodalSolutionStepVariablesList().Add(var);
         }
 
-std::cout << "list 2" << &list2 << std::endl;
         for(const auto& var : list2)
-        {
-          std::cout << var << std::endl;
- 
+        { 
             model_part1.GetNodalSolutionStepVariablesList().Add(var);
         }
-
-std::cout << "final list1" << std::endl;
-        for(const auto& var : list1)
-        {
-          std::cout << var << std::endl;
-        }
-
 
         KRATOS_CATCH("")
     }
