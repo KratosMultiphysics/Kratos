@@ -53,11 +53,11 @@ namespace Kratos
  * @details The definitions of these classes is completely static, the derivation is done in a static way
  * @tparam TYieldSurfaceType The yield surface considered
  * The plasticity integrator requires the definition of the following properties:
- * - SOFTENING_TYPE: The fosftening behaviour considered (linear, exponential,etc...)
- * - HARDENING_CURVE: 
- * - MAXIMUM_STRESS: 
- * - MAXIMUM_STRESS_POSITION: 
- * - FRACTURE_ENERGY: 
+ * - SOFTENING_TYPE: The softening behaviour considered (linear, exponential,etc...)
+ * - HARDENING_CURVE: The type of considered hardening curve (linear, exponential, pure plastic, etc...)
+ * - MAXIMUM_STRESS: The maximum stress that defines the exponential hardening
+ * - MAXIMUM_STRESS_POSITION: The maximum stress position that defines the exponential hardening
+ * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
  * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
  * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
  * @author Alejandro Cornejo & Lucia Barbu
