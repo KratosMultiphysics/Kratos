@@ -18,7 +18,7 @@
 
 namespace Kratos
 {
-template<unsigned int TDim>
+template<SizeType TDim>
 ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
         const Variable<array_1d<double,3>> rVariableGradient,
@@ -61,7 +61,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
+template<SizeType TDim>
 void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 {
     // Iterate in the nodes
@@ -75,6 +75,9 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
     const auto& reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+
+    // Tensor variable definition
+    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i)  {
@@ -107,15 +110,13 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
             gradient_value /= norm_gradient_value;
 
         // We compute the metric
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(MMG_METRIC)) <<  "ERROR:: MMG_METRIC not defined for node " << it_node->Id();
-        Vector& metric = it_node->GetValue(MMG_METRIC);
-
-        KRATOS_DEBUG_ERROR_IF(metric.size() != TDim * 3 - 3) << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << it_node->Id() << std::endl;
+        TensorArrayType& metric = it_node->GetValue(tensor_variable);
 
         const double norm_metric = norm_2(metric);
         if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
-            const Vector& old_metric = it_node->GetValue(MMG_METRIC);
-            const Vector& new_metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
+            const TensorArrayType& old_metric = it_node->GetValue(tensor_variable);
+            const TensorArrayType& new_metric = ComputeLevelSetMetricTensor(gradient_value, ratio, element_size);
 
             metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
         } else {
@@ -128,25 +129,24 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 /***********************************************************************************/
 
 template<>
-Vector ComputeLevelSetSolMetricProcess<2>::ComputeLevelSetMetricTensor(
+array_1d<double, 3> ComputeLevelSetSolMetricProcess<2>::ComputeLevelSetMetricTensor(
     const array_1d<double, 3>& GradientValue,
     const double Ratio,
     const double ElementSize
     )
 {
-    Vector metric;
-    metric.resize(3, false);
+    array_1d<double, 3> metric;
 
-    const double Coeff0 = 1.0/(ElementSize * ElementSize);
-    const double Coeff1 = Coeff0/(Ratio * Ratio);
+    const double coeff_0 = 1.0/(ElementSize * ElementSize);
+    const double coeff_1 = coeff_0/(Ratio * Ratio);
 
     const double v0v0 = GradientValue[0]*GradientValue[0];
     const double v0v1 = GradientValue[0]*GradientValue[1];
     const double v1v1 = GradientValue[1]*GradientValue[1];
 
-    metric[0] = Coeff0*(1.0 - v0v0) + Coeff1*v0v0;
-    metric[1] = Coeff0*(    - v0v1) + Coeff1*v0v1;
-    metric[2] = Coeff0*(1.0 - v1v1) + Coeff1*v1v1;
+    metric[0] = coeff_0*(1.0 - v0v0) + coeff_1*v0v0;
+    metric[1] = coeff_0*(1.0 - v1v1) + coeff_1*v1v1;
+    metric[2] = coeff_0*(    - v0v1) + coeff_1*v0v1;
 
     return metric;
 }
@@ -155,17 +155,16 @@ Vector ComputeLevelSetSolMetricProcess<2>::ComputeLevelSetMetricTensor(
 /***********************************************************************************/
 
 template<>
-Vector ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTensor(
+array_1d<double, 6> ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTensor(
     const array_1d<double, 3>& GradientValue,
     const double Ratio,
     const double ElementSize
     )
 {
-    Vector metric;
-    metric.resize(6, false);
+    array_1d<double, 6> metric;
 
-    const double Coeff0 = 1.0/(ElementSize * ElementSize);
-    const double Coeff1 = Coeff0/(Ratio * Ratio);
+    const double coeff_0 = 1.0/(ElementSize * ElementSize);
+    const double coeff_1 = coeff_0/(Ratio * Ratio);
 
     const double v0v0 = GradientValue[0]*GradientValue[0];
     const double v0v1 = GradientValue[0]*GradientValue[1];
@@ -174,12 +173,12 @@ Vector ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTensor(
     const double v1v2 = GradientValue[1]*GradientValue[2];
     const double v2v2 = GradientValue[2]*GradientValue[2];
 
-    metric[0] = Coeff0*(1.0 - v0v0) + Coeff1*v0v0;
-    metric[1] = Coeff0*(    - v0v1) + Coeff1*v0v1;
-    metric[2] = Coeff0*(    - v0v2) + Coeff1*v0v2;
-    metric[3] = Coeff0*(1.0 - v1v1) + Coeff1*v1v1;
-    metric[4] = Coeff0*(    - v1v2) + Coeff1*v1v2;
-    metric[5] = Coeff0*(1.0 - v2v2) + Coeff1*v2v2;
+    metric[0] = coeff_0*(1.0 - v0v0) + coeff_1*v0v0;
+    metric[1] = coeff_0*(1.0 - v1v1) + coeff_1*v1v1;
+    metric[2] = coeff_0*(1.0 - v2v2) + coeff_1*v2v2;
+    metric[3] = coeff_0*(    - v0v1) + coeff_1*v0v1;
+    metric[4] = coeff_0*(    - v1v2) + coeff_1*v1v2;
+    metric[5] = coeff_0*(    - v0v2) + coeff_1*v0v2;
 
     return metric;
 }
@@ -187,7 +186,7 @@ Vector ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTensor(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
+template<SizeType TDim>
 double ComputeLevelSetSolMetricProcess<TDim>::CalculateAnisotropicRatio(
     const double Distance,
     const double AnisotropicRatio,

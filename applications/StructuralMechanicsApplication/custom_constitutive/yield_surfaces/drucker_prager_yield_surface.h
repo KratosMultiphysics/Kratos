@@ -41,8 +41,9 @@ namespace Kratos
 /**
  * @class DruckerPragerYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a yield surface according to Drucker-Prager theory
+ * @details The Drucker–Prager yield criterion is similar to the von Mises yield criterion, with provisions for handling materials with differing tensile and compressive yield strengths. This criterion is most often used for concrete where both normal and shear stresses can determine failure.
+ * @see https://en.wikipedia.org/wiki/Drucker%E2%80%93Prager_yield_criterion
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
@@ -144,7 +145,7 @@ public:
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double yield_tension = r_material_properties[YIELD_STRESS_TENSION];
+        const double yield_tension = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
         const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double sin_phi = std::sin(friction_angle);
         rThreshold = std::abs(yield_tension * (3.0 + sin_phi) / (3.0 * sin_phi - 3.0));
@@ -159,14 +160,16 @@ public:
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength)
+        const double CharacteristicLength
+        )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
         const double Gf = r_material_properties[FRACTURE_ENERGY];
         const double E = r_material_properties[YOUNG_MODULUS];
-        const double sigma_c = r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double sigma_t = r_material_properties[YIELD_STRESS_TENSION];
+        const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
+        const double sigma_c = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double sigma_t = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
@@ -222,16 +225,15 @@ public:
         ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
         ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
 
-        double c1, c2, c3;
-        c3 = 0.0;
+        const double c3 = 0.0;
 
         const double friction_angle = r_material_properties[FRICTION_ANGLE];
         const double sin_phi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
         const double CFL = -Root3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
-        c1 = CFL * 2.0 * sin_phi / (Root3 * (3.0 - sin_phi));
-        c2 = CFL;
+        const double c1 = CFL * 2.0 * sin_phi / (Root3 * (3.0 - sin_phi));
+        const double c2 = CFL;
 
         noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
@@ -243,14 +245,27 @@ public:
     static int Check(const Properties& rMaterialProperties)
     {
         KRATOS_CHECK_VARIABLE_KEY(FRICTION_ANGLE);
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
         KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
 
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRICTION_ANGLE)) << "FRICTION_ANGLE is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+        if (!rMaterialProperties.Has(YIELD_STRESS)) {
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+            
+            const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+            const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+
+            KRATOS_ERROR_IF(yield_compression < tolerance) << "Yield stress in compression almost zero or negative, include YIELD_STRESS_COMPRESSION in definition";
+            KRATOS_ERROR_IF(yield_tension < tolerance) << "Yield stress in tension almost zero or negative, include YIELD_STRESS_TENSION in definition";
+        } else {
+            const double yield_stress = rMaterialProperties[YIELD_STRESS];
+
+            KRATOS_ERROR_IF(yield_stress < tolerance) << "Yield stress almost zero or negative, include YIELD_STRESS in definition";
+        }
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
 
@@ -311,7 +326,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    
     ///@}
     ///@name Private Operators
     ///@{

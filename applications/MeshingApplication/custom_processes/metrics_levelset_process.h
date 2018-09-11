@@ -28,10 +28,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef ModelPart::NodesContainerType                        NodesArrayType;
-    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
-    typedef Node <3>                                                   NodeType;
+    /// The size type definition
+    typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
@@ -51,7 +49,7 @@ namespace Kratos
  * @brief This class is can be used to compute the metrics of the model part with a level set approach
  * @author Vicente Mataix Ferrandiz
  */
-template<unsigned int TDim>
+template<SizeType TDim>
 class ComputeLevelSetSolMetricProcess
     : public Process
 {
@@ -62,6 +60,20 @@ public:
 
     /// Pointer definition of ComputeLevelSetSolMetricProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeLevelSetSolMetricProcess);
+
+    /// Node definition
+    typedef Node <3>                                                   NodeType;
+
+    /// Containers definition
+    typedef ModelPart::NodesContainerType                        NodesArrayType;
+    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
+
+    /// The index type definition
+    typedef std::size_t                                               IndexType;
+
+    /// The type of array considered for the tensor
+    typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
 
     ///@}
     ///@name  Enum's
@@ -76,15 +88,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // Constructor
-
     /**
      * @brief This is the default constructor
      * @param rThisModelPart The model part to be computed
      * @param rVariableGradient The gradient variable
      * @param ThisParameters The input parameters
      */
-
     ComputeLevelSetSolMetricProcess(
         ModelPart& rThisModelPart,
         const Variable<array_1d<double,3>> rVariableGradient = DISTANCE_GRADIENT,
@@ -212,8 +221,7 @@ private:
      * @param ElementSize The minimum size of the elements
      * @return The metric tensor
      */
-
-    Vector ComputeLevelSetMetricTensor(
+    TensorArrayType ComputeLevelSetMetricTensor(
         const array_1d<double, 3>& GradientValue,
         const double Ratio,
         const double ElementSize

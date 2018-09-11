@@ -20,7 +20,7 @@
 
 namespace Kratos
 {
-template<unsigned int TDim, class TVarType>
+template<SizeType TDim, class TVarType>
 ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
         ModelPart& rThisModelPart,
         TVarType& rVariable,
@@ -78,7 +78,7 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, class TVarType>
+template<SizeType TDim, class TVarType>
 void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
 {
     // Iterate in the nodes
@@ -94,6 +94,9 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
     const auto& reference_var = KratosComponents<Variable<double>>::Get(mRatioReferenceVariable);
+
+    // Tensor variable definition
+    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {
@@ -121,16 +124,13 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
         it_node->SetValue(ANISOTROPIC_RATIO, ratio);
 
         // We compute the metric
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(MMG_METRIC)) <<  "ERROR:: MMG_METRIC not defined for node " << it_node->Id();
-
-        Vector& metric = it_node->GetValue(MMG_METRIC);
-
-        KRATOS_DEBUG_ERROR_IF(metric.size() != TDim * 3 - 3) << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << it_node->Id() << std::endl;
+        TensorArrayType& metric = it_node->GetValue(tensor_variable);
 
         const double norm_metric = norm_2(metric);
         if (norm_metric > 0.0) {// NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
-            const Vector& old_metric = it_node->GetValue(MMG_METRIC);
-            const Vector& new_metric = ComputeHessianMetricTensor(hessian, ratio, element_min_size, element_max_size);
+            const TensorArrayType& old_metric = it_node->GetValue(tensor_variable);
+            const TensorArrayType& new_metric = ComputeHessianMetricTensor(hessian, ratio, element_min_size, element_max_size);
 
             metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
         } else {
@@ -142,16 +142,16 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, class TVarType>
-Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTensor(
-    const Vector& Hessian,
+template<SizeType TDim, class TVarType>
+array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTensor(
+    const Vector& rHessian,
     const double AnisotropicRatio,
     const double ElementMinSize, // This way we can impose as minimum as the previous size if we desire
     const double ElementMaxSize // This way we can impose as maximum as the previous size if we desire
     )
 {
     // We first transform the Hessian into a matrix
-    const bounded_matrix<double, TDim, TDim> hessian_matrix = MetricsMathUtils<TDim>::VectorToTensor(Hessian);
+    const MatrixType hessian_matrix = MathUtils<double>::VectorToSymmetricTensor<Vector, MatrixType>(rHessian);
 
     // Calculating Metric parameters
     double interpolation_error = mInterpError;
@@ -163,22 +163,20 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
     const double min_ratio = 1.0/(ElementMinSize * ElementMinSize);
     const double max_ratio = 1.0/(ElementMaxSize * ElementMaxSize);
 
-    typedef bounded_matrix<double, TDim, TDim> temp_type;
-
     // Declaring the eigen system
-    bounded_matrix<double, TDim, TDim> eigen_vector_matrix, eigen_values_matrix;
+    MatrixType eigen_vector_matrix, eigen_values_matrix;
 
     MathUtils<double>::EigenSystem<TDim>(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
 
     // Recalculate the Metric eigen values
-    for (unsigned int i = 0; i < TDim; ++i)
+    for (IndexType i = 0; i < TDim; ++i)
         eigen_values_matrix(i, i) = MathUtils<double>::Min(MathUtils<double>::Max(c_epslilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
 
     // Considering anisotropic
     if (AnisotropicRatio < 1.0) {
         double eigen_max = eigen_values_matrix(0, 0);
         double eigen_min = eigen_values_matrix(0, 0);
-        for (unsigned int i = 1; i < TDim; ++i) {
+        for (IndexType i = 1; i < TDim; ++i) {
             eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
             eigen_min = MathUtils<double>::Min(eigen_min, eigen_values_matrix(i, i));
         }
@@ -186,22 +184,22 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
         const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - AnisotropicRatio);
         const double relative_eigen_radius = std::abs(eigen_max - eigen_radius);
 
-        for (unsigned int i = 0; i < TDim; ++i)
+        for (IndexType i = 0; i < TDim; ++i)
             eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
     } else { // NOTE: For isotropic we should consider the maximum of the eigenvalues
         double eigen_max = eigen_values_matrix(0, 0);
-        for (unsigned int i = 1; i < TDim; ++i)
+        for (IndexType i = 1; i < TDim; ++i)
             eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
-        for (unsigned int i = 0; i < TDim; ++i)
+        for (IndexType i = 0; i < TDim; ++i)
             eigen_values_matrix(i, i) = eigen_max;
         eigen_vector_matrix = IdentityMatrix(TDim, TDim);
     }
 
     // We compute the product
-    const bounded_matrix<double, TDim, TDim>& matric_matrix =  prod(trans(eigen_vector_matrix), prod<temp_type>(eigen_values_matrix, eigen_vector_matrix));
+    const MatrixType& metric_matrix =  prod(trans(eigen_vector_matrix), prod<MatrixType>(eigen_values_matrix, eigen_vector_matrix));
 
     // Finally we transform to a vector
-    const Vector& metric = MetricsMathUtils<TDim>::TensorToVector(matric_matrix);
+    const TensorArrayType& metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
 
     return metric;
 }
@@ -209,7 +207,7 @@ Vector ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianMetricTenso
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, class TVarType>
+template<SizeType TDim, class TVarType>
 void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
 {
     // Iterate in the nodes
@@ -217,7 +215,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
     const int num_nodes = nodes_array.end() - nodes_array.begin();
 
     // Declaring auxiliar vector
-    const Vector& aux_zero_vector = ZeroVector(3 * (TDim - 1));
+    const TensorArrayType aux_zero_vector(3 * (TDim - 1), 0.0);
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i)
@@ -238,23 +236,23 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
 
         double volume;
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
-            bounded_matrix<double,3, 2> DN_DX;
+            BoundedMatrix<double,3, 2> DN_DX;
             array_1d<double, 3> N;
 
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
 
-            bounded_matrix<double,3, 2> values;
-            for(unsigned int i_node = 0; i_node < 3; ++i_node) {
+            BoundedMatrix<double,3, 2> values;
+            for(IndexType i_node = 0; i_node < 3; ++i_node) {
                 const array_1d<double, 3>& aux_grad = geom[i_node].GetValue(AUXILIAR_GRADIENT);
                 values(i_node, 0) = aux_grad[0];
                 values(i_node, 1) = aux_grad[1];
             }
 
-            const bounded_matrix<double,2, 2>& hessian = prod(trans(DN_DX), values);
-            const Vector& hessian_cond = MetricsMathUtils<2>::TensorToVector(hessian);
+            const BoundedMatrix<double,2, 2>& hessian = prod(trans(DN_DX), values);
+            const array_1d<double, 3>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 2, 2>, array_1d<double, 3>>(hessian);
 
-            for(unsigned int i_node = 0; i_node < geom.size(); ++i_node) {
-                for(unsigned int k = 0; k < 3; ++k) {
+            for(IndexType i_node = 0; i_node < geom.size(); ++i_node) {
+                for(IndexType k = 0; k < 3; ++k) {
                     double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
 
                     #pragma omp atomic
@@ -263,24 +261,24 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
             }
         }
         else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) {
-            bounded_matrix<double,4,  3> DN_DX;
+            BoundedMatrix<double,4,  3> DN_DX;
             array_1d<double, 4> N;
 
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
 
-            bounded_matrix<double,4, 3> values;
-            for(unsigned int i_node = 0; i_node < 4; ++i_node) {
+            BoundedMatrix<double,4, 3> values;
+            for(IndexType i_node = 0; i_node < 4; ++i_node) {
                 const array_1d<double, 3>& aux_grad = geom[i_node].GetValue(AUXILIAR_GRADIENT);
                 values(i_node, 0) = aux_grad[0];
                 values(i_node, 1) = aux_grad[1];
                 values(i_node, 2) = aux_grad[2];
             }
 
-            const bounded_matrix<double, 3, 3> hessian = prod(trans(DN_DX), values);
-            const Vector& hessian_cond = MetricsMathUtils<3>::TensorToVector(hessian);
+            const BoundedMatrix<double, 3, 3> hessian = prod(trans(DN_DX), values);
+            const array_1d<double, 6>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 3, 3>, array_1d<double, 6>>(hessian);
 
-            for(unsigned int i_node = 0; i_node < geom.size(); ++i_node) {
-                for(unsigned int k = 0; k < 6; ++k) {
+            for(IndexType i_node = 0; i_node < geom.size(); ++i_node) {
+                for(IndexType k = 0; k < 6; ++k) {
                     double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
 
                     #pragma omp atomic
@@ -302,7 +300,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, class TVarType>
+template<SizeType TDim, class TVarType>
 double ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAnisotropicRatio(
     const double Distance,
     const double AnisotropicRatio,

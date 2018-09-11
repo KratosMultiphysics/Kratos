@@ -19,19 +19,22 @@
 
 namespace Kratos
 {
-template<unsigned int TDim>
+template<SizeType TDim>
 void MetricFastInit<TDim>::Execute()
 {
     KRATOS_TRY;
 
-    constexpr unsigned int size = TDim == 2  ? 3: 6;
+    const TensorArrayType zero_array(3 * (TDim - 1), 0.0);
 
     // We iterate over the nodes
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
 
+    // Tensor variable definition
+    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
+
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-        (nodes_array.begin() + i)->SetValue(MMG_METRIC, ZeroVector(size));
+        (nodes_array.begin() + i)->SetValue(tensor_variable, zero_array);
 
     KRATOS_CATCH("");
 }
