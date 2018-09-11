@@ -34,6 +34,7 @@ namespace Kratos {
             void SetNvFlexParams(NvFlexParams& g_params);
             void SetNvFlexCopyDescParams(NvFlexCopyDesc& copyDesc);
             void TransferDataFromFlexToKratos();
+            void SetGravity();
             void Finalize();
 
             virtual std::string Info() const;
@@ -56,12 +57,13 @@ namespace Kratos {
             NvFlexVector<int>* mFlexFemConnectivities;
             unsigned int mNumberOfParticles = 1;
             unsigned int mPhaseType = 1;
-            double mDeltaTime = 0.0001;
+            //double mDeltaTime = 0.0001;
             ModelPart& mrSpheresModelPart;
             ModelPart& mrFemModelPart;
             ParticleCreatorDestructor& mrParticleCreatorDestructor;
             NvFlexInitDesc mInitDesc;
             int mMaxparticles;
+            bool mTimeToChangeGravityValue;
 
             NvFlexVector<NvFlexCollisionGeometry>* mShapeGeometry;
             NvFlexVector<Vec4>* mShapePositions;

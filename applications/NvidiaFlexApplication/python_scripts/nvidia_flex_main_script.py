@@ -31,6 +31,11 @@ class Solution(main_script.Solution):
         if self.DEM_parameters["MaxTimeStep"].GetDouble()< min_time_step:
             Logger.PrintWarning("NVIDIA APP", "Too small time step. Please use values over", str(min_time_step), ". Exiting.")
             sys.exit()
+        
+    def PreSearchStrategyOperations(self):
+        #NvidiaFlexPreUtilities().RemoveSpheresInitiallyIndentedWithFEM(self.spheres_model_part)
+        #ParticleCreatorDestructor().DestroyParticles(self.spheres_model_part)
+        pass
 
 if __name__=="__main__":
     Solution().Run()

@@ -8,6 +8,7 @@
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/flex_wrapper.h"
+#include "custom_utilities/nvidia_flex_pre_utilities.h"
 
 namespace Kratos {
 
@@ -23,6 +24,13 @@ namespace Kratos {
             .def("TransferDataFromFlexToKratos", &FlexWrapper::TransferDataFromFlexToKratos)
             .def("SolveTimeSteps", &FlexWrapper::SolveTimeSteps)
             ;
+        
+        class_<NvidiaFlexPreUtilities, NvidiaFlexPreUtilities::Pointer >(m, "NvidiaFlexPreUtilities")
+        .def(init<>())
+        .def(init<ModelPart&>())
+        .def("RemoveSpheresInitiallyIndentedWithFEM", &NvidiaFlexPreUtilities::RemoveSpheresInitiallyIndentedWithFEM)
+        ;
+        
         }
     }  // namespace Python
 } // Namespace Kratos

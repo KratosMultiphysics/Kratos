@@ -5,6 +5,13 @@
 #include "includes/variables.h"
 #include "includes/dem_variables.h"
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <cstdlib>
+
 #define NV_FLEX_VERSION 120
 bool NvidiaFlexError = false;
 
@@ -18,25 +25,24 @@ namespace Kratos {
 
     FlexWrapper::FlexWrapper(ModelPart& rSpheresModelPart, ModelPart& rFemModelPart, ParticleCreatorDestructor& rParticleCreatorDestructor):mFlexSolver(NULL), mrSpheresModelPart(rSpheresModelPart), mrFemModelPart(rFemModelPart), mrParticleCreatorDestructor(rParticleCreatorDestructor) {
 
-        mMaxparticles = 10000;
+        mMaxparticles = 100000; //10000;
         // a setting of -1 means Flex will use the device specified in the NVIDIA control panel
-	    mInitDesc.deviceIndex = -1;
-	    mInitDesc.enableExtensions = true;
-	    mInitDesc.renderDevice = 0;
-	    mInitDesc.renderContext = 0;
-	    mInitDesc.computeContext = 0;
-	    mInitDesc.computeType = eNvFlexCUDA;
+        mInitDesc.deviceIndex = -1;
+        mInitDesc.enableExtensions = true;
+        mInitDesc.renderDevice = 0;
+        mInitDesc.renderContext = 0;
+        mInitDesc.computeContext = 0;
+        mInitDesc.computeType = eNvFlexCUDA;
         mInitDesc.runOnRenderContext = false;
 
         mFlexLibrary = NvFlexInit(NV_FLEX_VERSION, NvidiaFlexErrorCallback, &mInitDesc);
         if (NvidiaFlexError || mFlexLibrary == NULL) {
-		    KRATOS_ERROR << "Could not initialize Nvidia Flex, exiting." << std::endl;
-	    }
-        else {
+            KRATOS_ERROR << "Could not initialize Nvidia Flex, exiting." << std::endl;
+        } else {
             KRATOS_INFO("Flex: ") << "Nvidia Flex Initialized correctly" << std::endl;
             char device_name[256];
             strcpy(device_name, NvFlexGetDeviceName(mFlexLibrary));
-	        KRATOS_INFO("Flex: ") << "Computing Device: "<< device_name << std::endl;
+            KRATOS_INFO("Flex: ") << "Computing Device: "<< device_name << std::endl;
         }
 
         mFlexPositions = new NvFlexVector<Vec4>(mFlexLibrary);
@@ -57,16 +63,18 @@ namespace Kratos {
         NvFlexSetSolverDescDefaults(&mSolverDescriptor);
 
         //mSolverDescriptor.featureMode = eNvFlexFeatureModeSimpleSolids;
-        mSolverDescriptor.maxNeighborsPerParticle = 32;
-	    mSolverDescriptor.maxContactsPerParticle = 10;
+        mSolverDescriptor.maxNeighborsPerParticle = 6; //32;
+        mSolverDescriptor.maxContactsPerParticle = 6; //10;
         mSolverDescriptor.maxParticles = mMaxparticles;
         mSolverDescriptor.maxDiffuseParticles = 0;
         mFlexSolver = NvFlexCreateSolver(mFlexLibrary, &mSolverDescriptor);
+        
+        mTimeToChangeGravityValue = true;
     }
 
     FlexWrapper::~FlexWrapper() {
         NvFlexDestroySolver(mFlexSolver);
-		mFlexSolver = NULL;
+        mFlexSolver = NULL;
         delete mFlexPositions;
         delete mFlexVelocities;
         delete mFlexPhases;
@@ -85,10 +93,10 @@ namespace Kratos {
 
     void FlexWrapper::SetNvFlexCopyDescParams(NvFlexCopyDesc& mFlexCopyDescriptor) {
         mFlexCopyDescriptor.dstOffset = 0;
-	    mFlexCopyDescriptor.srcOffset = 0;
+        mFlexCopyDescriptor.srcOffset = 0;
 
         mFlexCopyDescriptor.elementCount = mrSpheresModelPart.Nodes().size();
-	    // mFlexCopyDescriptor.elementCount = mMaxparticles;
+        //mFlexCopyDescriptor.elementCount = mMaxparticles;
     }
 
     void FlexWrapper::UpdateFlex() {
@@ -140,12 +148,12 @@ namespace Kratos {
             if(coords[1]<min[1]) min[1] = coords[1];
             if(coords[2]<min[2]) min[2] = coords[2];
         }
-        for (size_t i=0; i< number_of_fem_conditions; i++) {
+        for (size_t i = 0; i < number_of_fem_conditions; i++) {
             const auto cond_it = mrFemModelPart.Conditions().begin() + i;
             const auto& nodes = cond_it->GetGeometry();
-            (*mFlexFemConnectivities)[i*3    ] = id2index[nodes[0].Id()];
-            (*mFlexFemConnectivities)[i*3 + 1] = id2index[nodes[1].Id()];
-            (*mFlexFemConnectivities)[i*3 + 2] = id2index[nodes[2].Id()];
+            (*mFlexFemConnectivities)[i * 3    ] = id2index[nodes[0].Id()];
+            (*mFlexFemConnectivities)[i * 3 + 1] = id2index[nodes[1].Id()];
+            (*mFlexFemConnectivities)[i * 3 + 2] = id2index[nodes[2].Id()];
         }
 
         mFlexPositions->unmap();
@@ -163,7 +171,7 @@ namespace Kratos {
         NvFlexSetActive(mFlexSolver, mActiveIndices->buffer, &mFlexCopyDescriptor);
         NvFlexSetActiveCount(mFlexSolver, mActiveIndices->size());
 
-        if(number_of_fem_nodes) {
+        if (number_of_fem_nodes) {
             mFlexTriangleMesh = NvFlexCreateTriangleMesh(mFlexLibrary);
             Vec3 lower, upper;
             lower[0] = (float)min[0];
@@ -217,15 +225,15 @@ namespace Kratos {
     void FlexWrapper::SetNvFlexParams(NvFlexParams& mFlexParameters) {
 
         const array_1d<double,3>& gravity = mrSpheresModelPart.GetProcessInfo()[GRAVITY];
-        mFlexParameters.gravity[0] = (float)gravity[0];
-        mFlexParameters.gravity[1] = (float)gravity[1];
-        mFlexParameters.gravity[2] = (float)gravity[2];
+        mFlexParameters.gravity[0] = 0.0f; //(float)gravity[0];
+        mFlexParameters.gravity[1] = 0.0f; //(float)gravity[1];
+        mFlexParameters.gravity[2] = 0.0f; //(float)gravity[2];
 
         mFlexParameters.wind[0] = 0.0f;
         mFlexParameters.wind[1] = 0.0f;
         mFlexParameters.wind[2] = 0.0f;
 
-        mFlexParameters.radius = 0.15f;
+        mFlexParameters.radius = 0.01f; //0.15f;
         /*const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         for (size_t i=0; i< number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
@@ -241,24 +249,24 @@ namespace Kratos {
         mFlexParameters.freeSurfaceDrag = 0.0f;
         mFlexParameters.drag = 0.0f;
         mFlexParameters.lift = 0.0f;
-        mFlexParameters.numIterations = 3;
-        mFlexParameters.fluidRestDistance = 0.0f;
+        mFlexParameters.numIterations = 30; //3;
+        mFlexParameters.fluidRestDistance = 0.9 * mFlexParameters.radius; //0.0f;
         //mFlexParameters.solidRestDistance = 0.0f;
-        mFlexParameters.solidRestDistance = mFlexParameters.radius;
+        mFlexParameters.solidRestDistance = 0.9 * mFlexParameters.radius;
 
         mFlexParameters.anisotropyScale = 1.0f;
         mFlexParameters.anisotropyMin = 0.1f;
         mFlexParameters.anisotropyMax = 2.0f;
         mFlexParameters.smoothing = 0.0f;
 
-        mFlexParameters.dissipation = 0.0f;
-        mFlexParameters.damping = 0.0f;
-        mFlexParameters.particleCollisionMargin = mFlexParameters.radius*0.05f;
-        mFlexParameters.collisionDistance = mFlexParameters.radius*0.5f;
-        mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance*0.05f;
+        mFlexParameters.dissipation = 2.0f; //0.0f;
+        mFlexParameters.damping = 1.0f; //0.0f;
+        mFlexParameters.particleCollisionMargin = mFlexParameters.radius * 0.5f; //0.05f;
+        mFlexParameters.collisionDistance = mFlexParameters.radius * 0.5f;
+        mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance; // * 0.05f;
         mFlexParameters.sleepThreshold = 0.0f;
         mFlexParameters.shockPropagation = 0.0f;
-        mFlexParameters.restitution = 0.5f;
+        mFlexParameters.restitution = 0.2f; //0.5f;
 
         mFlexParameters.maxSpeed = 100.0f; //FLT_MAX;
         mFlexParameters.maxAcceleration = 100.0f;	// approximately 10x gravity
@@ -267,7 +275,7 @@ namespace Kratos {
         mFlexParameters.relaxationFactor = 1.0f;
         mFlexParameters.solidPressure = 1.0f;
         mFlexParameters.adhesion = 0.0f;
-        mFlexParameters.cohesion = 0.025f;
+        mFlexParameters.cohesion = 0.0f; //0.025f;
         mFlexParameters.surfaceTension = 0.0f;
         mFlexParameters.vorticityConfinement = 0.0f;
         mFlexParameters.buoyancy = 1.0f;
@@ -295,19 +303,23 @@ namespace Kratos {
         if (mFlexParameters.solidRestDistance == 0.0f) mFlexParameters.solidRestDistance = mFlexParameters.radius;
 
         // if fluid present then we assume solid particles have the same radius
-        if (mFlexParameters.fluidRestDistance > 0.0f) mFlexParameters.solidRestDistance = mFlexParameters.fluidRestDistance;
+        // if (mFlexParameters.fluidRestDistance > 0.0f) mFlexParameters.solidRestDistance = mFlexParameters.fluidRestDistance;
 
         // set collision distance automatically based on rest distance if not already set
-        if (mFlexParameters.collisionDistance == 0.0f) mFlexParameters.collisionDistance = std::max(mFlexParameters.solidRestDistance, mFlexParameters.fluidRestDistance)*0.5f; //Max(g_params.solidRestDistance, g_params.fluidRestDistance)*0.5f;
+        if (mFlexParameters.collisionDistance == 0.0f) mFlexParameters.collisionDistance = std::max(mFlexParameters.solidRestDistance, mFlexParameters.fluidRestDistance) * 0.5f; //Max(g_params.solidRestDistance, g_params.fluidRestDistance)*0.5f;
 
         // default particle friction to 10% of shape friction
-        if (mFlexParameters.particleFriction == 0.0f) mFlexParameters.particleFriction = mFlexParameters.dynamicFriction*0.1f;
+        if (mFlexParameters.particleFriction == 0.0f) mFlexParameters.particleFriction = mFlexParameters.dynamicFriction * 0.1f;
 
         // add a margin for detecting contacts between particles and shapes
-        if (mFlexParameters.shapeCollisionMargin == 0.0f) mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance*0.5f;
+        if (mFlexParameters.shapeCollisionMargin == 0.0f) mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance * 0.5f;
     }
 
     void FlexWrapper::SolveTimeSteps(double dt, int number_of_substeps) {
+        
+        SetGravity();
+        
+        
         NvFlexUpdateSolver(mFlexSolver, (float)dt, number_of_substeps, false);
     }
 
@@ -342,7 +354,72 @@ namespace Kratos {
 
         mFlexPositions->unmap();
         mFlexVelocities->unmap();
+    }
+    
+    void FlexWrapper::SetGravity() {
+        
+        static std::ifstream input_file("TimeAngle.csv");
+        std::string line;
+        
+        static float current_reference_time = mrSpheresModelPart.GetProcessInfo()[TIME];
+        
+        float elapsed_time = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time;
+        
+        const float delta_security_time = 2.0f;
+        
+        const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
+        
+        const float maximum_squared_velocity_module = 0.7f * 0.7f; // square of 0.7 m/s
+        //const float total_maximum_squared_velocity_module = number_of_nodes * maximum_squared_velocity_module;
+        //float sum_of_partial_squared_maximum_velocity_modules = 0.0;
+        mTimeToChangeGravityValue = true;
+        
+        NvFlexGetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
+        mFlexVelocities->map();
 
+        for (size_t i = 0; i < number_of_nodes; i++) {
+            
+            float velocity_x = (*mFlexVelocities)[i][0];
+            float velocity_y = (*mFlexVelocities)[i][1];
+            float velocity_z = (*mFlexVelocities)[i][2];
+            
+            float node_i_squared_velocity_module = velocity_x * velocity_x + velocity_y * velocity_y + velocity_z * velocity_z;
+            
+            if (node_i_squared_velocity_module > maximum_squared_velocity_module) {
+            
+                mTimeToChangeGravityValue = false;
+                break;
+            }
+           
+            //sum_of_partial_squared_maximum_velocity_modules += node_i_squared_velocity_module;
+        }
+
+        mFlexVelocities->unmap();
+        
+        //if (sum_of_partial_squared_maximum_velocity_modules <= total_maximum_squared_velocity_module) mTimeToChangeGravityValue = true;
+
+        if (mTimeToChangeGravityValue and (elapsed_time > delta_security_time)) {
+            
+            std::getline(input_file, line);
+            std::istringstream iss{line};
+            std::vector<std::string> tokens;
+            std::string token;
+                        
+            while (std::getline(iss, token, ',')) tokens.push_back(token);
+
+            const float gravity_x = std::stof(tokens[3]);
+            const float gravity_y = std::stof(tokens[4]); 
+            const float gravity_z = std::stof(tokens[5]);
+            
+            mFlexParameters.gravity[0] = gravity_x;
+            mFlexParameters.gravity[1] = gravity_y;
+            mFlexParameters.gravity[2] = gravity_z;
+
+            mTimeToChangeGravityValue = false;
+            current_reference_time = mrSpheresModelPart.GetProcessInfo()[TIME];
+            
+            NvFlexSetParams(mFlexSolver, &mFlexParameters);
+        }
     }
 
     void FlexWrapper::Finalize() {

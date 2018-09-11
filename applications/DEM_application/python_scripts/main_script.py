@@ -235,6 +235,7 @@ class Solution(object):
                                                      self.procedures)
 
     def Run(self):
+        
         self.Initialize()
 
         self.RunMainTemporalLoop()
@@ -285,7 +286,7 @@ class Solution(object):
 
         # Perform a partition to balance the problem
         self.SetSearchStrategy()
-
+        
         self.SolverBeforeInitialize()
 
         self.parallelutils.Repart(self.spheres_model_part)
@@ -300,8 +301,12 @@ class Solution(object):
 
         #Strategy Initialization
         os.chdir(self.main_path)
-
+        
         self.SolverInitialize()
+        
+        self.PreSearchStrategyOperations()
+        
+        self.SolverAfterInitialize()
 
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
@@ -334,12 +339,18 @@ class Solution(object):
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
         self.solver.AddDofs(self.DEM_inlet_model_part)
+        
+    def PreSearchStrategyOperations(self):
+        pass
 
     def SetSearchStrategy(self):
         self.solver.search_strategy = self.parallelutils.GetSearchStrategy(self.solver, self.spheres_model_part)
 
     def SolverBeforeInitialize(self):
         self.solver.BeforeInitialize()
+        
+    def SolverAfterInitialize(self):
+        pass
 
     def SolverInitialize(self):
         self.solver.Initialize() # Possible modifications of number of elements and number of nodes
