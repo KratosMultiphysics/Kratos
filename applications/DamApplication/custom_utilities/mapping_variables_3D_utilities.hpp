@@ -222,10 +222,15 @@ protected:
             }
             if(IsInside==false)
             {
-                for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+                for(int i = 0; i < 5; i++)
                 {
-                    pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
-                    IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,1.0e-5);
+                    for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+                    {
+                        pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
+                        double tol = pow (1.0, -(5-i));
+                        IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,tol);
+                        if(IsInside) break;
+                    }
                     if(IsInside) break;
                 }
             }
