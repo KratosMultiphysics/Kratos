@@ -51,8 +51,10 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
+  /// Merges the variable lists of the input modelparts.
+  /** This function ensures that all the variables added to the variable list of modelpart1 
+   * are also added to the variable list of modelpart2. Symmetrically every variable in modelpart2 
+   * will also be added to modelpart1
   */
   class MergeVariableListsUtility
     {
