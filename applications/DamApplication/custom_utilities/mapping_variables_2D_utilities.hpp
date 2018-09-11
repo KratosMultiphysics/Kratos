@@ -209,12 +209,13 @@ protected:
             }
             if(IsInside==false)
             {
-                for(int i = 0; i < 5; i++)
+
+                for(int i = 0; i < 12; i++)
                 {
                     for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column]).size(); m++)
                     {
                         pElementOld = ElementOldCellMatrix[Row][Column][m];
-                        double tol = pow (1.0, -(5-i));
+                        double tol = pow (10.0, -(12-i));
                         IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,tol);
                         if(IsInside) break;
                     }
