@@ -6,9 +6,7 @@ def ValidateAndAssignInputParameters(default, input, warnUnused=True):
         if key in input.keys():
 
             value = input[key]
-
-            if type(value) in [unicode]:
-                value = EncodeString(value)
+            #value = value.encode('utf-8')
 
             if type(default[key]) == type(value) or default[key] == type(value):
                 output[key] = value
@@ -32,7 +30,7 @@ def ValidateAndAssignInputParameters(default, input, warnUnused=True):
             if inputSetting not in default.keys():
                 value = input[inputSetting]
                 if type(value) == str:
-                    value = EncodeString(value)
+                    value = value.encode('utf-8')
                 output[inputSetting] = value
 
                 if warnUnused:
@@ -40,3 +38,17 @@ def ValidateAndAssignInputParameters(default, input, warnUnused=True):
                     warnings.warn(warning_msg, Warning)
 
     return output
+
+def GetSolvers(SolversDataList):
+    solvers_map = {}
+    num_solvers = len(SolversDataList)
+
+    for i in range(0,num_solvers):
+        solvers_module_name = "custom_co_simulation_solver_interfaces"
+        __import__(solvers_module_name)
+        import co_simulation_solver_factory as factory
+        solver = factory.CreateSolverInterface(SolversDataList[i])
+        solver_name = SolversDataList[i]["name"]
+        solvers_map[solver_name] = solver
+
+    return solvers_map
