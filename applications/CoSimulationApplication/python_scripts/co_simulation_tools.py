@@ -1,41 +1,5 @@
 import warnings
 
-def SolverFactory(SolversParameters):
-    SolversList = {}
-    num_solvers = SolversDataList.size()
-
-    for i in range(0,num_solvers):
-        solver_module = __import__(SolversDataList[i]['type'].GetString())
-        solver_name = SolversDataList[i]['name'].GetString()
-        solver = solver_module.Create(SolversDataList[i])
-        SolversList[solver_name] = solver
-
-    return SolversList
-
-def ConvergenceAcceleratorFactory(SolversDataList):
-    SolversList = {}
-    num_solvers = SolversDataList.size()
-
-    for i in range(0,num_solvers):
-        solver_module = __import__(SolversDataList[i]['type'].GetString())
-        solver_name = SolversDataList[i]['name'].GetString()
-        solver = solver_module.Create(SolversDataList[i])
-        SolversList[solver_name] = solver
-
-    return SolversList
-
-def ConvergenceCriteriaFactory(SolversDataList):
-    SolversList = {}
-    num_solvers = SolversDataList.size()
-
-    for i in range(0,num_solvers):
-        solver_module = __import__(SolversDataList[i]['type'].GetString())
-        solver_name = SolversDataList[i]['name'].GetString()
-        solver = solver_module.Create(SolversDataList[i])
-        SolversList[solver_name] = solver
-
-    return SolversList    
-
 def ValidateAndAssignInputParameters(default, input, warnUnused=True):
     output = dict()
     for key in default.keys():
