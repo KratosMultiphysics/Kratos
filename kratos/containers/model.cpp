@@ -72,7 +72,7 @@ namespace Kratos
         else
         {
             if(&(*search->second) != &*(pModelPart))
-                KRATOS_WARNING("Model") << "trying to add to the Model two DISTINCT model parts with the same name. This should be possible (and it will be in the future) if they belong to two different root model_parts, but it is currently disallowed" << std::endl;
+                KRATOS_ERROR << "trying to add to the Model two DISTINCT model parts with the same name. This should be possible (and it will be in the future) if they belong to two different root model_parts, but it is currently disallowed";
 
         }
 
