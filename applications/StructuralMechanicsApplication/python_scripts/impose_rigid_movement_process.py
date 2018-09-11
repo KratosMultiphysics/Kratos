@@ -33,7 +33,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
             "help"                        : "This process uses LinearMasterSlaveConstraint in order to impose an unified movement in the given submodelpart. The process takes the first node from the submodelpart if no node's ID is provided. The default variable is DISPLACEMENT, and in case no variable is considered for the slave the same variable will be considered",
             "computing_model_part_name"   : "computing_domain",
             "model_part_name"             : "please_specify_model_part_name",
-            "new_model_part_name"         : "Rigid_Movement_ModelPart",
+            "new_model_part_name"         : "",
             "interval"                    : [0.0, 1e30],
             "master_variable_name"        : "DISPLACEMENT",
             "slave_variable_name"         : "",
@@ -60,10 +60,15 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
 
         # We get the corresponding model parts
         self.model_part = Model[settings["model_part_name"].GetString()]
-        if (self.model_part.HasSubModelPart(settings["new_model_part_name"].GetString())):
-            self.rigid_model_part = self.model_part.GetSubModelPart(settings["new_model_part_name"].GetString())
+        new_model_part_name = settings["new_model_part_name"].GetString()
+        if (new_model_part_name != ""):
+            if (self.model_part.HasSubModelPart(new_model_part_name)):
+                self.rigid_model_part = self.model_part.GetSubModelPart(new_model_part_name)
+            else:
+                self.rigid_model_part = self.model_part.CreateSubModelPart(new_model_part_name)
         else:
-            self.rigid_model_part = self.model_part.CreateSubModelPart(settings["new_model_part_name"].GetString())
+            settings["new_model_part_name"].SetString(settings["model_part_name"].GetString())
+            
 
         # Create the process
         rigid_parameters = KratosMultiphysics.Parameters("""{}""")
@@ -75,8 +80,9 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         self.rigid_movement_process = StructuralMechanicsApplication.ImposeRigidMovementProcess(self.computing_model_part, rigid_parameters)
 
         # Trasfering the entities
-        transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.rigid_model_part, self.model_part, KratosMultiphysics.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES)
-        transfer_process.Execute()
+        if (new_model_part_name != ""):
+            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.rigid_model_part, self.model_part, KratosMultiphysics.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES)
+            transfer_process.Execute()
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
