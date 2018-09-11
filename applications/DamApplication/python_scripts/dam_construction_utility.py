@@ -66,7 +66,7 @@ class DamConstructionUtility:
         print("Assigning time activation for each node")
         with open(self.construction_input_file_name,'r') as file_name2:
             #for line in reversed(list((file_name2))):
-            for line in enumerate(file_name2):
+            for j, line in enumerate(file_name2):
                 file_2 = line.split(" ")
                 print("LINEA: " + file_2[0])
                 if (len(file_2)) > 1:
