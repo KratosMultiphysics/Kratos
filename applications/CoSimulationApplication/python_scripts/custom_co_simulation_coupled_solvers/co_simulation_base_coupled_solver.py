@@ -1,6 +1,8 @@
 # co simulation imports
 import tools
-from co_simulation_base_solver import CoSimulationBaseSolver
+# Importing the CoSimulation application 
+import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
+from co_simulation_solver_interfaces.co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
 import os

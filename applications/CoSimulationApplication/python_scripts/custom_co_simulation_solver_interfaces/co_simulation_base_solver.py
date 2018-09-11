@@ -7,12 +7,14 @@ def CreateSolver(cosim_solver_settings, level):
     return CoSimulationBaseSolver(cosim_solver_settings, level)
 
 class CoSimulationBaseSolver(object):
-    """The base class for the CoSimulation Solvers
+    """
+    The base class for the CoSimulation Solvers
     The intention is that every solver that derives from this class
     can be used standalone.
     """
     def __init__(self, cosim_solver_settings, level):
-        """Constructor of the Base-Solver
+        """
+        Constructor of the Base-Solver
         Deriving classes should call it in their constructors
         """
         self.cosim_solver_settings = cosim_solver_settings
@@ -79,14 +81,12 @@ class CoSimulationBaseSolver(object):
     def GetDataDefinition(self, data_name):
         return self.cosim_solver_settings["data"][data_name]
 
-    def GetBufferSize(self):
-        raise Exception('"GetBufferSize" function must be implemented in derived class!')
-
     def GetDeltaTime(self):
         raise Exception('"GetDeltaTime" function must be implemented in derived class!')
 
     def PrintInfo(self):
-        '''This function can be filled if desired, e.g. to print settings at higher echo-levels
+        '''
+        This function can be filled if desired, e.g. to print settings at higher echo-levels
         '''
         pass
 
