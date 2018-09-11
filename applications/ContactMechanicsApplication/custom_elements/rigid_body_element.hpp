@@ -85,13 +85,10 @@ protected:
      */
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
     /**
      * Parameters to be used to store section properties
      */
-
     struct RigidBodyProperties
     {
       double Mass;                            // Mass of the Rigid Body
@@ -101,7 +98,6 @@ protected:
     /**
      * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
      */
-
     struct ElementVariables
     {
         //section properties

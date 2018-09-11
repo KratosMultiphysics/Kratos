@@ -32,14 +32,15 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
 
         self.echo_level        = 1
 
+        self.Model = Model
 
     #
     def ExecuteInitialize(self):
 
-        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
+        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
         self.dimension       = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
-        #construct rigid body domains
+        # construct rigid body domains
         self.rigid_bodies = []
         bodies_list = self.settings["rigid_bodies"]
         self.number_of_bodies = bodies_list.size()

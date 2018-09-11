@@ -26,7 +26,7 @@ namespace Kratos
 TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(IndexType NewId,GeometryType::Pointer pGeometry)
     : RigidBodyElement(NewId, pGeometry)
 {
-    //DO NOT ADD DOFS HERE!!!
+
 }
 
 //******************************CONSTRUCTOR*******************************************
