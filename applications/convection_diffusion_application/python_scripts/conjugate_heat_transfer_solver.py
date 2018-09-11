@@ -95,7 +95,8 @@ class ConjugateHeatTransferSolver(PythonSolver):
         self.fluid_solver.AddVariables()
         self.fluid_thermal_solver.AddVariables() 
         
-        #TODO: WHY ARE WE USING NODAL_PAUX?¿?¿?¿
+        #TODO: WHY ARE WE USING NODAL_PAUX?
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_FLUX)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
         self.fluid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
         
@@ -104,6 +105,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
                                                              self.fluid_thermal_solver.main_model_part)
         
         self.solid_thermal_solver.AddVariables()
+        self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_FLUX)
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_TEMPERATURE)
 
@@ -203,10 +205,13 @@ class ConjugateHeatTransferSolver(PythonSolver):
         self.fluid_solver.Predict()
         self.fluid_thermal_solver.Predict()
         self.solid_thermal_solver.Predict()
-    
+        print("finished predict")
+
     def SolveSolutionStep(self):
+        print("aaa")
         # Solve the buoyancy solver
         self.fluid_solver.SolveSolutionStep()
+        print("bbb")
 
         max_iteration = self.settings["coupling_settings"]["max_iteration"].GetInt()
         relaxation_factor = self.settings["coupling_settings"]["relaxation_factor"].GetDouble()
