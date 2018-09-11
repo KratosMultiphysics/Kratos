@@ -8,17 +8,15 @@ def CreateSolver(cosim_solver_settings, level):
 
 class CoSimulationBaseSolver(object):
     """
-    The base class for the CoSimulation Solvers
-    The intention is that every solver that derives from this class
-    can be used standalone.
+    The base class for the CoSimulation Solver interfaces
     """
     def __init__(self, cosim_solver_settings, level):
         """
-        Constructor of the Base-Solver
+        Constructor of the Base-Solver interface
         Deriving classes should call it in their constructors
         """
         self.cosim_solver_settings = cosim_solver_settings
-        self.lvl = level
+        self.lvl = leve
         self.echo_level = 0
         if "echo_level" in self.cosim_solver_settings:
             self.echo_level = self.cosim_solver_settings["echo_level"]
@@ -43,7 +41,7 @@ class CoSimulationBaseSolver(object):
         pass
 
     def AdvanceInTime(self, current_time):
-        return current_time + self.cosim_solver_settings["time_step"] # needed if this solver is used as dummy
+        pass
 
     def Predict(self):
         pass
@@ -82,7 +80,7 @@ class CoSimulationBaseSolver(object):
         return self.cosim_solver_settings["data"][data_name]
 
     def GetDeltaTime(self):
-        raise Exception('"GetDeltaTime" function must be implemented in derived class!')
+        raise Exception('!!!WARNING!!!  Calling "GetDeltaTime" function from base Co-Simulation Solver class!')
 
     def PrintInfo(self):
         '''
@@ -94,8 +92,8 @@ class CoSimulationBaseSolver(object):
         self.echo_level = level
 
     def Check(self):
-        print("!!!WARNING!!! your solver does not implement Check!!!")
+        print("!!!WARNING!!! Calling Check from base Co-Simulation Solver class !!!")
 
-    def _GetIOName(self):
+    def _GetIOType(self):
         raise Exception('"_GetIOName" function must be implemented in derived class!')
 
