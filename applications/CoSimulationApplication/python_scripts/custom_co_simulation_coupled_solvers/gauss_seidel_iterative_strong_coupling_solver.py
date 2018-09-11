@@ -1,5 +1,6 @@
 # co simulation imports
-import tools
+from co_simulation_base_coupled_solver import CoSimulationBaseCoupledSolver
+import co_simulation_tools as tools
 
 # Other imports
 import os
@@ -7,7 +8,7 @@ import os
 def Create(custom_settings):
     return GaussSeidelIterativeStrongCouplingSolver(custom_settings)
 
-class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCouplingStrategy):
+class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, custom_settings):
 
         ##settings string in json format
