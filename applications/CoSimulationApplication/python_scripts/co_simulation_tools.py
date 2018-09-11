@@ -4,10 +4,7 @@ def ValidateAndAssignInputParameters(default, input, warnUnused=True):
     output = dict()
     for key in default.keys():
         if key in input.keys():
-
             value = input[key]
-            #value = value.encode('utf-8')
-
             if type(default[key]) == type(value) or default[key] == type(value):
                 output[key] = value
             else:
@@ -20,7 +17,6 @@ def ValidateAndAssignInputParameters(default, input, warnUnused=True):
             if type(default[key]) == type:
                 error =  "ERROR: mandatory key ", key, ":", default[key], "is missing! "
                 raise ValueError(error)
-
             else:
                 output[key] = default[key]
                 warning_msg = "DEFAULT setting is used: " + str(key) + ":" + str(default[key])
