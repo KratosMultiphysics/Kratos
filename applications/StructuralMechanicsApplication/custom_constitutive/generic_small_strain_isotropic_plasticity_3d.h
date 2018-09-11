@@ -46,24 +46,29 @@ namespace Kratos
 ///@{
 
 /**
- * @class GenericConstitutiveLawIntegrator
+ * @class GenericSmallStrainIsotropicPlasticity
  * @ingroup StructuralMechanicsApplication
  * @brief This class is the base class which define all the constitutive laws for plasticity in small deformation
  * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
- * @tparam ConstLawIntegratorType The constitutive law integrator considered
- * @tparam TVoigtSize The size of the strain/stress vector size once condensed
+ * @tparam TConstLawIntegratorType The constitutive law integrator considered
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class ConstLawIntegratorType, SizeType TVoigtSize = 6>
+template <class TConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity
-    : public std::conditional<TVoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
+    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// The define the working dimension size, already defined in the integrator
+    static constexpr SizeType Dimension = TConstLawIntegratorType::Dimension;
+
+    /// The define the Voigt size, already defined in the  integrator
+    static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
+    
     /// Definition of the base class
-    typedef typename std::conditional<TVoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
+    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
     /// Counted pointer of GenericSmallStrainIsotropicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPlasticity);
@@ -90,7 +95,7 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainIsotropicPlasticity<ConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>>(*this);
     }
 
     /**
@@ -262,7 +267,8 @@ public:
      */
     Vector& GetValue(
         const Variable<Vector> &rThisVariable,
-        Vector& rValue) override;
+        Vector& rValue
+        ) override;
 
     /**
      * @brief Returns the value of a specified variable (matrix)
@@ -272,7 +278,8 @@ public:
      */
     Matrix& GetValue(
         const Variable<Matrix>& rThisVariable,
-        Matrix& rValue) override;
+        Matrix& rValue
+        ) override;
 
     /**
      * @brief Returns the value of a specified variable (double)

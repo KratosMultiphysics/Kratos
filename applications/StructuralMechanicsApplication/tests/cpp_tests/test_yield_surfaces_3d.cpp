@@ -34,12 +34,12 @@ namespace Kratos
 namespace Testing
 {
 typedef Node<3> NodeType;
-typedef ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential> MC;
-typedef VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential> VM;
-typedef DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential> DP;
-typedef RankineYieldSurface<ModifiedMohrCoulombPlasticPotential> R;
-typedef TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential> T;
-typedef SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential> SJ;
+typedef ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> MC;
+typedef VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> VM;
+typedef DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> DP;
+typedef RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> R;
+typedef TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> T;
+typedef SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> SJ;
 
 void GenerateTestVariables(
     Vector &rStressVector,
@@ -123,8 +123,8 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFas
     Properties material_properties;
 
     GenerateTestVariables(Stress, Strain, material_properties);
-    ConstitutiveLawUtilities::CalculateI1Invariant(Stress, I1);
-    ConstitutiveLawUtilities::CalculateJ2Invariant(Stress, I1, Deviator, J2);
+    ConstitutiveLawUtilities<6>::CalculateI1Invariant(Stress, I1);
+    ConstitutiveLawUtilities<6>::CalculateJ2Invariant(Stress, I1, Deviator, J2);
 
     // Analytical solutions of the yield surfaces derivatives
     std::vector<double> MCres, VMres, DPres, Rres, Tres, SJres;
