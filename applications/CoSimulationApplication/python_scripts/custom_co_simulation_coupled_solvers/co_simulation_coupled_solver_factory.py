@@ -6,13 +6,13 @@ be registered by an additional entry here.
 eg : "name_in_JSON" : "python module(file) name"
 """
 available_coupled_solvers = {
-    "gauss_seidel"  : "gauss_seidel_iterative_strong_coupled_solver",
-    "jacobi"        : "jacobi_iterative_strong_coupled_solver",
-    "staggered"     : "staggered_loose_coupled_solver",
+    "gauss_seidel_strong_coupling"  : "gauss_seidel_iterative_strong_coupling_solver",
+    "jacobi"                        : "jacobi_iterative_strong_coupled_solver",
+    "staggered"                     : "staggered_loose_coupled_solver",
 }
 
 
-def CreateCoupledSolver(settings, solvers, level):
+def CreateCoupledSolver(settings):
     """
     This function creates and returns the coupled solver used for CoSimulation
     One can register the a new coupled solver by adding them to the above map "available_coupled_solvers"
@@ -20,11 +20,13 @@ def CreateCoupledSolver(settings, solvers, level):
     if (type(settings) != dict):
         raise Exception("Input is expected to be provided as a python dictionary")
 
-    coupled_solver_type = settings["type"]
+    coupled_solver_type = settings["coupled_solver_settings"]["solver_type"]
 
     if coupled_solver_type in available_coupled_solvers:
+        coupled_solvers_module_name = "custom_co_simulation_coupled_solvers"
+        __import__(coupled_solvers_module_name)
         coupled_solver_module = __import__(available_coupled_solvers[coupled_solver_type])
-        return coupled_solver_module.Create(settings, solvers, level)
+        return coupled_solver_module.Create(settings)
     else:
         err_msg  = 'The requested coupled solver "' + coupled_solver_type + '" is not available!\n'
         err_msg += 'Available coupled solvers are :\n'
