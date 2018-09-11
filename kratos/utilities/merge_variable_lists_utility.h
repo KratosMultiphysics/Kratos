@@ -213,10 +213,10 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      MergeVariableListsUtility& operator=(MergeVariableListsUtility const& rOther){}
+      MergeVariableListsUtility& operator=(MergeVariableListsUtility const& rOther) = delete;
 
       /// Copy constructor.
-      MergeVariableListsUtility(MergeVariableListsUtility const& rOther){}
+      MergeVariableListsUtility(MergeVariableListsUtility const& rOther) = delete;
 
         
       ///@}    
