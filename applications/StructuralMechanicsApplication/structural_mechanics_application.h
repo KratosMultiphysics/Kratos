@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrándiz
+//    Co-authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED )
@@ -478,7 +478,7 @@ private:
     const GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<DruckerPragerPlasticPotential>>> mSmallStrainIsotropicDamage3DSimoJuDruckerPrager;
     const GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<TrescaPlasticPotential>>> mSmallStrainIsotropicDamage3DSimoJuTresca;
 
-	
+
     ///@}
     ///@name Private Operators
     ///@{

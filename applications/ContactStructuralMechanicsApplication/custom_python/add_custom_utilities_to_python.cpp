@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -73,6 +73,32 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("ResetContactOperators",&TreeContactSearch<3, 4>::ResetContactOperators)
     .def("CheckMortarConditions",&TreeContactSearch<3, 4>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<3, 4>::InvertSearch)
+    ;
+    class_<TreeContactSearch<3, 3, 4>, typename TreeContactSearch<3, 3, 4>::Pointer>(m, "TreeContactSearch3D3N4N")
+    .def(init<ModelPart&>())
+    .def(init<ModelPart&, Parameters>())
+    .def("InitializeMortarConditions",&TreeContactSearch<3, 3, 4>::InitializeMortarConditions)
+    .def("ClearMortarConditions",&TreeContactSearch<3, 3, 4>::ClearMortarConditions)
+    .def("CheckContactModelParts",&TreeContactSearch<3, 3, 4>::CheckContactModelParts)
+    .def("CreatePointListMortar",&TreeContactSearch<3, 3, 4>::CreatePointListMortar)
+    .def("UpdatePointListMortar",&TreeContactSearch<3, 3, 4>::UpdatePointListMortar)
+    .def("UpdateMortarConditions",&TreeContactSearch<3, 3, 4>::UpdateMortarConditions)
+    .def("ResetContactOperators",&TreeContactSearch<3, 3, 4>::ResetContactOperators)
+    .def("CheckMortarConditions",&TreeContactSearch<3, 3, 4>::CheckMortarConditions)
+    .def("InvertSearch",&TreeContactSearch<3, 3, 4>::InvertSearch)
+    ;
+    class_<TreeContactSearch<3, 4, 3>, typename TreeContactSearch<3, 4, 3>::Pointer>(m, "TreeContactSearch3D4N3N")
+    .def(init<ModelPart&>())
+    .def(init<ModelPart&, Parameters>())
+    .def("InitializeMortarConditions",&TreeContactSearch<3, 4, 3>::InitializeMortarConditions)
+    .def("ClearMortarConditions",&TreeContactSearch<3, 4, 3>::ClearMortarConditions)
+    .def("CheckContactModelParts",&TreeContactSearch<3, 4, 3>::CheckContactModelParts)
+    .def("CreatePointListMortar",&TreeContactSearch<3, 4, 3>::CreatePointListMortar)
+    .def("UpdatePointListMortar",&TreeContactSearch<3, 4, 3>::UpdatePointListMortar)
+    .def("UpdateMortarConditions",&TreeContactSearch<3, 4, 3>::UpdateMortarConditions)
+    .def("ResetContactOperators",&TreeContactSearch<3, 4, 3>::ResetContactOperators)
+    .def("CheckMortarConditions",&TreeContactSearch<3, 4, 3>::CheckMortarConditions)
+    .def("InvertSearch",&TreeContactSearch<3, 4, 3>::InvertSearch)
     ;
 
     // Process Factory utility
