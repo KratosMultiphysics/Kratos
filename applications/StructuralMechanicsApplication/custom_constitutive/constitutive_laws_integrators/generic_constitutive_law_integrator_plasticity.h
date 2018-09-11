@@ -45,10 +45,11 @@ namespace Kratos
 /**
  * @class GenericConstitutiveLawIntegratorPlasticity
  * @ingroup StructuralMechanicsApplication
- * @brief: This object integrates the predictive stress using the plasticity theory by means of
- * linear/exponential softening or hardening+softening evolution laws
- * @details
- * @tparam TYieldSurfaceType
+ * @brief This object integrates the predictive stress using the plasticity theory by means of
+ * linear/exponential softening or hardening + softening evolution laws
+ * @details The definitions of these classes is completely static, the derivation is done in a static way
+ * @tparam TYieldSurfaceType The yield surface considered
+ * @tparam TVoigtSize The size of the strain/stress vector size once condensed
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TYieldSurfaceType>
@@ -57,6 +58,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
   public:
     ///@name Type Definitions
     ///@{
+      
+    /// The machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// Definition of index

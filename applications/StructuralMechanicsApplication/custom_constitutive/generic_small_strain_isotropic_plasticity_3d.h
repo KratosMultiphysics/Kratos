@@ -19,6 +19,7 @@
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_strain.h"
 
 namespace Kratos
 {
@@ -29,6 +30,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -44,23 +48,31 @@ namespace Kratos
 /**
  * @class GenericConstitutiveLawIntegrator
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class is the base class which define all the constitutive laws for plasticity in small deformation
+ * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
+ * @tparam ConstLawIntegratorType The constitutive law integrator considered
+ * @tparam TVoigtSize The size of the strain/stress vector size once condensed
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class ConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity3D
-    : public ElasticIsotropic3D
+template <class ConstLawIntegratorType, SizeType TVoigtSize = 6>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity
+    : public std::conditional<TVoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Definition of the base class
-    typedef ElasticIsotropic3D BaseType;
+    typedef typename std::conditional<TVoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
-    /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPlasticity3D);
+    /// Counted pointer of GenericSmallStrainIsotropicPlasticity
+    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPlasticity);
+    
+    /// The node definition
+    typedef Node<3> NodeType;
+    
+    /// The geometry definition
+    typedef Geometry<NodeType> GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -69,7 +81,7 @@ public:
     /**
     * Default constructor.
     */
-    GenericSmallStrainIsotropicPlasticity3D()
+    GenericSmallStrainIsotropicPlasticity()
     {
     }
 
@@ -78,13 +90,13 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericSmallStrainIsotropicPlasticity<ConstLawIntegratorType>>(*this);
     }
 
     /**
     * Copy constructor.
     */
-    GenericSmallStrainIsotropicPlasticity3D(const GenericSmallStrainIsotropicPlasticity3D &rOther)
+    GenericSmallStrainIsotropicPlasticity(const GenericSmallStrainIsotropicPlasticity &rOther)
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
@@ -99,7 +111,7 @@ public:
     /**
     * Destructor.
     */
-    ~GenericSmallStrainIsotropicPlasticity3D() override
+    ~GenericSmallStrainIsotropicPlasticity() override
     {
     }
 
@@ -164,13 +176,6 @@ public:
         ) override;
 
     /**
-     * @brief Finalize the material response,  called by the element in FinalizeSolutionStep.
-     * @see Parameters
-     * @see StressMeasures
-     */
-    void FinalizeMaterialResponse(ConstitutiveLaw::Parameters &rValues, const StressMeasure &rStressMeasure); //override;
-
-    /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
@@ -206,6 +211,13 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector> &rThisVariable) override;
+    
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Matrix)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<Matrix> &rThisVariable) override;
 
     /**
      * @brief Sets the value of a specified variable (double)
@@ -275,6 +287,19 @@ public:
         double& rValue) override;
 
     /**
+     * @brief Returns the value of a specified variable (vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Vector& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+        ) override;
+        
+    /**
      * @brief Returns the value of a specified variable (matrix)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -284,7 +309,8 @@ public:
     Matrix& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
-        Matrix& rValue) override;
+        Matrix& rValue
+        ) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.

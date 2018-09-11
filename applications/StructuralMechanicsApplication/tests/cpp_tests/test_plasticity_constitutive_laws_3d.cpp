@@ -52,10 +52,10 @@ typedef Node<3> NodeType;
     */
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticity, KratosStructuralMechanicsFastSuite)
 {
-    typedef GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>> MC;
-    typedef GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential>>> VM;
-    typedef GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential>>> DP;
-    typedef GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential>>> T;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>> MC;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential>>> VM;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential>>> DP;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential>>> T;
 
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
