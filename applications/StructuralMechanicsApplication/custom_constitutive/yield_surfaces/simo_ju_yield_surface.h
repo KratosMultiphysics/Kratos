@@ -41,8 +41,7 @@ namespace Kratos
 /**
  * @class SimoJuYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a yield surface according to Simo-Ju theory
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
@@ -96,25 +95,28 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
      * @brief This method the uniaxial equivalent stress
      * @param StressVector The stress vector
      * @param StrainVector The StrainVector vector
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const Vector &StressVector,
-        const Vector &StrainVector,
-        double &rEqStress,
-        const Properties &rMaterialProperties)
-    { // It compares with fc / sqrt(E)
-        Vector PrincipalStressVector;
-        ConstitutiveLawUtilities::CalculatePrincipalStresses(PrincipalStressVector, StressVector);
+        const Vector& rStressVector,
+        const Vector& rStrainVector,
+        double& rEqStress,
+        ConstitutiveLaw::Parameters& rValues
+        )
+    {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        double sigma_tension, sigma_compression, n;
-        sigma_tension = rMaterialProperties[YIELD_STRESS_TENSION];
-        sigma_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        n = std::abs(sigma_compression / sigma_tension);
+        // It compares with fc / sqrt(E)
+        Vector PrincipalStressVector;
+        ConstitutiveLawUtilities::CalculatePrincipalStresses(PrincipalStressVector, rStressVector);
+
+        const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
+        const double sigma_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double sigma_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        const double n = std::abs(sigma_compression / sigma_tension);
 
         double SumA = 0.0, SumB = 0.0, SumC = 0.0, ere0, ere1;
-        for (std::size_t cont = 0; cont < 2; cont++)
-        {
+        for (std::size_t cont = 0; cont < 2; ++cont) {
             SumA += std::abs(PrincipalStressVector[cont]);
             SumB += 0.5 * (PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
             SumC += 0.5 * (-PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
@@ -123,9 +125,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
         ere1 = SumC / SumA;
 
         double auxf = 0.0;
-        for (std::size_t cont = 0; cont < 6; cont++)
-        {
-            auxf += StrainVector[cont] * StressVector[cont]; // E:S
+        for (std::size_t cont = 0; cont < 6; ++cont) {
+            auxf += rStrainVector[cont] * rStressVector[cont]; // E:S
         }
         rEqStress = std::sqrt(auxf);
         rEqStress *= (ere0 * n + ere1);
@@ -134,37 +135,43 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
     /**
      * @brief This method returns the initial uniaxial stress threshold
      * @param rThreshold The uniaxial stress threshold
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
+    static void GetInitialUniaxialThreshold(
+        ConstitutiveLaw::Parameters& rValues, 
+        double& rThreshold
+        )
     {
-        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_COMPRESSION] / std::sqrt(rMaterialProperties[YOUNG_MODULUS]));
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        const double sigma_c = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        rThreshold = std::abs(sigma_c / std::sqrt(r_material_properties[YOUNG_MODULUS]));
     }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
-     * @param AParameter The damage parameter
-     * @param rMaterialProperties The material properties
+     * @param rAParameter The damage parameter
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties &rMaterialProperties,
-        double &AParameter,
+        ConstitutiveLaw::Parameters& rValues,
+        double& rAParameter,
         const double CharacteristicLength)
     {
-        const double Gf = rMaterialProperties[FRACTURE_ENERGY];
-        const double sigma_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double sigma_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        const double Gf = r_material_properties[FRACTURE_ENERGY];
+        const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
+        const double sigma_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double sigma_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
         const double n = sigma_compression / sigma_tension;
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential))
-        {
-            AParameter = 1.0 / (Gf * n * n / (CharacteristicLength * std::pow(sigma_compression, 2)) - 0.5);
-            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        }
-        else
-        { // linear
-            AParameter = -std::pow(sigma_compression, 2) / (2.0 * Gf * n * n / CharacteristicLength);
+        if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
+            rAParameter = 1.0 / (Gf * n * n / (CharacteristicLength * std::pow(sigma_compression, 2)) - 0.5);
+            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+        } else { // linear
+            rAParameter = -std::pow(sigma_compression, 2) / (2.0 * Gf * n * n / CharacteristicLength);
         }
     }
 
@@ -173,17 +180,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
      * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rg The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& rStressVector,
+        const Vector& rDeviator,
         const double J2,
-        Vector &rg,
-        const Properties &rMaterialProperties)
+        Vector& rDerivativePlasticPotential,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -195,14 +203,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const Vector& StressVector,
+        const Vector& Deviator,
         const double J2,
-        Vector &rFFlux,
-        const Properties &rMaterialProperties)
+        Vector& rFFlux,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
         KRATOS_ERROR << "Yield surface derivative not defined for SimoJu..." << std::endl;
     }
@@ -213,13 +222,26 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
      */
     static int Check(const Properties& rMaterialProperties)
     {
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
         KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
 
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+        if (!rMaterialProperties.Has(YIELD_STRESS)) {
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+
+            const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+            const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+
+            KRATOS_ERROR_IF(yield_compression < tolerance) << "Yield stress in compression almost zero or negative, include YIELD_STRESS_COMPRESSION in definition";
+            KRATOS_ERROR_IF(yield_tension < tolerance) << "Yield stress in tension almost zero or negative, include YIELD_STRESS_TENSION in definition";
+        } else {
+            const double yield_stress = rMaterialProperties[YIELD_STRESS];
+
+            KRATOS_ERROR_IF(yield_stress < tolerance) << "Yield stress almost zero or negative, include YIELD_STRESS in definition";
+        }
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
 
