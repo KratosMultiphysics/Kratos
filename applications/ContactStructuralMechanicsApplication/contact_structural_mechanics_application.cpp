@@ -35,18 +35,14 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     KratosApplication("ContactStructuralMechanicsApplication"),
     /* CONDITIONS */
     // Mesh tying mortar conditions
-    // 2D Scalar
-    mMeshTyingMortarCondition2D2NTriangleScalar( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mMeshTyingMortarCondition2D2NQuadrilateralScalar( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    // 2D Components
-    mMeshTyingMortarCondition2D2NTriangleComponents( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mMeshTyingMortarCondition2D2NQuadrilateralComponents( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    // 3D Scalar
-    mMeshTyingMortarCondition3D3NTetrahedronScalar( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mMeshTyingMortarCondition3D4NHexahedronScalar( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
-    // 3D Components
-    mMeshTyingMortarCondition3D3NTetrahedronComponents( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mMeshTyingMortarCondition3D4NHexahedronComponents( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    // 2D
+    mMeshTyingMortarCondition2D2NTriangle( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mMeshTyingMortarCondition2D2NQuadrilateral( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    // 3D
+    mMeshTyingMortarCondition3D3NTetrahedron( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mMeshTyingMortarCondition3D4NHexahedron( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mMeshTyingMortarCondition3D3NTetrahedron4NHexahedron( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mMeshTyingMortarCondition3D4NHexahedron3NTetrahedron( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
 
     // ALM Contact mortar conditions
     // Frictionless
@@ -120,14 +116,12 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     // CONDITIONS
     // Mesh tying mortar condition
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NTriangleScalar", mMeshTyingMortarCondition2D2NTriangleScalar );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NQuadrilateralScalar", mMeshTyingMortarCondition2D2NQuadrilateralScalar );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NTriangleComponents", mMeshTyingMortarCondition2D2NTriangleComponents );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NQuadrilateralComponents", mMeshTyingMortarCondition2D2NQuadrilateralComponents );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition33NDTetrahedronScalar", mMeshTyingMortarCondition3D3NTetrahedronScalar );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4NHexahedronScalar", mMeshTyingMortarCondition3D4NHexahedronScalar );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D3NTetrahedronComponents", mMeshTyingMortarCondition3D3NTetrahedronComponents );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4NHexahedronComponents", mMeshTyingMortarCondition3D4NHexahedronComponents );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NTriangle", mMeshTyingMortarCondition2D2NTriangle );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NQuadrilateral", mMeshTyingMortarCondition2D2NQuadrilateral );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D3NTetrahedron", mMeshTyingMortarCondition3D3NTetrahedron );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4NHexahedron", mMeshTyingMortarCondition3D4NHexahedron );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D3NTetrahedron4NHexahedron", mMeshTyingMortarCondition3D3NTetrahedron4NHexahedron );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4NHexahedron3NTetrahedron", mMeshTyingMortarCondition3D4NHexahedron3NTetrahedron );
 
     // Mortar contact condition
     // Frictionless cases
