@@ -632,8 +632,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         if (std::abs(A1 + A2 + A3) > tolerance)
             rPlasticDenominator = 1.0 / (A1 + A2 + A3);
         else {
-            rPlasticDenominator = 1.0;
-            KRATOS_WARNING("GenericConstitutiveLawIntegratorPlasticity") << "Problem computing plastic denominator. Zero division avoided" << std::endl;
+            rPlasticDenominator = 1.0e-3 * std::numeric_limits<double>::max(); // TODO: Discuss this!!!
+//             rPlasticDenominator = 1.0;
+//             KRATOS_WARNING("GenericConstitutiveLawIntegratorPlasticity") << "Problem computing plastic denominator. Zero division avoided" << std::endl;
         }
     }
 
