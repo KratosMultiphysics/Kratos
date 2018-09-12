@@ -26,6 +26,10 @@
                 "material_import_settings" :{
                    "materials_filename": "materials.json"
                 },
+                "model_import_settings"              : {
+                    "input_type"     : "use_input_model_part",
+                    "input_filename" : "solid_cantilever"
+                },
                 "gradient_mode"          : "finite_differencing",
                 "step_size"              : 1e-8,
                 "consider_discretization": false
@@ -47,6 +51,10 @@
                 "apply_mesh_solver" : true,
                 "solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
+                    "model_import_settings"              : {
+                        "input_type"     : "use_input_model_part",
+                        "input_filename" : "solid_cantilever"
+                    },
                     "mesh_motion_linear_solver_settings"  : {
                         "solver_type" : "Super_LU",
                         "scaling"     : false,

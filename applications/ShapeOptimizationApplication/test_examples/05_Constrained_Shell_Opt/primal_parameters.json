@@ -14,7 +14,7 @@
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
+            "input_type"     : "use_input_model_part",
             "input_filename" : "3D_Shell"
         },
             "material_import_settings" :{

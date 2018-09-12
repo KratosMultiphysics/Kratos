@@ -14,7 +14,7 @@
         "echo_level"                         : 0,
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
+            "input_type"     : "use_input_model_part",
             "input_filename" : "3D_Hook"
         },
             "material_import_settings" :{
@@ -29,13 +29,13 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type"         : "AMGCL",
-            "max_iteration"       : 500,  
-            "tolerance"           : 1e-7,	
-            "provide_coordinates" : false,	
-            "smoother_type"       : "ilu0",	
-            "krylov_type"         : "bicgstab",	
-            "coarsening_type"     : "aggregation",	
-            "scaling"             : false,	
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-7,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "bicgstab",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false,
             "verbosity"           : 1
         },
         "problem_domain_sub_model_part_list" : ["Parts_solid"],
