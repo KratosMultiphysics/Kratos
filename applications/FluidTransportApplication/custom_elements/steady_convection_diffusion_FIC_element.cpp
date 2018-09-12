@@ -258,9 +258,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,Geom,Prop,CurrentProcessInfo);
 
-    noalias(Variables.VelInter) = ZeroVector(TDim);
-    noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
-
     Variables.IterationNumber = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
     //Loop over integration points
@@ -278,20 +275,20 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
             Variables.QSource += Variables.N[i]*Variables.NodalQSource[i];
         }
 
-        // TODO: This will be moved to an utility
+        noalias(Variables.VelInter) = ZeroVector(TDim);
         ElementUtilities::InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
+
+        noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
+
         this->CalculateDiffusivityVariables(Variables,Prop,CurrentProcessInfo);
         this->CalculateHVector(Variables,Prop,CurrentProcessInfo);
 
         // Compute DifMatrixK
-        for (unsigned int i = 0; i < TDim; i++)
-        {
-            Variables.DifMatrix(i,i) = Variables.DifMatrixK(i,i)
-                                       + Variables.DifMatrixV(i,i)
-                                       + Variables.DifMatrixS(i,i)
-                                       + Variables.DifMatrixR(i,i)
-                                       + Variables.DifMatrixSC(i,i);
-        }
+        noalias(Variables.DifMatrix) = Variables.DifMatrixK
+                                        + Variables.DifMatrixV
+                                        + Variables.DifMatrixS
+                                        + Variables.DifMatrixR
+                                        + Variables.DifMatrixSC;
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
@@ -332,8 +329,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorTy
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,Geom,Prop,CurrentProcessInfo);
 
-    noalias(Variables.VelInter) = ZeroVector(TDim);
-    noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
+    Variables.IterationNumber = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -350,20 +346,20 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorTy
             Variables.QSource += Variables.N[i]*Variables.NodalQSource[i];
         }
 
-        // TODO: This will be moved to an utility
+        noalias(Variables.VelInter) = ZeroVector(TDim);
         ElementUtilities::InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
+
+        noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
+
         this->CalculateDiffusivityVariables(Variables,Prop,CurrentProcessInfo);
         this->CalculateHVector(Variables,Prop,CurrentProcessInfo);
 
         // Compute DifMatrixK
-        for (unsigned int i = 0; i < TDim; i++)
-        {
-            Variables.DifMatrix(i,i) = Variables.DifMatrixK(i,i)
-                                       + Variables.DifMatrixV(i,i)
-                                       + Variables.DifMatrixS(i,i)
-                                       + Variables.DifMatrixR(i,i)
-                                       + Variables.DifMatrixSC(i,i);
-        }
+        noalias(Variables.DifMatrix) = Variables.DifMatrixK
+                                        + Variables.DifMatrixV
+                                        + Variables.DifMatrixS
+                                        + Variables.DifMatrixR
+                                        + Variables.DifMatrixSC;
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
@@ -372,6 +368,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorTy
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
 
     }
+
 
     KRATOS_CATCH( "" )
 }
@@ -401,7 +398,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
     // Compute rho*c
-    rVariables.rho_dot_c = FluidDensity*specific_heat;
+    rVariables.rho_dot_c = FluidDensity * specific_heat;
 
     // Tolerance
     rVariables.LowTolerance = 1e-8;
@@ -419,7 +416,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
     {
         rVariables.NodalPhi[i] = Geom[i].FastGetSolutionStepValue(rUnknownVar);
 
-        rVariables.NodalVel[i]=ZeroVector(3);
+        rVariables.NodalVel[i] = ZeroVector(3);
         const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
 		const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
 
@@ -499,7 +496,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
         array_1d <double, 3> Velocity3;
         ElementUtilities::FillArray1dOutput (Velocity3, rVariables.VelInterHat);
 
-        //rVariables.lv = ElementUtilities::ProjectedLength(rGeom,Velocity3);
         rVariables.lv = ElementSizeCalculator<TDim,TNumNodes>::ProjectedElementSize(rGeom,Velocity3);
     }
 
@@ -560,7 +556,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
         rVariables.AlphaV = 1.0;
     }
 
-    //TODO: Can be calculated before Gauss point loop
     //////////////////////////////////////////////////////
     // Calculate Ds
     //////////////////////////////////////////////////////
@@ -716,8 +711,8 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateNormalsAngle(ElementVariables& rVariables)
+template<>
+void SteadyConvectionDiffusionFICElement<2,3>::CalculateNormalsAngle(ElementVariables& rVariables)
 {
     const GeometryType& Geom = this->GetGeometry();
 
@@ -725,9 +720,10 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateNormalsAngle(
 
     rVariables.CosinusNormals = 1.0;
     unsigned int j = 0;
-    array_1d<array_1d< double, 3 >, TNumNodes> NodeNormal;
+    constexpr unsigned int NumNodes = 3;
+    array_1d<array_1d< double, 3 >, NumNodes> NodeNormal;
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < NumNodes; i++)
     {
         array_1d <double, 3> AuxNodeNormal = Geom[i].FastGetSolutionStepValue(NORMAL);
         unsigned int k = 0;
@@ -751,32 +747,84 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateNormalsAngle(
 }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateBoundaryLv(ElementVariables& rVariables)
+template<>
+void SteadyConvectionDiffusionFICElement<2,4>::CalculateNormalsAngle(ElementVariables& rVariables)
 {
     const GeometryType& Geom = this->GetGeometry();
 
-    //TODO : Other geometries
+    // Calculate normals
+
+    rVariables.CosinusNormals = 1.0;
+    unsigned int j = 0;
+    constexpr unsigned int NumNodes = 4;
+    array_1d<array_1d< double, 3 >, NumNodes> NodeNormal;
+
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        array_1d <double, 3> AuxNodeNormal = Geom[i].FastGetSolutionStepValue(NORMAL);
+        unsigned int k = 0;
+        double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+
+        if (NormAuxNodeNormal > rVariables.LowTolerance)
+        {
+            j += 1;
+            k = j - 1;
+            noalias(NodeNormal[k]) = AuxNodeNormal;
+        }
+    }
+    if (j == 2)
+    {
+        double NormNodeNormal1 = norm_2 (NodeNormal[0]);
+        double NormNodeNormal2 = norm_2 (NodeNormal[1]);
+        double InnerProdNormal = inner_prod(NodeNormal[0], NodeNormal[1]);
+        rVariables.CosinusNormals = InnerProdNormal / (NormNodeNormal1 * NormNodeNormal2);
+
+    }
+}
+
+// TODO: 3D
+//----------------------------------------------------------------------------------------
+template<>
+void SteadyConvectionDiffusionFICElement<3,4>::CalculateNormalsAngle(ElementVariables& rVariables)
+{
+    rVariables.CosinusNormals = 1.0;
+}
+
+//----------------------------------------------------------------------------------------
+template<>
+void SteadyConvectionDiffusionFICElement<3,8>::CalculateNormalsAngle(ElementVariables& rVariables)
+{
+    rVariables.CosinusNormals = 1.0;
+}
+
+//----------------------------------------------------------------------------------------
+template<>
+void SteadyConvectionDiffusionFICElement<2,3>::CalculateBoundaryLv(ElementVariables& rVariables)
+{
+    const GeometryType& Geom = this->GetGeometry();
+
     // Calculate normals
 
     unsigned int j = 0;
     array_1d <double, 3> AuxNodeNormal;
     array_1d <double, 3> SumNormals = ZeroVector(3);
+    constexpr unsigned int NumNodes = 3;
+    constexpr unsigned int Dim = 2;
 
-    for (unsigned int i = 0; i < TNumNodes; i++)
+    for (unsigned int i = 0; i < NumNodes; i++)
     {
         noalias(AuxNodeNormal) = Geom[i].FastGetSolutionStepValue(NORMAL);
         double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
 
-        if (NormAuxNodeNormal > 1e-7)
+        if (NormAuxNodeNormal > rVariables.LowTolerance)
         {
             j += 1;
             noalias(SumNormals) += AuxNodeNormal;
         }
     }
-    if (j > 1 && j < 3)
+    if (j == 2)
     {
-        double AuxLv = ElementSizeCalculator<TDim,TNumNodes>::ProjectedElementSize(Geom,SumNormals);
+        double AuxLv = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(Geom,SumNormals);
         array_1d <double, 3> AuxVector = SumNormals / norm_2 (SumNormals) * AuxLv;
 
         double AuxLv2 = inner_prod (AuxVector, rVariables.VelInterHat);
@@ -786,11 +834,61 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateBoundaryLv(El
         {
             rVariables.lv = std::abs(AuxLv2);
         }
-        if(std::abs(AuxLv2) < 0.00001)
+
+    }
+}
+
+//----------------------------------------------------------------------------------------
+template<>
+void SteadyConvectionDiffusionFICElement<2,4>::CalculateBoundaryLv(ElementVariables& rVariables)
+{
+    const GeometryType& Geom = this->GetGeometry();
+
+    // Calculate normals
+
+    unsigned int j = 0;
+    array_1d <double, 3> AuxNodeNormal;
+    array_1d <double, 3> SumNormals = ZeroVector(3);
+    constexpr unsigned int NumNodes = 4;
+    constexpr unsigned int Dim = 2;
+
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        noalias(AuxNodeNormal) = Geom[i].FastGetSolutionStepValue(NORMAL);
+        double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+
+        if (NormAuxNodeNormal > rVariables.LowTolerance)
         {
-        //    rVariables.lv = 0.7;
+            j += 1;
+            noalias(SumNormals) += AuxNodeNormal;
         }
     }
+    if (j == 2)
+    {
+        double AuxLv = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(Geom,SumNormals);
+        array_1d <double, 3> AuxVector = SumNormals / norm_2 (SumNormals) * AuxLv;
+
+        double AuxLv2 = inner_prod (AuxVector, rVariables.VelInterHat);
+
+
+        if(std::abs(AuxLv2) <= rVariables.lv && std::abs(AuxLv2) > rVariables.LowTolerance)
+        {
+            rVariables.lv = std::abs(AuxLv2);
+        }
+
+    }
+}
+
+//----------------------------------------------------------------------------------------
+template<>
+void SteadyConvectionDiffusionFICElement<3,4>::CalculateBoundaryLv(ElementVariables& rVariables)
+{
+}
+
+//----------------------------------------------------------------------------------------
+template<>
+void SteadyConvectionDiffusionFICElement<3,8>::CalculateBoundaryLv(ElementVariables& rVariables)
+{
 }
 
 //----------------------------------------------------------------------------------------
@@ -824,7 +922,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(Elemen
         array_1d <double, 3> Velocity3;
         ElementUtilities::FillArray1dOutput (Velocity3, rVariables.VelInterHat);
 
-        //rVariables.lv = ElementUtilities::ProjectedLength(rGeom,Velocity3);
         rVariables.lv = ElementSizeCalculator<TDim,TNumNodes>::ProjectedElementSize(rGeom,Velocity3);
     }
 
@@ -884,7 +981,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateFICBeta(Eleme
 
 //----------------------------------------------------------------------------------------
 
-// TODO: This will be moved to an utility
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
 {
@@ -1063,14 +1159,12 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
         ElementVariables Variables;
         this->InitializeElementVariables(Variables,Geom,Prop,rCurrentProcessInfo);
 
-        noalias(Variables.VelInter) = ZeroVector(TDim);
-        noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
-
         //Loop over integration points
         for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
         {
             //Compute GradNT
             noalias(Variables.GradNT) = DN_DXContainer[GPoint];
+            noalias(Variables.VelInter) = ZeroVector(TDim);
 
             ElementUtilities::InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
 
@@ -1121,15 +1215,13 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
         ElementVariables Variables;
         this->InitializeElementVariables(Variables,Geom,Prop,rCurrentProcessInfo);
 
-        noalias(Variables.VelInter) = ZeroVector(TDim);
-        noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
-
         //Loop over integration points
         for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
         {
             //Compute GradNT
             noalias(Variables.GradNT) = DN_DXContainer[GPoint];
 
+            noalias(Variables.VelInter) = ZeroVector(TDim);
             ElementUtilities::InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
 
             double NormVel = norm_2(Variables.VelInter);
@@ -1190,10 +1282,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
         //Element variables
         ElementVariables Variables;
         this->InitializeElementVariables(Variables,Geom,Prop,rCurrentProcessInfo);
-
-
-        noalias(Variables.VelInter) = ZeroVector(TDim);
-        noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
 
         //Loop over integration points
         for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)

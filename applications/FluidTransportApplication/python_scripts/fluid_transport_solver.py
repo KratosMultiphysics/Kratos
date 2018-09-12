@@ -12,14 +12,13 @@ KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
 
-    return FluidTransportSteadySolver(main_model_part, custom_settings)
+    return FluidTransportSolver(main_model_part, custom_settings)
 
 
-class FluidTransportSteadySolver(object):
+class FluidTransportSolver(object):
 
     def __init__(self, main_model_part, custom_settings):
 
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
         self.min_buffer_size = 2
@@ -73,7 +72,7 @@ class FluidTransportSteadySolver(object):
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        print("Construction of FluidTransportSteadySolver finished")
+        print("Construction of FluidTransportSolver finished")
 
     def AddVariables(self):
 
@@ -81,7 +80,12 @@ class FluidTransportSteadySolver(object):
         thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
         thermal_settings.SetReactionVariable(KratosMultiphysics.ABSORPTION_COEFFICIENT)
         thermal_settings.SetDiffusionVariable(KratosMultiphysics.CONDUCTIVITY)
-        thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
+
+        if(self.settings["solution_type"].GetString() == "Steady"):
+            thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
+        else:
+            thermal_settings.SetUnknownVariable(KratosFluidTransport.PHI_THETA)
+
         thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
         thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
         thermal_settings.SetVolumeSourceVariable(KratosMultiphysics.HEAT_FLUX)
@@ -100,7 +104,6 @@ class FluidTransportSteadySolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.DT_PHI) # Generic variable refering to the time derivative of unknown variable
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.PHI_THETA) # Phi variable refering to the n+theta step
 
         print("Variables correctly added")
@@ -169,7 +172,7 @@ class FluidTransportSteadySolver(object):
 
         KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
 
-        print ("Initialization FluidTransportSteadySolver finished")
+        print ("Initialization FluidTransportSolver finished")
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.computing_model_part_name)

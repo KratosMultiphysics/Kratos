@@ -95,56 +95,6 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // TODO
-    // Triangle2D3 version.
-    static inline double ProjectedLength(const Geometry<Node<3> >& rGeometry,
-                                                            const array_1d<double,3>& rVelocity)
-    {
-        double Hvel = 0.0;
-        double CosAngle = 0.0;
-        double EdgeNorm = 0.0;
-        double NormVel = norm_2 (rVelocity);
-
-        const unsigned int NumNodes = 3;
-
-        if (NormVel > 1e-12)
-        {
-            // Loop over edges looking for maximum 'projected' length
-            array_1d<double,3> Edge(3,0.0);
-            for(unsigned int i = 0; i < NumNodes; ++i)
-            {
-                unsigned int j = (i+1) % NumNodes;
-                Edge = rGeometry[j] - rGeometry[i];
-                double InnerProd = inner_prod (rVelocity, Edge);
-                double EdgeNormAux = norm_2 (Edge);
-
-                double CosAngleAux = InnerProd / (NormVel * EdgeNormAux);
-
-                if (EdgeNormAux > EdgeNorm)
-                {
-                    EdgeNorm = EdgeNormAux;
-                }
-
-                if (CosAngleAux > CosAngle)
-                {
-                    CosAngle = CosAngleAux;
-                }
-
-                double HvelAux = EdgeNorm * CosAngle;
-
-                if (HvelAux > Hvel)
-                {
-                    Hvel = HvelAux;
-                }
-
-            }
-        }
-
-        return Hvel;
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     static inline void FillArray1dOutput(array_1d<double,3>& rOutputValue, const array_1d<double,2>& ComputedValue)
     {
         rOutputValue[0] = ComputedValue[0];

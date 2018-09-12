@@ -20,7 +20,17 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Velocity
     ConstraintVectorTable FileVar TableId TableDict Velocity VELOCITY
     # Phi_Value
-    PressureTable FileVar TableId TableDict Phi_Value TEMPERATURE
+    set SolutionType [GiD_AccessValue get gendata Solution_Type]
+
+    if {$SolutionType eq "Steady"} {
+
+        PressureTable FileVar TableId TableDict Phi_Value TEMPERATURE
+
+    } else {
+
+        PressureTable FileVar TableId TableDict Phi_Value PHI_THETA
+
+    }
     # Face_Heat_Flux
     ScalarTable FileVar TableId TableDict Face_Heat_Flux FACE_HEAT_FLUX
     # Q_Source
@@ -69,7 +79,6 @@ proc WriteMdpa { basename dir problemtypedir } {
     #set IsQuadratic [GiD_Info Project Quadratic]
     # Body_Part
     set Groups [GiD_Info conditions Body_Part groups]
-    set SolutionType [GiD_AccessValue get gendata Solution_Type]
 
     if {$SolutionType eq "Steady"} {
 

@@ -75,24 +75,20 @@ public:
             KRATOS_THROW_ERROR( std::invalid_argument,"DELTA_TIME Key is 0. Check if all applications were correctly registered.", "")
         if(rUnknownVar.Key() == 0)
             KRATOS_THROW_ERROR( std::invalid_argument, "UnknownVar Key is 0. Check if all applications were correctly registered.", "" )
-        if(DT_PHI.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "DT_PHI Key is 0. Check if all applications were correctly registered.", "" )
-        if(PHI_THETA.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "PHI_THETA Key is 0. Check if all applications were correctly registered.", "" )
+
+        if(TEMPERATURE.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument, "TEMPERATURE Key is 0. Check if all applications were correctly registered.", "" )
 
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
         {
             if(it->SolutionStepsDataHas(rUnknownVar) == false)
                 KRATOS_THROW_ERROR( std::logic_error, "UnknownVar variable is not allocated for node ", it->Id() )
-            if(it->SolutionStepsDataHas(DT_PHI) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DT_PHI variable is not allocated for node ", it->Id() )
-            if(it->SolutionStepsDataHas(PHI_THETA) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "PHI_THETA variable is not allocated for node ", it->Id() )
+            if(it->SolutionStepsDataHas(TEMPERATURE) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "TEMPERATURE variable is not allocated for node ", it->Id() )
 
-            // TODO
-            // if(it->HasDofFor(rUnknownVar) == false)
-            //     KRATOS_THROW_ERROR( std::invalid_argument,"missing UnknownVar dof on node ",it->Id() )
+            if(it->HasDofFor(rUnknownVar) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument,"missing UnknownVar dof on node ",it->Id() )
         }
 
         //check for minimum value of the buffer index.
@@ -451,14 +447,11 @@ protected:
         {
             ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
-            double& CurrentPhi = itNode->FastGetSolutionStepValue(rUnknownVar);
-            const double& PreviousPhi = itNode->FastGetSolutionStepValue(rUnknownVar, 1);
-            const double& CurrentPhiTheta = itNode->FastGetSolutionStepValue(PHI_THETA);
+            double& CurrentPhi = itNode->FastGetSolutionStepValue(TEMPERATURE);
+            const double& PreviousPhi = itNode->FastGetSolutionStepValue(TEMPERATURE, 1);
+            const double& CurrentPhiTheta = itNode->FastGetSolutionStepValue(rUnknownVar);
 
-            if(itNode -> IsFixed(rUnknownVar) == false)
-            {
-                CurrentPhi = 1.0 / mTheta * CurrentPhiTheta + (1.0 - 1.0 / mTheta) * PreviousPhi;
-            }
+            CurrentPhi = 1.0 / mTheta * CurrentPhiTheta + (1.0 - 1.0 / mTheta) * PreviousPhi;
         }
 
         KRATOS_CATCH( "" )

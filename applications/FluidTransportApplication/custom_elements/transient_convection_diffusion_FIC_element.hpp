@@ -23,7 +23,6 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/element_size_calculator.h"
 
-// TODO: Create base element
 #include "fluid_transport_application_variables.h"
 
 namespace Kratos
@@ -73,11 +72,7 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
-
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                         VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
@@ -92,19 +87,9 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
-
     void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
-
-    void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
-
-    void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
-
-    void CalculateAndAddRHSAbsorption(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
-
-    void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

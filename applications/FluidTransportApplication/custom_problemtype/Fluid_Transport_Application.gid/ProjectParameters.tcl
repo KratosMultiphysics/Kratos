@@ -24,9 +24,9 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     ## solver_settings
     puts $FileVar "    \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
-        puts $FileVar "        \"solver_type\":                        \"fluid_transport_steady_solver\","
+        puts $FileVar "        \"solver_type\":                        \"fluid_transport_solver\","
     } else {
-        puts $FileVar "        \"solver_type\":                        \"fluid_transport_steady_solver\","
+        puts $FileVar "        \"solver_type\":                        \"fluid_transport_solver\","
     }
     puts $FileVar "        \"model_import_settings\":              \{"
     puts $FileVar "            \"input_type\":       \"mdpa\","
@@ -137,7 +137,20 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings \[
     set iGroup 0
     AppendOutputVariables PutStrings iGroup Write_Velocity VELOCITY
+
+    set SolutionType [GiD_AccessValue get gendata Solution_Type]
+
+    if {$SolutionType eq "Steady"} {
+
     AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
+
+    } else {
+
+    AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
+    AppendOutputVariables PutStrings iGroup Write_Phi_Value PHI_THETA
+
+    }
+
     AppendOutputVariables PutStrings iGroup Write_Normals_Value NORMAL
     if {[GiD_AccessValue get gendata Write_Reactions] eq true} {
         incr iGroup
@@ -187,10 +200,26 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     # Note: it is important to write processes in the following order to account for intersections between conditions
     # Phi_Value
     set Groups [GiD_Info conditions Phi_Value groups]
+
+    if {$SolutionType eq "Steady"} {
+
     WritePressureConstraintProcess FileVar iGroup $Groups volumes TEMPERATURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups surfaces TEMPERATURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups lines TEMPERATURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups points TEMPERATURE $TableDict $NumGroups
+
+    } else {
+
+    incr NumGroups [llength $Groups]
+
+    WritePressureConstraintProcess FileVar iGroup $Groups volumes PHI_THETA $TableDict $NumGroups
+    WritePressureConstraintProcess FileVar iGroup $Groups surfaces PHI_THETA $TableDict $NumGroups
+    WritePressureConstraintProcess FileVar iGroup $Groups lines PHI_THETA $TableDict $NumGroups
+    WritePressureConstraintProcess FileVar iGroup $Groups points PHI_THETA $TableDict $NumGroups
+
+    WriteTempConstraintProcess FileVar iGroup $Groups TEMPERATURE $TableDict $NumGroups
+
+    }
 
     ## loads_process_list
     set Groups [GiD_Info conditions Face_Heat_Flux groups]
