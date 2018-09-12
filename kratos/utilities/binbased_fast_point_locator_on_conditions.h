@@ -12,7 +12,7 @@
 //                    Pablo Becker
 //                    Carlos Roig
 //                    Vicente Mataix Ferrandiz
-//                    Aditya Ghantasala
+//                    Aditya Ghantasala (change to conditions)
 //
 
 #if !defined(KRATOS_BINBASED_FAST_POINT_LOCATOR_ON_CONDITIONS_INCLUDED )
@@ -132,9 +132,9 @@ public:
 
         // Copy the elements to a new container, as the list will
         //be shuffled duringthe construction of the tree
-        ContainerType& rElements = mrModelPart.ConditionsArray();
-        IteratorType it_begin = rElements.begin();
-        IteratorType it_end = rElements.end();
+        ContainerType& rConditions = mrModelPart.ConditionsArray();
+        IteratorType it_begin = rConditions.begin();
+        IteratorType it_end = rConditions.end();
 
         typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure > (it_begin, it_end));
 
@@ -153,9 +153,9 @@ public:
 
         //copy the elements to a new container, as the list will
         //be shuffled duringthe construction of the tree
-        ContainerType& rElements = mrModelPart.ConditionsArray();
-        IteratorType it_begin = rElements.begin();
-        IteratorType it_end = rElements.end();
+        ContainerType& rConditions = mrModelPart.ConditionsArray();
+        IteratorType it_begin = rConditions.begin();
+        IteratorType it_end = rConditions.end();
 
         typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure > (it_begin, it_end,CellSize));
         paux.swap(mpBinsObjectDynamic);
@@ -169,7 +169,7 @@ public:
      * shape functions that define the postion within the element
      * @param rCoordinates The vector containign the coordinates of the point to be searched
      * @param rNShapeFunction The vector containing the shape function of the located point
-     * @param pElement The pointer to the element containing the located point
+     * @param pCondition The pointer to the condition containing the located point
      * @param ItResultBegin The iterator of the search
      * @param MaxNumberOfResults The max number of results to be considered
      * @param Tolerance The tolerance considered on the search
@@ -180,7 +180,7 @@ public:
     KRATOS_DEPRECATED_MESSAGE("This is legacy version (using array instead of vector for shape function)") bool FindPointOnMesh(
         const array_1d<double, 3 >& rCoordinates,
         array_1d<double, TDim + 1 >& rNShapeFunction,
-        Condition::Pointer& pElement,
+        Condition::Pointer& pCondition,
         ResultIteratorType ItResultBegin,
         const SizeType MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5
@@ -202,14 +202,14 @@ public:
                 noalias(rNShapeFunction) = shape_function;
 
                 if (is_found) {
-                    pElement = (*(ItResultBegin + i));
+                    pCondition = (*(ItResultBegin + i));
                     return true;
                 }
             }
         }
 
         // Not found case
-        pElement = nullptr;
+        pCondition = nullptr;
         return false;
     }
 
@@ -219,7 +219,7 @@ public:
      * shape functions that define the postion within the element
      * @param rCoordinates The vector containign the coordinates of the point to be searched
      * @param rNShapeFunction The vector containing the shape function of the located point
-     * @param pElement The pointer to the element containing the located point
+     * @param pCondition The pointer to the element containing the located point
      * @param ItResultBegin The iterator of the search
      * @param MaxNumberOfResults The max number of results to be considered
      * @param Tolerance The tolerance considered on the search
@@ -229,7 +229,7 @@ public:
     bool FindPointOnMesh(
         const array_1d<double, 3 >& rCoordinates,
         Vector& rNShapeFunction,
-        Condition::Pointer& pElement,
+        Condition::Pointer& pCondition,
         ResultIteratorType ItResultBegin,
         const SizeType MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5
@@ -249,14 +249,14 @@ public:
                 geom.ShapeFunctionsValues(rNShapeFunction, point_local_coordinates);
 
                 if (is_found) {
-                    pElement = (*(ItResultBegin + i));
+                    pCondition = (*(ItResultBegin + i));
                     return true;
                 }
             }
         }
 
         // Not found case
-        pElement = nullptr;
+        pCondition = nullptr;
         return false;
     }
 
@@ -264,7 +264,7 @@ public:
      * @brief Simplified (less efficient) function to find the element into which a given node is located and return a pointer to the element and the vector containing the shape functions that define the postion within the element
      * @param rCoordinates The vector containign the coordinates of the point to be searched
      * @param rNShapeFunction The vector containing the shape function of the located point
-     * @param pElement The pointer to the element containing the located point
+     * @param pCondition The pointer to the element containing the located point
      * @param MaxNumberOfResults The max number of results to be considered
      * @param Tolerance The tolerance considered on the search
      * @return If "false" is devolved the element is not found
@@ -273,14 +273,14 @@ public:
     bool FindPointOnMeshSimplified(
         const array_1d<double, 3 >& rCoordinates,
         Vector& rNShapeFunction,
-        Condition::Pointer& pElement,
+        Condition::Pointer& pCondition,
         const SizeType MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5
         )
     {
         ResultContainerType results(MaxNumberOfResults);
 
-        const bool is_found = FindPointOnMesh(rCoordinates, rNShapeFunction, pElement, results.begin(), MaxNumberOfResults, Tolerance);
+        const bool is_found = FindPointOnMesh(rCoordinates, rNShapeFunction, pCondition, results.begin(), MaxNumberOfResults, Tolerance);
 
         return is_found;
     }

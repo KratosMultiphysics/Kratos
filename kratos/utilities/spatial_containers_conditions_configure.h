@@ -7,8 +7,8 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala
-//                    
+//  Main authors:    Aditya Ghantasala (extension of spatial_containers_configure.h for conditions)
+//
 //
 
 #if !defined(KRATOS_SPATIAL_CONTAINERS_CONDITIONS_CONFIGURE_INCLUDED )
