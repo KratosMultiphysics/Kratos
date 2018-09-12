@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-//******************************CONSTRUCTOR*******************************************
+/******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 HyperElasticIsotropicKirchhoffPlaneStrain2D::HyperElasticIsotropicKirchhoffPlaneStrain2D()
     : BaseType() 
@@ -38,7 +38,7 @@ HyperElasticIsotropicKirchhoffPlaneStrain2D::HyperElasticIsotropicKirchhoffPlane
 {
 }
 
-//********************************CLONE***********************************************
+/********************************CLONE**********************************************/
 /***********************************************************************************/
 
 ConstitutiveLaw::Pointer HyperElasticIsotropicKirchhoffPlaneStrain2D::Clone() const 
@@ -46,14 +46,14 @@ ConstitutiveLaw::Pointer HyperElasticIsotropicKirchhoffPlaneStrain2D::Clone() co
     return Kratos::make_shared<HyperElasticIsotropicKirchhoffPlaneStrain2D>(*this);
 }
 
-//*******************************DESTRUCTOR*******************************************
+/*******************************DESTRUCTOR******************************************/
 /***********************************************************************************/
 
 HyperElasticIsotropicKirchhoffPlaneStrain2D::~HyperElasticIsotropicKirchhoffPlaneStrain2D() 
 {
 };
 
-//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
+/*************************CONSTITUTIVE LAW GENERAL FEATURES ************************/
 /***********************************************************************************/
 
 void HyperElasticIsotropicKirchhoffPlaneStrain2D::GetLawFeatures(Features& rFeatures) 

@@ -147,14 +147,14 @@ protected:
 
     /**
      * @brief It calculates the constitutive matrix C (PK2)
-     * @param ConstitutiveMatrix: The constitutive matrix
+     * @param rConstitutiveMatrix: The constitutive matrix
      * @param InverseCTensor: The inverse right Cauchy-Green tensor
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
      * @param LameMu: Seconf Lame parameter
      */
     void CalculateConstitutiveMatrixPK2(
-        Matrix& ConstitutiveMatrix,
+        Matrix& rConstitutiveMatrix,
         const double YoungModulus,
         const double PoissonCoefficient
         ) override;
