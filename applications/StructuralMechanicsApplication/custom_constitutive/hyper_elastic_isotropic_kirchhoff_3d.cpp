@@ -75,7 +75,7 @@ void  HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK2(Constitutiv
     KRATOS_TRY;
     
     // Get Values to compute the constitutive law:
-    Flags &Options=rValues.GetOptions();
+    Flags& r_flags= rValues.GetOptions();
 
     const Properties& material_properties = rValues.GetMaterialProperties();
     Vector& strain_vector                 = rValues.GetStrainVector();
@@ -84,18 +84,18 @@ void  HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK2(Constitutiv
     const double young_modulus = material_properties[YOUNG_MODULUS];
     const double poisson_coefficient = material_properties[POISSON_RATIO];
 
-    if(Options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateGreenLagrangianStrain(rValues, strain_vector);
     }
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+    if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
         Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateConstitutiveMatrixPK2( constitutive_matrix, young_modulus, poisson_coefficient);
     }
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+    if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         Vector& stress_vector = rValues.GetStressVector();
-        if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+        if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
             noalias(stress_vector) = prod(constitutive_matrix, strain_vector);
         } else {
@@ -112,7 +112,7 @@ void  HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK2(Constitutiv
 void HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) 
 {
     // Get Values to compute the constitutive law:
-    Flags &Options=rValues.GetOptions();
+    Flags& r_flags= rValues.GetOptions();
 
     const Properties& material_properties = rValues.GetMaterialProperties();
     Vector& strain_vector                 = rValues.GetStrainVector();
@@ -125,16 +125,16 @@ void HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseKirchhoff (Const
      // The deformation gradient
     const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
 
-    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if(r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateAlmansiStrain(rValues, strain_vector);
     }
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+    if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
         Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateConstitutiveMatrixKirchhoff(constitutive_matrix, deformation_gradient_f ,young_modulus, poisson_coefficient);
     }
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+    if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         if (rValues.IsSetDeformationGradientF()) {
             this->CalculateGreenLagrangianStrain(rValues, strain_vector);
         }
@@ -232,6 +232,57 @@ double& HyperElasticIsotropicKirchhoff3D::CalculateValue(
         }
 
         rValue = 0.5 * lame_lambda * E_trace * E_trace  + 0.5 *lame_mu *E_trace_sq ;
+    }
+
+    return( rValue );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector& HyperElasticIsotropicKirchhoff3D::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue
+    ) 
+{
+    // We compute the strain
+    if (rThisVariable == STRAIN) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+    } else if (rThisVariable == STRESSES) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+    }
+
+    return( rValue );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Matrix& HyperElasticIsotropicKirchhoff3D::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Matrix>& rThisVariable,
+    Matrix& rValue
+    ) 
+{
+    // We compute the strain
+    if (rThisVariable == CONSTITUTIVE_MATRIX) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
     }
 
     return( rValue );

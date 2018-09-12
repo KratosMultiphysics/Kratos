@@ -105,7 +105,6 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateGreenLagrangianStrain
     Vector& rStrainVector
     ) 
 {
-
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
