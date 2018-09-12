@@ -1011,7 +1011,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     break
 
         model_part.ProcessInfo[IS_RESTARTED] = True
-        model_part.ProcessInfo[TIME] = 2.15 # the new run "starts" at T=2.1
+        model_part.ProcessInfo[TIME] = 2.15 # the new run "starts" at T=2.15, wich will not match any value
 
         end_time = 5.0
         delta_time = 0.15
