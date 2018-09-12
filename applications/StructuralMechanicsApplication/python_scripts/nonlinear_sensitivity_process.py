@@ -88,7 +88,7 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
         self.gauss_points_check_variables = self.__generate_variable_list_from_input(self.params["gauss_points_check_variables"])
         self.frequency = self.params["time_frequency"].GetDouble()
         self.historical_value = self.params["historical_value"].GetBool()
-        self.absolute_value = self.params["absolute_value"].GetBool()
+        self.absolute_value = self.params["absolute_value"].GetBool() # defines if the curvature computation is done with absolute values
         # Now called later
         #self.data =  read_external_json(input_file_name)
 
@@ -325,13 +325,15 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
         lambda_0 = load_factor_array[0]
         lambda_1 = load_factor_array[1]
         f_1 = lambda_1 / lambda_0
+        if f_1 < 1e-10:
+            raise Exception("Pseudo-time steps are not valid!")
 
         response_0 = response_value_array[0]
         response_1 = response_value_array[1]
 
         sensitivity_first_order = 0.0
 
-        if abs(response_0) > 1e-8:
+        if abs(response_0) > 1e-10:
             sensitivity_first_order = response_1 / ( response_0 * f_1 )
 
         return sensitivity_first_order
@@ -342,6 +344,8 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
         lambda_2 = load_factor_array[2]
         delta_10 = lambda_1 - lambda_0
         delta_20 = lambda_2 - lambda_0
+        if (delta_10 < 1e-10) or (delta_20 < 1e-10):
+            raise Exception("Pseudo-time steps are not valid!")
 
         response_0 = response_value_array[0]
         response_1 = response_value_array[1]
@@ -349,9 +353,11 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
 
         sensitivity_second_order = 0.0
 
-        if abs(response_0) > 1e-8:
-            slope_10 = (response_1 - response_0) / delta_10
-            slope_20 = (response_2 - response_0) / delta_20
+
+        slope_10 = (response_1 - response_0) / delta_10
+        slope_20 = (response_2 - response_0) / delta_20
+
+        if abs(slope_10) > 1e-10:
             sensitivity_second_order = slope_20 / slope_10
 
         return sensitivity_second_order
