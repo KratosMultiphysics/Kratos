@@ -56,6 +56,14 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
+        valid_file_access_modes = ["exclusive", "truncate", "read_write"] # check if these are ok
+        file_access_mode = self.settings["file_access_mode"].GetString()
+        if not file_access_mode in valid_file_access_modes:
+            err_msg  = 'Invalid file_access_mode "' + file_access_mode + '"\n'
+            err_msg += 'Valid options are: '
+            err_msg += ", ".join(valid_file_access_modes)
+            raise Exception(err_msg)
+
         # We define the model parts
         self.model_part = Model[self.settings["model_part_name"].GetString()]
 
@@ -95,6 +103,10 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         """
         pass
 
+        maybe create an xdmf-file every time to be able to constantly visualize it ...?
+        And leave one as backup...?
+        => should be selectable
+
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
 
@@ -133,5 +145,10 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
 
         # Create xdmf-file
         if self.settings["create_xdmf_file"].GetBool():
-            from create_xdmf_file import Execute # todo this method does not exist yet!
+            # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
+            # => in such a case the xdmf can be created manually afterwards locall
+            try:
+                from create_xdmf_file import Execute # todo this method does not exist yet!
+            except ImportError:
+                KratosMultiphysics.Logger.PrintWarning("HDF5OutputProcess", "xdmf-file could not be created!")
             Execute(file_name)
