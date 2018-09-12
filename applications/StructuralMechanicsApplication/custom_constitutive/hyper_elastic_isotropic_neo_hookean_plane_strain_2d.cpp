@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-//******************************CONSTRUCTOR*******************************************
+/******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
 HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPlaneStrain2D()
@@ -27,7 +27,7 @@ HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPla
 {
 }
 
-//******************************COPY CONSTRUCTOR**************************************
+/******************************COPY CONSTRUCTOR*************************************/
 /***********************************************************************************/
 
 HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPlaneStrain2D(const HyperElasticIsotropicNeoHookeanPlaneStrain2D& rOther)
@@ -35,7 +35,7 @@ HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPla
 {
 }
 
-//********************************CLONE***********************************************
+/********************************CLONE**********************************************/
 /***********************************************************************************/
 
 ConstitutiveLaw::Pointer HyperElasticIsotropicNeoHookeanPlaneStrain2D::Clone() const
@@ -43,14 +43,14 @@ ConstitutiveLaw::Pointer HyperElasticIsotropicNeoHookeanPlaneStrain2D::Clone() c
     return Kratos::make_shared<HyperElasticIsotropicNeoHookeanPlaneStrain2D>(*this);
 }
 
-//*******************************DESTRUCTOR*******************************************
+/*******************************DESTRUCTOR******************************************/
 /***********************************************************************************/
 
 HyperElasticIsotropicNeoHookeanPlaneStrain2D::~HyperElasticIsotropicNeoHookeanPlaneStrain2D()
 {
 };
 
-//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
+/*************************CONSTITUTIVE LAW GENERAL FEATURES ************************/
 /***********************************************************************************/
 
 void HyperElasticIsotropicNeoHookeanPlaneStrain2D::GetLawFeatures(Features& rFeatures)
