@@ -99,6 +99,8 @@ public:
     /*@{ */
     //		typedef std::set<Dof::Pointer,ComparePDof> DofSetType;
 
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
@@ -397,6 +399,23 @@ public:
     {
     }
     /*@} */
+
+    /**
+     * @brief This sets the level of echo for the solution strategy
+     * @param Level of echo for the solution strategy
+     * @details
+     * {
+     * 0 -> Mute... no echo at all
+     * 1 -> Printing time and basic informations
+     * 2 -> Printing linear solver data
+     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * }
+     */
+    void SetEchoLevel(const int Level) override
+    {
+        BaseType::mEchoLevel = Level;
+        mp_solving_strategy->SetEchoLevel(Level);
+    }
 
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
