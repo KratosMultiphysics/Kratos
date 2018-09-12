@@ -6,6 +6,8 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 
 # Other imports
 try:
+    # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
+    # => in such a case the xdmf can be created manually afterwards locally
     import create_xdmf_file
     have_xdmf = True
 except ImportError:
@@ -17,13 +19,9 @@ def Factory(settings, Model):
     return HDF5OutputProcess(Model, settings["Parameters"])
 
 class HDF5OutputProcess(KratosMultiphysics.Process):
-    """This class is used in order to compute some pre and post process on the SPRISM solid shell elements
-
-    Only the member variables listed below should be accessed directly.
-
-    Public member variables:
-    Model -- the container of the different model parts.
-    settings -- Kratos parameters containing the settings.
+    """This process writes output in hdf5-files
+    Additionally it can create xdmf-files based on the hdf5-files which can be used
+    to visualize the files in postptocessing-tools
     """
 
     def __init__(self, Model, settings):
@@ -52,9 +50,11 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
 
         if is_mpi_execution:
             import partitioned_single_mesh_temporal_output_process as hdf5_process
-            # todo set mpiio
+            # TODO set mpiio
         else:
             import single_mesh_temporal_output_process as hdf5_process
+
+        # create folder if necessary and adapt paths
 
         hfd5_writer_process_parameters = KratosMultiphysics.Parameters("{}")
         hfd5_writer_process_parameters.AddValue("Parameters", self.settings["hdf5_writer_process_parameters"])
@@ -98,10 +98,9 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
     def ExecuteFinalize(self):
         self.hfd5_writer_process.ExecuteFinalize()
 
-        # Create xdmf-file
-        if self.create_xdmf_file_level == 1: # if it it larger then it will already have been created in "ExecuteFinalizeSolutionStep"
-            # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
-            # => in such a case the xdmf can be created manually afterwards locall
+        if self.create_xdmf_file_level == 1:
+            # if create_xdmf_file_level is larger then the xdmf-file will
+            # already have been created in "ExecuteFinalizeSolutionStep"
             self.__WriteXdmfFile()
 
     def __WriteXdmfFile(self):
