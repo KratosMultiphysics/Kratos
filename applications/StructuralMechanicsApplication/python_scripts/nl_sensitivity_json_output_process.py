@@ -222,6 +222,16 @@ class NlSensitivityJsonOutputProcess(KratosMultiphysics.Process):
                                 data["RESULTANT"][variable_name] = {}
                                 for gp in range(gauss_point_number):
                                     data["RESULTANT"][variable_name][str(gp)] = []
+                    elif variable_type == "Matrix":
+                        if (self.resultant_solution == False):
+                            data["ELEMENT_" + str(elem.Id)][variable_name] = {}
+                            for gp in range(gauss_point_number):
+                                data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)] = []
+                        else:
+                            if (count == 0):
+                                data["RESULTANT"][variable_name] = {}
+                                for gp in range(gauss_point_number):
+                                    data["RESULTANT"][variable_name][str(gp)] = []
                     # TODO: Add pending classes
                 count += 1
 
@@ -391,6 +401,11 @@ class NlSensitivityJsonOutputProcess(KratosMultiphysics.Process):
                                     for gp in range(gauss_point_number):
                                         list = self.__kratos_vector_to__python_list(value[gp])
                                         data["RESULTANT"][variable_name][str(gp)][-1] += list
+                        elif variable_type == "Matrix":
+                            if (self.resultant_solution == False):
+                                for gp in range(gauss_point_number):
+                                    list = self.__kratos_matrix_to__python_list(value[gp])
+                                    data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(list)
 
                             # TODO: Add pending classes
                 count += 1
@@ -435,6 +450,20 @@ class NlSensitivityJsonOutputProcess(KratosMultiphysics.Process):
         list = []
         for index in range(len(value)):
             list.append(value[index])
+        return list
+
+    def __kratos_matrix_to__python_list(self, value):
+        """ This method is executed in order to finalize the current computation
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        value -- The Kratos vector to transform
+        """
+
+        list = []
+        for row_index in range(value.Size1()):
+            for column_index in range(value.Size2()):
+                list.append(value[row_index, column_index])
         return list
 
     def __generate_variable_list_from_input(self, param):
@@ -612,6 +641,11 @@ class NlSensitivityJsonOutputProcess(KratosMultiphysics.Process):
                                     for gp in range(gauss_point_number):
                                         list = self.__kratos_vector_to__python_list(value[gp])
                                         data["RESULTANT"][variable_name][str(gp)][-1] += list
+                        elif variable_type == "Matrix":
+                            if (self.resultant_solution == False):
+                                for gp in range(gauss_point_number):
+                                    list = self.__kratos_matrix_to__python_list(value[gp])
+                                    data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(list)
 
                             # TODO: Add pending classes
                 count += 1
