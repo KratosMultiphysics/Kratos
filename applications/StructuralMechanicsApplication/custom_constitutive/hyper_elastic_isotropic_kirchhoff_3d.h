@@ -119,56 +119,56 @@ public:
 
     /**
      * @brief Computes the material response: PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rValues The Internalvalues of the law
      * @see   Parameters
      */
     void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * @brief Computes the material response: PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rValues The Internalvalues of the law
      * @see   Parameters
      */
     void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * @brief Computes the material response: Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rValues The Internalvalues of the law
      * @see   Parameters
      */
     void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * @brief Computes the material response: Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rValues The Internalvalues of the law
      * @see   Parameters
      */
     void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
       * @brief Updates the material response: Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rValues The Internalvalues of the law
       * @see   Parameters
       */
     void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
       * @brief Updates the material response: Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rValues The Internalvalues of the law
       * @see   Parameters
       */
     void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
       * @brief Updates the material response: Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rValues The Internalvalues of the law
       * @see   Parameters
       */
     void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues)  override;
 
     /**
       * @brief Updates the material response: Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rValues The Internalvalues of the law
       * @see   Parameters
       */
     void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
@@ -213,13 +213,13 @@ public:
         ) override;
 
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
-     * @param rMaterialProperties: The properties of the material
-     * @param rElementGeometry: The geometry of the element
-     * @param rCurrentProcessInfo: The current process info instance
+     * @param rMaterialProperties The properties of the material
+     * @param rElementGeometry The geometry of the element
+     * @param rCurrentProcessInfo The current process info instance
      */
     int Check(
         const Properties& rMaterialProperties,
@@ -245,38 +245,35 @@ protected:
     ///@{
 
     /**
-     * It calculates the constitutive matrix C (PK2)
-     * @param ConstitutiveMatrix: The constitutive matrix
-     * @param InverseCTensor: The inverse right Cauchy-Green tensor
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Second Lame parameter
+     * @brief It calculates the constitutive matrix C (PK2)
+     * @param rConstitutiveMatrix The constitutive matrix
+     * @param YoungModulus The young modulus
+     * @param PoissonCoefficient The Poisson coefficient
      */
     virtual void CalculateConstitutiveMatrixPK2(
-        Matrix& ConstitutiveMatrix,
+        Matrix& rConstitutiveMatrix,
         const double YoungModulus,
         const double PoissonCoefficient
         );
 
     /**
-     * It calculates the constitutive matrix C (Kirchoff)
-     * @param ConstitutiveMatrix: The constitutive matrix
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Second Lame parameter
+     * @brief It calculates the constitutive matrix C (Kirchoff)
+     * @param rConstitutiveMatrix The constitutive matrix
+     * @param rDeformationGradientF The deformation gradient
+     * @param YoungModulus The young modulus
+     * @param PoissonCoefficient The Poisson coefficient
      */
     virtual void CalculateConstitutiveMatrixKirchhoff(
-        Matrix& ConstitutiveMatrix,
-        const Matrix& DeformationGradientF,
+        Matrix& rConstitutiveMatrix,
+        const Matrix& rDeformationGradientF,
         const double YoungModulus,
         const double PoissonCoefficient
         );
 
     /**
-     * It calculates the PK2 stress vector
-     * @param InvCTensor: The inverse of the right Cauchy-Green tensor
-     * @param rStressVector: The stress vector in Voigt notation
-     * @param DeterminantF: The determinant of the deformation gradient
+     * @brief It calculates the PK2 stress vector
+     * @param rStrainVector The strain vector in Voigt notation
+     * @param rStressVector The stress vector in Voigt notation
      * @param LameLambda: First Lame parameter
      * @param LameMu: Second Lame parameter
      */
@@ -284,28 +281,29 @@ protected:
         const Vector& rStrainVector,
         Vector& rStressVector,
         const double YoungModulus,
-        const double PoissonCoefficient);
+        const double PoissonCoefficient
+        );
 
     /**
-     * It calculates the Kirchoff stress vector
-     * @param BTensor: The left Cauchy-Green tensor
-     * @param rStressVector: The stress vector in Voigt notation
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @brief It calculates the Kirchoff stress vector
+     * @param rStrainVector The strain vector in Voigt notation
+     * @param rStressVector The stress vector in Voigt notation
+     * @param rDeformationGradientF The deformation gradient
+     * @param YoungModulus The young modulus
+     * @param PoissonCoefficient The Poisson coefficient
      */
     virtual void CalculateKirchhoffStress(
         const Vector& rStrainVector,
         Vector& rStressVector,
-        const Matrix& DeformationGradientF,
+        const Matrix& rDeformationGradientF,
         const double YoungModulus,
         const double PoissonCoefficient
         );
 
     /**
-     * It calculates the strain vector
-     * @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
+     * @brief It calculates the strain vector
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
      */
     virtual void CalculateGreenLagrangianStrain(
         ConstitutiveLaw::Parameters& rValues,
@@ -313,9 +311,9 @@ protected:
         );
 
     /**
-     * Calculates the Almansi strains
-     * @param @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
+     * @brief Calculates the Almansi strains
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
      */
     virtual void CalculateAlmansiStrain(
         ConstitutiveLaw::Parameters& rValues,

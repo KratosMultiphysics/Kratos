@@ -107,8 +107,8 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
     
     /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures: The Features of the law
+     * @brief This function is designed to be called once to check compatibility with element
+     * @param rFeatures The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
 
@@ -147,22 +147,20 @@ protected:
 
     /**
      * @brief It calculates the constitutive matrix C (PK2)
-     * @param ConstitutiveMatrix: The constitutive matrix
-     * @param InverseCTensor: The inverse right Cauchy-Green tensor
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param rConstitutiveMatrix The constitutive matrix
+     * @param YoungModulus The Young modulus
+     * @param PoissonCoefficient The Poisson coefficient
      */
     void CalculateConstitutiveMatrixPK2(
-        Matrix& ConstitutiveMatrix,
+        Matrix& rConstitutiveMatrix,
         const double YoungModulus,
         const double PoissonCoefficient
         ) override;
 
     /**
      * @brief It calculates the strain vector
-     * @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
      */
     void CalculateGreenLagrangianStrain(
         ConstitutiveLaw::Parameters& rValues,
@@ -171,14 +169,14 @@ protected:
 
     /**
      * @brief Calculates the Almansi strains
-     * @param @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
      */
     void CalculateAlmansiStrain(
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
         ) override;
-    
+        
     ///@}
 
 private:
