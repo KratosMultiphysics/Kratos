@@ -861,6 +861,8 @@ public:
 
             pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
+            mpConvergenceCriteria->FinalizeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
         }
 
         //Cleaning memory after the solution
@@ -1154,6 +1156,9 @@ protected:
             pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
 
+        // Calling rDofSet
+        DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
+
         //Finalization of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
@@ -1164,6 +1169,8 @@ protected:
             pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
             pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+            mpConvergenceCriteria->FinalizeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         }
 
