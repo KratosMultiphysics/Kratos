@@ -255,19 +255,19 @@ private:
 ///@{
 
 /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   ImposeRigidMovementProcess& rThis);
-// 
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ImposeRigidMovementProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-// 
-//     return rOStream;
-// }
+inline std::istream& operator >> (std::istream& rIStream,
+                                  ImposeRigidMovementProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const ImposeRigidMovementProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 }
 #endif /* KRATOS_IMPOSE_RIGID_MOVEMENT_PROCESS defined */
