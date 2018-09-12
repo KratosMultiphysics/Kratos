@@ -107,8 +107,8 @@ public:
     ConstitutiveLaw::Pointer Clone() const override;
     
     /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures: The Features of the law
+     * @brief This function is designed to be called once to check compatibility with element
+     * @param rFeatures The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
 
