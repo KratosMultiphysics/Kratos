@@ -27,10 +27,12 @@ from test_dynamic_search import TestDynamicSearch as TTestDynamicSearch
 from test_mortar_mapper import TestMortarMapping as TTestMortarMapping
 
 # Mesh tying tests
-from SmallTests import SimplePatchTestTwoDMeshTying      as TSimplePatchTestTwoDMeshTying
-from SmallTests import SimpleSlopePatchTestTwoDMeshTying as TSimpleSlopePatchTestTwoDMeshTying
-from SmallTests import SimplestPatchTestThreeDMeshTying  as TSimplestPatchTestThreeDMeshTying
-from SmallTests import SimplePatchTestThreeDMeshTying    as TSimplePatchTestThreeDMeshTying
+from SmallTests import SimplePatchTestTwoDMeshTying            as TSimplePatchTestTwoDMeshTying
+from SmallTests import SimpleSlopePatchTestTwoDMeshTying       as TSimpleSlopePatchTestTwoDMeshTying
+from SmallTests import SimplestPatchTestThreeDMeshTying        as TSimplestPatchTestThreeDMeshTying
+from SmallTests import SimplestPatchTestThreeDTriQuadMeshTying as TSimplestPatchTestThreeDTriQuadMeshTying
+from SmallTests import SimplestPatchTestThreeDQuadTriMeshTying as TSimplestPatchTestThreeDQuadTriMeshTying
+from SmallTests import SimplePatchTestThreeDMeshTying          as TSimplePatchTestThreeDMeshTying
 
 # ALM frictionless tests
 from SmallTests import ALMHyperSimplePatchTestContact                      as TALMHyperSimplePatchTestContact
@@ -133,6 +135,8 @@ def AssembleTestSuites():
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
     smallSuite.addTest(TSimpleSlopePatchTestTwoDMeshTying('test_execution'))
     smallSuite.addTest(TSimplestPatchTestThreeDMeshTying('test_execution'))
+    smallSuite.addTest(TSimplestPatchTestThreeDTriQuadMeshTying('test_execution'))
+    smallSuite.addTest(TSimplestPatchTestThreeDQuadTriMeshTying('test_execution'))
     smallSuite.addTest(TSimplePatchTestThreeDMeshTying('test_execution'))
 
     # ALM frictionless tests
@@ -250,6 +254,8 @@ def AssembleTestSuites():
             TSimplePatchTestTwoDMeshTying,
             TSimpleSlopePatchTestTwoDMeshTying,
             TSimplestPatchTestThreeDMeshTying,
+            TSimplestPatchTestThreeDTriQuadMeshTying,
+            TSimplestPatchTestThreeDQuadTriMeshTying,
             TSimplePatchTestThreeDMeshTying,
             TALMHyperSimplePatchTestContact,
             TALMHyperSimpleSlopePatchTestContact,
