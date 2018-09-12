@@ -60,7 +60,7 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::GetLawFeatures(Features& rFeat
 {
 
     //Set the type of law
-    rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
+    rFeatures.mOptions.Set( PLANE_STRESS_LAW );
     rFeatures.mOptions.Set( FINITE_STRAINS );
     rFeatures.mOptions.Set( ISOTROPIC );
 
@@ -81,8 +81,9 @@ void HyperElasticIsotropicKirchhoffPlaneStress2D::GetLawFeatures(Features& rFeat
 void HyperElasticIsotropicKirchhoffPlaneStress2D::CalculateConstitutiveMatrixPK2(
     Matrix& rConstitutiveMatrix,
     const double YoungModulus,
-    const double PoissonCoefficient) {
-
+    const double PoissonCoefficient
+    ) 
+{
     rConstitutiveMatrix.clear();
     rConstitutiveMatrix = ZeroMatrix(3,3);
 
