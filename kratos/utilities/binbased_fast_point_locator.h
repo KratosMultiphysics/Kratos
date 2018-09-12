@@ -131,9 +131,10 @@ public:
         KRATOS_TRY
 
         // Copy the entities to a new container, as the list will be shuffled duringthe construction of the tree
-        ContainerType& r_entities_array = mrModelPart.ElementsArray();
-        IteratorType it_begin = r_entities_array.begin();
-        IteratorType it_end = r_entities_array.end();
+        ContainerType entities_array;
+        entities_array= GetContainerType(mrModelPart, entities_array);
+        IteratorType it_begin = entities_array.begin();
+        IteratorType it_end = entities_array.end();
 
         auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end));
         paux.swap(mpBinsObjectDynamic);
@@ -150,9 +151,10 @@ public:
         KRATOS_TRY
 
         // Copy the entities to a new container, as the list will be shuffled duringthe construction of the tree
-        ContainerType& r_entities_array = mrModelPart.ElementsArray();
-        IteratorType it_begin = r_entities_array.begin();
-        IteratorType it_end = r_entities_array.end();
+        ContainerType entities_array;
+        entities_array = GetContainerType(mrModelPart, entities_array);
+        IteratorType it_begin = entities_array.begin();
+        IteratorType it_end = entities_array.end();
 
         auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end, CellSize));
         paux.swap(mpBinsObjectDynamic);
@@ -344,6 +346,28 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This operation is defined to the the corresponding container type
+     * @param rModelPart The model part to get the element container
+     * @return The corresponding element array
+     */
+    static inline PointerVectorSet<Element, IndexedObject>::ContainerType GetContainerType(ModelPart& rModelPart, PointerVectorSet<Element, IndexedObject>::ContainerType rContainerArray)
+    {
+        rContainerArray = rModelPart.ElementsArray();
+        return rContainerArray;
+    }
+    
+    /**
+     * @brief This operation is defined to the the corresponding container type
+     * @param rModelPart The model part to get the condition container
+     * @return The corresponding condition array
+     */
+    static inline PointerVectorSet<Condition, IndexedObject>::ContainerType GetContainerType(ModelPart& rModelPart, PointerVectorSet<Condition, IndexedObject>::ContainerType rContainerArray)
+    {
+        rContainerArray = rModelPart.ConditionsArray();
+        return rContainerArray; 
+    }
+    
     ///@}
     ///@name Private  Access
     ///@{
