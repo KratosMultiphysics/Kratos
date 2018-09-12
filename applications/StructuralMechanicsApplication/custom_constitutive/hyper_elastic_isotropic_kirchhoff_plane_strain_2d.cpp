@@ -85,8 +85,8 @@ void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateConstitutiveMatrixPK2
 {
     rConstitutiveMatrix.clear();
     rConstitutiveMatrix = ZeroMatrix(3,3);
-    const double c0 = YoungModulus / ((1.00 + PoissonCoefficient)*(1-2*PoissonCoefficient));
-    const double c1 = (1.00 - PoissonCoefficient)*c0;
+    const double c0 = YoungModulus / ((1.0 + PoissonCoefficient)*(1.0-2.0*PoissonCoefficient));
+    const double c1 = (1.0 - PoissonCoefficient)*c0;
     const double c2 = c0 * PoissonCoefficient;
     const double c3 = (0.5 - PoissonCoefficient)*c0;
 
