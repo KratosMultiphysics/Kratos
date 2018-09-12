@@ -4,7 +4,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 
-# Other imports
+# Other
+import os
 try:
     # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
     # => in such a case the xdmf can be created manually afterwards locally
@@ -43,6 +44,8 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         if self.create_xdmf_file_level > 0 and have_xdmf is False:
             KratosMultiphysics.Logger.PrintWarning("XDMF-Writing is not available!")
             self.create_xdmf_file_level = 0
+        self.xdmf_file_name = self.model_part_name + ".xdmf"
+        self.num_output_files = self.__GetNumberOfOutputFiles()
 
     def ExecuteInitialize(self):
         model_part = self.model[self.model_part_name]
@@ -71,23 +74,13 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         self.hfd5_writer_process.ExecuteFinalizeSolutionStep()
 
-        # maybe create an xdmf-file every time to be able to constantly visualize it ...?
-        # And leave one as backup...?
-        # => should be selectable
-        # => use the same setting as the one for the hdf5-file itself
-
         # Create xdmf-file
         if self.create_xdmf_file_level > 1:
-            ## TODO also check if a new file was written and only then do this WriteXDMF!
-            # => this could be done by checking if len(create_xdmf_file.GetListOfTimeLabels()) has changed
-            # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
-            # => in such a case the xdmf can be created manually afterwards locall
-            ## Before copying check if the file exists!
-            import shutil
-            shutil.copyfile(str(self.model_part_name) + ".xdmf", str(self.model_part_name) + "_backup.xdmf")
-            ## TODO remove the file again...
-            ## for higher lvl keep them and make a counter (Here I could use the counter from above!)
-            self.__WriteXdmfFile()
+            current_num_out_files = self.__GetNumberOfOutputFiles()
+            # the number of files has changed, the xdmf is rewritten
+            if self.num_output_files != current_num_out_files:
+                self.num_output_files = current_num_out_files
+                self.__WriteXdmfFile()
 
     def ExecuteBeforeOutputStep(self):
         self.hfd5_writer_process.ExecuteBeforeOutputStep()
@@ -104,4 +97,7 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             self.__WriteXdmfFile()
 
     def __WriteXdmfFile(self):
-        create_xdmf_file.WriteXdmfFile(str(self.model_part_name) + ".h5")
+        create_xdmf_file.WriteXdmfFile(self.xdmf_file_name.replace(".xdmf", ".h5"))
+
+    def __GetNumberOfOutputFiles(self):
+        return len(create_xdmf_file.GetListOfTimeLabels(self.xdmf_file_name.replace(".xdmf", ".h5")))
