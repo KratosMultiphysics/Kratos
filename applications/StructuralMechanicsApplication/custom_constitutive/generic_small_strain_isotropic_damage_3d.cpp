@@ -407,6 +407,8 @@ int GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Check(
 
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);
 
+    KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
+    
     if ((check_base + check_integrator) > 0) return 1;
 
     return 0;
