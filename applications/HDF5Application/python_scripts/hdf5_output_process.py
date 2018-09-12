@@ -4,6 +4,13 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 
+# Other imports
+try:
+    import create_xdmf_file
+    have_xdmf = True
+except ImportError:
+    have_xdmf = False
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -22,9 +29,9 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
         default_parameters = KratosMultiphysics.Parameters("""
         {
-            "create_xdmf_file_level"            : 1,
-            "save_restart_files_in_folder"      : true,
-            "hdf5_writer_process_parameters"    : { }
+            "create_xdmf_file_level"         : 1,
+            "save_h5_files_in_folder"        : true,
+            "hdf5_writer_process_parameters" : { }
         }
         """)
 
@@ -35,6 +42,9 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_parameters)
         self.model_part_name = self.settings["hdf5_writer_process_parameters"]["model_part_name"].GetString()
         self.create_xdmf_file_level = self.settings["create_xdmf_file_level"].GetInt()
+        if self.create_xdmf_file_level > 0 and have_xdmf is False:
+            KratosMultiphysics.Logger.PrintWarning("XDMF-Writing is not available!")
+            self.create_xdmf_file_level = 0
 
     def ExecuteInitialize(self):
         model_part = self.model[self.model_part_name]
@@ -68,13 +78,16 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
 
         # Create xdmf-file
         if self.create_xdmf_file_level > 1:
+            ## TODO also check if a new file was written and only then do this WriteXDMF!
+            # => this could be done by checking if len(create_xdmf_file.GetListOfTimeLabels()) has changed
             # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
             # => in such a case the xdmf can be created manually afterwards locall
-            try:
-                import create_xdmf_file
-            except ImportError:
-                KratosMultiphysics.Logger.PrintWarning("HDF5OutputProcess", "xdmf-file could not be created!")
-            create_xdmf_file.main(str(self.model_part_name) + ".h5")
+            ## Before copying check if the file exists!
+            import shutil
+            shutil.copyfile(str(self.model_part_name) + ".xdmf", str(self.model_part_name) + "_backup.xdmf")
+            ## TODO remove the file again...
+            ## for higher lvl keep them and make a counter (Here I could use the counter from above!)
+            self.__WriteXdmfFile()
 
     def ExecuteBeforeOutputStep(self):
         self.hfd5_writer_process.ExecuteBeforeOutputStep()
@@ -89,8 +102,7 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         if self.create_xdmf_file_level == 1: # if it it larger then it will already have been created in "ExecuteFinalizeSolutionStep"
             # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
             # => in such a case the xdmf can be created manually afterwards locall
-            try:
-                import create_xdmf_file
-            except ImportError:
-                KratosMultiphysics.Logger.PrintWarning("HDF5OutputProcess", "xdmf-file could not be created!")
-            create_xdmf_file.main(str(self.model_part_name) + ".h5")
+            self.__WriteXdmfFile()
+
+    def __WriteXdmfFile(self):
+        create_xdmf_file.WriteXdmfFile(str(self.model_part_name) + ".h5")
