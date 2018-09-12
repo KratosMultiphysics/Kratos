@@ -82,8 +82,6 @@ public:
      */
     HyperElasticIsotropicNeoHookeanPlaneStrain2D();
 
-    ConstitutiveLaw::Pointer Clone() const override;
-
     /**
      * @brief Copy constructor.
      */
@@ -103,13 +101,18 @@ public:
     ///@{
 
     /**
+     * @brief Clone operation
+     */
+    ConstitutiveLaw::Pointer Clone() const override;
+    
+    /**
      * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * Dimension of the law:
+     * @brief Dimension of the law:
      */
     SizeType WorkingSpaceDimension() override
     {
@@ -117,7 +120,7 @@ public:
     };
 
     /**
-     * Voigt tensor size:
+     * @brief Voigt tensor size:
      */
     SizeType GetStrainSize() override
     {
