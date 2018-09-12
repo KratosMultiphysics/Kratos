@@ -78,7 +78,7 @@ public:
     typedef std::vector<double>::iterator                                   DistanceIteratorType;
     
     /// The entity definition
-    typedef TEntity                                                                   EntitiType;
+    typedef TEntity                                                                   EntityType;
     
     /// Container definition
     typedef typename PointerVectorSet<TEntity, IndexedObject>::ContainerType       ContainerType;
