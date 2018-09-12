@@ -52,6 +52,7 @@
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/merge_variable_lists_utility.h"
 #include "utilities/variable_redistribution_utility.h"
 
 namespace Kratos
@@ -568,6 +569,10 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 
+    class_<MergeVariableListsUtility, typename MergeVariableListsUtility::Pointer>(m, "MergeVariableListsUtility")
+    .def(init<>())
+    .def("Merge",&MergeVariableListsUtility::Merge)
+    ;
     // VariableRedistributionUtility
     typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
     typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);
