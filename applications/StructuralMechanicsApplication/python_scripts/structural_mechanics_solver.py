@@ -49,7 +49,6 @@ class MechanicalSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "",
-            "add_model_part_to_model_before_reading" : false,
             "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
@@ -123,8 +122,6 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part = self.model[model_part_name]
         else:
             self.main_model_part = KratosMultiphysics.ModelPart(model_part_name) # Model.CreateModelPart()
-            if self.settings["add_model_part_to_model_before_reading"].GetBool(): # this will be the default behavior once the Model is finished
-                self.model.AddModelPart(self.main_model_part)
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
                 raise Exception('Please specify a "domain_size" >= 0!')
