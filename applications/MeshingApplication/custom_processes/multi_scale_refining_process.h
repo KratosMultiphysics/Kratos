@@ -281,6 +281,11 @@ public:
     void InitializeRefinedModelPart(const StringVectorType& rNames);
 
     /**
+     * @brief AddNodalSolutionStepVariables copies the variables from the coarse to the refined model part
+     */
+    void AddNodalSolutionStepVariables();
+
+    /**
      * @brief AddAllPropertiesToModelPart adds all properties from an origin model part to a destination model part
      * @param rOriginModelPart
      * @param pDestinationModelPart
