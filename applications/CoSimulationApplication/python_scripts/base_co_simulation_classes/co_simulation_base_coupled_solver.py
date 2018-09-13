@@ -1,6 +1,6 @@
 # co simulation imports
 import co_simulation_tools as tools
-# Importing the CoSimulation application 
+# Importing the CoSimulation application
 import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
 from co_simulation_base_solver import CoSimulationBaseSolver
 
@@ -21,6 +21,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         # default values for all available settings
         # for mandatory settings, the type is defined
         self.full_settings = custom_settings
+        super(CoSimulationBaseCoupledSolver,self).__init__(custom_settings)
         defaultSettings = {}
         defaultSettings["echo_level"] = 1
         defaultSettings["max_coupling_iterations"] = 10
@@ -28,6 +29,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         defaultSettings["start_coupling_time"] = float #MANDATORY
         self.settings = tools.ValidateAndAssignInputParameters(defaultSettings, custom_settings["coupled_solver_settings"], False)
         self.number_of_participants = len( self.settings['participants'] )
+        self.echo_level = self.settings["echo_level"]
 
         # Get the participating solvers a map with their names and objects
         self.participating_solvers = tools.GetSolvers(self.full_settings['solvers'])
@@ -60,21 +62,21 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  @param self            The object pointer.
     def Predict(self):
         for solver_name, solver in self.participating_solvers.items():
-            self.solver.Predict()
+            solver.Predict()
 
     ## InitializeSolutionStep : Called once in the beginning of the solution step
     #
     #  @param self            The object pointer.
     def InitializeSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
-            solver.InitializeTimeStep()
+            solver.InitializeSolutionStep()
 
     ## FinalizeSolutionStep : Called once at the end of the solution step
     #
     #  @param self            The object pointer.
     def FinalizeSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
-            solver.FinalizeTimeStep()
+            solver.FinalizeSolutionStep()
 
     ## OutputSolutionStep : Called once at the end of the solution step.
     #                       The output of the solvers and / or cosimulation output
@@ -83,7 +85,23 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  @param self            The object pointer.
     def OutputSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
-            self.solvers[solver_name].OutputSolutionStep()
+            solver.OutputSolutionStep()
+
+    ## AdvanceInTime :  This function will advance the current solver to the given current_time
+    #
+    #  @param self                      The object pointer.
+    #  @current_time                    The time to which the current solver should advance
+    def AdvanceInTime(self, current_time):
+        new_time = 0.0
+        for solver_name, solver in self.participating_solvers.items():
+            new_time = max(solver.AdvanceInTime(current_time), new_time)
+
+        if self.start_coupling_time > new_time:
+            self.coupling_started = False
+        else:
+            self.coupling_started = True
+
+        return new_time
 
     ## SolveSolutionStep : This function implements the coupling workflow
     #                      specific to the coupled solver by using
@@ -104,7 +122,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  @param self            The object pointer.
     def Check(self):
         for solver_name, solver in self.participating_solvers.items():
-           self.solver.Check()
+           solver.Check()
 
     ## PrintInfo : Function to display information about the
     #              specifics of the coupled solver.
@@ -112,9 +130,8 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  @param self            The object pointer.
     def PrintInfo(self):
         print("The class", self.__class__.__name__," has the following participants:")
-
         for solver_name, solver in self.participating_solvers.items():
-            self.solver.PrintInfo()
+            solver.PrintInfo()
 
     ## _SynchronizeInputData : Private Function to obtain new (if any) input data for the
     #                          participating solvers.
