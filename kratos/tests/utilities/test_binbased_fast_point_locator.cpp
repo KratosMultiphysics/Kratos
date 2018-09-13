@@ -325,7 +325,7 @@ namespace Kratos
             Condition::Pointer p_cond_3 = this_model_part.CreateNewCondition("SurfaceCondition3D3N", 4, triangle_3, p_cond_prop);
             
             // We create the locator
-            auto point_locator = BinBasedFastPointLocator<3, SpatialContainersConfigure<3, Condition>>(this_model_part);
+            auto point_locator = BinBasedFastPointLocatorConditions<3>(this_model_part);
             point_locator.UpdateSearchDatabase();
 
             array_1d<double, 3> coordinates(3, 0.0);
