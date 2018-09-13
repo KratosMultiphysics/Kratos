@@ -457,7 +457,8 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This method returns the double contained in the current Parameter
+     * @return The double value
      */
     double GetDouble() const
     {
@@ -465,7 +466,8 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This method returns the integer contained in the current Parameter
+     * @return The integer value
      */
     int GetInt() const
     {
@@ -474,7 +476,8 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This method returns the boolean contained in the current Parameter
+     * @return The boolean value
      */
     bool GetBool() const
     {
@@ -486,7 +489,8 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This method returns the string contained in the current Parameter
+     * @return The string value
      */
     std::string GetString() const
     {
@@ -495,17 +499,19 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This method returns the vector contained in the current Parameter
+     * @return The vector value
      */
     Vector GetVector() const
     {
 //         if(mpValue->is_string() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
 //         return mpValue->get<std::string>();
-        return Vector(); // WIP
+        return Vector(); // TODO
     }
 
     /**
-     * @brief
+     * @brief This method returns the matrix contained in the current Parameter
+     * @return The matrix value
      */
     Matrix GetMatrix() const
     {
@@ -515,57 +521,64 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This method sets the double contained in the current Parameter
+     * @param Value The double value
      */
-    void SetDouble(const double value)
+    void SetDouble(const double Value)
     {
-        *mpValue=value;
+        *mpValue=Value;
     }
 
     /**
-     * @brief
+     * @brief This method sets the integer contained in the current Parameter
+     * @param Value The integer value
      */
-    void SetInt(const int value)
+    void SetInt(const int Value)
     {
-        *mpValue=value;
+        *mpValue=Value;
     }
 
     /**
-     * @brief
+     * @brief This method sets the bool contained in the current Parameter
+     * @param Value The bool value
      */
-    void SetBool(const bool value)
+    void SetBool(const bool Value)
     {
-        *mpValue=value;
+        *mpValue=Value;
     }
 
     /**
-     * @brief
+     * @brief This method sets the string contained in the current Parameter
+     * @param Value The string value
      */
-    void SetString(const std::string& value)
+    void SetString(const std::string& Value)
     {
-        *mpValue=value;
+        *mpValue=Value;
     }
 
     /**
-     * @brief
+     * @brief This method sets the vector contained in the current Parameter
+     * @param Value The vector value
      */
-    void SetVector(const Vector& value)
-    {
-        // TODO: Finish this
-//         *mpValue=value;
-    }
-
-    /**
-     * @brief
-     */
-    void SetMatrix(const Matrix& value)
+    void SetVector(const Vector& Value)
     {
         // TODO: Finish this
-//         *mpValue=value;
+//         *mpValue=Value;
     }
 
     /**
-     * @brief
+     * @brief This method sets the matrix contained in the current Parameter
+     * @param Value The matrix value
+     */
+    void SetMatrix(const Matrix& Value)
+    {
+        // TODO: Finish this
+//         *mpValue=Value;
+    }
+
+    /**
+     * @brief This returns the begin iterator
+     * @return The begin iterator
      */
     iterator begin()
     {
@@ -573,7 +586,8 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This returns the end iterator
+     * @return The end iterator
      */
     iterator end()
     {
@@ -581,7 +595,8 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This returns the constant begin iterator
+     * @return The constant begin iterator
      */
     const_iterator begin() const
     {
@@ -589,17 +604,17 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This returns the constant end iterator
+     * @return The constant end iterator
      */
     const_iterator end() const
     {
         return const_iterator(mpValue->cend(),  mpRoot);
     }
 
-    //*******************************************************************************************************
-    //methods for array
     /**
-     * @brief
+     * @brief This method returns the total size of the current array parameter
+     * @return The size of the current array parameter
      */
     SizeType size() const
     {
@@ -608,7 +623,8 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This method does a swap between two parameters
+     * @param rOther The othe parameter to compute the swap
      */
     void swap(Parameters& rOther) noexcept
     {
@@ -626,7 +642,9 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This method returns an array item given an index
+     * @param Index The index of the parameter to obtain
+     * @return The parameter corresponding to the given index
      */
     Parameters GetArrayItem(const IndexType Index)
     {
@@ -641,13 +659,16 @@ public:
     /**
      * @brief
      */
-    void SetArrayItem(const IndexType Index, const Parameters& other_array_item)
+    void SetArrayItem(
+        const IndexType Index,
+        const Parameters& rOtherArrayItem
+        )
     {
         if(mpValue->is_array() == false) {
             KRATOS_ERROR << "SetArrayItem only makes sense if the value if of Array type" << std::endl;
         } else {
             KRATOS_ERROR_IF(Index >= mpValue->size()) << "Index exceeds array size. Index value is : " << Index <<std::endl;
-            (*mpValue)[Index] = *other_array_item.mpValue;
+            (*mpValue)[Index] = *rOtherArrayItem.mpValue;
         }
     }
 
@@ -666,6 +687,7 @@ public:
     void Append(const double Value)
     {
         // TODO: Implement this
+//         mpValue->push_back();
     }
 
     /**
