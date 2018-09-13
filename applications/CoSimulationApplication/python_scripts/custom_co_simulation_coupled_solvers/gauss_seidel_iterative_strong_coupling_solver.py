@@ -16,9 +16,10 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         default_settings["convergence_criteria_settings"] = dict    #MANDATORY
         self.settings = tools.ValidateAndAssignInputParameters(default_settings, self.settings, False)
         self.number_of_participants = len( self.settings['participants'] )
+        self.max_num_coupling_iterations = self.settings['max_coupling_iterations']
 
         if not self.number_of_participants == 2:
-            raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
+            raise Exception(tools.bcolors.FAIL + "Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
         ### Importing the Participant modules
         self.participants_setting_dict = self.full_settings["coupled_solver_settings"]["participants"]
@@ -57,33 +58,33 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         #self.convergence_criteria.InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        pass
-
-        """
-        for iteration in range(self.num_coupling_iterations):
+        for iteration in range(self.max_num_coupling_iterations):
             if self.echo_level > 0:
-                couplingsolverprint(self.lvl, self._Name(),
-                                    cyan("Coupling iteration:"), bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
+                print("\t"+ tools.bcolors.HEADER + str(self._Name()) + " : "+
+                                    tools.bcolors.MEGENTA + "Coupling iteration: ", tools.bcolors.BOLD + str(iteration+1) +
+                                    " / " + tools.bcolors.BLUE + str(self.max_num_coupling_iterations) + tools.bcolors.ENDC)
 
-            self.convergence_accelerator.InitializeNonLinearIteration()
-            self.convergence_criteria.InitializeNonLinearIteration()
+            #self.convergence_accelerator.InitializeNonLinearIteration()
+            #self.convergence_criteria.InitializeNonLinearIteration()
 
             for solver_name, solver in self.participating_solvers.items():
-                self._SynchronizeInputData(solver, solver_name)
+                #self._SynchronizeInputData(solver, solver_name)
                 solver.SolveSolutionStep()
-                self._SynchronizeOutputData(solver, solver_name)
+                #self._SynchronizeOutputData(solver, solver_name)
 
-            self.convergence_accelerator.FinalizeNonLinearIteration()
-            self.convergence_criteria.FinalizeNonLinearIteration()
+            #self.convergence_accelerator.FinalizeNonLinearIteration()
+            #self.convergence_criteria.FinalizeNonLinearIteration()
 
-            if self.convergence_criteria.IsConverged():
+            """if self.convergence_criteria.IsConverged():
                 if self.echo_level > 0:
-                    couplingsolverprint(self.lvl, self._Name(), green("### CONVERGENCE WAS ACHIEVED ###"))
+                    print(tools.bcolors.GREEN + "### CONVERGENCE WAS ACHIEVED ###" + tools.bcolors.ENDC )
                 break
             else:
-                self.convergence_accelerator.ComputeUpdate()
+                self.convergence_accelerator.ComputeUpdate()"""
 
-            if iteration+1 >= self.num_coupling_iterations and self.echo_level > 0:
-                couplingsolverprint(self.lvl, self._Name(), red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
-        """
+            if iteration+1 >= self.max_num_coupling_iterations and self.echo_level > 0:
+                print("\t"+tools.bcolors.FAIL + "### CONVERGENCE NOT ACHIEVED IN STRONG COUPLING ITERATIONS ###" + tools.bcolors.ENDC)
+
+    def _Name(self):
+        return self.settings['name']
 
