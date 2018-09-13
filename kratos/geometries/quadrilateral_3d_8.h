@@ -1473,39 +1473,39 @@ private:
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            row( shape_function_values, pnt )( 0 ) =
+            row( shape_function_values, pnt )[0] =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() )
                   * ( 1.0 + integration_points[pnt].X()
                       + integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 1 ) =
+            row( shape_function_values, pnt )[1] =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0
                           - integration_points[pnt].X()
                           + integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 2 ) =
+            row( shape_function_values, pnt )[2] =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0
                           - integration_points[pnt].X()
                           - integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 3 ) =
+            row( shape_function_values, pnt )[3] =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0
                         + integration_points[pnt].Y() ) * ( 1.0 ) * ( 1.0
                                 + integration_points[pnt].X()
                                 - integration_points[pnt].Y() ) ) / 4.0;
-            row( shape_function_values, pnt )( 4 ) =
+            row( shape_function_values, pnt )[4] =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) ) / 2.0;
-            row( shape_function_values, pnt )( 5 ) =
+            row( shape_function_values, pnt )[5] =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y()
                      * integration_points[pnt].Y() ) ) / 2.0 ;
-            row( shape_function_values, pnt )( 6 ) =
+            row( shape_function_values, pnt )[6] =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() )
                  * ( 1.0 + integration_points[pnt].Y() ) ) / 2.0 ;
-            row( shape_function_values, pnt )( 7 ) =
+            row( shape_function_values, pnt )[7] =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y()
                      * integration_points[pnt].Y() ) ) / 2.0 ;

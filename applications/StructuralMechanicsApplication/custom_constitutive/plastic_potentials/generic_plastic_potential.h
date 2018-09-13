@@ -31,6 +31,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -45,16 +48,25 @@ namespace Kratos
 /**
  * @class GenericPlasticPotential
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief If the plastic potential is of the same type as the yield surface we talk about associated flow rules, if a
+different function is used, it is non-associated. For metals associated flow rules work great, while frictional materials typically need non-associated flow rules
+ * @details This is a "template" plastic potential, please define properly your plastic potential 
+ * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
+template <SizeType TVoigtSize = 6>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
 {
   public:
     ///@name Type Definitions
     ///@{
 
+    /// We define the dimension
+    static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
+      
+    /// The define the Voigt size
+    static constexpr SizeType VoigtSize = TVoigtSize;
+      
     /// Counted pointer of GenericPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(GenericPlasticPotential);
 
@@ -94,19 +106,29 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector
-     * @param Deviator The deviatoric part of the stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector &rg,
-        const Properties &rMaterialProperties)
+        array_1d<double, VoigtSize>& rGFlux,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
+    }
+
+    /**
+     * @brief This method defines the check to be performed in the plastic potential
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        return 0;
     }
 
     ///@}
@@ -127,7 +149,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -157,7 +179,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 

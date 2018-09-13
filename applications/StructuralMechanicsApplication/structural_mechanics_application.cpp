@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrándiz
+//    Co-authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes

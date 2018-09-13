@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/checks.h"
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
@@ -30,6 +31,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -47,8 +51,10 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief: This object integrates the predictive stress using the isotropic damage theory by means of
  * linear/exponential softening.
- * @details
- * @tparam TYieldSurfaceType
+ * @details The definitions of these classes is completely static, the derivation is done in a static way
+ * The damage integrator requires the definition of the following properties:
+ * - SOFTENING_TYPE: The fosftening behaviour considered (linear, exponential,etc...)
+ * @tparam TYieldSurfaceType The yield surface considered
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TYieldSurfaceType>
@@ -61,6 +67,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     /// The type of yield surface
     typedef TYieldSurfaceType YieldSurfaceType;
 
+    /// The define the working dimension size, already defined in the yield surface
+    static constexpr SizeType Dimension = YieldSurfaceType::Dimension;
+
+    /// The define the Voigt size, already defined in the yield surface
+    static constexpr SizeType VoigtSize = YieldSurfaceType::VoigtSize;
+    
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
@@ -102,30 +114,31 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param UniaxialStress The equivalent uniaxial stress
      * @param Damage The internal variable of the damage model
      * @param Threshold The maximum uniaxial stress achieved previously
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void IntegrateStressVector(
-        Vector &rPredictiveStressVector,
+        array_1d<double, VoigtSize>& rPredictiveStressVector,
         const double UniaxialStress,
-        double &rDamage,
-        double &rThreshold,
-        const Properties &rMaterialProperties,
-        const double CharacteristicLength)
+        double& rDamage,
+        double& rThreshold,
+        ConstitutiveLaw::Parameters& rValues,
+        const double CharacteristicLength
+        )
     {
-        const int softening_type = rMaterialProperties[SOFTENING_TYPE];
-        double DamageParameter;
-        TYieldSurfaceType::CalculateDamageParameter(rMaterialProperties, DamageParameter, CharacteristicLength);
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        const int softening_type = r_material_properties[SOFTENING_TYPE];
+        double damage_parameter;
+        TYieldSurfaceType::CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
 
         switch (softening_type)
         {
         case static_cast<int>(SofteningType::Linear):
-            CalculateLinearDamage(UniaxialStress, rThreshold, DamageParameter,
-                                  CharacteristicLength, rMaterialProperties, rDamage);
+            CalculateLinearDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
             break;
         case static_cast<int>(SofteningType::Exponential):
-            CalculateExponentialDamage(UniaxialStress, rThreshold, DamageParameter,
-                                       CharacteristicLength, rMaterialProperties, rDamage);
+            CalculateExponentialDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
             break;
         default:
             KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
@@ -138,8 +151,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @brief This computes the damage variable according to exponential softening
      * @param UniaxialStress The equivalent uniaxial stress
      * @param Threshold The maximum uniaxial stress achieved previously
-     * @param Damage The internal variable of the damage model
-     * @param rMaterialProperties The material properties
+     * @param rDamage The internal variable of the damage model
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateExponentialDamage(
@@ -147,20 +160,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const double Threshold,
         const double DamageParameter,
         const double CharacteristicLength,
-        const Properties &rMaterialProperties,
-        double &Damage)
+        ConstitutiveLaw::Parameters& rValues,
+        double& rDamage
+        )
     {
         double initial_threshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
-        Damage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter * (1.0 - UniaxialStress / initial_threshold));
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
+        rDamage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter * (1.0 - UniaxialStress / initial_threshold));
     }
 
     /**
      * @brief This computes the damage variable according to linear softening
      * @param UniaxialStress The equivalent uniaxial stress
      * @param Threshold The maximum uniaxial stress achieved previously
-     * @param Damage The internal variable of the damage model
-     * @param rMaterialProperties The material properties
+     * @param rDamage The internal variable of the damage model
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateLinearDamage(
@@ -168,12 +182,39 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const double Threshold,
         const double DamageParameter,
         const double CharacteristicLength,
-        const Properties &rMaterialProperties,
-        double &Damage)
+        ConstitutiveLaw::Parameters& rValues,
+        double& rDamage
+        )
     {
         double initial_threshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
-        Damage = (1.0 - initial_threshold / UniaxialStress) / (1.0 + DamageParameter);
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
+        rDamage = (1.0 - initial_threshold / UniaxialStress) / (1.0 + DamageParameter);
+    }
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void GetInitialUniaxialThreshold(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold
+        )
+    {
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, rThreshold);
+    }
+
+    /**
+     * @brief This method defines in the CL integrator
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        KRATOS_CHECK_VARIABLE_KEY(SOFTENING_TYPE);
+
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "HARDENING_CURVE is not a defined value" << std::endl;
+
+        return TYieldSurfaceType::Check(rMaterialProperties);
     }
 
     ///@}

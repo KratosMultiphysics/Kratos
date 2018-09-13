@@ -66,8 +66,7 @@ namespace Kratos
 /**
  * @class SmallStrainIsotropicPlasticityFactory3D
  * @ingroup StructuralMechanicsApplication
- * @brief: dummy class to register, only implements create()
- * @details
+ * @brief Dummy class to register, only implements create()
  * @author Alejandro Cornejo & Lucia Barbu
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticityFactory3D
@@ -99,19 +98,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticit
     }
 
     /**
-     * creates a new constitutive law pointer
+     * @brief Creates a new constitutive law pointer
      * @param NewParameters The configuration parameters of the new constitutive law
      * @return a Pointer to the new constitutive law
      */
     ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
     {
-        const std::string &yield = NewParameters["yield_surface"].GetString();
-        const std::string &potential = NewParameters["plastic_potential"].GetString();
+        const std::string& yield = NewParameters["yield_surface"].GetString();
+        const std::string& potential = NewParameters["plastic_potential"].GetString();
 
         KRATOS_ERROR_IF(yield == "SimoJu") << "SimoJu yield surface not available in plasticity " << yield << std::endl;
         KRATOS_ERROR_IF(yield == "Rankine") << "Rankine yield surface not available in plasticity " << yield << std::endl;
 
-        const std::string &name = "SmallStrainIsotropicPlasticity3D" + yield + potential;
+        const std::string& name = "SmallStrainIsotropicPlasticity3D" + yield + potential;
         return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
     }
 

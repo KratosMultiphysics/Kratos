@@ -100,21 +100,6 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         else:
             raise Exception("Variable " + self.variable_name + " not registered")
 
-        # Determine the geometry of the element
-        for elem in self.computing_model_part.Elements:
-            num_nodes = len(elem.GetNodes())
-            break
-        if (self.dimension == 2):
-            if (num_nodes == 3):
-                self.geometry_element = "Triangle"
-            elif (num_nodes == 4):
-                self.geometry_element = "Quadrilateral"
-        else:
-            if (num_nodes == 4):
-                self.geometry_element = "Tetrahedron"
-            elif (num_nodes == 8):
-                self.geometry_element = "Hexahedron"
-
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
 
@@ -189,14 +174,24 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         # We define the condition name to be used
         return "MeshTyingMortar"
 
-    def _get_final_string(self):
+    def _get_final_string(self, key = "0"):
         """ This method returns the final string of the condition name
 
         Keyword arguments:
         self -- It signifies an instance of a class.
+        key -- The key to identify the current pair
         """
-
-        return self.geometry_element + self.type_variable
+        # Determine the geometry of the element
+        super(MeshTyingProcess, self)._get_final_string(key)
+        number_nodes, number_nodes_master = self._compute_number_nodes_elements()
+        geometry_element = self.__type_element(number_nodes)
+        geometry_element_master = self.__type_element(number_nodes_master)
+        # We compute the number of nodes of the conditions
+        number_nodes, number_nodes_master = super(MeshTyingProcess, self)._compute_number_nodes()
+        if (number_nodes != number_nodes_master):
+            return geometry_element + str(number_nodes_master) + "N" + geometry_element_master
+        else:
+            return geometry_element
 
     def _initialize_search_conditions(self):
         """ This method initializes some conditions values
@@ -226,3 +221,49 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
 
         # Setting the conditions
         KM.VariableUtils().SetNonHistoricalVariable(KM.NORMAL, zero_vector, self._get_process_model_part().Conditions)
+
+    def _compute_number_nodes_elements(self):
+        """ This method computes the  number of nodes per element
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We compute the number of nodes of the geometry
+        if (self.predefined_master_slave is True and self.dimension == 3):
+            slave_defined = False
+            master_defined = False
+            for elem in self.computing_model_part.Elements:
+                nodes = elem.GetNodes()
+                for node in nodes:
+                    if (node.Is(KM.SLAVE)):
+                        number_nodes = len(elem.GetNodes())
+                        slave_defined = True
+                    if (node.Is(KM.MASTER)):
+                        number_nodes_master = len(elem.GetNodes())
+                        master_defined = True
+                if (slave_defined and master_defined):
+                    break
+        else:
+            number_nodes = len(self.computing_model_part.Elements[1].GetNodes())
+            number_nodes_master = number_nodes
+
+        return number_nodes, number_nodes_master
+
+    def __type_element(self, number_nodes):
+        """ This method computes the type of element considered
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        number_nodes -- The number of nodes of the element
+        """
+
+        if (self.dimension == 2):
+            if (number_nodes == 3):
+                return "Triangle"
+            elif (number_nodes == 4):
+                return "Quadrilateral"
+        else:
+            if (number_nodes == 4):
+                return "Tetrahedron"
+            elif (number_nodes == 8):
+                return "Hexahedron"

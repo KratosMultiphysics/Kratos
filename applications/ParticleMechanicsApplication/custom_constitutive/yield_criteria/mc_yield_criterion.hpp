@@ -88,7 +88,7 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rBeta) override;
+    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle) override;
 
     ///@name Access
     ///@{

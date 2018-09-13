@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrándiz
+//    Co-authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_LOCAL_REFINE_TRIANGLE_MESH)
@@ -67,15 +67,15 @@ public:
     /// Destructor
     ~LocalRefineTriangleMesh()
     = default;
-    
+
     ///@}
     ///@name Operators
     ///@{
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
     * Computes the coordinate of the baricenter node of the element (mean of the faces's baricenter)
     * Insert the news nodes in the center of elements and interopolate the variables.
@@ -93,8 +93,8 @@ public:
         NodesArrayType& pNodes = this_model_part.Nodes();
         int Id_Center = pNodes.size() + 1;
         ElementsArrayType& rElements = this_model_part.Elements();
-        ElementsArrayType::iterator it_begin = rElements.ptr_begin(); 
-        ElementsArrayType::iterator it_end = rElements.ptr_end(); 
+        ElementsArrayType::iterator it_begin = rElements.ptr_begin();
+        ElementsArrayType::iterator it_end = rElements.ptr_end();
 
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
         {
@@ -136,22 +136,22 @@ public:
                 double* step_data1 = geom[0].SolutionStepData().Data(step);
                 double* step_data2 = geom[1].SolutionStepData().Data(step);
                 double* step_data3 = geom[2].SolutionStepData().Data(step);
-		
+
                 // Copying this data in the position of the vector we are interested in
                 for (unsigned int j = 0; j < step_data_size; j++)
                 {
                     new_step_data[j] = 0.333333333333333333 * (step_data1[j] + step_data2[j] + step_data3[j]);
                 }
             }
-            
+
             node_center.push_back(Id_Center);
             Id_Center++;
         }
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
     * It erases the old elements and it creates the new ones
     * @param Coord: The coordinates of the element
@@ -159,7 +159,7 @@ public:
     * @param interpolate_internal_variables: A boolean that defines if it is necessary to interpolate the internal variables
     * @return this_model_part: The model part of the model (it is the input too)
     */
-    
+
     void EraseOldElementAndCreateNewElement(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord,
@@ -182,10 +182,10 @@ public:
         std::vector<int> aux;
 
         ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
-	
+
 	std::cout << "****************** REFINING MESH ******************" << std::endl;
         std::cout << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
-	
+
         PointerVector< Element > Old_Elements;
 
         unsigned int current_id = (rElements.end() - 1)->Id() + 1;
@@ -291,20 +291,20 @@ public:
 
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
     * Remove the old conditions and creates new ones
     * @param Coord: The coordinates of the nodes of the geometry
     * @return this_model_part: The model part of the model (it is the input too)
     */
-    
+
     void EraseOldConditionsAndCreateNew(
 	ModelPart& this_model_part,
 	const compressed_matrix<int>& Coord
 	 ) override
     {
         KRATOS_TRY;
-	
+
         PointerVector< Condition > New_Conditions;
 
         ConditionsArrayType& rConditions = this_model_part.Conditions();
@@ -317,15 +317,15 @@ public:
             unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
 
             ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
-	    
+
 	    const unsigned int dimension = it_begin->GetGeometry().WorkingSpaceDimension();
 
             unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
-	    
+
 	    for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
 	    {
                 Condition::GeometryType& geom = it->GetGeometry();
-		
+
                 if (geom.size() == 2)
                 {
                     int index_0 = geom[0].Id() - 1;
@@ -422,19 +422,19 @@ public:
 
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
-    * It calculates the new edges of the new triangles, 
+    * It calculates the new edges of the new triangles,
     * first it calculates the new edges correspondign to the lower face (as a triangle),
     * later it added to the upper face
     * @param geom: The triangle element geometry
     * @param edge_ids: The ids of the edges
     * @return aux: The vector that includes the index of the new edges
     */
-    
+
     void CalculateEdges(
             Element::GeometryType& geom,
             const compressed_matrix<int>& Coord,
@@ -443,7 +443,7 @@ public:
             ) override
     {
         aux.resize(6, false);
-        
+
         int index_0 = geom[0].Id() - 1;
         int index_1 = geom[1].Id() - 1;
         int index_2 = geom[2].Id() - 1;
@@ -488,7 +488,7 @@ public:
 	    {
 	      edge_ids[0] = 0;
 	    }
-            else 
+            else
 	    {
 	      edge_ids[0] = 1;
 	    }
@@ -505,7 +505,7 @@ public:
 	    {
 	      edge_ids[1] = 1;
 	    }
-            else 
+            else
 	    {
 	      edge_ids[1] = 2;
 	    }
@@ -518,11 +518,11 @@ public:
         // Edge 20
         if (aux[5] < 0)
 	{
-            if (index_2 > index_0) 
+            if (index_2 > index_0)
 	    {
 	      edge_ids[2] = 2;
 	    }
-            else 
+            else
 	    {
 	      edge_ids[2] = 0;
 	    }
@@ -540,7 +540,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-   
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -548,7 +548,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-   
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -561,7 +561,7 @@ protected:
     ///@name Protected LifeCycle
     ///@{
     ///@}
-    
+
 private:
     ///@name Private static Member Variables
     ///@{
@@ -569,7 +569,7 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
-   
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -590,7 +590,7 @@ private:
     ///@name Private LifeCycle
     ///@{
     ///@}
- 
+
 };
 
 } // namespace Kratos.
