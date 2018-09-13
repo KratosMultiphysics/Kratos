@@ -69,6 +69,7 @@
 #include "custom_elements/embedded_navier_stokes.h"
 #include "custom_elements/embedded_ausas_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes.h"
+#include "custom_elements/two_fluid_navier_stokes.h"
 
 
 #include "custom_utilities/qsvms_data.h"
@@ -76,6 +77,7 @@
 #include "custom_utilities/fic_data.h"
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
@@ -269,6 +271,7 @@ private:
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMS2D3N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMS3D4N;
+    
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
     const TwoFluidVMSLinearizedDarcy<3,4> mTwoFluidVMSLinearizedDarcy3D;
@@ -366,6 +369,10 @@ private:
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokes<2> mCompressibleNavierStokes2D;
     const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
+
+    /// Two Fluid Navier-Stokes symbolic element
+    const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
+    const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

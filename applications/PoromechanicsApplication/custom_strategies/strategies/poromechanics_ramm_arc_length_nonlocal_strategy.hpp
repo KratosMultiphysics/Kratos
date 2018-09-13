@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
-//   Revision:            $Revision:                 1.0 $
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_RAMM_ARC_LENGTH_NONLOCAL_STRATEGY)
 #define KRATOS_POROMECHANICS_RAMM_ARC_LENGTH_NONLOCAL_STRATEGY
@@ -152,7 +159,7 @@ public:
 	{
         // ********** Prediction phase **********
                 
-        std::cout << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
+        KRATOS_INFO("Ramm's Arc Length Nonlocal Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
         
         // Initialize variables
 		DofsArrayType& rDofSet = mpBuilderAndSolver->GetDofSet();
@@ -392,8 +399,8 @@ protected:
             NormDx = TSparseSpace::TwoNorm(mDx);
             ReferenceDofsNorm = this->CalculateReferenceDofsNorm(rDofSet);
             dofs_ratio = NormDx/ReferenceDofsNorm;
-            std::cout << "TEST ITERATION: " << iteration_number << std::endl;
-            std::cout << "    Dofs Ratio = " << dofs_ratio << std::endl;
+            KRATOS_INFO("Ramm's Arc Length Nonlocal Strategy") << "TEST ITERATION: " << iteration_number << std::endl;
+            KRATOS_INFO("Ramm's Arc Length Nonlocal Strategy") << "    Dofs Ratio = " << dofs_ratio << std::endl;
             
             if(dofs_ratio <= 1.0e-3)
                 is_converged = true;

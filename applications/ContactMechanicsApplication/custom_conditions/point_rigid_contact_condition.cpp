@@ -45,9 +45,9 @@ namespace Kratos
    {
 
       mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-      mpFrictionLaw = FrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
-      //mpFrictionLaw = FrictionLaw::Pointer( new HardeningCoulombFrictionLaw() );
-      //DO NOT ADD DOFS HERE!!!
+      mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
+      //mpFrictionLaw = Kratos::make_shared<HardeningCoulombFrictionLaw>();
+
    }
 
 
@@ -59,8 +59,8 @@ namespace Kratos
 
       mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
       mpRigidWall = pRigidWall;
-      mpFrictionLaw = FrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
-      //mpFrictionLaw = FrictionLaw::Pointer( new HardeningCoulombFrictionLaw() );
+      mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
+      //mpFrictionLaw = Kratos::make_shared<HardeningCoulombFrictionLaw>();
 
       //DO NOT ADD DOFS HERE!!!
    }
@@ -75,8 +75,8 @@ namespace Kratos
       ,mContactStressVector(rOther.mContactStressVector)
 
    {
-      mpFrictionLaw = FrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );
-      //mpFrictionLaw = FrictionLaw::Pointer( new HardeningCoulombFrictionLaw() );
+     mpFrictionLaw = Kratos::make_shared<CoulombAdhesionFrictionLaw>();
+      //mpFrictionLaw = Kratos::make_shared<HardeningCoulombFrictionLaw>();
    }
 
    //***********************************************************************************
@@ -86,7 +86,7 @@ namespace Kratos
          NodesArrayType const& ThisNodes,
          PropertiesType::Pointer pProperties) const
    {
-      return Condition::Pointer(new PointRigidContactCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+     return Kratos::make_shared<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
    }
 
 
@@ -95,7 +95,7 @@ namespace Kratos
 
    Condition::Pointer PointRigidContactCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
    {
-     return Condition::Pointer(new PointRigidContactCondition(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
+     return Kratos::make_shared<PointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
    }
 
 
@@ -168,7 +168,7 @@ namespace Kratos
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
       unsigned int       condition_size  = number_of_nodes * dimension;
 
-      if ( rValues.size() != condition_size ) 
+      if ( rValues.size() != condition_size )
          rValues.resize( condition_size, false );
 
       for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -256,9 +256,9 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void PointRigidContactCondition::AddExplicitContribution(const VectorType& rRHSVector, 
-         const Variable<VectorType>& rRHSVariable, 
-         Variable<array_1d<double,3> >& rDestinationVariable, 
+   void PointRigidContactCondition::AddExplicitContribution(const VectorType& rRHSVector,
+         const Variable<VectorType>& rRHSVariable,
+         Variable<array_1d<double,3> >& rDestinationVariable,
          const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
@@ -321,10 +321,10 @@ namespace Kratos
 
       mContactStressVector.resize(voigt_size);
       noalias(mContactStressVector) = ZeroVector(voigt_size);
-	
+
       KRATOS_CATCH( "" )
    }
-  
+
    //************************************************************************************
    //************************************************************************************
 
@@ -334,23 +334,23 @@ namespace Kratos
 
       const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
       const unsigned int voigt_size = dimension * (dimension +1) * 0.5;
-      
+
       if(mContactStressVector.size() != voigt_size){
 	mContactStressVector.resize(voigt_size);
 	noalias(mContactStressVector) = ZeroVector(voigt_size);
       }
-	
+
       KRATOS_CATCH( "" )
    }
-  
+
    //************************************************************************************
    //************************************************************************************
    void PointRigidContactCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
-	
+
       ClearNodalForces();
-      
+
       KRATOS_CATCH( "" )
    }
 
@@ -367,7 +367,7 @@ namespace Kratos
    void PointRigidContactCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
-	
+
       KRATOS_CATCH( "" )
    }
    //***********************************************************************************
@@ -415,12 +415,12 @@ namespace Kratos
 
       const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
       const unsigned int voigt_size = dimension * (dimension +1) * 0.5;
-	
+
       rVariables.Initialize();
 
       rVariables.ContactStressVector.resize(voigt_size);
       noalias(rVariables.ContactStressVector) = ZeroVector(voigt_size);
-      
+
       KRATOS_CATCH( "" )
 
    }
@@ -468,10 +468,10 @@ namespace Kratos
 
 	 if ( rLocalSystem.CalculationFlags.Is(PointRigidContactCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	   {
-	     //contribution to external forces 
+	     //contribution to external forces
 	     this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
 	   }
-	
+
          if( Variables.Options.Is(ACTIVE) ){
 
 	   noalias(mContactStressVector) = Variables.ContactStressVector;
@@ -515,10 +515,10 @@ namespace Kratos
             }
 
          }
-      } 
+      }
       else{
 
-         MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
+         MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
          // operation performed: add Kg to the rLefsHandSideMatrix
          this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -558,7 +558,7 @@ namespace Kratos
       }
       else{
 
-         VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+         VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
          // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
          this->CalculateAndAddContactForces( rRightHandSideVector, rVariables, rIntegrationWeight );

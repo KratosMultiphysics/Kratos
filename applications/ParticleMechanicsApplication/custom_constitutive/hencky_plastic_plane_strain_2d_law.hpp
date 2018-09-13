@@ -179,6 +179,8 @@ protected:
 
     Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix) override;
 
+    Matrix SetMatrixToAppropriateDimension(Matrix& rMatrix) override;
+
     void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix,
                                    MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
                                    Vector& rMainStrain) override;

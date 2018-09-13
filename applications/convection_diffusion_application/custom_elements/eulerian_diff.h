@@ -1,46 +1,13 @@
-/*
-==============================================================================
-KratosIncompressibleFluidApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
-
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Riccardo Rossi
+//
 
 #if !defined(KRATOS_EULERIAN_DIFFUSION_ELEMENT_INCLUDED )
 #define  KRATOS_EULERIAN_DIFFUSION_ELEMENT_INCLUDED
@@ -50,7 +17,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -130,9 +96,12 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY
-        return Element::Pointer(new EulerianDiffusionElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-        KRATOS_CATCH("");
+        return Kratos::make_shared<EulerianDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+    
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<EulerianDiffusionElement>(NewId, pGeom, pProperties);
     }
 
 
@@ -161,7 +130,7 @@ public:
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
         //getting data for the given geometry
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
         double Volume;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
@@ -224,7 +193,7 @@ public:
         specific_heat *= lumping_factor;
         //heat_flux *= lumping_factor;
 
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
+        BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
 
         bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
@@ -367,7 +336,7 @@ protected:
     ///@{
 
     //gauss points for the 3D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4, 4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4, 4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
         Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
@@ -376,7 +345,7 @@ protected:
     }
 
     //gauss points for the 2D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;

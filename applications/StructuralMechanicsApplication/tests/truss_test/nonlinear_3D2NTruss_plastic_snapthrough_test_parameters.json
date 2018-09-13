@@ -1,0 +1,122 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "nonlinear_3D2NTruss_snapthrough_plasticity_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 0.5,
+        "start_time"      : 0.0,
+        "end_time"        : 46,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "Static",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
+        },
+        "material_import_settings" :{
+            "materials_filename": "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test_materials.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 1e-14,
+        "residual_absolute_tolerance"        : 1e-14,
+        "max_iteration"                      : 400,
+        "problem_domain_sub_model_part_list" : ["Parts_structure"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann"],
+        "rotation_dofs"                      : false
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_dirichletXYZ",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"	  : [true,true,true],
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_dirichletXZ",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"	  : [true,false,true],
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "check"         : "DirectorVectorNonZero direction",
+        "Parameters"    : {
+            "model_part_name" : "PointLoad3D_neumann",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : "t",
+            "direction"       : [0,1.0,0.0],
+            "interval"        : [0.0,15.0]
+        }
+    },{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "check"         : "DirectorVectorNonZero direction",
+        "Parameters"    : {
+            "model_part_name" : "PointLoad3D_neumann",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : "30-t",
+            "direction"       : [0,1.0,0.0],
+            "interval"        : [15.0,"End"]
+        }
+    }],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    },
+    "list_other_processes": [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["DISPLACEMENT","REACTION","POINT_LOAD"],
+            "gauss_points_check_variables" : ["FORCE","GREEN_LAGRANGE_STRAIN_VECTOR","PK2_STRESS_VECTOR"],
+            "input_file_name"  : "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test_results.json",
+            "model_part_name"  : "Structure",
+            "time_frequency"   : 0.1
+        }
+    }
+    ],
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT","REACTION","POINT_LOAD"],
+            "gauss_points_output_variables" : ["FORCE","GREEN_LAGRANGE_STRAIN_VECTOR","PK2_STRESS_VECTOR"],
+            "output_file_name" : "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test_results.json",
+            "model_part_name"  : "Structure",
+            "time_frequency"   : 0.1
+        }
+    }
+    ]
+}

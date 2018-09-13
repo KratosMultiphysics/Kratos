@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined(KRATOS_DOF_H_INCLUDED )
@@ -37,7 +37,10 @@ namespace Kratos
 
 #define KRATOS_DOF_TRAITS \
         KRATOS_MAKE_DOF_TRAIT(0) Variable<TDataType> KRATOS_END_DOF_TRAIT(0); \
-        KRATOS_MAKE_DOF_TRAIT(1) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 3> > > KRATOS_END_DOF_TRAIT(1);
+        KRATOS_MAKE_DOF_TRAIT(1) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 3> > > KRATOS_END_DOF_TRAIT(1); \
+        KRATOS_MAKE_DOF_TRAIT(2) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 4> > > KRATOS_END_DOF_TRAIT(2); \
+        KRATOS_MAKE_DOF_TRAIT(3) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 6> > > KRATOS_END_DOF_TRAIT(3); \
+        KRATOS_MAKE_DOF_TRAIT(4) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 9> > > KRATOS_END_DOF_TRAIT(4);
 
 
 
@@ -45,8 +48,6 @@ template<class TDataType, class TVariableType = Variable<TDataType> >
 struct DofTrait
 {
     static const int Id;
-
-
 };
 
 
@@ -87,10 +88,10 @@ KRATOS_DOF_TRAITS
 ///@name Kratos Classes
 ///@{
 
-/// Dof represents a degree of freedom (DoF). 
+/// Dof represents a degree of freedom (DoF).
 /** It is a lightweight object which holds its variable, like TEMPERATURE, its
-state of freedom, and a reference to its value in the data structure. 
-This class enables the system to work with different set of dofs and also 
+state of freedom, and a reference to its value in the data structure.
+This class enables the system to work with different set of dofs and also
 represents the Dirichlet condition assigned to each dof.
 */
 template<class TDataType>
@@ -142,10 +143,13 @@ public:
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
+            << "The Dof-Variable " << rThisVariable.Name() << " is not "
+            << "in the list of variables" << std::endl;
     }
 
-    /** Constructor. This constructor takes the same input 
-    as the previous one, but add the reaction on the DoF 
+    /** Constructor. This constructor takes the same input
+    as the previous one, but add the reaction on the DoF
     declaration
 
 
@@ -183,6 +187,13 @@ public:
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
+            << "The Dof-Variable " << rThisVariable.Name() << " is not "
+            << "in the list of variables" << std::endl;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisReaction))
+            << "The Reaction-Variable " << rThisReaction.Name() << " is not "
+            << "in the list of variables" << std::endl;
     }
 
     //This default constructor is needed for pointer vector set
@@ -585,7 +596,6 @@ private:
      */
     const VariableData* mpReaction;
 
-
     int mVariableType;
 
     int mReactionType;
@@ -607,7 +617,7 @@ private:
         {
             KRATOS_DOF_TRAITS
         }
-        KRATOS_THROW_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
+        KRATOS_ERROR << "Not supported type for Dof" << std::endl;
     }
 
     TDataType const& GetReference(VariableData const& ThisVariable, VariablesListDataValueContainer const& rData, IndexType SolutionStepIndex, int ThisId) const
@@ -616,9 +626,8 @@ private:
         {
             KRATOS_DOF_TRAITS
         }
-        KRATOS_THROW_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
+        KRATOS_ERROR << "Not supported type for Dof" << std::endl;
     }
-
 
     ///@}
     ///@name Serialization
@@ -782,7 +791,7 @@ inline bool operator == ( Dof<TDataType> const& First,
 #undef KRATOS_END_DOF_TRAIT
 
 
-#endif // KRATOS_DOF_H_INCLUDED  defined 
+#endif // KRATOS_DOF_H_INCLUDED  defined
 
 
 

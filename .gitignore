@@ -50,6 +50,12 @@ kratos/includes/kratos_version.h
 *.a
 *.lib
 
+# GiD post files
+*.post.res
+*.post.msh
+*.post.bin
+*.post.lst
+
 # Output of tests of meshing application (MMG)
 *.sol
 *.mesh

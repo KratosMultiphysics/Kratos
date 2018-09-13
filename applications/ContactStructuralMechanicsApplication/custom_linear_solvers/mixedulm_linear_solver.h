@@ -163,10 +163,10 @@ public:
      */
 
     MixedULMLinearSolver(
-            LinearSolverPointerType pSolverDispBlock,
-            Parameters ThisParameters =  Parameters(R"({})")
-            ): BaseType (),
-               mpSolverDispBlock(pSolverDispBlock)
+        LinearSolverPointerType pSolverDispBlock,
+        Parameters ThisParameters =  Parameters(R"({})")
+        ): BaseType (),
+            mpSolverDispBlock(pSolverDispBlock)
 
     {
         KRATOS_TRY
@@ -178,6 +178,7 @@ public:
         // Initializing the remaining variables
         this->SetTolerance( ThisParameters["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( ThisParameters["max_iteration_number"].GetInt() );
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
         mBlocksAreAllocated = false;
         mIsInitialized = false;
 
@@ -387,6 +388,25 @@ public:
         this->PerformSolutionStep (rA,rX,rB);
 
         this->FinalizeSolutionStep (rA,rX,rB);
+
+        // We print the resulting system (if needed)
+        if (mEchoLevel == 2) { //if it is needed to print the debug info
+            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
+        } else if (mEchoLevel == 3) { //if it is needed to print the debug info
+            KRATOS_INFO("LHS") << "SystemMatrix = " << mKDispModified << std::endl;
+            KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
+            KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
+        } else if (mEchoLevel == 4) { //print to matrix market file
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << mFileCreated << ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mKDispModified, false);
+
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << mFileCreated << ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mResidualDisp);
+            mFileCreated++;
+        }
 
         return false;
     }
@@ -1234,6 +1254,9 @@ private:
     VectorType mLMInactive;         /// The solution of the inactive lagrange multiplies
     VectorType mDisp;               /// The solution of the rest of displacements
 
+    IndexType mEchoLevel = 0;       /// The echo level of the solver
+    IndexType mFileCreated = 0;     /// The index used to identify the file created
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -1938,9 +1961,10 @@ private:
     {
         Parameters default_parameters( R"(
         {
-            "solver_type": "mixed_ulm_linear_solver",
-            "tolerance" : 1.0e-6,
-            "max_iteration_number" : 200
+            "solver_type"          : "mixed_ulm_linear_solver",
+            "tolerance"            : 1.0e-6,
+            "max_iteration_number" : 200,
+            "echo_level"           : 0
         }  )" );
 
         return default_parameters;

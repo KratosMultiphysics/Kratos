@@ -41,6 +41,8 @@ from shape_optimization_test_factory import opt_process_eigenfrequency_test as o
 from shape_optimization_test_factory import opt_process_weighted_eigenfrequency_test as opt_process_weighted_eigenfrequency_test
 from shape_optimization_test_factory import algorithm_steepest_descent_test as algorithm_steepest_descent_test
 from shape_optimization_test_factory import algorithm_penalized_projection_test as algorithm_penalized_projection_test
+from shape_optimization_test_factory import algorithm_trust_region_test as algorithm_trust_region_test
+from shape_optimization_test_factory import trust_region_projector_test as trust_region_projector_test
 
 # Niglty tests
 
@@ -49,7 +51,7 @@ from shape_optimization_test_factory import algorithm_penalized_projection_test 
 # ==============================================================================
 # Test assembly
 # ==============================================================================
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -74,6 +76,8 @@ def AssambleTestSuites():
         smallSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
     smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
     smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))
+    smallSuite.addTest(algorithm_trust_region_test('test_execution'))
+    smallSuite.addTest(trust_region_projector_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
@@ -96,6 +100,6 @@ def AssambleTestSuites():
 # Main
 # ==============================================================================
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
 
 # ==============================================================================

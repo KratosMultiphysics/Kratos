@@ -1,7 +1,7 @@
 # import Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
+import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -13,7 +13,7 @@ from SmallTests import Pfem2PrimitiveVariables as TPfem2PrimitiveVariables
 
 ## VALIDATION TESTS
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
@@ -46,4 +46,6 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    run_cpp_unit_tests.run()
+    KratosUnittest.runTests(AssembleTestSuites())
+    

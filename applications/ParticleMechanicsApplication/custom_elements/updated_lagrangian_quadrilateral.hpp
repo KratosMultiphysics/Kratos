@@ -112,6 +112,7 @@ protected:
         Matrix  F;
         Matrix  FT;
         Matrix  F0;
+        Matrix  F0Inverse;
         Matrix  DN_DX;
         Matrix  DN_De;
         Matrix  ConstitutiveMatrix;
@@ -409,7 +410,6 @@ public:
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-    void IterativeExtrapolation(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
@@ -604,6 +604,9 @@ protected:
      * Container for the total deformation gradient determinants
      */
     double mDeterminantF0;
+    /* Container for inverse of total deformation gradient
+     */
+    Matrix mInverseDeformationGradientF0;
     /**
      * Container for historical inverse of Jacobian at reference configuration invJ0
      */
@@ -702,6 +705,13 @@ protected:
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
+                                     ConstitutiveLaw::Parameters& rValues);
+
+
+    /**
+     * Update Variables of the Element to the Parameters of the Constitutive Law if needed
+     */
+    virtual void UpdateGeneralVariables(GeneralVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues);
 
 
@@ -831,7 +841,7 @@ protected:
     /**
      * Calculate local coordinated of a given point in 3 dimension
      */
-    virtual Vector& MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint);
+    // virtual Vector& MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint);
 
     /**
      * Calculation of the Volume Change of the Element
