@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
-//                    
+//  Main authors:    Vicente Mataix Ferrandiz
+//
 //
 
 #if !defined(KRATOS_DISPLACEMENT_AND_OTHER_DOF_CRITERIA )
@@ -141,7 +141,7 @@ public:
      * @param b RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-    
+
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -157,12 +157,12 @@ public:
 
             const std::size_t SizeDx = SparseSpaceType::Size(Dx);
             const std::size_t SizeDisp = CalculateDeltaxNorm(rDofSet, Dx, DeltaDisplacenentNorm, DeltaOtherDoFNorm);
-            
+
             TDataType RatioDisplacement = 0.0;
             TDataType RatioOtherDoF     = 0.0;
 
             CalculateReferenceNorm(rDofSet);
-            
+
             if(DeltaDisplacenentNorm == 0)
             {
                 RatioDisplacement = 0.0;
@@ -173,10 +173,10 @@ public:
                 {
                     KRATOS_ERROR << "NaN norm is detected" << std::endl;
                 }
-                
+
                 RatioDisplacement = DeltaDisplacenentNorm/mReferenceDispNorm;
             }
-            
+
             if(DeltaOtherDoFNorm == 0)
             {
                 RatioOtherDoF = 0.0;
@@ -187,10 +187,10 @@ public:
                 {
                     KRATOS_ERROR << "NaN norm is detected" << std::endl;
                 }
-                
+
                 RatioOtherDoF = DeltaOtherDoFNorm/mReferenceOtherDoFNorm;
             }
-            
+
             const TDataType AbsoluteDisplacementNorm = (DeltaDisplacenentNorm/std::sqrt(static_cast<TDataType>(SizeDisp)));
             const TDataType AbsoluteOtherDoFNorm     = (DeltaOtherDoFNorm/std::sqrt(static_cast<TDataType>(SizeDx - SizeDisp)));
 
@@ -227,7 +227,7 @@ public:
      * This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the contact problem. (unused)
      */
-        
+
     void Initialize(
         ModelPart& rModelPart
     ) override
@@ -243,7 +243,7 @@ public:
      * @param Dx Vector of results (variations on nodal variables)
      * @param b RHS vector (residual)
      */
-        
+
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -252,7 +252,7 @@ public:
         const TSystemVectorType& b
     ) override
     {
-        
+
     }
 
     /**
@@ -263,7 +263,7 @@ public:
      * @param Dx Vector of results (variations on nodal variables)
      * @param b RHS vector (residual)
      */
-    
+
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -343,9 +343,9 @@ private:
     ///@{
 
     std::string mOtherDoFName;        // The name of the other DoF
-    
+
     TDataType mRatioTolerance;        // The tolerance admited in the ratio
-    TDataType mAbsoluteTolerance;     // The tolerance admited in the absolutte value 
+    TDataType mAbsoluteTolerance;     // The tolerance admited in the absolutte value
 
     TDataType mReferenceDispNorm;     // The norm of reference for the displacement
     TDataType mReferenceOtherDoFNorm; // The norm of reference for the other DoF
@@ -358,7 +358,7 @@ private:
      * This function calculates the reference norm
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      */
-        
+
     void CalculateReferenceNorm(DofsArrayType& rDofSet)
     {
         mReferenceDispNorm     = TDataType();
@@ -380,20 +380,20 @@ private:
                 }
             }
         }
-        
+
         mReferenceDispNorm     = std::sqrt(mReferenceDispNorm);
         mReferenceOtherDoFNorm = std::sqrt(mReferenceOtherDoFNorm);
     }
 
     /**
-     * This function 
+     * This function
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param Dx Vector of results (variations on nodal variables)
      * @param DeltaDisplacenentNorm: The norm of the concerning part to increment of displacement
      * @param DeltaOtherDoFNorm: The norm of the concerning part to the increment of other Dof
      * @return SizeDeltaDisp: The number of components concerning to the displacement
      */
-    
+
     std::size_t CalculateDeltaxNorm(
         DofsArrayType& rDofSet,
         const TSystemVectorType& Dx,
@@ -402,13 +402,13 @@ private:
         )
     {
         std::size_t SizeDeltaDisp = 0;
-        
+
         TDataType AuxValue;
 
         for(typename DofsArrayType::iterator itDof = rDofSet.begin() ; itDof != rDofSet.end() ; ++itDof)
         {
             std::size_t DofId;
-            
+
             if(itDof->IsFree())
             {
                 DofId = itDof->EquationId();
@@ -424,10 +424,10 @@ private:
                 }
             }
         }
-        
+
         DeltaDisplacenentNorm = std::sqrt(DeltaDisplacenentNorm);
         DeltaOtherDoFNorm     = std::sqrt(DeltaOtherDoFNorm);
-        
+
         return SizeDeltaDisp;
     }
 

@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
 // System includes
@@ -92,10 +92,40 @@ bool HenckyElasticPlastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 
 double& HenckyElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
+    if (rThisVariable==DELTA_PLASTIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticStrain;
+    }
+    
     if (rThisVariable==PLASTIC_STRAIN)
     {
         const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.EquivalentPlasticStrain;
+    }
+
+    if (rThisVariable==MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticVolumetricStrain;
+    }
+
+    if (rThisVariable==MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.AccumulatedPlasticVolumetricStrain;
+    }
+
+    if (rThisVariable==MP_DELTA_PLASTIC_DEVIATORIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticDeviatoricStrain;
+    }
+
+    if (rThisVariable==MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.AccumulatedPlasticDeviatoricStrain;
     }
 
     if (rThisVariable==MIU)
@@ -201,8 +231,8 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
     const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
 
-    const Matrix&   DeformationGradientF   = rValues.GetDeformationGradientF();
-    double DeterminantF                    = rValues.GetDeterminantF();
+    Matrix DeformationGradientF     = rValues.GetDeformationGradientF();
+    double DeterminantF             = rValues.GetDeterminantF();
 
     const GeometryType&  DomainGeometry    = rValues.GetElementGeometry ();
     const Vector&        ShapeFunctions    = rValues.GetShapeFunctionsValues ();
@@ -215,6 +245,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
+    PlasticMaterialResponseVariables PlasticVariables;
     ElasticVariables.Identity = identity_matrix<double> ( 3 );
 
     ElasticVariables.SetElementGeometry(DomainGeometry);
@@ -244,14 +275,19 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     ElasticVariables.CauchyGreenMatrix = prod(mElasticLeftCauchyGreen,trans(ElasticVariables.DeformationGradientF));
     ElasticVariables.CauchyGreenMatrix = prod(ElasticVariables.DeformationGradientF,ElasticVariables.CauchyGreenMatrix);
 
-    //4.-Almansi Strain:
+    //4.-Compute the inverse of trial left stretch tensor V
+    this->CalculateLeftStretchTensor(PlasticVariables.TrialLeftStretchTensor, ElasticVariables.CauchyGreenMatrix);
+    double detV = MathUtils<double>::Det(PlasticVariables.TrialLeftStretchTensor);
+    MathUtils<double>::InvertMatrix( PlasticVariables.TrialLeftStretchTensor, PlasticVariables.InverseTrialLeftStretchTensor, detV);
+
+    //5.-Almansi Strain:
     if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         // Almansi Strain -- E = 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix, StrainVector);
     }
 
-    //5.-Calculate Total Kirchhoff stress
+    //6.-Calculate Total Kirchhoff stress
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
@@ -282,7 +318,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         mPlasticRegion = 0;
         if( ReturnMappingVariables.Options.Is(MPMFlowRule::PLASTIC_REGION) )
         {
-            mPlasticRegion = 1;
+            mPlasticRegion = mpMPMFlowRule->GetPlasticRegion();
         }
         
         this->CorrectDomainPressure( StressMatrix, ElasticVariables);
@@ -298,21 +334,29 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         this->CalculateElastoPlasticTangentMatrix( ReturnMappingVariables, ElasticVariables.CauchyGreenMatrix, alfa, AuxConstitutiveMatrix, ElasticVariables);
         ConstitutiveMatrix = this->SetConstitutiveMatrixToAppropiateDimension(ConstitutiveMatrix, AuxConstitutiveMatrix);
 
-        // Update Determinant of Deformation Gradient F
-        DeterminantF        = std::sqrt(MathUtils<double>::Det(mpMPMFlowRule->GetElasticLeftCauchyGreen(ReturnMappingVariables)));
-        rValues.SetDeterminantF(DeterminantF);
     }
 
+    //7.-Update the variables at the end of iteration
     if( Options.Is( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ) )
     {
-        mpMPMFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
+         mpMPMFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
         
+        // Update final left cauchy green B_(n+1)
         mElasticLeftCauchyGreen = mpMPMFlowRule->GetElasticLeftCauchyGreen(ReturnMappingVariables);
 
+        // Copying the update DeformationGradientF to elasticVariables
         ElasticVariables.DeformationGradientF = DeformationGradientF;
         ElasticVariables.DeformationGradientF = Transform2DTo3D(ElasticVariables.DeformationGradientF);
+        
+        // Update DeterminantF0
+        mDeterminantF0 = DeterminantF;
+
+        // Compute Inverse
         MathUtils<double>::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
-        mDeterminantF0 = DeterminantF; //special treatment of the determinant
+    }
+    else{
+        // Update necessary kinematics variable after return mapping
+        this->CorrectKinematics( PlasticVariables, rValues, ReturnMappingVariables, DeterminantF, DeformationGradientF);
     }
 
 }
@@ -320,46 +364,38 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 void HenckyElasticPlastic3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues, 
     const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
-    Vector MainStrain      = ZeroVector(3);
-    const Properties& MaterialProperties   = rValues.GetMaterialProperties();
 
-    for (unsigned int i = 0; i<3; ++i)
-    {
-        MainStrain[i] = rNewElasticLeftCauchyGreen(i,i);
-    }
+    mpMPMFlowRule->CalculatePrincipalStressTrial(rReturnMappingVariables, rNewElasticLeftCauchyGreen, rStressMatrix);
 
-    // Calculate the elastic matrix
-    Matrix ElasticMatrix = ZeroMatrix(3,3);
-    const double& Young     = MaterialProperties[YOUNG_MODULUS];
-    const double& Nu        = MaterialProperties[POISSON_RATIO];
-    const double diagonal   = Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
-    const double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);
-
-    for (unsigned int i = 0; i<3; ++i)
-    {
-        for (unsigned int j = 0; j<3; ++j)
-        {
-            if (i == j)
-            {
-                ElasticMatrix(i,i) = diagonal;
-            }
-            else
-            {
-                ElasticMatrix(i,j) = nodiagonal;
-            }
-        }
-    }
-
-    Vector PrincipalStress = ZeroVector(3);
-
-    // Evalute the Kirchhoff principal stress
-    PrincipalStress = prod(ElasticMatrix, MainStrain);
-
-    for(unsigned int i=0; i<3; i++)
-    {
-        rStressMatrix(i,i) = PrincipalStress(i);
-    }
 }
+
+//************************************************************************************
+//************************************************************************************
+
+void HenckyElasticPlastic3DLaw::CalculateLeftStretchTensor(Matrix& rLeftStretchTensor, const Matrix& rCauchyGreenMatrix)
+{
+    rLeftStretchTensor = identity_matrix<double> (3);
+
+    Matrix EigenVectors  = ZeroMatrix(3,3);
+    Vector EigenValues   = ZeroVector(3);
+    Matrix SquaredEigenValuesMatrix = ZeroMatrix(3,3);
+
+    double tol = 1e-9;
+    int iter = 100;
+
+    SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, EigenVectors, EigenValues, tol, iter);
+
+    // Squaring the Eigenvalue of B to obtain the Eigenvalue of V
+    for (int i = 0; i < 3; i++)
+        SquaredEigenValuesMatrix(i,i) = std::sqrt(EigenValues(i));
+
+    noalias(rLeftStretchTensor) = prod(SquaredEigenValuesMatrix,EigenVectors);
+    rLeftStretchTensor = prod(trans(EigenVectors),rLeftStretchTensor);
+
+}
+
+//************************************************************************************
+//************************************************************************************
 
 void HenckyElasticPlastic3DLaw::GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables)
 {
@@ -374,11 +410,44 @@ void HenckyElasticPlastic3DLaw::GetDomainPressure( double& rPressure, const Mate
         rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(PRESSURE); 
     }
 }
+//************************************************************************************
+//************************************************************************************
 
 void HenckyElasticPlastic3DLaw::CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables & rElasticVariables)
 {
 
 }
+
+//************************************************************************************
+//************************************************************************************
+
+void HenckyElasticPlastic3DLaw::CorrectKinematics(const PlasticMaterialResponseVariables& rPlasticVariables, Parameters & rValues, MPMFlowRule::RadialReturnVariables rReturnMappingVariables, double& rDeterminantF, Matrix& rDeformationGradientF )
+{
+    // Update Elastic Left Cuachy Green B^e_(k+1) 
+    Matrix ElasticLeftCauchyGreen = mpMPMFlowRule->GetElasticLeftCauchyGreen(rReturnMappingVariables);
+
+    // Compute left stretch tensor V^e_(k+1) 
+    Matrix LeftStretchTensor;
+    this->CalculateLeftStretchTensor(LeftStretchTensor, ElasticLeftCauchyGreen);
+
+    // Update Deformation Gradient F^e_(k+1) = V^e_(k+1) R^e_(k+1)
+    rDeformationGradientF = Transform2DTo3D(rDeformationGradientF);
+    rDeformationGradientF = prod(rPlasticVariables.InverseTrialLeftStretchTensor, rDeformationGradientF);
+    rDeformationGradientF = prod(LeftStretchTensor, rDeformationGradientF);
+    rDeformationGradientF = this->SetMatrixToAppropriateDimension(rDeformationGradientF);
+
+    // Update Determinant of Deformation Gradient F
+    rDeterminantF        = MathUtils<double>::Det(rDeformationGradientF);
+
+    // Set Deformation Gradient and Determinant
+    rValues.SetDeformationGradientF(rDeformationGradientF);
+    rValues.SetDeterminantF(rDeterminantF);
+
+    KRATOS_ERROR_IF(rDeterminantF <= 0) << "HenckyElasticPlastic3DLaw::CorrectKinematics:: Updated DetF <= 0! " << rDeterminantF << std::endl;
+
+}
+//************************************************************************************
+//************************************************************************************
 
 void HenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
 {
@@ -387,6 +456,18 @@ void HenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFl
 
 //************************************************************************************
 //************************************************************************************
+
+Matrix HenckyElasticPlastic3DLaw::SetMatrixToAppropriateDimension(Matrix& rMatrix){
+    if(rMatrix.size1() == 3){
+        return rMatrix;
+    }
+    else if (rMatrix.size1() == 2) { 
+        rMatrix = Transform2DTo3D(rMatrix); 
+        return rMatrix;
+    }
+    else KRATOS_ERROR << "Wrong size of input matrix:: Conversion is unknown!" << std::endl;
+}
+
 Vector HenckyElasticPlastic3DLaw::SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix )
 {
     rStressVector(0) = rStressMatrix(0,0);
@@ -582,7 +663,7 @@ void HenckyElasticPlastic3DLaw::CalculateHenckyMainStrain(const Matrix& rCauchyG
 {
     Matrix EigenVectors  = ZeroMatrix(3,3);
     Vector EigenValues   = ZeroVector(3);
-    Vector EigenValues2   = ZeroVector(3);
+
     double tol = 1e-9;
     int iter = 100;
 
@@ -627,23 +708,8 @@ int HenckyElasticPlastic3DLaw::Check(const Properties& rMaterialProperties,
                                      const ProcessInfo& rCurrentProcessInfo)
 {
 
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-    {
-        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
-    }
-
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
-
-    if(POISSON_RATIO.Key() == 0 || check==true)
-    {
-        KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value " << std::endl;
-    }
-
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
-    {
-        KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
-    }
+    // Verify Positive Density
+    KRATOS_ERROR_IF(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00) << "DENSITY has Key zero or invalid value " << std::endl;
 
     return 0;
 }

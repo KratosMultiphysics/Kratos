@@ -64,7 +64,7 @@ public:
     SmallDisplacementBeamElement(SmallDisplacementBeamElement const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementBeamElement();
+    ~SmallDisplacementBeamElement() override;
 
 
     ///@}
@@ -102,7 +102,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Small Displacement Beam Element #" << Id();
@@ -110,13 +110,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Small Displacement Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -146,12 +146,12 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataType& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
     /**
@@ -163,13 +163,13 @@ protected:
     /**
      * Calculate Element Constitutive Matrix
      */
-    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
+    void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
 
      /**
      * Calculate Element Stress Resultants and Couples
      */
-    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
+    void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
     /**
      * Calculation of the Rotation tensor
@@ -180,12 +180,12 @@ protected:
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */
-    virtual void MapLocalToGlobal(ElementDataType& rVariables, Matrix& rVariable) override;
+    void MapLocalToGlobal(ElementDataType& rVariables, Matrix& rVariable) override;
 
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */
-    virtual void MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector) override;
+    void MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector) override;
 
 
 
@@ -193,7 +193,7 @@ protected:
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
      */
 
-    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                                      ElementDataType& rVariables,
                                      double& rIntegrationWeight) override;
 
@@ -207,7 +207,7 @@ protected:
      /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+    void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
 					       ElementDataType & rVariables,
 					       double& rIntegrationWeight) override;
 
@@ -249,12 +249,12 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }

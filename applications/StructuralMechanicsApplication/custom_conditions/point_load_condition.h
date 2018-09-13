@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -63,15 +63,15 @@ public:
     ///@{
 
     /// Default constructor.
-    PointLoadCondition( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry 
+    PointLoadCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
         );
-    
-    PointLoadCondition( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry,  
-        PropertiesType::Pointer pProperties 
+
+    PointLoadCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
@@ -85,24 +85,24 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-    
-    Condition::Pointer Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes,  
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const override;
 
     /**
      * Check if Rotational Dof existant
      */
     bool HasRotDof() override {return false;};
-        
+
     ///@}
     ///@name Access
     ///@{
@@ -161,19 +161,19 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    void CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, 
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        bool CalculateResidualVectorFlag
         ) override;
-        
+
     /**
-     * It calcules the integration load for the point load 
+     * It calcules the integration load for the point load
      */
     virtual double GetPointLoadIntegrationWeight();
-        
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -187,7 +187,7 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     // A protected default constructor necessary for serialization
     PointLoadCondition() {};
 
@@ -281,6 +281,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_LOAD_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_POINT_LOAD_CONDITION_H_INCLUDED  defined
 
 

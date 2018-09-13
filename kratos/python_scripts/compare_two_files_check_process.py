@@ -208,23 +208,30 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         lines_ref, lines_out = self.__GetFileLines()
 
         # assert headers are the same
-        self.__CompareDatFileHeader(lines_ref, lines_out)
+        lines_ref, lines_out = self.__CompareDatFileComments(lines_ref, lines_out)
 
         # assert values are equal up to given tolerance
         self.__CompareDatFileResults(lines_ref, lines_out)
 
-    def __CompareDatFileHeader(self, lines_ref, lines_out):
-        """This function compares the header of files with tabular data
+    def __CompareDatFileComments(self, lines_ref, lines_out):
+        """This function compares the comments of files with tabular data
         The lines starting with "#" are being compared
         These lines are removed from the list of lines
         """
-        while lines_ref[0].lstrip()[0] == '#' or lines_out[0].lstrip()[0] == '#':
-            self.assertTrue(lines_ref.pop(0) == lines_out.pop(0), msg = self.info_msg)
+        for line_ref, line_out in zip(lines_ref, lines_out):
+            if line_ref.lstrip()[0] == '#' or line_out.lstrip()[0] == '#':
+                self.assertTrue(line_ref == line_out, msg = self.info_msg)
+
+        lines_ref = [line for line in lines_ref if not(line.lstrip()[0] == '#')]
+        lines_out = [line for line in lines_out if not(line.lstrip()[0] == '#')]
+
+        return lines_ref, lines_out
 
     def __CompareDatFileResults(self, lines_ref, lines_out):
         """This function compares the data of files with tabular data
         The comment lines were removed beforehand
         """
+
         for line_ref, line_out in zip(lines_ref, lines_out):
             for v1, v2 in zip(line_ref.split(), line_out.split()):
                 self.assertAlmostEqual(float(v1),
@@ -287,11 +294,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 end_line = "  \n"
 
             if (lines_ref[i][0] == " "):
-                lines_ref[i] = lines_ref[i][1:]
+                tmp1 = ConvertStringToListFloat(lines_ref[i][1:], space, end_line)
+            else:
+                tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
             if (lines_out[i][0] == " "):
-                lines_ref[i][0] = lines_out[i][1:]
-            tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
-            tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
+                tmp2 = ConvertStringToListFloat(lines_out[i][1:], space, end_line)
+            else:
+                tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
             if (self.dimension == 2):
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
@@ -308,7 +317,8 @@ def ConvertStringToListFloat(line, space = " ", endline = ""):
     list_values = []
     string_values = (line.replace(endline,"")).split(space)
     for string in string_values:
-        list_values.append(float(string))
+        if (string != ""):
+            list_values.append(float(string))
 
     return list_values
 

@@ -834,7 +834,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, CoordinatesArrayType& rPoint )
     {
-        rResult.resize( 3, 1 );
+        rResult.resize( 3, 1, false);
         noalias( rResult ) = ZeroMatrix( 3, 1 );
 
         rResult( 0, 0 ) = rPoint[0] - 0.5;

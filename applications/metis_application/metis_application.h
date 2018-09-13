@@ -76,7 +76,7 @@ public:
     KratosMetisApplication();
 
     /// Destructor.
-    virtual ~KratosMetisApplication() {}
+    ~KratosMetisApplication() override {}
 
 
     ///@}

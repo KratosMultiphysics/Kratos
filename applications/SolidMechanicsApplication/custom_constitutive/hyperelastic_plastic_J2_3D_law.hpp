@@ -83,7 +83,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlasticJ23DLaw();
+    ~HyperElasticPlasticJ23DLaw() override;
 
     /**
      * Operators

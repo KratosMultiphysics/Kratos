@@ -20,7 +20,7 @@ namespace Kratos
 {
 
 AdjointFiniteDifferenceCrBeamElement::AdjointFiniteDifferenceCrBeamElement(Element::Pointer pPrimalElement)
-    : AdjointFiniteDifferencingBaseElement(pPrimalElement)
+    : AdjointFiniteDifferencingBaseElement(pPrimalElement, true)
 {
 }
 
@@ -82,9 +82,9 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rV
         }
 
         if(stress_is_moment)
-            mpPrimalElement->GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
+            mpPrimalElement->CalculateOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
         else
-            mpPrimalElement->GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
+            mpPrimalElement->CalculateOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
 
         if(rVariable == STRESS_ON_GP)
         {
@@ -115,6 +115,8 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rV
 int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    int return_value = AdjointFiniteDifferencingBaseElement::Check(rCurrentProcessInfo);
 
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
@@ -168,25 +170,7 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
     KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
     << "I33 not provided for this element" << this->Id() << std::endl;
 
-    return 0;
-
-    KRATOS_CATCH("")
-}
-
-double AdjointFiniteDifferenceCrBeamElement::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if(rDesignVariable == SHAPE)
-    {
-        double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-        double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-        double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-        double L = std::sqrt(dx*dx + dy*dy + dz*dz);
-        return L;
-    }
-    else
-        return 1.0;
+    return return_value;
 
     KRATOS_CATCH("")
 }
