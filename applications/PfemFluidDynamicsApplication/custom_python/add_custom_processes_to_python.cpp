@@ -30,6 +30,7 @@
 #include "custom_processes/inlet_management_process.hpp"
 #include "custom_processes/set_inlet_process.hpp"
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
+#include "custom_processes/model_start_end_meshing_with_conditions_for_fluids_process.hpp"
 #include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
 #include "custom_processes/set_active_flag_mesher_process.hpp"
@@ -37,6 +38,7 @@
 #include "custom_processes/transfer_model_part_elements_process.hpp"
 #include "custom_processes/build_mesh_boundary_for_fluids_process.hpp"
 #include "custom_processes/build_model_part_boundary_for_fluids_process.hpp"
+#include "custom_processes/generate_new_conditions_mesher_for_fluids_process.hpp"
 
 //Processes
 
@@ -98,6 +100,10 @@ namespace Kratos
       	(m, "AdaptiveTimeIntervalProcess")
 	.def(init<ModelPart&, int>());
 
+     class_<ModelStartEndMeshingWithConditionsForFluidsProcess, ModelStartEndMeshingWithConditionsForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>
+       (m, "ModelMeshingWithConditionsForFluids")
+       .def(init<ModelPart&, Flags, int>());
+
      class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>
        (m, "ModelMeshingForFluids")
        .def(init<ModelPart&, Flags, int>());
@@ -118,6 +124,12 @@ namespace Kratos
 	  .def(init<ModelPart&, ModelPart&>())
         .def("Execute", &TransferModelPartElementsProcess::Execute)
       	;
+
+        class_<GenerateNewConditionsMesherForFluidsProcess, GenerateNewConditionsMesherForFluidsProcess::Pointer, BuildModelPartBoundaryProcess>
+      (m,"GenerateNewConditionsForFluids")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      ;
+
 
 
     }
