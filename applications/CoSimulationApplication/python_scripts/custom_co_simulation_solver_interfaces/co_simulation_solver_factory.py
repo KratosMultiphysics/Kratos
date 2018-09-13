@@ -22,8 +22,6 @@ def CreateSolverInterface(settings):
     solver_type = settings["solver_type"]
 
     if solver_type in available_solver_interfaces:
-        solvers_module_name = "custom_co_simulation_solver_interfaces"
-        __import__(solvers_module_name)
         solver_module = __import__(available_solver_interfaces[solver_type])
         return solver_module.Create(settings)
     else:
