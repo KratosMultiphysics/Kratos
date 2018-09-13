@@ -621,13 +621,12 @@ public:
     {
         const SizeType size = rValue.size();
 
-//         nlohmann::json j_array(nlohmann::json::value_t::array);
-//         j_array.reserve(size);
-//         (*mpValue) = j_array;
-//
-//         for (IndexType i = 0; i < size; ++i) {
-//             mpValue->push_back(rValue[i]);
-//         }
+        nlohmann::json j_array(0.0, size);
+        (*mpValue) = j_array;
+
+        for (IndexType i = 0; i < size; ++i) {
+            mpValue[i] = rValue[i];
+        }
     }
 
     /**
@@ -639,22 +638,17 @@ public:
         const SizeType nrows = rValue.size1();
         const SizeType ncols = rValue.size2();
 
-//         nlohmann::json j_row_array(nlohmann::json::value_t::array);
-//         j_row_array.reserve(nrows);
-//         (*mpValue) = j_row_array;
-//
-//         for (IndexType i = 0; i < nrows; ++i) {
-//             mpValue->push_back(0); // Pushing back a default
-//                                                          // element to allocate memory
-//             nlohmann::json j_col_array(nlohmann::json::value_t::array); // change that default element to an array
-//             j_col_array.reserve(size);
-//             (*mpValue)[i] = j_col_array;
-//             (*mpValue)[i].reserve(ncols);
-//
-//             for (IndexType j = 0; j < ncols; ++j) {
-//                 (*mpValue)[i].push_back(rValue(i, j));
-//             }
-//         }
+        nlohmann::json j_col_array(0.0, ncols);
+        nlohmann::json j_row_array(0.0, nrows);
+        (*mpValue) = j_row_array;
+
+        for (IndexType i = 0; i < nrows; ++i) {
+            (*mpValue)[i] = j_col_array;
+
+            for (IndexType j = 0; j < ncols; ++j) {
+                (*mpValue)[i][j] = rValue(i, j);
+            }
+        }
     }
 
     /**
@@ -823,7 +817,15 @@ public:
     void Append(const Vector& rValue)
     {
         KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
-        // TODO: Implement this
+        const SizeType size = rValue.size();
+
+        nlohmann::json j_array(0.0, size);
+
+        for (IndexType i = 0; i < size; ++i) {
+            j_array = rValue[i];
+        }
+
+        mpValue->push_back(j_array);
     }
 
     /**
@@ -833,7 +835,21 @@ public:
     void Append(const Matrix& rValue)
     {
         KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
-        // TODO: Implement this
+        const SizeType nrows = rValue.size1();
+        const SizeType ncols = rValue.size2();
+
+        nlohmann::json j_col_array(0.0, ncols);
+        nlohmann::json j_row_array(0.0, nrows);
+
+        for (IndexType i = 0; i < nrows; ++i) {
+            for (IndexType j = 0; j < ncols; ++j) {
+                j_col_array[j] = rValue(i, j);
+            }
+
+            j_row_array[i] = j_col_array;
+        }
+
+        mpValue->push_back(j_row_array);
     }
 
     /**
