@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "solid_cantilever",
-        "time_step"       : 1.0,
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
@@ -13,6 +12,9 @@
         "echo_level"                         : 0,
         "model_part_name" : "solid_cantilever",
         "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.0
+        },
         "model_import_settings"              : {
             "input_type"     : "use_input_model_part",
             "input_filename" : "solid_cantilever"
