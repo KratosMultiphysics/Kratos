@@ -136,41 +136,35 @@ void HydrostaticLoadCondition::CalculateAndSubKpVolume(
     const SizeType number_of_nodes = geom.size();
     Matrix Kij(3, 3);
     double coeff;
+    unsigned int number_of_common_elements;
 
     /// Tangent stiffness accounting for change in pressure due to deformation.
 
-    for (unsigned int m = 0; m < number_of_nodes; m++)
+    for (IndexType m = 0; m < number_of_nodes; m++)
     {
 
-        const unsigned int RowIndex = m * 3;
+        const IndexType RowIndex = m * 3;
         nodal_normal_m = geom[m].FastGetSolutionStepValue(NORMAL);
         const SizeType nr_elems_m = geom[m].GetValue(NEIGHBOUR_ELEMENTS).size();
+
         if (nr_elems_m < 1)
             KRATOS_ERROR << "Require neighbhoring element of node information. Check if the function FindNodalNeighboursProcess is called before" << std::endl;
 
-        for (unsigned int n = 0; n < number_of_nodes; n++)
+        for (IndexType n = 0; n < number_of_nodes; n++)
 
         {
 
-            const unsigned int ColIndex = n * 3;
+            const IndexType ColIndex = n * 3;
 
-            nodal_normal_n = GetGeometry()[n].FastGetSolutionStepValue(NORMAL);
+            nodal_normal_n = geom[n].FastGetSolutionStepValue(NORMAL);
 
             DyadicProduct(Kij, nodal_normal_m, nodal_normal_n);
+
             coeff = -rSpecificWeight / rIntersectedArea;
 
-            if (m == n)
-            {
-                coeff /= nr_elems_m;
-            }
+            number_of_common_elements = NumberOfCommonElements(geom[m], geom[n]);
 
-            else if (HasTwoElementsCommon(geom[m], geom[n]))
-            {
-                /*                 std::cout << "Node " << geom[m].Id() << " shares two elements with "
-                          << " Node " << geom[n].Id() << std::endl; */
-
-                coeff /= 2;
-            }
+            coeff /= number_of_common_elements;
 
             Kij *= coeff;
 
@@ -210,7 +204,7 @@ void HydrostaticLoadCondition::DyadicProduct(Matrix &M, const array_1d<double, 3
 //***********************************************************************************
 //***********************************************************************************
 
-bool HydrostaticLoadCondition::HasTwoElementsCommon(NodeType &rNodeM, NodeType &rNodeN)
+unsigned int HydrostaticLoadCondition::NumberOfCommonElements(NodeType &rNodeM, NodeType &rNodeN)
 
 {
 
@@ -221,7 +215,6 @@ bool HydrostaticLoadCondition::HasTwoElementsCommon(NodeType &rNodeM, NodeType &
     std::vector<unsigned int> element_1_ids;
     std::vector<unsigned int> element_2_ids;
     std::vector<unsigned int> element_ids;
-    bool has_two_elements_common = false;
 
     for (IndexType i = 0; i < size_m; ++i)
     {
@@ -239,13 +232,7 @@ bool HydrostaticLoadCondition::HasTwoElementsCommon(NodeType &rNodeM, NodeType &
 
     std::set_intersection(element_1_ids.begin(), element_1_ids.end(), element_2_ids.begin(), element_2_ids.end(), std::back_inserter(element_ids));
 
-    if (!(element_ids.empty()))
-    {
-        if (element_ids.size() > 1)
-            has_two_elements_common = true;
-    }
-
-    return has_two_elements_common;
+    return element_ids.size();
 }
 
 //***********************************************************************************
@@ -367,9 +354,6 @@ void HydrostaticLoadCondition::CalculateAll(
     array_1d<double, 3> normal;
     MathUtils<double>::UnitCrossProduct(normal, gn, ge); // Should it be UnitCrossProduct(ge,gn)??
 
-    ///const double intersected_area = rCurrentProcessInfo.GetValue(FREE_SURFACE_AREA); 
-    //array_1d<double, 3> w = rCurrentProcessInfo.GetValue(FREE_SURFACE_NORMAL);
-  
     const double intersected_area = pGetProperties()->GetValue(FREE_SURFACE_AREA);
     array_1d<double, 3> w = pGetProperties()->GetValue(FREE_SURFACE_NORMAL);
     double norm_w = norm_2(w);
@@ -382,7 +366,7 @@ void HydrostaticLoadCondition::CalculateAll(
     Vector height_on_nodes(number_of_nodes, 0.0);
     Vector specific_wt_on_nodes(number_of_nodes, 0.0);
     Vector pressure_on_nodes(number_of_nodes, 0.0);
-    //double specific_wt = rCurrentProcessInfo.GetValue(SPECIFIC_WEIGHT);
+
     double specific_wt = pGetProperties()->GetValue(SPECIFIC_WEIGHT);
     for (IndexType i = 0; i < height_on_nodes.size(); ++i)
     {
@@ -394,7 +378,7 @@ void HydrostaticLoadCondition::CalculateAll(
         }
     }
 
-     if (CalculateStiffnessMatrixFlag == true)
+    if (CalculateStiffnessMatrixFlag == true)
     {
 
         if (fabs(intersected_area) > std::numeric_limits<double>::epsilon())
@@ -402,7 +386,7 @@ void HydrostaticLoadCondition::CalculateAll(
 
             CalculateAndSubKpVolume(rLeftHandSideMatrix, specific_wt, intersected_area);
         }
-    } 
+    }
 
     if (is_split)
     {
@@ -497,10 +481,10 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
                 CalculateAndSubKp(rLeftHandSideMatrix, rGe, rGn, DN_De, N, pressure, integration_weight);
             }
 
-             if (fabs(specific_wt) > std::numeric_limits<double>::epsilon())
+            if (fabs(specific_wt) > std::numeric_limits<double>::epsilon())
             {
                 CalculateAndSubKpHydrostatic(rLeftHandSideMatrix, N, rNormal, specific_wt, rW, integration_weight);
-            } 
+            }
         }
 
         // RIGHT HAND SIDE VECTOR

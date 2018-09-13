@@ -21,7 +21,7 @@ class ApplyHydrostaticLoadProcess(KratosMultiphysics.Process):
                     "properties_id"                 : 0,
                     "main_model_part_name"               : "Structure",
                     "model_part_name"               : "SurfacePressure3D_hemisphere",
-                    "specific_weight"              : "200*t",
+                    "specific_weight"              : 200.0,
                     "interval"                      : [0.0, 1e30],
                     "local_axes"                    : {},
                     "fluid_volume"                  : 1.5,

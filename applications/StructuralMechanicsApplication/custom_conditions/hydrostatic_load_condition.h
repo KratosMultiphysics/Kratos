@@ -167,10 +167,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HydrostaticLoadCondition
                        const array_1d<double, 3> &U,
                        const array_1d<double, 3> &V);
 
-    bool HasTwoElementsCommon(NodeType &rNodeM,
-                              NodeType &rNodeN);
+    unsigned int NumberOfCommonElements(NodeType &rNodeM,
+                                        NodeType &rNodeN);
 
-/*      void IsNegativeOrSplit(
+    /*      void IsNegativeOrSplit(
         GeometryType &r_geom,
         bool &r_is_split,
         bool &r_is_negative);  */
