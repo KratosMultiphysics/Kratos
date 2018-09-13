@@ -35,6 +35,7 @@ class MultiscaleProcess(KratosMultiphysics.Process):
 
         self.model = Model
 
+        self.echo_level = self.settings['echo_level'].GetInt()
         self.current_subscale = self.settings['current_subscale'].GetInt()
         self.maximum_number_of_subscales = self.settings['maximum_number_of_subscales'].GetInt()
 
@@ -53,3 +54,13 @@ class MultiscaleProcess(KratosMultiphysics.Process):
 
         # Create the new subscale process
         self.subscales_utility = MeshingApplication.MultiScaleRefiningProcess(coarse_model_part, refined_model_part, self.settings["advanced_configuration"])
+        
+        if self.echo_level > 0:
+            print('The multiscale process is initialized')
+
+        if self.echo_level > 1:
+            print(self.model[self.coarse_model_part_name])
+            print(self.model[self.refined_model_part_name])
+
+    def ExecuteRefinement(self):
+        self.subscales_utility.ExecuteRefinement()

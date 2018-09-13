@@ -80,6 +80,7 @@ void MultiScaleRefiningProcess::Check()
 
     KRATOS_CHECK(KratosComponents<Element>::Has(mElementName));
     KRATOS_CHECK(KratosComponents<Condition>::Has(mConditionName));
+    KRATOS_CHECK(KratosComponents<Condition>::Has(mInterfaceConditionName));
 
     KRATOS_CHECK_NOT_EQUAL(mDivisionsAtSubscale, 0);
 
