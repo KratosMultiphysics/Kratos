@@ -39,8 +39,8 @@
 // Plastic, damage laws and viscosities
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/small_strain_isotropic_damage_factory.h"
-#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
-#include "custom_constitutive/viscous_generalized_kelvin_3d.h"
+#include "custom_constitutive/viscous_generalized_maxwell.h"
+#include "custom_constitutive/viscous_generalized_kelvin.h"
 #include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/generic_small_strain_isotropic_damage.h"

@@ -18,7 +18,7 @@
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
-#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
+#include "custom_constitutive/viscous_generalized_maxwell.h"
 #include "generic_small_strain_viscoplasticity_3d.h"
 
 namespace Kratos
